@@ -8,7 +8,7 @@ Ludium believes that the new world begs for a new system. For this, we develop a
 
 # System Architecture
 
-![Ludium Portal Architecture.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/229d1d94-7c1d-4208-9d32-50ab943893ae/e4a7d36f-7db8-4352-81e3-98668a9c9933/Ludium_Portal_Architecture.png)
+![Ludium Portal Architecture.png](https://github.com/Ludium-Official/ludium-portal/blob/main/Ludium%20Portal%20Architecture.png?raw=true)
 
 Ludium v2 is the system updated from the [**previous version**](https://github.com/Ludium-Official/ludium-world). There are four primary features
 
