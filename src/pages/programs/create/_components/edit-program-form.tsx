@@ -1,9 +1,14 @@
+import { useKeywordsQuery } from "@/apollo/queries/keywords.generated"
 import { Button } from "@/components/ui/button"
 import { DatePicker } from "@/components/ui/date-picker"
 import { Input } from "@/components/ui/input"
+// import { MultiSelect } from "@/components/ui/multi-select"
 import { Textarea } from "@/components/ui/textarea"
 
 function EditProgramForm() {
+  const { data: keywords } = useKeywordsQuery()
+  console.log("🚀 ~ EditProgramForm ~ keywords:", keywords)
+
   return (
     <form>
       <h1 className="font-medium text-xl mb-6">Program</h1>
@@ -17,7 +22,10 @@ function EditProgramForm() {
 
       <label htmlFor="keyword" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Keywords</p>
-        <Input id="keyword" type="text" placeholder="Type keyword" className="h-10" />
+        {/* <Input id="keyword" type="text" placeholder="Type keyword" className="h-10" /> */}
+        {/* <MultiSelect
+
+        /> */}
         <span className="text-[#71717A] text-sm">This is an input description.</span>
       </label>
 

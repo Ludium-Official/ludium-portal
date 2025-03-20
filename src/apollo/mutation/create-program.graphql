@@ -1,0 +1,16 @@
+mutation createProgram($input: CreateProgramInput!) {
+  createProgram(input: $input) {
+    currency
+    deadline
+    description
+    id
+    links {
+      title
+      url
+    }
+    name
+    price
+    status
+    summary
+  }
+}

@@ -1,3 +1,4 @@
+import { useLoginMutation } from "@/apollo/mutation/login.generated"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import notify from "@/lib/notify"
@@ -11,6 +12,8 @@ function DevToolsDialog() {
   const [refreshToken, setRefreshToken] = useState<string | null>(null)
   const [wepinStatus, setWepinStatus] = useState<WepinLifeCycle>()
   console.log("🚀 ~ Header ~ wepinStatus:", wepinStatus)
+
+  const [loginMutation] = useLoginMutation()
 
   const navigate = useNavigate()
 
@@ -92,6 +95,73 @@ function DevToolsDialog() {
             Buttons for development purposes
           </DialogDescription>
         </DialogHeader>
+
+        <Button size="sm" onClick={async () => {
+          // await initWepin
+          loginMutation({
+            variables: { email: 'admin@example.com', userId: '' },
+            onCompleted: (data) => {
+              console.log("🚀 ~ onCompleted ~ data", data)
+              localStorage.setItem('token', data.login ?? "")
+              notify("Successfully logged in as admin", 'success')
+            }
+          })
+        }
+        }>Login as Admin</Button>
+
+        <Button size="sm" onClick={async () => {
+          // await initWepin
+          loginMutation({
+            variables: { email: 'sponsor@example.com', userId: '' },
+            onCompleted: (data) => {
+              console.log("🚀 ~ onCompleted ~ data", data)
+              localStorage.setItem('token', data.login ?? "")
+              notify("Successfully logged in as sponsor", 'success')
+
+            }
+          })
+        }
+        }>Login as Sponsor</Button>
+
+        <Button size="sm" onClick={async () => {
+          // await initWepin
+          loginMutation({
+            variables: { email: 'validator@example.com', userId: '' },
+            onCompleted: (data) => {
+              console.log("🚀 ~ onCompleted ~ data", data)
+              localStorage.setItem('token', data.login ?? "")
+              notify("Successfully logged in as validator", 'success')
+
+            }
+          })
+        }
+        }>Login as Validator</Button>
+
+        <Button size="sm" onClick={async () => {
+          // await initWepin
+          loginMutation({
+            variables: { email: 'builder@example.com', userId: '' },
+            onCompleted: (data) => {
+              console.log("🚀 ~ onCompleted ~ data", data)
+              localStorage.setItem('token', data.login ?? "")
+              notify("Successfully logged in as builder", 'success')
+
+            }
+          })
+        }
+        }>Login as Builder</Button>
+
+        <Button size="sm" onClick={async () => {
+          // await initWepin
+          loginMutation({
+            variables: { email: 'multi@example.com', userId: '' },
+            onCompleted: (data) => {
+              console.log("🚀 ~ onCompleted ~ data", data)
+              localStorage.setItem('token', data.login ?? "")
+            }
+          })
+        }
+        }>Login as Multi</Button>
 
         <Button size="sm" onClick={async () => {
           // await initWepin

@@ -195,7 +195,7 @@ export type Program = {
 
 
 export type ProgramKeywordsArgs = {
-  id: Scalars['String']['input'];
+  programId: Scalars['ID']['input'];
 };
 
 export type ProgramKeyword = {
@@ -208,6 +208,7 @@ export type Query = {
   __typename?: 'Query';
   application?: Maybe<Array<Application>>;
   applications?: Maybe<PaginatedApplications>;
+  keywords?: Maybe<Array<ProgramKeyword>>;
   milestone?: Maybe<Milestone>;
   milestones?: Maybe<PaginatedMilestones>;
   program?: Maybe<Program>;
@@ -215,6 +216,7 @@ export type Query = {
   roles?: Maybe<Array<Role>>;
   user?: Maybe<User>;
   users?: Maybe<Array<User>>;
+  usersByRole?: Maybe<Array<User>>;
 };
 
 
@@ -251,6 +253,11 @@ export type QueryProgramsArgs = {
 
 export type QueryUserArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryUsersByRoleArgs = {
+  role: Scalars['String']['input'];
 };
 
 export type Role = {
