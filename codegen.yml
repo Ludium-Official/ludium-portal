@@ -1,0 +1,16 @@
+overwrite: true
+schema: 'https://api-dev-service-892036993268.asia-northeast3.run.app/graphql'
+# schema: 'http://127.0.0.1:4000/graphql'
+documents: './src/**/*.graphql'
+generates:
+  ./src/types/types.generated.ts:
+    plugins:
+      - typescript
+  ./src:
+    preset: near-operation-file
+    presetConfig:
+      extension: .generated.ts
+      baseTypesPath: types/types.generated.ts
+    plugins:
+      - typescript-operations
+      - typescript-react-apollo

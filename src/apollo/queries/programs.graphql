@@ -1,0 +1,15 @@
+query programs($pagination: PaginationInput) {
+  programs(pagination: $pagination) {
+    count
+    data {
+      currency
+      deadline
+      description
+      id
+      name
+      price
+      status
+      summary
+    }
+  }
+}
