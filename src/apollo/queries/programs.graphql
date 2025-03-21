@@ -2,14 +2,48 @@ query programs($pagination: PaginationInput) {
   programs(pagination: $pagination) {
     count
     data {
+      creator {
+        about
+        email
+        firstName
+        id
+        image
+        lastName
+        links {
+          title
+          url
+        }
+        organizationName
+      }
       currency
       deadline
       description
       id
+      keywords {
+        id
+        name
+      }
+      links {
+        title
+        url
+      }
       name
       price
       status
       summary
+      validator {
+        about
+        email
+        firstName
+        id
+        image
+        lastName
+        links {
+          title
+          url
+        }
+        organizationName
+      }
     }
   }
 }

@@ -59,6 +59,7 @@ export type CreateProgramInput = {
   name: Scalars['String']['input'];
   price?: InputMaybe<Scalars['String']['input']>;
   summary?: InputMaybe<Scalars['String']['input']>;
+  validatorId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 export type Link = {
@@ -191,11 +192,6 @@ export type Program = {
   status?: Maybe<Scalars['String']['output']>;
   summary?: Maybe<Scalars['String']['output']>;
   validator?: Maybe<User>;
-};
-
-
-export type ProgramKeywordsArgs = {
-  programId: Scalars['ID']['input'];
 };
 
 export type ProgramKeyword = {

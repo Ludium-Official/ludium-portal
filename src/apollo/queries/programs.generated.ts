@@ -8,7 +8,7 @@ export type ProgramsQueryVariables = Types.Exact<{
 }>;
 
 
-export type ProgramsQuery = { __typename?: 'Query', programs?: { __typename?: 'PaginatedPrograms', count?: number | null, data?: Array<{ __typename?: 'Program', currency?: string | null, deadline?: any | null, description?: string | null, id?: string | null, name?: string | null, price?: string | null, status?: string | null, summary?: string | null }> | null } | null };
+export type ProgramsQuery = { __typename?: 'Query', programs?: { __typename?: 'PaginatedPrograms', count?: number | null, data?: Array<{ __typename?: 'Program', currency?: string | null, deadline?: any | null, description?: string | null, id?: string | null, name?: string | null, price?: string | null, status?: string | null, summary?: string | null, creator?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null, keywords?: Array<{ __typename?: 'ProgramKeyword', id?: string | null, name?: string | null }> | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, validator?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null }> | null } | null };
 
 
 export const ProgramsDocument = gql`
@@ -16,14 +16,48 @@ export const ProgramsDocument = gql`
   programs(pagination: $pagination) {
     count
     data {
+      creator {
+        about
+        email
+        firstName
+        id
+        image
+        lastName
+        links {
+          title
+          url
+        }
+        organizationName
+      }
       currency
       deadline
       description
       id
+      keywords {
+        id
+        name
+      }
+      links {
+        title
+        url
+      }
       name
       price
       status
       summary
+      validator {
+        about
+        email
+        firstName
+        id
+        image
+        lastName
+        links {
+          title
+          url
+        }
+        organizationName
+      }
     }
   }
 }

@@ -1,45 +1,62 @@
-import profile from '@/assets/icons/profile-thin.svg'
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 
 function ProfilePage() {
 
   return (
-    <div className=''>
-      <div className="flex gap-[58px]">
-        <section className='w-[509px]'>
-          <div className='mb-7'>
-            <Button size="sm" className="w-[62px] mr-[5px]">Edit</Button>
-            <Button size="sm" className="w-[62px]" disabled>View</Button>
-          </div>
+    <Tabs defaultValue='edit'>
+      <div className="flex">
+        <section className='w-[60%] px-10 py-5'>
+          <TabsList className="grid grid-cols-2 w-full mb-6">
+            <TabsTrigger value="edit">Edit</TabsTrigger>
+            <TabsTrigger value="view">View</TabsTrigger>
+          </TabsList>
+          <TabsContent value="edit">
 
-          <p className='text-[#7C7C7C] font-bold mb-1'>PROFILE PIC</p>
-          <div className='flex items-end mb-5'>
-            <img src={profile} alt="profile" className='w-[113px] h-[113px]' />
-            <Button size='sm' className='w-[105px]'>UPLOAD</Button>
-          </div>
-
-
-          <label htmlFor="name" className='text-[#7C7C7C] font-bold mb-1'>ORGANIZATION/PERSON NAME</label>
-          <Input id="name" type='text' placeholder='Input text' className='mb-7' />
-
-
-          <label htmlFor="description" className='text-[#7C7C7C] font-bold mb-1'>DESCRIPTION</label>
-          <Textarea id="description" placeholder='Input text' className='mb-7' />
+            <p className='font-medium text-sm mb-2'>Profile image</p>
+            <span className='block text-sm text-[#71717A] mb-2'>This is an input description</span>
+            <div className='flex items-end mb-9 gap-12'>
+              {/* <img src={profile} alt="profile" className='w-[113px] h-[113px]' /> */}
+              <div className='w-[136px] h-[136px] bg-slate-400 rounded-full' />
+              <Button size='sm' className='w-[136px]'>Upload</Button>
+            </div>
 
 
-          <label htmlFor="name" className='text-[#7C7C7C] font-bold mb-1'>ROLES</label>
-          <Input id="name" type='text' placeholder='Input text' className='mb-7' />
 
-          <label htmlFor="name" className='text-[#7C7C7C] font-bold mb-1'>LINKS</label>
-          <Input id="name" type='text' placeholder='Input text' className='mb-7' />
+            <label htmlFor="name" className='block text-foreground font-medium mb-2 text-sm'>Organization / Person name</label>
+            <Input id="name" type='text' placeholder='Input text' className='mb-2 h-10' />
+            <span className='block text-sm text-[#71717A] mb-10'>This is an input description</span>
+
+
+
+            <label htmlFor="description" className='block text-foreground font-medium mb-2 text-sm'>Description</label>
+            <Textarea id="description" placeholder='Input text' className='mb-2 h-10' />
+            <span className='block text-sm text-[#71717A] mb-10'>This is an input description</span>
+
+
+            <label htmlFor="name" className='block text-foreground font-medium mb-2 text-sm'>Roles</label>
+            <Input id="name" type='text' placeholder='Input text' className='mb-2 h-10' />
+            <span className='block text-sm text-[#71717A] mb-10'>This is an input description</span>
+
+            <label htmlFor="name" className='block text-foreground font-medium mb-2 text-sm'>Links</label>
+            <Input id="name" type='text' placeholder='Input text' className='mb-2 h-10' />
+            <span className='block text-sm text-[#71717A] mb-10'>This is an input description</span>
+
+
+            <Button className="w-[153px] h-[44px] ml-auto block mb-[83px]">Save Changes</Button>
+          </TabsContent>
+
         </section>
 
-        <section>
+        <div className='min-h-full border-l self-stretch' />
+
+        <section className='w-[40%] px-10 py-[60px]'>
           <h2 className='text-[20px] font-medium'>PROGRAMS AS SPONSOR</h2>
-          <div className='mb-10 border border-[#E9E9E9] rounded-[10px] p-5 mt-5 w-[487px]'>
+          <div className='mb-10 border border-[#E9E9E9] rounded-[10px] p-5 mt-5 w-full'>
 
             <div className='flex justify-between'>
               <h3 className='text-[20px] font-medium'>PROGRAM NAME</h3>
@@ -50,7 +67,7 @@ function ProfilePage() {
           </div>
 
           <h2 className='text-[20px] font-medium'>PROGRAMS AS SPONSOR</h2>
-          <div className='mb-10 border border-[#E9E9E9] rounded-[10px] p-5 mt-5 w-[487px]'>
+          <div className='mb-10 border border-[#E9E9E9] rounded-[10px] p-5 mt-5 w-full'>
 
             <div className='flex justify-between'>
               <h3 className='text-[20px] font-medium'>PROGRAM NAME</h3>
@@ -61,7 +78,7 @@ function ProfilePage() {
           </div>
 
           <h2 className='text-[20px] font-medium'>PROGRAMS AS SPONSOR</h2>
-          <div className='border border-[#E9E9E9] rounded-[10px] p-5 mt-5 w-[487px]'>
+          <div className='border border-[#E9E9E9] rounded-[10px] p-5 mt-5 w-full'>
 
             <div className='flex justify-between'>
               <h3 className='text-[20px] font-medium'>PROGRAM NAME</h3>
@@ -72,11 +89,11 @@ function ProfilePage() {
           </div>
         </section>
       </div>
-      <div className='w-full max-w-[1100px] mt-10'>
+      {/* <div className='w-full max-w-[1100px] mt-10'>
         <Button size="sm" className='block w-[122px] mx-auto'>SAVE CHANGES</Button>
 
-      </div>
-    </div>
+      </div> */}
+    </Tabs>
   );
 }
 

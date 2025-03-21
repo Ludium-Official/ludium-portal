@@ -1,17 +1,25 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import type { Program } from "@/types/types.generated"
 import { Settings } from "lucide-react"
+import { Link } from "react-router"
 
-function ProgramCard({ name, description, deadline, amount, currency }: { name?: string | null, description?: string | null, deadline?: string | null, amount?: string | null, currency?: string | null }) {
+function ProgramCard({ program }: { program: Program }) {
+  const { id, name, description, deadline, price, currency, keywords } = program ?? {}
+  const badgeVariants = ['default', 'secondary', 'purple']
+
   return (
-    <div className="w-full border border-[#E9E9E9] rounded-[20px] px-10 py-[18px]">
+    <Link to={`/programs/${id}/details`} className="block w-full border border-[#E9E9E9] rounded-[20px] px-10 py-[18px]">
 
 
       <div className="flex justify-between mb-5">
         <div className="flex gap-2 mb-1">
-          <Badge>New</Badge>
+          {keywords?.map((k, i) => (
+            <Badge key={k.id} variant={badgeVariants[i % badgeVariants.length] as 'default' | 'secondary' | 'purple'}>{k.name}</Badge>
+          ))}
+          {/* <Badge>New</Badge>
           <Badge variant='secondary'>Social</Badge>
-          <Badge variant="purple">Solidity</Badge>
+          <Badge variant="purple">Solidity</Badge> */}
         </div>
         <span className="font-medium flex gap-2 items-center">Ongoing  <Settings /></span>
       </div>
@@ -25,7 +33,7 @@ function ProgramCard({ name, description, deadline, amount, currency }: { name?:
       </div>
       <div className="mb-1">
         <p className="font-sans text-[#71717A] font-normal text-xs leading-7">
-          {amount} {currency} |  DEADLINE {deadline} {/*30, MAR, 2025*/}
+          {price} {currency} |  DEADLINE {deadline} {/*30, MAR, 2025*/}
         </p>
       </div>
 
@@ -34,7 +42,7 @@ function ProgramCard({ name, description, deadline, amount, currency }: { name?:
       </div>
 
       <Button className="mt-6 mb-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]">Send a proposal</Button>
-    </div>
+    </Link>
   )
 }
 

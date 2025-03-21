@@ -19,10 +19,17 @@ import {
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 
+interface SearchSelectProps {
+  options: { value: string, label: string }[];
+  placeholder?: string;
+  value?: string;
+  setValue: React.Dispatch<React.SetStateAction<string | undefined>>;
+}
 
-export function SearchSelect({ options, placeholder = "Select" }: { options: { value: string, label: string }[], placeholder?: string }) {
+
+export function SearchSelect({ options, placeholder = "Select", value, setValue }: SearchSelectProps) {
   const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState("")
+  // const [value, setValue] = React.useState("")
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -44,7 +51,7 @@ export function SearchSelect({ options, placeholder = "Select" }: { options: { v
       </PopoverTrigger>
       <PopoverContent className="w-full max-w-[586px] p-0">
         <Command>
-          <CommandInput placeholder="Search framework..." />
+          <CommandInput placeholder="Search..." />
           <CommandList>
             <CommandEmpty>No result found.</CommandEmpty>
             <CommandGroup>

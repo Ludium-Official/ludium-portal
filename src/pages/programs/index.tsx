@@ -8,7 +8,14 @@ import { useNavigate } from "react-router";
 
 const ProgramsPage: React.FC = () => {
   const navigate = useNavigate()
-  const { data } = useProgramsQuery()
+  const { data } = useProgramsQuery({
+    variables: {
+      pagination: {
+        limit: 10,
+        offset: 0
+      }
+    }
+  })
   console.log("🚀 ~ data:", data)
 
 
@@ -30,7 +37,7 @@ const ProgramsPage: React.FC = () => {
 
 
       <section className="w-full space-y-4">
-        {data?.programs?.data?.map((program) => <ProgramCard key={program.id} name={program.name} amount={program.price} currency={program.currency} description={program.description} deadline={program.deadline} />)}
+        {data?.programs?.data?.map((program) => <ProgramCard key={program.id} program={program} />)}
 
       </section>
     </Tabs>
