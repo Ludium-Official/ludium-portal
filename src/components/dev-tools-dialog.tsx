@@ -102,7 +102,7 @@ function DevToolsDialog() {
             variables: { email: 'admin@example.com', userId: '' },
             onCompleted: (data) => {
               console.log("🚀 ~ onCompleted ~ data", data)
-              localStorage.setItem('token', data.login ?? "")
+              localStorage.setItem('token', data.login?.token ?? "")
               notify("Successfully logged in as admin", 'success')
             }
           })
@@ -115,7 +115,7 @@ function DevToolsDialog() {
             variables: { email: 'sponsor@example.com', userId: '' },
             onCompleted: (data) => {
               console.log("🚀 ~ onCompleted ~ data", data)
-              localStorage.setItem('token', data.login ?? "")
+              localStorage.setItem('token', data.login?.token ?? "")
               notify("Successfully logged in as sponsor", 'success')
 
             }
@@ -129,7 +129,7 @@ function DevToolsDialog() {
             variables: { email: 'validator@example.com', userId: '' },
             onCompleted: (data) => {
               console.log("🚀 ~ onCompleted ~ data", data)
-              localStorage.setItem('token', data.login ?? "")
+              localStorage.setItem('token', data.login?.token ?? "")
               notify("Successfully logged in as validator", 'success')
 
             }
@@ -143,7 +143,7 @@ function DevToolsDialog() {
             variables: { email: 'builder@example.com', userId: '' },
             onCompleted: (data) => {
               console.log("🚀 ~ onCompleted ~ data", data)
-              localStorage.setItem('token', data.login ?? "")
+              localStorage.setItem('token', data.login?.token ?? "")
               notify("Successfully logged in as builder", 'success')
 
             }
@@ -157,7 +157,7 @@ function DevToolsDialog() {
             variables: { email: 'multi@example.com', userId: '' },
             onCompleted: (data) => {
               console.log("🚀 ~ onCompleted ~ data", data)
-              localStorage.setItem('token', data.login ?? "")
+              localStorage.setItem('token', data.login?.token ?? "")
             }
           })
         }

@@ -1,0 +1,10 @@
+mutation updateMilestone($input: UpdateMilestoneInput!) {
+  updateMilestone(input: $input) {
+    currency
+    description
+    id
+    price
+    status
+    title
+  }
+}

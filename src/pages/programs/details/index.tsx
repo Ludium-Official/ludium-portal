@@ -2,6 +2,7 @@ import { useProgramQuery } from "@/apollo/queries/program.generated";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ApplicationCard from "@/pages/programs/details/_components/application-card";
 import MainSection from "@/pages/programs/details/_components/main-section";
 import { ListFilter } from "lucide-react";
 import { useParams } from "react-router";
@@ -9,7 +10,7 @@ import { useParams } from "react-router";
 const DetailsPage: React.FC = () => {
   const { id } = useParams()
 
-  const { data } = useProgramQuery({
+  const { data, refetch } = useProgramQuery({
     variables: {
       id: id ?? ''
     }
@@ -24,7 +25,7 @@ const DetailsPage: React.FC = () => {
 
 
       <Tabs className="mt-3 bg-white p-10 rounded-t-2xl">
-        <h2>Proposals</h2>
+        <h2 className="text-xl font-bold mb-4">Proposals</h2>
         <section className="flex justify-between items-center mb-3">
           <TabsList className="">
             <TabsTrigger value="all">All</TabsTrigger>
@@ -37,6 +38,12 @@ const DetailsPage: React.FC = () => {
             <Button variant="outline" className="h-full rounded-[6px] "><ListFilter /> Filter</Button>
             {/* <Button className="h-[32px] rounded-[6px] gap-2" onClick={() => navigate('create')}><CirclePlus /> Create Program</Button> */}
           </div>
+        </section>
+
+        <section className="space-y-5">
+          {data?.program?.applications?.map(a => (
+            <ApplicationCard key={a.id} application={a} refetch={refetch} />
+          ))}
         </section>
       </Tabs>
     </div>

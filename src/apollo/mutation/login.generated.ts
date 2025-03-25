@@ -9,12 +9,15 @@ export type LoginMutationVariables = Types.Exact<{
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login?: string | null };
+export type LoginMutation = { __typename?: 'Mutation', login?: { __typename?: 'LoginResponse', token?: string | null, userRoles?: Array<string> | null } | null };
 
 
 export const LoginDocument = gql`
     mutation login($email: String!, $userId: String!) {
-  login(email: $email, userId: $userId)
+  login(email: $email, userId: $userId) {
+    token
+    userRoles
+  }
 }
     `;
 export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutationVariables>;

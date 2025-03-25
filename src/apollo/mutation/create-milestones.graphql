@@ -1,0 +1,10 @@
+mutation createMilestones($input: [CreateMilestoneInput!]!) {
+  createMilestones(input: $input) {
+    currency
+    description
+    id
+    price
+    status
+    title
+  }
+}
