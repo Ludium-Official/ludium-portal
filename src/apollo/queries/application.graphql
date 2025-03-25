@@ -1,0 +1,29 @@
+query application($id: ID!) {
+  application(id: $id) {
+    applicant {
+      about
+      email
+      firstName
+      id
+      image
+      lastName
+      links {
+        title
+        url
+      }
+      organizationName
+    }
+    content
+    id
+    metadata
+    milestones {
+      currency
+      description
+      id
+      price
+      status
+      title
+    }
+    status
+  }
+}

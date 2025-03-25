@@ -89,6 +89,7 @@ export type Milestone = {
 };
 
 export enum MilestoneStatus {
+  Approved = 'approved',
   Completed = 'completed',
   Failed = 'failed',
   Pending = 'pending',

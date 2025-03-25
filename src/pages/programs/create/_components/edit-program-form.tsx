@@ -68,7 +68,7 @@ function EditProgramForm() {
           currency: "ETH",
           deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
           keywords: selectedKeywords,
-          validatorId: selectedValidator,
+          validatorId: selectedValidator ?? "",
           links: links.map(l => ({ title: l, url: l })),
         }
       },

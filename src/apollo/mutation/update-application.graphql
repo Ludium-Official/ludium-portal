@@ -1,0 +1,29 @@
+mutation updateApplication($input: UpdateApplicationInput!) {
+  updateApplication(input: $input) {
+    applicant {
+      about
+      email
+      firstName
+      id
+      image
+      lastName
+      links {
+        title
+        url
+      }
+      organizationName
+    }
+    content
+    id
+    metadata
+    milestones {
+      currency
+      description
+      id
+      price
+      status
+      title
+    }
+    status
+  }
+}
