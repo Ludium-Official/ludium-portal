@@ -99,7 +99,7 @@ function DevToolsDialog() {
         <Button size="sm" onClick={async () => {
           // await initWepin
           loginMutation({
-            variables: { email: 'admin@example.com', userId: '' },
+            variables: { email: 'admin@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
             onCompleted: (data) => {
               console.log("🚀 ~ onCompleted ~ data", data)
               localStorage.setItem('token', data.login?.token ?? "")
@@ -112,7 +112,7 @@ function DevToolsDialog() {
         <Button size="sm" onClick={async () => {
           // await initWepin
           loginMutation({
-            variables: { email: 'sponsor@example.com', userId: '' },
+            variables: { email: 'sponsor@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
             onCompleted: (data) => {
               console.log("🚀 ~ onCompleted ~ data", data)
               localStorage.setItem('token', data.login?.token ?? "")
@@ -126,7 +126,7 @@ function DevToolsDialog() {
         <Button size="sm" onClick={async () => {
           // await initWepin
           loginMutation({
-            variables: { email: 'validator@example.com', userId: '' },
+            variables: { email: 'validator@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
             onCompleted: (data) => {
               console.log("🚀 ~ onCompleted ~ data", data)
               localStorage.setItem('token', data.login?.token ?? "")
@@ -140,7 +140,7 @@ function DevToolsDialog() {
         <Button size="sm" onClick={async () => {
           // await initWepin
           loginMutation({
-            variables: { email: 'builder@example.com', userId: '' },
+            variables: { email: 'builder@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
             onCompleted: (data) => {
               console.log("🚀 ~ onCompleted ~ data", data)
               localStorage.setItem('token', data.login?.token ?? "")
@@ -154,7 +154,7 @@ function DevToolsDialog() {
         <Button size="sm" onClick={async () => {
           // await initWepin
           loginMutation({
-            variables: { email: 'multi@example.com', userId: '' },
+            variables: { email: 'multi@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
             onCompleted: (data) => {
               console.log("🚀 ~ onCompleted ~ data", data)
               localStorage.setItem('token', data.login?.token ?? "")
@@ -210,6 +210,18 @@ function DevToolsDialog() {
           // await initWepin
           wepinSdk.openWidget()
         }}>Open WepinUI</Button>
+
+        <Button size="sm" onClick={async () => {
+          // await initWepin
+          const accounts = await wepinSdk.getAccounts()
+          console.log("🚀 ~ <Buttonsize='sm'onClick={ ~ accounts:", accounts)
+        }}>Log Accounts</Button>
+
+        <Button size="sm" onClick={async () => {
+          // await initWepin
+          const balance = await wepinSdk.getBalance()
+          console.log("🚀 ~ <Buttonsize='sm'onClick={ ~ balance:", balance)
+        }}>Log Balance</Button>
       </DialogContent>
     </Dialog>
   )

@@ -5,7 +5,7 @@
 // import profile from "@/assets/icons/profile-bold.svg";
 // import wallet from "@/assets/icons/wallet.svg";
 import logo from '@/assets/logo.svg';
-import { Info, Landmark, Scroll, UserRound } from "lucide-react";
+import { Scroll, UserRound } from "lucide-react";
 
 import { Link, NavLink } from "react-router";
 
@@ -15,8 +15,8 @@ const Sidebar = () => {
     // { name: "NOTIFICATIONS", path: "/notifications", icon: notification },
     { name: "Programs", path: "/programs", icon: Scroll },
     // { name: "USERS", path: "/users", icon: wallet },
-    { name: "Community", path: "/community", icon: Landmark },
-    { name: "About", path: "/about", icon: Info },
+    // { name: "Community", path: "/", icon: Landmark },
+    // { name: "About", path: "/", icon: Info },
   ];
 
   return (

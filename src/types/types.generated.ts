@@ -89,7 +89,6 @@ export type Milestone = {
 };
 
 export enum MilestoneStatus {
-  Approved = 'approved',
   Completed = 'completed',
   Failed = 'failed',
   Pending = 'pending',
@@ -143,8 +142,11 @@ export type MutationDeleteUserArgs = {
 
 
 export type MutationLoginArgs = {
+  address?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
-  userId: Scalars['String']['input'];
+  network?: InputMaybe<Scalars['String']['input']>;
+  userId: Scalars['ID']['input'];
+  walletId?: InputMaybe<Scalars['String']['input']>;
 };
 
 

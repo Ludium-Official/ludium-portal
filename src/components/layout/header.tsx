@@ -1,4 +1,5 @@
 
+import { useLoginMutation } from '@/apollo/mutation/login.generated';
 import DevToolsDialog from '@/components/dev-tools-dialog';
 import { Button } from '@/components/ui/button';
 import { } from '@/components/ui/dialog';
@@ -21,6 +22,7 @@ import { useNavigate } from 'react-router';
 
 function Header() {
   const navigate = useNavigate()
+  const [loginMutation] = useLoginMutation()
 
 
   return (
@@ -38,8 +40,26 @@ function Header() {
           const user = await wepinSdk.loginWithUI()
           console.log("🚀 ~ <ButtonclassName='w-[346px]'onClick={ ~ user:", user)
 
+
+
           if (user.status === 'success') {
-            localStorage.setItem('idToken', user.userInfo?.userId ?? '')
+
+            const accounts = await wepinSdk.getAccounts()
+
+            await loginMutation({
+              variables: {
+                email: user.userInfo?.email ?? '',
+                userId: user.userInfo?.userId ?? '',
+                walletId: user.walletId ?? '',
+                address: accounts?.[0]?.address ?? '',
+                network: accounts?.[0]?.network ?? ''
+              },
+              onCompleted: (data) => {
+                localStorage.setItem('token', data.login?.token ?? "")
+                localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
+              }
+            })
+
             notify("Successfully logged in", 'success')
             navigate('/profile')
           }

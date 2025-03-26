@@ -5,7 +5,10 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type LoginMutationVariables = Types.Exact<{
   email: Types.Scalars['String']['input'];
-  userId: Types.Scalars['String']['input'];
+  userId: Types.Scalars['ID']['input'];
+  walletId?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  network?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  address?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
 
 
@@ -13,8 +16,14 @@ export type LoginMutation = { __typename?: 'Mutation', login?: { __typename?: 'L
 
 
 export const LoginDocument = gql`
-    mutation login($email: String!, $userId: String!) {
-  login(email: $email, userId: $userId) {
+    mutation login($email: String!, $userId: ID!, $walletId: String, $network: String, $address: String) {
+  login(
+    email: $email
+    userId: $userId
+    walletId: $walletId
+    network: $network
+    address: $address
+  ) {
     token
     userRoles
   }
@@ -37,6 +46,9 @@ export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutati
  *   variables: {
  *      email: // value for 'email'
  *      userId: // value for 'userId'
+ *      walletId: // value for 'walletId'
+ *      network: // value for 'network'
+ *      address: // value for 'address'
  *   },
  * });
  */
