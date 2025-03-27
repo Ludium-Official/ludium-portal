@@ -23,6 +23,10 @@ query application($id: ID!) {
       price
       status
       title
+      links {
+        title
+        url
+      }
     }
     status
   }

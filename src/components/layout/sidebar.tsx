@@ -1,23 +1,18 @@
-// import about from "@/assets/icons/about.svg";
-// import book from "@/assets/icons/book.svg";
-// import notification from "@/assets/icons/notification-bold.svg";
-// import pencil from "@/assets/icons/pencil.svg";
-// import profile from "@/assets/icons/profile-bold.svg";
-// import wallet from "@/assets/icons/wallet.svg";
 import logo from '@/assets/logo.svg';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { Scroll, UserRound } from "lucide-react";
 
 import { Link, NavLink } from "react-router";
 
 const Sidebar = () => {
+  const { isAuthed } = useAuth()
   const links = [
-    { name: "Profile", path: "/profile", icon: UserRound },
-    // { name: "NOTIFICATIONS", path: "/notifications", icon: notification },
     { name: "Programs", path: "/programs", icon: Scroll },
-    // { name: "USERS", path: "/users", icon: wallet },
-    // { name: "Community", path: "/", icon: Landmark },
-    // { name: "About", path: "/", icon: Info },
   ];
+
+  if (isAuthed) {
+    links.unshift({ name: "Profile", path: "/profile", icon: UserRound })
+  }
 
   return (
     <aside className="fixed left-0 w-[216px] h-[calc(100dvh-24px)] mx-3 mb-3 bg-white rounded-2xl">

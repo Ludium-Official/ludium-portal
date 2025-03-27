@@ -2,11 +2,13 @@ import { useProgramsQuery } from "@/apollo/queries/programs.generated";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/lib/hooks/use-auth";
 import ProgramCard from "@/pages/programs/_components/program-card";
 import { CirclePlus, ListFilter, } from "lucide-react";
 import { useNavigate } from "react-router";
 
 const ProgramsPage: React.FC = () => {
+  const { isSponsor } = useAuth()
   const navigate = useNavigate()
   const { data } = useProgramsQuery({
     variables: {
@@ -31,7 +33,7 @@ const ProgramsPage: React.FC = () => {
         <div className="h-10 flex items-center gap-3">
           <Input className="h-full w-[432px]" />
           <Button variant="outline" className="h-full rounded-[6px] "><ListFilter /> Filter</Button>
-          <Button className="h-[32px] rounded-[6px] gap-2" onClick={() => navigate('create')}><CirclePlus /> Create Program</Button>
+          {isSponsor && <Button className="h-[32px] rounded-[6px] gap-2" onClick={() => navigate('create')}><CirclePlus /> Create Program</Button>}
         </div>
       </section>
 

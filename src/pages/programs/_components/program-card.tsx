@@ -2,11 +2,13 @@ import CreateProposalForm from "@/components/create-proposal-form"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { useAuth } from "@/lib/hooks/use-auth"
 import type { Program } from "@/types/types.generated"
 import { Settings } from "lucide-react"
 import { Link, } from "react-router"
 
 function ProgramCard({ program }: { program: Program }) {
+  const { isBuilder } = useAuth()
   const { id, name, description, deadline, price, currency, keywords } = program ?? {}
   const badgeVariants = ['default', 'secondary', 'purple']
 
@@ -45,14 +47,14 @@ function ProgramCard({ program }: { program: Program }) {
         <p className="text-foreground text-sm font-normal leading-5 truncate">{description}</p>
       </div>
 
-      <Dialog>
+      {isBuilder && <Dialog>
         <DialogTrigger asChild>
           <Button onClick={(e) => e.stopPropagation()} className="mt-6 mb-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]">Send a proposal</Button>
         </DialogTrigger>
         <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
           <CreateProposalForm program={program} />
         </DialogContent>
-      </Dialog>
+      </Dialog>}
 
       {/* </Link> */}
     </div>

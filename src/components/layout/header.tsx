@@ -1,8 +1,7 @@
 
-import { useLoginMutation } from '@/apollo/mutation/login.generated';
 import DevToolsDialog from '@/components/dev-tools-dialog';
 import { Button } from '@/components/ui/button';
-import { } from '@/components/ui/dialog';
+import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 
 import { wepinSdk } from '@/lib/wepin';
@@ -22,7 +21,10 @@ import { useNavigate } from 'react-router';
 
 function Header() {
   const navigate = useNavigate()
-  const [loginMutation] = useLoginMutation()
+  const { login, isAuthed, logout } = useAuth()
+
+
+  // const [loginMutation] = useLoginMutation()
 
 
   return (
@@ -30,43 +32,29 @@ function Header() {
 
       <DevToolsDialog />
 
-
-
-
       <div className='flex gap-2'>
-        {/* <Button variant="outline">Login</Button> */}
-        <Button className='rounded-md min-w-[83px] h-10' onClick={async () => {
-          // await initWepin
-          const user = await wepinSdk.loginWithUI()
-          console.log("🚀 ~ <ButtonclassName='w-[346px]'onClick={ ~ user:", user)
+        {isAuthed ? (
+          <>
+            <Button onClick={() => logout()} variant="ghost" className='rounded-md min-w-[83px] h-10'>Log out</Button>
+            <Button onClick={() => navigate('/profile')} className='rounded-md min-w-[83px] h-10 bg-[#B331FF] hover:bg-[#B331FF]/90'>Profile</Button>
+          </>) : <Button className='rounded-md min-w-[83px] h-10' onClick={async () => {
+            const user = await wepinSdk.loginWithUI()
 
+            if (user.status === 'success') {
+              const accounts = await wepinSdk.getAccounts()
 
-
-          if (user.status === 'success') {
-
-            const accounts = await wepinSdk.getAccounts()
-
-            await loginMutation({
-              variables: {
+              await login({
                 email: user.userInfo?.email ?? '',
                 userId: user.userInfo?.userId ?? '',
                 walletId: user.walletId ?? '',
                 address: accounts?.[0]?.address ?? '',
                 network: accounts?.[0]?.network ?? ''
-              },
-              onCompleted: (data) => {
-                localStorage.setItem('token', data.login?.token ?? "")
-                localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
-              }
-            })
+              })
 
-            notify("Successfully logged in", 'success')
-            navigate('/profile')
-          }
-        }}>Log in</Button>
-        {/* <img src={search} alt='search' />
-        <img src={notification} alt='notification' />
-        <img src={profile} alt='profile' /> */}
+              notify("Successfully logged in", 'success')
+              navigate('/profile')
+            }
+          }}>Log in</Button>}
       </div>
     </header>
   );

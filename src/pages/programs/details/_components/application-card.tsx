@@ -31,7 +31,7 @@ function ApplicationCard({ application, refetch, hideSeeDetails, hideControls }:
           <p className="truncate max-w-[600px] text-sm">Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS)</p>
         </div>
         {!hideControls && <div className="gap-3 flex">
-          <Button variant="outline" className="max-h-10">Deny</Button>
+          {/* <Button variant="outline" className="max-h-10">Deny</Button> */}
           <Button className="max-h-10" onClick={() => {
             updateApplication({
               variables: {

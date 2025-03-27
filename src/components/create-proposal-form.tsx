@@ -1,8 +1,10 @@
 import { useCreateApplicationMutation } from "@/apollo/mutation/create-application.generated"
 import { useCreateMilestonesMutation } from "@/apollo/mutation/create-milestones.generated"
 import { Button } from "@/components/ui/button"
+import { DialogClose, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import notify from "@/lib/notify"
 import type { Program } from "@/types/types.generated"
 import { useState } from "react"
 
@@ -47,6 +49,10 @@ function CreateProposalForm({ program }: { program: Program }) {
               description: m.description,
               currency: m.currency
             }))
+          },
+          onCompleted: () => {
+            notify("Purposal successfully created")
+            document.getElementById('purposal-dialog-close')?.click()
           }
         })
       }
@@ -55,8 +61,10 @@ function CreateProposalForm({ program }: { program: Program }) {
 
   return (
     <form>
-      <h2 className="text-2xl font-semibold mb-6">Send a proposal</h2>
+      <DialogTitle className="text-2xl font-semibold mb-6">Send a proposal</DialogTitle>
 
+      <DialogDescription className="hidden" />
+      <DialogClose id="purposal-dialog-close" className="hidden" />
       {milestones.map((m, idx) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: <No other way>
         <div key={idx} className="mb-6">
@@ -72,7 +80,7 @@ function CreateProposalForm({ program }: { program: Program }) {
             <div className="flex items-end gap-2 w-full">
               <label htmlFor={`price${idx}`} className="w-full">
                 <p className="text-sm font-medium mb-2">PRICE</p>
-                <Input id={`price${idx}`} className="h-10 w-full" value={m.price} onChange={e => {
+                <Input type="number" id={`price${idx}`} className="h-10 w-full" value={m.price} onChange={e => {
                   const newMilestone = { ...m }
                   newMilestone.price = e.target.value
                   setMilestones(prev => [...prev.slice(0, idx), newMilestone, ...prev.slice(idx + 1)])

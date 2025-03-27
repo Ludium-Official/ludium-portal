@@ -2,12 +2,15 @@ import { useProgramQuery } from "@/apollo/queries/program.generated";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/lib/hooks/use-auth";
 import ApplicationCard from "@/pages/programs/details/_components/application-card";
 import MainSection from "@/pages/programs/details/_components/main-section";
+import { ApplicationStatus } from "@/types/types.generated";
 import { ListFilter } from "lucide-react";
 import { useParams } from "react-router";
 
 const DetailsPage: React.FC = () => {
+  const { isValidator, email } = useAuth()
   const { id } = useParams()
 
   const { data, refetch } = useProgramQuery({
@@ -42,7 +45,7 @@ const DetailsPage: React.FC = () => {
 
         <section className="space-y-5">
           {data?.program?.applications?.map(a => (
-            <ApplicationCard key={a.id} application={a} refetch={refetch} />
+            <ApplicationCard key={a.id} application={a} refetch={refetch} hideControls={!isValidator || a.status !== ApplicationStatus.Pending || program?.validator?.email !== email} />
           ))}
         </section>
       </Tabs>

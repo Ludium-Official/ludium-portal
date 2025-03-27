@@ -1,6 +1,7 @@
-import { useLoginMutation } from "@/apollo/mutation/login.generated"
+// import { useLoginMutation } from "@/apollo/mutation/login.generated"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { useAuth } from "@/lib/hooks/use-auth"
 import notify from "@/lib/notify"
 import { wepinPin, wepinSdk } from "@/lib/wepin"
 import type { WepinLifeCycle } from "@wepin/sdk-js"
@@ -13,7 +14,8 @@ function DevToolsDialog() {
   const [wepinStatus, setWepinStatus] = useState<WepinLifeCycle>()
   console.log("🚀 ~ Header ~ wepinStatus:", wepinStatus)
 
-  const [loginMutation] = useLoginMutation()
+  // const [loginMutation] = useLoginMutation()
+  const { login, logout } = useAuth()
 
   const navigate = useNavigate()
 
@@ -98,68 +100,113 @@ function DevToolsDialog() {
 
         <Button size="sm" onClick={async () => {
           // await initWepin
-          loginMutation({
-            variables: { email: 'admin@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
-            onCompleted: (data) => {
-              console.log("🚀 ~ onCompleted ~ data", data)
-              localStorage.setItem('token', data.login?.token ?? "")
-              notify("Successfully logged in as admin", 'success')
-            }
+          await login({
+            email: 'admin@example.com',
+            userId: String(Math.random() * 100000000),
+            walletId: String(Math.random() * 100000000),
+            address: String(Math.random() * 100000000),
+            network: String(Math.random() * 100000000)
           })
+          // loginMutation({
+          //   variables: { email: 'admin@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
+          //   onCompleted: (data) => {
+          //     console.log("🚀 ~ onCompleted ~ data", data)
+          //     localStorage.setItem('token', data.login?.token ?? "")
+          //     localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
+
+          //     notify("Successfully logged in as admin", 'success')
+          //   }
+          // })
         }
         }>Login as Admin</Button>
 
         <Button size="sm" onClick={async () => {
           // await initWepin
-          loginMutation({
-            variables: { email: 'sponsor@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
-            onCompleted: (data) => {
-              console.log("🚀 ~ onCompleted ~ data", data)
-              localStorage.setItem('token', data.login?.token ?? "")
-              notify("Successfully logged in as sponsor", 'success')
 
-            }
+          await login({
+            email: 'sponsor@example.com',
+            userId: String(Math.random() * 100000000),
+            walletId: String(Math.random() * 100000000),
+            address: String(Math.random() * 100000000),
+            network: String(Math.random() * 100000000)
           })
+          // loginMutation({
+          //   variables: { email: 'sponsor@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
+          //   onCompleted: (data) => {
+          //     console.log("🚀 ~ onCompleted ~ data", data)
+          //     localStorage.setItem('token', data.login?.token ?? "")
+          //     localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
+
+          //     notify("Successfully logged in as sponsor", 'success')
+
+          //   }
+          // })
         }
         }>Login as Sponsor</Button>
 
         <Button size="sm" onClick={async () => {
           // await initWepin
-          loginMutation({
-            variables: { email: 'validator@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
-            onCompleted: (data) => {
-              console.log("🚀 ~ onCompleted ~ data", data)
-              localStorage.setItem('token', data.login?.token ?? "")
-              notify("Successfully logged in as validator", 'success')
-
-            }
+          await login({
+            email: 'validator@example.com',
+            userId: String(Math.random() * 100000000),
+            walletId: String(Math.random() * 100000000),
+            address: String(Math.random() * 100000000),
+            network: String(Math.random() * 100000000)
           })
+          // loginMutation({
+          //   variables: { email: 'validator@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
+          //   onCompleted: (data) => {
+          //     console.log("🚀 ~ onCompleted ~ data", data)
+          //     localStorage.setItem('token', data.login?.token ?? "")
+          //     localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
+
+          //     notify("Successfully logged in as validator", 'success')
+
+          //   }
+          // })
         }
         }>Login as Validator</Button>
 
         <Button size="sm" onClick={async () => {
           // await initWepin
-          loginMutation({
-            variables: { email: 'builder@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
-            onCompleted: (data) => {
-              console.log("🚀 ~ onCompleted ~ data", data)
-              localStorage.setItem('token', data.login?.token ?? "")
-              notify("Successfully logged in as builder", 'success')
-
-            }
+          await login({
+            email: 'builder@example.com',
+            userId: String(Math.random() * 100000000),
+            walletId: String(Math.random() * 100000000),
+            address: String(Math.random() * 100000000),
+            network: String(Math.random() * 100000000)
           })
+          // loginMutation({
+          //   variables: { email: 'builder@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
+          //   onCompleted: (data) => {
+          //     console.log("🚀 ~ onCompleted ~ data", data)
+          //     localStorage.setItem('token', data.login?.token ?? "")
+          //     localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
+
+          //     notify("Successfully logged in as builder", 'success')
+
+          //   }
+          // })
         }
         }>Login as Builder</Button>
 
         <Button size="sm" onClick={async () => {
           // await initWepin
-          loginMutation({
-            variables: { email: 'multi@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
-            onCompleted: (data) => {
-              console.log("🚀 ~ onCompleted ~ data", data)
-              localStorage.setItem('token', data.login?.token ?? "")
-            }
+          await login({
+            email: 'multi@example.com',
+            userId: String(Math.random() * 100000000),
+            walletId: String(Math.random() * 100000000),
+            address: String(Math.random() * 100000000),
+            network: String(Math.random() * 100000000)
           })
+          // loginMutation({
+          //   variables: { email: 'multi@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
+          //   onCompleted: (data) => {
+          //     console.log("🚀 ~ onCompleted ~ data", data)
+          //     localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
+          //     localStorage.setItem('token', data.login?.token ?? "")
+          //   }
+          // })
         }
         }>Login as Multi</Button>
 
@@ -201,7 +248,8 @@ function DevToolsDialog() {
 
         <Button size="sm" onClick={async () => {
           // await initWepin
-          await wepinSdk.logout()
+          // await wepinSdk.logout()
+          await logout()
         }
         }>LOGOUT</Button>
 
