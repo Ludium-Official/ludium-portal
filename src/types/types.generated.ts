@@ -129,6 +129,7 @@ export type Mutation = {
   submitMilestone?: Maybe<Milestone>;
   updateApplication?: Maybe<Application>;
   updateMilestone?: Maybe<Milestone>;
+  updateProfile?: Maybe<User>;
   updateProgram?: Maybe<Program>;
   updateUser?: Maybe<User>;
 };
@@ -208,6 +209,11 @@ export type MutationUpdateMilestoneArgs = {
 };
 
 
+export type MutationUpdateProfileArgs = {
+  input: UserUpdateInput;
+};
+
+
 export type MutationUpdateProgramArgs = {
   input: UpdateProgramInput;
 };
@@ -270,6 +276,7 @@ export type Query = {
   keywords?: Maybe<Array<ProgramKeyword>>;
   milestone?: Maybe<Milestone>;
   milestones?: Maybe<PaginatedMilestones>;
+  profile?: Maybe<User>;
   program?: Maybe<Program>;
   programs?: Maybe<PaginatedPrograms>;
   roles?: Maybe<Array<Role>>;

@@ -107,6 +107,7 @@ function DevToolsDialog() {
             address: String(Math.random() * 100000000),
             network: String(Math.random() * 100000000)
           })
+          notify("Successfully logged in as admin", 'success')
           // loginMutation({
           //   variables: { email: 'admin@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
           //   onCompleted: (data) => {
@@ -114,7 +115,6 @@ function DevToolsDialog() {
           //     localStorage.setItem('token', data.login?.token ?? "")
           //     localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
 
-          //     notify("Successfully logged in as admin", 'success')
           //   }
           // })
         }
@@ -130,6 +130,7 @@ function DevToolsDialog() {
             address: String(Math.random() * 100000000),
             network: String(Math.random() * 100000000)
           })
+          notify("Successfully logged in as sponsor", 'success')
           // loginMutation({
           //   variables: { email: 'sponsor@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
           //   onCompleted: (data) => {
@@ -137,7 +138,6 @@ function DevToolsDialog() {
           //     localStorage.setItem('token', data.login?.token ?? "")
           //     localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
 
-          //     notify("Successfully logged in as sponsor", 'success')
 
           //   }
           // })
@@ -153,6 +153,7 @@ function DevToolsDialog() {
             address: String(Math.random() * 100000000),
             network: String(Math.random() * 100000000)
           })
+          notify("Successfully logged in as validator", 'success')
           // loginMutation({
           //   variables: { email: 'validator@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
           //   onCompleted: (data) => {
@@ -160,7 +161,6 @@ function DevToolsDialog() {
           //     localStorage.setItem('token', data.login?.token ?? "")
           //     localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
 
-          //     notify("Successfully logged in as validator", 'success')
 
           //   }
           // })
@@ -176,6 +176,7 @@ function DevToolsDialog() {
             address: String(Math.random() * 100000000),
             network: String(Math.random() * 100000000)
           })
+          notify("Successfully logged in as builder", 'success')
           // loginMutation({
           //   variables: { email: 'builder@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
           //   onCompleted: (data) => {
@@ -183,7 +184,6 @@ function DevToolsDialog() {
           //     localStorage.setItem('token', data.login?.token ?? "")
           //     localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
 
-          //     notify("Successfully logged in as builder", 'success')
 
           //   }
           // })

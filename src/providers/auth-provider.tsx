@@ -1,7 +1,7 @@
 import { useLoginMutation } from "@/apollo/mutation/login.generated";
 import { wepinSdk } from "@/lib/wepin";
 import type { } from "@wepin/sdk-js";
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 
 interface AuthValues {
   email?: string | null;
@@ -34,6 +34,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [email, setEmail] = useState<string | null>()
 
   const [loginMutation] = useLoginMutation()
+
+  useEffect(() => {
+    const tkn = localStorage.getItem('token')
+    if (tkn) {
+      setToken(tkn)
+    }
+  }, [])
 
   const login = async ({ email, userId, walletId, address, network }: { email: string, userId: string, walletId: string, address: string, network: string }) => {
     await loginMutation({
