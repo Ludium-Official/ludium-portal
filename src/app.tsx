@@ -5,7 +5,8 @@ import ProfilePage from "@/pages/profile";
 import ProgramsPage from "@/pages/programs";
 import CreateProgram from "@/pages/programs/create";
 import DetailsPage from "@/pages/programs/details";
-import ProposalDetails from "@/pages/programs/details/application-details";
+import ApplicationDetails from "@/pages/programs/details/application-details";
+import ApplicationSelected from "@/pages/programs/details/application-selected";
 import { BrowserRouter, Route, Routes } from "react-router";
 
 function App() {
@@ -19,9 +20,10 @@ function App() {
           <Route path="programs">
             <Route index element={<ProgramsPage />} />
             <Route path="create" element={<CreateProgram />} />
-            <Route path=":id/details" element={<DetailsPage />} />
+            <Route path=":id" element={<DetailsPage />} />
+            <Route path=":id/application/:applicationId" element={<ApplicationSelected />} />
+            <Route path=":id/application/:applicationId/details" element={<ApplicationDetails />} />
           </Route>
-          <Route path="application/:applicationId" element={<ProposalDetails />} />
         </Route>
       </Routes>
     </BrowserRouter>

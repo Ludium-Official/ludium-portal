@@ -1,0 +1,12 @@
+mutation updateProgram($input: UpdateProgramInput!) {
+  updateProgram(input: $input) {
+    currency
+    deadline
+    description
+    id
+    name
+    price
+    status
+    summary
+  }
+}

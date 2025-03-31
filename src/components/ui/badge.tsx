@@ -17,7 +17,14 @@ const badgeVariants = cva(
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         purple:
-          "bg-[#E4B7FF] text-white"
+          "bg-[#E4B7FF] text-white",
+        teal:
+          "bg-[#2DD4BF] border-[#2DD4BF] text-white",
+        orange:
+          "bg-[#FB923C] border-[#FB923C] text-white",
+        pink:
+          "bg-[#F9A8D4] border-[#F9A8D4] text-white",
+
       },
     },
     defaultVariants: {

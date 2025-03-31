@@ -1,9 +1,15 @@
+import CreateProposalForm from "@/components/create-proposal-form"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { useAuth } from "@/lib/hooks/use-auth"
 import type { Program } from "@/types/types.generated"
+import { format } from "date-fns"
 import { Settings } from "lucide-react"
 
 function MainSection({ program }: { program?: Program | null }) {
-  const badgeVariants = ['default', 'secondary', 'purple']
+  const { isBuilder } = useAuth()
+  const badgeVariants = ['teal', 'orange', 'pink']
 
   return (
     <div className="flex bg-white rounded-b-2xl">
@@ -18,7 +24,7 @@ function MainSection({ program }: { program?: Program | null }) {
               <Badge variant='secondary'>Social</Badge>
               <Badge variant="purple">Solidity</Badge> */}
             </div>
-            <span className="font-medium flex gap-2 items-center">Ongoing  <Settings /></span>
+            <span className="font-medium flex gap-2 items-center text-sm">Ongoing  <Settings className="w-4 h-4" /></span>
           </div>
 
           <div className="flex items-center gap-4 mb-4">
@@ -29,8 +35,10 @@ function MainSection({ program }: { program?: Program | null }) {
             </h2>
           </div>
           <div className="mb-1">
-            <p className="font-sans text-[#71717A] font-normal text-xs leading-7">
-              {program?.price} {program?.currency} |  DEADLINE {program?.deadline} {/*30, MAR, 2025*/}
+            <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
+              <span className="inline-block mr-2">{program?.price} {program?.currency}</span>
+              <span className="h-3 border-l border-[#B331FF] inline-block" />
+              <span className="inline-block ml-2">DEADLINE {format(new Date(program?.deadline ?? new Date()), "dd . MMM . yyyy").toUpperCase()}</span>
             </p>
           </div>
         </div>
@@ -51,6 +59,15 @@ function MainSection({ program }: { program?: Program | null }) {
             <p key={l.url} className="text-slate-600 text-sm">{l?.url}</p>
           ))}
         </div>
+
+        {isBuilder && <Dialog>
+          <DialogTrigger asChild>
+            <Button onClick={(e) => e.stopPropagation()} className="mt-6 mb-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]">Send a proposal</Button>
+          </DialogTrigger>
+          <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
+            <CreateProposalForm program={program} />
+          </DialogContent>
+        </Dialog>}
       </section>
 
       <section className="px-10 py-[60px] w-full max-w-[40%] bg-white">

@@ -1,5 +1,5 @@
-query application($id: ID!) {
-  application(id: $id) {
+mutation approveApplication($id: ID!) {
+  approveApplication(id: $id) {
     applicant {
       about
       email
@@ -7,15 +7,14 @@ query application($id: ID!) {
       id
       image
       lastName
-      links {
-        title
-        url
-      }
       organizationName
     }
     content
     id
-    name
+    links {
+      title
+      url
+    }
     metadata
     milestones {
       currency
@@ -24,11 +23,8 @@ query application($id: ID!) {
       price
       status
       title
-      links {
-        title
-        url
-      }
     }
+    name
     status
   }
 }

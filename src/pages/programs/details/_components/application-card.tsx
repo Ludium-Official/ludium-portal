@@ -6,7 +6,7 @@ import { type Application, ApplicationStatus, } from "@/types/types.generated"
 import { ArrowRight } from "lucide-react"
 import { Link } from "react-router"
 
-function ApplicationCard({ application, refetch, hideSeeDetails, hideControls }: { application?: Application | null, refetch?: () => void, hideSeeDetails?: boolean | null, hideControls?: boolean | null }) {
+function ApplicationCard({ application, refetch, hideSeeDetails, hideControls, isDetails }: { application?: Application | null, refetch?: () => void, hideSeeDetails?: boolean | null, hideControls?: boolean | null, isDetails?: boolean }) {
   // const [updateMilestone] = useUpdateMilestoneMutation()
 
   const [updateApplication] = useUpdateApplicationMutation()
@@ -16,7 +16,7 @@ function ApplicationCard({ application, refetch, hideSeeDetails, hideControls }:
     <div className="border rounded-xl p-6">
       <header className="flex justify-between mb-4">
         <Badge>{application?.status}</Badge>
-        {!hideSeeDetails && <Link to={`/application/${application?.id}`} className="flex items-center gap-2 text-sm">See details <ArrowRight className="w-4 h-4" /></Link>}
+        {!hideSeeDetails && <Link to={isDetails ? "./details" : `./application/${application?.id}`} className="flex items-center gap-2 text-sm">See details <ArrowRight className="w-4 h-4" /></Link>}
       </header>
       <div className="flex gap-4 items-center mb-2">
         <div className="w-10 h-10 bg-slate-400 rounded-full" />
@@ -27,8 +27,8 @@ function ApplicationCard({ application, refetch, hideSeeDetails, hideControls }:
       </div>
       <div className="flex justify-between">
         <div>
-          <h4 className="text-sm font-bold mb-1">Proposal</h4>
-          <p className="truncate max-w-[600px] text-sm">Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS)</p>
+          <h4 className="text-sm font-bold mb-1">Application</h4>
+          <p className="truncate max-w-[600px] text-sm">{application?.content}</p>
         </div>
         {!hideControls && <div className="gap-3 flex">
           {/* <Button variant="outline" className="max-h-10">Deny</Button> */}

@@ -1,20 +1,21 @@
-import { useUpdateMilestoneMutation } from "@/apollo/mutation/update-milestone.generated"
+import { useApproveApplicationMutation } from "@/apollo/mutation/approve-application.generated"
+import { useCheckMilestoneMutation } from "@/apollo/mutation/check-milestone.generated"
+import { useDenyApplicationMutation } from "@/apollo/mutation/deny-application.generated"
 import { useApplicationQuery } from "@/apollo/queries/application.generated"
+import { useProgramQuery } from "@/apollo/queries/program.generated"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
+import { } from "@/components/ui/dialog"
 import { useAuth } from "@/lib/hooks/use-auth"
-import ApplicationCard from "@/pages/programs/details/_components/application-card"
-import { MilestoneStatus } from "@/types/types.generated"
-import { X } from "lucide-react"
-import { useState } from "react"
-import { useParams } from "react-router"
+import { CheckMilestoneStatus, MilestoneStatus } from "@/types/types.generated"
+import { format } from "date-fns"
+import { ArrowRight, } from "lucide-react"
+import { Link, useNavigate, useParams } from "react-router"
 
-function ProposalDetails() {
-  const { email, isValidator } = useAuth()
-  const { applicationId } = useParams()
+function ApplicationDetails() {
+  const { isValidator } = useAuth()
+  const { id, applicationId } = useParams()
   const { data, refetch } = useApplicationQuery({
     variables: {
       id: applicationId ?? "",
@@ -23,142 +24,182 @@ function ProposalDetails() {
   })
   console.log("🚀 ~ ProposalDetails ~ data:", data)
 
-  const [updateMilestone] = useUpdateMilestoneMutation()
 
-  const [description, setDescription] = useState<string>()
+  const { data: programData, refetch: programRefetch } = useProgramQuery({
+    variables: {
+      id: id ?? ''
+    }
+  })
 
-  const [links, setLinks] = useState<string[]>([''])
+  // console.log("🚀 ~ data.program:", data?.program)
 
-  const submitMilestone = (milestoneId: string) => {
-    updateMilestone({
-      variables: {
-        input: {
-          id: milestoneId,
-          status: MilestoneStatus.RevisionRequested,
-          links: links.map(l => ({ title: l, url: l })),
-          description,
-        }
-      },
-      onCompleted: () => {
-        refetch()
-      }
-    })
+  const program = programData?.program
+
+  const { name, keywords } = program ?? {}
+
+  // const submitMilestone = (milestoneId: string) => {
+  //   updateMilestone({
+  //     variables: {
+  //       input: {
+  //         id: milestoneId,
+  //         status: MilestoneStatus.RevisionRequested,
+  //         links: links.map(l => ({ title: l, url: l })),
+  //         description,
+  //       }
+  //     },
+  //     onCompleted: () => {
+  //       refetch()
+  //     }
+  //   })
+  // }
+
+  const applicationMutationParams = {
+    onCompleted: () => {
+      refetch()
+      programRefetch()
+    },
+    variables: {
+      id: applicationId ?? ""
+    }
   }
+
+  const [checkMilestone] = useCheckMilestoneMutation()
+
+  const [approveApplication] = useApproveApplicationMutation(applicationMutationParams)
+  const [denyApplication] = useDenyApplicationMutation(applicationMutationParams)
+
+
+  const navigate = useNavigate()
+
+  const badgeVariants = ['teal', 'orange', 'pink']
 
   return (
     <div className="bg-[#F7F7F7]">
-      <div className="p-10 rounded-b-2xl bg-white">
-        <h2 className="text-xl font-bold mb-4">Proposal</h2>
-        <section className="space-y-5">
-          <ApplicationCard application={data?.application} hideSeeDetails={true} hideControls={true} />
-        </section>
+      <section className="bg-white p-10 mb-3 rounded-b-2xl">
+        <div className="flex justify-between mb-5">
+          <div className="flex gap-2 mb-1">
+            {keywords?.map((k, i) => (
+              <Badge key={k.id} variant={badgeVariants[i % badgeVariants.length] as 'default' | 'secondary' | 'purple'}>{k.name}</Badge>
+            ))}
+          </div>
+          <button type="button" onClick={() => navigate(-1)} className="font-medium flex gap-2 items-center text-sm">Back to Program detail  <ArrowRight className="w-4 h-4" /></button>
+        </div>
 
-      </div>
+        <Link to={`/programs/${id}`} className="flex items-center gap-4 mb-4">
+          <div className="w-10 h-10 bg-gray-200 rounded-full" />
+          <h2 className="text-lg font-bold">
+            {name}
+          </h2>
+        </Link>
+        <div className="mb-4">
+          <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
+            <span className="inline-block mr-2">{program?.price} {program?.currency}</span>
+            <span className="h-3 border-l border-[#B331FF] inline-block" />
+            <span className="inline-block ml-2">DEADLINE {format(new Date(program?.deadline ?? new Date()), "dd . MMM . yyyy").toUpperCase()}</span>
+          </p>
+        </div>
+      </section>
 
-      <div className="mt-3 p-10 rounded-t-2xl bg-white">
-        <h2 className="text-xl font-bold mb-4">Milestones</h2>
-        <section className="space-y-10">
-          {data?.application?.milestones?.map(m => (
-            <div key={m.id} className="border rounded-xl p-6 min-h-[196px]">
-              <div className="flex justify-between items-center mb-2">
-                <Badge>{m.status}</Badge>
-                <span className="text-muted-foreground text-xs">{m.price} {m.currency} | DEADLINE 30, MAR, 2025</span>
-              </div>
-              <h3 className="text-lg font-bold mb-2">{m.title}</h3>
-              <p className="truncate max-w-[600px] text-sm mb-5">Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) ....</p>
-
-              {m.status === MilestoneStatus.Pending && data.application?.applicant?.email === email && <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="h-10 block ml-auto">Submit Milestone</Button>
-                </DialogTrigger>
-
-                <DialogContent>
-                  <h2 className="text-2xl font-semibold">
-                    Submit Milestone
-                  </h2>
-
-                  <label htmlFor="title">
-                    <p className="font-medium text-sm">{m.title}</p>
-                    {/* <Input id="title" /> */}
-
-                  </label>
-
-                  <label htmlFor="description">
-                    <p className="font-medium text-sm">Description</p>
-                    <Textarea value={description} onChange={(e) => setDescription(e.target.value)} id="description" />
-                  </label>
-
-                  <label htmlFor="links" className="space-y-2 block mb-10">
-                    <p className="text-sm font-medium">Links</p>
-                    <span className="block text-[#71717A] text-sm">Add links to your website, blog, or social media profiles.</span>
-
-                    {links.map((l, idx) => (
-                      // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                      <div key={idx} className="flex items-center gap-2">
-                        <Input className="h-10 max-w-[431.61px]" value={l} onChange={(e) => {
-                          setLinks((prev) => {
-                            const newLinks = [...prev]
-                            newLinks[idx] = e.target.value
-                            return newLinks
-                          })
-                        }} />
-                        {idx !== 0 && <X onClick={() => setLinks((prev) => {
-                          const newLinks = [...[...prev].slice(0, idx), ...[...prev].slice(idx + 1)]
-
-                          return newLinks
-                        })} />}
-                      </div>
-                    ))}
-                    <Button onClick={() => setLinks((prev) => [...prev, ''])} type="button" variant="outline" size="sm" className="rounded-[6px]">Add URL</Button>
-                    {/* {extraErrors.validator && <span className="text-red-400 text-sm block">Links is required</span>} */}
-
-                  </label>
-
-                  <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 max-w-[165px] w-full ml-auto h-10" onClick={() => submitMilestone(m.id ?? '')}>Submit Milestone</Button>
-                </DialogContent>
-              </Dialog>}
-
-
-              {m.status === MilestoneStatus.RevisionRequested && isValidator && <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="h-10 block ml-auto">Check Milestone</Button>
-                </DialogTrigger>
-
-                <DialogContent>
-                  <h2 className="text-2xl font-semibold">
-                    Review Milestone
-                  </h2>
-
-                  <label htmlFor="title">
-                    <p className="font-medium text-sm">{m.title}</p>
-                    {/* <Input id="title" /> */}
-
-                  </label>
-
-                  <label htmlFor="description">
-                    <p className="font-medium text-sm mb-2">Description</p>
-                    <Textarea value={m.description ?? ''} disabled id="description" />
-                  </label>
-
-                  <div className="space-y-2">
-                    <p className="font-medium text-sm">Links</p>
-                    {m.links?.map(l => (
-                      <Input key={l.url} value={l.url ?? ""} disabled className="h-10 max-w-[431.61px]" />
-                    ))}
-                  </div>
-
-                  <div className="w-full flex justify-between">
-                    <Button variant="outline" className="max-w-[165px] w-full h-10" onClick={() => updateMilestone({ variables: { input: { id: m.id ?? "", status: MilestoneStatus.Pending } } })}>Reject milestone</Button>
-                    <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 max-w-[165px] w-full h-10" onClick={() => updateMilestone({ variables: { input: { id: m.id ?? "", status: MilestoneStatus.Completed } } })}>Accept Milestone</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>}
+      <section className="flex bg-white rounded-t-2xl">
+        <div className="p-10 flex-[60%]">
+          <div className="flex justify-between mb-5">
+            <div className="flex gap-2 mb-1">
+              <Badge variant="default">{data?.application?.status}</Badge>
             </div>
-          ))}
-        </section>
-      </div>
+          </div>
+
+          <Link to={`/programs/${id}`} className="flex items-center gap-4 mb-4">
+            <div className="w-10 h-10 bg-gray-200 rounded-full" />
+            <h2 className="text-lg font-bold">
+              {data?.application?.applicant?.organizationName}
+            </h2>
+          </Link>
+          <div className="mb-6">
+            <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
+              <span className="inline-block mr-2">{program?.price} {program?.currency}</span>
+              <span className="h-3 border-l border-[#B331FF] inline-block" />
+              <span className="inline-block ml-2">DEADLINE {format(new Date(program?.deadline ?? new Date()), "dd . MMM . yyyy").toUpperCase()}</span>
+            </p>
+          </div>
+
+          <div className="mb-6">
+            <h2 className="font-bold text-[#18181B] text-lg mb-3">APPLICATION</h2>
+            <p className="text-slate-600 text-sm">{data?.application?.name}</p>
+          </div>
+
+
+          <div className="mb-6">
+            <h2 className="font-bold text-[#18181B] text-lg mb-3">DESCRIPTION</h2>
+            <p className="text-slate-600 text-sm">{data?.application?.content}</p>
+          </div>
+
+          <div className="mb-6">
+            <h2 className="font-bold text-[#18181B] text-lg mb-3">LINKS</h2>
+            <p className="text-slate-600 text-sm">test.com</p>
+            <p className="text-slate-600 text-sm">test.com</p>
+            <p className="text-slate-600 text-sm">test.com</p>
+          </div>
+
+          {isValidator && data?.application?.status === "pending" && <div className="flex justify-end gap-3">
+            <Button className="h-10" variant="outline" onClick={() => denyApplication()}>Deny</Button>
+            <Button className="h-10" onClick={() => approveApplication()}>Select</Button>
+          </div>}
+        </div>
+
+        <div className="border-r" />
+
+        <div className="p-10 flex-[40%]">
+          <Accordion type="single" collapsible>
+            {data?.application?.milestones?.map((m, idx) => (
+              <AccordionItem key={m.id} value={`${m.id}${idx}`}>
+                <AccordionTrigger>{m.title}</AccordionTrigger>
+                <AccordionContent>
+                  <Badge variant="secondary" className="mb-2">{m.status}</Badge>
+                  <h2 className="text-lg font-bold mb-2">
+                    Milestone #{idx + 1}
+                  </h2>
+                  <div className="mb-6">
+                    <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
+                      <span className="inline-block mr-2">{m?.price} {program?.currency}</span>
+                      <span className="h-3 border-l border-[#B331FF] inline-block" />
+                      <span className="inline-block ml-2">DEADLINE {format(new Date(program?.deadline ?? new Date()), "dd . MMM . yyyy").toUpperCase()}</span>
+                    </p>
+                  </div>
+
+                  <div className="mb-6">
+                    <h2 className="font-bold text-[#18181B] text-sm mb-3">SUMMARY</h2>
+                    <p className="text-slate-600 text-xs">{m.description}</p>
+                  </div>
+
+                  {!!m.links?.length && <div className="mb-10">
+                    <h2 className="font-bold text-[#18181B] text-sm mb-3">LINKS</h2>
+                    {m.links?.map(l => (
+                      <p key={l.url} className="text-slate-600 text-xs">{l.url}</p>
+                    ))}
+                  </div>}
+
+                  {m.status === MilestoneStatus.RevisionRequested && isValidator && <div className="flex justify-between">
+                    <Button className="h-10" variant="outline" onClick={() => checkMilestone({
+                      variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Pending } }, onCompleted: () => {
+                        refetch()
+                        programRefetch()
+                      }
+                    })}>Reject Milestone</Button>
+                    <Button className="h-10" onClick={() => checkMilestone({
+                      variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Completed } }, onCompleted: () => {
+                        refetch()
+                        programRefetch()
+                      }
+                    })}>Accept Milestone</Button>
+                  </div>}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </section>
     </div>
   )
 }
 
-export default ProposalDetails
+export default ApplicationDetails

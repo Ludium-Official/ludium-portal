@@ -28,7 +28,7 @@ const DetailsPage: React.FC = () => {
 
 
       <Tabs className="mt-3 bg-white p-10 rounded-t-2xl">
-        <h2 className="text-xl font-bold mb-4">Proposals</h2>
+        <h2 className="text-xl font-bold mb-4">Applications</h2>
         <section className="flex justify-between items-center mb-3">
           <TabsList className="">
             <TabsTrigger value="all">All</TabsTrigger>

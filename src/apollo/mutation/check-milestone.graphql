@@ -1,0 +1,14 @@
+mutation checkMilestone($input: CheckMilestoneInput!) {
+  checkMilestone(input: $input) {
+    currency
+    description
+    id
+    links {
+      title
+      url
+    }
+    price
+    status
+    title
+  }
+}

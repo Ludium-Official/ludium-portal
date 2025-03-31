@@ -22,8 +22,11 @@ export type Application = {
   applicant?: Maybe<User>;
   content?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
+  links?: Maybe<Array<Link>>;
   metadata?: Maybe<Scalars['JSON']['output']>;
   milestones?: Maybe<Array<Milestone>>;
+  name?: Maybe<Scalars['String']['output']>;
+  price?: Maybe<Scalars['String']['output']>;
   status?: Maybe<ApplicationStatus>;
 };
 
@@ -35,9 +38,22 @@ export enum ApplicationStatus {
   Withdrawn = 'withdrawn'
 }
 
+export type CheckMilestoneInput = {
+  id: Scalars['String']['input'];
+  status: CheckMilestoneStatus;
+};
+
+export enum CheckMilestoneStatus {
+  Completed = 'completed',
+  Pending = 'pending'
+}
+
 export type CreateApplicationInput = {
   content: Scalars['String']['input'];
+  links?: InputMaybe<Array<LinkInput>>;
   metadata?: InputMaybe<Scalars['JSON']['input']>;
+  name: Scalars['String']['input'];
+  price: Scalars['String']['input'];
   programId: Scalars['String']['input'];
 };
 
@@ -99,17 +115,32 @@ export enum MilestoneStatus {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  approveApplication?: Maybe<Application>;
+  checkMilestone?: Maybe<Milestone>;
   createApplication?: Maybe<Application>;
   createMilestones?: Maybe<Array<Milestone>>;
   createProgram?: Maybe<Program>;
   createUser?: Maybe<User>;
   deleteProgram?: Maybe<Scalars['Boolean']['output']>;
   deleteUser?: Maybe<User>;
+  denyApplication?: Maybe<Application>;
   login?: Maybe<LoginResponse>;
+  publishProgram?: Maybe<Program>;
+  submitMilestone?: Maybe<Milestone>;
   updateApplication?: Maybe<Application>;
   updateMilestone?: Maybe<Milestone>;
   updateProgram?: Maybe<Program>;
   updateUser?: Maybe<User>;
+};
+
+
+export type MutationApproveApplicationArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationCheckMilestoneArgs = {
+  input: CheckMilestoneInput;
 };
 
 
@@ -143,12 +174,27 @@ export type MutationDeleteUserArgs = {
 };
 
 
+export type MutationDenyApplicationArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationLoginArgs = {
   address?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
   network?: InputMaybe<Scalars['String']['input']>;
   userId: Scalars['ID']['input'];
   walletId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationPublishProgramArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationSubmitMilestoneArgs = {
+  input: SubmitMilestoneInput;
 };
 
 
@@ -280,10 +326,18 @@ export type Role = {
   name?: Maybe<Scalars['String']['output']>;
 };
 
+export type SubmitMilestoneInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['String']['input'];
+  links?: InputMaybe<Array<LinkInput>>;
+};
+
 export type UpdateApplicationInput = {
   content?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
+  links?: InputMaybe<Array<LinkInput>>;
   metadata?: InputMaybe<Scalars['JSON']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<ApplicationStatus>;
 };
 

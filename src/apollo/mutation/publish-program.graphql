@@ -1,0 +1,30 @@
+mutation publishProgram($id: ID!) {
+  publishProgram(id: $id) {
+    creator {
+      about
+      email
+      firstName
+      id
+      image
+      lastName
+      organizationName
+    }
+    currency
+    deadline
+    description
+    id
+    name
+    price
+    status
+    summary
+    validator {
+      about
+      email
+      firstName
+      id
+      image
+      lastName
+      organizationName
+    }
+  }
+}

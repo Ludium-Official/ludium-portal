@@ -1,5 +1,8 @@
+import client from "@/apollo/client"
 import { useCreateProgramMutation } from "@/apollo/mutation/create-program.generated"
+import { useUpdateProgramMutation } from "@/apollo/mutation/update-program.generated"
 import { useKeywordsQuery } from "@/apollo/queries/keywords.generated"
+import { ProgramsDocument } from "@/apollo/queries/programs.generated"
 import { useUsersByRoleQuery } from "@/apollo/queries/users-by-role.generated"
 import { Button } from "@/components/ui/button"
 import { DatePicker } from "@/components/ui/date-picker"
@@ -33,6 +36,9 @@ function EditProgramForm() {
   const navigate = useNavigate()
 
   const [createProgram] = useCreateProgramMutation()
+  const [updateProgram] = useUpdateProgramMutation()
+  // const [publishProgram] = usePublishProgramMutation()
+  const [publish, setPublish] = useState(false)
 
 
   const {
@@ -72,9 +78,19 @@ function EditProgramForm() {
           links: links.map(l => ({ title: l, url: l })),
         }
       },
-      onCompleted: () => {
-        navigate('/programs')
-      }
+      onCompleted: (data) => {
+        if (publish) {
+          updateProgram({
+            variables: { input: { id: data.createProgram?.id ?? "", status: "published" } },
+            onCompleted: () => {
+              navigate('/programs')
+            }
+          })
+        } else {
+          navigate('/programs')
+        }
+        client.refetchQueries({ include: [ProgramsDocument] })
+      },
     })
   }
 
@@ -181,9 +197,15 @@ function EditProgramForm() {
       </label>
 
 
-      <Button type="submit" className="px-[32px] py-3 ml-auto block" onClick={() => {
-        extraValidation()
-      }}>Save and Upload</Button>
+      <div className="px-[32px] py-3 flex justify-end gap-4">
+        <Button className="min-w-[97px]" onClick={() => {
+          extraValidation()
+        }}>Save</Button>
+        <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 min-w-[177px]" type="submit" onClick={() => {
+          setPublish(true)
+          extraValidation()
+        }}>Save and Upload</Button>
+      </div>
     </form>
   )
 }

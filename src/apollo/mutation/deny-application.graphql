@@ -1,0 +1,14 @@
+mutation denyApplication($id: ID!) {
+  denyApplication(id: $id) {
+    content
+    id
+    links {
+      title
+      url
+    }
+    metadata
+    name
+    price
+    status
+  }
+}
