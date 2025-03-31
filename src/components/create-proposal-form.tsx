@@ -128,7 +128,7 @@ function CreateProposalForm({ program }: { program?: Program | null }) {
             <div className="flex items-end gap-2 w-full">
               <label htmlFor={`price${idx}`} className="w-full">
                 <p className="text-sm font-medium mb-2">PRICE</p>
-                <Input type="number" id={`price${idx}`} className="h-10 w-full" value={m.price} onChange={e => {
+                <Input type="number" min="0.000001" id={`price${idx}`} className="h-10 w-full" value={m.price} onChange={e => {
                   const newMilestone = { ...m }
                   newMilestone.price = e.target.value
                   setMilestones(prev => [...prev.slice(0, idx), newMilestone, ...prev.slice(idx + 1)])

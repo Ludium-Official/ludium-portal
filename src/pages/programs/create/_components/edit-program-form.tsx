@@ -133,7 +133,7 @@ function EditProgramForm() {
 
       <label htmlFor="price" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Price</p>
-        <Input id="price" type="number" placeholder="Enter price" className="h-10" {...register("price", { required: true })} />
+        <Input id="price" type="number" min="0.000001" placeholder="Enter price" className="h-10" {...register("price", { required: true })} />
         <span className="text-[#71717A] text-sm">This is an input description.</span>
         {errors.price && <span className="text-red-400 text-sm block">Price is required</span>}
 
