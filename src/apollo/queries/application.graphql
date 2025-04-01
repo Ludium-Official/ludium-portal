@@ -16,6 +16,10 @@ query application($id: ID!) {
     content
     id
     name
+    links {
+      title
+      url
+    }
     metadata
     milestones {
       currency

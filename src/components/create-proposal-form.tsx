@@ -1,5 +1,7 @@
+import client from "@/apollo/client"
 import { useCreateApplicationMutation } from "@/apollo/mutation/create-application.generated"
 import { useCreateMilestonesMutation } from "@/apollo/mutation/create-milestones.generated"
+import { ProgramDocument } from "@/apollo/queries/program.generated"
 import { Button } from "@/components/ui/button"
 import { DialogClose, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -31,7 +33,10 @@ function CreateProposalForm({ program }: { program?: Program | null }) {
   const [links, setLinks] = useState<string[]>([''])
   const [milestones, setMilestones] = useState<MilestoneType[]>([emptyMilestone])
 
-  const [createApplication] = useCreateApplicationMutation()
+  const totalPrice = milestones.reduce((prev, curr) => (Number(curr.price ?? 0) + prev), 0)
+  console.log("🚀 ~ CreateProposalForm ~ totalPrice:", totalPrice)
+
+  const [createApplication, { loading }] = useCreateApplicationMutation()
   const [createMilestones] = useCreateMilestonesMutation()
 
   console.log("🚀 ~ CreateProposalForm ~ milestones:", milestones)
@@ -59,6 +64,9 @@ function CreateProposalForm({ program }: { program?: Program | null }) {
             }))
           },
           onCompleted: () => {
+            client.refetchQueries({
+              include: [ProgramDocument]
+            })
             notify("Purposal successfully created")
             document.getElementById('purposal-dialog-close')?.click()
           }
@@ -66,6 +74,8 @@ function CreateProposalForm({ program }: { program?: Program | null }) {
       }
     })
   }
+
+  const milestoneValid = program?.price && totalPrice <= (Number(program?.price) ?? 0) && milestones.every(m => !!m.title && !!m.price)
 
   return (
     <form>
@@ -149,7 +159,9 @@ function CreateProposalForm({ program }: { program?: Program | null }) {
         </div>
       ))}
 
-      <Button type="button" className="bg-[#861CC4] h-10 ml-auto block hover:bg-[#861CC4]/90" onClick={onSubmit}>SUBMIT PROPOSAL</Button>
+
+      {program?.price && totalPrice > (Number(program?.price) ?? 0) && <span className="text-red-400 mb-4 block">The total price of milestones is more than the price of the program.</span>}
+      <Button disabled={loading || !milestoneValid || !name || !description} type="button" className="bg-[#861CC4] h-10 ml-auto block hover:bg-[#861CC4]/90" onClick={onSubmit}>SUBMIT PROPOSAL</Button>
     </form>
   )
 }

@@ -1,15 +1,16 @@
 
-import { useUpdateApplicationMutation } from "@/apollo/mutation/update-application.generated"
+import { useApproveApplicationMutation } from "@/apollo/mutation/approve-application.generated"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { type Application, ApplicationStatus, } from "@/types/types.generated"
+import type { Application } from "@/types/types.generated"
 import { ArrowRight } from "lucide-react"
 import { Link } from "react-router"
 
 function ApplicationCard({ application, refetch, hideSeeDetails, hideControls, isDetails }: { application?: Application | null, refetch?: () => void, hideSeeDetails?: boolean | null, hideControls?: boolean | null, isDetails?: boolean }) {
   // const [updateMilestone] = useUpdateMilestoneMutation()
 
-  const [updateApplication] = useUpdateApplicationMutation()
+  // const [updateApplication] = useUpdateApplicationMutation()
+  const [approveApplication] = useApproveApplicationMutation()
 
   console.log("🚀 ~ ApplicationCard ~ application:", application)
   return (
@@ -33,17 +34,25 @@ function ApplicationCard({ application, refetch, hideSeeDetails, hideControls, i
         {!hideControls && <div className="gap-3 flex">
           {/* <Button variant="outline" className="max-h-10">Deny</Button> */}
           <Button className="max-h-10" onClick={() => {
-            updateApplication({
+            approveApplication({
               variables: {
-                input: {
-                  id: application?.id ?? "",
-                  status: ApplicationStatus.Approved
-                }
+                id: application?.id ?? "",
               },
               onCompleted: () => {
                 refetch?.()
               }
             })
+            // updateApplication({
+            //   variables: {
+            //     input: {
+            //       id: application?.id ?? "",
+            //       status: ApplicationStatus.Approved
+            //     }
+            //   },
+            //   onCompleted: () => {
+            //     refetch?.()
+            //   }
+            // })
           }}>Select</Button>
         </div>}
       </div>

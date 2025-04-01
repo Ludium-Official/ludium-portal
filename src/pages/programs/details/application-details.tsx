@@ -135,9 +135,9 @@ function ApplicationDetails() {
 
           <div className="mb-6">
             <h2 className="font-bold text-[#18181B] text-lg mb-3">LINKS</h2>
-            <p className="text-slate-600 text-sm">test.com</p>
-            <p className="text-slate-600 text-sm">test.com</p>
-            <p className="text-slate-600 text-sm">test.com</p>
+            {data?.application?.links?.map((l) => (
+              <p className="text-slate-600 text-sm" key={l.url}>{l.url}</p>
+            ))}
           </div>
 
           {isValidator && data?.application?.status === "pending" && <div className="flex justify-end gap-3">
