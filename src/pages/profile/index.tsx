@@ -92,7 +92,6 @@ function ProfilePage() {
             <p className='font-medium text-sm mb-2'>Profile image</p>
             <span className='block text-sm text-[#71717A] mb-2'>This is an input description</span>
             <div className='flex items-end mb-9 gap-12 '>
-              {/* <img src={profile} alt="profile" className='w-[113px] h-[113px]' /> */}
               <div className='relative'>
                 <img className="w-[137] h-[137px] object-cover" width={137} height={137} src={selectedAvatar ? URL.createObjectURL(selectedAvatar) : profileData?.profile?.image ?? avatarPlaceholder} alt="Avatar" />
                 <input onChange={(e) => setSelectedAvatar(e.target.files?.[0])} type="file" accept=".jpg,.jpeg,.png,.svg" className="hidden" id="image-input" />
