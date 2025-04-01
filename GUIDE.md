@@ -152,7 +152,7 @@ import config from "../../../config";
 
 - [GQL naming convention](https://www.apollographql.com/docs/technotes/TN0002-schema-naming-conventions)
 
-**Application Flow Instructions**
+## 📝 Application Flow Instructions
 
 ### **Sponsors**
 Sponsors can create programs. To create a program:
