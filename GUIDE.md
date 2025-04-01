@@ -151,3 +151,56 @@ import config from "../../../config";
 ### GraphQL
 
 - [GQL naming convention](https://www.apollographql.com/docs/technotes/TN0002-schema-naming-conventions)
+
+**Application Flow Instructions**
+
+### **Sponsors**
+Sponsors can create programs. To create a program:
+1. Go to the **Programs** tab.
+2. Click on the **Create Program** button.
+3. Fill in all the required fields.
+4. To save and publish the program immediately, click **Save and Upload**.
+5. Alternatively, click **Save** to save the program without publishing.
+6. The program must then be published by a **Validator**.
+
+### **Validators**
+Validators have the following responsibilities:
+
+#### **Publishing a Program**
+To publish a program:
+1. Navigate to the program's page.
+2. Click the **Confirm** button.
+
+#### **Selecting an Application**
+Validators can select applications submitted by Builders for a program:
+1. Go to the program's page.
+2. Locate the list of applications.
+3. Click **Select** on an application card to approve it for implementation.
+
+#### **Evaluating Milestones**
+Validators can review milestones submitted by Builders:
+1. Navigate to the program's page.
+2. Locate the relevant application and click **See Details**.
+3. The page will now display only the selected application and its milestones.
+4. Click **See Details** again on the application card to enter the detailed view.
+5. On the right side of the screen, find the **Milestones** section.
+6. Expand the milestone you want to review to see its **description** and **links** provided by the Builder.
+7. If rejecting the milestone, click **Reject Milestone**—the milestone will revert to **Pending**, and the Builder will need to resubmit it.
+8. If approving the milestone, click **Accept Milestone**—its status will change to **Completed**.
+
+### **Builders**
+Builders can submit applications for programs:
+1. Navigate to the program's page.
+2. Click the **Send Application** button.
+3. Fill in the application form, including milestones.
+4. Submit the application.
+
+#### **Submitting Milestones**
+Once a validator selects an application, Builders can submit their milestones:
+1. Go to the program's page and find the relevant application.
+2. Click **See Details**.
+3. The page will now display only the selected application and its milestones.
+4. Locate the milestone you want to submit and click **Submit Milestone**.
+5. Fill in the milestone submission form.
+6. Click **Submit Milestone** at the bottom of the form.
+
