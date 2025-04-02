@@ -93,7 +93,7 @@ function ProfilePage() {
             <div className='flex items-end mb-9 gap-12 '>
               <div className='relative'>
                 <img className="w-[137] h-[137px] object-cover" width={137} height={137} src={selectedAvatar ? URL.createObjectURL(selectedAvatar) : profileData?.profile?.image ?? avatarPlaceholder} alt="Avatar" />
-                <input onChange={(e) => setSelectedAvatar(e.target.files?.[0])} type="file" accept=".jpg,.jpeg,.png,.svg" className="hidden" id="image-input" />
+                <input onChange={(e) => setSelectedAvatar(e.target.files?.[0])} type="file" accept="image/*" className="hidden" id="image-input" />
                 <Button type="button" size='sm' className='w-10 h-10 absolute right-0 bottom-0' onClick={() => {
                   document.getElementById("image-input")?.click()
                 }}>+</Button>

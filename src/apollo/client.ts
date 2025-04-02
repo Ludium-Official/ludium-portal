@@ -1,12 +1,20 @@
-import { ApolloClient, ApolloLink, HttpLink, InMemoryCache, concat } from '@apollo/client';
+import { ApolloClient, ApolloLink, InMemoryCache, concat } from '@apollo/client';
+import createUploadLink from 'apollo-upload-client/createUploadLink.mjs';
 // import { getMainDefinition } from '@apollo/client/utilities';
 
-const httpLink = new HttpLink({
+const httpLink = createUploadLink({
   uri: `${import.meta.env.VITE_SERVER_URL}/graphql`,
   headers: {
     'Apollo-Require-Preflight': 'true',
   },
 });
+
+// const httpLink = new HttpLink({
+//   uri: `${import.meta.env.VITE_SERVER_URL}/graphql`,
+//   headers: {
+//     'Apollo-Require-Preflight': 'true',
+//   },
+// });
 
 const authMiddleware = new ApolloLink((operation, forward) => {
   const token = localStorage.getItem('token');
