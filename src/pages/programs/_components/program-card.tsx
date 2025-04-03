@@ -1,6 +1,7 @@
 
 import { Badge } from "@/components/ui/badge"
 import { } from "@/components/ui/dialog"
+import { useAuth } from "@/lib/hooks/use-auth"
 // import { useAuth } from "@/lib/hooks/use-auth"
 import { ApplicationStatus, type Program } from "@/types/types.generated"
 import { format } from "date-fns"
@@ -8,7 +9,7 @@ import { ArrowRight, Settings } from "lucide-react"
 import { Link, } from "react-router"
 
 function ProgramCard({ program }: { program: Program }) {
-  // const { isBuilder } = useAuth()
+  const { isSponsor } = useAuth()
   const { id, name, keywords, summary } = program ?? {}
   const badgeVariants = ['teal', 'orange', 'pink']
 
@@ -27,7 +28,7 @@ function ProgramCard({ program }: { program: Program }) {
           <Badge variant='secondary'>Social</Badge>
           <Badge variant="purple">Solidity</Badge> */}
         </div>
-        <span className="font-medium flex gap-2 items-center text-sm">Ongoing  <Settings className="w-4 h-4" /></span>
+        <span className="font-medium flex gap-2 items-center text-sm">Ongoing {isSponsor && <Link to={`/programs/${program?.id}/edit`}><Settings className="w-4 h-4" /></Link>}</span>
       </div>
 
       <Link to={`/programs/${id}`} className="flex items-center gap-4 mb-4">

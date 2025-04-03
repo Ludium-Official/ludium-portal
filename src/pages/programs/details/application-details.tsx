@@ -116,7 +116,7 @@ function ApplicationDetails() {
           </Link>
           <div className="mb-6">
             <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
-              <span className="inline-block mr-2">{program?.price} {program?.currency}</span>
+              <span className="inline-block mr-2">{data?.application?.milestones?.reduce((prev, curr) => prev + (Number(curr?.price) ?? 0), 0)} {program?.currency}</span>
               <span className="h-3 border-l border-[#B331FF] inline-block" />
               <span className="inline-block ml-2">DEADLINE {format(new Date(program?.deadline ?? new Date()), "dd . MMM . yyyy").toUpperCase()}</span>
             </p>

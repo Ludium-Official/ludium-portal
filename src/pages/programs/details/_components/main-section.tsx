@@ -6,9 +6,10 @@ import { useAuth } from "@/lib/hooks/use-auth"
 import type { Program } from "@/types/types.generated"
 import { format } from "date-fns"
 import { Settings } from "lucide-react"
+import { Link } from "react-router"
 
 function MainSection({ program }: { program?: Program | null }) {
-  const { isBuilder } = useAuth()
+  const { isBuilder, isSponsor } = useAuth()
   const badgeVariants = ['teal', 'orange', 'pink']
 
   return (
@@ -24,7 +25,7 @@ function MainSection({ program }: { program?: Program | null }) {
               <Badge variant='secondary'>Social</Badge>
               <Badge variant="purple">Solidity</Badge> */}
             </div>
-            <span className="font-medium flex gap-2 items-center text-sm">Ongoing  <Settings className="w-4 h-4" /></span>
+            <span className="font-medium flex gap-2 items-center text-sm">Ongoing {isSponsor && <Link to={`/programs/${program?.id}/edit`}><Settings className="w-4 h-4" /></Link>}</span>
           </div>
 
           <div className="flex items-center gap-4 mb-4">
