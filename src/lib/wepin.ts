@@ -7,11 +7,6 @@ export const wepinSdk = new WepinSDK({
   appKey: import.meta.env.VITE_WEPIN_APP_KEY,
 });
 
-// export const initWepin = wepinSdk.init({
-//   defaultLanguage: 'en',
-//   defaultCurrency: 'KRW',
-// });
-
 export const wepinLogin = new WepinLogin({
   appId: import.meta.env.VITE_WEPIN_APP_ID,
   appKey: import.meta.env.VITE_WEPIN_APP_KEY,
@@ -34,8 +29,3 @@ export const initializeWepin = async () => {
     loginProviders: ['google'],
   });
 };
-
-// const initPromise = wepinLogin.init('en')
-// const initPromise = wepinPin.init({
-//   defaultLanguage: 'en',
-// })

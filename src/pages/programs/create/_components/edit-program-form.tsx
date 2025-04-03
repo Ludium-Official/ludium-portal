@@ -9,7 +9,6 @@ import { DatePicker } from "@/components/ui/date-picker"
 import { Input } from "@/components/ui/input"
 import { MultiSelect } from "@/components/ui/multi-select"
 import { SearchSelect } from "@/components/ui/search-select"
-// import { MultiSelect } from "@/components/ui/multi-select"
 import { Textarea } from "@/components/ui/textarea"
 import { format } from "date-fns"
 import { X } from "lucide-react"
@@ -22,7 +21,6 @@ function EditProgramForm() {
   const [deadline, setDeadline] = useState<Date>()
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [selectedValidator, setSelectedValidator] = useState<string>();
-  console.log("🚀 ~ EditProgramForm ~ selectedValidator:", selectedValidator)
 
   const { data: keywords } = useKeywordsQuery()
   const { data: validators } = useUsersByRoleQuery({ variables: { role: "validator" } })
@@ -30,14 +28,11 @@ function EditProgramForm() {
 
   const keywordOptions = keywords?.keywords?.map(k => ({ value: k.id ?? "", label: k.name ?? "" }))
   const validatorOptions = validators?.usersByRole?.map(v => ({ value: v.id ?? "", label: `${v.email} (${v.organizationName})` }))
-  console.log("🚀 ~ EditProgramForm ~ keywords:", keywords)
-  console.log("🚀 ~ EditProgramForm ~ validators:", validators)
 
   const navigate = useNavigate()
 
   const [createProgram] = useCreateProgramMutation()
   const [updateProgram] = useUpdateProgramMutation()
-  // const [publishProgram] = usePublishProgramMutation()
   const [publish, setPublish] = useState(false)
 
 

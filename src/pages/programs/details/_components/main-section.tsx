@@ -21,9 +21,6 @@ function MainSection({ program }: { program?: Program | null }) {
               {program?.keywords?.map((k, i) => (
                 <Badge key={k.id} variant={badgeVariants[i % badgeVariants.length] as "default" | "secondary" | "purple"}>{k.name}</Badge>
               ))}
-              {/* <Badge variant="default">New</Badge>
-              <Badge variant='secondary'>Social</Badge>
-              <Badge variant="purple">Solidity</Badge> */}
             </div>
             <span className="font-medium flex gap-2 items-center text-sm">Ongoing {isSponsor && <Link to={`/programs/${program?.id}/edit`}><Settings className="w-4 h-4" /></Link>}</span>
           </div>
@@ -31,7 +28,6 @@ function MainSection({ program }: { program?: Program | null }) {
           <div className="flex items-center gap-4 mb-4">
             <div className="w-10 h-10 bg-gray-200 rounded-full" />
             <h2 className="text-lg font-bold">
-              {/* PROGRAM NAME 1: SAMPLE */}
               {program?.name}
             </h2>
           </div>

@@ -1,4 +1,5 @@
 import { useLoginMutation } from "@/apollo/mutation/login.generated";
+import { useProfileQuery } from "@/apollo/queries/profile.generated";
 import { wepinSdk } from "@/lib/wepin";
 import type { } from "@wepin/sdk-js";
 import { createContext, useEffect, useState } from "react";
@@ -7,6 +8,7 @@ interface AuthValues {
   email?: string | null;
   token?: string | null;
   roles?: string[] | null;
+  userId: string;
   isAuthed?: boolean;
   isSponsor?: boolean;
   isValidator?: boolean;
@@ -19,6 +21,7 @@ export const AuthContext = createContext<AuthValues>({
   email: null,
   token: null,
   roles: null,
+  userId: "",
   isAuthed: false,
   isSponsor: false,
   isValidator: false,
@@ -32,14 +35,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>()
   const [roles, setRoles] = useState<string[] | null>()
   const [email, setEmail] = useState<string | null>()
+  const [userId, setUserId] = useState<string>("")
+
+  const { data: profileData } = useProfileQuery({
+    skip: !token,
+  })
 
   const [loginMutation] = useLoginMutation()
 
   useEffect(() => {
+    setUserId(profileData?.profile?.id ?? "")
+  }, [profileData])
+
+  useEffect(() => {
     const tkn = localStorage.getItem('token')
-    if (tkn) {
-      setToken(tkn)
-    }
+    const roles = JSON.parse(localStorage.getItem('roles') ?? "")
+    if (tkn) setToken(tkn);
+    if (roles.length) setRoles(roles)
   }, [])
 
   const login = async ({ email, userId, walletId, address, network }: { email: string, userId: string, walletId: string, address: string, network: string }) => {
@@ -74,7 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const isBuilder = !!roles?.find(r => r === 'builder')
 
   return (
-    <AuthContext.Provider value={{ email, token, roles, isAuthed: !!token, login, logout, isSponsor, isValidator, isBuilder }}>
+    <AuthContext.Provider value={{ userId, email, token, roles, isAuthed: !!token, login, logout, isSponsor, isValidator, isBuilder }}>
       {children}
     </AuthContext.Provider>
   )

@@ -9,7 +9,6 @@ import { DatePicker } from "@/components/ui/date-picker"
 import { Input } from "@/components/ui/input"
 import { MultiSelect } from "@/components/ui/multi-select"
 import { SearchSelect } from "@/components/ui/search-select"
-// import { MultiSelect } from "@/components/ui/multi-select"
 import { Textarea } from "@/components/ui/textarea"
 import notify from "@/lib/notify"
 import { format } from "date-fns"
@@ -43,10 +42,7 @@ function EditProgramForm() {
 
   const navigate = useNavigate()
 
-  // const [createProgram] = useCreateProgramMutation()
   const [updateProgram] = useUpdateProgramMutation()
-  // const [publishProgram] = usePublishProgramMutation()
-  // const [publish, setPublish] = useState(false)
 
   useEffect(() => {
     if (data?.program?.keywords) setSelectedKeywords(data?.program?.keywords?.map((k) => k.id ?? "") ?? []);

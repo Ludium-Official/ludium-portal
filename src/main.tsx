@@ -11,9 +11,7 @@ initializeWepin();
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Providers>
-      {/* <ApolloProvider client={client}> */}
       <App />
-      {/* </ApolloProvider> */}
     </Providers>
   </StrictMode>,
 );

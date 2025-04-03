@@ -7,9 +7,6 @@ import { ArrowRight } from "lucide-react"
 import { Link } from "react-router"
 
 function ApplicationCard({ application, refetch, hideSeeDetails, hideControls, isDetails }: { application?: Application | null, refetch?: () => void, hideSeeDetails?: boolean | null, hideControls?: boolean | null, isDetails?: boolean }) {
-  // const [updateMilestone] = useUpdateMilestoneMutation()
-
-  // const [updateApplication] = useUpdateApplicationMutation()
   const [approveApplication] = useApproveApplicationMutation()
 
   console.log("🚀 ~ ApplicationCard ~ application:", application)
@@ -32,7 +29,6 @@ function ApplicationCard({ application, refetch, hideSeeDetails, hideControls, i
           <p className="truncate max-w-[600px] text-sm">{application?.content}</p>
         </div>
         {!hideControls && <div className="gap-3 flex">
-          {/* <Button variant="outline" className="max-h-10">Deny</Button> */}
           <Button className="max-h-10" onClick={() => {
             approveApplication({
               variables: {
@@ -42,17 +38,6 @@ function ApplicationCard({ application, refetch, hideSeeDetails, hideControls, i
                 refetch?.()
               }
             })
-            // updateApplication({
-            //   variables: {
-            //     input: {
-            //       id: application?.id ?? "",
-            //       status: ApplicationStatus.Approved
-            //     }
-            //   },
-            //   onCompleted: () => {
-            //     refetch?.()
-            //   }
-            // })
           }}>Select</Button>
         </div>}
       </div>

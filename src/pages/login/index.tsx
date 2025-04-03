@@ -3,34 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import notify from '@/lib/notify';
 import { wepinPin, wepinSdk } from '@/lib/wepin';
-// 1. Import the package
-// import { WepinLogin } from '@wepin/login-js'
-// import { WepinPin } from '@wepin/pin-js'
 import { useNavigate } from 'react-router';
-
-
-// Create instance
-// Initialize
-//  wepinPin.init({
-//   defaultLanguage: 'en',
-// })
-
-
-// 2. Initialization
-// const wepinLogin = new WepinLogin({
-//   appId: import.meta.env.VITE_WEPIN_APP_ID,
-//   appKey: import.meta.env.VITE_WEPIN_APP_KEY,
-// })
-
-// const wepinPin = new WepinPin({
-//   appKey: import.meta.env.VITE_WEPIN_APP_KEY,
-//   wepinLogin
-// })
-
-// // const initPromise = wepinLogin.init('en')
-// const initPromise = wepinPin.init({
-//   defaultLanguage: 'en',
-// })
 
 function LoginPage() {
   const [idToken, setIdToken] = useState<string | null>(null)
@@ -42,9 +15,6 @@ function LoginPage() {
   console.log("🚀 ~ App ~ idToken:", idToken)
 
   const loginViaGoogle = async () => {
-    // await initPromise
-
-    // const oauthResponse = await wepinLogin.loginWithOauthProvider({ provider: 'google', withLogout: true })
     const oauthResponse = await wepinPin.login.loginWithOauthProvider({ provider: 'google', withLogout: true })
     if (!("token" in oauthResponse)) {
       notify("Failed to login with Google", 'error')
@@ -58,7 +28,6 @@ function LoginPage() {
 
     localStorage.setItem('idToken', idToken)
     localStorage.setItem('refreshToken', refreshToken)
-    // const wepinResponse = await wepinLogin.loginWepin({ provider: 'google', token: { idToken, refreshToken } })
     const wepinResponse = await wepinPin.login.loginWepin({ provider: 'google', token: { idToken, refreshToken } })
 
     if (wepinResponse.userStatus?.pinRequired) {
@@ -66,12 +35,8 @@ function LoginPage() {
 
 
 
-      console.log("IM HERE")
-
       const pinResponse = await fetch('https://sdk.wepin.io/v1/app/register', {
-        // url: 'https://sdk.wepin.io/v1/app/register',
         method: 'POST',
-        // Omit authentication headers
         headers: {
           Host: "sdk.wepin.io",
           'Content-Type': 'application/json',
@@ -79,9 +44,6 @@ function LoginPage() {
           "X-SDK-TYPE": "web_rest_api",
           "X-API-DOMAIN": "",
           Authorization: `Bearer ${idToken}`
-          // X-API-KEY: ${APP_KEY}
-          // X-API-DOMAIN: {APP_DOMAIN}
-          // X-SDK-TYPE: {platform}_rest_api
         },
         body: JSON.stringify({
           appId: import.meta.env.VITE_WEPIN_APP_ID,

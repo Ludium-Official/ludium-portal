@@ -119,9 +119,6 @@ function ProfilePage() {
             {roles.map(r => (
               <TabsTrigger key={r} value={r}>Programs as {r}</TabsTrigger>
             ))}
-            {/* <TabsTrigger value="sponsor">Programs as sponsor</TabsTrigger>
-            <TabsTrigger value="validator">Programs as validator</TabsTrigger>
-            <TabsTrigger value="applicant">Programs as applicant</TabsTrigger> */}
           </TabsList>
         </Tabs>
 

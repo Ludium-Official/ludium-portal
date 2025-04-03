@@ -31,27 +31,9 @@ function ApplicationDetails() {
     }
   })
 
-  // console.log("🚀 ~ data.program:", data?.program)
-
   const program = programData?.program
 
   const { name, keywords } = program ?? {}
-
-  // const submitMilestone = (milestoneId: string) => {
-  //   updateMilestone({
-  //     variables: {
-  //       input: {
-  //         id: milestoneId,
-  //         status: MilestoneStatus.RevisionRequested,
-  //         links: links.map(l => ({ title: l, url: l })),
-  //         description,
-  //       }
-  //     },
-  //     onCompleted: () => {
-  //       refetch()
-  //     }
-  //   })
-  // }
 
   const applicationMutationParams = {
     onCompleted: () => {

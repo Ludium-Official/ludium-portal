@@ -72,25 +72,10 @@ const ApplicationSelected: React.FC = () => {
     <div className="bg-[#F7F7F7]">
       <MainSection program={program} />
 
-
       <div className="mt-3 bg-white p-10 rounded-2xl">
         <h2 className="text-xl font-bold mb-4">Application</h2>
-        {/* <section className="flex justify-between items-center mb-3">
-          <TabsList className="">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="my-programs">My programs</TabsTrigger>
-            <TabsTrigger value="by-newest">By newest</TabsTrigger>
-            <TabsTrigger value="by-size">By size</TabsTrigger>
-          </TabsList>
-          <div className="h-10 flex items-center gap-3">
-            <Input className="h-full w-[432px]" />
-            <Button variant="outline" className="h-full rounded-[6px] "><ListFilter /> Filter</Button>
-          </div>
-        </section> */}
-
         <section className="space-y-5">
           <ApplicationCard application={application} refetch={refetch} hideControls={true} isDetails={true} />
-
         </section>
       </div>
 
@@ -164,41 +149,6 @@ const ApplicationSelected: React.FC = () => {
                   <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 max-w-[165px] w-full ml-auto h-10" onClick={() => submitMilestone(m.id ?? '')}>Submit Milestone</Button>
                 </DialogContent>
               </Dialog>}
-
-
-              {/* {m.status === MilestoneStatus.RevisionRequested && isValidator && <Dialog>
-                <DialogTrigger asChild>
-                  <Button className="h-10 block ml-auto">Check Milestone</Button>
-                </DialogTrigger>
-
-                <DialogContent>
-                  <h2 className="text-2xl font-semibold">
-                    Review Milestone
-                  </h2>
-
-                  <label htmlFor="title">
-                    <p className="font-medium text-sm">{m.title}</p>
-
-                  </label>
-
-                  <label htmlFor="description">
-                    <p className="font-medium text-sm mb-2">Description</p>
-                    <Textarea value={m.description ?? ''} disabled id="description" />
-                  </label>
-
-                  <div className="space-y-2">
-                    <p className="font-medium text-sm">Links</p>
-                    {m.links?.map(l => (
-                      <Input key={l.url} value={l.url ?? ""} disabled className="h-10 max-w-[431.61px]" />
-                    ))}
-                  </div>
-
-                  <div className="w-full flex justify-between">
-                    <Button variant="outline" className="max-w-[165px] w-full h-10" onClick={() => updateMilestone({ variables: { input: { id: m.id ?? "", status: MilestoneStatus.Pending } } })}>Reject milestone</Button>
-                    <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 max-w-[165px] w-full h-10" onClick={() => updateMilestone({ variables: { input: { id: m.id ?? "", status: MilestoneStatus.Completed } } })}>Accept Milestone</Button>
-                  </div>
-                </DialogContent>
-              </Dialog>} */}
             </div>
           ))}
         </section>
