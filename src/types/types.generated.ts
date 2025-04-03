@@ -15,6 +15,7 @@ export type Scalars = {
   Date: { input: any; output: any; }
   DateTime: { input: any; output: any; }
   JSON: { input: any; output: any; }
+  Upload: { input: any; output: any; }
 };
 
 export type Application = {
@@ -76,6 +77,11 @@ export type CreateProgramInput = {
   price?: InputMaybe<Scalars['String']['input']>;
   summary?: InputMaybe<Scalars['String']['input']>;
   validatorId: Scalars['ID']['input'];
+};
+
+export type FilterInput = {
+  field: Scalars['String']['input'];
+  value: Scalars['String']['input'];
 };
 
 export type Link = {
@@ -242,8 +248,10 @@ export type PaginatedPrograms = {
 };
 
 export type PaginationInput = {
+  filter?: InputMaybe<Array<FilterInput>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   offset?: InputMaybe<Scalars['Int']['input']>;
+  sort?: InputMaybe<SortEnum>;
 };
 
 export type Program = {
@@ -333,6 +341,11 @@ export type Role = {
   name?: Maybe<Scalars['String']['output']>;
 };
 
+export enum SortEnum {
+  Asc = 'asc',
+  Desc = 'desc'
+}
+
 export type SubmitMilestoneInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
@@ -375,6 +388,7 @@ export type UpdateProgramInput = {
 export type User = {
   __typename?: 'User';
   about?: Maybe<Scalars['String']['output']>;
+  avatar?: Maybe<Scalars['Upload']['output']>;
   email?: Maybe<Scalars['String']['output']>;
   firstName?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
@@ -388,7 +402,7 @@ export type UserInput = {
   about?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
   firstName?: InputMaybe<Scalars['String']['input']>;
-  image?: InputMaybe<Scalars['String']['input']>;
+  image?: InputMaybe<Scalars['Upload']['input']>;
   lastName?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   organizationName?: InputMaybe<Scalars['String']['input']>;
@@ -399,7 +413,7 @@ export type UserUpdateInput = {
   about?: InputMaybe<Scalars['String']['input']>;
   firstName?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
-  image?: InputMaybe<Scalars['String']['input']>;
+  image?: InputMaybe<Scalars['Upload']['input']>;
   lastName?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   organizationName?: InputMaybe<Scalars['String']['input']>;

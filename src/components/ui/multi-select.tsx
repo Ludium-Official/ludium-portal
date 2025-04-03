@@ -134,6 +134,7 @@ export const MultiSelect = React.forwardRef<
       modalPopover = false,
       asChild = false,
       className,
+      value,
       ...props
     },
     ref
@@ -141,6 +142,10 @@ export const MultiSelect = React.forwardRef<
     const [selectedValues, setSelectedValues] =
       React.useState<string[]>(defaultValue);
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+
+    React.useEffect(() => {
+      setSelectedValues(value as string[])
+    }, [value])
     // const [isAnimating, setIsAnimating] = React.useState(false);
 
     const handleInputKeyDown = (

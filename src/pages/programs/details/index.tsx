@@ -26,7 +26,6 @@ const DetailsPage: React.FC = () => {
     <div className="bg-[#F7F7F7]">
       <MainSection program={program} />
 
-
       <Tabs className="mt-3 bg-white p-10 rounded-t-2xl">
         <h2 className="text-xl font-bold mb-4">Applications</h2>
         <section className="flex justify-between items-center mb-3">
