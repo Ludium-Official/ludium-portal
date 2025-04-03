@@ -64,7 +64,7 @@ function EditProfilePage() {
       variables: {
         input: {
           id: profileData?.profile?.id ?? "",
-          // image: selectedAvatar,
+          image: selectedAvatar,
           organizationName: data?.name,
           about: data?.description,
           links: links?.filter(l => l)?.length ? links?.filter(l => l).map(l => ({ title: l, url: l })) : undefined,
@@ -79,9 +79,7 @@ function EditProfilePage() {
   }
 
 
-  const isNoChanges = () => {
-    return profileData?.profile?.organizationName === watch('name') && profileData?.profile?.about === watch('description') && JSON.stringify(profileData.profile.links?.map(l => l.url)) === JSON.stringify(links)
-  }
+  const isNoChanges = profileData?.profile?.organizationName === watch('name') && profileData?.profile?.about === watch('description') && JSON.stringify(profileData.profile.links?.map(l => l.url)) === JSON.stringify(links)
 
   return (
     <div>
@@ -95,7 +93,7 @@ function EditProfilePage() {
               <div className='relative'>
                 <img className="w-[137] h-[137px] object-cover" width={137} height={137} src={selectedAvatar ? URL.createObjectURL(selectedAvatar) : profileData?.profile?.image ?? avatarPlaceholder} alt="Avatar" />
                 <input onChange={(e) => setSelectedAvatar(e.target.files?.[0])} type="file" accept=".jpg,.jpeg,.png,.svg" className="hidden" id="image-input" />
-                <Button size='sm' className='w-10 h-10 absolute right-0 bottom-0' onClick={() => {
+                <Button type="button" size='sm' className='w-10 h-10 absolute right-0 bottom-0' onClick={() => {
                   document.getElementById("image-input")?.click()
                 }}>+</Button>
               </div>
@@ -162,12 +160,10 @@ function EditProfilePage() {
                 </div>
               ))}
               <Button onClick={() => setLinks((prev) => [...prev, ''])} type="button" variant="outline" size="sm" className="rounded-[6px]">Add URL</Button>
-              {/* {extraErrors.validator && <span className="text-red-400 text-sm block">Links is required</span>} */}
-
             </label>
 
 
-            <Button disabled={isNoChanges()} className="w-[153px] h-[44px] ml-auto block mb-[83px]">Save Changes</Button>
+            <Button disabled={isNoChanges} className="w-[153px] h-[44px] ml-auto block mb-[83px]">Save Changes</Button>
           </div>
 
         </section>
