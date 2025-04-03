@@ -1,23 +1,33 @@
 import { useProgramsQuery } from "@/apollo/queries/programs.generated";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PageSize, Pagination } from "@/components/ui/pagination";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/hooks/use-auth";
 import ProgramCard from "@/pages/programs/_components/program-card";
 import { CirclePlus, ListFilter, } from "lucide-react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 
 const ProgramsPage: React.FC = () => {
   const { isSponsor } = useAuth()
   const navigate = useNavigate()
+
+  const [searchParams] = useSearchParams();
+  const currentPage = Number(searchParams.get("page")) || 1;
+
   const { data } = useProgramsQuery({
     variables: {
       pagination: {
-        limit: 10,
-        offset: 0
+        limit: PageSize,
+        offset: (currentPage - 1) * PageSize
       }
     }
   })
+
+  const totalCount = data?.programs?.count ?? 0
+  console.log("🚀 ~ totalCount:", totalCount)
+  const totalPages = data?.programs?.count ? Math.floor(data?.programs?.count / 5 + 1) : 0
+  console.log("🚀 ~ totalPages:", totalPages)
   console.log("🚀 ~ data:", data)
 
 
@@ -38,10 +48,12 @@ const ProgramsPage: React.FC = () => {
       </section>
 
 
-      <section className="w-full space-y-4">
+      <section className="w-full space-y-4 mb-5">
         {data?.programs?.data?.map((program) => <ProgramCard key={program.id} program={program} />)}
-
       </section>
+
+
+      <Pagination totalCount={totalCount} />
     </Tabs>
   );
 };

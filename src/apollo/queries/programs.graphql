@@ -2,6 +2,45 @@ query programs($pagination: PaginationInput) {
   programs(pagination: $pagination) {
     count
     data {
+      applications {
+        applicant {
+          about
+          avatar
+          email
+          firstName
+          id
+          image
+          lastName
+          links {
+            title
+            url
+          }
+          organizationName
+        }
+        content
+        id
+        links {
+          title
+          url
+        }
+        metadata
+        milestones {
+          currency
+          description
+          id
+          links {
+            title
+            url
+          }
+          price
+          status
+          title
+        }
+        name
+        price
+        status
+      }
+
       creator {
         about
         email

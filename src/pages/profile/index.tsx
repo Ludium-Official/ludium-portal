@@ -46,6 +46,7 @@ function ProfilePage() {
   const { data: profileData } = useProfileQuery({
     fetchPolicy: "network-only"
   })
+
   const { data } = useProgramsQuery({
     variables: {
       pagination: {
@@ -56,8 +57,6 @@ function ProfilePage() {
     },
     skip: !profileData?.profile?.id
   })
-  console.log("🚀 ~ ProfilePage ~ data:", data)
-
 
   return (
     <div className="bg-[#F7F7F7]">
