@@ -83,7 +83,6 @@ function EditProfilePage() {
     return profileData?.profile?.organizationName === watch('name') && profileData?.profile?.about === watch('description') && JSON.stringify(profileData.profile.links?.map(l => l.url)) === JSON.stringify(links)
   }
 
-  console.log("🚀 ~ ProfilePage ~ selectedAvatar:", selectedAvatar)
   return (
     <div>
       <form className="flex" onSubmit={handleSubmit(onSubmit)}>
