@@ -9,29 +9,32 @@ import DetailsPage from "@/pages/programs/details";
 import ApplicationDetails from "@/pages/programs/details/application-details";
 import ApplicationSelected from "@/pages/programs/details/application-selected";
 import EditProgram from "@/pages/programs/edit";
+import ScrollWrapper from "@/providers/scroll-wrapper";
 import { BrowserRouter, Route, Routes } from "react-router";
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<MainPage />} />
-          <Route path="login" element={<LoginPage />} />
-          <Route path="profile">
-            <Route index element={<ProfilePage />} />
-            <Route path="edit" element={<EditProfilePage />} />
+      <ScrollWrapper>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<MainPage />} />
+            <Route path="login" element={<LoginPage />} />
+            <Route path="profile">
+              <Route index element={<ProfilePage />} />
+              <Route path="edit" element={<EditProfilePage />} />
+            </Route>
+            <Route path="programs">
+              <Route index element={<ProgramsPage />} />
+              <Route path="create" element={<CreateProgram />} />
+              <Route path=":id" element={<DetailsPage />} />
+              <Route path=":id/edit" element={<EditProgram />} />
+              <Route path=":id/application/:applicationId" element={<ApplicationSelected />} />
+              <Route path=":id/application/:applicationId/details" element={<ApplicationDetails />} />
+            </Route>
           </Route>
-          <Route path="programs">
-            <Route index element={<ProgramsPage />} />
-            <Route path="create" element={<CreateProgram />} />
-            <Route path=":id" element={<DetailsPage />} />
-            <Route path=":id/edit" element={<EditProgram />} />
-            <Route path=":id/application/:applicationId" element={<ApplicationSelected />} />
-            <Route path=":id/application/:applicationId/details" element={<ApplicationDetails />} />
-          </Route>
-        </Route>
-      </Routes>
+        </Routes>
+      </ScrollWrapper>
     </BrowserRouter>
   );
 }

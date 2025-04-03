@@ -1,0 +1,30 @@
+mutation rejectProgram($id: ID!) {
+  rejectProgram(id: $id) {
+    creator {
+      about
+      email
+      firstName
+      id
+      image
+      lastName
+      organizationName
+    }
+    currency
+    deadline
+    description
+    id
+    name
+    price
+    status
+    summary
+    validator {
+      about
+      email
+      firstName
+      id
+      image
+      lastName
+      organizationName
+    }
+  }
+}

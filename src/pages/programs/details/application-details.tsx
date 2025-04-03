@@ -64,7 +64,7 @@ function ApplicationDetails() {
               <Badge key={k.id} variant={badgeVariants[i % badgeVariants.length] as 'default' | 'secondary' | 'purple'}>{k.name}</Badge>
             ))}
           </div>
-          <button type="button" onClick={() => navigate(-1)} className="font-medium flex gap-2 items-center text-sm">Back to Program detail  <ArrowRight className="w-4 h-4" /></button>
+          <button type="button" onClick={() => navigate(-1)} className="font-medium flex gap-2 items-center text-sm cursor-pointer">Back to Program detail  <ArrowRight className="w-4 h-4" /></button>
         </div>
 
         <Link to={`/programs/${id}`} className="flex items-center gap-4 mb-4">

@@ -44,10 +44,10 @@ function ProgramCard({ program }: { program: Program }) {
 
       <div className="flex justify-between">
         <div className="space-x-3">
-          <Link to="" className="text-xs font-semibold bg-[#F4F4F5] rounded-full px-2.5 py-0.5 leading-4">
+          <Link to={`/programs/${id}#applications`} className="text-xs font-semibold bg-[#F4F4F5] rounded-full px-2.5 py-0.5 leading-4">
             Submitted Application <span className="text-[#B331FF]">{program.applications?.length ?? 0}</span>
           </Link>
-          <Link to="" className="text-xs font-semibold bg-[#18181B] text-white rounded-full px-2.5 py-0.5">
+          <Link to={`/programs/${id}#applications`} className="text-xs font-semibold bg-[#18181B] text-white rounded-full px-2.5 py-0.5">
             Approved Application <span className="text-[#FDE047]">{program.applications?.filter(a => a.status === ApplicationStatus.Approved).length ?? 0}</span>
           </Link>
         </div>

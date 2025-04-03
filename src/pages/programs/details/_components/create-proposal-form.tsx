@@ -2,13 +2,14 @@ import client from "@/apollo/client"
 import { useCreateApplicationMutation } from "@/apollo/mutation/create-application.generated"
 import { useCreateMilestonesMutation } from "@/apollo/mutation/create-milestones.generated"
 import { ProgramDocument } from "@/apollo/queries/program.generated"
+import { currencies } from "@/components/currency-selector"
 import { Button } from "@/components/ui/button"
 import { DialogClose, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import notify from "@/lib/notify"
 import type { Program } from "@/types/types.generated"
-import { X } from "lucide-react"
+import { LoaderCircle, X } from "lucide-react"
 import { useState } from "react"
 
 type MilestoneType = {
@@ -37,7 +38,7 @@ function CreateProposalForm({ program }: { program?: Program | null }) {
   console.log("🚀 ~ CreateProposalForm ~ totalPrice:", totalPrice)
 
   const [createApplication, { loading }] = useCreateApplicationMutation()
-  const [createMilestones] = useCreateMilestonesMutation()
+  const [createMilestones, { loading: milestonesLoading }] = useCreateMilestonesMutation()
 
   console.log("🚀 ~ CreateProposalForm ~ milestones:", milestones)
 
@@ -69,6 +70,9 @@ function CreateProposalForm({ program }: { program?: Program | null }) {
             })
             notify("Purposal successfully created")
             document.getElementById('purposal-dialog-close')?.click()
+          },
+          onError: (e) => {
+            notify(e.message, "error")
           }
         })
       }
@@ -76,6 +80,7 @@ function CreateProposalForm({ program }: { program?: Program | null }) {
   }
 
   const milestoneValid = program?.price && totalPrice <= (Number(program?.price) ?? 0) && milestones.every(m => !!m.title && !!m.price)
+  const programCurrency = currencies.find(c => c.code === program?.currency)
 
   return (
     <form>
@@ -138,13 +143,13 @@ function CreateProposalForm({ program }: { program?: Program | null }) {
             <div className="flex items-end gap-2 w-full">
               <label htmlFor={`price${idx}`} className="w-full">
                 <p className="text-sm font-medium mb-2">PRICE</p>
-                <Input type="number" min="0.000001" id={`price${idx}`} className="h-10 w-full" value={m.price} onChange={e => {
+                <Input type="number" id={`price${idx}`} className="h-10 w-full" value={m.price} onChange={e => {
                   const newMilestone = { ...m }
                   newMilestone.price = e.target.value
                   setMilestones(prev => [...prev.slice(0, idx), newMilestone, ...prev.slice(idx + 1)])
                 }} />
               </label>
-              <Button variant="outline" className="h-10">ETH</Button>
+              <Button variant="outline" className="h-10" type="button" disabled>{programCurrency?.icon} {programCurrency?.code}</Button>
             </div>
           </div>
           <Textarea value={m.description} onChange={e => {
@@ -161,7 +166,7 @@ function CreateProposalForm({ program }: { program?: Program | null }) {
 
 
       {program?.price && totalPrice > (Number(program?.price) ?? 0) && <span className="text-red-400 mb-4 block">The total price of milestones is more than the price of the program.</span>}
-      <Button disabled={loading || !milestoneValid || !name || !description} type="button" className="bg-[#861CC4] h-10 ml-auto block hover:bg-[#861CC4]/90" onClick={onSubmit}>SUBMIT PROPOSAL</Button>
+      <Button disabled={loading || milestonesLoading || !milestoneValid || !name || !description} type="button" className="bg-[#861CC4] h-10 ml-auto block hover:bg-[#861CC4]/90 min-w-[161px]" onClick={onSubmit}>{loading || milestonesLoading ? <LoaderCircle className="animate-spin mx-auto" /> : 'SUBMIT PROPOSAL'}</Button>
     </form>
   )
 }

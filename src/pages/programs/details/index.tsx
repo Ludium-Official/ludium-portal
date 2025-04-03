@@ -1,12 +1,10 @@
 import { useProgramQuery } from "@/apollo/queries/program.generated";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/hooks/use-auth";
 import ApplicationCard from "@/pages/programs/details/_components/application-card";
 import MainSection from "@/pages/programs/details/_components/main-section";
 import { ApplicationStatus } from "@/types/types.generated";
-import { ListFilter } from "lucide-react";
+import { useEffect } from "react";
 import { useParams } from "react-router";
 
 const DetailsPage: React.FC = () => {
@@ -22,31 +20,37 @@ const DetailsPage: React.FC = () => {
 
   const program = data?.program
 
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+      const element = document.getElementById(hash);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  }, []);
+
   return (
     <div className="bg-[#F7F7F7]">
       <MainSection program={program} />
 
-      <Tabs className="mt-3 bg-white p-10 rounded-t-2xl">
+      <Tabs className="mt-3 bg-white p-10 rounded-t-2xl" id="applications">
         <h2 className="text-xl font-bold mb-4">Applications</h2>
         <section className="flex justify-between items-center mb-3">
-          <TabsList className="">
+          {/* <TabsList className="">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="my-programs">My programs</TabsTrigger>
             <TabsTrigger value="by-newest">By newest</TabsTrigger>
             <TabsTrigger value="by-size">By size</TabsTrigger>
-          </TabsList>
-          <div className="h-10 flex items-center gap-3">
-            <Input className="h-full w-[432px]" />
-            <Button variant="outline" className="h-full rounded-[6px] "><ListFilter /> Filter</Button>
-            {/* <Button className="h-[32px] rounded-[6px] gap-2" onClick={() => navigate('create')}><CirclePlus /> Create Program</Button> */}
-          </div>
+          </TabsList> */}
         </section>
 
-        <section className="space-y-5">
+        {<section className="space-y-5">
+          {!data?.program?.applications?.length && <div className="text-slate-600 text-sm">No applications yet.</div>}
           {data?.program?.applications?.map(a => (
             <ApplicationCard key={a.id} application={a} refetch={refetch} hideControls={!isValidator || a.status !== ApplicationStatus.Pending || program?.validator?.email !== email} />
           ))}
-        </section>
+        </section>}
       </Tabs>
     </div>
   );

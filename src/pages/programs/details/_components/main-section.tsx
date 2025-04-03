@@ -1,4 +1,7 @@
-import CreateProposalForm from "@/components/create-proposal-form"
+import client from "@/apollo/client"
+import { usePublishProgramMutation } from "@/apollo/mutation/publish-program.generated"
+import { useRejectProgramMutation } from "@/apollo/mutation/reject-program.generated"
+import { ProgramDocument } from "@/apollo/queries/program.generated"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
@@ -7,10 +10,19 @@ import type { Program } from "@/types/types.generated"
 import { format } from "date-fns"
 import { Settings } from "lucide-react"
 import { Link } from "react-router"
+import CreateProposalForm from "./create-proposal-form"
 
 function MainSection({ program }: { program?: Program | null }) {
-  const { isBuilder, isSponsor } = useAuth()
+  const { isBuilder, isSponsor, userId } = useAuth()
   const badgeVariants = ['teal', 'orange', 'pink']
+
+  const programActionOptions = {
+    variables: { id: program?.id ?? '' },
+    onCompleted: () => { client.refetchQueries({ include: [ProgramDocument] }) }
+  }
+
+  const [publishProgram] = usePublishProgramMutation(programActionOptions)
+  const [rejectProgram] = useRejectProgramMutation(programActionOptions)
 
   return (
     <div className="flex bg-white rounded-b-2xl">
@@ -57,7 +69,7 @@ function MainSection({ program }: { program?: Program | null }) {
           ))}
         </div>
 
-        {isBuilder && <Dialog>
+        {isBuilder && program?.status === 'published' && <Dialog>
           <DialogTrigger asChild>
             <Button onClick={(e) => e.stopPropagation()} className="mt-6 mb-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]">Send a proposal</Button>
           </DialogTrigger>
@@ -65,6 +77,13 @@ function MainSection({ program }: { program?: Program | null }) {
             <CreateProposalForm program={program} />
           </DialogContent>
         </Dialog>}
+
+        {program?.validator?.id === userId && program.status === 'draft' && (
+          <div className="flex justify-end gap-4">
+            <Button onClick={() => rejectProgram()} variant="outline" className="h-11 w-[118px]">Reject</Button>
+            <Button onClick={() => publishProgram()} className="h-11 w-[118px]">Confirm</Button>
+          </div>
+        )}
       </section>
 
       <section className="px-10 py-[60px] w-full max-w-[40%] bg-white">

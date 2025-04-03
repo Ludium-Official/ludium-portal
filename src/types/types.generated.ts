@@ -132,6 +132,7 @@ export type Mutation = {
   denyApplication?: Maybe<Application>;
   login?: Maybe<LoginResponse>;
   publishProgram?: Maybe<Program>;
+  rejectProgram?: Maybe<Program>;
   submitMilestone?: Maybe<Milestone>;
   updateApplication?: Maybe<Application>;
   updateMilestone?: Maybe<Milestone>;
@@ -196,6 +197,11 @@ export type MutationLoginArgs = {
 
 
 export type MutationPublishProgramArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationRejectProgramArgs = {
   id: Scalars['ID']['input'];
 };
 
