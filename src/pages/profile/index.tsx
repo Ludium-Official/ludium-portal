@@ -24,9 +24,6 @@ function ProfilePage() {
     validator: 'validatorId',
     builder: 'applicantId'
   }
-  console.log("🚀 ~ ProfilePage ~ selectedTab:", selectedTab)
-
-
 
   const navigate = useNavigate()
 

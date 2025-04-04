@@ -22,8 +22,6 @@ function ApplicationDetails() {
     },
     skip: !applicationId,
   })
-  console.log("🚀 ~ ProposalDetails ~ data:", data)
-
 
   const { data: programData, refetch: programRefetch } = useProgramQuery({
     variables: {

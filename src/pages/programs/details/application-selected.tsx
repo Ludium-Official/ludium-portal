@@ -19,20 +19,16 @@ import { useState } from "react";
 import { useParams } from "react-router";
 
 const ApplicationSelected: React.FC = () => {
-  // const { isValidator, email } = useAuth()
-
 
   const { email } = useAuth()
   const [description, setDescription] = useState<string>()
 
   const [links, setLinks] = useState<string[]>([''])
 
-  // const [updateMilestone] = useUpdateMilestoneMutation()
   const [submitMutation] = useSubmitMilestoneMutation()
 
 
   const { id, applicationId } = useParams()
-  console.log("🚀 ~ applicationId:", applicationId)
 
   const { data, refetch } = useProgramQuery({
     variables: {
@@ -45,7 +41,6 @@ const ApplicationSelected: React.FC = () => {
     },
     skip: !applicationId,
   })
-  console.log("🚀 ~ data.program:", data?.program)
 
   const submitMilestone = (milestoneId: string) => {
     submitMutation({

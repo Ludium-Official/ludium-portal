@@ -29,7 +29,6 @@ function EditProgramForm() {
 
   const [deadline, setDeadline] = useState<Date>()
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
-  console.log("🚀 ~ EditProgramForm ~ selectedKeywords:", selectedKeywords)
   const [selectedValidator, setSelectedValidator] = useState<string>();
   const [links, setLinks] = useState<string[]>([''])
 

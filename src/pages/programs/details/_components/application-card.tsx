@@ -9,7 +9,6 @@ import { Link } from "react-router"
 function ApplicationCard({ application, refetch, hideSeeDetails, hideControls, isDetails }: { application?: Application | null, refetch?: () => void, hideSeeDetails?: boolean | null, hideControls?: boolean | null, isDetails?: boolean }) {
   const [approveApplication] = useApproveApplicationMutation()
 
-  console.log("🚀 ~ ApplicationCard ~ application:", application)
   return (
     <div className="border rounded-xl p-6">
       <header className="flex justify-between mb-4">
