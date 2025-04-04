@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, } from "react-router";
 
 function ProfilePage() {
-  const roles = JSON.parse(localStorage.getItem('roles') ?? '') as string[];
+  const roles = JSON.parse(localStorage.getItem('roles') ?? '[]') as string[];
 
   const [selectedTab, setSelectedTab] = useState(roles?.[0] ?? 'sponsor')
 

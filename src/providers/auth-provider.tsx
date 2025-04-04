@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const tkn = localStorage.getItem('token')
-    const roles = JSON.parse(localStorage.getItem('roles') ?? "")
+    const roles = JSON.parse(localStorage.getItem('roles') ?? "[]")
     if (tkn) setToken(tkn);
     if (roles.length) setRoles(roles)
   }, [])
