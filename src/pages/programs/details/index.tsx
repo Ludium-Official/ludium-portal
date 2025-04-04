@@ -16,7 +16,6 @@ const DetailsPage: React.FC = () => {
       id: id ?? ''
     }
   })
-  console.log("🚀 ~ data.program:", data?.program)
 
   const program = data?.program
 

@@ -27,7 +27,6 @@ const emptyMilestone = {
 }
 
 function CreateProposalForm({ program }: { program?: Program | null }) {
-  console.log("🚀 ~ CreateProposalForm ~ program:", program)
   const [name, setName] = useState<string>()
   const [description, setDescription] = useState<string>()
 
@@ -35,12 +34,9 @@ function CreateProposalForm({ program }: { program?: Program | null }) {
   const [milestones, setMilestones] = useState<MilestoneType[]>([emptyMilestone])
 
   const totalPrice = milestones.reduce((prev, curr) => (Number(curr.price ?? 0) + prev), 0)
-  console.log("🚀 ~ CreateProposalForm ~ totalPrice:", totalPrice)
 
   const [createApplication, { loading }] = useCreateApplicationMutation()
   const [createMilestones, { loading: milestonesLoading }] = useCreateMilestonesMutation()
-
-  console.log("🚀 ~ CreateProposalForm ~ milestones:", milestones)
 
   const onSubmit = () => {
     createApplication({

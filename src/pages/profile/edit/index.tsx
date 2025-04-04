@@ -21,7 +21,6 @@ function EditProfilePage() {
 
   const { login } = useAuth()
   const [wepinStatus, setWepinStatus] = useState<WepinLifeCycle>()
-  console.log("🚀 ~ ProfilePage ~ wepinStatus:", wepinStatus)
 
   useEffect(() => {
     const checkWepinStatus = async () => {
@@ -45,7 +44,6 @@ function EditProfilePage() {
   }, [profileData])
 
   const [links, setLinks] = useState<string[]>([''])
-  console.log("🚀 ~ ProfilePage ~ data:", profileData)
 
   const [updateProfile] = useUpdateProfileMutation()
 
@@ -59,7 +57,6 @@ function EditProfilePage() {
   const [selectedAvatar, setSelectedAvatar] = useState<File>()
 
   const onSubmit = (data: { description: string, name: string }) => {
-    console.log(data)
     updateProfile({
       variables: {
         input: {
