@@ -1,6 +1,5 @@
 import client from "@/apollo/client";
 import { useCreateProgramMutation } from "@/apollo/mutation/create-program.generated";
-import { useUpdateProgramMutation } from "@/apollo/mutation/update-program.generated";
 import { ProgramsDocument } from "@/apollo/queries/programs.generated";
 import type { OnSubmitProgramFunc } from "@/components/program-form";
 import ProgramForm from "@/components/program-form";
@@ -9,7 +8,7 @@ import { useNavigate } from "react-router";
 const CreateProgram: React.FC = () => {
   const navigate = useNavigate()
   const [createProgram] = useCreateProgramMutation()
-  const [updateProgram] = useUpdateProgramMutation()
+  // const [updateProgram] = useUpdateProgramMutation()
 
   const onSubmit: OnSubmitProgramFunc = (args) => {
     createProgram({
@@ -26,17 +25,19 @@ const CreateProgram: React.FC = () => {
           links: args.links,
         }
       },
-      onCompleted: (data) => {
-        if (args.isPublish) {
-          updateProgram({
-            variables: { input: { id: data.createProgram?.id ?? "", status: "published" } },
-            onCompleted: () => {
-              navigate('/programs')
-            }
-          })
-        } else {
-          navigate('/programs')
-        }
+      onCompleted: () => {
+        // if (args.isPublish) {
+        //   updateProgram({
+        //     variables: { input: { id: data.createProgram?.id ?? "", status: "published" } },
+        //     onCompleted: () => {
+        //       navigate('/programs')
+        //     }
+        //   })
+        // } else {
+        //   navigate('/programs')
+        // }
+        navigate('/programs')
+
         client.refetchQueries({ include: [ProgramsDocument] })
       },
     })

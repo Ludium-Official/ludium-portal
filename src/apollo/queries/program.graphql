@@ -35,6 +35,11 @@ query program($id: ID!) {
       image
       lastName
       organizationName
+
+      links {
+        title
+        url
+      }
     }
     currency
     deadline
@@ -60,6 +65,11 @@ query program($id: ID!) {
       image
       lastName
       organizationName
+
+      links {
+        title
+        url
+      }
     }
   }
 }

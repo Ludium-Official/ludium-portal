@@ -1,0 +1,17 @@
+mutation acceptProgram($id: ID!) {
+  acceptProgram(id: $id) {
+    id
+    keywords {
+      id
+      name
+    }
+    links {
+      title
+      url
+    }
+    name
+    price
+    status
+    summary
+  }
+}

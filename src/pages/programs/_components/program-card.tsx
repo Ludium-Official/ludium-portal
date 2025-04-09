@@ -21,7 +21,7 @@ function ProgramCard({ program }: { program: Program }) {
             <Badge key={k.id} variant={badgeVariants[i % badgeVariants.length] as 'default' | 'secondary' | 'purple'}>{k.name}</Badge>
           ))}
         </div>
-        <span className="font-medium flex gap-2 items-center text-sm">Ongoing {isSponsor && <Link to={`/programs/${program?.id}/edit`}><Settings className="w-4 h-4" /></Link>}</span>
+        <span className="font-medium flex gap-2 items-center text-sm">{program?.status ? `${program?.status[0].toUpperCase()}${program?.status.slice(1)} ` : ""} {isSponsor && <Link to={`/programs/${program?.id}/edit`}><Settings className="w-4 h-4" /></Link>}</span>
       </div>
 
       <Link to={`/programs/${id}`} className="flex items-center gap-4 mb-4">

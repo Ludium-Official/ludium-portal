@@ -27,7 +27,7 @@ export type OnSubmitProgramFunc = (data: {
   keywords: string[];
   validatorId: string;
   links: LinkInput[];
-  isPublish?: boolean;
+  // isPublish?: boolean;
 }) => void
 
 export interface ProgramFormProps {
@@ -36,7 +36,7 @@ export interface ProgramFormProps {
 }
 
 function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
-  const [publish, setPublish] = useState(false)
+  // const [publish, setPublish] = useState(false)
 
   const { id } = useParams()
 
@@ -91,7 +91,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
 
     onSubmitProgram({
       id: data?.program?.id ?? id,
-      isPublish: publish,
+      // isPublish: publish,
       programName: submitData.programName,
       price: isEdit && data?.program?.status !== "draft" ? undefined : submitData.price,
       description: submitData.description,
@@ -223,10 +223,10 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           <Button className="min-w-[97px]" onClick={() => {
             extraValidation()
           }}>Save</Button>
-          <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 min-w-[177px]" type="submit" onClick={() => {
+          {/* <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 min-w-[177px]" type="submit" onClick={() => {
             setPublish(true)
             extraValidation()
-          }}>Save and Upload</Button>
+          }}>Save and Upload</Button> */}
         </div>
       )}
     </form>

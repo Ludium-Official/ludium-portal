@@ -6,14 +6,14 @@ import type { Application } from "@/types/types.generated"
 import { ArrowRight } from "lucide-react"
 import { Link } from "react-router"
 
-function ApplicationCard({ application, refetch, hideSeeDetails, hideControls, isDetails }: { application?: Application | null, refetch?: () => void, hideSeeDetails?: boolean | null, hideControls?: boolean | null, isDetails?: boolean }) {
+function ApplicationCard({ application, refetch, hideSeeDetails, hideControls }: { application?: Application | null, refetch?: () => void, hideSeeDetails?: boolean | null, hideControls?: boolean | null }) {
   const [approveApplication] = useApproveApplicationMutation()
 
   return (
     <div className="border rounded-xl p-6">
       <header className="flex justify-between mb-4">
         <Badge>{application?.status}</Badge>
-        {!hideSeeDetails && <Link to={isDetails ? "./details" : `./application/${application?.id}`} className="flex items-center gap-2 text-sm">See details <ArrowRight className="w-4 h-4" /></Link>}
+        {!hideSeeDetails && <Link to={`./application/${application?.id}/details`} className="flex items-center gap-2 text-sm">See details <ArrowRight className="w-4 h-4" /></Link>}
       </header>
       <div className="flex gap-4 items-center mb-2">
         <div className="w-10 h-10 bg-slate-400 rounded-full" />
