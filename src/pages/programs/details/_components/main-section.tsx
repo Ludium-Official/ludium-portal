@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/lib/hooks/use-auth"
+import { formatProgramStatus } from "@/lib/utils"
 import type { Program } from "@/types/types.generated"
 import { format } from "date-fns"
 import { Settings, TriangleAlert } from "lucide-react"
@@ -36,8 +37,7 @@ function MainSection({ program }: { program?: Program | null }) {
                 <Badge key={k.id} variant={badgeVariants[i % badgeVariants.length] as "default" | "secondary" | "purple"}>{k.name}</Badge>
               ))}
             </div>
-            <span className="font-medium flex gap-2 items-center text-sm">{program?.status ? `${program?.status[0].toUpperCase()}${program?.status.slice(1)} ` : ""} {isSponsor && program?.creator?.id === userId && <Link to={`/programs/${program?.id}/edit`}><Settings className="w-4 h-4" /></Link>}</span>
-            {/* <span className="font-medium flex gap-2 items-center text-sm">Ongoing {isSponsor && <Link to={`/programs/${program?.id}/edit`}><Settings className="w-4 h-4" /></Link>}</span> */}
+            <span className="font-medium flex gap-2 items-center text-sm">{formatProgramStatus(program)} {isSponsor && program?.creator?.id === userId && <Link to={`/programs/${program?.id}/edit`}><Settings className="w-4 h-4" /></Link>}</span>
           </div>
 
           <div className="flex items-center gap-4 mb-4">
