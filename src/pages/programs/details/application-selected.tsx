@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/hooks/use-auth";
 // import { useAuth } from "@/lib/hooks/use-auth";
@@ -70,7 +69,7 @@ const ApplicationSelected: React.FC = () => {
       <div className="mt-3 bg-white p-10 rounded-2xl">
         <h2 className="text-xl font-bold mb-4">Application</h2>
         <section className="space-y-5">
-          <ApplicationCard application={application} refetch={refetch} hideControls={true} isDetails={true} />
+          <ApplicationCard application={application} refetch={refetch} hideControls={true} />
         </section>
       </div>
 

@@ -22,6 +22,7 @@ export type Application = {
   __typename?: 'Application';
   applicant?: Maybe<User>;
   content?: Maybe<Scalars['String']['output']>;
+  educhainApplicationId?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   links?: Maybe<Array<Link>>;
   metadata?: Maybe<Scalars['JSON']['output']>;
@@ -105,6 +106,7 @@ export type Milestone = {
   __typename?: 'Milestone';
   currency?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
+  educhainMilestoneId?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   links?: Maybe<Array<Link>>;
   price?: Maybe<Scalars['String']['output']>;
@@ -121,6 +123,7 @@ export enum MilestoneStatus {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  acceptProgram?: Maybe<Program>;
   approveApplication?: Maybe<Application>;
   checkMilestone?: Maybe<Milestone>;
   createApplication?: Maybe<Application>;
@@ -139,6 +142,11 @@ export type Mutation = {
   updateProfile?: Maybe<User>;
   updateProgram?: Maybe<Program>;
   updateUser?: Maybe<User>;
+};
+
+
+export type MutationAcceptProgramArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -267,6 +275,7 @@ export type Program = {
   currency?: Maybe<Scalars['String']['output']>;
   deadline?: Maybe<Scalars['Date']['output']>;
   description?: Maybe<Scalars['String']['output']>;
+  educhainProgramId?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   keywords?: Maybe<Array<ProgramKeyword>>;
   links?: Maybe<Array<Link>>;

@@ -26,7 +26,7 @@ const emptyMilestone = {
   currency: "ETH"
 }
 
-function CreateProposalForm({ program }: { program?: Program | null }) {
+function CreateApplicationForm({ program }: { program?: Program | null }) {
   const [name, setName] = useState<string>()
   const [description, setDescription] = useState<string>()
 
@@ -162,9 +162,9 @@ function CreateProposalForm({ program }: { program?: Program | null }) {
 
 
       {program?.price && totalPrice > (Number(program?.price) ?? 0) && <span className="text-red-400 mb-4 block">The total price of milestones is more than the price of the program.</span>}
-      <Button disabled={loading || milestonesLoading || !milestoneValid || !name || !description} type="button" className="bg-[#861CC4] h-10 ml-auto block hover:bg-[#861CC4]/90 min-w-[161px]" onClick={onSubmit}>{loading || milestonesLoading ? <LoaderCircle className="animate-spin mx-auto" /> : 'SUBMIT PROPOSAL'}</Button>
+      <Button disabled={loading || milestonesLoading || !milestoneValid || !name || !description} type="button" className="bg-[#861CC4] h-10 ml-auto block hover:bg-[#861CC4]/90 min-w-[161px]" onClick={onSubmit}>{loading || milestonesLoading ? <LoaderCircle className="animate-spin mx-auto" /> : 'SUBMIT APPLICATION'}</Button>
     </form>
   )
 }
 
-export default CreateProposalForm
+export default CreateApplicationForm

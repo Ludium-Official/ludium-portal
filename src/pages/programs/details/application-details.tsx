@@ -6,15 +6,16 @@ import { useProgramQuery } from "@/apollo/queries/program.generated"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/lib/hooks/use-auth"
+import SubmitMilestoneForm from "@/pages/programs/details/_components/submit-milestone-form"
 import { CheckMilestoneStatus, MilestoneStatus } from "@/types/types.generated"
 import { format } from "date-fns"
 import { ArrowRight, } from "lucide-react"
 import { Link, useNavigate, useParams } from "react-router"
 
 function ApplicationDetails() {
-  const { isValidator } = useAuth()
+  const { isValidator, userId } = useAuth()
   const { id, applicationId } = useParams()
   const { data, refetch } = useApplicationQuery({
     variables: {
@@ -124,7 +125,10 @@ function ApplicationDetails() {
             <Button className="h-10" variant="outline" onClick={() => denyApplication()}>Deny</Button>
             <Button className="h-10" onClick={() => approveApplication()}>Select</Button>
           </div>}
+
         </div>
+
+
 
         <div className="border-r" />
 
@@ -172,6 +176,17 @@ function ApplicationDetails() {
                       }
                     })}>Accept Milestone</Button>
                   </div>}
+
+                  {m.status === MilestoneStatus.Pending && data?.application?.applicant?.id === userId &&
+                    (<Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="h-10 block ml-auto">Submit Milestone</Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <SubmitMilestoneForm milestone={m} refetch={refetch} />
+                      </DialogContent>
+                    </Dialog>)
+                  }
                 </AccordionContent>
               </AccordionItem>
             ))}
