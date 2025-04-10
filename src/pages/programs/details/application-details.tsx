@@ -6,16 +6,16 @@ import { useProgramQuery } from "@/apollo/queries/program.generated"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/lib/hooks/use-auth"
 import SubmitMilestoneForm from "@/pages/programs/details/_components/submit-milestone-form"
-import { CheckMilestoneStatus, MilestoneStatus } from "@/types/types.generated"
+import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from "@/types/types.generated"
 import { format } from "date-fns"
 import { ArrowRight, } from "lucide-react"
 import { Link, useNavigate, useParams } from "react-router"
 
 function ApplicationDetails() {
-  const { isValidator, userId } = useAuth()
+  const { userId } = useAuth()
   const { id, applicationId } = useParams()
   const { data, refetch } = useApplicationQuery({
     variables: {
@@ -54,6 +54,8 @@ function ApplicationDetails() {
 
   const badgeVariants = ['teal', 'orange', 'pink']
 
+  console.log(data?.application?.applicant?.id, "data?.application?.applicant?.id")
+  console.log(userId, "userId")
   return (
     <div className="bg-[#F7F7F7]">
       <section className="bg-white p-10 mb-3 rounded-b-2xl">
@@ -121,7 +123,7 @@ function ApplicationDetails() {
             ))}
           </div>
 
-          {isValidator && data?.application?.status === "pending" && <div className="flex justify-end gap-3">
+          {program?.validator?.id === userId && data?.application?.status === "pending" && <div className="flex justify-end gap-3">
             <Button className="h-10" variant="outline" onClick={() => denyApplication()}>Deny</Button>
             <Button className="h-10" onClick={() => approveApplication()}>Select</Button>
           </div>}
@@ -162,7 +164,7 @@ function ApplicationDetails() {
                     ))}
                   </div>}
 
-                  {m.status === MilestoneStatus.RevisionRequested && isValidator && <div className="flex justify-between">
+                  {m.status === MilestoneStatus.RevisionRequested && program?.validator?.id === userId && <div className="flex justify-between">
                     <Button className="h-10" variant="outline" onClick={() => checkMilestone({
                       variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Pending } }, onCompleted: () => {
                         refetch()
@@ -177,12 +179,14 @@ function ApplicationDetails() {
                     })}>Accept Milestone</Button>
                   </div>}
 
-                  {m.status === MilestoneStatus.Pending && data?.application?.applicant?.id === userId &&
+                  {m.status === MilestoneStatus.Pending && data?.application?.status === ApplicationStatus.Approved && data?.application?.applicant?.id === userId &&
                     (<Dialog>
                       <DialogTrigger asChild>
                         <Button className="h-10 block ml-auto">Submit Milestone</Button>
                       </DialogTrigger>
                       <DialogContent>
+                        <DialogTitle />
+                        <DialogDescription />
                         <SubmitMilestoneForm milestone={m} refetch={refetch} />
                       </DialogContent>
                     </Dialog>)

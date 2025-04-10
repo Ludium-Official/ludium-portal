@@ -13,16 +13,16 @@ import { useNavigate, useSearchParams } from "react-router";
 const ProgramsPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState("all")
 
-  const { isSponsor, isValidator, isBuilder, userId } = useAuth()
+  const { isAuthed } = useAuth()
 
-  const getMyProgramFilterValue = () => {
-    const filterValue = []
-    isSponsor && filterValue.push({ field: "creatorId", value: userId })
-    isValidator && filterValue.push({ field: "validatorId", value: userId })
-    isBuilder && filterValue.push({ field: "applicantId", value: userId })
+  // const getMyProgramFilterValue = () => {
+  //   // const filterValue = []
+  //   // isSponsor && filterValue.push({ field: "creatorId", value: userId })
+  //   // isValidator && filterValue.push({ field: "validatorId", value: userId })
+  //   // isBuilder && filterValue.push({ field: "applicantId", value: userId })
 
-    return selectedTab === 'my-programs' ? filterValue : undefined
-  }
+  //   return selectedTab === 'my-programs'
+  // }
   const navigate = useNavigate()
 
   const [searchParams] = useSearchParams();
@@ -33,7 +33,7 @@ const ProgramsPage: React.FC = () => {
       pagination: {
         limit: PageSize,
         offset: (currentPage - 1) * PageSize,
-        filter: getMyProgramFilterValue(),
+        // filter: getMyProgramFilterValue(),
         sort: selectedTab === 'by-newest' ? SortEnum.Desc : SortEnum.Asc
       }
     },
@@ -53,7 +53,7 @@ const ProgramsPage: React.FC = () => {
         <div className="h-10 flex items-center gap-3">
           <Input className="h-full w-[432px]" />
           <Button variant="outline" className="h-full rounded-[6px] "><ListFilter /> Filter</Button>
-          {isSponsor && <Button className="h-[32px] rounded-[6px] gap-2" onClick={() => navigate('create')}><CirclePlus /> Create Program</Button>}
+          {isAuthed && <Button className="h-[32px] rounded-[6px] gap-2" onClick={() => navigate('create')}><CirclePlus /> Create Program</Button>}
         </div>
       </section>
 

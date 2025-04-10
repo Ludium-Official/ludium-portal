@@ -8,7 +8,7 @@ import { useEffect } from "react";
 import { useParams } from "react-router";
 
 const DetailsPage: React.FC = () => {
-  const { isValidator, email } = useAuth()
+  const { userId } = useAuth()
   const { id } = useParams()
 
   const { data, refetch } = useProgramQuery({
@@ -47,7 +47,7 @@ const DetailsPage: React.FC = () => {
         {<section className="space-y-5">
           {!data?.program?.applications?.length && <div className="text-slate-600 text-sm">No applications yet.</div>}
           {data?.program?.applications?.map(a => (
-            <ApplicationCard key={a.id} application={a} refetch={refetch} hideControls={!isValidator || a.status !== ApplicationStatus.Pending || program?.validator?.email !== email} />
+            <ApplicationCard key={a.id} application={a} refetch={refetch} hideControls={a.status !== ApplicationStatus.Pending || program?.validator?.id !== userId} />
           ))}
         </section>}
       </Tabs>
