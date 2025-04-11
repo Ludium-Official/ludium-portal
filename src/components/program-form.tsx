@@ -59,7 +59,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   const [extraErrors, dispatchErrors] = useReducer(extraErrorReducer, { keyword: false, deadline: false, validator: false, links: false })
 
   const keywordOptions = keywords?.keywords?.map(k => ({ value: k.id ?? "", label: k.name ?? "" }))
-  const validatorOptions = validators?.users?.map(v => ({ value: v.id ?? "", label: `${v.email} (${v.organizationName})` }))
+  const validatorOptions = validators?.users?.map(v => ({ value: v.id ?? "", label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ""}` }))
 
   useEffect(() => {
     if (data?.program?.keywords) setSelectedKeywords(data?.program?.keywords?.map((k) => k.id ?? "") ?? []);
