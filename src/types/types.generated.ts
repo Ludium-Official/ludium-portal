@@ -96,12 +96,6 @@ export type LinkInput = {
   url?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type LoginResponse = {
-  __typename?: 'LoginResponse';
-  token?: Maybe<Scalars['String']['output']>;
-  userRoles?: Maybe<Array<Scalars['String']['output']>>;
-};
-
 export type Milestone = {
   __typename?: 'Milestone';
   currency?: Maybe<Scalars['String']['output']>;
@@ -133,7 +127,7 @@ export type Mutation = {
   deleteProgram?: Maybe<Scalars['Boolean']['output']>;
   deleteUser?: Maybe<User>;
   denyApplication?: Maybe<Application>;
-  login?: Maybe<LoginResponse>;
+  login?: Maybe<Scalars['String']['output']>;
   publishProgram?: Maybe<Program>;
   rejectProgram?: Maybe<Program>;
   submitMilestone?: Maybe<Milestone>;
@@ -302,10 +296,8 @@ export type Query = {
   profile?: Maybe<User>;
   program?: Maybe<Program>;
   programs?: Maybe<PaginatedPrograms>;
-  roles?: Maybe<Array<Role>>;
   user?: Maybe<User>;
   users?: Maybe<Array<User>>;
-  usersByRole?: Maybe<Array<User>>;
 };
 
 
@@ -342,18 +334,6 @@ export type QueryProgramsArgs = {
 
 export type QueryUserArgs = {
   id: Scalars['ID']['input'];
-};
-
-
-export type QueryUsersByRoleArgs = {
-  role: Scalars['String']['input'];
-};
-
-export type Role = {
-  __typename?: 'Role';
-  description?: Maybe<Scalars['String']['output']>;
-  id?: Maybe<Scalars['ID']['output']>;
-  name?: Maybe<Scalars['String']['output']>;
 };
 
 export enum SortEnum {

@@ -12,7 +12,7 @@ export type LoginMutationVariables = Types.Exact<{
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', login?: { __typename?: 'LoginResponse', token?: string | null, userRoles?: Array<string> | null } | null };
+export type LoginMutation = { __typename?: 'Mutation', login?: string | null };
 
 
 export const LoginDocument = gql`
@@ -23,10 +23,7 @@ export const LoginDocument = gql`
     walletId: $walletId
     network: $network
     address: $address
-  ) {
-    token
-    userRoles
-  }
+  )
 }
     `;
 export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutationVariables>;

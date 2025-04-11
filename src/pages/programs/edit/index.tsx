@@ -1,5 +1,6 @@
 import client from "@/apollo/client";
 import { useUpdateProgramMutation } from "@/apollo/mutation/update-program.generated";
+import { ProgramDocument } from "@/apollo/queries/program.generated";
 import { ProgramsDocument } from "@/apollo/queries/programs.generated";
 import type { OnSubmitProgramFunc } from "@/components/program-form";
 import ProgramForm from "@/components/program-form";
@@ -31,7 +32,7 @@ const EditProgram: React.FC = () => {
       },
       onCompleted: () => {
         notify("Program successfully updated.")
-        client.refetchQueries({ include: [ProgramsDocument] })
+        client.refetchQueries({ include: [ProgramsDocument, ProgramDocument] })
         navigate(`/programs/${id}`)
       },
     })

@@ -23,9 +23,9 @@ export const AuthContext = createContext<AuthValues>({
   roles: null,
   userId: "",
   isAuthed: false,
-  isSponsor: false,
-  isValidator: false,
-  isBuilder: false,
+  // isSponsor: false,
+  // isValidator: false,
+  // isBuilder: false,
   login: async () => { },
   logout: async () => { }
 })
@@ -33,12 +33,13 @@ export const AuthContext = createContext<AuthValues>({
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>()
-  const [roles, setRoles] = useState<string[] | null>()
+  // const [roles, setRoles] = useState<string[] | null>()
   const [email, setEmail] = useState<string | null>()
   const [userId, setUserId] = useState<string>("")
 
   const { data: profileData } = useProfileQuery({
     skip: !token,
+    fetchPolicy: "network-only"
   })
 
   const [loginMutation] = useLoginMutation()
@@ -49,9 +50,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const tkn = localStorage.getItem('token')
-    const roles = JSON.parse(localStorage.getItem('roles') ?? "[]")
+    // const roles = JSON.parse(localStorage.getItem('roles') ?? "[]")
     if (tkn) setToken(tkn);
-    if (roles.length) setRoles(roles)
+    // if (roles.length) setRoles(roles)
   }, [])
 
   const login = async ({ email, userId, walletId, address, network }: { email: string, userId: string, walletId: string, address: string, network: string }) => {
@@ -64,11 +65,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         network
       },
       onCompleted: (data) => {
-        setToken(data?.login?.token)
-        setRoles(data?.login?.userRoles)
+        setToken(data.login)
+        // setRoles(data?.login?.userRoles)
         setEmail(email)
-        localStorage.setItem('token', data.login?.token ?? "")
-        localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
+        localStorage.setItem('token', data.login ?? "")
+        // localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
       }
     })
   }
@@ -76,17 +77,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     localStorage.removeItem('token')
     localStorage.removeItem('roles')
-    setRoles(null)
+    // setRoles(null)
     setToken(null)
     await wepinSdk.logout()
   }
 
-  const isSponsor = !!roles?.find(r => r === 'sponsor')
-  const isValidator = !!roles?.find(r => r === 'validator')
-  const isBuilder = !!roles?.find(r => r === 'builder')
+  // const isSponsor = !!roles?.find(r => r === 'sponsor')
+  // const isValidator = !!roles?.find(r => r === 'validator')
+  // const isBuilder = !!roles?.find(r => r === 'builder')
 
   return (
-    <AuthContext.Provider value={{ userId, email, token, roles, isAuthed: !!token, login, logout, isSponsor, isValidator, isBuilder }}>
+    <AuthContext.Provider value={{ userId, email, token, isAuthed: !!token, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

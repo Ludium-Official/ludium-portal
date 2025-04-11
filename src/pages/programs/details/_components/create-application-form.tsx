@@ -80,7 +80,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
 
   return (
     <form>
-      <DialogTitle className="text-2xl font-semibold mb-6">Send a proposal</DialogTitle>
+      <DialogTitle className="text-2xl font-semibold mb-6">Send an application</DialogTitle>
 
       <DialogDescription className="hidden" />
       <DialogClose id="purposal-dialog-close" className="hidden" />
@@ -139,7 +139,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             <div className="flex items-end gap-2 w-full">
               <label htmlFor={`price${idx}`} className="w-full">
                 <p className="text-sm font-medium mb-2">PRICE</p>
-                <Input type="number" id={`price${idx}`} className="h-10 w-full" value={m.price} onChange={e => {
+                <Input type="number" step={0.000000000000000001} id={`price${idx}`} className="h-10 w-full" value={m.price} onChange={e => {
                   const newMilestone = { ...m }
                   newMilestone.price = e.target.value
                   setMilestones(prev => [...prev.slice(0, idx), newMilestone, ...prev.slice(idx + 1)])
