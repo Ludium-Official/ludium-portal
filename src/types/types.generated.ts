@@ -199,7 +199,9 @@ export type MutationLoginArgs = {
 
 
 export type MutationPublishProgramArgs = {
+  educhainProgramId: Scalars['Int']['input'];
   id: Scalars['ID']['input'];
+  txHash: Scalars['String']['input'];
 };
 
 

@@ -1,5 +1,5 @@
-mutation publishProgram($id: ID!) {
-  publishProgram(id: $id) {
+mutation publishProgram($id: ID!, $educhainProgramId: Int!, $txHash: String!) {
+  publishProgram(id: $id, educhainProgramId: $educhainProgramId, txHash: $txHash) {
     creator {
       about
       email

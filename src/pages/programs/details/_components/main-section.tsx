@@ -1,6 +1,6 @@
 import client from "@/apollo/client"
 import { useAcceptProgramMutation } from "@/apollo/mutation/accept-program.generated"
-// import { usePublishProgramMutation } from "@/apollo/mutation/publish-program.generated"
+import { usePublishProgramMutation } from "@/apollo/mutation/publish-program.generated"
 import { useRejectProgramMutation } from "@/apollo/mutation/reject-program.generated"
 import { ProgramDocument } from "@/apollo/queries/program.generated"
 import { Badge } from "@/components/ui/badge"
@@ -25,7 +25,7 @@ function MainSection({ program }: { program?: Program | null }) {
   }
 
   const [acceptProgram] = useAcceptProgramMutation(programActionOptions)
-  // const [publishProgram] = usePublishProgramMutation(programActionOptions)
+  const [publishProgram] = usePublishProgramMutation()
   const [rejectProgram] = useRejectProgramMutation(programActionOptions)
 
   return (
@@ -111,7 +111,7 @@ function MainSection({ program }: { program?: Program | null }) {
                       throw new Error('Missing required program details')
                     }
 
-                    const programId = await eduChain.createProgram({
+                    const { programId, txHash } = await eduChain.createProgram({
                       name: program.name,
                       price: program.price,
                       keywords: program.keywords?.map(k => k.name as string) ?? [],
@@ -126,7 +126,7 @@ function MainSection({ program }: { program?: Program | null }) {
                     console.log("Program created on blockchain with ID:", programId)
                     
                     // Update the backend with blockchain programId and publish the program
-                    // await publishProgram()
+                    await publishProgram({ variables: { id: program.id ?? '', educhainProgramId: programId, txHash: txHash ?? '' } })
                     
                   } catch (error) {
                     console.error("Error while creating program on blockchain:", error)

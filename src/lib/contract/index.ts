@@ -116,7 +116,7 @@ export class Educhain {
 
       // Extract the program ID from the event args
       const programId = Number(event.args[0]);
-      return programId;
+      return { programId, txHash: tx.hash };
     } catch (error) {
       console.error({ error, params }, 'Failed to create program on blockchain');
       throw new Error('Program not created due to blockchain error');
