@@ -391,6 +391,7 @@ export type User = {
   lastName?: Maybe<Scalars['String']['output']>;
   links?: Maybe<Array<Link>>;
   organizationName?: Maybe<Scalars['String']['output']>;
+  wallet?: Maybe<Wallet>;
 };
 
 export type UserInput = {
@@ -412,4 +413,11 @@ export type UserUpdateInput = {
   lastName?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   organizationName?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type Wallet = {
+  __typename?: 'Wallet';
+  address?: Maybe<Scalars['String']['output']>;
+  network?: Maybe<Scalars['String']['output']>;
+  walletId?: Maybe<Scalars['String']['output']>;
 };

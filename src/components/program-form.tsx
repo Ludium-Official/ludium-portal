@@ -72,6 +72,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     register,
     handleSubmit,
     formState: { errors },
+    watch
   } = useForm({
     values: {
       programName: data?.program?.name ?? "",
@@ -80,6 +81,8 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       summary: data?.program?.summary ?? "",
     },
   })
+
+  console.log("🚀 ~ watch:", watch("price"))
 
 
   const onSubmit = (submitData: {

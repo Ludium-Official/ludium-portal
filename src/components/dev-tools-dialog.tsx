@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/lib/hooks/use-auth"
 import notify from "@/lib/notify"
-import { wepinPin, wepinSdk } from "@/lib/wepin"
+import { wepinPin, wepinProvider, wepinSdk } from "@/lib/wepin"
 import type { WepinLifeCycle } from "@wepin/sdk-js"
+import { ethers } from "ethers";
 import { useState } from "react"
 import { useNavigate } from "react-router"
 
@@ -97,6 +98,29 @@ function DevToolsDialog() {
             Buttons for development purposes
           </DialogDescription>
         </DialogHeader>
+
+        <Button size="sm" onClick={async () => {
+          const wpnProvider = await wepinProvider.getProvider('evmopencampus-testnet')
+          console.log("🚀 ~ <Button ~ provider:", wpnProvider)
+
+          const provider = new ethers.providers.Web3Provider(wpnProvider);
+
+          // Step 4: Get the signer
+          const signer = provider.getSigner();
+
+          // const tx = await signer.signTransaction({
+          //   to: '0x0000000000000000000000000000000000000000',
+          //   value: ethers.utils.parseEther('1'),
+          // })
+
+          // console.log("🚀 ~ <Button ~ tx:", tx)
+
+
+          // Example usage
+          const address = await signer.getAddress();
+          console.log("Wepin Signer Address:", address);
+          console.log("Wepin Signer:", signer);
+        }}>Check Provider</Button>
 
         <Button size="sm" onClick={async () => {
           // await initWepin
