@@ -6,13 +6,11 @@ import { ProgramDocument } from "@/apollo/queries/program.generated"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { contractAbi } from "@/lib/contract"
+import { Educhain } from "@/lib/contract"
 import { useAuth } from "@/lib/hooks/use-auth"
 import { formatProgramStatus } from "@/lib/utils"
-import { wepinProvider } from "@/lib/wepin"
 import type { Program } from "@/types/types.generated"
 import { format } from "date-fns"
-import { ethers } from "ethers"
 import { Settings, TriangleAlert } from "lucide-react"
 import { Link } from "react-router"
 import CreateApplicationForm from "./create-application-form"
@@ -106,65 +104,33 @@ function MainSection({ program }: { program?: Program | null }) {
                 <DialogDescription className="text-muted-foreground text-sm mb-4">The amount will be securely stored until you will
                   confirm the completion of the project.</DialogDescription>
                 <Button className="w-full" onClick={async () => {
+                  try {
+                    const eduChain = new Educhain()
 
-                  const wpnProvider = await wepinProvider.getProvider('evmopencampus-testnet')
+                    if (!program?.name || !program?.price || !program?.deadline || !program?.validator?.wallet?.address) {
+                      throw new Error('Missing required program details')
+                    }
 
-                  const provider = new ethers.providers.Web3Provider(wpnProvider);
-                  const signer = provider.getSigner();
+                    const programId = await eduChain.createProgram({
+                      name: program.name,
+                      price: program.price,
+                      keywords: program.keywords?.map(k => k.name as string) ?? [],
+                      startTime: Math.floor(Date.now() / 1000),
+                      endTime: Math.floor((program?.deadline ? new Date(program?.deadline).getTime() : Date.now()) / 1000),
+                      validatorAddress: program.validator?.wallet?.address ?? '',
+                      summary: program.summary ?? '',
+                      description: program.description ?? '',
+                      links: program.links?.map(l => l.url as string) ?? [],
+                    });
 
-                  console.log("import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS", import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS)
-                  const contract = new ethers.Contract(
-                    import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS,
-                    contractAbi,
-                    signer,
-                  );
-                  console.log("🚀 ~ <ButtonclassName= onClick={ ~ signer:", signer)
-
-                  console.log('Program Name:', program?.name ?? '');
-                  console.log('Program Price:', program?.price ?? 0);
-                  console.log('Start Time:', Date.now() / 1000);
-                  console.log("deadline", program?.deadline)
-                  console.log("deadline new date", new Date(program?.deadline).getTime() / 1000)
-                  console.log('End Time:', (program?.deadline ? new Date(program?.deadline).getTime() : Date.now()) / 1000);
-                  console.log('Validator Address:', program.validator?.wallet?.address);
-                  console.log('Summary:', program?.summary ?? '');
-                  console.log('Description:', program?.description ?? '');
-                  console.log('Links:', program?.links ?? []);
-                  console.log('Value:', { value: program?.price ?? 0 });
-
-                  // Call the smart contract function with proper parameters
-
-                  const price = ethers.utils.parseEther(program?.price ?? '0')
-                  // const price = '0.001'
-                  const tx = await contract.createEduProgram(
-                    program?.name ?? '',
-                    price,
-                    program?.keywords?.map(k => k.name) ?? [],
-                    Math.floor(Date.now() / 1000),
-                    Math.floor((program?.deadline ? new Date(program?.deadline).getTime() : Date.now()) / 1000),
-                    program.validator?.wallet?.address ?? '',
-                    program?.summary ?? '',
-                    program?.description ?? '',
-                    program?.links?.map(l => l.url) ?? [],
-                    { value: price }
-                  );
-
-                  console.log("tx", tx)
-
-                  const receipt = await tx.wait()
-
-                  console.log("tx RECEIPT", receipt)
-
-
-                  const event = receipt.events.find((e: { event: string }) => e.event === 'ProgramCreated');
-                  const programId = event?.args[0]
-                  console.log("programId", programId)
-
-                  console.log("event", event)
-
-                  // publishProgram()
-
-
+                    console.log("Program created on blockchain with ID:", programId)
+                    
+                    // Update the backend with blockchain programId and publish the program
+                    // await publishProgram()
+                    
+                  } catch (error) {
+                    console.error("Error while creating program on blockchain:", error)
+                  }
                 }}>Yes, Pay now</Button>
               </div>
             </DialogContent>
