@@ -6,9 +6,10 @@ import { useProgramQuery } from "@/apollo/queries/program.generated"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Educhain } from "@/lib/contract"
 import { useAuth } from "@/lib/hooks/use-auth"
+import notify from "@/lib/notify"
 import SubmitMilestoneForm from "@/pages/programs/details/_components/submit-milestone-form"
 import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from "@/types/types.generated"
 import { format } from "date-fns"
@@ -131,6 +132,7 @@ function ApplicationDetails() {
                 throw new Error("Program ID or application ID is missing");
               }
 
+              notify("Wepin Widget Loading", "loading")
               await eduChain.selectApplication(data?.application?.educhainApplicationId);
               approveApplication()
             }}>Select</Button>
@@ -178,6 +180,8 @@ function ApplicationDetails() {
                       if (!program?.educhainProgramId || !m.educhainMilestoneId) {
                         throw new Error("Program ID or milestone ID is required");
                       }
+
+                      notify("Wepin Widget Loading", "loading")
                       await eduChain.rejectMilestone(
                         m.educhainMilestoneId,
                       );
@@ -193,6 +197,8 @@ function ApplicationDetails() {
                       if (!program?.educhainProgramId || !m.educhainMilestoneId) {
                         throw new Error("Program ID or milestone ID is required");
                       }
+
+                      notify("Wepin Widget Loading", "loading")
                       await eduChain.acceptMilestone(
                         m.educhainMilestoneId,
                       );
@@ -214,6 +220,7 @@ function ApplicationDetails() {
                       <DialogContent>
                         <DialogTitle />
                         <DialogDescription />
+                        <DialogClose id="submit-milestone-dialog-close" />
                         <SubmitMilestoneForm milestone={m} refetch={refetch} />
                       </DialogContent>
                     </Dialog>)

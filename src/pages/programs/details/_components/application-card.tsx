@@ -4,6 +4,7 @@ import { useDenyApplicationMutation } from "@/apollo/mutation/deny-application.g
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Educhain } from "@/lib/contract"
+import notify from "@/lib/notify"
 import type { Application } from "@/types/types.generated"
 import { ArrowRight } from "lucide-react"
 import { Link } from "react-router"
@@ -47,6 +48,8 @@ function ApplicationCard({ application, refetch, hideSeeDetails, hideControls }:
             if (!application?.educhainApplicationId) {
               throw new Error("Application ID is missing");
             }
+
+            notify("Wepin Widget Loading", "loading")
             await eduChain.selectApplication(application.educhainApplicationId);
             approveApplication({
               variables: {
