@@ -47,7 +47,7 @@ const DetailsPage: React.FC = () => {
         {<section className="space-y-5">
           {!data?.program?.applications?.length && <div className="text-slate-600 text-sm">No applications yet.</div>}
           {data?.program?.applications?.map(a => (
-            <ApplicationCard key={a.id} application={a} educhainProgramId={program?.educhainProgramId} refetch={refetch} hideControls={a.status !== ApplicationStatus.Pending || program?.validator?.id !== userId} />
+            <ApplicationCard key={a.id} application={a} refetch={refetch} hideControls={a.status !== ApplicationStatus.Pending || program?.validator?.id !== userId} />
           ))}
         </section>}
       </Tabs>

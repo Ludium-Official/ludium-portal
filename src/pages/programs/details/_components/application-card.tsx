@@ -8,7 +8,7 @@ import type { Application } from "@/types/types.generated"
 import { ArrowRight } from "lucide-react"
 import { Link } from "react-router"
 
-function ApplicationCard({ application, educhainProgramId, refetch, hideSeeDetails, hideControls }: { application?: Application | null, educhainProgramId?: number | null, refetch?: () => void, hideSeeDetails?: boolean | null, hideControls?: boolean | null }) {
+function ApplicationCard({ application, refetch, hideSeeDetails, hideControls }: { application?: Application | null, refetch?: () => void, hideSeeDetails?: boolean | null, hideControls?: boolean | null }) {
   const [approveApplication] = useApproveApplicationMutation()
   const [denyApplication] = useDenyApplicationMutation()
 
@@ -44,10 +44,10 @@ function ApplicationCard({ application, educhainProgramId, refetch, hideSeeDetai
           }}>Deny</Button>
           <Button className="h-10" onClick={async () => {
             const eduChain = new Educhain();
-            if (!educhainProgramId || !application?.educhainApplicationId) {
-              throw new Error("Program ID or application ID is missing");
+            if (!application?.educhainApplicationId) {
+              throw new Error("Application ID is missing");
             }
-            await eduChain.selectApplication(educhainProgramId, application.educhainApplicationId);
+            await eduChain.selectApplication(application.educhainApplicationId);
             approveApplication({
               variables: {
                 id: application?.id ?? "",

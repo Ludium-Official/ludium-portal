@@ -7,9 +7,7 @@ import type { Milestone } from "@/types/types.generated"
 import { X } from "lucide-react"
 import { useState } from "react"
 
-function SubmitMilestoneForm({ milestone, educhainProgramId, refetch }: { milestone: Milestone, educhainProgramId?: number | null, refetch: () => void }) {
-  console.log("🚀 ~ SubmitMilestoneForm ~ educhainProgramId:", educhainProgramId)
-  console.log("🚀 ~ SubmitMilestoneForm ~ milestone:", milestone)
+function SubmitMilestoneForm({ milestone, refetch }: { milestone: Milestone, refetch: () => void }) {
 
   const [description, setDescription] = useState<string>()
 
@@ -77,15 +75,11 @@ function SubmitMilestoneForm({ milestone, educhainProgramId, refetch }: { milest
       </label>
 
       <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 max-w-[165px] w-full ml-auto h-10" onClick={async () => {
-        if (!milestone.id || !milestone.educhainMilestoneId || !educhainProgramId) {
-          throw new Error("Milestone ID or program ID is required");
+        if (!milestone.id || !milestone.educhainMilestoneId) {
+          throw new Error("Milestone ID is required");
         }
         const eduChain = new Educhain();
-        await eduChain.submitMilestone({
-          programId: educhainProgramId,
-          milestoneId: milestone.educhainMilestoneId,
-          links: links ?? []
-        });
+        await eduChain.submitMilestone(milestone.educhainMilestoneId, links ?? []);
         submitMilestone(milestone.id);
       }}>Submit Milestone</Button>
     </>
