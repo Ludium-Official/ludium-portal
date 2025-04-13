@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Educhain } from "@/lib/contract"
 import { useAuth } from "@/lib/hooks/use-auth"
+import notify from "@/lib/notify"
 import { formatProgramStatus } from "@/lib/utils"
 import type { Program } from "@/types/types.generated"
 import { format } from "date-fns"
@@ -31,6 +32,37 @@ function MainSection({ program }: { program?: Program | null }) {
   const [acceptProgram] = useAcceptProgramMutation(programActionOptions)
   const [publishProgram] = usePublishProgramMutation()
   const [rejectProgram] = useRejectProgramMutation(programActionOptions)
+
+  const onPayConfirm = async () => {
+    setIsPaying(true)
+    try {
+      const eduChain = new Educhain()
+
+      if (!program?.name || !program?.price || !program?.deadline || !program?.validator?.wallet?.address) {
+        throw new Error('Missing required program details')
+      }
+
+      const { programId, txHash } = await eduChain.createProgram({
+        name: program.name,
+        price: program.price,
+        keywords: program.keywords?.map(k => k.name as string) ?? [],
+        startTime: Math.floor(Date.now()),
+        endTime: Math.floor((program?.deadline ? new Date(program?.deadline).getTime() : Date.now() + 1000 * 60 * 60 * 24)),
+        validatorAddress: program.validator?.wallet?.address ?? '',
+        summary: program.summary ?? '',
+        description: program.description ?? '',
+        links: program.links?.map(l => l.url as string) ?? [],
+      });
+
+      await publishProgram({ variables: { id: program.id ?? '', educhainProgramId: programId, txHash } })
+
+    } catch (error) {
+      console.error("Error while creating program on blockchain:", error)
+      notify("Error while creating program on blockchain", "error")
+    } finally {
+      setIsPaying(false)
+    }
+  }
 
   return (
     <div className="flex bg-white rounded-b-2xl">
@@ -107,37 +139,7 @@ function MainSection({ program }: { program?: Program | null }) {
                 <DialogTitle className="font-semibold text-lg text-[#18181B] mb-2">Are you sure to pay the settlement for the program?</DialogTitle>
                 <DialogDescription className="text-muted-foreground text-sm mb-4">The amount will be securely stored until you will
                   confirm the completion of the project.</DialogDescription>
-                <Button disabled={isPaying} className="w-full" onClick={async () => {
-                  setIsPaying(true)
-                  try {
-                    const eduChain = new Educhain()
-
-                    if (!program?.name || !program?.price || !program?.deadline || !program?.validator?.wallet?.address) {
-                      throw new Error('Missing required program details')
-                    }
-
-                    const price = Number(program.price).toFixed(18)
-
-                    const { programId, txHash } = await eduChain.createProgram({
-                      name: program.name,
-                      price: price,
-                      keywords: program.keywords?.map(k => k.name as string) ?? [],
-                      startTime: Math.floor(Date.now()),
-                      endTime: Math.floor((program?.deadline ? new Date(program?.deadline).getTime() : Date.now() + 1000 * 60 * 60 * 24)),
-                      validatorAddress: program.validator?.wallet?.address ?? '',
-                      summary: program.summary ?? '',
-                      description: program.description ?? '',
-                      links: program.links?.map(l => l.url as string) ?? [],
-                    });
-
-                    await publishProgram({ variables: { id: program.id ?? '', educhainProgramId: programId, txHash } })
-
-                  } catch (error) {
-                    console.error("Error while creating program on blockchain:", error)
-                  } finally {
-                    setIsPaying(false)
-                  }
-                }}>{isPaying ? <Loader2 className="w-4 h-4 animate-spin" /> : "Yes, Pay now"}</Button>
+                <Button disabled={isPaying} className="w-full" onClick={onPayConfirm}>{isPaying ? <Loader2 className="w-4 h-4 animate-spin" /> : "Yes, Pay now"}</Button>
               </div>
             </DialogContent>
           </Dialog>

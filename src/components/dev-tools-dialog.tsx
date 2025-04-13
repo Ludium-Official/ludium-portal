@@ -100,16 +100,6 @@ function DevToolsDialog() {
         </DialogHeader>
 
         <Button size="sm" onClick={async () => {
-          const a = "1e-7"
-
-          // const b = BigNumber.from(Number(a).toFixed(20))
-          const b = ethers.utils.parseEther("0.000000010000000000")
-          const c = ethers.utils.parseEther("0.00000001")
-          console.log("🚀 ~ <Button ~ b:", b)
-          console.log("🚀 ~ <Button ~ b:", c)
-        }}>Check Bignumber</Button>
-
-        <Button size="sm" onClick={async () => {
           const wpnProvider = await wepinProvider.getProvider('evmopencampus-testnet')
           console.log("🚀 ~ <Button ~ provider:", wpnProvider)
 
