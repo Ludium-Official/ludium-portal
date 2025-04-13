@@ -55,8 +55,6 @@ function ApplicationDetails() {
 
   const badgeVariants = ['teal', 'orange', 'pink']
 
-  console.log(data?.application?.applicant?.id, "data?.application?.applicant?.id")
-  console.log(userId, "userId")
   return (
     <div className="bg-[#F7F7F7]">
       <section className="bg-white p-10 mb-3 rounded-b-2xl">
@@ -177,11 +175,12 @@ function ApplicationDetails() {
                       );
                       checkMilestone({
                         variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Pending } }, onCompleted: () => {
-                        refetch()
-                        programRefetch()
-                      }
-                    })}}>Reject Milestone</Button>
-                    <Button className="h-10" onClick={async() => {
+                          refetch()
+                          programRefetch()
+                        }
+                      })
+                    }}>Reject Milestone</Button>
+                    <Button className="h-10" onClick={async () => {
                       const eduChain = new Educhain();
                       if (!program?.educhainProgramId || !m.educhainMilestoneId) {
                         throw new Error("Program ID or milestone ID is required");
@@ -192,10 +191,11 @@ function ApplicationDetails() {
                       );
                       checkMilestone({
                         variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Completed } }, onCompleted: () => {
-                        refetch()
-                        programRefetch()
-                      }
-                    })}}
+                          refetch()
+                          programRefetch()
+                        }
+                      })
+                    }}
                     >Accept Milestone</Button>
                   </div>}
 

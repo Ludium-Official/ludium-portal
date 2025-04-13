@@ -15,7 +15,6 @@ function DevToolsDialog() {
   const [wepinStatus, setWepinStatus] = useState<WepinLifeCycle>()
   console.log("🚀 ~ Header ~ wepinStatus:", wepinStatus)
 
-  // const [loginMutation] = useLoginMutation()
   const { login, logout } = useAuth()
 
   const navigate = useNavigate()
@@ -178,16 +177,6 @@ function DevToolsDialog() {
             network: String(Math.random() * 100000000)
           })
           notify("Successfully logged in as validator", 'success')
-          // loginMutation({
-          //   variables: { email: 'validator@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
-          //   onCompleted: (data) => {
-          //     console.log("🚀 ~ onCompleted ~ data", data)
-          //     localStorage.setItem('token', data.login?.token ?? "")
-          //     localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
-
-
-          //   }
-          // })
         }
         }>Login as Validator</Button>
 
@@ -201,16 +190,6 @@ function DevToolsDialog() {
             network: String(Math.random() * 100000000)
           })
           notify("Successfully logged in as builder", 'success')
-          // loginMutation({
-          //   variables: { email: 'builder@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
-          //   onCompleted: (data) => {
-          //     console.log("🚀 ~ onCompleted ~ data", data)
-          //     localStorage.setItem('token', data.login?.token ?? "")
-          //     localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
-
-
-          //   }
-          // })
         }
         }>Login as Builder</Button>
 
@@ -223,14 +202,6 @@ function DevToolsDialog() {
             address: String(Math.random() * 100000000),
             network: String(Math.random() * 100000000)
           })
-          // loginMutation({
-          //   variables: { email: 'multi@example.com', userId: String(Math.random() * 100000000), walletId: String(Math.random() * 100000000) },
-          //   onCompleted: (data) => {
-          //     console.log("🚀 ~ onCompleted ~ data", data)
-          //     localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
-          //     localStorage.setItem('token', data.login?.token ?? "")
-          //   }
-          // })
         }
         }>Login as Multi</Button>
 

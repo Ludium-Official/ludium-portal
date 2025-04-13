@@ -1,18 +1,10 @@
-import { useState } from 'react';
-
 import { Button } from '@/components/ui/button';
 import notify from '@/lib/notify';
 import { wepinPin, wepinSdk } from '@/lib/wepin';
 import { useNavigate } from 'react-router';
 
 function LoginPage() {
-  const [idToken, setIdToken] = useState<string | null>(null)
-  const [refreshToken, setRefreshToken] = useState<string | null>(null)
-
   const navigate = useNavigate()
-
-  console.log("🚀 ~ App ~ refreshToken:", refreshToken)
-  console.log("🚀 ~ App ~ idToken:", idToken)
 
   const loginViaGoogle = async () => {
     const oauthResponse = await wepinPin.login.loginWithOauthProvider({ provider: 'google', withLogout: true })
@@ -22,9 +14,6 @@ function LoginPage() {
     }
 
     const { idToken, refreshToken } = oauthResponse.token
-
-    setIdToken(idToken)
-    setRefreshToken(refreshToken)
 
     localStorage.setItem('idToken', idToken)
     localStorage.setItem('refreshToken', refreshToken)
@@ -54,7 +43,6 @@ function LoginPage() {
           hint: pinBlock.hint,
         })
       })
-      console.log("🚀 ~ loginViaGoogle ~ pinResponse:", pinResponse)
 
       if (!pinResponse.ok) {
         notify("Failed to register PIN", 'error')
@@ -72,7 +60,6 @@ function LoginPage() {
       <Button className='w-[346px]' onClick={async () => {
 
         const user = await wepinSdk.loginWithUI()
-        console.log("🚀 ~ <ButtonclassName='w-[346px]'onClick={ ~ user:", user)
 
         if (user.status === 'success') {
           localStorage.setItem('idToken', user.userInfo?.userId ?? '')
