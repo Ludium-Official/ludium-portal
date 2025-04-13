@@ -72,7 +72,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     register,
     handleSubmit,
     formState: { errors },
-    watch
   } = useForm({
     values: {
       programName: data?.program?.name ?? "",
@@ -82,9 +81,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     },
   })
 
-  console.log("🚀 ~ watch:", watch("price"))
-
-
   const onSubmit = (submitData: {
     programName: string,
     price: string,
@@ -93,11 +89,13 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   }) => {
     if (extraErrors.deadline || extraErrors.keyword || extraErrors.links || extraErrors.validator) return
 
+    const price = Number(submitData.price).toFixed(18)
+
     onSubmitProgram({
       id: data?.program?.id ?? id,
       // isPublish: publish,
       programName: submitData.programName,
-      price: isEdit && data?.program?.status !== "draft" ? undefined : submitData.price,
+      price: isEdit && data?.program?.status !== "draft" ? undefined : price,
       description: submitData.description,
       summary: submitData.summary,
       currency: isEdit && data?.program?.status !== "draft" ? data?.program?.currency as string : currency,

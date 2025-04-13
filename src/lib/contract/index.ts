@@ -1,6 +1,6 @@
+import { wepinProvider } from '@/lib/wepin';
 import { ethers } from 'ethers';
 import contractJson from './contract.json';
-import { wepinProvider } from '@/lib/wepin';
 
 export const contractAbi = contractJson.abi;
 
@@ -15,7 +15,7 @@ export class Educhain {
   }
 
   async init() {
-    const wpnProvider = await wepinProvider.getProvider('evmopencampus-testnet')
+    const wpnProvider = await wepinProvider.getProvider('evmopencampus-testnet');
     const provider = new ethers.providers.Web3Provider(wpnProvider);
     this.contract = new ethers.Contract(
       import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS,
@@ -94,7 +94,7 @@ export class Educhain {
       const tx = await contract.createEduProgram(
         params.name,
         price,
-        params.keywords,
+        params.keywords.join(', '),
         startTimestamp,
         endTimestamp,
         params.validatorAddress,
@@ -163,7 +163,10 @@ export class Educhain {
 
       return tx.wait();
     } catch (error) {
-      console.error({ error, programId, applicationId }, 'Failed to select application on blockchain');
+      console.error(
+        { error, programId, applicationId },
+        'Failed to select application on blockchain',
+      );
       throw new Error('Application not selected due to blockchain error');
     }
   }
@@ -257,11 +260,7 @@ export class Educhain {
       }
 
       const contract = await this.ensureContract();
-      const tx = await contract.submitMilestone(
-        params.programId,
-        params.milestoneId,
-        params.links,
-      );
+      const tx = await contract.submitMilestone(params.programId, params.milestoneId, params.links);
       return tx.wait();
     } catch (error) {
       console.error({ error, params }, 'Failed to submit milestone on blockchain');

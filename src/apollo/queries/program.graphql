@@ -58,6 +58,7 @@ query program($id: ID!) {
       title
       url
     }
+    id
     name
     price
     status

@@ -11,16 +11,20 @@ import { useAuth } from "@/lib/hooks/use-auth"
 import { formatProgramStatus } from "@/lib/utils"
 import type { Program } from "@/types/types.generated"
 import { format } from "date-fns"
-import { Settings, TriangleAlert } from "lucide-react"
-import { Link } from "react-router"
+import { Loader2, Settings, TriangleAlert } from "lucide-react"
+import { useState } from "react"
+import { Link, useParams } from "react-router"
 import CreateApplicationForm from "./create-application-form"
 
 function MainSection({ program }: { program?: Program | null }) {
   const { userId } = useAuth()
+  const { id } = useParams()
   const badgeVariants = ['teal', 'orange', 'pink']
 
+  const [isPaying, setIsPaying] = useState(false)
+
   const programActionOptions = {
-    variables: { id: program?.id ?? '' },
+    variables: { id: program?.id ?? id ?? '' },
     onCompleted: () => { client.refetchQueries({ include: [ProgramDocument] }) }
   }
 
@@ -103,7 +107,8 @@ function MainSection({ program }: { program?: Program | null }) {
                 <DialogTitle className="font-semibold text-lg text-[#18181B] mb-2">Are you sure to pay the settlement for the program?</DialogTitle>
                 <DialogDescription className="text-muted-foreground text-sm mb-4">The amount will be securely stored until you will
                   confirm the completion of the project.</DialogDescription>
-                <Button className="w-full" onClick={async () => {
+                <Button disabled={isPaying} className="w-full" onClick={async () => {
+                  setIsPaying(true)
                   try {
                     const eduChain = new Educhain()
 
@@ -111,24 +116,28 @@ function MainSection({ program }: { program?: Program | null }) {
                       throw new Error('Missing required program details')
                     }
 
+                    const price = Number(program.price).toFixed(18)
+
                     const { programId, txHash } = await eduChain.createProgram({
                       name: program.name,
-                      price: program.price,
+                      price: price,
                       keywords: program.keywords?.map(k => k.name as string) ?? [],
-                      startTime: Math.floor(Date.now() / 1000),
-                      endTime: Math.floor((program?.deadline ? new Date(program?.deadline).getTime() : Date.now()) / 1000),
+                      startTime: Math.floor(Date.now()),
+                      endTime: Math.floor((program?.deadline ? new Date(program?.deadline).getTime() : Date.now()) + 1000 * 60 * 60 * 24),
                       validatorAddress: program.validator?.wallet?.address ?? '',
                       summary: program.summary ?? '',
                       description: program.description ?? '',
                       links: program.links?.map(l => l.url as string) ?? [],
                     });
-                    
+
                     await publishProgram({ variables: { id: program.id ?? '', educhainProgramId: programId, txHash } })
-                    
+
                   } catch (error) {
                     console.error("Error while creating program on blockchain:", error)
+                  } finally {
+                    setIsPaying(false)
                   }
-                }}>Yes, Pay now</Button>
+                }}>{isPaying ? <Loader2 className="w-4 h-4 animate-spin" /> : "Yes, Pay now"}</Button>
               </div>
             </DialogContent>
           </Dialog>
