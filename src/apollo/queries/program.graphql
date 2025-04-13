@@ -1,6 +1,7 @@
 query program($id: ID!) {
   program(id: $id) {
     applications {
+      educhainApplicationId
       applicant {
         about
         email
@@ -36,6 +37,11 @@ query program($id: ID!) {
       lastName
       organizationName
 
+      wallet {
+        address
+        network
+        walletId
+      }
       links {
         title
         url
@@ -44,7 +50,7 @@ query program($id: ID!) {
     currency
     deadline
     description
-    id
+    educhainProgramId
     keywords {
       id
       name
@@ -53,6 +59,7 @@ query program($id: ID!) {
       title
       url
     }
+    id
     name
     price
     status
@@ -65,6 +72,12 @@ query program($id: ID!) {
       image
       lastName
       organizationName
+
+      wallet {
+        address
+        network
+        walletId
+      }
 
       links {
         title

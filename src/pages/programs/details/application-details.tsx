@@ -6,8 +6,10 @@ import { useProgramQuery } from "@/apollo/queries/program.generated"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Educhain } from "@/lib/contract"
 import { useAuth } from "@/lib/hooks/use-auth"
+import notify from "@/lib/notify"
 import SubmitMilestoneForm from "@/pages/programs/details/_components/submit-milestone-form"
 import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from "@/types/types.generated"
 import { format } from "date-fns"
@@ -54,8 +56,6 @@ function ApplicationDetails() {
 
   const badgeVariants = ['teal', 'orange', 'pink']
 
-  console.log(data?.application?.applicant?.id, "data?.application?.applicant?.id")
-  console.log(userId, "userId")
   return (
     <div className="bg-[#F7F7F7]">
       <section className="bg-white p-10 mb-3 rounded-b-2xl">
@@ -125,7 +125,17 @@ function ApplicationDetails() {
 
           {program?.validator?.id === userId && data?.application?.status === "pending" && <div className="flex justify-end gap-3">
             <Button className="h-10" variant="outline" onClick={() => denyApplication()}>Deny</Button>
-            <Button className="h-10" onClick={() => approveApplication()}>Select</Button>
+            <Button className="h-10" onClick={async () => {
+
+              const eduChain = new Educhain();
+              if (!program?.educhainProgramId || !data?.application?.educhainApplicationId) {
+                throw new Error("Program ID or application ID is missing");
+              }
+
+              notify("Wepin Widget Loading", "loading")
+              await eduChain.selectApplication(data?.application?.educhainApplicationId);
+              approveApplication()
+            }}>Select</Button>
           </div>}
 
         </div>
@@ -165,18 +175,41 @@ function ApplicationDetails() {
                   </div>}
 
                   {m.status === MilestoneStatus.RevisionRequested && program?.validator?.id === userId && <div className="flex justify-between">
-                    <Button className="h-10" variant="outline" onClick={() => checkMilestone({
-                      variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Pending } }, onCompleted: () => {
-                        refetch()
-                        programRefetch()
+                    <Button className="h-10" variant="outline" onClick={async () => {
+                      const eduChain = new Educhain();
+                      if (!program?.educhainProgramId || !m.educhainMilestoneId) {
+                        throw new Error("Program ID or milestone ID is required");
                       }
-                    })}>Reject Milestone</Button>
-                    <Button className="h-10" onClick={() => checkMilestone({
-                      variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Completed } }, onCompleted: () => {
-                        refetch()
-                        programRefetch()
+
+                      notify("Wepin Widget Loading", "loading")
+                      await eduChain.rejectMilestone(
+                        m.educhainMilestoneId,
+                      );
+                      checkMilestone({
+                        variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Pending } }, onCompleted: () => {
+                          refetch()
+                          programRefetch()
+                        }
+                      })
+                    }}>Reject Milestone</Button>
+                    <Button className="h-10" onClick={async () => {
+                      const eduChain = new Educhain();
+                      if (!program?.educhainProgramId || !m.educhainMilestoneId) {
+                        throw new Error("Program ID or milestone ID is required");
                       }
-                    })}>Accept Milestone</Button>
+
+                      notify("Wepin Widget Loading", "loading")
+                      await eduChain.acceptMilestone(
+                        m.educhainMilestoneId,
+                      );
+                      checkMilestone({
+                        variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Completed } }, onCompleted: () => {
+                          refetch()
+                          programRefetch()
+                        }
+                      })
+                    }}
+                    >Accept Milestone</Button>
                   </div>}
 
                   {m.status === MilestoneStatus.Pending && data?.application?.status === ApplicationStatus.Approved && data?.application?.applicant?.id === userId &&
@@ -187,6 +220,7 @@ function ApplicationDetails() {
                       <DialogContent>
                         <DialogTitle />
                         <DialogDescription />
+                        <DialogClose id="submit-milestone-dialog-close" />
                         <SubmitMilestoneForm milestone={m} refetch={refetch} />
                       </DialogContent>
                     </Dialog>)
