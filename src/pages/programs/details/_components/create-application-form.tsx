@@ -7,8 +7,11 @@ import { Button } from "@/components/ui/button"
 import { DialogClose, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Educhain } from "@/lib/contract"
 import notify from "@/lib/notify"
 import type { Program } from "@/types/types.generated"
+// import { BigNumber } from "ethers"
+import BigNumber from "bignumber.js";
 import { LoaderCircle, X } from "lucide-react"
 import { useState } from "react"
 
@@ -38,41 +41,61 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   const [createApplication, { loading }] = useCreateApplicationMutation()
   const [createMilestones, { loading: milestonesLoading }] = useCreateMilestonesMutation()
 
-  const onSubmit = () => {
-    createApplication({
-      variables: {
-        input: {
-          programId: program?.id ?? '',
-          content: description ?? "",
-          name: name ?? "",
-          price: milestones.reduce((prev, curr) => (Number(curr.price ?? 0) + prev), 0).toString(),
-          links: links.map(l => ({ title: l, url: l }))
-        }
-      },
-      onCompleted: (data) => {
-        createMilestones({
-          variables: {
-            input: milestones.map(m => ({
-              applicationId: data.createApplication?.id ?? "",
-              price: m.price,
-              title: m.title,
-              description: m.description,
-              currency: m.currency
-            }))
-          },
-          onCompleted: () => {
-            client.refetchQueries({
-              include: [ProgramDocument]
-            })
-            notify("Purposal successfully created")
-            document.getElementById('purposal-dialog-close')?.click()
-          },
-          onError: (e) => {
-            notify(e.message, "error")
-          }
-        })
+  const onSubmit = async () => {
+    try {
+      const eduChain = new Educhain()
+      if (!program?.educhainProgramId) {
+        throw new Error("Program ID is required")
       }
-    })
+
+      notify("Wepin Widget Loading", "loading")
+      document.getElementById('purposal-dialog-close')?.click()
+      const { applicationId, milestoneIds } = await eduChain.submitApplication({
+        programId: program.educhainProgramId,
+        milestoneNames: milestones.map((m) => m.title),
+        milestoneDescriptions: milestones.map((m) => m.description ?? ''),
+        milestonePrices: milestones.map((m) => m.price),
+      });
+
+      createApplication({
+        variables: {
+          input: {
+            programId: program?.id ?? '',
+            content: description ?? "",
+            name: name ?? "",
+            price: milestones.reduce((prev, curr) => (BigNumber(curr?.price ?? '0').plus(prev)), BigNumber(0)).toFixed(18),
+            links: links.map(l => ({ title: l, url: l }))
+          }
+        },
+        onCompleted: async (data) => {
+          createMilestones({
+            variables: {
+              input: milestones.map((m, idx) => ({
+                applicationId: data.createApplication?.id ?? "",
+                educhainApplicationId: Number(applicationId),
+                educhainMilestoneId: Number(milestoneIds[idx]),
+                price: m.price,
+                title: m.title,
+                description: m.description,
+                currency: m.currency
+              }))
+            },
+            onCompleted: () => {
+              client.refetchQueries({
+                include: [ProgramDocument]
+              })
+              notify("Application successfully created")
+            },
+            onError: (e) => {
+              notify(e.message, "error")
+            }
+          })
+        }
+      })
+    } catch (e) {
+      notify(e instanceof Error ? e.message : "An unknown error occurred", "error")
+      console.error(e instanceof Error ? e.message : "An unknown error occurred", "error")
+    }
   }
 
   const milestoneValid = program?.price && totalPrice <= (Number(program?.price) ?? 0) && milestones.every(m => !!m.title && !!m.price)
