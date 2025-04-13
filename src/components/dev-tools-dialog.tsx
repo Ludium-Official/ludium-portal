@@ -4,15 +4,10 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, Di
 import { useAuth } from "@/lib/hooks/use-auth"
 import notify from "@/lib/notify"
 import { wepinPin, wepinProvider, wepinSdk } from "@/lib/wepin"
-import type { WepinLifeCycle } from "@wepin/sdk-js"
 import { ethers } from "ethers";
-import { useState } from "react"
 import { useNavigate } from "react-router"
 
 function DevToolsDialog() {
-  const [idToken, setIdToken] = useState<string | null>(null)
-  const [refreshToken, setRefreshToken] = useState<string | null>(null)
-  const [wepinStatus, setWepinStatus] = useState<WepinLifeCycle>()
   // console.log("🚀 ~ Header ~ wepinStatus:", wepinStatus)
 
   const { login, logout } = useAuth()
@@ -33,9 +28,6 @@ function DevToolsDialog() {
     }
 
     const { idToken, refreshToken } = oauthResponse.token
-
-    setIdToken(idToken)
-    setRefreshToken(refreshToken)
 
     localStorage.setItem('idToken', idToken)
     localStorage.setItem('refreshToken', refreshToken)
@@ -211,7 +203,6 @@ function DevToolsDialog() {
 
           const checkWepinStatus = async () => {
             const status = await wepinSdk.getStatus()
-            setWepinStatus(status)
             notify(status, 'blank')
           }
 

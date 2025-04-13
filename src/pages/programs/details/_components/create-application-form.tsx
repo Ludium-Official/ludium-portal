@@ -72,8 +72,8 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             variables: {
               input: milestones.map((m, idx) => ({
                 applicationId: data.createApplication?.id ?? "",
-                educhainApplicationId: applicationId,
-                educhainMilestoneId: milestoneIds[idx],
+                educhainApplicationId: Number(applicationId),
+                educhainMilestoneId: Number(milestoneIds[idx]),
                 price: m.price,
                 title: m.title,
                 description: m.description,
