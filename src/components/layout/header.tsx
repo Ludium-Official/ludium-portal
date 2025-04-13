@@ -1,4 +1,5 @@
 
+import DevToolsDialog from '@/components/dev-tools-dialog';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
@@ -29,7 +30,7 @@ function Header() {
   return (
     <header className='flex justify-between items-center px-10 py-[14px] border-b'>
 
-      {/* <DevToolsDialog /> */}
+      {import.meta.env.VITE_MODE === "local" && <DevToolsDialog />}
       <div />
 
       <div className='flex gap-2'>

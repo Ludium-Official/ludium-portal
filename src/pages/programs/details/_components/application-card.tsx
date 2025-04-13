@@ -1,5 +1,6 @@
 
 import { useApproveApplicationMutation } from "@/apollo/mutation/approve-application.generated"
+import { useDenyApplicationMutation } from "@/apollo/mutation/deny-application.generated"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Application } from "@/types/types.generated"
@@ -8,6 +9,7 @@ import { Link } from "react-router"
 
 function ApplicationCard({ application, refetch, hideSeeDetails, hideControls }: { application?: Application | null, refetch?: () => void, hideSeeDetails?: boolean | null, hideControls?: boolean | null }) {
   const [approveApplication] = useApproveApplicationMutation()
+  const [denyApplication] = useDenyApplicationMutation()
 
   return (
     <div className="border rounded-xl p-6">
@@ -28,7 +30,18 @@ function ApplicationCard({ application, refetch, hideSeeDetails, hideControls }:
           <p className="truncate max-w-[600px] text-sm">{application?.content}</p>
         </div>
         {!hideControls && <div className="gap-3 flex">
-          <Button className="max-h-10" onClick={() => {
+
+          <Button className="h-10" variant="outline" onClick={() => {
+            denyApplication({
+              variables: {
+                id: application?.id ?? "",
+              },
+              onCompleted: () => {
+                refetch?.()
+              }
+            })
+          }}>Deny</Button>
+          <Button className="h-10" onClick={() => {
             approveApplication({
               variables: {
                 id: application?.id ?? "",

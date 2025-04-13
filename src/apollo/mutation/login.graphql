@@ -5,8 +5,7 @@ mutation login(
   $network: String
   $address: String
 ) {
-  login(email: $email, userId: $userId, walletId: $walletId, network: $network, address: $address) {
-    token
-    userRoles
-  }
+  login(email: $email, userId: $userId, walletId: $walletId, network: $network, address: $address)
+  # token
+  # userRoles
 }

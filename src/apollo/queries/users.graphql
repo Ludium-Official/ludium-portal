@@ -1,0 +1,16 @@
+query users {
+  users {
+    about
+    avatar
+    email
+    firstName
+    id
+    image
+    lastName
+    links {
+      title
+      url
+    }
+    organizationName
+  }
+}

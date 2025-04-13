@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/lib/hooks/use-auth"
+import { formatProgramStatus } from "@/lib/utils"
 import type { Program } from "@/types/types.generated"
 import { format } from "date-fns"
 import { Settings, TriangleAlert } from "lucide-react"
@@ -14,7 +15,7 @@ import { Link } from "react-router"
 import CreateApplicationForm from "./create-application-form"
 
 function MainSection({ program }: { program?: Program | null }) {
-  const { isBuilder, isSponsor, userId } = useAuth()
+  const { userId } = useAuth()
   const badgeVariants = ['teal', 'orange', 'pink']
 
   const programActionOptions = {
@@ -36,8 +37,7 @@ function MainSection({ program }: { program?: Program | null }) {
                 <Badge key={k.id} variant={badgeVariants[i % badgeVariants.length] as "default" | "secondary" | "purple"}>{k.name}</Badge>
               ))}
             </div>
-            <span className="font-medium flex gap-2 items-center text-sm">{program?.status ? `${program?.status[0].toUpperCase()}${program?.status.slice(1)} ` : ""} {isSponsor && program?.creator?.id === userId && <Link to={`/programs/${program?.id}/edit`}><Settings className="w-4 h-4" /></Link>}</span>
-            {/* <span className="font-medium flex gap-2 items-center text-sm">Ongoing {isSponsor && <Link to={`/programs/${program?.id}/edit`}><Settings className="w-4 h-4" /></Link>}</span> */}
+            <span className="font-medium flex gap-2 items-center text-sm">{formatProgramStatus(program)} {program?.creator?.id === userId && <Link to={`/programs/${program?.id}/edit`}><Settings className="w-4 h-4" /></Link>}</span>
           </div>
 
           <div className="flex items-center gap-4 mb-4">
@@ -72,14 +72,15 @@ function MainSection({ program }: { program?: Program | null }) {
           ))}
         </div>
 
-        {isBuilder && program?.status === 'published' && <Dialog>
-          <DialogTrigger asChild>
-            <Button onClick={(e) => e.stopPropagation()} className="mt-6 mb-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]">Send an application</Button>
-          </DialogTrigger>
-          <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
-            <CreateApplicationForm program={program} />
-          </DialogContent>
-        </Dialog>}
+        {program?.status === 'published' && program.creator?.id !== userId && program.validator?.id !== userId && (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button onClick={(e) => e.stopPropagation()} className="mt-6 mb-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]">Send an application</Button>
+            </DialogTrigger>
+            <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
+              <CreateApplicationForm program={program} />
+            </DialogContent>
+          </Dialog>)}
 
         {program?.validator?.id === userId && program.status === 'draft' && (
           <div className="flex justify-end gap-4">
@@ -88,7 +89,7 @@ function MainSection({ program }: { program?: Program | null }) {
           </div>
         )}
 
-        {program?.creator?.id === userId && (
+        {program?.creator?.id === userId && program.status === 'payment_required' && (
           <Dialog>
             <DialogTrigger asChild>
               <Button className="mt-6 mb-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]">Pay</Button>

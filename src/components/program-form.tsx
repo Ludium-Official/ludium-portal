@@ -1,7 +1,7 @@
 
 import { useKeywordsQuery } from "@/apollo/queries/keywords.generated"
 import { useProgramQuery } from "@/apollo/queries/program.generated"
-import { useUsersByRoleQuery } from "@/apollo/queries/users-by-role.generated"
+import { useUsersQuery } from "@/apollo/queries/users.generated"
 import CurrencySelector from "@/components/currency-selector"
 import { Button } from "@/components/ui/button"
 import { DatePicker } from "@/components/ui/date-picker"
@@ -54,11 +54,12 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   const [currency, setCurrency] = useState(data?.program?.currency ?? "ETH")
 
   const { data: keywords } = useKeywordsQuery()
-  const { data: validators } = useUsersByRoleQuery({ variables: { role: "validator" } })
+  // const { data: validators } = useUsersByRoleQuery({ variables: { role: "validator" } })
+  const { data: validators } = useUsersQuery()
   const [extraErrors, dispatchErrors] = useReducer(extraErrorReducer, { keyword: false, deadline: false, validator: false, links: false })
 
   const keywordOptions = keywords?.keywords?.map(k => ({ value: k.id ?? "", label: k.name ?? "" }))
-  const validatorOptions = validators?.usersByRole?.map(v => ({ value: v.id ?? "", label: `${v.email} (${v.organizationName})` }))
+  const validatorOptions = validators?.users?.map(v => ({ value: v.id ?? "", label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ""}` }))
 
   useEffect(() => {
     if (data?.program?.keywords) setSelectedKeywords(data?.program?.keywords?.map((k) => k.id ?? "") ?? []);
@@ -144,7 +145,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       <label htmlFor="price" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Price</p>
         <div className="flex gap-2">
-          <Input disabled={isEdit && data?.program?.status !== "draft"} id="price" type="number" min={0} placeholder="Enter price" className="h-10" {...register("price", { required: true })} />
+          <Input disabled={isEdit && data?.program?.status !== "draft"} step={0.000000000000000001} id="price" type="number" min={0} placeholder="Enter price" className="h-10" {...register("price", { required: true })} />
           <CurrencySelector disabled={isEdit && data?.program?.status !== "draft"} value={currency} onValueChange={setCurrency} className="w-[84px] h-10" />
         </div>
 
