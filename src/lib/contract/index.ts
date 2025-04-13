@@ -246,9 +246,14 @@ export class Educhain {
         throw new Error('Program application event not found in transaction receipt');
       }
 
-      const applicationId = Number(event.args.id);
+      const applicationId = event.args.id;
+      const milestoneIds = event.args.milestoneIds;
 
-      return applicationId;
+      if (!applicationId || !milestoneIds) {
+        throw new Error('Application or milestone IDs not found in transaction receipt');
+      }
+
+      return { applicationId, milestoneIds };
     } catch (error) {
       console.error({ error, params }, 'Failed to submit application on blockchain');
       throw new Error('Application not submitted due to blockchain error');

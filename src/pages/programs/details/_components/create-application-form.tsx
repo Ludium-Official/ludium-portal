@@ -50,7 +50,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
 
       notify("Wepin Widget Loading", "loading")
       document.getElementById('purposal-dialog-close')?.click()
-      const applicationId = await eduChain.submitApplication({
+      const { applicationId, milestoneIds } = await eduChain.submitApplication({
         programId: program.educhainProgramId,
         milestoneNames: milestones.map((m) => m.title),
         milestoneDescriptions: milestones.map((m) => m.description ?? ''),
@@ -70,9 +70,10 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         onCompleted: async (data) => {
           createMilestones({
             variables: {
-              input: milestones.map(m => ({
+              input: milestones.map((m, idx) => ({
                 applicationId: data.createApplication?.id ?? "",
                 educhainApplicationId: applicationId,
+                educhainMilestoneId: milestoneIds[idx],
                 price: m.price,
                 title: m.title,
                 description: m.description,
