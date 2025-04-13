@@ -16,26 +16,16 @@ const CreateProgram: React.FC = () => {
         input: {
           name: args.programName,
           currency: args.currency,
-          price: args.price,
+          price: args.price ?? '0',
           description: args.description,
           summary: args.summary,
-          deadline: args.deadline,
+          deadline: args.deadline ?? '',
           keywords: args.keywords,
           validatorId: args.validatorId,
           links: args.links,
         }
       },
       onCompleted: () => {
-        // if (args.isPublish) {
-        //   updateProgram({
-        //     variables: { input: { id: data.createProgram?.id ?? "", status: "published" } },
-        //     onCompleted: () => {
-        //       navigate('/programs')
-        //     }
-        //   })
-        // } else {
-        //   navigate('/programs')
-        // }
         navigate('/programs')
 
         client.refetchQueries({ include: [ProgramsDocument] })

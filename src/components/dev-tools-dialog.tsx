@@ -1,6 +1,6 @@
 // import { useLoginMutation } from "@/apollo/mutation/login.generated"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { useAuth } from "@/lib/hooks/use-auth"
 import notify from "@/lib/notify"
 import { wepinPin, wepinProvider, wepinSdk } from "@/lib/wepin"
@@ -13,14 +13,14 @@ function DevToolsDialog() {
   const [idToken, setIdToken] = useState<string | null>(null)
   const [refreshToken, setRefreshToken] = useState<string | null>(null)
   const [wepinStatus, setWepinStatus] = useState<WepinLifeCycle>()
-  console.log("🚀 ~ Header ~ wepinStatus:", wepinStatus)
+  // console.log("🚀 ~ Header ~ wepinStatus:", wepinStatus)
 
   const { login, logout } = useAuth()
 
   const navigate = useNavigate()
 
-  console.log("🚀 ~ App ~ refreshToken:", refreshToken)
-  console.log("🚀 ~ App ~ idToken:", idToken)
+  // console.log("🚀 ~ App ~ refreshToken:", refreshToken)
+  // console.log("🚀 ~ App ~ idToken:", idToken)
 
   const loginViaGoogle = async () => {
     // await initPromise
@@ -91,6 +91,7 @@ function DevToolsDialog() {
         <Button className="max-h-10" variant="outline">Dev Tools</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
+        <DialogClose id="dev-tools-dialog" />
         <DialogHeader>
           <DialogTitle>Dev Tools</DialogTitle>
           <DialogDescription>
@@ -251,6 +252,7 @@ function DevToolsDialog() {
 
         <Button size="sm" onClick={async () => {
           // await initWepin
+          document.getElementById('dev-tools-dialog')?.click()
           wepinSdk.openWidget()
         }}>Open WepinUI</Button>
 

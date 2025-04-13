@@ -5,7 +5,7 @@ import { useRejectProgramMutation } from "@/apollo/mutation/reject-program.gener
 import { ProgramDocument } from "@/apollo/queries/program.generated"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Educhain } from "@/lib/contract"
 import { useAuth } from "@/lib/hooks/use-auth"
 import notify from "@/lib/notify"
@@ -42,6 +42,9 @@ function MainSection({ program }: { program?: Program | null }) {
         throw new Error('Missing required program details')
       }
 
+      document.getElementById('pay-dialog-close')?.click()
+
+      notify("Wepin Widget Loading", "loading")
       const { programId, txHash } = await eduChain.createProgram({
         name: program.name,
         price: program.price,
@@ -132,6 +135,7 @@ function MainSection({ program }: { program?: Program | null }) {
               <Button className="mt-6 mb-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]">Pay</Button>
             </DialogTrigger>
             <DialogContent className="w-[400px] p-6 max-h-screen overflow-y-auto">
+              <DialogClose id="pay-dialog-close" />
               <div className="text-center">
                 <span className="text-red-600 w-[42px] h-[42px] rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                   <TriangleAlert />

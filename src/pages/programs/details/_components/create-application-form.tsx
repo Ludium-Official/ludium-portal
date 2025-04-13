@@ -48,14 +48,14 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         throw new Error("Program ID is required")
       }
 
+      notify("Wepin Widget Loading", "loading")
+      document.getElementById('purposal-dialog-close')?.click()
       const applicationId = await eduChain.submitApplication({
         programId: program.educhainProgramId,
         milestoneNames: milestones.map((m) => m.title),
         milestoneDescriptions: milestones.map((m) => m.description ?? ''),
         milestonePrices: milestones.map((m) => m.price),
       });
-
-      console.log("🚀 ~ onSubmit ~ applicationId:", applicationId)
 
       createApplication({
         variables: {
@@ -84,7 +84,6 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                 include: [ProgramDocument]
               })
               notify("Application successfully created")
-              document.getElementById('purposal-dialog-close')?.click()
             },
             onError: (e) => {
               notify(e.message, "error")
