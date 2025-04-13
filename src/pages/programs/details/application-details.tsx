@@ -131,7 +131,7 @@ function ApplicationDetails() {
                 throw new Error("Program ID or application ID is missing");
               }
 
-              await eduChain.selectApplication(program?.educhainProgramId, data?.application?.educhainApplicationId);
+              await eduChain.selectApplication(data?.application?.educhainApplicationId);
               approveApplication()
             }}>Select</Button>
           </div>}
