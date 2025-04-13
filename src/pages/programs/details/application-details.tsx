@@ -170,7 +170,6 @@ function ApplicationDetails() {
                         throw new Error("Program ID or milestone ID is required");
                       }
                       await eduChain.rejectMilestone(
-                        program.educhainProgramId,
                         m.educhainMilestoneId,
                       );
                       checkMilestone({
@@ -186,7 +185,6 @@ function ApplicationDetails() {
                         throw new Error("Program ID or milestone ID is required");
                       }
                       await eduChain.acceptMilestone(
-                        program.educhainProgramId,
                         m.educhainMilestoneId,
                       );
                       checkMilestone({
@@ -207,7 +205,7 @@ function ApplicationDetails() {
                       <DialogContent>
                         <DialogTitle />
                         <DialogDescription />
-                        <SubmitMilestoneForm milestone={m} educhainProgramId={program?.educhainProgramId} refetch={refetch} />
+                        <SubmitMilestoneForm milestone={m} refetch={refetch} />
                       </DialogContent>
                     </Dialog>)
                   }
