@@ -71,12 +71,12 @@ export type CreateMilestoneInput = {
 
 export type CreateProgramInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
-  deadline?: InputMaybe<Scalars['String']['input']>;
+  deadline: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
   links?: InputMaybe<Array<LinkInput>>;
   name: Scalars['String']['input'];
-  price?: InputMaybe<Scalars['String']['input']>;
+  price: Scalars['String']['input'];
   summary?: InputMaybe<Scalars['String']['input']>;
   validatorId: Scalars['ID']['input'];
 };

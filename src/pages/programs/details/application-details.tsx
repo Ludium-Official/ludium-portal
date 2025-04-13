@@ -124,7 +124,16 @@ function ApplicationDetails() {
 
           {program?.validator?.id === userId && data?.application?.status === "pending" && <div className="flex justify-end gap-3">
             <Button className="h-10" variant="outline" onClick={() => denyApplication()}>Deny</Button>
-            <Button className="h-10" onClick={() => approveApplication()}>Select</Button>
+            <Button className="h-10" onClick={async () => {
+
+              const eduChain = new Educhain();
+              if (!program?.educhainProgramId || !data?.application?.educhainApplicationId) {
+                throw new Error("Program ID or application ID is missing");
+              }
+
+              await eduChain.selectApplication(program?.educhainProgramId, data?.application?.educhainApplicationId);
+              approveApplication()
+            }}>Select</Button>
           </div>}
 
         </div>

@@ -159,9 +159,13 @@ export class Educhain {
       }
 
       const contract = await this.ensureContract();
-      const tx = await contract.selectApplication(programId, applicationId, true);
+      const tx = await contract.selectApplication(applicationId);
+      console.log('🚀 ~ Educhain ~ selectApplication ~ tx:', tx);
 
-      return tx.wait();
+      const receipt = await tx.wait();
+      console.log('🚀 ~ Educhain ~ selectApplication ~ receipt:', receipt);
+
+      return receipt;
     } catch (error) {
       console.error(
         { error, programId, applicationId },
@@ -229,8 +233,10 @@ export class Educhain {
         params.milestoneDescriptions,
         milestonePrices,
       );
+      console.log('🚀 ~ Educhain ~ tx:', tx);
 
       const receipt = await tx.wait();
+      console.log('🚀 ~ Educhain ~ receipt:', receipt);
       const event = receipt.events.find((e: { event: string }) => e.event === 'ProgramApplied');
 
       if (!event || !event.args) {
@@ -260,8 +266,13 @@ export class Educhain {
       }
 
       const contract = await this.ensureContract();
-      const tx = await contract.submitMilestone(params.programId, params.milestoneId, params.links);
-      return tx.wait();
+      const tx = await contract.submitMilestone(params.milestoneId, params.links);
+      console.log('🚀 ~ Educhain ~ tx:', tx);
+
+      const receipt = await tx.wait();
+      console.log('🚀 ~ Educhain ~ receipt:', receipt);
+
+      return receipt;
     } catch (error) {
       console.error({ error, params }, 'Failed to submit milestone on blockchain');
       throw new Error('Milestone not submitted due to blockchain error');

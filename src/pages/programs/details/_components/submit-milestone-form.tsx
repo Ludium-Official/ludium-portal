@@ -8,6 +8,8 @@ import { X } from "lucide-react"
 import { useState } from "react"
 
 function SubmitMilestoneForm({ milestone, educhainProgramId, refetch }: { milestone: Milestone, educhainProgramId?: number | null, refetch: () => void }) {
+  console.log("🚀 ~ SubmitMilestoneForm ~ educhainProgramId:", educhainProgramId)
+  console.log("🚀 ~ SubmitMilestoneForm ~ milestone:", milestone)
 
   const [description, setDescription] = useState<string>()
 
