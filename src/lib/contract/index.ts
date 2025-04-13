@@ -94,7 +94,7 @@ export class Educhain {
       const tx = await contract.createEduProgram(
         params.name,
         price,
-        params.keywords.join(', '),
+        params.keywords,
         startTimestamp,
         endTimestamp,
         params.validatorAddress,

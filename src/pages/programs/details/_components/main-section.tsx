@@ -123,7 +123,7 @@ function MainSection({ program }: { program?: Program | null }) {
                       price: price,
                       keywords: program.keywords?.map(k => k.name as string) ?? [],
                       startTime: Math.floor(Date.now()),
-                      endTime: Math.floor((program?.deadline ? new Date(program?.deadline).getTime() : Date.now()) + 1000 * 60 * 60 * 24),
+                      endTime: Math.floor((program?.deadline ? new Date(program?.deadline).getTime() : Date.now() + 1000 * 60 * 60 * 24)),
                       validatorAddress: program.validator?.wallet?.address ?? '',
                       summary: program.summary ?? '',
                       description: program.description ?? '',
