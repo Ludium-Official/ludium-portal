@@ -28,6 +28,7 @@ query application($id: ID!) {
       price
       status
       title
+      educhainMilestoneId
       links {
         title
         url

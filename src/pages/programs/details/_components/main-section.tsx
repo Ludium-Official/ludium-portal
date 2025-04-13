@@ -122,11 +122,8 @@ function MainSection({ program }: { program?: Program | null }) {
                       description: program.description ?? '',
                       links: program.links?.map(l => l.url as string) ?? [],
                     });
-
-                    console.log("Program created on blockchain with ID:", programId)
                     
-                    // Update the backend with blockchain programId and publish the program
-                    await publishProgram({ variables: { id: program.id ?? '', educhainProgramId: programId, txHash: txHash ?? '' } })
+                    await publishProgram({ variables: { id: program.id ?? '', educhainProgramId: programId, txHash } })
                     
                   } catch (error) {
                     console.error("Error while creating program on blockchain:", error)

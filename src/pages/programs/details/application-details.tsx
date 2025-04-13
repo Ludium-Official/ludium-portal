@@ -7,6 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Educhain } from "@/lib/contract"
 import { useAuth } from "@/lib/hooks/use-auth"
 import SubmitMilestoneForm from "@/pages/programs/details/_components/submit-milestone-form"
 import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from "@/types/types.generated"
@@ -165,18 +166,37 @@ function ApplicationDetails() {
                   </div>}
 
                   {m.status === MilestoneStatus.RevisionRequested && program?.validator?.id === userId && <div className="flex justify-between">
-                    <Button className="h-10" variant="outline" onClick={() => checkMilestone({
-                      variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Pending } }, onCompleted: () => {
+                    <Button className="h-10" variant="outline" onClick={async () => {
+                      const eduChain = new Educhain();
+                      if (!program?.educhainProgramId || !m.educhainMilestoneId) {
+                        throw new Error("Program ID or milestone ID is required");
+                      }
+                      await eduChain.rejectMilestone(
+                        program.educhainProgramId,
+                        m.educhainMilestoneId,
+                      );
+                      checkMilestone({
+                        variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Pending } }, onCompleted: () => {
                         refetch()
                         programRefetch()
                       }
-                    })}>Reject Milestone</Button>
-                    <Button className="h-10" onClick={() => checkMilestone({
-                      variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Completed } }, onCompleted: () => {
+                    })}}>Reject Milestone</Button>
+                    <Button className="h-10" onClick={async() => {
+                      const eduChain = new Educhain();
+                      if (!program?.educhainProgramId || !m.educhainMilestoneId) {
+                        throw new Error("Program ID or milestone ID is required");
+                      }
+                      await eduChain.acceptMilestone(
+                        program.educhainProgramId,
+                        m.educhainMilestoneId,
+                      );
+                      checkMilestone({
+                        variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Completed } }, onCompleted: () => {
                         refetch()
                         programRefetch()
                       }
-                    })}>Accept Milestone</Button>
+                    })}}
+                    >Accept Milestone</Button>
                   </div>}
 
                   {m.status === MilestoneStatus.Pending && data?.application?.status === ApplicationStatus.Approved && data?.application?.applicant?.id === userId &&
@@ -187,7 +207,7 @@ function ApplicationDetails() {
                       <DialogContent>
                         <DialogTitle />
                         <DialogDescription />
-                        <SubmitMilestoneForm milestone={m} refetch={refetch} />
+                        <SubmitMilestoneForm milestone={m} educhainProgramId={program?.educhainProgramId} refetch={refetch} />
                       </DialogContent>
                     </Dialog>)
                   }

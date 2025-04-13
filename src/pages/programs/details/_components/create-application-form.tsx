@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { DialogClose, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Educhain } from "@/lib/contract"
 import notify from "@/lib/notify"
 import type { Program } from "@/types/types.generated"
 import { LoaderCircle, X } from "lucide-react"
@@ -49,11 +50,24 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           links: links.map(l => ({ title: l, url: l }))
         }
       },
-      onCompleted: (data) => {
+      onCompleted: async (data) => {
+        const eduChain = new Educhain()
+        if (!program?.educhainProgramId) {
+          throw new Error("Program ID is required")
+        }
+
+        const applicationId = await eduChain.submitApplication({
+          programId: program.educhainProgramId,
+          milestoneNames: milestones.map((m) => m.title),
+          milestoneDescriptions: milestones.map((m) => m.description ?? ''),
+          milestonePrices: milestones.map((m) => m.price),
+        });
+
         createMilestones({
           variables: {
             input: milestones.map(m => ({
               applicationId: data.createApplication?.id ?? "",
+              educhainApplicationId: applicationId,
               price: m.price,
               title: m.title,
               description: m.description,

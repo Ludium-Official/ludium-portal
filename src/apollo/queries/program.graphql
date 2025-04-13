@@ -49,7 +49,7 @@ query program($id: ID!) {
     currency
     deadline
     description
-    id
+    educhainProgramId
     keywords {
       id
       name

@@ -2,11 +2,12 @@ import { useSubmitMilestoneMutation } from "@/apollo/mutation/submit-milestone.g
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Educhain } from "@/lib/contract"
 import type { Milestone } from "@/types/types.generated"
 import { X } from "lucide-react"
 import { useState } from "react"
 
-function SubmitMilestoneForm({ milestone, refetch }: { milestone: Milestone, refetch: () => void }) {
+function SubmitMilestoneForm({ milestone, educhainProgramId, refetch }: { milestone: Milestone, educhainProgramId?: number | null, refetch: () => void }) {
 
   const [description, setDescription] = useState<string>()
 
@@ -73,7 +74,18 @@ function SubmitMilestoneForm({ milestone, refetch }: { milestone: Milestone, ref
 
       </label>
 
-      <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 max-w-[165px] w-full ml-auto h-10" onClick={() => submitMilestone(milestone.id ?? '')}>Submit Milestone</Button>
+      <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 max-w-[165px] w-full ml-auto h-10" onClick={async () => {
+        if (!milestone.id || !milestone.educhainMilestoneId || !educhainProgramId) {
+          throw new Error("Milestone ID or program ID is required");
+        }
+        const eduChain = new Educhain();
+        await eduChain.submitMilestone({
+          programId: educhainProgramId,
+          milestoneId: milestone.educhainMilestoneId,
+          links: links ?? []
+        });
+        submitMilestone(milestone.id);
+      }}>Submit Milestone</Button>
     </>
   )
 }

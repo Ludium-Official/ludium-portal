@@ -126,28 +126,28 @@ export class Educhain {
   /* -------------------------- Sponsor methods end --------------------------- */
 
   /* -------------------------- Validator methods start ------------------------- */
-  async approveProgram(programId: number, builderAddress: string) {
-    try {
-      if (!programId) {
-        throw new Error('Invalid program ID');
-      }
+  // async approveProgram(programId: number, builderAddress: string) {
+  //   try {
+  //     if (!programId) {
+  //       throw new Error('Invalid program ID');
+  //     }
 
-      if (!builderAddress) {
-        throw new Error('Builder address not configured');
-      }
+  //     if (!builderAddress) {
+  //       throw new Error('Builder address not configured');
+  //     }
 
-      const contract = await this.ensureContract();
-      const program = await this.getProgram(programId);
+  //     const contract = await this.ensureContract();
+  //     const program = await this.getProgram(programId);
 
-      const tx = await contract.approveProgram(program.id, builderAddress);
-      const receipt = await tx.wait();
+  //     const tx = await contract.approveProgram(program.id, builderAddress);
+  //     const receipt = await tx.wait();
 
-      return receipt;
-    } catch (error) {
-      console.error({ error, programId }, 'Failed to approve program on blockchain');
-      throw new Error('Program not approved due to blockchain error');
-    }
-  }
+  //     return receipt;
+  //   } catch (error) {
+  //     console.error({ error, programId }, 'Failed to approve program on blockchain');
+  //     throw new Error('Program not approved due to blockchain error');
+  //   }
+  // }
 
   async selectApplication(programId: number, applicationId: number) {
     try {
