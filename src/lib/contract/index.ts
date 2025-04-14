@@ -257,7 +257,7 @@ export class Educhain {
         throw new Error('Program application event not found in transaction receipt');
       }
 
-      const applicationId = event.args.id;
+      const applicationId = event.args.applicationId;
       const milestoneIds = event.args.milestoneIds;
 
       if (!applicationId || !milestoneIds) {
