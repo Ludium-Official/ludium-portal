@@ -77,15 +77,15 @@ function SubmitMilestoneForm({ milestone, refetch }: { milestone: Milestone, ref
 
       <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 max-w-[165px] w-full ml-auto h-10" onClick={async () => {
 
-        if (!milestone.id || !milestone.educhainMilestoneId) {
-          throw new Error("Milestone ID is required");
-        }
+        // if (!milestone.id || !milestone.educhainMilestoneId) {
+        //   throw new Error("Milestone ID is required");
+        // }
         const eduChain = new Educhain();
 
         notify("Wepin Widget Loading", "loading")
         document.getElementById('submit-milestone-dialog-close')?.click()
-        await eduChain.submitMilestone(milestone.educhainMilestoneId, links ?? []);
-        submitMilestone(milestone.id);
+        await eduChain.submitMilestone(milestone?.educhainMilestoneId ?? Number.NaN, links ?? []);
+        submitMilestone(milestone?.id ?? '');
       }}>Submit Milestone</Button>
     </>
   )

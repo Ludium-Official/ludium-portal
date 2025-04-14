@@ -44,14 +44,14 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   const onSubmit = async () => {
     try {
       const eduChain = new Educhain()
-      if (!program?.educhainProgramId) {
+      if (Number.isNaN(Number(program?.educhainProgramId ?? 0))) {
         throw new Error("Program ID is required")
       }
 
       notify("Wepin Widget Loading", "loading")
       document.getElementById('purposal-dialog-close')?.click()
       const { applicationId, milestoneIds } = await eduChain.submitApplication({
-        programId: program.educhainProgramId,
+        programId: program?.educhainProgramId ?? Number.NaN,
         milestoneNames: milestones.map((m) => m.title),
         milestoneDescriptions: milestones.map((m) => m.description ?? ''),
         milestonePrices: milestones.map((m) => m.price),
