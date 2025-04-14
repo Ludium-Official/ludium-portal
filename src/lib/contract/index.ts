@@ -33,7 +33,7 @@ export class Educhain {
 
   async getProgram(programId: number) {
     try {
-      if (!programId) {
+      if (Number.isNaN(programId)) {
         throw new Error('Invalid program ID');
       }
 
@@ -151,7 +151,7 @@ export class Educhain {
 
   async selectApplication(applicationId: number) {
     try {
-      if (!applicationId) {
+      if (Number.isNaN(applicationId)) {
         throw new Error('Invalid application ID');
       }
 
@@ -174,7 +174,7 @@ export class Educhain {
 
   async acceptMilestone(milestoneId: number) {
     try {
-      if (!milestoneId) {
+      if (Number.isNaN(milestoneId)) {
         throw new Error('Invalid milestone ID');
       }
 
@@ -195,7 +195,7 @@ export class Educhain {
 
   async rejectMilestone(milestoneId: number) {
     try {
-      if (!milestoneId) {
+      if (Number.isNaN(milestoneId)) {
         throw new Error('Invalid milestone ID');
       }
 
@@ -223,7 +223,7 @@ export class Educhain {
     milestonePrices: string[];
   }) {
     try {
-      if (!params.programId) {
+      if (Number.isNaN(params.programId)) {
         throw new Error('Invalid program ID');
       }
 
@@ -262,7 +262,7 @@ export class Educhain {
 
   async submitMilestone(milestoneId: number, links: string[]) {
     try {
-      if (!milestoneId) {
+      if (Number.isNaN(milestoneId)) {
         throw new Error('Invalid milestone ID');
       }
 
