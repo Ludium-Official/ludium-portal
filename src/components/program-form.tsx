@@ -81,7 +81,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     },
   })
 
-
   const onSubmit = (submitData: {
     programName: string,
     price: string,

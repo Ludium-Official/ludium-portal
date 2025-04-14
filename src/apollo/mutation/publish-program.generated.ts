@@ -5,6 +5,8 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type PublishProgramMutationVariables = Types.Exact<{
   id: Types.Scalars['ID']['input'];
+  educhainProgramId: Types.Scalars['Int']['input'];
+  txHash: Types.Scalars['String']['input'];
 }>;
 
 
@@ -12,8 +14,8 @@ export type PublishProgramMutation = { __typename?: 'Mutation', publishProgram?:
 
 
 export const PublishProgramDocument = gql`
-    mutation publishProgram($id: ID!) {
-  publishProgram(id: $id) {
+    mutation publishProgram($id: ID!, $educhainProgramId: Int!, $txHash: String!) {
+  publishProgram(id: $id, educhainProgramId: $educhainProgramId, txHash: $txHash) {
     creator {
       about
       email
@@ -59,6 +61,8 @@ export type PublishProgramMutationFn = Apollo.MutationFunction<PublishProgramMut
  * const [publishProgramMutation, { data, loading, error }] = usePublishProgramMutation({
  *   variables: {
  *      id: // value for 'id'
+ *      educhainProgramId: // value for 'educhainProgramId'
+ *      txHash: // value for 'txHash'
  *   },
  * });
  */
