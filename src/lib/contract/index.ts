@@ -218,9 +218,14 @@ export class Educhain {
   /* -------------------------- Builder methods start ---------------------------- */
   async submitApplication(params: {
     programId: number;
-    milestoneNames: string[];
-    milestoneDescriptions: string[];
-    milestonePrices: string[];
+    milestones: {
+      name: string;
+      description: string;
+      price: string;
+    }[];
+    // milestoneNames: string[];
+    // milestoneDescriptions: string[];
+    // milestonePrices: string[];
   }) {
     try {
       if (Number.isNaN(params.programId)) {
@@ -228,13 +233,19 @@ export class Educhain {
       }
 
       const contract = await this.ensureContract();
-      const milestonePrices = params.milestonePrices.map((price) => ethers.utils.parseEther(price));
+      const milestones = params.milestones.map((m) => ({
+        name: m.name,
+        description: m.description,
+        price: ethers.utils.parseEther(m.price),
+      }));
+      // const milestonePrices = params.milestonePrices.map((price) => ethers.utils.parseEther(price));
 
       const tx = await contract.submitApplication(
         params.programId,
-        params.milestoneNames,
-        params.milestoneDescriptions,
-        milestonePrices,
+        milestones,
+        // params.milestoneNames,
+        // params.milestoneDescriptions,
+        // milestonePrices,
       );
       console.log('🚀 ~ Educhain ~ tx:', tx);
 
