@@ -52,9 +52,14 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       document.getElementById('purposal-dialog-close')?.click()
       const { applicationId, milestoneIds } = await eduChain.submitApplication({
         programId: program?.educhainProgramId ?? Number.NaN,
-        milestoneNames: milestones.map((m) => m.title),
-        milestoneDescriptions: milestones.map((m) => m.description ?? ''),
-        milestonePrices: milestones.map((m) => m.price),
+        milestones: milestones.map((m) => ({
+          name: m.title,
+          description: m.description ?? '',
+          price: m.price,
+        })),
+        // milestoneNames: milestones.map((m) => m.title),
+        // milestoneDescriptions: milestones.map((m) => m.description ?? ''),
+        // milestonePrices: milestones.map((m) => m.price),
       });
 
       createApplication({
