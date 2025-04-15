@@ -1,4 +1,4 @@
-import BtcIcon from "@/assets/icons/crypto/btc"
+
 import EtcIcon from "@/assets/icons/crypto/etc"
 import EthIcon from "@/assets/icons/crypto/eth"
 import UsdtIcon from "@/assets/icons/crypto/usdt"
@@ -10,7 +10,6 @@ export const currencies = [
   { code: 'ETH', icon: <EthIcon /> },
   { code: 'ETC', icon: <EtcIcon /> },
   { code: 'USDT', icon: <UsdtIcon /> },
-  { code: 'BTC', icon: <BtcIcon /> },
 ]
 
 function CurrencySelector({ className, value, onValueChange, disabled }: { className: string, value?: string | null, onValueChange?: (value: string) => void, disabled?: boolean }) {
