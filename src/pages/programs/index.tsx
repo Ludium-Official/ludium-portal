@@ -15,14 +15,6 @@ const ProgramsPage: React.FC = () => {
 
   const { isAuthed, userId } = useAuth()
 
-  // const getMyProgramFilterValue = () => {
-  //   // const filterValue = []
-  //   // isSponsor && filterValue.push({ field: "creatorId", value: userId })
-  //   // isValidator && filterValue.push({ field: "validatorId", value: userId })
-  //   // isBuilder && filterValue.push({ field: "applicantId", value: userId })
-
-  //   return selectedTab === 'my-programs'
-  // }
   const navigate = useNavigate()
 
   const [searchParams] = useSearchParams();
