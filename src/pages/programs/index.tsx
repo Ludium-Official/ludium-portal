@@ -35,17 +35,9 @@ const ProgramsPage: React.FC = () => {
         offset: (currentPage - 1) * PageSize,
         filter: selectedTab === 'my-programs' ? [
           {
-            field: "creatorId",
+            field: "userId",
             value: userId
-          },
-          {
-            field: "validatorId",
-            value: userId
-          },
-          {
-            field: "applicantId",
-            value: userId
-          },
+          }
         ] : undefined,
         sort: selectedTab === 'by-newest' ? SortEnum.Desc : SortEnum.Asc
       }
