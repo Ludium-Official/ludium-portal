@@ -58,10 +58,10 @@ export function SearchSelect({ options, placeholder = "Select", value, setValue 
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.label}
+                  value={option.value}
                   onSelect={(currentValue) => {
                     const value = options.find(
-                      (option) => option.label === currentValue,
+                      (option) => option.value === currentValue,
                     )?.value;
                     setValue(value ?? "");
                     setOpen(false);

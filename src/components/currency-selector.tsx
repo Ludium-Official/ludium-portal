@@ -1,5 +1,6 @@
 
-import EtcIcon from "@/assets/icons/crypto/etc"
+// import EtcIcon from "@/assets/icons/crypto/etc"
+import EduIcon from "@/assets/icons/crypto/edu"
 import EthIcon from "@/assets/icons/crypto/eth"
 import UsdtIcon from "@/assets/icons/crypto/usdt"
 import { Button } from "@/components/ui/button"
@@ -7,8 +8,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useEffect, useState } from "react"
 
 export const currencies = [
+  { code: 'EDU', icon: <EduIcon /> },
   { code: 'ETH', icon: <EthIcon /> },
-  { code: 'ETC', icon: <EtcIcon /> },
   { code: 'USDT', icon: <UsdtIcon /> },
 ]
 
