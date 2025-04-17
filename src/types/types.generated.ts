@@ -64,6 +64,7 @@ export type CreateMilestoneInput = {
   currency?: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   educhainApplicationId: Scalars['Int']['input'];
+  educhainMilestoneId: Scalars['Int']['input'];
   links?: InputMaybe<Array<LinkInput>>;
   price: Scalars['String']['input'];
   title: Scalars['String']['input'];

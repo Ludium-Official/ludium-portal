@@ -13,16 +13,8 @@ import { useNavigate, useSearchParams } from "react-router";
 const ProgramsPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState("all")
 
-  const { isAuthed } = useAuth()
+  const { isAuthed, userId } = useAuth()
 
-  // const getMyProgramFilterValue = () => {
-  //   // const filterValue = []
-  //   // isSponsor && filterValue.push({ field: "creatorId", value: userId })
-  //   // isValidator && filterValue.push({ field: "validatorId", value: userId })
-  //   // isBuilder && filterValue.push({ field: "applicantId", value: userId })
-
-  //   return selectedTab === 'my-programs'
-  // }
   const navigate = useNavigate()
 
   const [searchParams] = useSearchParams();
@@ -33,7 +25,12 @@ const ProgramsPage: React.FC = () => {
       pagination: {
         limit: PageSize,
         offset: (currentPage - 1) * PageSize,
-        // filter: getMyProgramFilterValue(),
+        filter: selectedTab === 'my-programs' ? [
+          {
+            field: "userId",
+            value: userId
+          }
+        ] : undefined,
         sort: selectedTab === 'by-newest' ? SortEnum.Desc : SortEnum.Asc
       }
     },

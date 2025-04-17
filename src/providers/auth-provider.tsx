@@ -3,6 +3,7 @@ import { useProfileQuery } from "@/apollo/queries/profile.generated";
 import { wepinSdk } from "@/lib/wepin";
 import type { } from "@wepin/sdk-js";
 import { createContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 
 interface AuthValues {
   email?: string | null;
@@ -36,6 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // const [roles, setRoles] = useState<string[] | null>()
   const [email, setEmail] = useState<string | null>()
   const [userId, setUserId] = useState<string>("")
+  const navigate = useNavigate()
 
   const { data: profileData } = useProfileQuery({
     skip: !token,
@@ -80,6 +82,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // setRoles(null)
     setToken(null)
     await wepinSdk.logout()
+    navigate('/')
   }
 
   // const isSponsor = !!roles?.find(r => r === 'sponsor')

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/hooks/use-auth";
 import notify from "@/lib/notify";
+import { cn } from "@/lib/utils";
 import { wepinSdk } from "@/lib/wepin";
 import type { WepinLifeCycle } from "@wepin/sdk-js";
 import { ArrowRight, Settings, Wallet, } from "lucide-react";
@@ -74,9 +75,10 @@ function ProfilePage() {
           <p className="text-[#18181B] text-sm font-medium mb-10">{profileData?.profile?.about}</p>
 
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Wallet</h3>
-          <div className="p-6 mb-10 border bg-muted w-[282px] h-[156px] rounded-lg shadow-sm relative">
+          <div className="p-6 mb-10 border min-w-[282px] bg-muted rounded-lg shadow-sm relative">
             <label htmlFor="description" className='block text-foreground font-medium mb-2 text-sm'>My Wallet</label>
-            <span className='block text-sm text-[#71717A] mb-5'>{wepinStatus === 'login' ? "Your wallet is connected" : "Connect your wallet"}</span>
+            <span className={cn('block text-sm text-[#71717A] mb-5', !!profileData?.profile?.wallet?.address && 'mb-2')}>{wepinStatus === 'login' ? "Your wallet is connected" : "Connect your wallet"}</span>
+            {profileData?.profile?.wallet?.address && <p className="text-xs text-[#71717A] mb-5">{profileData?.profile?.wallet?.address}</p>}
 
             <Button onClick={async () => {
               const user = await wepinSdk.loginWithUI()
@@ -95,7 +97,7 @@ function ProfilePage() {
                 notify("Successfully logged in", 'success')
                 navigate('/profile')
               }
-            }} disabled={wepinStatus === 'login'} className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-9 w-[133px] absolute bottom-6 right-6 text-xs">Connect wallet <Wallet /></Button>
+            }} disabled={wepinStatus === 'login'} className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-9 w-[133px] ml-auto flex text-xs">{wepinStatus === 'login' ? "Connected" : "Connect wallet"} <Wallet /></Button>
           </div>
 
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Roles</h3>
