@@ -33,7 +33,7 @@ export class Educhain {
 
   async getProgram(programId: number) {
     try {
-      if (!programId) {
+      if (Number.isNaN(programId)) {
         throw new Error('Invalid program ID');
       }
 
@@ -151,7 +151,7 @@ export class Educhain {
 
   async selectApplication(applicationId: number) {
     try {
-      if (!applicationId) {
+      if (Number.isNaN(applicationId)) {
         throw new Error('Invalid application ID');
       }
 
@@ -174,7 +174,7 @@ export class Educhain {
 
   async acceptMilestone(milestoneId: number) {
     try {
-      if (!milestoneId) {
+      if (Number.isNaN(milestoneId)) {
         throw new Error('Invalid milestone ID');
       }
 
@@ -195,7 +195,7 @@ export class Educhain {
 
   async rejectMilestone(milestoneId: number) {
     try {
-      if (!milestoneId) {
+      if (Number.isNaN(milestoneId)) {
         throw new Error('Invalid milestone ID');
       }
 
@@ -218,23 +218,34 @@ export class Educhain {
   /* -------------------------- Builder methods start ---------------------------- */
   async submitApplication(params: {
     programId: number;
-    milestoneNames: string[];
-    milestoneDescriptions: string[];
-    milestonePrices: string[];
+    milestones: {
+      name: string;
+      description: string;
+      price: string;
+    }[];
+    // milestoneNames: string[];
+    // milestoneDescriptions: string[];
+    // milestonePrices: string[];
   }) {
     try {
-      if (!params.programId) {
+      if (Number.isNaN(params.programId)) {
         throw new Error('Invalid program ID');
       }
 
       const contract = await this.ensureContract();
-      const milestonePrices = params.milestonePrices.map((price) => ethers.utils.parseEther(price));
+      const milestones = params.milestones.map((m) => ({
+        name: m.name,
+        description: m.description,
+        price: ethers.utils.parseEther(m.price),
+      }));
+      // const milestonePrices = params.milestonePrices.map((price) => ethers.utils.parseEther(price));
 
       const tx = await contract.submitApplication(
         params.programId,
-        params.milestoneNames,
-        params.milestoneDescriptions,
-        milestonePrices,
+        milestones,
+        // params.milestoneNames,
+        // params.milestoneDescriptions,
+        // milestonePrices,
       );
       console.log('🚀 ~ Educhain ~ tx:', tx);
 
@@ -246,7 +257,7 @@ export class Educhain {
         throw new Error('Program application event not found in transaction receipt');
       }
 
-      const applicationId = event.args.id;
+      const applicationId = event.args.applicationId;
       const milestoneIds = event.args.milestoneIds;
 
       if (!applicationId || !milestoneIds) {
@@ -262,7 +273,7 @@ export class Educhain {
 
   async submitMilestone(milestoneId: number, links: string[]) {
     try {
-      if (!milestoneId) {
+      if (Number.isNaN(milestoneId)) {
         throw new Error('Invalid milestone ID');
       }
 

@@ -113,13 +113,18 @@ function ProfilePage() {
       <div className="bg-white p-5 rounded-t-2xl">
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="w-full">
-            {roles.map(r => (
+            {/* {roles.map(r => (
               <TabsTrigger key={r} value={r}>Programs as {r}</TabsTrigger>
-            ))}
+            ))} */}
+            <TabsTrigger value={'sponsor'}>Programs as sponsor</TabsTrigger>
+            <TabsTrigger value={'validator'}>Programs as validator</TabsTrigger>
+            <TabsTrigger value={'builder'}>Programs as builder</TabsTrigger>
           </TabsList>
         </Tabs>
 
         <h2 className="text-xl font-bold mt-10 mb-6">Programs as {selectedTab}</h2>
+
+        {!data?.programs?.data?.length && <p className="text-sm text-muted-foreground">No programs found</p>}
 
         {data?.programs?.data?.map(p => (
           <div key={p.id} className="border rounded-xl p-6 mb-6">

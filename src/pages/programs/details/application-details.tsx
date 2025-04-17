@@ -177,13 +177,13 @@ function ApplicationDetails() {
                   {m.status === MilestoneStatus.RevisionRequested && program?.validator?.id === userId && <div className="flex justify-between">
                     <Button className="h-10" variant="outline" onClick={async () => {
                       const eduChain = new Educhain();
-                      if (!program?.educhainProgramId || !m.educhainMilestoneId) {
-                        throw new Error("Program ID or milestone ID is required");
-                      }
+                      // if (!program?.educhainProgramId || !m.educhainMilestoneId) {
+                      //   throw new Error("Program ID or milestone ID is required");
+                      // }
 
                       notify("Wepin Widget Loading", "loading")
                       await eduChain.rejectMilestone(
-                        m.educhainMilestoneId,
+                        m.educhainMilestoneId ?? Number.NaN,
                       );
                       checkMilestone({
                         variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Pending } }, onCompleted: () => {
@@ -194,13 +194,13 @@ function ApplicationDetails() {
                     }}>Reject Milestone</Button>
                     <Button className="h-10" onClick={async () => {
                       const eduChain = new Educhain();
-                      if (!program?.educhainProgramId || !m.educhainMilestoneId) {
-                        throw new Error("Program ID or milestone ID is required");
-                      }
+                      // if (!program?.educhainProgramId || !m.educhainMilestoneId) {
+                      //   throw new Error("Program ID or milestone ID is required");
+                      // }
 
                       notify("Wepin Widget Loading", "loading")
                       await eduChain.acceptMilestone(
-                        m.educhainMilestoneId,
+                        m.educhainMilestoneId ?? Number.NaN,
                       );
                       checkMilestone({
                         variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Completed } }, onCompleted: () => {
