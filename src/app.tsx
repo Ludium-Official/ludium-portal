@@ -9,31 +9,31 @@ import DetailsPage from "@/pages/programs/details";
 import ApplicationDetails from "@/pages/programs/details/application-details";
 import EditProgram from "@/pages/programs/edit";
 import ScrollWrapper from "@/providers/scroll-wrapper";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { Route, Routes } from "react-router";
 
 function App() {
   return (
-    <BrowserRouter>
-      <ScrollWrapper>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<MainPage />} />
-            <Route path="login" element={<LoginPage />} />
-            <Route path="profile">
-              <Route index element={<ProfilePage />} />
-              <Route path="edit" element={<EditProfilePage />} />
-            </Route>
-            <Route path="programs">
-              <Route index element={<ProgramsPage />} />
-              <Route path="create" element={<CreateProgram />} />
-              <Route path=":id" element={<DetailsPage />} />
-              <Route path=":id/edit" element={<EditProgram />} />
-              <Route path=":id/application/:applicationId/details" element={<ApplicationDetails />} />
-            </Route>
+    // <BrowserRouter>
+    <ScrollWrapper>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<MainPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="profile">
+            <Route index element={<ProfilePage />} />
+            <Route path="edit" element={<EditProfilePage />} />
           </Route>
-        </Routes>
-      </ScrollWrapper>
-    </BrowserRouter>
+          <Route path="programs">
+            <Route index element={<ProgramsPage />} />
+            <Route path="create" element={<CreateProgram />} />
+            <Route path=":id" element={<DetailsPage />} />
+            <Route path=":id/edit" element={<EditProgram />} />
+            <Route path=":id/application/:applicationId/details" element={<ApplicationDetails />} />
+          </Route>
+        </Route>
+      </Routes>
+    </ScrollWrapper>
+    // </BrowserRouter>
   );
 }
 
