@@ -19,14 +19,12 @@ type MilestoneType = {
   title: string,
   price: string,
   description: string,
-  currency: string,
 }
 
 const emptyMilestone = {
   title: "",
   price: "",
-  description: "",
-  currency: "ETH"
+  description: ""
 }
 
 function CreateApplicationForm({ program }: { program?: Program | null }) {
@@ -57,9 +55,6 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           description: m.description ?? '',
           price: m.price,
         })),
-        // milestoneNames: milestones.map((m) => m.title),
-        // milestoneDescriptions: milestones.map((m) => m.description ?? ''),
-        // milestonePrices: milestones.map((m) => m.price),
       });
 
       createApplication({
@@ -82,7 +77,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                 price: m.price,
                 title: m.title,
                 description: m.description,
-                currency: m.currency
+                currency: program?.currency ?? "EDU"
               }))
             },
             onCompleted: () => {
