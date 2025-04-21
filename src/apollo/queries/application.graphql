@@ -1,6 +1,5 @@
 query application($id: ID!) {
   application(id: $id) {
-    educhainApplicationId
     applicant {
       about
       email
@@ -29,7 +28,6 @@ query application($id: ID!) {
       price
       status
       title
-      educhainMilestoneId
       links {
         title
         url

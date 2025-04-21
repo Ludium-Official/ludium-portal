@@ -125,7 +125,12 @@ function MainSection({ program }: { program?: Program | null }) {
         {program?.validator?.id === userId && program.status === 'draft' && (
           <div className="flex justify-end gap-4">
             <Button onClick={() => rejectProgram()} variant="outline" className="h-11 w-[118px]">Reject</Button>
-            <Button onClick={() => acceptProgram()} className="h-11 w-[118px]">Confirm</Button>
+            <Button onClick={async () => {
+              const eduChain = new Educhain()
+              await eduChain.approveProgram(program?.educhainProgramId ?? Number.NaN)
+              await acceptProgram()
+              notify("Program accepted", "success")
+            }} className="h-11 w-[118px]">Confirm</Button>
           </div>
         )}
 
