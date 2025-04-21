@@ -15,7 +15,7 @@ export class Educhain {
   }
 
   async init() {
-    const wpnProvider = await wepinProvider.getProvider('evmopencampus-testnet');
+    const wpnProvider = await wepinProvider.getProvider(import.meta.env.VITE_EDUCHAIN_PROVIDER);
     const provider = new ethers.providers.Web3Provider(wpnProvider);
     this.contract = new ethers.Contract(
       import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS,
@@ -125,56 +125,29 @@ export class Educhain {
 
   /* -------------------------- Sponsor methods end --------------------------- */
 
-  /* -------------------------- Validator methods start ------------------------- */
-  // async approveProgram(programId: number, builderAddress: string) {
-  //   try {
-  //     if (!programId) {
-  //       throw new Error('Invalid program ID');
-  //     }
-
-  //     if (!builderAddress) {
-  //       throw new Error('Builder address not configured');
-  //     }
-
-  //     const contract = await this.ensureContract();
-  //     const program = await this.getProgram(programId);
-
-  //     const tx = await contract.approveProgram(program.id, builderAddress);
-  //     const receipt = await tx.wait();
-
-  //     return receipt;
-  //   } catch (error) {
-  //     console.error({ error, programId }, 'Failed to approve program on blockchain');
-  //     throw new Error('Program not approved due to blockchain error');
-  //   }
-  // }
-
-  async selectApplication(applicationId: number) {
+  /* -------------------------- Validator methods start ----------------------- */
+  async approveProgram(programId: number) {
     try {
-      if (Number.isNaN(applicationId)) {
-        throw new Error('Invalid application ID');
+      if (Number.isNaN(programId)) {
+        throw new Error('Invalid program ID');
       }
 
       const contract = await this.ensureContract();
-      const tx = await contract.selectApplication(applicationId);
-      const receipt = await tx.wait();
-      const event = receipt.events.find(
-        (e: { event: string }) => e.event === 'ApplicationSelected',
-      );
-      if (!event) {
-        throw new Error('ApplicationSelected event not found in transaction receipt');
-      }
+      const program = await this.getProgram(programId);
 
-      return event;
+      const tx = await contract.approveProgram(program.id);
+      const receipt = await tx.wait();
+
+      return receipt;
     } catch (error) {
-      console.error({ error, applicationId }, 'Failed to select application on blockchain');
-      throw new Error('Application not selected due to blockchain error');
+      console.error({ error, programId }, 'Failed to approve program on blockchain');
+      throw new Error('Program not approved due to blockchain error');
     }
   }
 
-  async acceptMilestone(milestoneId: number) {
+  async acceptMilestone(milestoneId: string) {
     try {
-      if (Number.isNaN(milestoneId)) {
+      if (!milestoneId) {
         throw new Error('Invalid milestone ID');
       }
 
@@ -193,103 +166,5 @@ export class Educhain {
     }
   }
 
-  async rejectMilestone(milestoneId: number) {
-    try {
-      if (Number.isNaN(milestoneId)) {
-        throw new Error('Invalid milestone ID');
-      }
-
-      const contract = await this.ensureContract();
-      const tx = await contract.rejectMilestone(milestoneId);
-      const receipt = await tx.wait();
-      const event = receipt.events.find((e: { event: string }) => e.event === 'MilestoneRejected');
-      if (!event) {
-        throw new Error('MilestoneRejected event not found in transaction receipt');
-      }
-
-      return event;
-    } catch (error) {
-      console.error({ error, milestoneId }, 'Failed to reject milestone on blockchain');
-      throw new Error('Milestone not rejected due to blockchain error');
-    }
-  }
   /* -------------------------- Validator methods end --------------------------- */
-
-  /* -------------------------- Builder methods start ---------------------------- */
-  async submitApplication(params: {
-    programId: number;
-    milestones: {
-      name: string;
-      description: string;
-      price: string;
-    }[];
-    // milestoneNames: string[];
-    // milestoneDescriptions: string[];
-    // milestonePrices: string[];
-  }) {
-    try {
-      if (Number.isNaN(params.programId)) {
-        throw new Error('Invalid program ID');
-      }
-
-      const contract = await this.ensureContract();
-      const milestones = params.milestones.map((m) => ({
-        name: m.name,
-        description: m.description,
-        price: ethers.utils.parseEther(m.price),
-      }));
-      // const milestonePrices = params.milestonePrices.map((price) => ethers.utils.parseEther(price));
-
-      const tx = await contract.submitApplication(
-        params.programId,
-        milestones,
-        // params.milestoneNames,
-        // params.milestoneDescriptions,
-        // milestonePrices,
-      );
-      console.log('🚀 ~ Educhain ~ tx:', tx);
-
-      const receipt = await tx.wait();
-      console.log('🚀 ~ Educhain ~ receipt:', receipt);
-      const event = receipt.events.find((e: { event: string }) => e.event === 'ProgramApplied');
-
-      if (!event || !event.args) {
-        throw new Error('Program application event not found in transaction receipt');
-      }
-
-      const applicationId = event.args.applicationId;
-      const milestoneIds = event.args.milestoneIds;
-
-      if (!applicationId || !milestoneIds) {
-        throw new Error('Application or milestone IDs not found in transaction receipt');
-      }
-
-      return { applicationId, milestoneIds };
-    } catch (error) {
-      console.error({ error, params }, 'Failed to submit application on blockchain');
-      throw new Error('Application not submitted due to blockchain error');
-    }
-  }
-
-  async submitMilestone(milestoneId: number, links: string[]) {
-    try {
-      if (Number.isNaN(milestoneId)) {
-        throw new Error('Invalid milestone ID');
-      }
-
-      const contract = await this.ensureContract();
-      const tx = await contract.submitMilestone(milestoneId, links);
-      const receipt = await tx.wait();
-      const event = receipt.events.find((e: { event: string }) => e.event === 'MilestoneSubmitted');
-      if (!event) {
-        throw new Error('MilestoneSubmitted event not found in transaction receipt');
-      }
-
-      return event;
-    } catch (error) {
-      console.error({ error, milestoneId }, 'Failed to submit milestone on blockchain');
-      throw new Error('Milestone not submitted due to blockchain error');
-    }
-  }
-  /* -------------------------- Builder methods end ---------------------------- */
 }

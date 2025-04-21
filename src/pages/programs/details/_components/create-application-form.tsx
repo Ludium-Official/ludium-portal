@@ -7,10 +7,8 @@ import { Button } from "@/components/ui/button"
 import { DialogClose, DialogDescription, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Educhain } from "@/lib/contract"
 import notify from "@/lib/notify"
 import type { Program } from "@/types/types.generated"
-// import { BigNumber } from "ethers"
 import BigNumber from "bignumber.js";
 import { LoaderCircle, X } from "lucide-react"
 import { useState } from "react"
@@ -41,21 +39,6 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
 
   const onSubmit = async () => {
     try {
-      const eduChain = new Educhain()
-      if (Number.isNaN(Number(program?.educhainProgramId ?? 0))) {
-        throw new Error("Program ID is required")
-      }
-
-      notify("Wepin Widget Loading", "loading")
-      document.getElementById('purposal-dialog-close')?.click()
-      const { applicationId, milestoneIds } = await eduChain.submitApplication({
-        programId: program?.educhainProgramId ?? Number.NaN,
-        milestones: milestones.map((m) => ({
-          name: m.title,
-          description: m.description ?? '',
-          price: m.price,
-        })),
-      });
 
       createApplication({
         variables: {
@@ -70,10 +53,8 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         onCompleted: async (data) => {
           createMilestones({
             variables: {
-              input: milestones.map((m, idx) => ({
+              input: milestones.map((m) => ({
                 applicationId: data.createApplication?.id ?? "",
-                educhainApplicationId: Number(applicationId),
-                educhainMilestoneId: Number(milestoneIds[idx]),
                 price: m.price,
                 title: m.title,
                 description: m.description,
@@ -85,6 +66,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                 include: [ProgramDocument]
               })
               notify("Application successfully created")
+              document.getElementById('purposal-dialog-close')?.click()
             },
             onError: (e) => {
               notify(e.message, "error")

@@ -2,8 +2,6 @@ import { useSubmitMilestoneMutation } from "@/apollo/mutation/submit-milestone.g
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Educhain } from "@/lib/contract"
-import notify from "@/lib/notify"
 import type { Milestone } from "@/types/types.generated"
 import { X } from "lucide-react"
 import { useState } from "react"
@@ -75,16 +73,8 @@ function SubmitMilestoneForm({ milestone, refetch }: { milestone: Milestone, ref
 
       </label>
 
-      <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 max-w-[165px] w-full ml-auto h-10" onClick={async () => {
-
-        // if (!milestone.id || !milestone.educhainMilestoneId) {
-        //   throw new Error("Milestone ID is required");
-        // }
-        const eduChain = new Educhain();
-
-        notify("Wepin Widget Loading", "loading")
+      <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 max-w-[165px] w-full ml-auto h-10" onClick={() => {
         document.getElementById('submit-milestone-dialog-close')?.click()
-        await eduChain.submitMilestone(milestone?.educhainMilestoneId ?? Number.NaN, links ?? []);
         submitMilestone(milestone?.id ?? '');
       }}>Submit Milestone</Button>
     </>
