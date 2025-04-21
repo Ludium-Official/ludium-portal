@@ -1,7 +1,6 @@
 query program($id: ID!) {
   program(id: $id) {
     applications {
-      educhainApplicationId
       applicant {
         about
         email

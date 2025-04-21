@@ -3,8 +3,6 @@ import { useApproveApplicationMutation } from "@/apollo/mutation/approve-applica
 import { useDenyApplicationMutation } from "@/apollo/mutation/deny-application.generated"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Educhain } from "@/lib/contract"
-import notify from "@/lib/notify"
 import type { Application } from "@/types/types.generated"
 import { ArrowRight } from "lucide-react"
 import { Link } from "react-router"
@@ -43,14 +41,7 @@ function ApplicationCard({ application, refetch, hideSeeDetails, hideControls }:
               }
             })
           }}>Deny</Button>
-          <Button className="h-10" onClick={async () => {
-            const eduChain = new Educhain();
-            if (!application?.educhainApplicationId) {
-              throw new Error("Application ID is missing");
-            }
-
-            notify("Wepin Widget Loading", "loading")
-            await eduChain.selectApplication(application.educhainApplicationId);
+          <Button className="h-10" onClick={() => {
             approveApplication({
               variables: {
                 id: application?.id ?? "",
