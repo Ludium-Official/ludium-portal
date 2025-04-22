@@ -126,24 +126,6 @@ export class Educhain {
   /* -------------------------- Sponsor methods end --------------------------- */
 
   /* -------------------------- Validator methods start ----------------------- */
-  async approveProgram(programId: number) {
-    try {
-      if (Number.isNaN(programId)) {
-        throw new Error('Invalid program ID');
-      }
-
-      const contract = await this.ensureContract();
-      const program = await this.getProgram(programId);
-
-      const tx = await contract.approveProgram(program.id);
-      const receipt = await tx.wait();
-
-      return receipt;
-    } catch (error) {
-      console.error({ error, programId }, 'Failed to approve program on blockchain');
-      throw new Error('Program not approved due to blockchain error');
-    }
-  }
 
   async acceptMilestone(milestoneId: string) {
     try {
