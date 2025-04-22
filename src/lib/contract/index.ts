@@ -127,14 +127,16 @@ export class Educhain {
 
   /* -------------------------- Validator methods start ----------------------- */
 
-  async acceptMilestone(milestoneId: string) {
+  async acceptMilestone(milestoneId: string, programId: number, builderAddress: string, amount: string) {
     try {
-      if (!milestoneId) {
+      if (!milestoneId || !programId || !builderAddress || !amount) {
         throw new Error('Invalid milestone ID');
       }
 
+      const reward = ethers.utils.parseEther(amount);
+
       const contract = await this.ensureContract();
-      const tx = await contract.acceptMilestone(milestoneId);
+      const tx = await contract.acceptMilestone(programId, milestoneId, builderAddress, reward);
       const receipt = await tx.wait();
       const event = receipt.events.find((e: { event: string }) => e.event === 'MilestoneAccepted');
       if (!event) {
