@@ -26,6 +26,7 @@ function ApplicationDetails() {
     skip: !applicationId,
   })
 
+
   const { data: programData, refetch: programRefetch } = useProgramQuery({
     variables: {
       id: id ?? ''
@@ -176,19 +177,28 @@ function ApplicationDetails() {
                       })
                     }}>Reject Milestone</Button>
                     <Button className="h-10" onClick={async () => {
-                      const eduChain = new Educhain();
-
-                      notify("Wepin Widget Loading", "loading")
-                      await eduChain.acceptMilestone(
-                        m.id ?? "",
-                      );
-
-                      checkMilestone({
-                        variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Completed } }, onCompleted: () => {
-                          refetch()
-                          programRefetch()
+                      try {
+                        if (!m.id || Number.isNaN(Number(program?.educhainProgramId || !data?.application?.applicant?.wallet?.address))) {
+                          throw new Error("Invalid arguments")
                         }
-                      })
+                        const eduChain = new Educhain();
+
+                        notify("Wepin Widget Loading", "loading")
+                        await eduChain.acceptMilestone(
+                          m.id,
+                          Number(program?.educhainProgramId),
+                          data?.application?.applicant?.wallet?.address ?? "",
+                          m.price ?? ""
+                        );
+                        checkMilestone({
+                          variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Completed } }, onCompleted: () => {
+                            refetch()
+                            programRefetch()
+                          }
+                        })
+                      } catch (e) {
+                        notify((e as Error).message, "error")
+                      }
                     }}
                     >Accept Milestone</Button>
                   </div>}
