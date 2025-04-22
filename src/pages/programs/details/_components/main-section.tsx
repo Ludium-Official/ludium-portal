@@ -50,8 +50,8 @@ function MainSection({ program }: { program?: Program | null }) {
         price: program.price,
         keywords: program.keywords?.map(k => k.name as string) ?? [],
         startTime: Math.floor(Date.now()),
-        endTime: Math.floor((program?.deadline ? new Date(program?.deadline).getTime() : Date.now() + 1000 * 60 * 60 * 24)),
-        validatorAddress: program.validator?.wallet?.address ?? '',
+        endTime: Math.floor((new Date(program.deadline).getTime())),
+        validatorAddress: program.validator.wallet.address,
         summary: program.summary ?? '',
         description: program.description ?? '',
         links: program.links?.map(l => l.url as string) ?? [],
@@ -126,8 +126,6 @@ function MainSection({ program }: { program?: Program | null }) {
           <div className="flex justify-end gap-4">
             <Button onClick={() => rejectProgram()} variant="outline" className="h-11 w-[118px]">Reject</Button>
             <Button onClick={async () => {
-              const eduChain = new Educhain()
-              await eduChain.approveProgram(program?.educhainProgramId ?? Number.NaN)
               await acceptProgram()
               notify("Program accepted", "success")
             }} className="h-11 w-[118px]">Confirm</Button>
