@@ -22,7 +22,6 @@ export type Application = {
   __typename?: 'Application';
   applicant?: Maybe<User>;
   content?: Maybe<Scalars['String']['output']>;
-  educhainApplicationId?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   links?: Maybe<Array<Link>>;
   metadata?: Maybe<Scalars['JSON']['output']>;
@@ -63,8 +62,6 @@ export type CreateMilestoneInput = {
   applicationId: Scalars['String']['input'];
   currency?: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
-  educhainApplicationId: Scalars['Int']['input'];
-  educhainMilestoneId: Scalars['Int']['input'];
   links?: InputMaybe<Array<LinkInput>>;
   price: Scalars['String']['input'];
   title: Scalars['String']['input'];
@@ -102,7 +99,6 @@ export type Milestone = {
   __typename?: 'Milestone';
   currency?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
-  educhainMilestoneId?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   links?: Maybe<Array<Link>>;
   price?: Maybe<Scalars['String']['output']>;

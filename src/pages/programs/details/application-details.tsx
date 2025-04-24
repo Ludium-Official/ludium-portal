@@ -26,6 +26,7 @@ function ApplicationDetails() {
     skip: !applicationId,
   })
 
+
   const { data: programData, refetch: programRefetch } = useProgramQuery({
     variables: {
       id: id ?? ''
@@ -125,15 +126,7 @@ function ApplicationDetails() {
 
           {program?.validator?.id === userId && data?.application?.status === "pending" && <div className="flex justify-end gap-3">
             <Button className="h-10" variant="outline" onClick={() => denyApplication()}>Deny</Button>
-            <Button className="h-10" onClick={async () => {
-
-              const eduChain = new Educhain();
-              if (!program?.educhainProgramId || !data?.application?.educhainApplicationId) {
-                throw new Error("Program ID or application ID is missing");
-              }
-
-              notify("Wepin Widget Loading", "loading")
-              await eduChain.selectApplication(data?.application?.educhainApplicationId);
+            <Button className="h-10" onClick={() => {
               approveApplication()
             }}>Select</Button>
           </div>}
@@ -175,16 +168,7 @@ function ApplicationDetails() {
                   </div>}
 
                   {m.status === MilestoneStatus.RevisionRequested && program?.validator?.id === userId && <div className="flex justify-between">
-                    <Button className="h-10" variant="outline" onClick={async () => {
-                      const eduChain = new Educhain();
-                      // if (!program?.educhainProgramId || !m.educhainMilestoneId) {
-                      //   throw new Error("Program ID or milestone ID is required");
-                      // }
-
-                      notify("Wepin Widget Loading", "loading")
-                      await eduChain.rejectMilestone(
-                        m.educhainMilestoneId ?? Number.NaN,
-                      );
+                    <Button className="h-10" variant="outline" onClick={() => {
                       checkMilestone({
                         variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Pending } }, onCompleted: () => {
                           refetch()
@@ -193,21 +177,28 @@ function ApplicationDetails() {
                       })
                     }}>Reject Milestone</Button>
                     <Button className="h-10" onClick={async () => {
-                      const eduChain = new Educhain();
-                      // if (!program?.educhainProgramId || !m.educhainMilestoneId) {
-                      //   throw new Error("Program ID or milestone ID is required");
-                      // }
-
-                      notify("Wepin Widget Loading", "loading")
-                      await eduChain.acceptMilestone(
-                        m.educhainMilestoneId ?? Number.NaN,
-                      );
-                      checkMilestone({
-                        variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Completed } }, onCompleted: () => {
-                          refetch()
-                          programRefetch()
+                      try {
+                        if (!m.id || Number.isNaN(Number(program?.educhainProgramId || !data?.application?.applicant?.wallet?.address))) {
+                          throw new Error("Invalid arguments")
                         }
-                      })
+                        const eduChain = new Educhain();
+
+                        notify("Wepin Widget Loading", "loading")
+                        await eduChain.acceptMilestone(
+                          m.id,
+                          Number(program?.educhainProgramId),
+                          data?.application?.applicant?.wallet?.address ?? "",
+                          m.price ?? ""
+                        );
+                        checkMilestone({
+                          variables: { input: { id: m.id ?? "", status: CheckMilestoneStatus.Completed } }, onCompleted: () => {
+                            refetch()
+                            programRefetch()
+                          }
+                        })
+                      } catch (e) {
+                        notify((e as Error).message, "error")
+                      }
                     }}
                     >Accept Milestone</Button>
                   </div>}
