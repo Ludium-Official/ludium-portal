@@ -136,7 +136,9 @@ export class Educhain {
       const reward = ethers.utils.parseEther(amount);
 
       const contract = await this.ensureContract();
-      const tx = await contract.acceptMilestone(programId, milestoneId, builderAddress, reward);
+      const tx = await contract.acceptMilestone(programId, milestoneId, builderAddress, {
+        value: reward,
+      });
       const receipt = await tx.wait();
       const event = receipt.events.find((e: { event: string }) => e.event === 'MilestoneAccepted');
       if (!event) {
