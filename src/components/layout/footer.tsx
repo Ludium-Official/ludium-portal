@@ -16,16 +16,17 @@ function Footer() {
           </Link>
           <div>
             <h3 className='text-xs font-bold leading-[25px] mb-1'>Contact us</h3>
-            <a href="https://twitter.com" className='flex items-center gap-2 leading-[25px] mb-1 text-xs'><img src={twitter} alt="twitter" /> Twitter</a>
-            <a href="https://youtube.com" className='flex items-center gap-2 leading-[25px] mb-1 text-xs'><img src={youtube} alt="youtube" /> Youtube</a>
-            <a href="https://discord.com" className='flex items-center gap-2 leading-[25px] mb-1 text-xs'><img src={discord} alt="discord" /> Discord</a>
-            <a href="/customer-service" className='flex items-center gap-2 leading-[25px] mb-1 text-xs'><img src={customerService} alt="customer-service" /> Customer Service  </a>
+            <a target='_blank' href="https://x.com/ludium_official" className='flex items-center gap-2 leading-[25px] mb-1 text-xs' rel="noreferrer"><img src={twitter} alt="twitter" /> Twitter</a>
+            <a target='_blank' href="https://www.youtube.com/@Ludium" className='flex items-center gap-2 leading-[25px] mb-1 text-xs' rel="noreferrer"><img src={youtube} alt="youtube" /> Youtube</a>
+            <a target='_blank' href="https://discord.gg/Ur6rJGjdAd" className='flex items-center gap-2 leading-[25px] mb-1 text-xs' rel="noreferrer"><img src={discord} alt="discord" /> Discord</a>
+            <a href="/" className='flex items-center gap-2 leading-[25px] mb-1 text-xs'><img src={customerService} alt="customer-service" /> Customer Service  </a>
           </div>
         </div>
         <div className='text-sm'>
-          <p className='leading-[25px]'>개인정보처리방침 l 이용약관</p>
-          <p className='leading-[25px]'>(주)루디움 l 대표자 : 임동선</p>
-          <p className='leading-[25px]'>개인정보보호책임자 : 임동선</p>
+          <p className='leading-[25px]'>주식회사 루디움</p>
+          <p className='leading-[25px]'>대표자 : 임동선 l 사업자등록번호: 379-87-03224</p>
+          <p className='leading-[25px]'>서울시 서초구 강남대로 305 B117-14</p>
+          <p className='leading-[25px]'>이용약관 l 개인정보처리방침 l 운영 정책</p>
         </div>
       </div>
     </footer>
