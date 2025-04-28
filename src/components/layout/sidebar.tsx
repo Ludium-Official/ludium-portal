@@ -1,6 +1,6 @@
 import logo from '@/assets/logo.svg';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { Scroll, UserRound } from "lucide-react";
+import { CircleAlert, Scroll, UserRound } from "lucide-react";
 
 import { Link, NavLink } from "react-router";
 
@@ -34,6 +34,9 @@ const Sidebar = () => {
               </NavLink>
             </li>
           ))}
+          <li>
+            <a href="https://ludium.oopy.io/" className='group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium hover:bg-[#F8ECFF] hover:text-[#861CC4]' target='_blank' rel="noreferrer"><CircleAlert />About</a>
+          </li>
         </ul>
       </nav>
     </aside>
