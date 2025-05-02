@@ -26,7 +26,7 @@ function Footer() {
           <p className='leading-[25px]'>주식회사 루디움</p>
           <p className='leading-[25px]'>대표자 : 임동선 l 사업자등록번호: 379-87-03224</p>
           <p className='leading-[25px]'>서울시 서초구 강남대로 305 B117-14</p>
-          <p className='leading-[25px]'>이용약관 l 개인정보처리방침 l 운영 정책</p>
+          <p className='leading-[25px]'>이용약관 l 개인정보처리방침 l 운영 정책..</p>
         </div>
       </div>
     </footer>
