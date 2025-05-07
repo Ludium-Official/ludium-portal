@@ -1,15 +1,16 @@
-import Layout from "@/components/layout/layout";
-import LoginPage from "@/pages/login";
-import MainPage from "@/pages/main";
-import ProfilePage from "@/pages/profile";
-import EditProfilePage from "@/pages/profile/edit";
-import ProgramsPage from "@/pages/programs";
-import CreateProgram from "@/pages/programs/create";
-import DetailsPage from "@/pages/programs/details";
-import ApplicationDetails from "@/pages/programs/details/application-details";
-import EditProgram from "@/pages/programs/edit";
-import ScrollWrapper from "@/providers/scroll-wrapper";
-import { Route, Routes } from "react-router";
+import Layout from '@/components/layout/layout';
+import CommunityPage from '@/pages/community';
+import LoginPage from '@/pages/login';
+import MainPage from '@/pages/main';
+import ProfilePage from '@/pages/profile';
+import EditProfilePage from '@/pages/profile/edit';
+import ProgramsPage from '@/pages/programs';
+import CreateProgram from '@/pages/programs/create';
+import DetailsPage from '@/pages/programs/details';
+import ApplicationDetails from '@/pages/programs/details/application-details';
+import EditProgram from '@/pages/programs/edit';
+import ScrollWrapper from '@/providers/scroll-wrapper';
+import { Route, Routes } from 'react-router';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
             <Route path=":id/edit" element={<EditProgram />} />
             <Route path=":id/application/:applicationId/details" element={<ApplicationDetails />} />
           </Route>
+          <Route path="community" element={<CommunityPage />} />
         </Route>
       </Routes>
     </ScrollWrapper>

@@ -127,7 +127,12 @@ export class Educhain {
 
   /* -------------------------- Validator methods start ----------------------- */
 
-  async acceptMilestone(milestoneId: string, programId: number, builderAddress: string, amount: string) {
+  async acceptMilestone(
+    milestoneId: string,
+    programId: number,
+    builderAddress: string,
+    amount: string,
+  ) {
     try {
       if (!milestoneId || !programId || !builderAddress || !amount) {
         throw new Error('Invalid milestone ID');

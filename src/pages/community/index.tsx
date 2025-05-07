@@ -10,7 +10,7 @@ import { CirclePlus, ListFilter } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 
-const ProgramsPage: React.FC = () => {
+const CommunityPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('all');
 
   const { isAuthed, userId } = useAuth();
@@ -74,4 +74,4 @@ const ProgramsPage: React.FC = () => {
   );
 };
 
-export default ProgramsPage;
+export default CommunityPage;
