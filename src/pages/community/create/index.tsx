@@ -1,44 +1,37 @@
 import client from '@/apollo/client';
-import { useCreateProgramMutation } from '@/apollo/mutation/create-program.generated';
-import { ProgramsDocument } from '@/apollo/queries/programs.generated';
-import type { OnSubmitProgramFunc } from '@/components/program-form';
-import ProgramForm from '@/components/program-form';
+import { useCreatePostMutation } from '@/apollo/mutation/create-post.generated';
+import { PostsDocument } from '@/apollo/queries/posts.generated';
+import type { OnSubmitPostFunc } from '@/pages/community/_components/post-form';
+import PostForm from '@/pages/community/_components/post-form';
 import { useNavigate } from 'react-router';
 
-const CreateProgram: React.FC = () => {
+const CreateCommunityPage: React.FC = () => {
   const navigate = useNavigate();
-  const [createProgram] = useCreateProgramMutation();
-  // const [updateProgram] = useUpdateProgramMutation()
+  const [createPost] = useCreatePostMutation();
 
-  const onSubmit: OnSubmitProgramFunc = (args) => {
-    createProgram({
+  const onSubmit: OnSubmitPostFunc = (args) => {
+    createPost({
       variables: {
         input: {
-          name: args.programName,
-          currency: args.currency,
-          price: args.price ?? '0',
-          description: args.description,
-          summary: args.summary,
-          deadline: args.deadline ?? '',
+          title: args.title,
+          content: args.content,
           keywords: args.keywords,
-          validatorId: args.validatorId,
-          links: args.links,
+          image: args.image,
         },
       },
       onCompleted: () => {
-        navigate('/programs');
+        navigate('/community');
 
-        client.refetchQueries({ include: [ProgramsDocument] });
+        client.refetchQueries({ include: [PostsDocument] });
       },
     });
   };
 
   return (
     <div className="p-10 pr-[55px] w-[681px]" defaultValue="edit">
-      {/* <EditProgramForm /> */}
-      <ProgramForm isEdit={false} onSubmitProgram={onSubmit} />
+      <PostForm isEdit={false} onSubmitPost={onSubmit} />
     </div>
   );
 };
 
-export default CreateProgram;
+export default CreateCommunityPage;

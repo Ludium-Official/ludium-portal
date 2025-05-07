@@ -49,6 +49,13 @@ export enum CheckMilestoneStatus {
   Pending = 'pending'
 }
 
+export type Comment = {
+  __typename?: 'Comment';
+  author?: Maybe<User>;
+  content?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+};
+
 export type CreateApplicationInput = {
   content: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
@@ -58,12 +65,24 @@ export type CreateApplicationInput = {
   programId: Scalars['String']['input'];
 };
 
+export type CreateCommentInput = {
+  content: Scalars['String']['input'];
+  postId: Scalars['ID']['input'];
+};
+
 export type CreateMilestoneInput = {
   applicationId: Scalars['String']['input'];
   currency?: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   price: Scalars['String']['input'];
+  title: Scalars['String']['input'];
+};
+
+export type CreatePostInput = {
+  content: Scalars['String']['input'];
+  image?: InputMaybe<Scalars['Upload']['input']>;
+  keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
   title: Scalars['String']['input'];
 };
 
@@ -82,6 +101,12 @@ export type CreateProgramInput = {
 export type FilterInput = {
   field: Scalars['String']['input'];
   value: Scalars['String']['input'];
+};
+
+export type Keyword = {
+  __typename?: 'Keyword';
+  id?: Maybe<Scalars['ID']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
 };
 
 export type Link = {
@@ -119,7 +144,9 @@ export type Mutation = {
   approveApplication?: Maybe<Application>;
   checkMilestone?: Maybe<Milestone>;
   createApplication?: Maybe<Application>;
+  createComment?: Maybe<Comment>;
   createMilestones?: Maybe<Array<Milestone>>;
+  createPost?: Maybe<Post>;
   createProgram?: Maybe<Program>;
   createUser?: Maybe<User>;
   deleteProgram?: Maybe<Scalars['Boolean']['output']>;
@@ -130,7 +157,9 @@ export type Mutation = {
   rejectProgram?: Maybe<Program>;
   submitMilestone?: Maybe<Milestone>;
   updateApplication?: Maybe<Application>;
+  updateComment?: Maybe<Comment>;
   updateMilestone?: Maybe<Milestone>;
+  updatePost?: Maybe<Post>;
   updateProfile?: Maybe<User>;
   updateProgram?: Maybe<Program>;
   updateUser?: Maybe<User>;
@@ -157,8 +186,18 @@ export type MutationCreateApplicationArgs = {
 };
 
 
+export type MutationCreateCommentArgs = {
+  input: CreateCommentInput;
+};
+
+
 export type MutationCreateMilestonesArgs = {
   input: Array<CreateMilestoneInput>;
+};
+
+
+export type MutationCreatePostArgs = {
+  input: CreatePostInput;
 };
 
 
@@ -218,8 +257,18 @@ export type MutationUpdateApplicationArgs = {
 };
 
 
+export type MutationUpdateCommentArgs = {
+  input: UpdateCommentInput;
+};
+
+
 export type MutationUpdateMilestoneArgs = {
   input: UpdateMilestoneInput;
+};
+
+
+export type MutationUpdatePostArgs = {
+  input: UpdatePostInput;
 };
 
 
@@ -243,10 +292,22 @@ export type PaginatedApplications = {
   data?: Maybe<Array<Application>>;
 };
 
+export type PaginatedComments = {
+  __typename?: 'PaginatedComments';
+  count?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<Comment>>;
+};
+
 export type PaginatedMilestones = {
   __typename?: 'PaginatedMilestones';
   count?: Maybe<Scalars['Int']['output']>;
   data?: Maybe<Array<Milestone>>;
+};
+
+export type PaginatedPosts = {
+  __typename?: 'PaginatedPosts';
+  count?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<Post>>;
 };
 
 export type PaginatedPrograms = {
@@ -262,6 +323,16 @@ export type PaginationInput = {
   sort?: InputMaybe<SortEnum>;
 };
 
+export type Post = {
+  __typename?: 'Post';
+  author?: Maybe<User>;
+  content?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  image?: Maybe<Scalars['String']['output']>;
+  keywords?: Maybe<Array<Keyword>>;
+  title?: Maybe<Scalars['String']['output']>;
+};
+
 export type Program = {
   __typename?: 'Program';
   applications?: Maybe<Array<Application>>;
@@ -271,7 +342,7 @@ export type Program = {
   description?: Maybe<Scalars['String']['output']>;
   educhainProgramId?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
-  keywords?: Maybe<Array<ProgramKeyword>>;
+  keywords?: Maybe<Array<Keyword>>;
   links?: Maybe<Array<Link>>;
   name?: Maybe<Scalars['String']['output']>;
   price?: Maybe<Scalars['String']['output']>;
@@ -280,19 +351,17 @@ export type Program = {
   validator?: Maybe<User>;
 };
 
-export type ProgramKeyword = {
-  __typename?: 'ProgramKeyword';
-  id?: Maybe<Scalars['ID']['output']>;
-  name?: Maybe<Scalars['String']['output']>;
-};
-
 export type Query = {
   __typename?: 'Query';
   application?: Maybe<Application>;
   applications?: Maybe<PaginatedApplications>;
-  keywords?: Maybe<Array<ProgramKeyword>>;
+  comment?: Maybe<Comment>;
+  comments?: Maybe<PaginatedComments>;
+  keywords?: Maybe<Array<Keyword>>;
   milestone?: Maybe<Milestone>;
   milestones?: Maybe<PaginatedMilestones>;
+  post?: Maybe<Post>;
+  posts?: Maybe<PaginatedPosts>;
   profile?: Maybe<User>;
   program?: Maybe<Program>;
   programs?: Maybe<PaginatedPrograms>;
@@ -311,6 +380,16 @@ export type QueryApplicationsArgs = {
 };
 
 
+export type QueryCommentArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryCommentsArgs = {
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+
 export type QueryMilestoneArgs = {
   id: Scalars['ID']['input'];
 };
@@ -318,6 +397,16 @@ export type QueryMilestoneArgs = {
 
 export type QueryMilestonesArgs = {
   applicationId: Scalars['ID']['input'];
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryPostArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryPostsArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
@@ -356,6 +445,11 @@ export type UpdateApplicationInput = {
   status?: InputMaybe<ApplicationStatus>;
 };
 
+export type UpdateCommentInput = {
+  content?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+};
+
 export type UpdateMilestoneInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
@@ -363,6 +457,14 @@ export type UpdateMilestoneInput = {
   links?: InputMaybe<Array<LinkInput>>;
   price?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<MilestoneStatus>;
+  title?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdatePostInput = {
+  content?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+  image?: InputMaybe<Scalars['Upload']['input']>;
+  keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
   title?: InputMaybe<Scalars['String']['input']>;
 };
 

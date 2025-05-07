@@ -5,12 +5,14 @@ import MainPage from '@/pages/main';
 import ProfilePage from '@/pages/profile';
 import EditProfilePage from '@/pages/profile/edit';
 import ProgramsPage from '@/pages/programs';
-import CreateProgram from '@/pages/programs/create';
-import DetailsPage from '@/pages/programs/details';
-import ApplicationDetails from '@/pages/programs/details/application-details';
-import EditProgram from '@/pages/programs/edit';
+import CreateProgramPage from '@/pages/programs/create';
+import ProgramDetailsPage from '@/pages/programs/details';
+import ApplicationDetailsPage from '@/pages/programs/details/application-details';
+import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Route, Routes } from 'react-router';
+import CreateCommunityPage from '@/pages/community/create';
+import CommunityDetailsPage from '@/pages/community/details';
 
 function App() {
   return (
@@ -26,12 +28,16 @@ function App() {
           </Route>
           <Route path="programs">
             <Route index element={<ProgramsPage />} />
-            <Route path="create" element={<CreateProgram />} />
-            <Route path=":id" element={<DetailsPage />} />
-            <Route path=":id/edit" element={<EditProgram />} />
-            <Route path=":id/application/:applicationId/details" element={<ApplicationDetails />} />
+            <Route path="create" element={<CreateProgramPage />} />
+            <Route path=":id" element={<ProgramDetailsPage />} />
+            <Route path=":id/edit" element={<EditProgramPage />} />
+            <Route path=":id/application/:applicationId/details" element={<ApplicationDetailsPage />} />
           </Route>
-          <Route path="community" element={<CommunityPage />} />
+          <Route path="community">
+            <Route index element={<CommunityPage />} />
+            <Route path="create" element={<CreateCommunityPage />} />
+            <Route path=":id" element={<CommunityDetailsPage />} />
+          </Route>
         </Route>
       </Routes>
     </ScrollWrapper>

@@ -7,7 +7,7 @@ import { ApplicationStatus } from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useParams } from 'react-router';
 
-const DetailsPage: React.FC = () => {
+const CommunityDetailsPage: React.FC = () => {
   const { userId } = useAuth();
   const { id } = useParams();
 
@@ -66,4 +66,4 @@ const DetailsPage: React.FC = () => {
   );
 };
 
-export default DetailsPage;
+export default CommunityDetailsPage;

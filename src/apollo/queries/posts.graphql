@@ -1,0 +1,11 @@
+query posts($pagination: PaginationInput) {
+  posts(pagination: $pagination) {
+    count
+    data {
+      id
+      title
+      content
+      image
+    }
+  }
+}
