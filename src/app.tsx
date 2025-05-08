@@ -36,7 +36,7 @@ function App() {
           <Route path="community">
             <Route index element={<CommunityPage />} />
             <Route path="create" element={<CreateCommunityPage />} />
-            <Route path=":id" element={<CommunityDetailsPage />} />
+            <Route path="posts/:id" element={<CommunityDetailsPage />} />
           </Route>
         </Route>
       </Routes>

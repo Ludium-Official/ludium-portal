@@ -8,6 +8,12 @@ query post($id: ID!) {
       id
       name
     }
+    author {
+      id
+      firstName
+      lastName
+      image
+    }
     createdAt
   }
 }

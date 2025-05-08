@@ -1,76 +1,135 @@
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/lib/hooks/use-auth';
 import type { Post } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ArrowRight, Settings } from 'lucide-react';
 import { Link } from 'react-router';
 
-function PostCard({ post }: { post: Post }) {
+interface PostCardProps {
+  post: Post;
+  size?: 'large' | 'regular';
+}
+
+function PostCard({ post, size = 'regular' }: PostCardProps) {
   const { isSponsor } = useAuth();
   const { id, title, content, keywords, createdAt } = post ?? {};
   const badgeVariants = ['teal', 'orange', 'pink'];
+  
+  const comments = [
+    {
+      id: '1',
+      author: 'William Smith',
+      content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc convallis nisl...',
+      createdAt: new Date('2023-10-22T08:00:00'),
+    },
+    {
+      id: '2',
+      author: 'William Smith',
+      content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc convallis nisl...',
+      createdAt: new Date('2023-10-22T09:00:00'),
+    },
+  ];
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase();
+  };
+
+  const authorName = `${post?.author?.firstName} ${post?.author?.lastName}`;
+  const authorInitials = getInitials(authorName);
 
   return (
-    <div className="block w-full border border-[#E9E9E9] rounded-[20px] px-10 pt-8 pb-6">
-      <div className="flex justify-between mb-5">
-        <div className="flex gap-2 mb-1">
-          {keywords?.map((k, i) => (
-            <Badge
-              key={k.id}
-              variant={
-                badgeVariants[i % badgeVariants.length] as 'default' | 'secondary' | 'purple'
-              }
-            >
-              {k.name}
-            </Badge>
-          ))}
-        </div>
-        <span className="font-medium flex gap-2 items-center text-sm">
-          {format(new Date(createdAt ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
-          {isSponsor && (
-            <Link to={`/programs/${post?.id}/edit`}>
-              <Settings className="w-4 h-4" />
-            </Link>
+    <div className="block w-full border border-[#E9E9E9] rounded-[20px] overflow-hidden">
+      <div className="relative">
+        <div className="w-full h-48 bg-gradient-to-r from-purple-300 to-blue-300 flex items-center justify-center">
+          {post?.image ? (
+            <img 
+              src={post.image} 
+              alt={title || 'Post'} 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="flex items-center justify-center">
+              <div className="w-16 h-16 bg-white/20 rounded-full" />
+            </div>
           )}
-        </span>
-      </div>
-
-      <Link to={`/programs/${id}`} className="flex items-center gap-4 mb-4">
-        <div className="w-10 h-10 bg-gray-200 rounded-full" />
-        <h2 className="text-lg font-bold">{title}</h2>
-      </Link>
-      <div className="mb-4">
-        <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
-          <span className="inline-block mr-2">
-            {post?.image}
-          </span>
-          <span className="h-3 border-l border-[#B331FF] inline-block" />
-        </p>
-      </div>
-
-      <div className="mb-6">
-        <p className="text-foreground text-sm font-normal leading-5 truncate">{content}</p>
-      </div>
-
-      <div className="flex justify-between">
-        <div className="space-x-3">
-          <Link
-            to={`/programs/${id}#applications`}
-            className="text-xs font-semibold bg-[#F4F4F5] rounded-full px-2.5 py-0.5 leading-4"
-          >
-            Submitted Application{' '}
-          </Link>
-          <Link
-            to={`/programs/${id}#applications`}
-            className="text-xs font-semibold bg-[#18181B] text-white rounded-full px-2.5 py-0.5"
-          >
-
-          </Link>
         </div>
+        
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex gap-2">
+              {keywords?.slice(0, 3).map((k, i) => (
+                <Badge
+                  key={k.id}
+                  variant={
+                    badgeVariants[i % badgeVariants.length] as 'default' | 'secondary' | 'purple'
+                  }
+                  className="rounded-full px-3 py-1 text-xs"
+                >
+                  {k.name}
+                </Badge>
+              ))}
+            </div>
+            <span className="text-xs text-gray-500">
+              {format(new Date(createdAt ?? new Date()), 'yyyy.MM.dd')}
+              {size === 'large' && ` - ${format(new Date(createdAt ?? new Date()), 'yyyy.MM.dd')}`}
+              {isSponsor && (
+                <Link to={`/community/${post?.id}/edit`} className="ml-2">
+                  <Settings className="w-4 h-4 inline" />
+                </Link>
+              )}
+            </span>
+          </div>
 
-        <Link to={`/programs/${id}`} className="flex items-center gap-2 text-sm">
-          See details <ArrowRight className="w-4 h-4" />
-        </Link>
+          <div className="mb-4">
+            <div className="flex items-center mb-2">
+              <Avatar className="w-8 h-8 mr-2">
+                <AvatarImage src="" alt={authorName} />
+                <AvatarFallback>{authorInitials}</AvatarFallback>
+              </Avatar>
+              <div>
+                <h3 className="font-semibold text-sm">{authorName}</h3>
+              </div>
+            </div>
+            <h2 className="text-lg font-bold mb-3">{title}</h2>
+            <p className="text-sm text-gray-700 line-clamp-3">{content}</p>
+          </div>
+
+          {size === 'large' && comments.length > 0 && (
+            <div className="mt-6 border-t border-gray-100 pt-4">
+              <h4 className="text-sm font-semibold mb-3">New comment</h4>
+              {comments.map(comment => (
+                <div key={comment.id} className="mb-4">
+                  <div className="flex items-start mb-1">
+                    <Avatar className="w-6 h-6 mr-2">
+                      <AvatarFallback>{getInitials(comment.author)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex justify-between items-center mb-1">
+                        <h5 className="text-sm font-semibold">{comment.author}</h5>
+                        <span className="text-xs text-gray-500">
+                          {format(comment.createdAt, 'MMM dd, yyyy, h:mm a')}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-700">{comment.content}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex justify-between items-center mt-4">
+            <div />
+            <Link to={`/community/posts/${id}`} className="flex items-center gap-1 text-xs font-medium text-purple-600 hover:text-purple-700">
+              View more <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
