@@ -8,7 +8,7 @@ export type PostsQueryVariables = Types.Exact<{
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts?: { __typename?: 'PaginatedPosts', count?: number | null, data?: Array<{ __typename?: 'Post', id?: string | null, title?: string | null, content?: string | null, image?: string | null }> | null } | null };
+export type PostsQuery = { __typename?: 'Query', posts?: { __typename?: 'PaginatedPosts', count?: number | null, data?: Array<{ __typename?: 'Post', id?: string | null, title?: string | null, content?: string | null, image?: string | null, createdAt?: any | null, keywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null }> | null } | null };
 
 
 export const PostsDocument = gql`
@@ -20,6 +20,11 @@ export const PostsDocument = gql`
       title
       content
       image
+      keywords {
+        id
+        name
+      }
+      createdAt
     }
   }
 }

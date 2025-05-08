@@ -1,5 +1,5 @@
 import { useKeywordsQuery } from '@/apollo/queries/keywords.generated';
-import { useProgramQuery } from '@/apollo/queries/program.generated';
+import { usePostQuery } from '@/apollo/queries/post.generated';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,7 +25,7 @@ export interface PostFormProps {
 function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
   const { id } = useParams();
 
-  const { data } = useProgramQuery({
+  const { data } = usePostQuery({
     variables: {
       id: id ?? '',
     },
@@ -47,8 +47,8 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
 
 
   useEffect(() => {
-    if (data?.program?.keywords)
-      setSelectedKeywords(data?.program?.keywords?.map((k) => k.id ?? '') ?? []);
+    if (data?.post?.keywords)
+      setSelectedKeywords(data?.post?.keywords?.map((k) => k.id ?? '') ?? []);
   }, [data]);
 
   const {
@@ -57,8 +57,8 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
     formState: { errors },
   } = useForm({
     values: {
-      title: data?.program?.name ?? '',
-      content: data?.program?.description ?? '',
+      title: data?.post?.title ?? '',
+      content: data?.post?.content ?? '',
     },
   });
 
@@ -69,7 +69,7 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
     if (extraErrors.keyword) return;
 
     onSubmitPost({
-      id: data?.program?.id ?? id,
+      id: data?.post?.id ?? id,
       title: submitData.title,
       content: submitData.content,
       keywords: selectedKeywords,

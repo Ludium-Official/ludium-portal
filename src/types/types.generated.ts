@@ -327,6 +327,7 @@ export type Post = {
   __typename?: 'Post';
   author?: Maybe<User>;
   content?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['Date']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   image?: Maybe<Scalars['String']['output']>;
   keywords?: Maybe<Array<Keyword>>;

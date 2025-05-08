@@ -6,6 +6,11 @@ query posts($pagination: PaginationInput) {
       title
       content
       image
+      keywords {
+        id
+        name
+      }
+      createdAt
     }
   }
 }

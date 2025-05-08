@@ -4,5 +4,10 @@ query post($id: ID!) {
     title
     content
     image
+    keywords {
+      id
+      name
+    }
+    createdAt
   }
 }
