@@ -45,7 +45,6 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
     label: k.name ?? '',
   }));
 
-
   useEffect(() => {
     if (data?.post?.keywords)
       setSelectedKeywords(data?.post?.keywords?.map((k) => k.id ?? '') ?? []);
@@ -131,7 +130,6 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
           <Input id="picture" type="file" onChange={(e) => setSelectedImage(e.target.files?.[0])} />
         </div>
       </label>
-
 
       {isEdit ? (
         <div className="px-[32px] py-3 flex justify-end gap-4">

@@ -53,7 +53,11 @@ export type Comment = {
   __typename?: 'Comment';
   author?: Maybe<User>;
   content?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['Date']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
+  parent?: Maybe<Comment>;
+  post?: Maybe<Post>;
+  replies?: Maybe<Array<Comment>>;
 };
 
 export type CreateApplicationInput = {
@@ -67,6 +71,7 @@ export type CreateApplicationInput = {
 
 export type CreateCommentInput = {
   content: Scalars['String']['input'];
+  parentId?: InputMaybe<Scalars['ID']['input']>;
   postId: Scalars['ID']['input'];
 };
 
@@ -358,6 +363,7 @@ export type Query = {
   applications?: Maybe<PaginatedApplications>;
   comment?: Maybe<Comment>;
   comments?: Maybe<PaginatedComments>;
+  commentsByPost?: Maybe<Array<Comment>>;
   keywords?: Maybe<Array<Keyword>>;
   milestone?: Maybe<Milestone>;
   milestones?: Maybe<PaginatedMilestones>;
@@ -388,6 +394,12 @@ export type QueryCommentArgs = {
 
 export type QueryCommentsArgs = {
   pagination?: InputMaybe<PaginationInput>;
+  topLevelOnly?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type QueryCommentsByPostArgs = {
+  postId: Scalars['ID']['input'];
 };
 
 

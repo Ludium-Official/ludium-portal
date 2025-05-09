@@ -1,0 +1,39 @@
+query comment($id: ID!) {
+  comment(id: $id) {
+    id
+    content
+    createdAt
+    author {
+      id
+      firstName
+      lastName
+      image
+    }
+    parent {
+      id
+      content
+      createdAt
+      author {
+        id
+        firstName
+        lastName
+        image
+      }
+    }
+    post {
+      id
+      title
+    }
+    replies {
+      id
+      content
+      createdAt
+      author {
+        id
+        firstName
+        lastName
+        image
+      }
+    }
+  }
+}

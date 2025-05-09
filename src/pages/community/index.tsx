@@ -3,32 +3,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
-import PostCard from '@/pages/community/_components/post-card';
-import { SortEnum } from '@/types/types.generated';
-import type { Post } from '@/types/types.generated';
+import { type Post, SortEnum } from '@/types/types.generated';
 import { CirclePlus, ListFilter } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-
-// Interface for our community post data
-interface CommunityPost {
-  id: string;
-  title?: string | null;
-  content?: string | null;
-  image?: string | null;
-  createdAt?: string | null;
-  keywords?: Array<{ id: string; name: string }> | null;
-  author?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    image: string;
-  } | null;
-}
+import PostCard from './_components/post-card';
 
 const CommunityPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('all');
-  const [posts, setPosts] = useState<CommunityPost[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const { isAuthed, userId } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -55,24 +38,7 @@ const CommunityPage: React.FC = () => {
 
   useEffect(() => {
     if (data?.posts?.data && data.posts.data.length > 0) {
-      const apiPosts: CommunityPost[] = data.posts.data.map(post => ({
-        id: post.id || '',
-        title: post.title,
-        content: post.content,
-        image: post.image,
-        createdAt: post.createdAt,
-        keywords: post.keywords?.map(k => ({ 
-          id: k.id || '', 
-          name: k.name || '' 
-        })) || [],
-        author: {
-          id: post.author?.id || '',
-          firstName: post.author?.firstName || '',
-          lastName: post.author?.lastName || '',
-          image: post.author?.image || ''
-        }
-      }));
-      setPosts(apiPosts);
+      setPosts(data.posts.data);
     }
   }, [data]);
 
@@ -90,7 +56,7 @@ const CommunityPage: React.FC = () => {
             <TabsTrigger value="by-number-of-projects">By number of projects</TabsTrigger>
           </TabsList>
         </Tabs>
-        
+
         <div className="flex items-center gap-3">
           <div className="relative">
             <Input className="w-[432px] rounded-md" placeholder="Search..." />
@@ -99,27 +65,35 @@ const CommunityPage: React.FC = () => {
             <ListFilter className="h-4 w-4" /> Filter
           </Button>
           {isAuthed && (
-            <Button className="rounded-md bg-purple-500 hover:bg-purple-600 flex items-center gap-2" 
-                   onClick={() => navigate('create')}>
+            <Button
+              className="rounded-md bg-purple-500 hover:bg-purple-600 flex items-center gap-2"
+              onClick={() => navigate('create')}
+            >
               <CirclePlus className="h-4 w-4" /> Create Community
             </Button>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
-        <div className="space-y-6">
-          {posts.slice(0, 3).map((post) => (
-            <PostCard key={post.id} post={post as Post} size="large" />
-          ))}
+      {posts.length > 0 && (
+        <div className="grid grid-cols-2 grid-rows-3 gap-4">
+          <div className="row-span-2">
+            <PostCard post={posts[0]} variant="large" maxComments={3} />
+          </div>
+          <div className="col-start-1 row-start-3">
+            <PostCard post={posts[1]} variant="small" maxComments={1} />
+          </div>
+          <div className="col-start-2 row-start-1">
+            <PostCard post={posts[2]} variant="small" maxComments={1} />
+          </div>
+          <div className="col-start-2 row-start-2">
+            <PostCard post={posts[3]} variant="small" maxComments={1} />
+          </div>
+          <div className="row-start-3">
+            <PostCard post={posts[4]} variant="small" maxComments={1} />
+          </div>
         </div>
-        
-        <div className="space-y-6">
-          {posts.slice(3, 5).map((post) => (
-            <PostCard key={post.id} post={post as Post} size="regular" />
-          ))}
-        </div>
-      </div>
+      )}
     </div>
   );
 };

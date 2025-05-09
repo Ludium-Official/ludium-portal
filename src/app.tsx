@@ -1,5 +1,7 @@
 import Layout from '@/components/layout/layout';
 import CommunityPage from '@/pages/community';
+import CreateCommunityPage from '@/pages/community/create';
+import CommunityDetailsPage from '@/pages/community/details';
 import LoginPage from '@/pages/login';
 import MainPage from '@/pages/main';
 import ProfilePage from '@/pages/profile';
@@ -11,8 +13,6 @@ import ApplicationDetailsPage from '@/pages/programs/details/application-details
 import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Route, Routes } from 'react-router';
-import CreateCommunityPage from '@/pages/community/create';
-import CommunityDetailsPage from '@/pages/community/details';
 
 function App() {
   return (
@@ -31,7 +31,10 @@ function App() {
             <Route path="create" element={<CreateProgramPage />} />
             <Route path=":id" element={<ProgramDetailsPage />} />
             <Route path=":id/edit" element={<EditProgramPage />} />
-            <Route path=":id/application/:applicationId/details" element={<ApplicationDetailsPage />} />
+            <Route
+              path=":id/application/:applicationId/details"
+              element={<ApplicationDetailsPage />}
+            />
           </Route>
           <Route path="community">
             <Route index element={<CommunityPage />} />
