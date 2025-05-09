@@ -111,7 +111,7 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
                 <div key={comment.id} className="flex mb-4">
                   <Avatar className="w-8 h-8 mr-3">
                     <AvatarImage
-                      src=""
+                      src={comment.author?.image || ''}
                       alt={`${comment.author?.firstName} ${comment.author?.lastName}`}
                     />
                     <AvatarFallback>
@@ -184,7 +184,7 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
 
             <div className="flex items-center mb-1">
               <Avatar className="w-4 h-4 mr-1.5">
-                <AvatarImage src="" alt={authorName} />
+                 <AvatarImage src={post?.author?.image || ''} alt={authorName} />
                 <AvatarFallback className="text-[8px]">{authorInitials}</AvatarFallback>
               </Avatar>
               <p className="text-xs">{authorName}</p>
@@ -205,7 +205,7 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
                 <div key={comment.id} className="flex mb-2">
                   <Avatar className="w-6 h-6 mr-2">
                     <AvatarImage
-                      src=""
+                      src={comment.author?.image || ''}
                       alt={`${comment.author?.firstName} ${comment.author?.lastName}`}
                     />
                     <AvatarFallback className="text-[10px]">

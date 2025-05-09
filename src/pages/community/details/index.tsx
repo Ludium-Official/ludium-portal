@@ -1,6 +1,7 @@
 import { useCommentsByPostQuery } from '@/apollo/queries/comments-by-post.generated';
 import { usePostQuery } from '@/apollo/queries/post.generated';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useCreateCommentMutation } from '@/apollo/mutation/create-comment.generated';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { getInitials } from '@/lib/utils';
 import type { Post } from '@/types/types.generated';
@@ -12,6 +13,7 @@ const CommunityDetailsPage: React.FC = () => {
   const { id } = useParams();
   const [post, setPost] = useState<Post | null>(null);
   const [replyValues, setReplyValues] = useState<Record<string, string>>({});
+  const [comment, setComment] = useState('');
 
   const postId = id || '';
 
@@ -23,7 +25,7 @@ const CommunityDetailsPage: React.FC = () => {
     fetchPolicy: 'cache-and-network',
   });
 
-  const { data: comments } = useCommentsByPostQuery({
+  const { data: comments, refetch: refetchComments } = useCommentsByPostQuery({
     variables: {
       postId,
     },
@@ -31,7 +33,7 @@ const CommunityDetailsPage: React.FC = () => {
     fetchPolicy: 'cache-and-network',
   });
 
-  const [comment, setComment] = useState('');
+  const [createComment, { loading: submittingComment }] = useCreateCommentMutation();
 
   const relatedPosts = [
     {
@@ -60,12 +62,58 @@ const CommunityDetailsPage: React.FC = () => {
     },
   ];
 
-  const handleSubmitComment = () => {
-    if (!comment.trim()) return;
+  const handleSubmitComment = async () => {
+    if (!comment.trim() || !postId) return;
 
-    console.log('Submitting comment:', comment);
+    try {
+      await createComment({
+        variables: {
+          input: {
+            content: comment,
+            postId,
+          },
+        },
+      });
+      
+      setComment('');
+      refetchComments();
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+    }
+  };
 
-    setComment('');
+  const handleSubmitReply = async (parentId: string) => {
+    const replyContent = replyValues[parentId || ''];
+    if (!replyContent?.trim() || !postId) return;
+
+    try {
+      await createComment({
+        variables: {
+          input: {
+            content: replyContent,
+            postId,
+            parentId,
+          },
+        },
+      });
+      
+      // Clear the reply value
+      setReplyValues(prev => ({
+        ...prev,
+        [parentId]: '',
+      }));
+      
+      // Hide the reply form
+      const replyForm = document.getElementById(`reply-form-${parentId}`);
+      if (replyForm) {
+        replyForm.classList.add('hidden');
+      }
+      
+      // Refetch comments to get the updated list
+      refetchComments();
+    } catch (error) {
+      console.error('Error submitting reply:', error);
+    }
   };
 
   useEffect(() => {
@@ -119,6 +167,7 @@ const CommunityDetailsPage: React.FC = () => {
             {/* Author info */}
             <div className="flex items-center gap-2 mb-3">
               <Avatar className="h-6 w-6">
+                <AvatarImage src={post?.author?.image || ''} alt={`${post?.author?.firstName} ${post?.author?.lastName}`} />
                 <AvatarFallback className="bg-purple-600 text-white text-xs">
                   {getInitials(`${post?.author?.firstName} ${post?.author?.lastName}`)}
                 </AvatarFallback>
@@ -190,6 +239,7 @@ const CommunityDetailsPage: React.FC = () => {
                   <Button
                     className="bg-black text-white text-xs px-4 py-1 h-auto rounded"
                     onClick={handleSubmitComment}
+                    disabled={submittingComment || !comment.trim()}
                   >
                     Send
                   </Button>
@@ -202,6 +252,7 @@ const CommunityDetailsPage: React.FC = () => {
                   <div key={topComment.id} className="border-b pb-4">
                     <div className="flex gap-3">
                       <Avatar className="h-10 w-10">
+                        <AvatarImage src={topComment.author?.image || ''} alt={`${topComment.author?.firstName} ${topComment.author?.lastName}`} />
                         <AvatarFallback className="bg-purple-600 text-white">
                           {getInitials(`${topComment.author?.firstName} ${topComment.author?.lastName}`)}
                         </AvatarFallback>
@@ -244,6 +295,7 @@ const CommunityDetailsPage: React.FC = () => {
                         {topComment.replies.map((reply) => (
                           <div key={reply.id} className="flex gap-3">
                             <Avatar className="h-10 w-10">
+                              <AvatarImage src={reply.author?.image || ''} alt={`${reply.author?.firstName} ${reply.author?.lastName}`} />
                               <AvatarFallback className="bg-purple-600 text-white">
                                 {getInitials(`${reply.author?.firstName} ${reply.author?.lastName}`)}
                               </AvatarFallback>
@@ -283,7 +335,11 @@ const CommunityDetailsPage: React.FC = () => {
                         }}
                       />
                       <div className="flex items-center justify-end mt-2">
-                        <Button className="bg-black text-white px-4 py-1 rounded h-auto">
+                        <Button 
+                          className="bg-black text-white px-4 py-1 rounded h-auto"
+                          onClick={() => handleSubmitReply(topComment.id || '')}
+                          disabled={submittingComment || !(replyValues[topComment.id || ''] || '').trim()}
+                        >
                           Send
                         </Button>
                       </div>
