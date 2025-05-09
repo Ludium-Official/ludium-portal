@@ -11,6 +11,7 @@ import { useParams } from 'react-router';
 const CommunityDetailsPage: React.FC = () => {
   const { id } = useParams();
   const [post, setPost] = useState<Post | null>(null);
+  const [replyValues, setReplyValues] = useState<Record<string, string>>({});
 
   const postId = id || '';
 
@@ -145,7 +146,7 @@ const CommunityDetailsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Description section */}
+            {/* Content section */}
             <div className="mb-8">
               <h2 className="uppercase text-sm font-bold tracking-wider mb-2 text-gray-700">
                 Content
@@ -196,56 +197,100 @@ const CommunityDetailsPage: React.FC = () => {
               </div>
 
               {/* Comments list */}
-              <div className="space-y-4">
-                {comments?.commentsByPost?.map((comment) => (
-                  <div key={comment.id} className={`${comment.parent ? 'ml-12' : ''}`}>
+              <div className="space-y-6">
+                {comments?.commentsByPost?.filter(comment => !comment.parent).map((topComment) => (
+                  <div key={topComment.id} className="border-b pb-4">
                     <div className="flex gap-3">
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-10 w-10">
                         <AvatarFallback className="bg-purple-600 text-white">
-                          {getInitials(`${comment.author?.firstName} ${comment.author?.lastName}`)}
+                          {getInitials(`${topComment.author?.firstName} ${topComment.author?.lastName}`)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <div className="flex items-center">
-                          <span className="font-medium text-sm">{`${comment.author?.firstName} ${comment.author?.lastName}`}</span>
-                          <span className="text-xs text-gray-500 ml-2">
-                            {format(comment.createdAt, 'dd.MM.yyyy, h:mm a')}
-                          </span>
-                        </div>
-
-                        {comment.parent && (
-                          <div className="text-xs text-gray-500 mb-1">
-                            Reply to{' '}
-                            <span className="font-medium">{`${comment.parent.author?.firstName} ${comment.parent.author?.lastName}`}</span>
+                        <div className="flex flex-col">
+                          <div className="flex items-center">
+                            <span className="font-medium">{`${topComment.author?.firstName} ${topComment.author?.lastName}`}</span>
+                            <span className="text-xs text-gray-500 ml-2">
+                              {format(new Date(topComment.createdAt), 'dd.MM.yyyy, h:mm a')}
+                            </span>
                           </div>
-                        )}
-
-                        <p className="text-sm text-gray-600 mt-1">{comment.content}</p>
-
-                        <div className="mt-2">
+                          {topComment.parent && (
+                            <div className="text-xs text-gray-500 mb-1">
+                              Reply to{' '}
+                              <span className="font-medium">{`${topComment.parent.author?.firstName} ${topComment.parent.author?.lastName}`}</span>
+                            </div>
+                          )}
+                          <p className="text-gray-700 mt-2">{topComment.content}</p>
                           <Button
                             variant="ghost"
-                            className="h-auto p-0 text-xs font-medium text-gray-500 hover:text-gray-700"
+                            className="h-auto p-0 text-sm font-medium text-gray-500 hover:text-gray-700 mt-2 w-fit"
+                            onClick={() => {
+                              const replyForm = document.getElementById(`reply-form-${topComment.id}`);
+                              if (replyForm) {
+                                replyForm.classList.toggle('hidden');
+                                replyForm.querySelector('textarea')?.focus();
+                              }
+                            }}
                           >
                             Reply →
                           </Button>
                         </div>
                       </div>
                     </div>
+
+                    {/* Replies */}
+                    {topComment.replies && topComment.replies.length > 0 && (
+                      <div className="mt-4 ml-12 space-y-4">
+                        {topComment.replies.map((reply) => (
+                          <div key={reply.id} className="flex gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback className="bg-purple-600 text-white">
+                                {getInitials(`${reply.author?.firstName} ${reply.author?.lastName}`)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="flex flex-col">
+                                <div className="flex items-center">
+                                  <span className="font-medium">{`${reply.author?.firstName} ${reply.author?.lastName}`}</span>
+                                  <span className="text-xs text-gray-500 ml-2">
+                                    {format(new Date(reply.createdAt), 'dd.MM.yyyy, h:mm a')}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-gray-500 mb-1">
+                                  Reply to{' '}
+                                  <span className="font-medium">{`${topComment.author?.firstName} ${topComment.author?.lastName}`}</span>
+                                </div>
+                                <p className="text-gray-700 mt-2">{reply.content}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Reply input field for replies to comments */}
+                    <div className="mt-4 ml-12 hidden" id={`reply-form-${topComment.id}`}>
+                      <textarea
+                        placeholder={`Reply to ${topComment.author?.firstName}...`}
+                        className="w-full border rounded-md p-3 text-sm"
+                        rows={3}
+                        value={replyValues[topComment.id || ''] || ''}
+                        onChange={(e) => {
+                          setReplyValues(prev => ({
+                            ...prev,
+                            [topComment.id || '']: e.target.value
+                          }));
+                        }}
+                      />
+                      <div className="flex items-center justify-end mt-2">
+                        <Button className="bg-black text-white px-4 py-1 rounded h-auto">
+                          Send
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
-
-            <div className="flex justify-center sm:hidden mb-6">
-              <textarea
-                placeholder="Reply this thread"
-                className="w-full border rounded-md p-3 text-sm"
-                rows={4}
-              />
-              <Button className="bg-black text-white px-4 py-1 rounded ml-2 h-auto mt-2">
-                Send
-              </Button>
             </div>
           </div>
 
