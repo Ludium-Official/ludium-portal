@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/hooks/use-auth";
 import {
   Address,
   EthBalance,
@@ -10,33 +11,57 @@ import {
   Wallet,
   WalletDropdown,
 } from "@coinbase/onchainkit/wallet";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { useDisconnect } from "wagmi";
+import { v4 as uuidv4 } from "uuid";
+import { useAccount, useDisconnect } from "wagmi";
 
 type WalletWrapperParams = {
   text?: string;
   className?: string;
-  onConnect?: () => void;
 };
 export default function WalletWrapper({
   className,
   text,
-  onConnect,
 }: WalletWrapperParams) {
   const navigate = useNavigate();
+  const { address, isConnected } = useAccount();
+  const { login, logout } = useAuth();
   const { disconnect, connectors } = useDisconnect();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const loginWithWallet = async () => {
+    if (isConnected && address) {
+      await login({
+        email: `${address.slice(2, 10)}@mail.com`,
+        userId: uuidv4(),
+        walletId: uuidv4(),
+        address,
+        network: "base-sepolia",
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (isConnected && address) {
+      loginWithWallet();
+    }
+  }, [isConnected]);
 
   const handleDisconnect = useCallback(() => {
     connectors.map((connector) => disconnect({ connector }));
     setIsDropdownOpen(false);
+    logout();
   }, [disconnect, connectors]);
 
   return (
     <>
       <Wallet>
-        <ConnectWallet text={text} className={className} onConnect={onConnect}>
+        <ConnectWallet
+          text={text}
+          className={className}
+          onConnect={loginWithWallet}
+        >
           <Name
             onClick={() => setIsDropdownOpen((prev) => !prev)}
             className="mx-[16px] my-[8px] text-[14px]"
