@@ -54,13 +54,9 @@ export class Educhain {
   async createProgram(params: {
     name: string;
     price: string;
-    keywords: string[];
     startTime: number;
     endTime: number;
     validatorAddress: string;
-    summary: string;
-    description: string;
-    links: string[];
   }) {
     try {
       // Parameter validation
@@ -94,13 +90,9 @@ export class Educhain {
       const tx = await contract.createEduProgram(
         params.name,
         price,
-        params.keywords,
         startTimestamp,
         endTimestamp,
         params.validatorAddress,
-        params.summary,
-        params.description,
-        params.links,
         { value: price },
       );
 

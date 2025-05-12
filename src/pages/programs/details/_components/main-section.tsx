@@ -62,13 +62,13 @@ function MainSection({ program }: { program?: Program | null }) {
       const { programId, txHash } = await eduChain.createProgram({
         name: program.name,
         price: program.price,
-        keywords: program.keywords?.map((k) => k.name as string) ?? [],
+        // keywords: program.keywords?.map((k) => k.name as string) ?? [],
         startTime: Math.floor(Date.now()),
         endTime: Math.floor(new Date(program.deadline).getTime()),
         validatorAddress: program.validator.wallet.address,
-        summary: program.summary ?? '',
-        description: program.description ?? '',
-        links: program.links?.map((l) => l.url as string) ?? [],
+        // summary: program.summary ?? '',
+        // description: program.description ?? '',
+        // links: program.links?.map((l) => l.url as string) ?? [],
       });
 
       await publishProgram({
