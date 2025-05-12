@@ -1,7 +1,6 @@
 // import EtcIcon from "@/assets/icons/crypto/etc"
 import EduIcon from "@/assets/icons/crypto/edu";
 import EthIcon from "@/assets/icons/crypto/eth";
-import UsdtIcon from "@/assets/icons/crypto/usdt";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,41 +8,25 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 export const currencies = [
   { code: "EDU", icon: <EduIcon /> },
-  { code: "ETH", icon: <EthIcon /> },
-  { code: "USDT", icon: <UsdtIcon /> },
+  { code: "BASE", icon: <EthIcon /> },
 ];
 
-export const baseCurrencies = [
-  { code: "ETH", icon: <EthIcon /> },
-  { code: "USDT", icon: <UsdtIcon /> },
-];
-
-function CurrencySelector({
+function NetworkSelector({
   className,
   value,
   onValueChange,
-  network,
   disabled,
 }: {
   className: string;
   value?: string | null;
   onValueChange?: (value: string) => void;
-  network: string;
   disabled?: boolean;
 }) {
-  const [selectedCurrency, setSelectedCurrency] = useState(value ?? "ETH");
-
-  const displayCurrencies = useMemo(() => {
-    if (network === "BASE") {
-      return baseCurrencies;
-    }
-
-    return currencies;
-  }, [network]);
+  const [selectedCurrency, setSelectedCurrency] = useState(value ?? "EDU");
 
   useEffect(() => {
     onValueChange?.(selectedCurrency);
@@ -53,9 +36,7 @@ function CurrencySelector({
     value && value !== selectedCurrency && setSelectedCurrency(value);
   }, [value]);
 
-  const currWithIcon = displayCurrencies.find(
-    (c) => c.code === selectedCurrency
-  );
+  const currWithIcon = currencies.find((c) => c.code === selectedCurrency);
 
   return (
     <DropdownMenu>
@@ -65,7 +46,7 @@ function CurrencySelector({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        {displayCurrencies.map((c) => (
+        {currencies.map((c) => (
           <DropdownMenuItem
             onClick={() => setSelectedCurrency(c.code)}
             key={c.code}
@@ -78,4 +59,4 @@ function CurrencySelector({
   );
 }
 
-export default CurrencySelector;
+export default NetworkSelector;
