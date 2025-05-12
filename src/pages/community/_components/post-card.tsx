@@ -8,7 +8,6 @@ import { format } from 'date-fns';
 import { ArrowRight, Settings } from 'lucide-react';
 import { Link } from 'react-router';
 
-
 interface ExtendedPost extends Post {
   commentCount?: number;
 }
@@ -34,7 +33,6 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
     fetchPolicy: 'cache-and-network',
   });
 
-
   const authorName = `${post?.author?.firstName} ${post?.author?.lastName}`;
   const authorInitials = getInitials(authorName);
 
@@ -48,11 +46,15 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
 
   if (variant === 'large') {
     return (
-      <div className="block w-full h-full border border-[#E9E9E9] rounded-[20px] overflow-hidden">
+      <div className="block w-full h-full border border-[#E9E9E9] rounded-[20px] overflow-hidden p-6">
         <div className="relative h-full flex flex-col">
-          <div className="w-full h-[250px] bg-gradient-to-r from-purple-300 to-blue-300 flex-shrink-0">
+          <div className="w-full aspect-video bg-gradient-to-r from-purple-300 to-blue-300 flex-shrink-0 rounded-xl overflow-hidden">
             {post?.image ? (
-              <img src={post.image} alt={title || 'Post'} className="w-full h-full object-cover" />
+              <img
+                src={post.image}
+                alt={title || 'Post'}
+                className="w-full h-[500px] object-cover"
+              />
             ) : (
               <div className="flex items-center justify-center h-full">
                 <div className="w-16 h-16 bg-white/20 rounded-full" />
@@ -151,22 +153,47 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
 
   // Default small card
   return (
-    <div className="block w-full h-full border border-[#E9E9E9] rounded-[20px] overflow-hidden">
+    <div className="block w-full h-full border border-[#E9E9E9] rounded-[20px] overflow-hidden p-6">
       <div className="relative h-full flex flex-col">
-        <div className="w-full h-[130px] bg-gradient-to-r from-purple-300 to-blue-300 flex-shrink-0">
-          {post?.image ? (
-            <img src={post.image} alt={title || 'Post'} className="w-full h-full object-cover" />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="w-10 h-10 bg-white/20 rounded-full" />
-            </div>
-          )}
-        </div>
+        <div className="flex gap-4">
+          <div className="aspect-video w-1/2 bg-gradient-to-r from-purple-300 to-blue-300 flex-shrink-0 rounded-xl overflow-hidden">
+            {post?.image ? (
+              <img src={post.image} alt={title || 'Post'} className=" object-cover" />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="w-10 h-10 bg-white/20 rounded-full" />
+              </div>
+            )}
+          </div>
 
-        <div className="p-4 flex-grow flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-center mb-2">
-              <h2 className="font-bold text-sm">{title || 'Community'}</h2>
+              <h2 className="font-bold text-base">{title || 'Community'}</h2>
+              {/* <div className="flex gap-1">
+                {keywords?.slice(0, 1).map((k, i) => (
+                  <Badge
+                    key={k.id}
+                    variant={
+                      badgeVariants[i % badgeVariants.length] as 'default' | 'secondary' | 'purple'
+                    }
+                    className="rounded-full px-2 py-0.5 text-xs"
+                  >
+                    {k.name}
+                  </Badge>
+                ))}
+              </div> */}
+            </div>
+
+            <div className="flex items-center mb-1">
+              {/* <Avatar className="w-4 h-4 mr-1.5">
+                <AvatarImage src={post?.author?.image || ''} alt={authorName} />
+                <AvatarFallback className="text-[8px]">{authorInitials}</AvatarFallback>
+              </Avatar> */}
+              <p className="text-xs">{authorName}</p>
+              <span className="mx-1 text-gray-400 text-xs">•</span>
+              <p className="text-xs text-gray-500 mr-3">
+                {createdAt ? format(new Date(createdAt), 'yyyy.MM.dd') : ''}
+              </p>
               <div className="flex gap-1">
                 {keywords?.slice(0, 1).map((k, i) => (
                   <Badge
@@ -182,21 +209,11 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
               </div>
             </div>
 
-            <div className="flex items-center mb-1">
-              <Avatar className="w-4 h-4 mr-1.5">
-                 <AvatarImage src={post?.author?.image || ''} alt={authorName} />
-                <AvatarFallback className="text-[8px]">{authorInitials}</AvatarFallback>
-              </Avatar>
-              <p className="text-xs">{authorName}</p>
-              <span className="mx-1 text-gray-400 text-xs">•</span>
-              <p className="text-xs text-gray-500">
-                {createdAt ? format(new Date(createdAt), 'yyyy.MM.dd') : ''}
-              </p>
-            </div>
-
             <p className="text-xs text-gray-700 mb-3 line-clamp-2">{content}</p>
           </div>
+        </div>
 
+        <div className="p-4 flex-grow flex flex-col justify-between">
           {data?.commentsByPost?.length && data?.commentsByPost?.length > 0 && (
             <div className="border-t border-gray-100 pt-2 pb-1">
               <h3 className="font-medium text-xs mb-2">New comment</h3>
