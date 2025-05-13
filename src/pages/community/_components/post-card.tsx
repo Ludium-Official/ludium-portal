@@ -2,7 +2,7 @@ import { useCommentsByPostQuery } from '@/apollo/queries/comments-by-post.genera
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { getInitials } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 import type { Post } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ArrowRight, Settings } from 'lucide-react';
@@ -94,14 +94,17 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
                 </div>
               </div>
 
-              <p className="text-sm text-gray-700 mb-6 line-clamp-3">{content}</p>
+              <p className="text-sm text-gray-700 mb-3 line-clamp-3">{content}</p>
             </div>
 
-            <div className="border-t border-gray-100 pt-6 pb-1">
+            <div className="border-t border-gray-100 pt-2 pb-1">
               <h3 className="font-medium text-sm mb-4">New comment</h3>
 
-              {data?.commentsByPost?.slice(0, maxComments).map((comment) => (
-                <div key={comment.id} className="flex mb-4">
+              {data?.commentsByPost?.slice(0, maxComments).map((comment, idx) => (
+                <div
+                  key={comment.id}
+                  className={cn('flex mb-4', idx < maxComments - 1 && 'border-b pb-2')}
+                >
                   <Avatar className="w-8 h-8 mr-3">
                     <AvatarImage
                       src={comment.author?.image || ''}
