@@ -12,7 +12,6 @@ function PostComment({
   postId,
   refetchComments,
 }: { comment: Comment; postId?: string; refetchComments: () => void }) {
-  console.log('🚀 ~ comment:', comment);
   const [showReplies, setShowReplies] = useState(false);
   const [replyValue, setReplyValue] = useState<string>();
 

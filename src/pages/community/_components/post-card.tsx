@@ -98,7 +98,9 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
             </div>
 
             <div className="border-t border-gray-100 pt-2 pb-1">
-              <h3 className="font-medium text-sm mb-4">New comment</h3>
+              <span className="px-[10px] py-[2px] mb-4 font-semibold text-secondary-foreground bg-secondary rounded-full text-xs inline-block">
+                New comment
+              </span>
 
               {data?.commentsByPost?.slice(0, maxComments).map((comment, idx) => (
                 <div
