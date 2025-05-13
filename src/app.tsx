@@ -3,6 +3,7 @@ import CommunityPage from '@/pages/community';
 import CreateCommunityPage from '@/pages/community/create';
 import CommunityDetailsPage from '@/pages/community/details';
 import UsersPage from '@/pages/community/users';
+import UserDetailsPage from '@/pages/community/users/details';
 import LoginPage from '@/pages/login';
 import MainPage from '@/pages/main';
 import ProfilePage from '@/pages/profile';
@@ -42,6 +43,7 @@ function App() {
             <Route path="create" element={<CreateCommunityPage />} />
             <Route path="posts/:id" element={<CommunityDetailsPage />} />
             <Route path="users" element={<UsersPage />} />
+            <Route path="users/:id" element={<UserDetailsPage />} />
           </Route>
         </Route>
       </Routes>

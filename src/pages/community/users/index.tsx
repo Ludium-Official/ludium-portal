@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getInitials } from '@/lib/utils';
 import { ArrowRight, ListFilter } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router';
 
 function UsersPage() {
   const [selectedTab, setSelectedTab] = useState('all');
@@ -50,9 +51,12 @@ function UsersPage() {
                 <Badge className="bg-pink-300 px-2.5 py-0.5">Solidity</Badge>
               </div>
 
-              <button type="button" className="flex gap-2 text-sm items-center font-medium">
+              <Link
+                to={`/community/users/${user.id}`}
+                className="flex gap-2 text-sm items-center font-medium"
+              >
                 See details <ArrowRight className="w-4 h-4" />
-              </button>
+              </Link>
             </div>
 
             <div className="gap-4 flex items-center mb-6">
