@@ -133,9 +133,28 @@ function MainSection({ program }: { program?: Program | null }) {
             <span className="font-medium flex gap-2 items-center text-sm">
               {formatProgramStatus(program)}{" "}
               {program?.creator?.id === userId && (
-                <Link to={`/programs/${program?.id}/edit`}>
-                  <Settings className="w-4 h-4" />
-                </Link>
+                <>
+                  {program && (
+                    <Button
+                      className="h-8 w-12 p-2 bg-[#F8ECFF] text-[#B331FF] text-xs hover:bg-[#F8ECFF]"
+                      onClick={() => {
+                        navigator.clipboard.writeText(
+                          `https://ludium-farcaster.vercel.app/api/programs/${
+                            program.name
+                          }/${id}/${Math.floor(
+                            new Date(program.deadline).getTime() / 1000
+                          )}/${program.price}/${program.currency}`
+                        );
+                        notify("Copied program frame!", "success");
+                      }}
+                    >
+                      Copy
+                    </Button>
+                  )}
+                  <Link to={`/programs/${program?.id}/edit`}>
+                    <Settings className="w-4 h-4" />
+                  </Link>
+                </>
               )}
             </span>
           </div>
