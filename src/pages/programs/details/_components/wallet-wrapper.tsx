@@ -13,7 +13,6 @@ import {
 } from "@coinbase/onchainkit/wallet";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { v4 as uuidv4 } from "uuid";
 import { useAccount, useDisconnect } from "wagmi";
 
 type WalletWrapperParams = {
@@ -34,8 +33,8 @@ export default function WalletWrapper({
     if (isConnected && address) {
       await login({
         email: `${address.slice(2, 10)}@mail.com`,
-        userId: uuidv4(),
-        walletId: uuidv4(),
+        userId: `${address.slice(11, 20)}`,
+        walletId: `${address.slice(21, 30)}`,
         address,
         network: "base-sepolia",
       });
