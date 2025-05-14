@@ -1,0 +1,21 @@
+query user($id: ID!) {
+  user(id: $id) {
+    about
+    avatar
+    email
+    firstName
+    id
+    image
+    lastName
+    links {
+      title
+      url
+    }
+    organizationName
+    wallet {
+      address
+      network
+      walletId
+    }
+  }
+}

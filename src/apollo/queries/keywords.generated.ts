@@ -6,7 +6,7 @@ const defaultOptions = {} as const;
 export type KeywordsQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type KeywordsQuery = { __typename?: 'Query', keywords?: Array<{ __typename?: 'ProgramKeyword', id?: string | null, name?: string | null }> | null };
+export type KeywordsQuery = { __typename?: 'Query', keywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null };
 
 
 export const KeywordsDocument = gql`
