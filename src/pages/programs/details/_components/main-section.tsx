@@ -1,10 +1,10 @@
-import client from "@/apollo/client";
-import { useAcceptProgramMutation } from "@/apollo/mutation/accept-program.generated";
-import { usePublishProgramMutation } from "@/apollo/mutation/publish-program.generated";
-import { useRejectProgramMutation } from "@/apollo/mutation/reject-program.generated";
-import { ProgramDocument } from "@/apollo/queries/program.generated";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import client from '@/apollo/client';
+import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
+import { usePublishProgramMutation } from '@/apollo/mutation/publish-program.generated';
+import { useRejectProgramMutation } from '@/apollo/mutation/reject-program.generated';
+import { ProgramDocument } from '@/apollo/queries/program.generated';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -12,27 +12,27 @@ import {
   DialogDescription,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Educhain } from "@/lib/contract";
-import { useAuth } from "@/lib/hooks/use-auth";
-import notify from "@/lib/notify";
-import { formatProgramStatus } from "@/lib/utils";
-import type { Program } from "@/types/types.generated";
-import { format } from "date-fns";
-import { Loader2, Settings, TriangleAlert } from "lucide-react";
-import { useState } from "react";
-import { Link, useParams } from "react-router";
-import CreateApplicationForm from "./create-application-form";
+} from '@/components/ui/dialog';
+import { Educhain } from '@/lib/contract';
+import { useAuth } from '@/lib/hooks/use-auth';
+import notify from '@/lib/notify';
+import { formatProgramStatus } from '@/lib/utils';
+import type { Program } from '@/types/types.generated';
+import { format } from 'date-fns';
+import { Loader2, Settings, TriangleAlert } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useParams } from 'react-router';
+import CreateApplicationForm from './create-application-form';
 
 function MainSection({ program }: { program?: Program | null }) {
   const { userId } = useAuth();
   const { id } = useParams();
-  const badgeVariants = ["teal", "orange", "pink"];
+  const badgeVariants = ['teal', 'orange', 'pink'];
 
   const [isPaying, setIsPaying] = useState(false);
 
   const programActionOptions = {
-    variables: { id: program?.id ?? id ?? "" },
+    variables: { id: program?.id ?? id ?? '' },
     onCompleted: () => {
       client.refetchQueries({ include: [ProgramDocument] });
     },
@@ -53,30 +53,30 @@ function MainSection({ program }: { program?: Program | null }) {
         !program?.deadline ||
         !program?.validator?.wallet?.address
       ) {
-        throw new Error("Missing required program details");
+        throw new Error('Missing required program details');
       }
 
-      document.getElementById("pay-dialog-close")?.click();
+      document.getElementById('pay-dialog-close')?.click();
 
-      notify("Wepin Widget Loading", "loading");
+      notify('Wepin Widget Loading', 'loading');
       const { programId, txHash } = await eduChain.createProgram({
         name: program.name,
         price: program.price,
+        // keywords: program.keywords?.map((k) => k.name as string) ?? [],
         startTime: Math.floor(Date.now()),
         endTime: Math.floor(new Date(program.deadline).getTime()),
         validatorAddress: program.validator.wallet.address,
+        // summary: program.summary ?? '',
+        // description: program.description ?? '',
+        // links: program.links?.map((l) => l.url as string) ?? [],
       });
 
       await publishProgram({
-        variables: {
-          id: program.id ?? "",
-          educhainProgramId: programId,
-          txHash,
-        },
+        variables: { id: program.id ?? '', educhainProgramId: programId, txHash },
       });
     } catch (error) {
-      console.error("Error while creating program on blockchain:", error);
-      notify("Error while creating program on blockchain", "error");
+      console.error('Error while creating program on blockchain:', error);
+      notify('Error while creating program on blockchain', 'error');
     } finally {
       setIsPaying(false);
     }
@@ -92,10 +92,7 @@ function MainSection({ program }: { program?: Program | null }) {
                 <Badge
                   key={k.id}
                   variant={
-                    badgeVariants[i % badgeVariants.length] as
-                      | "default"
-                      | "secondary"
-                      | "purple"
+                    badgeVariants[i % badgeVariants.length] as 'default' | 'secondary' | 'purple'
                   }
                 >
                   {k.name}
@@ -103,7 +100,7 @@ function MainSection({ program }: { program?: Program | null }) {
               ))}
             </div>
             <span className="font-medium flex gap-2 items-center text-sm">
-              {formatProgramStatus(program)}{" "}
+              {formatProgramStatus(program)}{' '}
               {program?.creator?.id === userId && (
                 <Link to={`/programs/${program?.id}/edit`}>
                   <Settings className="w-4 h-4" />
@@ -123,11 +120,8 @@ function MainSection({ program }: { program?: Program | null }) {
               </span>
               <span className="h-3 border-l border-[#B331FF] inline-block" />
               <span className="inline-block ml-2">
-                DEADLINE{" "}
-                {format(
-                  new Date(program?.deadline ?? new Date()),
-                  "dd . MMM . yyyy"
-                ).toUpperCase()}
+                DEADLINE{' '}
+                {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
               </span>
             </p>
           </div>
@@ -152,7 +146,7 @@ function MainSection({ program }: { program?: Program | null }) {
           ))}
         </div>
 
-        {program?.status === "published" &&
+        {program?.status === 'published' &&
           program.creator?.id !== userId &&
           program.validator?.id !== userId && (
             <Dialog>
@@ -170,19 +164,15 @@ function MainSection({ program }: { program?: Program | null }) {
             </Dialog>
           )}
 
-        {program?.validator?.id === userId && program.status === "draft" && (
+        {program?.validator?.id === userId && program.status === 'draft' && (
           <div className="flex justify-end gap-4">
-            <Button
-              onClick={() => rejectProgram()}
-              variant="outline"
-              className="h-11 w-[118px]"
-            >
+            <Button onClick={() => rejectProgram()} variant="outline" className="h-11 w-[118px]">
               Reject
             </Button>
             <Button
               onClick={async () => {
                 await acceptProgram();
-                notify("Program accepted", "success");
+                notify('Program accepted', 'success');
               }}
               className="h-11 w-[118px]"
             >
@@ -191,42 +181,33 @@ function MainSection({ program }: { program?: Program | null }) {
           </div>
         )}
 
-        {program?.creator?.id === userId &&
-          program.status === "payment_required" && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="mt-6 mb-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]">
-                  Pay
+        {program?.creator?.id === userId && program.status === 'payment_required' && (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="mt-6 mb-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]">
+                Pay
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-[400px] p-6 max-h-screen overflow-y-auto">
+              <DialogClose id="pay-dialog-close" />
+              <div className="text-center">
+                <span className="text-red-600 w-[42px] h-[42px] rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                  <TriangleAlert />
+                </span>
+                <DialogTitle className="font-semibold text-lg text-[#18181B] mb-2">
+                  Are you sure to pay the settlement for the program?
+                </DialogTitle>
+                <DialogDescription className="text-muted-foreground text-sm mb-4">
+                  The amount will be securely stored until you will confirm the completion of the
+                  project.
+                </DialogDescription>
+                <Button disabled={isPaying} className="w-full" onClick={onPayConfirm}>
+                  {isPaying ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Yes, Pay now'}
                 </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[400px] p-6 max-h-screen overflow-y-auto">
-                <DialogClose id="pay-dialog-close" />
-                <div className="text-center">
-                  <span className="text-red-600 w-[42px] h-[42px] rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-                    <TriangleAlert />
-                  </span>
-                  <DialogTitle className="font-semibold text-lg text-[#18181B] mb-2">
-                    Are you sure to pay the settlement for the program?
-                  </DialogTitle>
-                  <DialogDescription className="text-muted-foreground text-sm mb-4">
-                    The amount will be securely stored until you will confirm
-                    the completion of the project.
-                  </DialogDescription>
-                  <Button
-                    disabled={isPaying}
-                    className="w-full"
-                    onClick={onPayConfirm}
-                  >
-                    {isPaying ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      "Yes, Pay now"
-                    )}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </section>
 
       <section className="px-10 py-[60px] w-full max-w-[40%] bg-white">

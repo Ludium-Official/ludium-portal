@@ -10,3 +10,11 @@ export function formatProgramStatus(program?: Program | null) {
   if (!program?.status) return '';
   return `${program?.status?.[0].toUpperCase()}${program?.status?.slice(1)}`.replace('_', ' ');
 }
+
+export function getInitials(name: string) {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
+}

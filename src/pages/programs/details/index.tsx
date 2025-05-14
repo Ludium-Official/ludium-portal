@@ -1,23 +1,23 @@
-import { useProgramQuery } from "@/apollo/queries/program.generated";
-import { Tabs, } from "@/components/ui/tabs";
-import { useAuth } from "@/lib/hooks/use-auth";
-import ApplicationCard from "@/pages/programs/details/_components/application-card";
-import MainSection from "@/pages/programs/details/_components/main-section";
-import { ApplicationStatus } from "@/types/types.generated";
-import { useEffect } from "react";
-import { useParams } from "react-router";
+import { useProgramQuery } from '@/apollo/queries/program.generated';
+import { Tabs } from '@/components/ui/tabs';
+import { useAuth } from '@/lib/hooks/use-auth';
+import ApplicationCard from '@/pages/programs/details/_components/application-card';
+import MainSection from '@/pages/programs/details/_components/main-section';
+import { ApplicationStatus } from '@/types/types.generated';
+import { useEffect } from 'react';
+import { useParams } from 'react-router';
 
 const DetailsPage: React.FC = () => {
-  const { userId } = useAuth()
-  const { id } = useParams()
+  const { userId } = useAuth();
+  const { id } = useParams();
 
   const { data, refetch } = useProgramQuery({
     variables: {
-      id: id ?? ''
-    }
-  })
+      id: id ?? '',
+    },
+  });
 
-  const program = data?.program
+  const program = data?.program;
 
   useEffect(() => {
     const hash = window.location.hash.slice(1);
@@ -44,12 +44,23 @@ const DetailsPage: React.FC = () => {
           </TabsList> */}
         </section>
 
-        {<section className="space-y-5">
-          {!data?.program?.applications?.length && <div className="text-slate-600 text-sm">No applications yet.</div>}
-          {data?.program?.applications?.map(a => (
-            <ApplicationCard key={a.id} application={a} refetch={refetch} hideControls={a.status !== ApplicationStatus.Pending || program?.validator?.id !== userId} />
-          ))}
-        </section>}
+        {
+          <section className="space-y-5">
+            {!data?.program?.applications?.length && (
+              <div className="text-slate-600 text-sm">No applications yet.</div>
+            )}
+            {data?.program?.applications?.map((a) => (
+              <ApplicationCard
+                key={a.id}
+                application={a}
+                refetch={refetch}
+                hideControls={
+                  a.status !== ApplicationStatus.Pending || program?.validator?.id !== userId
+                }
+              />
+            ))}
+          </section>
+        }
       </Tabs>
     </div>
   );
