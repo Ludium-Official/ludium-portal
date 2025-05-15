@@ -43,6 +43,14 @@ function UsersPage() {
             field: 'search',
             value: debouncedUserSearch,
           },
+          ...(selectedTab === 'by-projects'
+            ? [
+                {
+                  field: 'byNumberOfProjects',
+                  value: 'asc',
+                },
+              ]
+            : []),
         ],
       },
     },
@@ -62,8 +70,7 @@ function UsersPage() {
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="by-newest">By newest</TabsTrigger>
-              {/* <TabsTrigger value="by-number-of-projects">By number of projects</TabsTrigger> */}
+              <TabsTrigger value="by-projects">By number of projects</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -80,10 +87,6 @@ function UsersPage() {
                 setSearchParams(newSP);
               }}
             />
-
-            {/* <Button variant="outline" className="rounded-md flex items-center gap-2 h-10">
-            <ListFilter className="h-4 w-4" /> Filter
-          </Button> */}
           </div>
         </div>
 

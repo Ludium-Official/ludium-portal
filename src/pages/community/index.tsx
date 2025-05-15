@@ -57,6 +57,14 @@ const CommunityPage: React.FC = () => {
             field: 'search',
             value: debouncedUserSearch,
           },
+          ...(selectedTabUsers === 'by-projects'
+            ? [
+                {
+                  field: 'byNumberOfProjects',
+                  value: 'asc',
+                },
+              ]
+            : []),
         ],
       },
     },
@@ -166,8 +174,7 @@ const CommunityPage: React.FC = () => {
           <Tabs value={selectedTabUsers} onValueChange={setSelectedTabUsers}>
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="by-newest">By newest</TabsTrigger>
-              {/* <TabsTrigger value="by-number-of-projects">By number of projects</TabsTrigger> */}
+              <TabsTrigger value="by-projects">By number of projects</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -178,10 +185,6 @@ const CommunityPage: React.FC = () => {
               value={userSearch}
               onChange={(e) => setUserSearch(e.target.value)}
             />
-
-            {/* <Button variant="outline" className="rounded-md flex items-center gap-2 h-10">
-              <ListFilter className="h-4 w-4" /> Filter
-            </Button> */}
           </div>
         </div>
 
