@@ -3,7 +3,7 @@ import * as React from 'react';
 
 import { type ButtonProps, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useSearchParams } from 'react-router';
 
 const PaginationRoot = ({ className, ...props }: React.ComponentProps<'nav'>) => (
   <nav
@@ -87,17 +87,21 @@ const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<'span'
 );
 PaginationEllipsis.displayName = 'PaginationEllipsis';
 
-const Pagination = ({ totalCount }: { totalCount: number }) => {
-  const totalPages = totalCount ? Math.floor((totalCount - 1) / PageSize + 1) : 0;
+const Pagination = ({ totalCount, pageSize }: { totalCount: number; pageSize?: number }) => {
+  const totalPages = totalCount ? Math.floor((totalCount - 1) / (pageSize ?? PageSize) + 1) : 0;
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = Number(searchParams.get('page')) || 1;
 
   const goToPage = (page: number) => {
-    setSearchParams({ page: page.toString() });
-    navigate(`?page=${page}`, { replace: true });
+    const newSP = new URLSearchParams(searchParams);
+
+    newSP.set('page', page.toString());
+    setSearchParams(newSP);
+    // setSearchParams({ page: page.toString() });
+    // navigate(`?page=${page}`, { replace: true });
   };
 
   return (

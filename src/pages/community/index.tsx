@@ -8,37 +8,82 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { getInitials } from '@/lib/utils';
 import { type Post, SortEnum } from '@/types/types.generated';
-import { ArrowRight, CirclePlus, ListFilter } from 'lucide-react';
+import { ArrowRight, CirclePlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import PostCard from './_components/post-card';
 
 const CommunityPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('all');
+  const [selectedTabUsers, setSelectedTabUsers] = useState('all');
+
   const [posts, setPosts] = useState<Post[]>([]);
-  const { isAuthed, userId } = useAuth();
+  const { isAuthed } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const currentPage = Number(searchParams.get('page')) || 1;
 
-  const { data: usersData } = useUsersQuery();
-  // console.log('🚀 ~ usersData:', usersData);
+  const [search, setSearch] = useState<string>('');
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+  const [userSearch, setUserSearch] = useState<string>('');
+  const [debouncedUserSearch, setDebouncedUserSearch] = useState<string>('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300); // Adjust the debounce delay as needed
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [search]);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedUserSearch(userSearch);
+    }, 300); // Adjust the debounce delay as needed
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [userSearch]);
+
+  const { data: usersData } = useUsersQuery({
+    variables: {
+      input: {
+        limit: 6,
+        offset: 0,
+        filter: [
+          {
+            field: 'search',
+            value: debouncedUserSearch,
+          },
+          ...(selectedTabUsers === 'by-projects'
+            ? [
+                {
+                  field: 'byNumberOfProjects',
+                  value: 'asc',
+                },
+              ]
+            : []),
+        ],
+      },
+    },
+  });
+
+  const filter = [
+    {
+      field: 'title',
+      value: debouncedSearch,
+    },
+  ];
 
   const { data } = usePostsQuery({
     variables: {
       pagination: {
-        limit: 10,
+        limit: 5,
         offset: (currentPage - 1) * 10,
-        filter:
-          selectedTab === 'my-posts'
-            ? [
-                {
-                  field: 'userId',
-                  value: userId,
-                },
-              ]
-            : undefined,
-        sort: selectedTab === 'by-newest' ? SortEnum.Desc : SortEnum.Asc,
+        filter: filter,
+        sort: selectedTab === 'by-oldest' ? SortEnum.Asc : SortEnum.Desc,
       },
     },
   });
@@ -60,16 +105,21 @@ const CommunityPage: React.FC = () => {
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="by-newest">By newest</TabsTrigger>
-              <TabsTrigger value="by-number-of-projects">By number of projects</TabsTrigger>
+              <TabsTrigger value="by-oldest">By oldest</TabsTrigger>
+              {/* <TabsTrigger value="by-number-of-projects">By number of projects</TabsTrigger> */}
             </TabsList>
           </Tabs>
 
           <div className="flex items-center gap-3">
-            <Input className="w-[432px] rounded-md h-10" placeholder="Search..." />
-            <Button variant="outline" className="rounded-md flex items-center gap-2 h-10">
+            <Input
+              className="w-[432px] rounded-md h-10"
+              placeholder="Search..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {/* <Button variant="outline" className="rounded-md flex items-center gap-2 h-10">
               <ListFilter className="h-4 w-4" /> Filter
-            </Button>
+            </Button> */}
             {isAuthed && (
               <Button
                 className="rounded-md bg-purple-500 hover:bg-purple-600 flex items-center gap-2 h-10"
@@ -86,18 +136,26 @@ const CommunityPage: React.FC = () => {
             <div className="row-span-2">
               <PostCard post={posts[0]} variant="large" maxComments={3} />
             </div>
-            <div className="col-start-1 row-start-3">
-              <PostCard post={posts[1]} variant="small" maxComments={1} />
-            </div>
-            <div className="col-start-2 row-start-1">
-              <PostCard post={posts[2]} variant="small" maxComments={1} />
-            </div>
-            <div className="col-start-2 row-start-2">
-              <PostCard post={posts[3]} variant="small" maxComments={1} />
-            </div>
-            <div className="row-start-3">
-              <PostCard post={posts[4]} variant="small" maxComments={1} />
-            </div>
+            {posts[1] && (
+              <div className="col-start-2 row-start-1">
+                <PostCard post={posts[1]} variant="small" maxComments={1} />
+              </div>
+            )}
+            {posts[2] && (
+              <div className="col-start-2 row-start-2">
+                <PostCard post={posts[2]} variant="small" maxComments={1} />
+              </div>
+            )}
+            {posts[3] && (
+              <div className="col-start-1 row-start-3">
+                <PostCard post={posts[3]} variant="small" maxComments={1} />
+              </div>
+            )}
+            {posts[4] && (
+              <div className="row-start-3">
+                <PostCard post={posts[4]} variant="small" maxComments={1} />
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -113,25 +171,25 @@ const CommunityPage: React.FC = () => {
         </div>
 
         <div className="flex justify-between items-center mb-6">
-          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+          <Tabs value={selectedTabUsers} onValueChange={setSelectedTabUsers}>
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="by-newest">By newest</TabsTrigger>
-              <TabsTrigger value="by-number-of-projects">By number of projects</TabsTrigger>
+              <TabsTrigger value="by-projects">By number of projects</TabsTrigger>
             </TabsList>
           </Tabs>
 
           <div className="flex items-center gap-3">
-            <Input className="w-[432px] rounded-md h-10" placeholder="Search..." />
-
-            <Button variant="outline" className="rounded-md flex items-center gap-2 h-10">
-              <ListFilter className="h-4 w-4" /> Filter
-            </Button>
+            <Input
+              className="w-[432px] rounded-md h-10"
+              placeholder="Search..."
+              value={userSearch}
+              onChange={(e) => setUserSearch(e.target.value)}
+            />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-5">
-          {usersData?.users?.slice(0, 6)?.map((user) => (
+          {usersData?.users?.data?.slice(0, 6)?.map((user) => (
             <div key={user.id} className="border rounded-md p-6">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex gap-2">
