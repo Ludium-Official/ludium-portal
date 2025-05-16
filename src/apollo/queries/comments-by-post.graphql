@@ -1,0 +1,35 @@
+query commentsByPost($postId: ID!) {
+  commentsByPost(postId: $postId) {
+    id
+    content
+    createdAt
+    author {
+      id
+      firstName
+      lastName
+      image
+    }
+    parent {
+      id
+      content
+      createdAt
+      author {
+        id
+        firstName
+        lastName
+        image
+      }
+    }
+    replies {
+      id
+      content
+      createdAt
+      author {
+        id
+        firstName
+        lastName
+        image
+      }
+    }
+  }
+}
