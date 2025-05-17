@@ -3,6 +3,7 @@ import { useWagmiConfig } from "@/lib/wagmi";
 import { AuthProvider } from "@/providers/auth-provider";
 import { ApolloProvider } from "@apollo/client";
 import { OnchainKitProvider } from "@coinbase/onchainkit";
+import { PrivyProvider } from "@privy-io/react-auth";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { BrowserRouter } from "react-router";
 import { WagmiProvider } from "wagmi";
@@ -26,7 +27,25 @@ function Providers({ children }: { children: React.ReactNode }) {
               chain={baseSepolia}
             >
               <RainbowKitProvider modalSize="compact">
-                {children}
+                <PrivyProvider
+                  appId="cmare6bts00k6le0l9n3qr8hl"
+                  clientId="client-WY6LKBzKgt7WLgXufJE6wLHyENUq5eTDoeqtE5vXbdKrG"
+                  config={{
+                    appearance: { walletList: ["coinbase_wallet"] },
+                    externalWallets: {
+                      coinbaseWallet: {
+                        connectionOptions: "smartWalletOnly",
+                      },
+                    },
+                    loginMethods: ["farcaster", "google", "wallet"],
+                    embeddedWallets: {
+                      createOnLogin: "all-users",
+                    },
+                    defaultChain: baseSepolia,
+                  }}
+                >
+                  {children}
+                </PrivyProvider>
               </RainbowKitProvider>
             </OnchainKitProvider>
           </WagmiProvider>
