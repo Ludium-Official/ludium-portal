@@ -68,7 +68,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     value: k.id ?? "",
     label: k.name ?? "",
   }));
-  const validatorOptions = validators?.users?.map((v) => ({
+  const validatorOptions = validators?.users?.data?.map((v) => ({
     value: v.id ?? "",
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ""}`,
   }));

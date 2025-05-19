@@ -1,18 +1,22 @@
 import { useCreateCommentMutation } from '@/apollo/mutation/create-comment.generated';
 import { useCommentsByPostQuery } from '@/apollo/queries/comments-by-post.generated';
 import { usePostQuery } from '@/apollo/queries/post.generated';
+import { usePostsQuery } from '@/apollo/queries/posts.generated';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { cn, getInitials } from '@/lib/utils';
 import PostComment from '@/pages/community/details/_components/comment';
-import type { Post } from '@/types/types.generated';
+import { type Post, SortEnum } from '@/types/types.generated';
 import { format } from 'date-fns';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 
 const CommunityDetailsPage: React.FC = () => {
+  const { userId } = useAuth();
+
   const { id } = useParams();
   const [post, setPost] = useState<Post | null>(null);
   // const [replyValues, setReplyValues] = useState<Record<string, string>>({});
@@ -21,6 +25,16 @@ const CommunityDetailsPage: React.FC = () => {
   const [commentsOpen, setCommentsOpen] = useState(false);
 
   const postId = id || '';
+
+  const { data: postsData } = usePostsQuery({
+    variables: {
+      pagination: {
+        limit: 4,
+        offset: 0,
+        sort: SortEnum.Desc,
+      },
+    },
+  });
 
   const { data, loading, error } = usePostQuery({
     variables: {
@@ -39,37 +53,6 @@ const CommunityDetailsPage: React.FC = () => {
   });
 
   const [createComment, { loading: submittingComment }] = useCreateCommentMutation();
-
-  const relatedPosts = [
-    {
-      id: 'post1',
-      title: 'Community Title',
-      author: 'William Smith',
-      dateRange: '2025.02.15 - 2025.03.14',
-      badge: 'D-3',
-    },
-    {
-      id: 'post2',
-      title: 'Community Title',
-      author: 'William Smith',
-      dateRange: '2025.02.15 - 2025.03.14',
-      badge: 'D-3',
-    },
-    {
-      id: 'post3',
-      title: 'Community Title',
-      author: 'William Smith',
-      dateRange: '2025.02.15 - 2025.03.14',
-      badge: 'D-3',
-    },
-    {
-      id: 'post4',
-      title: 'Community Title',
-      author: 'William Smith',
-      dateRange: '2025.02.15 - 2025.03.14',
-      badge: 'D-3',
-    },
-  ];
 
   const handleSubmitComment = async () => {
     if (!comment.trim() || !postId) return;
@@ -154,6 +137,12 @@ const CommunityDetailsPage: React.FC = () => {
             {/* Header */}
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-xl font-bold">{post?.title}</h1>
+
+              {data?.post?.author?.id === userId && (
+                <Link to={`/community/posts/${data?.post?.id}/edit`}>
+                  <Settings className="w-4 h-4" />
+                </Link>
+              )}
             </div>
 
             {/* Author info */}
@@ -270,26 +259,39 @@ const CommunityDetailsPage: React.FC = () => {
           {/* Sidebar with related posts */}
           <div className="col-span-5 pt-[60px]">
             <div className="space-y-4">
-              {relatedPosts.map((relatedPost) => (
-                <div
-                  key={relatedPost.id}
+              {postsData?.posts?.data?.map((post) => (
+                <Link
+                  to={`/community/posts/${post.id}`}
+                  key={post.id}
                   className="flex gap-3 p-6 border border-gray-200 rounded-lg"
                 >
                   <div className="w-[200px] h-[112px] bg-gradient-to-r from-purple-300 to-blue-300 rounded-md shrink-0">
-                    <div className="flex h-full items-center justify-center">
-                      <div className="bg-white/20 rounded-full w-6 h-6" />
-                    </div>
+                    {post?.image ? (
+                      <img
+                        src={post.image}
+                        alt={'Post'}
+                        className="w-full h-[112px] object-cover rounded-lg"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="w-16 h-16 bg-white/20 rounded-full" />
+                      </div>
+                    )}
                   </div>
-                  <div className="flex flex-col justify-between">
-                    <span className="font-medium bg-gray-800 text-white rounded-full px-2.5 py-0.5 text-[10px] max-w-[43px] text-center">
-                      {relatedPost.badge}
-                    </span>
+                  <div className="flex flex-col justify-between items-start">
+                    {!!post.keywords?.[0]?.name && (
+                      <span className="font-medium bg-gray-800 text-white rounded-full px-2.5 py-0.5 text-[10px] text-center">
+                        {post.keywords?.[0]?.name}
+                      </span>
+                    )}
                     {/* <div className="font-bold mb-0.5">Community</div> */}
-                    <h3 className="font-bold">{relatedPost.title}</h3>
-                    <p className="text-muted-foreground text-xs font-bold">{relatedPost.author}</p>
-                    <div className="text-xs text-gray-500 mt-auto">{relatedPost.dateRange}</div>
+                    <h3 className="font-bold">{post.title}</h3>
+                    <p className="text-muted-foreground text-xs font-bold">
+                      {post.author?.firstName} {post.author?.lastName}
+                    </p>
+                    <div className="text-xs text-gray-500 mt-auto">{post.createdAt}</div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>
