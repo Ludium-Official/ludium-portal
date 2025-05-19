@@ -1,16 +1,19 @@
-query users {
-  users {
-    about
-    avatar
-    email
-    firstName
-    id
-    image
-    lastName
-    links {
-      title
-      url
+query users($input: PaginationInput) {
+  users(pagination: $input) {
+    count
+    data {
+      about
+      avatar
+      email
+      firstName
+      id
+      image
+      lastName
+      links {
+        title
+        url
+      }
+      organizationName
     }
-    organizationName
   }
 }

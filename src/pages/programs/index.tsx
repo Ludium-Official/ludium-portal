@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import ProgramCard from '@/pages/programs/_components/program-card';
 import { SortEnum } from '@/types/types.generated';
 import { CirclePlus, ListFilter } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 
 const ProgramsPage: React.FC = () => {
@@ -17,23 +17,44 @@ const ProgramsPage: React.FC = () => {
 
   const navigate = useNavigate();
 
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = Number(searchParams.get('page')) || 1;
+
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchParams.get('search') ?? '');
+    }, 300); // Adjust the debounce delay as needed
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchParams.get('search')]);
+
+  const filter = [
+    ...(selectedTab === 'my-programs'
+      ? [
+          {
+            field: 'userId',
+            value: userId,
+          },
+        ]
+      : []),
+    {
+      field: 'name',
+      value: debouncedSearch,
+    },
+  ];
 
   const { data } = useProgramsQuery({
     variables: {
       pagination: {
+        // limit: 2,
         limit: PageSize,
+        // offset: (currentPage - 1) * 2,
         offset: (currentPage - 1) * PageSize,
-        filter:
-          selectedTab === 'my-programs'
-            ? [
-                {
-                  field: 'userId',
-                  value: userId,
-                },
-              ]
-            : undefined,
+        filter: filter,
         sort: selectedTab === 'by-newest' ? SortEnum.Desc : SortEnum.Asc,
       },
     },
@@ -51,7 +72,19 @@ const ProgramsPage: React.FC = () => {
           {/* <TabsTrigger value="by-size">By size</TabsTrigger> */}
         </TabsList>
         <div className="h-10 flex items-center gap-3">
-          <Input className="h-full w-[432px]" />
+          <Input
+            className="h-full w-[432px]"
+            placeholder="Search..."
+            value={searchParams.get('search') ?? ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              const newSP = new URLSearchParams();
+
+              newSP.set('search', value);
+              setSearchParams(newSP);
+            }}
+          />
+
           <Button variant="outline" className="h-full rounded-[6px] ">
             <ListFilter /> Filter
           </Button>

@@ -1,48 +1,39 @@
 import client from '@/apollo/client';
-import { useUpdateProgramMutation } from '@/apollo/mutation/update-program.generated';
-import { ProgramDocument } from '@/apollo/queries/program.generated';
-import { ProgramsDocument } from '@/apollo/queries/programs.generated';
-import type { OnSubmitProgramFunc } from '@/components/program-form';
-import ProgramForm from '@/components/program-form';
-import notify from '@/lib/notify';
+import { useUpdatePostMutation } from '@/apollo/mutation/update-post.generated';
+import { PostsDocument } from '@/apollo/queries/posts.generated';
+import type { OnSubmitPostFunc } from '@/pages/community/_components/post-form';
+import PostForm from '@/pages/community/_components/post-form';
 import { useNavigate, useParams } from 'react-router';
 
-const EditProgram: React.FC = () => {
+const EditCommunityPage: React.FC = () => {
   const navigate = useNavigate();
-
   const { id } = useParams();
+  const [updatePost] = useUpdatePostMutation();
 
-  const [updateProgram] = useUpdateProgramMutation();
-
-  const onSubmit: OnSubmitProgramFunc = (args) => {
-    updateProgram({
+  const onSubmit: OnSubmitPostFunc = (args) => {
+    updatePost({
       variables: {
         input: {
-          id: args.id ?? '',
-          name: args.programName,
-          price: args.price,
-          description: args.description,
-          summary: args.summary,
-          currency: args.currency,
-          deadline: args.deadline,
+          id: id ?? '',
+          title: args.title,
+          content: args.content,
           keywords: args.keywords,
-          validatorId: args.validatorId,
-          links: args.links,
+          image: args.image,
         },
       },
       onCompleted: () => {
-        notify('Program successfully updated.');
-        client.refetchQueries({ include: [ProgramsDocument, ProgramDocument] });
-        navigate(`/programs/${id}`);
+        navigate('/community');
+
+        client.refetchQueries({ include: [PostsDocument] });
       },
     });
   };
 
   return (
-    <div className="p-10 pr-[55px] w-[681px]">
-      <ProgramForm isEdit={true} onSubmitProgram={onSubmit} />
+    <div className="p-10 pr-[55px] w-[681px]" defaultValue="edit">
+      <PostForm isEdit={true} onSubmitPost={onSubmit} />
     </div>
   );
 };
 
-export default EditProgram;
+export default EditCommunityPage;

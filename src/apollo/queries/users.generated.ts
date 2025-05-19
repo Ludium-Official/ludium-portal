@@ -3,27 +3,32 @@ import * as Types from '../../types/types.generated';
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type UsersQueryVariables = Types.Exact<{ [key: string]: never; }>;
+export type UsersQueryVariables = Types.Exact<{
+  input?: Types.InputMaybe<Types.PaginationInput>;
+}>;
 
 
-export type UsersQuery = { __typename?: 'Query', users?: Array<{ __typename?: 'User', about?: string | null, avatar?: any | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null }> | null };
+export type UsersQuery = { __typename?: 'Query', users?: { __typename?: 'PaginatedUsers', count?: number | null, data?: Array<{ __typename?: 'User', about?: string | null, avatar?: any | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null }> | null } | null };
 
 
 export const UsersDocument = gql`
-    query users {
-  users {
-    about
-    avatar
-    email
-    firstName
-    id
-    image
-    lastName
-    links {
-      title
-      url
+    query users($input: PaginationInput) {
+  users(pagination: $input) {
+    count
+    data {
+      about
+      avatar
+      email
+      firstName
+      id
+      image
+      lastName
+      links {
+        title
+        url
+      }
+      organizationName
     }
-    organizationName
   }
 }
     `;
@@ -40,6 +45,7 @@ export const UsersDocument = gql`
  * @example
  * const { data, loading, error } = useUsersQuery({
  *   variables: {
+ *      input: // value for 'input'
  *   },
  * });
  */

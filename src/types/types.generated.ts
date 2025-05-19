@@ -321,6 +321,12 @@ export type PaginatedPrograms = {
   data?: Maybe<Array<Program>>;
 };
 
+export type PaginatedUsers = {
+  __typename?: 'PaginatedUsers';
+  count?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<User>>;
+};
+
 export type PaginationInput = {
   filter?: InputMaybe<Array<FilterInput>>;
   limit?: InputMaybe<Scalars['Int']['input']>;
@@ -373,7 +379,7 @@ export type Query = {
   program?: Maybe<Program>;
   programs?: Maybe<PaginatedPrograms>;
   user?: Maybe<User>;
-  users?: Maybe<Array<User>>;
+  users?: Maybe<PaginatedUsers>;
 };
 
 
@@ -436,6 +442,11 @@ export type QueryProgramsArgs = {
 
 export type QueryUserArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryUsersArgs = {
+  pagination?: InputMaybe<PaginationInput>;
 };
 
 export enum SortEnum {
