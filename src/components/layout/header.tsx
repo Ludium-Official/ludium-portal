@@ -1,3 +1,5 @@
+import { useCountNotificationsSubscription } from '@/apollo/subscriptions/count-notifications.generated';
+import { useNotificationsSubscription } from '@/apollo/subscriptions/notifications.generated';
 import DevToolsDialog from '@/components/dev-tools-dialog';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/hooks/use-auth';
@@ -21,12 +23,22 @@ function Header() {
   const navigate = useNavigate();
   const { login, isAuthed, logout } = useAuth();
 
+  const { data } = useNotificationsSubscription();
+  const { data: countData } = useCountNotificationsSubscription();
+  console.log('🚀 ~ Header ~ data:', data);
+  console.log('🚀 ~ Header ~ countData:', countData?.countNotifications);
+
   // const [loginMutation] = useLoginMutation()
 
   return (
     <header className="flex justify-between items-center px-10 py-[14px] border-b">
       {import.meta.env.VITE_MODE === 'local' && <DevToolsDialog />}
-      <div />
+      <div>
+        Notification COunt: {countData?.countNotifications}
+        <Button onClick={() => console.log('🚀 ~ Header ~ notifications:', data)}>
+          print notifications
+        </Button>
+      </div>
 
       <div className="flex gap-2">
         {isAuthed ? (

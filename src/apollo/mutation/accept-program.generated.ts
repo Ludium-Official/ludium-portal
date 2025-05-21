@@ -8,7 +8,7 @@ export type AcceptProgramMutationVariables = Types.Exact<{
 }>;
 
 
-export type AcceptProgramMutation = { __typename?: 'Mutation', acceptProgram?: { __typename?: 'Program', id?: string | null, name?: string | null, price?: string | null, status?: string | null, summary?: string | null, keywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null };
+export type AcceptProgramMutation = { __typename?: 'Mutation', acceptProgram?: { __typename?: 'Program', id?: string | null, name?: string | null, price?: string | null, status?: Types.ProgramStatus | null, summary?: string | null, keywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null };
 
 
 export const AcceptProgramDocument = gql`

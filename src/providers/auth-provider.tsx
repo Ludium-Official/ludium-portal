@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userId, setUserId] = useState<string>('');
   const navigate = useNavigate();
 
-  const { data: profileData } = useProfileQuery({
+  const { data: profileData, error } = useProfileQuery({
     skip: !token,
     fetchPolicy: 'network-only',
   });
@@ -101,6 +101,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await wepinSdk.logout();
     navigate('/');
   };
+
+  useEffect(() => {
+    if (error) {
+      console.error('Error fetching profile:', error);
+      // Handle the error as needed, e.g., show a notification or redirect
+      logout();
+    }
+  }, [error]);
 
   // const isSponsor = !!roles?.find(r => r === 'sponsor')
   // const isValidator = !!roles?.find(r => r === 'validator')

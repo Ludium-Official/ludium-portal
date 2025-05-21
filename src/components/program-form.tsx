@@ -60,6 +60,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     deadline: false,
     validator: false,
     links: false,
+    invalidLink: false,
   });
 
   const keywordOptions = keywords?.keywords?.map((k) => ({
@@ -98,7 +99,13 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     description: string;
     summary: string;
   }) => {
-    if (extraErrors.deadline || extraErrors.keyword || extraErrors.links || extraErrors.validator)
+    if (
+      extraErrors.deadline ||
+      extraErrors.keyword ||
+      extraErrors.links ||
+      extraErrors.validator ||
+      extraErrors.invalidLink
+    )
       return;
 
     onSubmitProgram({
@@ -126,6 +133,10 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     if (!selectedValidator) dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
     if (!deadline) dispatchErrors({ type: ExtraErrorActionKind.SET_DEADLINE_ERROR });
     if (!links?.[0]) dispatchErrors({ type: ExtraErrorActionKind.SET_LINKS_ERROR });
+    if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
+      dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
+      console.log('invalid link');
+    }
   };
 
   return (
@@ -141,7 +152,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           className="h-10"
           {...register('programName', { required: true })}
         />
-        <span className="text-[#71717A] text-sm">This is an input description.</span>
+        {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
         {errors.programName && (
           <span className="text-red-400 text-sm block">Program name is required</span>
         )}
@@ -158,7 +169,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           animation={2}
           maxCount={3}
         />
-        <span className="text-[#71717A] text-sm">This is an input description.</span>
+        {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
         {extraErrors.keyword && (
           <span className="text-red-400 text-sm block">Keywords is required</span>
         )}
@@ -185,7 +196,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           />
         </div>
 
-        <span className="text-[#71717A] text-sm">This is an input description.</span>
+        {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
         {errors.price && <span className="text-red-400 text-sm block">Price is required</span>}
         {isEdit && data?.program?.status !== 'draft' && (
           <span className="text-red-400 text-sm block">
@@ -196,8 +207,8 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
 
       <label htmlFor="deadline" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Deadline</p>
-        <DatePicker date={deadline} setDate={setDeadline} />
-        <span className="text-[#71717A] text-sm">This is an input description.</span>
+        <DatePicker date={deadline} setDate={setDeadline} disabled={{ before: new Date() }} />
+        {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
         {extraErrors.deadline && (
           <span className="text-red-400 text-sm block">Deadline is required</span>
         )}
@@ -212,7 +223,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           className="h-10"
           {...register('summary', { required: true })}
         />
-        <span className="text-[#71717A] text-sm">This is an input description.</span>
+        {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
         {errors.summary && <span className="text-red-400 text-sm block">Summary is required</span>}
       </label>
 
@@ -223,7 +234,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           placeholder="Type description"
           {...register('description', { required: true })}
         />
-        <span className="text-[#71717A] text-sm">This is an input description.</span>
+        {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
         {errors.description && (
           <span className="text-red-400 text-sm block">Description is required</span>
         )}
@@ -236,7 +247,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           value={selectedValidator}
           setValue={setSelectedValidator}
         />
-        <span className="text-[#71717A] text-sm">This is an input description.</span>
+        {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
         {extraErrors.validator && (
           <span className="text-red-400 text-sm block">Validator is required</span>
         )}
@@ -284,8 +295,12 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
         >
           Add URL
         </Button>
-        {extraErrors.validator && (
-          <span className="text-red-400 text-sm block">Links is required</span>
+        {extraErrors.links && <span className="text-red-400 text-sm block">Links is required</span>}
+        {extraErrors.invalidLink && (
+          <span className="text-red-400 text-sm block">
+            The provided link is not valid. All links must begin with{' '}
+            <span className="font-bold">https://</span>.
+          </span>
         )}
       </label>
 
@@ -329,6 +344,7 @@ enum ExtraErrorActionKind {
   SET_DEADLINE_ERROR = 'SET_DEADLINE_ERROR',
   SET_LINKS_ERROR = 'SET_LINKS_ERROR',
   CLEAR_ERRORS = 'CLEAR_ERRORS',
+  SET_INVALID_LINK_ERROR = 'SET_INVALID_LINK_ERROR',
 }
 
 interface ExtraErrorAction {
@@ -340,6 +356,7 @@ interface ExtraErrorState {
   validator: boolean;
   deadline: boolean;
   links: boolean;
+  invalidLink: boolean;
 }
 
 function extraErrorReducer(state: ExtraErrorState, action: ExtraErrorAction) {
@@ -365,12 +382,18 @@ function extraErrorReducer(state: ExtraErrorState, action: ExtraErrorAction) {
         ...state,
         links: true,
       };
+    case ExtraErrorActionKind.SET_INVALID_LINK_ERROR:
+      return {
+        ...state,
+        invalidLink: true,
+      };
     case ExtraErrorActionKind.CLEAR_ERRORS:
       return {
         keyword: false,
         validator: false,
         deadline: false,
         links: false,
+        invalidLink: false,
       };
     default:
       return state;

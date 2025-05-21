@@ -1,0 +1,12 @@
+subscription notifications {
+  notifications {
+    action
+    content
+    entityId
+    id
+    metadata
+    readAt
+    title
+    type
+  }
+}

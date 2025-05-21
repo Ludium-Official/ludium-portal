@@ -98,6 +98,7 @@ export type CreateProgramInput = {
   keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
   links?: InputMaybe<Array<LinkInput>>;
   name: Scalars['String']['input'];
+  network?: InputMaybe<Scalars['String']['input']>;
   price: Scalars['String']['input'];
   summary?: InputMaybe<Scalars['String']['input']>;
   validatorId: Scalars['ID']['input'];
@@ -158,6 +159,7 @@ export type Mutation = {
   deleteUser?: Maybe<User>;
   denyApplication?: Maybe<Application>;
   login?: Maybe<Scalars['String']['output']>;
+  markNotificationAsRead?: Maybe<Notification>;
   publishProgram?: Maybe<Program>;
   rejectProgram?: Maybe<Program>;
   submitMilestone?: Maybe<Milestone>;
@@ -240,6 +242,11 @@ export type MutationLoginArgs = {
 };
 
 
+export type MutationMarkNotificationAsReadArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationPublishProgramArgs = {
   educhainProgramId: Scalars['Int']['input'];
   id: Scalars['ID']['input'];
@@ -290,6 +297,35 @@ export type MutationUpdateProgramArgs = {
 export type MutationUpdateUserArgs = {
   input: UserUpdateInput;
 };
+
+export type Notification = {
+  __typename?: 'Notification';
+  action?: Maybe<NotificationAction>;
+  content?: Maybe<Scalars['String']['output']>;
+  entityId?: Maybe<Scalars['ID']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  metadata?: Maybe<Scalars['JSON']['output']>;
+  readAt?: Maybe<Scalars['Date']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+  type?: Maybe<NotificationType>;
+};
+
+export enum NotificationAction {
+  Accepted = 'accepted',
+  Broadcast = 'broadcast',
+  Completed = 'completed',
+  Created = 'created',
+  Rejected = 'rejected',
+  Submitted = 'submitted'
+}
+
+export enum NotificationType {
+  Application = 'application',
+  Comment = 'comment',
+  Milestone = 'milestone',
+  Program = 'program',
+  System = 'system'
+}
 
 export type PaginatedApplications = {
   __typename?: 'PaginatedApplications';
@@ -357,11 +393,22 @@ export type Program = {
   keywords?: Maybe<Array<Keyword>>;
   links?: Maybe<Array<Link>>;
   name?: Maybe<Scalars['String']['output']>;
+  network?: Maybe<Scalars['String']['output']>;
   price?: Maybe<Scalars['String']['output']>;
-  status?: Maybe<Scalars['String']['output']>;
+  status?: Maybe<ProgramStatus>;
   summary?: Maybe<Scalars['String']['output']>;
+  txHash?: Maybe<Scalars['String']['output']>;
   validator?: Maybe<User>;
 };
+
+export enum ProgramStatus {
+  Cancelled = 'cancelled',
+  Closed = 'closed',
+  Completed = 'completed',
+  Draft = 'draft',
+  PaymentRequired = 'payment_required',
+  Published = 'published'
+}
 
 export type Query = {
   __typename?: 'Query';
@@ -370,9 +417,11 @@ export type Query = {
   comment?: Maybe<Comment>;
   comments?: Maybe<PaginatedComments>;
   commentsByPost?: Maybe<Array<Comment>>;
+  countNotifications?: Maybe<Scalars['Int']['output']>;
   keywords?: Maybe<Array<Keyword>>;
   milestone?: Maybe<Milestone>;
   milestones?: Maybe<PaginatedMilestones>;
+  notifications?: Maybe<Array<Notification>>;
   post?: Maybe<Post>;
   posts?: Maybe<PaginatedPosts>;
   profile?: Maybe<User>;
@@ -460,6 +509,12 @@ export type SubmitMilestoneInput = {
   links?: InputMaybe<Array<LinkInput>>;
 };
 
+export type Subscription = {
+  __typename?: 'Subscription';
+  countNotifications?: Maybe<Scalars['Int']['output']>;
+  notifications?: Maybe<Array<Notification>>;
+};
+
 export type UpdateApplicationInput = {
   content?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
@@ -500,8 +555,9 @@ export type UpdateProgramInput = {
   keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
   links?: InputMaybe<Array<LinkInput>>;
   name?: InputMaybe<Scalars['String']['input']>;
+  network?: InputMaybe<Scalars['String']['input']>;
   price?: InputMaybe<Scalars['String']['input']>;
-  status?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<ProgramStatus>;
   summary?: InputMaybe<Scalars['String']['input']>;
   validatorId?: InputMaybe<Scalars['ID']['input']>;
 };

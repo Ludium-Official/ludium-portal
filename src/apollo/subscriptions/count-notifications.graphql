@@ -1,0 +1,3 @@
+subscription countNotifications {
+  countNotifications
+}

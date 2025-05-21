@@ -140,9 +140,15 @@ function MainSection({ program }: { program?: Program | null }) {
         <div className="mb-9">
           <h3 className="text-lg font-bold mb-3">LINKS</h3>
           {program?.links?.map((l) => (
-            <p key={l.url} className="text-slate-600 text-sm">
+            <a
+              href={l?.url ?? ''}
+              key={l.url}
+              className="block hover:underline text-slate-600 text-sm"
+              target="_blank"
+              rel="noreferrer"
+            >
               {l?.url}
-            </p>
+            </a>
           ))}
         </div>
 

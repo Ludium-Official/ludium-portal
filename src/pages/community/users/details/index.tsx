@@ -2,13 +2,16 @@ import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { useUserQuery } from '@/apollo/queries/user.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
 import { Badge } from '@/components/ui/badge';
+import { PageSize, Pagination } from '@/components/ui/pagination';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowRight } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useSearchParams } from 'react-router';
 
 function UserDetailsPage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const currentPage = Number(searchParams.get('page')) || 1;
 
   const [selectedTab, setSelectedTab] = useState('sponsor');
   const filterBasedOnRole = {
@@ -20,8 +23,8 @@ function UserDetailsPage() {
   const { data } = useProgramsQuery({
     variables: {
       pagination: {
-        limit: 10,
-        offset: 0,
+        limit: PageSize,
+        offset: (currentPage - 1) * PageSize,
         filter: [
           {
             value: id ?? '',
@@ -116,6 +119,8 @@ function UserDetailsPage() {
             <p className="text-sm font-medium">{p.description}</p>
           </div>
         ))}
+
+        <Pagination totalCount={0} />
       </div>
     </div>
   );

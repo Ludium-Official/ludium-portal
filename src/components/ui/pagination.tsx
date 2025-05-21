@@ -104,6 +104,10 @@ const Pagination = ({ totalCount, pageSize }: { totalCount: number; pageSize?: n
     // navigate(`?page=${page}`, { replace: true });
   };
 
+  if (totalPages <= 1) {
+    return null;
+  }
+
   return (
     <PaginationRoot>
       <PaginationContent>
