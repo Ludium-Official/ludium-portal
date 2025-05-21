@@ -1,54 +1,46 @@
-import { useProfileQuery } from '@/apollo/queries/profile.generated';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { useForm } from 'react-hook-form';
+import { useProfileQuery } from "@/apollo/queries/profile.generated";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "react-hook-form";
 
-import { useUpdateProfileMutation } from '@/apollo/mutation/updateProfile.generated';
-import avatarPlaceholder from '@/assets/avatar-placeholder.png';
-import { useAuth } from '@/lib/hooks/use-auth';
-import notify from '@/lib/notify';
-import { wepinSdk } from '@/lib/wepin';
-import type { WepinLifeCycle } from '@wepin/sdk-js';
-import { Wallet, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useUpdateProfileMutation } from "@/apollo/mutation/updateProfile.generated";
+import avatarPlaceholder from "@/assets/avatar-placeholder.png";
+import { useAuth } from "@/lib/hooks/use-auth";
+import notify from "@/lib/notify";
+import { usePrivy } from "@privy-io/react-auth";
+import { Wallet, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 
 function EditProfilePage() {
   const navigate = useNavigate();
 
-  const { login } = useAuth();
-  const [wepinStatus, setWepinStatus] = useState<WepinLifeCycle>();
-
-  useEffect(() => {
-    const checkWepinStatus = async () => {
-      const status = await wepinSdk.getStatus();
-      setWepinStatus(status);
-    };
-
-    checkWepinStatus();
-    setInterval(checkWepinStatus, 5000);
-  }, []);
+  const { login: authLogin } = useAuth();
+  const { user, login: privyLogin } = usePrivy();
 
   const { data: profileData, refetch } = useProfileQuery({
-    fetchPolicy: 'network-only',
+    fetchPolicy: "network-only",
   });
 
   useEffect(() => {
     const links = profileData?.profile?.links;
     if (links?.length) {
-      setLinks(links?.filter((l) => l)?.map((l) => l.url ?? ''));
+      setLinks(links?.filter((l) => l)?.map((l) => l.url ?? ""));
     }
   }, [profileData]);
 
-  const [links, setLinks] = useState<string[]>(['']);
+  const [links, setLinks] = useState<string[]>([""]);
 
   const [updateProfile] = useUpdateProfileMutation();
 
-  const { register, handleSubmit, watch } = useForm<{ description: string; name: string }>({
+  const { register, handleSubmit, watch } = useForm<{
+    description: string;
+    name: string;
+  }>({
     values: {
-      description: profileData?.profile?.about ?? '',
-      name: profileData?.profile?.organizationName ?? '',
+      description: profileData?.profile?.about ?? "",
+      name: profileData?.profile?.organizationName ?? "",
     },
   });
 
@@ -58,7 +50,7 @@ function EditProfilePage() {
     updateProfile({
       variables: {
         input: {
-          id: profileData?.profile?.id ?? '',
+          id: profileData?.profile?.id ?? "",
           image: selectedAvatar,
           organizationName: data?.name,
           about: data?.description,
@@ -68,17 +60,57 @@ function EditProfilePage() {
         },
       },
       onCompleted: () => {
-        notify('Profile successfully updated');
+        notify("Profile successfully updated");
         refetch();
-        navigate('/profile');
+        navigate("/profile");
       },
     });
   };
 
   const isNoChanges =
-    profileData?.profile?.organizationName === watch('name') &&
-    profileData?.profile?.about === watch('description') &&
-    JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links);
+    profileData?.profile?.organizationName === watch("name") &&
+    profileData?.profile?.about === watch("description") &&
+    JSON.stringify(profileData.profile.links?.map((l) => l.url)) ===
+      JSON.stringify(links);
+
+  const walletInfo = user?.wallet;
+
+  const login = async () => {
+    try {
+      const googleInfo = user?.google;
+      const farcasterInfo = user?.farcaster;
+
+      const loginType = (() => {
+        const types = {
+          google: googleInfo,
+          farcaster: farcasterInfo,
+        };
+
+        return (
+          (Object.keys(types) as Array<keyof typeof types>).find(
+            (key) => types[key]
+          ) || "wallet"
+        );
+      })();
+
+      privyLogin();
+
+      if (user && walletInfo) {
+        await authLogin({
+          email:
+            googleInfo?.email || `${walletInfo.address.slice(2, 10)}@mail.com`,
+          userId: `${walletInfo.address.slice(11, 20)}`, // TODO: remove
+          walletId: `${walletInfo.address.slice(21, 30)}`, // TODO: remove
+          address: walletInfo.address,
+          network: "base-sepolia", // TODO: remove
+          // loginType, // TODO: (added in the future)
+        });
+      }
+    } catch (error) {
+      notify("Failed to login", "error");
+      console.error("Failed to login:", error);
+    }
+  };
 
   return (
     <div>
@@ -86,7 +118,9 @@ function EditProfilePage() {
         <section className="w-[60%] px-10 py-5">
           <div>
             <p className="font-medium text-sm mb-2">Profile image</p>
-            <span className="block text-sm text-[#71717A] mb-2">This is an input description</span>
+            <span className="block text-sm text-[#71717A] mb-2">
+              This is an input description
+            </span>
             <div className="flex items-end mb-9 gap-12 ">
               <div className="relative">
                 <img
@@ -96,7 +130,7 @@ function EditProfilePage() {
                   src={
                     selectedAvatar
                       ? URL.createObjectURL(selectedAvatar)
-                      : (profileData?.profile?.image ?? avatarPlaceholder)
+                      : profileData?.profile?.image ?? avatarPlaceholder
                   }
                   alt="Avatar"
                 />
@@ -112,7 +146,7 @@ function EditProfilePage() {
                   size="sm"
                   className="w-10 h-10 absolute right-0 bottom-0"
                   onClick={() => {
-                    document.getElementById('image-input')?.click();
+                    document.getElementById("image-input")?.click();
                   }}
                 >
                   +
@@ -120,33 +154,50 @@ function EditProfilePage() {
               </div>
             </div>
 
-            <label htmlFor="name" className="block text-foreground font-medium mb-2 text-sm">
+            <label
+              htmlFor="name"
+              className="block text-foreground font-medium mb-2 text-sm"
+            >
               Organization / Person name
             </label>
             <Input
-              {...register('name', { required: 'Organization Name is required.' })}
+              {...register("name", {
+                required: "Organization Name is required.",
+              })}
               id="name"
               type="text"
               placeholder="Input text"
               className="mb-2 h-10"
             />
-            <span className="block text-sm text-[#71717A] mb-10">This is an input description</span>
+            <span className="block text-sm text-[#71717A] mb-10">
+              This is an input description
+            </span>
 
-            <label htmlFor="description" className="block text-foreground font-medium mb-2 text-sm">
+            <label
+              htmlFor="description"
+              className="block text-foreground font-medium mb-2 text-sm"
+            >
               Description
             </label>
             <Textarea
-              {...register('description')}
+              {...register("description")}
               id="description"
               placeholder="Input text"
               className="mb-2 h-10"
             />
-            <span className="block text-sm text-[#71717A] mb-10">This is an input description</span>
+            <span className="block text-sm text-[#71717A] mb-10">
+              This is an input description
+            </span>
 
-            <label htmlFor="description" className="block text-foreground font-medium mb-2 text-sm">
+            <label
+              htmlFor="description"
+              className="block text-foreground font-medium mb-2 text-sm"
+            >
               Wallet
             </label>
-            <span className="block text-sm text-[#71717A] mb-5">This is an input description</span>
+            <span className="block text-sm text-[#71717A] mb-5">
+              This is an input description
+            </span>
             <div className="p-6 mb-10 border bg-muted w-[282px] h-[156px] rounded-lg shadow-sm relative">
               <label
                 htmlFor="description"
@@ -155,29 +206,12 @@ function EditProfilePage() {
                 My Wallet
               </label>
               <span className="block text-sm text-[#71717A] mb-5">
-                {wepinStatus === 'login' ? 'Your wallet is connected' : 'Connect your wallet'}
+                {user ? "Your wallet is connected" : "Connect your wallet"}
               </span>
 
               <Button
-                onClick={async () => {
-                  const user = await wepinSdk.loginWithUI();
-
-                  if (user.status === 'success') {
-                    const accounts = await wepinSdk.getAccounts();
-
-                    await login({
-                      email: user.userInfo?.email ?? '',
-                      userId: user.userInfo?.userId ?? '',
-                      walletId: user.walletId ?? '',
-                      address: accounts?.[0]?.address ?? '',
-                      network: accounts?.[0]?.network ?? '',
-                    });
-
-                    notify('Successfully logged in', 'success');
-                    navigate('/profile');
-                  }
-                }}
-                disabled={wepinStatus === 'login'}
+                onClick={login}
+                disabled={user !== null}
                 className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-9 w-[133px] absolute bottom-6 right-6 text-xs"
               >
                 Connect wallet <Wallet />
@@ -221,7 +255,7 @@ function EditProfilePage() {
                 </div>
               ))}
               <Button
-                onClick={() => setLinks((prev) => [...prev, ''])}
+                onClick={() => setLinks((prev) => [...prev, ""])}
                 type="button"
                 variant="outline"
                 size="sm"
@@ -231,7 +265,10 @@ function EditProfilePage() {
               </Button>
             </label>
 
-            <Button disabled={isNoChanges} className="w-[153px] h-[44px] ml-auto block mb-[83px]">
+            <Button
+              disabled={isNoChanges}
+              className="w-[153px] h-[44px] ml-auto block mb-[83px]"
+            >
               Save Changes
             </Button>
           </div>

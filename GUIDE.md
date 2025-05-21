@@ -1,14 +1,14 @@
-
 # Ludium Portal Frontend
 
 The Lidium Platform built with React, Tailwind, Shadcn.
 
 ## 🚀 Features
+
 - **React** – Component-based UI library for building interactive interfaces.
 - **Vite** – Lightning-fast build tool for instant development experience.
-- **Tailwind CSS** – Utility-first CSS framework for rapid styling.  
-- **Shadcn** – Pre-built, customizable UI components for modern design.  
-- **Apollo Client** – Powerful GraphQL client for efficient data fetching and state management.  
+- **Tailwind CSS** – Utility-first CSS framework for rapid styling.
+- **Shadcn** – Pre-built, customizable UI components for modern design.
+- **Apollo Client** – Powerful GraphQL client for efficient data fetching and state management.
 - **Wepin SDK** – Web3 authentication and wallet integration for seamless user experience.
 - **TypeScript** for type safety
 - **Biome** for code formatting and linting
@@ -20,26 +20,30 @@ The Lidium Platform built with React, Tailwind, Shadcn.
 ## 🛠️ Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/Ludium-Official/ludium-portal.git
    cd ludium-portal
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
 
 3. Create environment file:
+
    ```bash
    cp .env.example .env
    ```
 
 4. Update the `.env` file with your configuration:
    ```env
-   VITE_WEPIN_APP_ID={APP_ID}
-   VITE_WEPIN_APP_KEY={APP_KEY}
    VITE_SERVER_URL={backend_url}
+   VITE_EDUCHAIN_CONTRACT_ADDRESS={EDUCHAIN_CONTRACT_ADDRESS}
+   VITE_BASE_CONTRACT_ADDRESS={BASE_CONTRACT_ADDRESS}
+   VITE_PRIVY_APP_ID={PRIVY_APP_ID}
    ```
 
 ## 📚 Available Scripts
@@ -68,6 +72,7 @@ src/
 ## 👥 User Roles
 
 The system supports four user roles:
+
 - **Admin**: Full system access
 - **Sponsor**: Can create and manage programs
 - **Validator**: Can validate programs and create milestones
@@ -83,7 +88,6 @@ The system supports four user roles:
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
-
 
 ## 📝 Naming convention
 
@@ -155,7 +159,9 @@ import config from "../../../config";
 ## 📝 Application Flow Instructions
 
 ### **Sponsors**
+
 Sponsors can create programs. To create a program:
+
 1. Go to the **Programs** tab.
 2. Click on the **Create Program** button.
 3. Fill in all the required fields.
@@ -164,21 +170,28 @@ Sponsors can create programs. To create a program:
 6. The program must then be published by a **Validator**.
 
 ### **Validators**
+
 Validators have the following responsibilities:
 
 #### **Publishing a Program**
+
 To publish a program:
+
 1. Navigate to the program's page.
 2. Click the **Confirm** button.
 
 #### **Selecting an Application**
+
 Validators can select applications submitted by Builders for a program:
+
 1. Go to the program's page.
 2. Locate the list of applications.
 3. Click **Select** on an application card to approve it for implementation.
 
 #### **Evaluating Milestones**
+
 Validators can review milestones submitted by Builders:
+
 1. Navigate to the program's page.
 2. Locate the relevant application and click **See Details**.
 3. The page will now display only the selected application and its milestones.
@@ -189,18 +202,21 @@ Validators can review milestones submitted by Builders:
 8. If approving the milestone, click **Accept Milestone**—its status will change to **Completed**.
 
 ### **Builders**
+
 Builders can submit applications for programs:
+
 1. Navigate to the program's page.
 2. Click the **Send Application** button.
 3. Fill in the application form, including milestones.
 4. Submit the application.
 
 #### **Submitting Milestones**
+
 Once a validator selects an application, Builders can submit their milestones:
+
 1. Go to the program's page and find the relevant application.
 2. Click **See Details**.
 3. The page will now display only the selected application and its milestones.
 4. Locate the milestone you want to submit and click **Submit Milestone**.
 5. Fill in the milestone submission form.
 6. Click **Submit Milestone** at the bottom of the form.
-

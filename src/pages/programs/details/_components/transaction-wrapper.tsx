@@ -11,7 +11,7 @@ import {
   TransactionStatusLabel,
 } from "@coinbase/onchainkit/transaction";
 import type { ContractFunctionParameters } from "viem";
-import { baseSepolia } from "wagmi/chains";
+import { baseSepolia } from "viem/chains";
 
 export default function TransactionWrapper({
   handleSuccess,

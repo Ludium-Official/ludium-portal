@@ -1,7 +1,5 @@
 import { useLoginMutation } from "@/apollo/mutation/login.generated";
 import { useProfileQuery } from "@/apollo/queries/profile.generated";
-import { wepinSdk } from "@/lib/wepin";
-import type {} from "@wepin/sdk-js";
 import { createContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -104,7 +102,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem("roles");
     // setRoles(null)
     setToken(null);
-    await wepinSdk.logout();
     navigate("/");
   };
 

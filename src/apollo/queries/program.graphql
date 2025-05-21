@@ -83,5 +83,6 @@ query program($id: ID!) {
         url
       }
     }
+    network
   }
 }

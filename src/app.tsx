@@ -1,21 +1,20 @@
-import Layout from '@/components/layout/layout';
-import CommunityPage from '@/pages/community';
-import CreateCommunityPage from '@/pages/community/create';
-import CommunityDetailsPage from '@/pages/community/details';
-import EditCommunityPage from '@/pages/community/edit';
-import UsersPage from '@/pages/community/users';
-import UserDetailsPage from '@/pages/community/users/details';
-import LoginPage from '@/pages/login';
-import MainPage from '@/pages/main';
-import ProfilePage from '@/pages/profile';
-import EditProfilePage from '@/pages/profile/edit';
-import ProgramsPage from '@/pages/programs';
-import CreateProgramPage from '@/pages/programs/create';
-import ProgramDetailsPage from '@/pages/programs/details';
-import ApplicationDetailsPage from '@/pages/programs/details/application-details';
-import EditProgramPage from '@/pages/programs/edit';
-import ScrollWrapper from '@/providers/scroll-wrapper';
-import { Route, Routes } from 'react-router';
+import Layout from "@/components/layout/layout";
+import CommunityPage from "@/pages/community";
+import CreateCommunityPage from "@/pages/community/create";
+import CommunityDetailsPage from "@/pages/community/details";
+import EditCommunityPage from "@/pages/community/edit";
+import UsersPage from "@/pages/community/users";
+import UserDetailsPage from "@/pages/community/users/details";
+import MainPage from "@/pages/main";
+import ProfilePage from "@/pages/profile";
+import EditProfilePage from "@/pages/profile/edit";
+import ProgramsPage from "@/pages/programs";
+import CreateProgramPage from "@/pages/programs/create";
+import ProgramDetailsPage from "@/pages/programs/details";
+import ApplicationDetailsPage from "@/pages/programs/details/application-details";
+import EditProgramPage from "@/pages/programs/edit";
+import ScrollWrapper from "@/providers/scroll-wrapper";
+import { Route, Routes } from "react-router";
 
 function App() {
   return (
@@ -24,7 +23,6 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<MainPage />} />
-          <Route path="login" element={<LoginPage />} />
           <Route path="profile">
             <Route index element={<ProfilePage />} />
             <Route path="edit" element={<EditProfilePage />} />

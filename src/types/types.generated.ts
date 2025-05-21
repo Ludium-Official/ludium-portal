@@ -98,6 +98,7 @@ export type CreateProgramInput = {
   keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
   links?: InputMaybe<Array<LinkInput>>;
   name: Scalars['String']['input'];
+  network?: InputMaybe<Scalars['String']['input']>;
   price: Scalars['String']['input'];
   summary?: InputMaybe<Scalars['String']['input']>;
   validatorId: Scalars['ID']['input'];
@@ -357,9 +358,11 @@ export type Program = {
   keywords?: Maybe<Array<Keyword>>;
   links?: Maybe<Array<Link>>;
   name?: Maybe<Scalars['String']['output']>;
+  network?: Maybe<Scalars['String']['output']>;
   price?: Maybe<Scalars['String']['output']>;
   status?: Maybe<Scalars['String']['output']>;
   summary?: Maybe<Scalars['String']['output']>;
+  txHash?: Maybe<Scalars['String']['output']>;
   validator?: Maybe<User>;
 };
 
@@ -500,6 +503,7 @@ export type UpdateProgramInput = {
   keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
   links?: InputMaybe<Array<LinkInput>>;
   name?: InputMaybe<Scalars['String']['input']>;
+  network?: InputMaybe<Scalars['String']['input']>;
   price?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
   summary?: InputMaybe<Scalars['String']['input']>;

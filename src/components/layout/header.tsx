@@ -1,36 +1,93 @@
-import DevToolsDialog from "@/components/dev-tools-dialog";
-import WalletWrapper from "@/pages/programs/details/_components/wallet-wrapper";
+import { useAuth } from "@/lib/hooks/use-auth";
+import notify from "@/lib/notify";
+import { reduceString } from "@/lib/utils";
 import { usePrivy } from "@privy-io/react-auth";
-
-// 2. Initialization
-// const wepinSdk = new WepinSDK({
-//   appId: import.meta.env.VITE_WEPIN_APP_ID,
-//   appKey: import.meta.env.VITE_WEPIN_APP_KEY,
-// })
-
-// const initWepin = wepinSdk.init({
-//   defaultLanguage: 'en',
-//   defaultCurrency: 'KRW',
-// })
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
+import { Button } from "../ui/button";
 
 function Header() {
-  const { user, authenticated, login, logout } = usePrivy();
-  console.log("user", user?.linkedAccounts[0]);
+  const {
+    user,
+    authenticated,
+    login: privyLogin,
+    logout: privyLogout,
+  } = usePrivy();
+  const { login: authLogin, logout: authLogout } = useAuth();
+  const navigate = useNavigate();
+
+  const walletInfo = user?.wallet;
+
+  const login = async () => {
+    try {
+      const googleInfo = user?.google;
+      const farcasterInfo = user?.farcaster;
+
+      const loginType = (() => {
+        const types = {
+          google: googleInfo,
+          farcaster: farcasterInfo,
+        };
+
+        return (
+          (Object.keys(types) as Array<keyof typeof types>).find(
+            (key) => types[key]
+          ) || "wallet"
+        );
+      })();
+
+      privyLogin();
+
+      if (user && walletInfo) {
+        await authLogin({
+          email:
+            googleInfo?.email || `${walletInfo.address.slice(2, 10)}@mail.com`,
+          userId: `${walletInfo.address.slice(11, 20)}`, // TODO: remove
+          walletId: `${walletInfo.address.slice(21, 30)}`, // TODO: remove
+          address: walletInfo.address,
+          network: "base-sepolia", // TODO: remove
+          // loginType, // TODO: (added in the future)
+        });
+      }
+    } catch (error) {
+      notify("Failed to login", "error");
+      console.error("Failed to login:", error);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      authLogout();
+      privyLogout();
+
+      notify("Successfully logged out", "success");
+      navigate("/");
+    } catch (error) {
+      notify("Error logging out", "error");
+      console.error("Error logging out:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      login();
+    }
+  }, [user]);
 
   return (
     <header className="flex justify-between items-center px-10 py-[14px] border-b">
-      {import.meta.env.VITE_MODE === "local" && <DevToolsDialog />}
       <div />
 
       <div className="flex gap-2">
-        <WalletWrapper
-          className="rounded-md min-w-[83px] p-0 h-10 bg-[#B331FF] hover:bg-[#B331FF]/90 text-white text-[14px]"
-          text="Log in"
-        />
         <div>
-          <button onClick={authenticated ? logout : login}>
-            {authenticated ? "Logout" : "Login"}
-          </button>
+          <Button
+            className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-fit"
+            onClick={authenticated ? logout : login}
+          >
+            {authenticated
+              ? reduceString(walletInfo?.address || "", 6, 6)
+              : "Login"}
+          </Button>
         </div>
       </div>
     </header>

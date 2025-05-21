@@ -28,6 +28,7 @@ export type OnSubmitProgramFunc = (data: {
   validatorId: string;
   links: LinkInput[];
   // isPublish?: boolean;
+  network: string;
 }) => void;
 
 export interface ProgramFormProps {
@@ -51,7 +52,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [selectedValidator, setSelectedValidator] = useState<string>();
   const [links, setLinks] = useState<string[]>([""]);
-  const [network, setNetwork] = useState("EDU");
+  const [network, setNetwork] = useState("educhain");
   const [currency, setCurrency] = useState(data?.program?.currency ?? "ETH");
 
   const { data: keywords } = useKeywordsQuery();
@@ -130,6 +131,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       keywords: selectedKeywords,
       validatorId: selectedValidator ?? "",
       links: links.map((l) => ({ title: l, url: l })),
+      network,
     });
   };
 
@@ -208,7 +210,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
             disabled={isEdit && data?.program?.status !== "draft"}
             value={network}
             onValueChange={setNetwork}
-            className="w-[84px] h-10"
+            className="min-w-[120px] h-10"
           />
           <CurrencySelector
             disabled={isEdit && data?.program?.status !== "draft"}

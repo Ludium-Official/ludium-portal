@@ -14,23 +14,20 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { useContract } from "@/lib/hooks/use-contract";
 import notify from "@/lib/notify";
 import { formatProgramStatus } from "@/lib/utils";
-import type { Program } from "@/types/types.generated";
-import { TransactionResponse } from "@coinbase/onchainkit/transaction";
+import type { Program, User } from "@/types/types.generated";
 import { format } from "date-fns";
-import { ethers } from "ethers";
 import { Settings, TriangleAlert } from "lucide-react";
 import { Link, useParams } from "react-router";
-import { useAccount } from "wagmi";
 import CreateApplicationForm from "./create-application-form";
-import TransactionWrapper from "./transaction-wrapper";
-import WalletWrapper from "./wallet-wrapper";
 
 function MainSection({ program }: { program?: Program | null }) {
-  const { address } = useAccount();
   const { userId } = useAuth();
   const { id } = useParams();
+  const contract = useContract(program?.network || "educhain");
+
   const badgeVariants = ["teal", "orange", "pink"];
 
   const programActionOptions = {
@@ -44,66 +41,29 @@ function MainSection({ program }: { program?: Program | null }) {
   const [publishProgram] = usePublishProgramMutation();
   const [rejectProgram] = useRejectProgramMutation(programActionOptions);
 
-  // const onFiatPayConfirm = async () => {
-  //   setIsPaying(true);
-  //   try {
-  //     if (
-  //       !program?.name ||
-  //       !program?.price ||
-  //       !program?.deadline ||
-  //       !program?.validator?.wallet?.address
-  //     ) {
-  //       throw new Error("Missing required program details");
-  //     }
-
-  //     document.getElementById("pay-dialog-close")?.click();
-
-  //     notify("Wepin Widget Loading", "loading");
-  //   } catch (error) {
-  //     console.error("Error while creating program on blockchain:", error);
-  //     notify("Error while creating program on blockchain", "error");
-  //   } finally {
-  //     setIsPaying(false);
-  //   }
-  // };
-
-  // const onrampBuyUrl = getOnrampBuyUrl({
-  //   projectId: import.meta.env.VITE_PUBLIC_CDP_PROJECT_ID,
-  //   addresses: {
-  //     ["0xC9EeA6AAa688Fa800Ec9706f5B28a8e63dea3eF6"]: ["baseSepolia"],
-  //   },
-  //   assets: [program?.currency ?? "USDT"],
-  //   presetFiatAmount: Number(program?.price) || 0,
-  //   fiatCurrency: "USD",
-  // });
-
-  const handleSuccess = async (response: TransactionResponse) => {
+  const callTx = async () => {
     try {
-      const receipt = response.transactionReceipts[0];
-      const txHash = receipt.transactionHash;
-
-      const eventSignature = ethers.utils.id(
-        "ProgramCreated(uint256,address,address,uint256)"
-      );
-
-      const event = receipt.logs.find(
-        (log) => log.topics[0] === eventSignature
-      );
-
-      if (event) {
-        const programId = ethers.BigNumber.from(event.topics[1]).toNumber();
-
-        await publishProgram({
-          variables: {
-            id: program?.id ?? "",
-            educhainProgramId: programId,
-            txHash,
-          },
+      if (program) {
+        const result = await contract.createProgram({
+          name: program.name as string | undefined,
+          price: program.price as string | undefined,
+          deadline: program.deadline,
+          validatorAddress: program?.validator as User | undefined,
         });
 
-        notify("Program published successfully", "success");
-      } else {
-        notify("Can't found ProgramCreated event", "error");
+        if (result) {
+          await publishProgram({
+            variables: {
+              id: program?.id ?? "",
+              educhainProgramId: result.programId,
+              txHash: result.txHash,
+            },
+          });
+
+          notify("Program published successfully", "success");
+        } else {
+          notify("Program published failed", "error");
+        }
       }
     } catch (error) {
       notify((error as Error).message, "error");
@@ -134,23 +94,25 @@ function MainSection({ program }: { program?: Program | null }) {
               {formatProgramStatus(program)}{" "}
               {program?.creator?.id === userId && (
                 <>
-                  {program && (
-                    <Button
-                      className="h-8 w-12 p-2 bg-[#F8ECFF] text-[#B331FF] text-xs hover:bg-[#F8ECFF]"
-                      onClick={() => {
-                        navigator.clipboard.writeText(
-                          `https://ludium-farcaster.vercel.app/api/programs/${
-                            program.name
-                          }/${id}/${Math.floor(
-                            new Date(program.deadline).getTime() / 1000
-                          )}/${program.price}/${program.currency}`
-                        );
-                        notify("Copied program frame!", "success");
-                      }}
-                    >
-                      Copy
-                    </Button>
-                  )}
+                  {program &&
+                    (program.network === "base" ||
+                      program.network === "base-sepolia") && (
+                      <Button
+                        className="h-8 w-12 p-2 bg-[#F8ECFF] text-[#B331FF] text-xs hover:bg-[#F8ECFF]"
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            `https://ludium-farcaster.vercel.app/api/programs/${
+                              program.name
+                            }/${id}/${Math.floor(
+                              new Date(program.deadline).getTime() / 1000
+                            )}/${program.price}/${program.currency}`
+                          );
+                          notify("Copied program frame!", "success");
+                        }}
+                      >
+                        Copy
+                      </Button>
+                    )}
                   <Link to={`/programs/${program?.id}/edit`}>
                     <Settings className="w-4 h-4" />
                   </Link>
@@ -259,33 +221,7 @@ function MainSection({ program }: { program?: Program | null }) {
                     The amount will be securely stored until you will confirm
                     the completion of the project.
                   </DialogDescription>
-                  {address && program ? (
-                    <TransactionWrapper
-                      buttonText="Yes, Pay now"
-                      handleSuccess={handleSuccess}
-                      functionName="createEduProgram"
-                      args={{
-                        args: [
-                          program.name,
-                          ethers.utils.parseEther(program?.price || "0"),
-                          Math.floor(Math.floor(Date.now()) / 1000),
-                          Math.floor(
-                            Math.floor(new Date(program?.deadline).getTime()) /
-                              1000
-                          ),
-                          program.validator?.wallet?.address,
-                        ],
-                        value: ethers.utils
-                          .parseEther(program?.price || "0")
-                          .toString(),
-                      }}
-                    />
-                  ) : (
-                    <WalletWrapper
-                      className="w-[450px] max-w-full"
-                      text="Sign in to transact"
-                    />
-                  )}
+                  <Button onClick={callTx}>Yex, Pay now</Button>
                 </div>
               </DialogContent>
             </Dialog>

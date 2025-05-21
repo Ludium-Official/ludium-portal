@@ -11,8 +11,10 @@ import {
 import { useEffect, useState } from "react";
 
 export const currencies = [
-  { code: "EDU", icon: <EduIcon /> },
-  { code: "BASE", icon: <EthIcon /> },
+  { code: "educhain", icon: <EduIcon />, display: "EDUChain" },
+  { code: "educhain-testnet", icon: <EduIcon />, display: "EDUChain Testnet" },
+  { code: "base", icon: <EthIcon />, display: "Base" },
+  { code: "base-sepolia", icon: <EthIcon />, display: "Base Sepolia" },
 ];
 
 function NetworkSelector({
@@ -26,7 +28,7 @@ function NetworkSelector({
   onValueChange?: (value: string) => void;
   disabled?: boolean;
 }) {
-  const [selectedCurrency, setSelectedCurrency] = useState(value ?? "EDU");
+  const [selectedCurrency, setSelectedCurrency] = useState(value ?? "educhain");
 
   useEffect(() => {
     onValueChange?.(selectedCurrency);
@@ -42,16 +44,16 @@ function NetworkSelector({
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={disabled}>
         <Button className={className}>
-          {currWithIcon?.icon} {currWithIcon?.code}
+          {currWithIcon?.icon} {currWithIcon?.display}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         {currencies.map((c) => (
           <DropdownMenuItem
-            onClick={() => setSelectedCurrency(c.code)}
             key={c.code}
+            onClick={() => setSelectedCurrency(c.code)}
           >
-            {c.icon} {c.code}
+            {c.icon} {c.display}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

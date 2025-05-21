@@ -20,6 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { useContract } from "@/lib/hooks/use-contract";
 import notify from "@/lib/notify";
 import SubmitMilestoneForm from "@/pages/programs/details/_components/submit-milestone-form";
 import {
@@ -27,16 +28,14 @@ import {
   CheckMilestoneStatus,
   MilestoneStatus,
 } from "@/types/types.generated";
-import { TransactionResponse } from "@coinbase/onchainkit/transaction";
 import { format } from "date-fns";
-import { ethers } from "ethers";
 import { ArrowRight } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router";
-import TransactionWrapper from "./_components/transaction-wrapper";
 
 function ApplicationDetails() {
   const { userId } = useAuth();
   const { id, applicationId } = useParams();
+
   const { data, refetch } = useApplicationQuery({
     variables: {
       id: applicationId ?? "",
@@ -52,7 +51,9 @@ function ApplicationDetails() {
 
   const program = programData?.program;
 
-  const { name, keywords } = program ?? {};
+  const { name, keywords, network } = program ?? {};
+
+  const contract = useContract(network || "educhain");
 
   const applicationMutationParams = {
     onCompleted: () => {
@@ -77,35 +78,36 @@ function ApplicationDetails() {
 
   const badgeVariants = ["teal", "orange", "pink"];
 
-  const handleSuccess = async (
-    response: TransactionResponse,
-    id?: string | null
+  const callTx = async (
+    price?: string | null,
+    applicationId?: string | null
   ) => {
     try {
-      const receipt = response.transactionReceipts[0];
+      if (program) {
+        const tx = await contract.acceptMilestone(
+          Number(program?.educhainProgramId),
+          data?.application?.applicant?.wallet?.address ?? "",
+          price ?? ""
+        );
 
-      const eventSignature = ethers.utils.id(
-        "MilestoneAccepted(uint256,address,uint256)"
-      );
+        if (tx) {
+          await checkMilestone({
+            variables: {
+              input: {
+                id: applicationId ?? "",
+                status: CheckMilestoneStatus.Completed,
+              },
+            },
+            onCompleted: () => {
+              refetch();
+              programRefetch();
+            },
+          });
 
-      const event = receipt.logs.find(
-        (log) => log.topics[0] === eventSignature
-      );
-
-      if (event) {
-        checkMilestone({
-          variables: {
-            input: { id: id ?? "", status: CheckMilestoneStatus.Completed },
-          },
-          onCompleted: () => {
-            refetch();
-            programRefetch();
-          },
-        });
-
-        notify("Milestone accept successfully", "success");
-      } else {
-        notify("Can't found acceptMilestone event", "error");
+          notify("Milestone accept successfully", "success");
+        } else {
+          notify("Can't found acceptMilestone event", "error");
+        }
       }
     } catch (error) {
       notify((error as Error).message, "error");
@@ -315,21 +317,12 @@ function ApplicationDetails() {
                         >
                           Reject Milestone
                         </Button>
-                        <TransactionWrapper
-                          buttonText="Accept Milestone"
-                          handleSuccess={(response) =>
-                            handleSuccess(response, m.id)
-                          }
-                          functionName="acceptMilestone"
-                          args={{
-                            args: [
-                              Number(program?.educhainProgramId),
-                              data?.application?.applicant?.wallet?.address ??
-                                "",
-                              ethers.utils.parseEther(m.price ?? ""),
-                            ],
-                          }}
-                        />
+                        <Button
+                          className="h-10"
+                          onClick={() => callTx(m.price, m.id)}
+                        >
+                          Accept Milestone
+                        </Button>
                       </div>
                     )}
 
