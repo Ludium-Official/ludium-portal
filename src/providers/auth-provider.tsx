@@ -14,16 +14,12 @@ interface AuthValues {
   isBuilder?: boolean;
   login: ({
     email,
-    userId,
-    walletId,
-    address,
-    network,
+    walletAddress,
+    loginType,
   }: {
-    email: string;
-    userId: string;
-    walletId: string;
-    address: string;
-    network: string;
+    email: string | null;
+    walletAddress: string;
+    loginType: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -68,24 +64,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async ({
     email,
-    userId,
-    walletId,
-    address,
-    network,
+    walletAddress,
+    loginType,
   }: {
-    email: string;
-    userId: string;
-    walletId: string;
-    address: string;
-    network: string;
+    email: string | null;
+    walletAddress: string;
+    loginType: string;
   }) => {
     await loginMutation({
       variables: {
         email,
-        userId,
-        walletId,
-        address,
-        network,
+        walletAddress,
+        loginType,
       },
       onCompleted: (data) => {
         setToken(data.login);

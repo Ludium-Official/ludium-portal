@@ -6,7 +6,7 @@ const defaultOptions = {} as const;
 export type ProfileQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type ProfileQuery = { __typename?: 'Query', profile?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, wallet?: { __typename?: 'Wallet', address?: string | null, network?: string | null, walletId?: string | null } | null } | null };
+export type ProfileQuery = { __typename?: 'Query', profile?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, walletAddress?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null };
 
 
 export const ProfileDocument = gql`
@@ -23,11 +23,7 @@ export const ProfileDocument = gql`
       url
     }
     organizationName
-    wallet {
-      address
-      network
-      walletId
-    }
+    walletAddress
   }
 }
     `;

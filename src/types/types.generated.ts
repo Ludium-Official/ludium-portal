@@ -233,11 +233,9 @@ export type MutationDenyApplicationArgs = {
 
 
 export type MutationLoginArgs = {
-  address?: InputMaybe<Scalars['String']['input']>;
-  email: Scalars['String']['input'];
-  network?: InputMaybe<Scalars['String']['input']>;
-  userId: Scalars['ID']['input'];
-  walletId?: InputMaybe<Scalars['String']['input']>;
+  email?: InputMaybe<Scalars['String']['input']>;
+  loginType: Scalars['String']['input'];
+  walletAddress: Scalars['String']['input'];
 };
 
 
@@ -518,10 +516,12 @@ export type User = {
   firstName?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   image?: Maybe<Scalars['String']['output']>;
+  isAdmin?: Maybe<Scalars['Boolean']['output']>;
   lastName?: Maybe<Scalars['String']['output']>;
   links?: Maybe<Array<Link>>;
+  loginType?: Maybe<Scalars['String']['output']>;
   organizationName?: Maybe<Scalars['String']['output']>;
-  wallet?: Maybe<Wallet>;
+  walletAddress?: Maybe<Scalars['String']['output']>;
 };
 
 export type UserInput = {
@@ -531,8 +531,10 @@ export type UserInput = {
   image?: InputMaybe<Scalars['Upload']['input']>;
   lastName?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
+  loginType?: InputMaybe<Scalars['String']['input']>;
   organizationName?: InputMaybe<Scalars['String']['input']>;
   password: Scalars['String']['input'];
+  walletAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UserUpdateInput = {
@@ -542,12 +544,7 @@ export type UserUpdateInput = {
   image?: InputMaybe<Scalars['Upload']['input']>;
   lastName?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
+  loginType?: InputMaybe<Scalars['String']['input']>;
   organizationName?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type Wallet = {
-  __typename?: 'Wallet';
-  address?: Maybe<Scalars['String']['output']>;
-  network?: Maybe<Scalars['String']['output']>;
-  walletId?: Maybe<Scalars['String']['output']>;
+  walletAddress?: InputMaybe<Scalars['String']['input']>;
 };

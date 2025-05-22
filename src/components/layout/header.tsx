@@ -40,13 +40,9 @@ function Header() {
 
       if (user && walletInfo) {
         await authLogin({
-          email:
-            googleInfo?.email || `${walletInfo.address.slice(2, 10)}@mail.com`,
-          userId: `${walletInfo.address.slice(11, 20)}`, // TODO: remove
-          walletId: `${walletInfo.address.slice(21, 30)}`, // TODO: remove
-          address: walletInfo.address,
-          network: "base-sepolia", // TODO: remove
-          // loginType, // TODO: (added in the future)
+          email: googleInfo?.email || null,
+          walletAddress: walletInfo.address,
+          loginType,
         });
       }
     } catch (error) {

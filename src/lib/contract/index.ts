@@ -54,7 +54,7 @@ class ChainContract {
           ethers.utils.parseEther(program.price || "0"),
           Math.floor(Math.floor(Date.now()) / 1000),
           Math.floor(Math.floor(new Date(program.deadline).getTime()) / 1000),
-          program.validatorAddress?.wallet?.address,
+          program.validatorAddress?.walletAddress,
         ],
       });
 

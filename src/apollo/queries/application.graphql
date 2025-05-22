@@ -12,11 +12,7 @@ query application($id: ID!) {
         url
       }
       organizationName
-      wallet {
-        address
-        network
-        walletId
-      }
+      walletAddress
     }
     content
     id

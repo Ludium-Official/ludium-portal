@@ -36,11 +36,6 @@ query program($id: ID!) {
       lastName
       organizationName
 
-      wallet {
-        address
-        network
-        walletId
-      }
       links {
         title
         url
@@ -72,16 +67,11 @@ query program($id: ID!) {
       lastName
       organizationName
 
-      wallet {
-        address
-        network
-        walletId
-      }
-
       links {
         title
         url
       }
+      walletAddress
     }
     network
   }

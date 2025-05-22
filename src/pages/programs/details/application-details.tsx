@@ -66,7 +66,6 @@ function ApplicationDetails() {
   };
 
   const [checkMilestone] = useCheckMilestoneMutation();
-
   const [approveApplication] = useApproveApplicationMutation(
     applicationMutationParams
   );
@@ -86,7 +85,7 @@ function ApplicationDetails() {
       if (program) {
         const tx = await contract.acceptMilestone(
           Number(program?.educhainProgramId),
-          data?.application?.applicant?.wallet?.address ?? "",
+          data?.application?.applicant?.walletAddress ?? "",
           price ?? ""
         );
 
