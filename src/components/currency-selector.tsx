@@ -1,4 +1,3 @@
-// import EtcIcon from "@/assets/icons/crypto/etc"
 import EduIcon from '@/assets/icons/crypto/edu';
 import EthIcon from '@/assets/icons/crypto/eth';
 import UsdtIcon from '@/assets/icons/crypto/usdt';

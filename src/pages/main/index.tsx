@@ -57,7 +57,6 @@ function MainPage() {
                     </Badge>
                   ))}
                 </div>
-                {/* <span className="font-medium flex gap-2 items-center text-sm">Ongoing {isSponsor && <Link to={`/programs/${program?.id}/edit`}><Settings className="w-4 h-4" /></Link>}</span> */}
               </div>
 
               <div className="flex items-center gap-4 mb-4">

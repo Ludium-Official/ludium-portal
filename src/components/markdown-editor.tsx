@@ -18,7 +18,6 @@ import {
   thematicBreakPlugin,
   toolbarPlugin,
 } from '@mdxeditor/editor';
-// import { headingsPlugin } from '@mdxeditor/editor'
 import '@mdxeditor/editor/style.css';
 import { useEffect, useRef } from 'react';
 
@@ -36,7 +35,6 @@ function MarkdownEditor({
   onChange,
   content,
 }: { onChange: React.Dispatch<React.SetStateAction<string>>; content: string }) {
-  console.log('🚀 ~ content:', content);
   const mdxRef = useRef<MDXEditorMethods>(null);
 
   const debouncedChange = useRef(
@@ -62,7 +60,6 @@ function MarkdownEditor({
       className="border rounded-md shadow-md"
       contentEditableClassName="prose"
       onChange={(value) => debouncedOnChange(value)}
-      // onChange={(value) => debouncedOnChange(value)}
       plugins={[
         headingsPlugin(),
         listsPlugin(),

@@ -170,7 +170,6 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             <span className="font-bold">https://</span>.
           </span>
         )}
-        {/* {extraErrors.validator && <span className="text-red-400 text-sm block">Links is required</span>} */}
       </label>
 
       {milestones.map((m, idx) => (

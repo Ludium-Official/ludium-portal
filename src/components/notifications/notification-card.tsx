@@ -36,7 +36,6 @@ function NotificationCard({ notification }: { notification: Notification }) {
           {typeUpperFirst} {actionUpperFirst}
         </h3>
 
-        {/* {!notification.readAt && <span className="block w-2 h-2 rounded-full bg-red-400" />} */}
         <Button
           className="h-10"
           variant="ghost"

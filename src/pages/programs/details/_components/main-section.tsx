@@ -63,13 +63,9 @@ function MainSection({ program }: { program?: Program | null }) {
       const { programId, txHash } = await eduChain.createProgram({
         name: program.name,
         price: program.price,
-        // keywords: program.keywords?.map((k) => k.name as string) ?? [],
         startTime: Math.floor(Date.now()),
         endTime: Math.floor(new Date(program.deadline).getTime()),
         validatorAddress: program.validator.wallet.address,
-        // summary: program.summary ?? '',
-        // description: program.description ?? '',
-        // links: program.links?.map((l) => l.url as string) ?? [],
       });
 
       await publishProgram({
@@ -135,7 +131,6 @@ function MainSection({ program }: { program?: Program | null }) {
 
         <div className="mb-9">
           <h3 className="text-lg font-bold mb-3">DESCRIPTION</h3>
-          {/* <p className="text-slate-600 text-sm">{program?.description}</p> */}
           {program?.description && <MarkdownPreviewer value={program?.description} />}
         </div>
 

@@ -31,17 +31,14 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
     },
     skip: !isEdit,
   });
-  console.log('🚀 ~ PostForm ~ data:', data);
 
   const [content, setContent] = useState<string>('');
 
   useEffect(() => {
     if (data?.post?.content) {
-      console.log('🚀 ~ useEffect ~ data?.post?.content:', data?.post?.content);
       setContent(data?.post?.content);
     }
   }, [data]);
-  console.log('🚀 ~ PostForm ~ content:', content);
 
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<File>();
@@ -68,13 +65,11 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
   } = useForm({
     values: {
       title: data?.post?.title ?? '',
-      // content: data?.post?.content ?? '',
     },
   });
 
   const onSubmit = (submitData: {
     title: string;
-    // content: string;
   }) => {
     if (extraErrors.keyword) return;
     if (!content.length) return;

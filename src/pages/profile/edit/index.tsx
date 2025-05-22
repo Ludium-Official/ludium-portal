@@ -92,7 +92,6 @@ function EditProfilePage() {
         <section className="w-[60%] px-10 py-5">
           <div>
             <p className="font-medium text-sm mb-2">Profile image</p>
-            {/* <span className="block text-sm text-[#71717A] mb-2">This is an input description</span> */}
             <div className="flex items-end mb-9 gap-12 ">
               <div className="relative">
                 <img
@@ -136,7 +135,6 @@ function EditProfilePage() {
               placeholder="Input text"
               className="mb-5 h-10"
             />
-            {/* <span className="block text-sm text-[#71717A] mb-10">This is an input description</span> */}
 
             <label htmlFor="description" className="block text-foreground font-medium mb-2 text-sm">
               Description
@@ -147,12 +145,10 @@ function EditProfilePage() {
               placeholder="Input text"
               className="mb-5 h-10"
             />
-            {/* <span className="block text-sm text-[#71717A] mb-10">This is an input description</span> */}
 
             <label htmlFor="description" className="block text-foreground font-medium mb-2 text-sm">
               Wallet
             </label>
-            {/* <span className="block text-sm text-[#71717A] mb-5">This is an input description</span> */}
             <div className="p-6 mb-10 border bg-muted w-[282px] h-[156px] rounded-lg shadow-sm relative">
               <label
                 htmlFor="description"

@@ -26,7 +26,6 @@ export type OnSubmitProgramFunc = (data: {
   keywords: string[];
   validatorId: string;
   links: LinkInput[];
-  // isPublish?: boolean;
 }) => void;
 
 export interface ProgramFormProps {
@@ -35,7 +34,6 @@ export interface ProgramFormProps {
 }
 
 function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
-  // const [publish, setPublish] = useState(false)
   const [content, setContent] = useState<string>('');
 
   const { id } = useParams();
@@ -54,7 +52,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   const [currency, setCurrency] = useState(data?.program?.currency ?? 'ETH');
 
   const { data: keywords } = useKeywordsQuery();
-  // const { data: validators } = useUsersByRoleQuery({ variables: { role: "validator" } })
   const { data: validators } = useUsersQuery();
   const [extraErrors, dispatchErrors] = useReducer(extraErrorReducer, {
     keyword: false,
@@ -89,7 +86,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     values: {
       programName: data?.program?.name ?? '',
       price: data?.program?.price ?? '',
-      // description: data?.program?.description ?? '',
       summary: data?.program?.summary ?? '',
     },
   });
@@ -97,7 +93,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   const onSubmit = (submitData: {
     programName: string;
     price: string;
-    // description: string;
     summary: string;
   }) => {
     if (
@@ -112,10 +107,8 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
 
     onSubmitProgram({
       id: data?.program?.id ?? id,
-      // isPublish: publish,
       programName: submitData.programName,
       price: isEdit && data?.program?.status !== 'draft' ? undefined : submitData.price,
-      // description: submitData.description,
       description: content,
       summary: submitData.summary,
       currency:
@@ -154,7 +147,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           className="h-10"
           {...register('programName', { required: true })}
         />
-        {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
         {errors.programName && (
           <span className="text-red-400 text-sm block">Program name is required</span>
         )}
@@ -166,12 +158,10 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           options={keywordOptions ?? []}
           value={selectedKeywords}
           onValueChange={setSelectedKeywords}
-          // defaultValue={selectedKeywords}
           placeholder="Select keywords"
           animation={2}
           maxCount={3}
         />
-        {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
         {extraErrors.keyword && (
           <span className="text-red-400 text-sm block">Keywords is required</span>
         )}
@@ -198,7 +188,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           />
         </div>
 
-        {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
         {errors.price && <span className="text-red-400 text-sm block">Price is required</span>}
         {isEdit && data?.program?.status !== 'draft' && (
           <span className="text-red-400 text-sm block">
@@ -210,7 +199,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       <label htmlFor="deadline" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Deadline</p>
         <DatePicker date={deadline} setDate={setDeadline} disabled={{ before: new Date() }} />
-        {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
         {extraErrors.deadline && (
           <span className="text-red-400 text-sm block">Deadline is required</span>
         )}
@@ -225,27 +213,16 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           className="h-10"
           {...register('summary', { required: true })}
         />
-        {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
         {errors.summary && <span className="text-red-400 text-sm block">Summary is required</span>}
       </label>
 
       <label htmlFor="description" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Description</p>
-        {/* <Textarea
-          id="description"
-          placeholder="Type description"
-          {...register('description', { required: true })}
-        /> */}
 
         <MarkdownEditor onChange={setContent} content={content} />
-        {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
         {!content.length && (
           <span className="text-red-400 text-sm block">Description is required</span>
         )}
-
-        {/* {errors.description && (
-          <span className="text-red-400 text-sm block">Description is required</span>
-        )} */}
       </label>
 
       <label htmlFor="validator" className="space-y-2 block mb-10">
@@ -255,7 +232,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           value={selectedValidator}
           setValue={setSelectedValidator}
         />
-        {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
         {extraErrors.validator && (
           <span className="text-red-400 text-sm block">Validator is required</span>
         )}
@@ -334,10 +310,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           >
             Save
           </Button>
-          {/* <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 min-w-[177px]" type="submit" onClick={() => {
-            setPublish(true)
-            extraValidation()
-          }}>Save and Upload</Button> */}
         </div>
       )}
     </form>

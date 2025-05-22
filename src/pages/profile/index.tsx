@@ -153,9 +153,6 @@ function ProfilePage() {
       <div className="bg-white p-5 rounded-t-2xl">
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="w-full">
-            {/* {roles.map(r => (
-              <TabsTrigger key={r} value={r}>Programs as {r}</TabsTrigger>
-            ))} */}
             <TabsTrigger value={'sponsor'}>Programs as sponsor</TabsTrigger>
             <TabsTrigger value={'validator'}>Programs as validator</TabsTrigger>
             <TabsTrigger value={'builder'}>Programs as builder</TabsTrigger>

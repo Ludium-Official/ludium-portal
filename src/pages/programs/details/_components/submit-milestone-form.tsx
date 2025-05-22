@@ -27,7 +27,6 @@ function SubmitMilestoneForm({
       variables: {
         input: {
           id: milestoneId,
-          // status: MilestoneStatus.RevisionRequested,
           links: links.map((l) => ({ title: l, url: l })),
           description,
         },
@@ -44,7 +43,6 @@ function SubmitMilestoneForm({
 
       <label htmlFor="title">
         <p className="font-medium text-sm">{milestone.title}</p>
-        {/* <Input id="title" /> */}
       </label>
 
       <label htmlFor="description">
@@ -105,7 +103,6 @@ function SubmitMilestoneForm({
             <span className="font-bold">https://</span>.
           </span>
         )}
-        {/* {extraErrors.validator && <span className="text-red-400 text-sm block">Links is required</span>} */}
       </label>
 
       <Button

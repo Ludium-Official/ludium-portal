@@ -29,7 +29,6 @@ export function SearchSelect({
   setValue,
 }: SearchSelectProps) {
   const [open, setOpen] = React.useState(false);
-  // const [value, setValue] = React.useState("")
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

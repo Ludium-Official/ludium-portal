@@ -34,7 +34,6 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
   });
 
   const authorName = `${post?.author?.firstName} ${post?.author?.lastName}`;
-  // const authorInitials = getInitials(authorName);
 
   if (loading && !data) {
     return (
@@ -170,27 +169,10 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
           <div className="w-full">
             <div className="flex justify-between items-center mb-2">
               <h2 className="font-bold text-base line-clamp-1 w-full">{title || 'Community'}</h2>
-              {/* <div className="flex gap-1">
-                {keywords?.slice(0, 1).map((k, i) => (
-                  <Badge
-                    key={k.id}
-                    variant={
-                      badgeVariants[i % badgeVariants.length] as 'default' | 'secondary' | 'purple'
-                    }
-                    className="rounded-full px-2 py-0.5 text-xs"
-                  >
-                    {k.name}
-                  </Badge>
-                ))}
-              </div> */}
             </div>
 
             <p className="text-xs font-bold text-muted-foreground">{authorName}</p>
             <div className="flex items-center justify-between mb-3 w-full">
-              {/* <Avatar className="w-4 h-4 mr-1.5">
-                <AvatarImage src={post?.author?.image || ''} alt={authorName} />
-                <AvatarFallback className="text-[8px]">{authorInitials}</AvatarFallback>
-              </Avatar> */}
               <p className="text-xs text-gray-500 mr-3">
                 {createdAt ? format(new Date(createdAt), 'yyyy.MM.dd') : ''}
               </p>

@@ -193,7 +193,6 @@ const CommunityDetailsPage: React.FC = () => {
               </h2>
               <div className="text-sm text-slate-600 whitespace-pre-line">
                 {data?.post?.content && <MarkdownPreviewer value={data?.post?.content} />}
-                {/* {data?.post?.content} */}
               </div>
             </div>
 
@@ -286,7 +285,6 @@ const CommunityDetailsPage: React.FC = () => {
                         {post.keywords?.[0]?.name}
                       </span>
                     )}
-                    {/* <div className="font-bold mb-0.5">Community</div> */}
                     <h3 className="font-bold">{post.title}</h3>
                     <p className="text-muted-foreground text-xs font-bold">
                       {post.author?.firstName} {post.author?.lastName}

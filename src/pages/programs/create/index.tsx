@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router';
 const CreateProgram: React.FC = () => {
   const navigate = useNavigate();
   const [createProgram] = useCreateProgramMutation();
-  // const [updateProgram] = useUpdateProgramMutation()
 
   const onSubmit: OnSubmitProgramFunc = (args) => {
     createProgram({
@@ -35,7 +34,6 @@ const CreateProgram: React.FC = () => {
 
   return (
     <div className="p-10 pr-[55px] w-[681px]" defaultValue="edit">
-      {/* <EditProgramForm /> */}
       <ProgramForm isEdit={false} onSubmitProgram={onSubmit} />
     </div>
   );

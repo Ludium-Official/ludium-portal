@@ -50,9 +50,7 @@ const ProgramsPage: React.FC = () => {
   const { data } = useProgramsQuery({
     variables: {
       pagination: {
-        // limit: 2,
         limit: PageSize,
-        // offset: (currentPage - 1) * 2,
         offset: (currentPage - 1) * PageSize,
         filter: filter,
         sort: SortEnum.Desc,
@@ -68,8 +66,6 @@ const ProgramsPage: React.FC = () => {
         <TabsList className="">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="my-programs">My programs</TabsTrigger>
-          {/* <TabsTrigger value="by-newest">By newest</TabsTrigger> */}
-          {/* <TabsTrigger value="by-size">By size</TabsTrigger> */}
         </TabsList>
         <div className="h-10 flex items-center gap-3">
           <Input

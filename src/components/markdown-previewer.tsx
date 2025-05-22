@@ -12,17 +12,6 @@ import {
 import '@mdxeditor/editor/style.css';
 
 function MarkdownPreviewer({ value }: { value: string }) {
-  // const mdxEditorRef = useRef<MDXEditorMethods>(null);
-
-  // useEffect(() => {
-  //   if (value) {
-  //     console.log('🚀 ~ useEffect ~ value:', value);
-
-  //     console.log('🚀 ~ useEffect ~ mdxEditorRef.current:', mdxEditorRef.current);
-  //     mdxEditorRef.current?.setMarkdown(value);
-  //   }
-  // }, [value]);
-
   return (
     <MDXEditor
       readOnly

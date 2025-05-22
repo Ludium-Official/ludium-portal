@@ -109,7 +109,6 @@ const CommunityPage: React.FC = () => {
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="by-oldest">By oldest</TabsTrigger>
-              {/* <TabsTrigger value="by-number-of-projects">By number of projects</TabsTrigger> */}
             </TabsList>
           </Tabs>
 
@@ -120,9 +119,6 @@ const CommunityPage: React.FC = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            {/* <Button variant="outline" className="rounded-md flex items-center gap-2 h-10">
-              <ListFilter className="h-4 w-4" /> Filter
-            </Button> */}
             {isAuthed && (
               <Button
                 className="rounded-md bg-purple-500 hover:bg-purple-600 flex items-center gap-2 h-10"

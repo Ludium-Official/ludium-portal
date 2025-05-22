@@ -90,8 +90,6 @@ PaginationEllipsis.displayName = 'PaginationEllipsis';
 const Pagination = ({ totalCount, pageSize }: { totalCount: number; pageSize?: number }) => {
   const totalPages = totalCount ? Math.floor((totalCount - 1) / (pageSize ?? PageSize) + 1) : 0;
 
-  // const navigate = useNavigate();
-
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = Number(searchParams.get('page')) || 1;
 
@@ -100,8 +98,6 @@ const Pagination = ({ totalCount, pageSize }: { totalCount: number; pageSize?: n
 
     newSP.set('page', page.toString());
     setSearchParams(newSP);
-    // setSearchParams({ page: page.toString() });
-    // navigate(`?page=${page}`, { replace: true });
   };
 
   if (totalPages <= 1) {

@@ -17,8 +17,6 @@ export function DatePicker({
   setDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
   disabled?: Matcher | Matcher[] | undefined;
 }) {
-  // const [date, setDate] = React.useState<Date>()
-
   return (
     <Popover>
       <PopoverTrigger asChild>
