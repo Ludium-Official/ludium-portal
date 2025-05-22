@@ -32,11 +32,11 @@ export type Application = {
 };
 
 export enum ApplicationStatus {
-  Approved = 'approved',
+  Accepted = 'accepted',
   Completed = 'completed',
   Pending = 'pending',
   Rejected = 'rejected',
-  Withdrawn = 'withdrawn'
+  Submitted = 'submitted'
 }
 
 export type CheckMilestoneInput = {
@@ -139,15 +139,15 @@ export type Milestone = {
 
 export enum MilestoneStatus {
   Completed = 'completed',
-  Failed = 'failed',
   Pending = 'pending',
-  RevisionRequested = 'revision_requested'
+  Rejected = 'rejected',
+  Submitted = 'submitted'
 }
 
 export type Mutation = {
   __typename?: 'Mutation';
+  acceptApplication?: Maybe<Application>;
   acceptProgram?: Maybe<Program>;
-  approveApplication?: Maybe<Application>;
   checkMilestone?: Maybe<Milestone>;
   createApplication?: Maybe<Application>;
   createComment?: Maybe<Comment>;
@@ -157,13 +157,13 @@ export type Mutation = {
   createUser?: Maybe<User>;
   deleteProgram?: Maybe<Scalars['Boolean']['output']>;
   deleteUser?: Maybe<User>;
-  denyApplication?: Maybe<Application>;
   login?: Maybe<Scalars['String']['output']>;
   markAllNotificationsAsRead?: Maybe<Scalars['Boolean']['output']>;
   markNotificationAsRead?: Maybe<Scalars['Boolean']['output']>;
-  publishProgram?: Maybe<Program>;
+  rejectApplication?: Maybe<Application>;
   rejectProgram?: Maybe<Program>;
   submitMilestone?: Maybe<Milestone>;
+  submitProgram?: Maybe<Program>;
   updateApplication?: Maybe<Application>;
   updateComment?: Maybe<Comment>;
   updateMilestone?: Maybe<Milestone>;
@@ -174,12 +174,12 @@ export type Mutation = {
 };
 
 
-export type MutationAcceptProgramArgs = {
+export type MutationAcceptApplicationArgs = {
   id: Scalars['ID']['input'];
 };
 
 
-export type MutationApproveApplicationArgs = {
+export type MutationAcceptProgramArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -229,11 +229,6 @@ export type MutationDeleteUserArgs = {
 };
 
 
-export type MutationDenyApplicationArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
 export type MutationLoginArgs = {
   address?: InputMaybe<Scalars['String']['input']>;
   email: Scalars['String']['input'];
@@ -248,10 +243,8 @@ export type MutationMarkNotificationAsReadArgs = {
 };
 
 
-export type MutationPublishProgramArgs = {
-  educhainProgramId: Scalars['Int']['input'];
+export type MutationRejectApplicationArgs = {
   id: Scalars['ID']['input'];
-  txHash: Scalars['String']['input'];
 };
 
 
@@ -262,6 +255,13 @@ export type MutationRejectProgramArgs = {
 
 export type MutationSubmitMilestoneArgs = {
   input: SubmitMilestoneInput;
+};
+
+
+export type MutationSubmitProgramArgs = {
+  educhainProgramId: Scalars['Int']['input'];
+  id: Scalars['ID']['input'];
+  txHash: Scalars['String']['input'];
 };
 
 

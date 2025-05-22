@@ -53,8 +53,14 @@ function EditProfilePage() {
   });
 
   const [selectedAvatar, setSelectedAvatar] = useState<File>();
+  const [linksError, setLinksError] = useState(false);
 
   const onSubmit = (data: { description: string; name: string }) => {
+    if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
+      setLinksError(true);
+      return;
+    }
+
     updateProfile({
       variables: {
         input: {
@@ -229,6 +235,12 @@ function EditProfilePage() {
               >
                 Add URL
               </Button>
+              {linksError && (
+                <span className="text-red-400 text-sm block">
+                  The provided link is not valid. All links must begin with{' '}
+                  <span className="font-bold">https://</span>.
+                </span>
+              )}
             </label>
 
             <Button disabled={isNoChanges} className="w-[153px] h-[44px] ml-auto block mb-[83px]">

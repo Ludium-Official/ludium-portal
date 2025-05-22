@@ -1,7 +1,7 @@
 import client from '@/apollo/client';
 import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
-import { usePublishProgramMutation } from '@/apollo/mutation/publish-program.generated';
 import { useRejectProgramMutation } from '@/apollo/mutation/reject-program.generated';
+import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
 import { ProgramDocument } from '@/apollo/queries/program.generated';
 import MarkdownPreviewer from '@/components/markdown-previewer';
 import { Badge } from '@/components/ui/badge';
@@ -40,7 +40,7 @@ function MainSection({ program }: { program?: Program | null }) {
   };
 
   const [acceptProgram] = useAcceptProgramMutation(programActionOptions);
-  const [publishProgram] = usePublishProgramMutation();
+  const [publishProgram] = useSubmitProgramMutation();
   const [rejectProgram] = useRejectProgramMutation(programActionOptions);
 
   const onPayConfirm = async () => {
@@ -244,9 +244,15 @@ function MainSection({ program }: { program?: Program | null }) {
             <p className="text-xs font-bold w-[57px]">Links</p>
             <div>
               {program?.creator?.links?.map((l) => (
-                <p className="text-xs" key={l.url}>
-                  {l.url}
-                </p>
+                <a
+                  href={l?.url ?? ''}
+                  key={l.url}
+                  className="block hover:underline text-slate-600 text-sm"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {l?.url}
+                </a>
               ))}
             </div>
           </div>
@@ -278,9 +284,15 @@ function MainSection({ program }: { program?: Program | null }) {
               <p className="text-xs font-bold w-[57px]">Links</p>
               <div>
                 {program?.validator?.links?.map((l) => (
-                  <p className="text-xs" key={l.url}>
-                    {l.url}
-                  </p>
+                  <a
+                    href={l?.url ?? ''}
+                    key={l.url}
+                    className="block hover:underline text-slate-600 text-sm"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {l?.url}
+                  </a>
                 ))}
               </div>
             </div>

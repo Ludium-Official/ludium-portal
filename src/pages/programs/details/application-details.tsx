@@ -1,6 +1,6 @@
-import { useApproveApplicationMutation } from '@/apollo/mutation/approve-application.generated';
+import { useAcceptApplicationMutation } from '@/apollo/mutation/accept-application.generated';
 import { useCheckMilestoneMutation } from '@/apollo/mutation/check-milestone.generated';
-import { useDenyApplicationMutation } from '@/apollo/mutation/deny-application.generated';
+import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
 import { useApplicationQuery } from '@/apollo/queries/application.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import {
@@ -61,8 +61,8 @@ function ApplicationDetails() {
 
   const [checkMilestone] = useCheckMilestoneMutation();
 
-  const [approveApplication] = useApproveApplicationMutation(applicationMutationParams);
-  const [denyApplication] = useDenyApplicationMutation(applicationMutationParams);
+  const [approveApplication] = useAcceptApplicationMutation(applicationMutationParams);
+  const [denyApplication] = useRejectApplicationMutation(applicationMutationParams);
 
   const navigate = useNavigate();
 
@@ -212,78 +212,83 @@ function ApplicationDetails() {
                     <div className="mb-10">
                       <h2 className="font-bold text-[#18181B] text-sm mb-3">LINKS</h2>
                       {m.links?.map((l) => (
-                        <p key={l.url} className="text-slate-600 text-xs">
-                          {l.url}
-                        </p>
+                        <a
+                          href={l?.url ?? ''}
+                          key={l.url}
+                          className="block hover:underline text-slate-600 text-sm"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {l?.url}
+                        </a>
                       ))}
                     </div>
                   )}
 
-                  {m.status === MilestoneStatus.RevisionRequested &&
-                    program?.validator?.id === userId && (
-                      <div className="flex justify-between">
-                        <Button
-                          className="h-10"
-                          variant="outline"
-                          onClick={() => {
+                  {m.status === MilestoneStatus.Submitted && program?.validator?.id === userId && (
+                    <div className="flex justify-between">
+                      <Button
+                        className="h-10"
+                        variant="outline"
+                        onClick={() => {
+                          checkMilestone({
+                            variables: {
+                              input: { id: m.id ?? '', status: CheckMilestoneStatus.Pending },
+                            },
+                            onCompleted: () => {
+                              refetch();
+                              programRefetch();
+                            },
+                          });
+                        }}
+                      >
+                        Reject Milestone
+                      </Button>
+                      <Button
+                        className="h-10"
+                        onClick={async () => {
+                          try {
+                            if (
+                              !m.id ||
+                              Number.isNaN(
+                                Number(
+                                  program?.educhainProgramId ||
+                                    !data?.application?.applicant?.wallet?.address,
+                                ),
+                              )
+                            ) {
+                              throw new Error('Invalid arguments');
+                            }
+                            const eduChain = new Educhain();
+
+                            notify('Wepin Widget Loading', 'loading');
+                            await eduChain.acceptMilestone(
+                              m.id,
+                              Number(program?.educhainProgramId),
+                              data?.application?.applicant?.wallet?.address ?? '',
+                              m.price ?? '',
+                            );
                             checkMilestone({
                               variables: {
-                                input: { id: m.id ?? '', status: CheckMilestoneStatus.Pending },
+                                input: { id: m.id ?? '', status: CheckMilestoneStatus.Completed },
                               },
                               onCompleted: () => {
                                 refetch();
                                 programRefetch();
                               },
                             });
-                          }}
-                        >
-                          Reject Milestone
-                        </Button>
-                        <Button
-                          className="h-10"
-                          onClick={async () => {
-                            try {
-                              if (
-                                !m.id ||
-                                Number.isNaN(
-                                  Number(
-                                    program?.educhainProgramId ||
-                                      !data?.application?.applicant?.wallet?.address,
-                                  ),
-                                )
-                              ) {
-                                throw new Error('Invalid arguments');
-                              }
-                              const eduChain = new Educhain();
-
-                              notify('Wepin Widget Loading', 'loading');
-                              await eduChain.acceptMilestone(
-                                m.id,
-                                Number(program?.educhainProgramId),
-                                data?.application?.applicant?.wallet?.address ?? '',
-                                m.price ?? '',
-                              );
-                              checkMilestone({
-                                variables: {
-                                  input: { id: m.id ?? '', status: CheckMilestoneStatus.Completed },
-                                },
-                                onCompleted: () => {
-                                  refetch();
-                                  programRefetch();
-                                },
-                              });
-                            } catch (e) {
-                              notify((e as Error).message, 'error');
-                            }
-                          }}
-                        >
-                          Accept Milestone
-                        </Button>
-                      </div>
-                    )}
+                          } catch (e) {
+                            notify((e as Error).message, 'error');
+                          }
+                        }}
+                      >
+                        Accept Milestone
+                      </Button>
+                    </div>
+                  )}
 
                   {m.status === MilestoneStatus.Pending &&
-                    data?.application?.status === ApplicationStatus.Approved &&
+                    data?.application?.status === ApplicationStatus.Accepted &&
                     data?.application?.applicant?.id === userId && (
                       <Dialog>
                         <DialogTrigger asChild>

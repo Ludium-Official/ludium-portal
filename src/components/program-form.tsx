@@ -138,7 +138,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     if (!links?.[0]) dispatchErrors({ type: ExtraErrorActionKind.SET_LINKS_ERROR });
     if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
       dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
-      console.log('invalid link');
     }
   };
 

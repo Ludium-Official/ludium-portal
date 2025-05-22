@@ -1,5 +1,5 @@
-mutation denyApplication($id: ID!) {
-  denyApplication(id: $id) {
+mutation rejectApplication($id: ID!) {
+  rejectApplication(id: $id) {
     content
     id
     links {

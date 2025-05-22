@@ -1,5 +1,5 @@
-mutation approveApplication($id: ID!) {
-  approveApplication(id: $id) {
+mutation acceptApplication($id: ID!) {
+  acceptApplication(id: $id) {
     applicant {
       about
       email

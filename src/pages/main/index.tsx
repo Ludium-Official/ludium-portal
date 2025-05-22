@@ -101,7 +101,7 @@ function MainPage() {
                 >
                   Approved Application{' '}
                   <span className="text-[#FDE047]">
-                    {program.applications?.filter((a) => a.status === ApplicationStatus.Approved)
+                    {program.applications?.filter((a) => a.status === ApplicationStatus.Accepted)
                       .length ?? 0}
                   </span>
                 </Link>

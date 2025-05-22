@@ -1,5 +1,5 @@
-import { useApproveApplicationMutation } from '@/apollo/mutation/approve-application.generated';
-import { useDenyApplicationMutation } from '@/apollo/mutation/deny-application.generated';
+import { useAcceptApplicationMutation } from '@/apollo/mutation/accept-application.generated';
+import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Application } from '@/types/types.generated';
@@ -18,8 +18,8 @@ function ApplicationCard({
   hideSeeDetails?: boolean | null;
   hideControls?: boolean | null;
 }) {
-  const [approveApplication] = useApproveApplicationMutation();
-  const [denyApplication] = useDenyApplicationMutation();
+  const [approveApplication] = useAcceptApplicationMutation();
+  const [denyApplication] = useRejectApplicationMutation();
 
   return (
     <div className="border rounded-xl p-6">
