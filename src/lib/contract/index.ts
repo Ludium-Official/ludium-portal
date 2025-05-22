@@ -1,151 +1,121 @@
-import { wepinProvider } from '@/lib/wepin';
-import { ethers } from 'ethers';
-import contractJson from './contract.json';
+import contractJson from "@/lib/contract/contract.json";
+import { User } from "@/types/types.generated";
+import { usePrivy } from "@privy-io/react-auth";
+import { ethers } from "ethers";
+import type { PublicClient } from "viem";
+import { encodeFunctionData } from "viem";
 
-export const contractAbi = contractJson.abi;
+class ChainContract {
+  private contractAddress: string;
+  private chainId: number;
+  private sendTransaction: ReturnType<typeof usePrivy>["sendTransaction"];
+  private client: PublicClient;
 
-export class Educhain {
-  private contract: ethers.Contract | null = null;
+  constructor(
+    contractAddress: string,
+    chainId: number,
+    sendTransaction: ReturnType<typeof usePrivy>["sendTransaction"],
+    client: PublicClient
+  ) {
+    this.contractAddress = contractAddress;
+    this.chainId = chainId;
+    this.sendTransaction = sendTransaction;
+    this.client = client;
+  }
 
-  private async ensureContract() {
-    if (!this.contract) {
-      this.contract = await this.init();
+  async findReceipt(hash: `0x${string}`, signature: string) {
+    const receipt = await this.client.waitForTransactionReceipt({
+      hash,
+    });
+
+    const eventSignature = ethers.utils.id(signature);
+
+    const event = receipt.logs.find((log) => log.topics[0] === eventSignature);
+
+    if (event) {
+      return ethers.BigNumber.from(event.topics[1]).toNumber();
     }
-    return this.contract;
+
+    return null;
   }
 
-  async init() {
-    const wpnProvider = await wepinProvider.getProvider(import.meta.env.VITE_EDUCHAIN_PROVIDER);
-    const provider = new ethers.providers.Web3Provider(wpnProvider);
-    this.contract = new ethers.Contract(
-      import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS,
-      contractAbi,
-      provider,
-    );
-    const signer = provider.getSigner();
-    const contract = new ethers.Contract(
-      import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS,
-      contractAbi,
-      signer,
-    );
-    return contract;
-  }
-
-  async getProgram(programId: number) {
-    try {
-      if (Number.isNaN(programId)) {
-        throw new Error('Invalid program ID');
-      }
-
-      const contract = await this.ensureContract();
-      const program = await contract.eduPrograms(programId);
-      if (!program || !program.id) {
-        throw new Error('Program not found');
-      }
-
-      return program;
-    } catch (error) {
-      console.error({ error, programId }, 'Failed to retrieve program from blockchain');
-      throw new Error('Program not found or blockchain error occurred');
-    }
-  }
-
-  /* -------------------------- Sponsor methods start ------------------------- */
-  async createProgram(params: {
-    name: string;
-    price: string;
-    startTime: number;
-    endTime: number;
-    validatorAddress: string;
+  async createProgram(program: {
+    name?: string;
+    price?: string;
+    deadline: string;
+    validatorAddress?: User;
   }) {
     try {
-      // Parameter validation
-      if (!params.price || Number.isNaN(Number(params.price)) || Number(params.price) <= 0) {
-        throw new Error('Valid positive price is required');
-      }
+      const data = encodeFunctionData({
+        abi: contractJson.abi,
+        functionName: "createEduProgram",
+        args: [
+          program.name,
+          ethers.utils.parseEther(program.price || "0"),
+          Math.floor(Math.floor(Date.now()) / 1000),
+          Math.floor(Math.floor(new Date(program.deadline).getTime()) / 1000),
+          program.validatorAddress?.walletAddress,
+        ],
+      });
 
-      if (params.startTime >= params.endTime) {
-        throw new Error('Start time must be earlier than end time');
-      }
+      const tx = await this.sendTransaction({
+        to: this.contractAddress,
+        data,
+        value: BigInt(ethers.utils.parseEther(program.price || "0").toString()),
+        chainId: this.chainId,
+      });
 
-      // Current time validation
-      const now = new Date();
-      if (params.startTime < now.getTime()) {
-        throw new Error('Start time cannot be in the past');
-      }
-
-      // Convert price from ETH string to wei
-      const price = ethers.utils.parseEther(params.price);
-
-      // Convert dates to Unix timestamps (seconds)
-      const startTimestamp = Math.floor(params.startTime / 1000);
-      const endTimestamp = Math.floor(params.endTime / 1000);
-
-      // Ensure validator address is available
-      if (!params.validatorAddress) {
-        throw new Error('Validator address not configured');
-      }
-
-      const contract = await this.ensureContract();
-      const tx = await contract.createEduProgram(
-        params.name,
-        price,
-        startTimestamp,
-        endTimestamp,
-        params.validatorAddress,
-        { value: price },
+      const receiptResult = await this.findReceipt(
+        tx.hash,
+        "ProgramCreated(uint256,address,address,uint256)"
       );
 
-      // Wait for transaction confirmation
-      const receipt = await tx.wait();
-
-      // Find the ProgramCreated event
-      const event = receipt.events.find((e: { event: string }) => e.event === 'ProgramCreated');
-
-      if (!event || !event.args || !event.args[0]) {
-        throw new Error('Program creation event not found in transaction receipt');
+      if (receiptResult) {
+        return { txHash: tx.hash, programId: receiptResult };
       }
 
-      // Extract the program ID from the event args
-      const programId = Number(event.args[0]);
-      return { programId, txHash: tx.hash };
+      return null;
     } catch (error) {
-      console.error({ error, params }, 'Failed to create program on blockchain');
-      throw new Error('Program not created due to blockchain error');
+      console.error("Failed to create program:", error);
+      throw error;
     }
   }
-
-  /* -------------------------- Sponsor methods end --------------------------- */
-
-  /* -------------------------- Validator methods start ----------------------- */
 
   async acceptMilestone(
-    milestoneId: string,
     programId: number,
     builderAddress: string,
-    amount: string,
+    amount: string
   ) {
     try {
-      if (!milestoneId || !programId || !builderAddress || !amount) {
-        throw new Error('Invalid milestone ID');
-      }
-
       const reward = ethers.utils.parseEther(amount);
 
-      const contract = await this.ensureContract();
-      const tx = await contract.acceptMilestone(programId, milestoneId, builderAddress, reward);
-      const receipt = await tx.wait();
-      const event = receipt.events.find((e: { event: string }) => e.event === 'MilestoneAccepted');
-      if (!event) {
-        throw new Error('MilestoneAccepted event not found in transaction receipt');
+      const data = encodeFunctionData({
+        abi: contractJson.abi,
+        functionName: "acceptMilestone",
+        args: [programId, builderAddress, reward],
+      });
+
+      const tx = await this.sendTransaction({
+        to: this.contractAddress,
+        data,
+        chainId: this.chainId,
+      });
+
+      const receiptResult = await this.findReceipt(
+        tx.hash,
+        "MilestoneAccepted(uint256,address,uint256)"
+      );
+
+      if (receiptResult) {
+        return { txHash: tx.hash };
       }
 
-      return event;
+      return null;
     } catch (error) {
-      console.error({ error, milestoneId }, 'Failed to accept milestone on blockchain');
-      throw new Error('Milestone not accepted due to blockchain error');
+      console.error("Failed to accept milestone:", error);
+      throw error;
     }
   }
-
-  /* -------------------------- Validator methods end --------------------------- */
 }
+
+export default ChainContract;

@@ -1,0 +1,64 @@
+// import EtcIcon from "@/assets/icons/crypto/etc"
+import EduIcon from "@/assets/icons/crypto/edu";
+import EthIcon from "@/assets/icons/crypto/eth";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useEffect, useState } from "react";
+
+export const currencies = [
+  { code: "educhain", icon: <EduIcon />, display: "EDUChain" },
+  { code: "educhain-testnet", icon: <EduIcon />, display: "EDUChain Testnet" },
+  { code: "base", icon: <EthIcon />, display: "Base" },
+  { code: "base-sepolia", icon: <EthIcon />, display: "Base Sepolia" },
+];
+
+function NetworkSelector({
+  className,
+  value,
+  onValueChange,
+  disabled,
+}: {
+  className: string;
+  value?: string | null;
+  onValueChange?: (value: string) => void;
+  disabled?: boolean;
+}) {
+  const [selectedCurrency, setSelectedCurrency] = useState(value ?? "educhain");
+
+  useEffect(() => {
+    onValueChange?.(selectedCurrency);
+  }, [selectedCurrency]);
+
+  useEffect(() => {
+    value && value !== selectedCurrency && setSelectedCurrency(value);
+  }, [value]);
+
+  const currWithIcon = currencies.find((c) => c.code === selectedCurrency);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild disabled={disabled}>
+        <Button className={className}>
+          {currWithIcon?.icon} {currWithIcon?.display}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        {currencies.map((c) => (
+          <DropdownMenuItem
+            key={c.code}
+            onClick={() => setSelectedCurrency(c.code)}
+          >
+            {c.icon} {c.display}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+export default NetworkSelector;

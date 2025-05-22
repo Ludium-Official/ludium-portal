@@ -8,7 +8,7 @@ export type UserQueryVariables = Types.Exact<{
 }>;
 
 
-export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', about?: string | null, avatar?: any | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, wallet?: { __typename?: 'Wallet', address?: string | null, network?: string | null, walletId?: string | null } | null } | null };
+export type UserQuery = { __typename?: 'Query', user?: { __typename?: 'User', about?: string | null, avatar?: any | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, walletAddress?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null };
 
 
 export const UserDocument = gql`
@@ -26,11 +26,7 @@ export const UserDocument = gql`
       url
     }
     organizationName
-    wallet {
-      address
-      network
-      walletId
-    }
+    walletAddress
   }
 }
     `;

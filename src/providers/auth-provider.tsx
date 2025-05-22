@@ -1,7 +1,5 @@
 import { useLoginMutation } from '@/apollo/mutation/login.generated';
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
-import { wepinSdk } from '@/lib/wepin';
-import type {} from '@wepin/sdk-js';
 import { createContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -16,16 +14,12 @@ interface AuthValues {
   isBuilder?: boolean;
   login: ({
     email,
-    userId,
-    walletId,
-    address,
-    network,
+    walletAddress,
+    loginType,
   }: {
-    email: string;
-    userId: string;
-    walletId: string;
-    address: string;
-    network: string;
+    email: string | null;
+    walletAddress: string;
+    loginType: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -64,18 +58,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async ({
     email,
-    userId,
-    walletId,
-    address,
-    network,
-  }: { email: string; userId: string; walletId: string; address: string; network: string }) => {
+    walletAddress,
+    loginType,
+  }: {
+    email: string | null;
+    walletAddress: string;
+    loginType: string;
+  }) => {
     await loginMutation({
       variables: {
         email,
-        userId,
-        walletId,
-        address,
-        network,
+        walletAddress,
+        loginType,
       },
       onCompleted: (data) => {
         setToken(data.login);
@@ -89,7 +83,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('roles');
     setToken(null);
-    await wepinSdk.logout();
     navigate('/');
   };
 

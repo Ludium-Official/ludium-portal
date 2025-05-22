@@ -19,12 +19,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Educhain } from '@/lib/contract';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import SubmitMilestoneForm from '@/pages/programs/details/_components/submit-milestone-form';
 import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from '@/types/types.generated';
-import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
 import { ArrowRight } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router';
@@ -32,6 +31,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 function ApplicationDetails() {
   const { userId } = useAuth();
   const { id, applicationId } = useParams();
+
   const { data, refetch } = useApplicationQuery({
     variables: {
       id: applicationId ?? '',
@@ -47,7 +47,9 @@ function ApplicationDetails() {
 
   const program = programData?.program;
 
-  const { name, keywords } = program ?? {};
+  const { name, keywords, network } = program ?? {};
+
+  const contract = useContract(network || 'educhain');
 
   const applicationMutationParams = {
     onCompleted: () => {
@@ -67,6 +69,39 @@ function ApplicationDetails() {
   const navigate = useNavigate();
 
   const badgeVariants = ['teal', 'orange', 'pink'];
+
+  const callTx = async (price?: string | null, applicationId?: string | null) => {
+    try {
+      if (program) {
+        const tx = await contract.acceptMilestone(
+          Number(program?.educhainProgramId),
+          data?.application?.applicant?.walletAddress ?? '',
+          price ?? '',
+        );
+
+        if (tx) {
+          await checkMilestone({
+            variables: {
+              input: {
+                id: applicationId ?? '',
+                status: CheckMilestoneStatus.Completed,
+              },
+            },
+            onCompleted: () => {
+              refetch();
+              programRefetch();
+            },
+          });
+
+          notify('Milestone accept successfully', 'success');
+        } else {
+          notify("Can't found acceptMilestone event", 'error');
+        }
+      }
+    } catch (error) {
+      notify((error as Error).message, 'error');
+    }
+  };
 
   return (
     <div className="bg-[#F7F7F7]">
@@ -244,44 +279,7 @@ function ApplicationDetails() {
                       >
                         Reject Milestone
                       </Button>
-                      <Button
-                        className="h-10"
-                        onClick={async () => {
-                          try {
-                            if (
-                              !m.id ||
-                              Number.isNaN(
-                                Number(
-                                  program?.educhainProgramId ||
-                                    !data?.application?.applicant?.wallet?.address,
-                                ),
-                              )
-                            ) {
-                              throw new Error('Invalid arguments');
-                            }
-                            const eduChain = new Educhain();
-
-                            notify('Wepin Widget Loading', 'loading');
-                            await eduChain.acceptMilestone(
-                              m.id,
-                              Number(program?.educhainProgramId),
-                              data?.application?.applicant?.wallet?.address ?? '',
-                              m.price ?? '',
-                            );
-                            checkMilestone({
-                              variables: {
-                                input: { id: m.id ?? '', status: CheckMilestoneStatus.Completed },
-                              },
-                              onCompleted: () => {
-                                refetch();
-                                programRefetch();
-                              },
-                            });
-                          } catch (e) {
-                            notify((e as Error).message, 'error');
-                          }
-                        }}
-                      >
+                      <Button className="h-10" onClick={() => callTx(m.price, m.id)}>
                         Accept Milestone
                       </Button>
                     </div>

@@ -3,6 +3,7 @@ import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
 import CurrencySelector from '@/components/currency-selector';
 import MarkdownEditor from '@/components/markdown-editor';
+import NetworkSelector from '@/components/network-selector';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,8 @@ export type OnSubmitProgramFunc = (data: {
   keywords: string[];
   validatorId: string;
   links: LinkInput[];
+  // isPublish?: boolean;
+  network: string;
 }) => void;
 
 export interface ProgramFormProps {
@@ -49,6 +52,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [selectedValidator, setSelectedValidator] = useState<string>();
   const [links, setLinks] = useState<string[]>(['']);
+  const [network, setNetwork] = useState('educhain');
   const [currency, setCurrency] = useState(data?.program?.currency ?? 'ETH');
 
   const { data: keywords } = useKeywordsQuery();
@@ -119,6 +123,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       keywords: selectedKeywords,
       validatorId: selectedValidator ?? '',
       links: links.map((l) => ({ title: l, url: l })),
+      network,
     });
   };
 
@@ -180,10 +185,17 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
             className="h-10"
             {...register('price', { required: true })}
           />
+          <NetworkSelector
+            disabled={isEdit && data?.program?.status !== 'draft'}
+            value={network}
+            onValueChange={setNetwork}
+            className="min-w-[120px] h-10"
+          />
           <CurrencySelector
             disabled={isEdit && data?.program?.status !== 'draft'}
             value={currency}
             onValueChange={setCurrency}
+            network={network}
             className="w-[84px] h-10"
           />
         </div>

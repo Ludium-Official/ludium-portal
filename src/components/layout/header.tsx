@@ -1,64 +1,84 @@
-import DevToolsDialog from '@/components/dev-tools-dialog';
 import Notifications from '@/components/notifications';
-import { Button } from '@/components/ui/button';
+
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
-
-import { wepinSdk } from '@/lib/wepin';
+import { reduceString } from '@/lib/utils';
+import { usePrivy } from '@privy-io/react-auth';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { Button } from '../ui/button';
 
 function Header() {
+  const { user, authenticated, login: privyLogin, logout: privyLogout } = usePrivy();
+  const { login: authLogin, logout: authLogout } = useAuth();
   const navigate = useNavigate();
-  const { login, isAuthed, logout } = useAuth();
+
+  const walletInfo = user?.wallet;
+
+  const login = async () => {
+    try {
+      const googleInfo = user?.google;
+      const farcasterInfo = user?.farcaster;
+
+      const loginType = (() => {
+        const types = {
+          google: googleInfo,
+          farcaster: farcasterInfo,
+        };
+
+        return (
+          (Object.keys(types) as Array<keyof typeof types>).find((key) => types[key]) || 'wallet'
+        );
+      })();
+
+      privyLogin();
+
+      if (user && walletInfo) {
+        await authLogin({
+          email: googleInfo?.email || null,
+          walletAddress: walletInfo.address,
+          loginType,
+        });
+      }
+    } catch (error) {
+      notify('Failed to login', 'error');
+      console.error('Failed to login:', error);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      authLogout();
+      privyLogout();
+
+      notify('Successfully logged out', 'success');
+      navigate('/');
+    } catch (error) {
+      notify('Error logging out', 'error');
+      console.error('Error logging out:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      login();
+    }
+  }, [user]);
 
   return (
     <header className="flex justify-between items-center px-10 py-[14px] border-b">
-      {import.meta.env.VITE_MODE === 'local' && <DevToolsDialog />}
       <div />
 
       <div className="flex gap-2">
-        {isAuthed ? (
-          <>
-            <Notifications />
-            <Button
-              onClick={() => logout()}
-              variant="ghost"
-              className="rounded-md min-w-[83px] h-10"
-            >
-              Log out
-            </Button>
-            <Button
-              onClick={() => navigate('/profile')}
-              className="rounded-md min-w-[83px] h-10 bg-[#B331FF] hover:bg-[#B331FF]/90"
-            >
-              Profile
-            </Button>
-          </>
-        ) : (
+        {authenticated && <Notifications />}
+        <div>
           <Button
-            className="rounded-md min-w-[83px] h-10"
-            onClick={async () => {
-              const user = await wepinSdk.loginWithUI();
-
-              if (user.status === 'success') {
-                const accounts = await wepinSdk.getAccounts();
-
-                await login({
-                  email: user.userInfo?.email ?? '',
-                  userId: user.userInfo?.userId ?? '',
-                  walletId: user.walletId ?? '',
-                  address: accounts?.[0]?.address ?? '',
-                  network: accounts?.[0]?.network ?? '',
-                });
-
-                notify('Successfully logged in', 'success');
-                navigate('/profile');
-              }
-            }}
+            className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-fit"
+            onClick={authenticated ? logout : login}
           >
-            Log in
+            {authenticated ? reduceString(walletInfo?.address || '', 6, 6) : 'Login'}
           </Button>
-        )}
+        </div>
       </div>
     </header>
   );

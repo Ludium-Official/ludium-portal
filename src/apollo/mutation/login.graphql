@@ -1,11 +1,5 @@
-mutation login(
-  $email: String!
-  $userId: ID!
-  $walletId: String
-  $network: String
-  $address: String
-) {
-  login(email: $email, userId: $userId, walletId: $walletId, network: $network, address: $address)
+mutation login($email: String, $walletAddress: String!, $loginType: String!) {
+  login(email: $email, walletAddress: $walletAddress, loginType: $loginType)
   # token
   # userRoles
 }

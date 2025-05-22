@@ -1,11 +1,11 @@
-import client from '@/apollo/client';
-import { useUpdateProgramMutation } from '@/apollo/mutation/update-program.generated';
-import { ProgramDocument } from '@/apollo/queries/program.generated';
-import { ProgramsDocument } from '@/apollo/queries/programs.generated';
-import type { OnSubmitProgramFunc } from '@/components/program-form';
-import ProgramForm from '@/components/program-form';
-import notify from '@/lib/notify';
-import { useNavigate, useParams } from 'react-router';
+import client from "@/apollo/client";
+import { useUpdateProgramMutation } from "@/apollo/mutation/update-program.generated";
+import { ProgramDocument } from "@/apollo/queries/program.generated";
+import { ProgramsDocument } from "@/apollo/queries/programs.generated";
+import type { OnSubmitProgramFunc } from "@/components/program-form";
+import ProgramForm from "@/components/program-form";
+import notify from "@/lib/notify";
+import { useNavigate, useParams } from "react-router";
 
 const EditProgram: React.FC = () => {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ const EditProgram: React.FC = () => {
     updateProgram({
       variables: {
         input: {
-          id: args.id ?? '',
+          id: args.id ?? "",
           name: args.programName,
           price: args.price,
           description: args.description,
@@ -28,10 +28,11 @@ const EditProgram: React.FC = () => {
           keywords: args.keywords,
           validatorId: args.validatorId,
           links: args.links,
+          network: args.network,
         },
       },
       onCompleted: () => {
-        notify('Program successfully updated.');
+        notify("Program successfully updated.");
         client.refetchQueries({ include: [ProgramsDocument, ProgramDocument] });
         navigate(`/programs/${id}`);
       },

@@ -11,11 +11,6 @@ query profile {
       url
     }
     organizationName
-
-    wallet {
-      address
-      network
-      walletId
-    }
+    walletAddress
   }
 }

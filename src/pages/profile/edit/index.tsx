@@ -8,8 +8,7 @@ import { useUpdateProfileMutation } from '@/apollo/mutation/updateProfile.genera
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
-import { wepinSdk } from '@/lib/wepin';
-import type { WepinLifeCycle } from '@wepin/sdk-js';
+import { usePrivy } from '@privy-io/react-auth';
 import { Wallet, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -17,18 +16,8 @@ import { useNavigate } from 'react-router';
 function EditProfilePage() {
   const navigate = useNavigate();
 
-  const { login } = useAuth();
-  const [wepinStatus, setWepinStatus] = useState<WepinLifeCycle>();
-
-  useEffect(() => {
-    const checkWepinStatus = async () => {
-      const status = await wepinSdk.getStatus();
-      setWepinStatus(status);
-    };
-
-    checkWepinStatus();
-    setInterval(checkWepinStatus, 5000);
-  }, []);
+  const { login: authLogin } = useAuth();
+  const { user, login: privyLogin } = usePrivy();
 
   const { data: profileData, refetch } = useProfileQuery({
     fetchPolicy: 'network-only',
@@ -45,7 +34,10 @@ function EditProfilePage() {
 
   const [updateProfile] = useUpdateProfileMutation();
 
-  const { register, handleSubmit, watch } = useForm<{ description: string; name: string }>({
+  const { register, handleSubmit, watch } = useForm<{
+    description: string;
+    name: string;
+  }>({
     values: {
       description: profileData?.profile?.about ?? '',
       name: profileData?.profile?.organizationName ?? '',
@@ -85,6 +77,39 @@ function EditProfilePage() {
     profileData?.profile?.organizationName === watch('name') &&
     profileData?.profile?.about === watch('description') &&
     JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links);
+
+  const walletInfo = user?.wallet;
+
+  const login = async () => {
+    try {
+      const googleInfo = user?.google;
+      const farcasterInfo = user?.farcaster;
+
+      const loginType = (() => {
+        const types = {
+          google: googleInfo,
+          farcaster: farcasterInfo,
+        };
+
+        return (
+          (Object.keys(types) as Array<keyof typeof types>).find((key) => types[key]) || 'wallet'
+        );
+      })();
+
+      privyLogin();
+
+      if (user && walletInfo) {
+        await authLogin({
+          email: googleInfo?.email || null,
+          walletAddress: walletInfo.address,
+          loginType,
+        });
+      }
+    } catch (error) {
+      notify('Failed to login', 'error');
+      console.error('Failed to login:', error);
+    }
+  };
 
   return (
     <div>
@@ -129,7 +154,9 @@ function EditProfilePage() {
               Organization / Person name
             </label>
             <Input
-              {...register('name', { required: 'Organization Name is required.' })}
+              {...register('name', {
+                required: 'Organization Name is required.',
+              })}
               id="name"
               type="text"
               placeholder="Input text"
@@ -157,29 +184,12 @@ function EditProfilePage() {
                 My Wallet
               </label>
               <span className="block text-sm text-[#71717A] mb-5">
-                {wepinStatus === 'login' ? 'Your wallet is connected' : 'Connect your wallet'}
+                {user ? 'Your wallet is connected' : 'Connect your wallet'}
               </span>
 
               <Button
-                onClick={async () => {
-                  const user = await wepinSdk.loginWithUI();
-
-                  if (user.status === 'success') {
-                    const accounts = await wepinSdk.getAccounts();
-
-                    await login({
-                      email: user.userInfo?.email ?? '',
-                      userId: user.userInfo?.userId ?? '',
-                      walletId: user.walletId ?? '',
-                      address: accounts?.[0]?.address ?? '',
-                      network: accounts?.[0]?.network ?? '',
-                    });
-
-                    notify('Successfully logged in', 'success');
-                    navigate('/profile');
-                  }
-                }}
-                disabled={wepinStatus === 'login'}
+                onClick={login}
+                disabled={user !== null}
                 className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-9 w-[133px] absolute bottom-6 right-6 text-xs"
               >
                 Connect wallet <Wallet />

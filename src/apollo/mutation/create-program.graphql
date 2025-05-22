@@ -12,5 +12,6 @@ mutation createProgram($input: CreateProgramInput!) {
     price
     status
     summary
+    network
   }
 }

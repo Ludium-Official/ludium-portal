@@ -12,10 +12,6 @@ query user($id: ID!) {
       url
     }
     organizationName
-    wallet {
-      address
-      network
-      walletId
-    }
+    walletAddress
   }
 }

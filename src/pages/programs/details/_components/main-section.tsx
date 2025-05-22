@@ -14,23 +14,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Educhain } from '@/lib/contract';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import { formatProgramStatus } from '@/lib/utils';
-import type { Program } from '@/types/types.generated';
+import type { Program, User } from '@/types/types.generated';
 import { format } from 'date-fns';
-import { Loader2, Settings, TriangleAlert } from 'lucide-react';
-import { useState } from 'react';
+import { Settings, TriangleAlert } from 'lucide-react';
 import { Link, useParams } from 'react-router';
 import CreateApplicationForm from './create-application-form';
 
 function MainSection({ program }: { program?: Program | null }) {
   const { userId } = useAuth();
   const { id } = useParams();
-  const badgeVariants = ['teal', 'orange', 'pink'];
+  const contract = useContract(program?.network || 'educhain');
 
-  const [isPaying, setIsPaying] = useState(false);
+  const badgeVariants = ['teal', 'orange', 'pink'];
 
   const programActionOptions = {
     variables: { id: program?.id ?? id ?? '' },
@@ -43,39 +42,32 @@ function MainSection({ program }: { program?: Program | null }) {
   const [publishProgram] = useSubmitProgramMutation();
   const [rejectProgram] = useRejectProgramMutation(programActionOptions);
 
-  const onPayConfirm = async () => {
-    setIsPaying(true);
+  const callTx = async () => {
     try {
-      const eduChain = new Educhain();
+      if (program) {
+        const result = await contract.createProgram({
+          name: program.name as string | undefined,
+          price: program.price as string | undefined,
+          deadline: program.deadline,
+          validatorAddress: program?.validator as User | undefined,
+        });
 
-      if (
-        !program?.name ||
-        !program?.price ||
-        !program?.deadline ||
-        !program?.validator?.wallet?.address
-      ) {
-        throw new Error('Missing required program details');
+        if (result) {
+          await publishProgram({
+            variables: {
+              id: program?.id ?? '',
+              educhainProgramId: result.programId,
+              txHash: result.txHash,
+            },
+          });
+
+          notify('Program published successfully', 'success');
+        } else {
+          notify('Program published failed', 'error');
+        }
       }
-
-      document.getElementById('pay-dialog-close')?.click();
-
-      notify('Wepin Widget Loading', 'loading');
-      const { programId, txHash } = await eduChain.createProgram({
-        name: program.name,
-        price: program.price,
-        startTime: Math.floor(Date.now()),
-        endTime: Math.floor(new Date(program.deadline).getTime()),
-        validatorAddress: program.validator.wallet.address,
-      });
-
-      await publishProgram({
-        variables: { id: program.id ?? '', educhainProgramId: programId, txHash },
-      });
     } catch (error) {
-      console.error('Error while creating program on blockchain:', error);
-      notify('Error while creating program on blockchain', 'error');
-    } finally {
-      setIsPaying(false);
+      notify((error as Error).message, 'error');
     }
   };
 
@@ -99,9 +91,29 @@ function MainSection({ program }: { program?: Program | null }) {
             <span className="font-medium flex gap-2 items-center text-sm">
               {formatProgramStatus(program)}{' '}
               {program?.creator?.id === userId && (
-                <Link to={`/programs/${program?.id}/edit`}>
-                  <Settings className="w-4 h-4" />
-                </Link>
+                <>
+                  {program &&
+                    (program.network === 'base' || program.network === 'base-sepolia') && (
+                      <Button
+                        className="h-8 w-12 p-2 bg-[#F8ECFF] text-[#B331FF] text-xs hover:bg-[#F8ECFF]"
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            `https://ludium-farcaster.vercel.app/api/programs/${
+                              program.name
+                            }/${id}/${Math.floor(
+                              new Date(program.deadline).getTime() / 1000,
+                            )}/${program.price}/${program.currency}`,
+                          );
+                          notify('Copied program frame!', 'success');
+                        }}
+                      >
+                        Copy
+                      </Button>
+                    )}
+                  <Link to={`/programs/${program?.id}/edit`}>
+                    <Settings className="w-4 h-4" />
+                  </Link>
+                </>
               )}
             </span>
           </div>
@@ -204,9 +216,7 @@ function MainSection({ program }: { program?: Program | null }) {
                   The amount will be securely stored until you will confirm the completion of the
                   project.
                 </DialogDescription>
-                <Button disabled={isPaying} className="w-full" onClick={onPayConfirm}>
-                  {isPaying ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Yes, Pay now'}
-                </Button>
+                <Button onClick={callTx}>Yex, Pay now</Button>
               </div>
             </DialogContent>
           </Dialog>

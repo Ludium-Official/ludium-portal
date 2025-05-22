@@ -7,11 +7,10 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import { cn } from '@/lib/utils';
-import { wepinSdk } from '@/lib/wepin';
-import type { WepinLifeCycle } from '@wepin/sdk-js';
+import { usePrivy } from '@privy-io/react-auth';
 import { ArrowRight, Settings, Wallet } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useState } from 'react';
+import { Link } from 'react-router';
 
 function ProfilePage() {
   const roles = JSON.parse(localStorage.getItem('roles') ?? '[]') as string[];
@@ -24,20 +23,8 @@ function ProfilePage() {
     builder: 'applicantId',
   };
 
-  const navigate = useNavigate();
-
-  const { login } = useAuth();
-  const [wepinStatus, setWepinStatus] = useState<WepinLifeCycle>();
-
-  useEffect(() => {
-    const checkWepinStatus = async () => {
-      const status = await wepinSdk.getStatus();
-      setWepinStatus(status);
-    };
-
-    checkWepinStatus();
-    setInterval(checkWepinStatus, 5000);
-  }, []);
+  const { login: authLogin } = useAuth();
+  const { user, login: privyLogin } = usePrivy();
 
   const { data: profileData } = useProfileQuery({
     fetchPolicy: 'network-only',
@@ -58,6 +45,39 @@ function ProfilePage() {
     },
     skip: !profileData?.profile?.id,
   });
+
+  const walletInfo = user?.wallet;
+
+  const login = async () => {
+    try {
+      const googleInfo = user?.google;
+      const farcasterInfo = user?.farcaster;
+
+      const loginType = (() => {
+        const types = {
+          google: googleInfo,
+          farcaster: farcasterInfo,
+        };
+
+        return (
+          (Object.keys(types) as Array<keyof typeof types>).find((key) => types[key]) || 'wallet'
+        );
+      })();
+
+      privyLogin();
+
+      if (user && walletInfo) {
+        await authLogin({
+          email: googleInfo?.email || null,
+          walletAddress: walletInfo.address,
+          loginType,
+        });
+      }
+    } catch (error) {
+      notify('Failed to login', 'error');
+      console.error('Failed to login:', error);
+    }
+  };
 
   return (
     <div className="bg-[#F7F7F7]">
@@ -91,38 +111,21 @@ function ProfilePage() {
             <span
               className={cn(
                 'block text-sm text-[#71717A] mb-5',
-                !!profileData?.profile?.wallet?.address && 'mb-2',
+                !!profileData?.profile?.walletAddress && 'mb-2',
               )}
             >
-              {wepinStatus === 'login' ? 'Your wallet is connected' : 'Connect your wallet'}
+              {user ? 'Your wallet is connected' : 'Connect your wallet'}
             </span>
-            {profileData?.profile?.wallet?.address && (
-              <p className="text-xs text-[#71717A] mb-5">{profileData?.profile?.wallet?.address}</p>
+            {profileData?.profile?.walletAddress && (
+              <p className="text-xs text-[#71717A] mb-5">{profileData?.profile?.walletAddress}</p>
             )}
 
             <Button
-              onClick={async () => {
-                const user = await wepinSdk.loginWithUI();
-
-                if (user.status === 'success') {
-                  const accounts = await wepinSdk.getAccounts();
-
-                  await login({
-                    email: user.userInfo?.email ?? '',
-                    userId: user.userInfo?.userId ?? '',
-                    walletId: user.walletId ?? '',
-                    address: accounts?.[0]?.address ?? '',
-                    network: accounts?.[0]?.network ?? '',
-                  });
-
-                  notify('Successfully logged in', 'success');
-                  navigate('/profile');
-                }
-              }}
-              disabled={wepinStatus === 'login'}
+              onClick={login}
+              disabled={user !== null}
               className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-9 w-[133px] ml-auto flex text-xs"
             >
-              {wepinStatus === 'login' ? 'Connected' : 'Connect wallet'} <Wallet />
+              {user ? 'Connected' : 'Connect wallet'} <Wallet />
             </Button>
           </div>
 
