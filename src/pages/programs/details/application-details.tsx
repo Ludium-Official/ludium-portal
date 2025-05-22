@@ -24,6 +24,7 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import SubmitMilestoneForm from '@/pages/programs/details/_components/submit-milestone-form';
 import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from '@/types/types.generated';
+import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
 import { ArrowRight } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router';
@@ -125,10 +126,9 @@ function ApplicationDetails() {
           <div className="mb-6">
             <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
               <span className="inline-block mr-2">
-                {data?.application?.milestones?.reduce(
-                  (prev, curr) => prev + (Number(curr?.price) ?? 0),
-                  0,
-                )}{' '}
+                {data?.application?.milestones
+                  ?.reduce((prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)), BigNumber(0, 10))
+                  .toFixed()}{' '}
                 {program?.currency}
               </span>
               <span className="h-3 border-l border-[#B331FF] inline-block" />

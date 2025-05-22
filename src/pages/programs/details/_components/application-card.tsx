@@ -3,6 +3,7 @@ import { useDenyApplicationMutation } from '@/apollo/mutation/deny-application.g
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Application } from '@/types/types.generated';
+import BigNumber from 'bignumber.js';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
 
@@ -39,8 +40,10 @@ function ApplicationCard({
       </div>
       <div className="mb-6">
         <span className="text-xs text-muted-foreground">
-          {application?.milestones?.reduce((prev, curr) => prev + (Number(curr?.price) ?? 0), 0)}{' '}
-          {application?.milestones?.[0]?.currency} | DEADLINE 30, MAR, 2025
+          {application?.milestones
+            ?.reduce((prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)), BigNumber(0, 10))
+            .toFixed()}{' '}
+          {application?.milestones?.[0]?.currency}
         </span>
       </div>
       <div className="flex justify-between">

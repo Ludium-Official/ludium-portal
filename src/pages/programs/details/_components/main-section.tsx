@@ -3,6 +3,7 @@ import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.gener
 import { usePublishProgramMutation } from '@/apollo/mutation/publish-program.generated';
 import { useRejectProgramMutation } from '@/apollo/mutation/reject-program.generated';
 import { ProgramDocument } from '@/apollo/queries/program.generated';
+import MarkdownPreviewer from '@/components/markdown-previewer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -134,7 +135,8 @@ function MainSection({ program }: { program?: Program | null }) {
 
         <div className="mb-9">
           <h3 className="text-lg font-bold mb-3">DESCRIPTION</h3>
-          <p className="text-slate-600 text-sm">{program?.description}</p>
+          {/* <p className="text-slate-600 text-sm">{program?.description}</p> */}
+          {program?.description && <MarkdownPreviewer value={program?.description} />}
         </div>
 
         <div className="mb-9">

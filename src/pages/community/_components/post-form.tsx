@@ -1,10 +1,10 @@
 import { useKeywordsQuery } from '@/apollo/queries/keywords.generated';
 import { usePostQuery } from '@/apollo/queries/post.generated';
+import MarkdownEditor from '@/components/markdown-editor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { Textarea } from '@/components/ui/textarea';
 import { useEffect, useReducer, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
@@ -31,6 +31,17 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
     },
     skip: !isEdit,
   });
+  console.log('🚀 ~ PostForm ~ data:', data);
+
+  const [content, setContent] = useState<string>('');
+
+  useEffect(() => {
+    if (data?.post?.content) {
+      console.log('🚀 ~ useEffect ~ data?.post?.content:', data?.post?.content);
+      setContent(data?.post?.content);
+    }
+  }, [data]);
+  console.log('🚀 ~ PostForm ~ content:', content);
 
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<File>();
@@ -57,20 +68,21 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
   } = useForm({
     values: {
       title: data?.post?.title ?? '',
-      content: data?.post?.content ?? '',
+      // content: data?.post?.content ?? '',
     },
   });
 
   const onSubmit = (submitData: {
     title: string;
-    content: string;
+    // content: string;
   }) => {
     if (extraErrors.keyword) return;
+    if (!content.length) return;
 
     onSubmitPost({
       id: data?.post?.id ?? id,
       title: submitData.title,
-      content: submitData.content,
+      content,
       keywords: selectedKeywords,
       image: selectedImage,
     });
@@ -115,13 +127,10 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
 
       <label htmlFor="content" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Content</p>
-        <Textarea
-          id="content"
-          placeholder="Type content"
-          rows={15}
-          {...register('content', { required: true })}
-        />
-        {errors.content && <span className="text-red-400 text-sm block">Content is required</span>}
+
+        <MarkdownEditor onChange={setContent} content={content} />
+
+        {!content.length && <span className="text-red-400 text-sm block">Content is required</span>}
       </label>
 
       <label htmlFor="image" className="space-y-2 block mb-10">

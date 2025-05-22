@@ -159,7 +159,8 @@ export type Mutation = {
   deleteUser?: Maybe<User>;
   denyApplication?: Maybe<Application>;
   login?: Maybe<Scalars['String']['output']>;
-  markNotificationAsRead?: Maybe<Notification>;
+  markAllNotificationsAsRead?: Maybe<Scalars['Boolean']['output']>;
+  markNotificationAsRead?: Maybe<Scalars['Boolean']['output']>;
   publishProgram?: Maybe<Program>;
   rejectProgram?: Maybe<Program>;
   submitMilestone?: Maybe<Milestone>;

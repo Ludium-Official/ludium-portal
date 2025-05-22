@@ -27,7 +27,7 @@ const Sidebar = () => {
   }
 
   return (
-    <aside className="fixed z-50 left-0 w-[216px] h-[calc(100dvh-24px)] mx-3 mb-3 bg-white rounded-2xl">
+    <aside className="fixed z-[2] left-0 w-[216px] h-[calc(100dvh-24px)] mx-3 mb-3 bg-white rounded-2xl">
       <Link to="/" className="mt-6 mx-6 mb-[44px] inline-block">
         <img src={logo} alt="LUDIUM" />
       </Link>

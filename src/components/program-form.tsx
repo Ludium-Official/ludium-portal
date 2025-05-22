@@ -2,12 +2,12 @@ import { useKeywordsQuery } from '@/apollo/queries/keywords.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
 import CurrencySelector from '@/components/currency-selector';
+import MarkdownEditor from '@/components/markdown-editor';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { SearchSelect } from '@/components/ui/search-select';
-import { Textarea } from '@/components/ui/textarea';
 import type { LinkInput } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { X } from 'lucide-react';
@@ -36,6 +36,7 @@ export interface ProgramFormProps {
 
 function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   // const [publish, setPublish] = useState(false)
+  const [content, setContent] = useState<string>('');
 
   const { id } = useParams();
 
@@ -88,7 +89,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     values: {
       programName: data?.program?.name ?? '',
       price: data?.program?.price ?? '',
-      description: data?.program?.description ?? '',
+      // description: data?.program?.description ?? '',
       summary: data?.program?.summary ?? '',
     },
   });
@@ -96,7 +97,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   const onSubmit = (submitData: {
     programName: string;
     price: string;
-    description: string;
+    // description: string;
     summary: string;
   }) => {
     if (
@@ -104,7 +105,8 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       extraErrors.keyword ||
       extraErrors.links ||
       extraErrors.validator ||
-      extraErrors.invalidLink
+      extraErrors.invalidLink ||
+      !content.length
     )
       return;
 
@@ -113,7 +115,8 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       // isPublish: publish,
       programName: submitData.programName,
       price: isEdit && data?.program?.status !== 'draft' ? undefined : submitData.price,
-      description: submitData.description,
+      // description: submitData.description,
+      description: content,
       summary: submitData.summary,
       currency:
         isEdit && data?.program?.status !== 'draft'
@@ -229,15 +232,21 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
 
       <label htmlFor="description" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Description</p>
-        <Textarea
+        {/* <Textarea
           id="description"
           placeholder="Type description"
           {...register('description', { required: true })}
-        />
+        /> */}
+
+        <MarkdownEditor onChange={setContent} content={content} />
         {/* <span className="text-[#71717A] text-sm">This is an input description.</span> */}
-        {errors.description && (
+        {!content.length && (
           <span className="text-red-400 text-sm block">Description is required</span>
         )}
+
+        {/* {errors.description && (
+          <span className="text-red-400 text-sm block">Description is required</span>
+        )} */}
       </label>
 
       <label htmlFor="validator" className="space-y-2 block mb-10">

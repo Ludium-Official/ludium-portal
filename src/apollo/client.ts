@@ -24,27 +24,12 @@ const wsLink = new GraphQLWsLink(
   createClient({
     url: import.meta.env.VITE_SERVER_WS_URL ?? '',
     retryAttempts: Number.POSITIVE_INFINITY,
-    // connectionParams: {
-    //   authToken: `Bearer ${localStorage.getItem('token')}`,
-    //   headers: {
-    //     'Apollo-Require-Preflight': 'true',
-    //     Authorization: `Bearer ${localStorage.getItem('token')}`,
-    //   },
-    // },
-    // connectionParams: () => {
-    //   const token = localStorage.getItem('token');
-
-    //   if (!token) return {};
-
-    //   return {
-    //     // required
-    //     authToken: `Bearer ${localStorage.getItem('token')}`,
-
-    //     headers: {
-    //       Authorization: `Bearer ${token}`,
-    //     },
-    //   };
-    // },
+    connectionParams: () => {
+      const token = localStorage.getItem('token');
+      return {
+        authorization: token ? `Bearer ${token}` : '',
+      };
+    },
 
     shouldRetry: () => {
       return true;
@@ -81,7 +66,7 @@ const splitLink = split(
     const definition = getMainDefinition(query);
     return definition.kind === 'OperationDefinition' && definition.operation === 'subscription';
   },
-  concat(authMiddleware, wsLink),
+  wsLink,
   concat(authMiddleware, httpLink),
 );
 

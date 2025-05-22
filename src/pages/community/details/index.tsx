@@ -2,6 +2,7 @@ import { useCreateCommentMutation } from '@/apollo/mutation/create-comment.gener
 import { useCommentsByPostQuery } from '@/apollo/queries/comments-by-post.generated';
 import { usePostQuery } from '@/apollo/queries/post.generated';
 import { usePostsQuery } from '@/apollo/queries/posts.generated';
+import MarkdownPreviewer from '@/components/markdown-previewer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -191,7 +192,8 @@ const CommunityDetailsPage: React.FC = () => {
                 Content
               </h2>
               <div className="text-sm text-slate-600 whitespace-pre-line">
-                {data?.post?.content}
+                {data?.post?.content && <MarkdownPreviewer value={data?.post?.content} />}
+                {/* {data?.post?.content} */}
               </div>
             </div>
 
