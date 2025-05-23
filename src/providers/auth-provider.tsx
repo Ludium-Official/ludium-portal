@@ -1,7 +1,7 @@
-import { useLoginMutation } from "@/apollo/mutation/login.generated";
-import { useProfileQuery } from "@/apollo/queries/profile.generated";
-import { createContext, useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useLoginMutation } from '@/apollo/mutation/login.generated';
+import { useProfileQuery } from '@/apollo/queries/profile.generated';
+import { createContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 interface AuthValues {
   email?: string | null;
@@ -28,38 +28,32 @@ export const AuthContext = createContext<AuthValues>({
   email: null,
   token: null,
   roles: null,
-  userId: "",
+  userId: '',
   isAuthed: false,
-  // isSponsor: false,
-  // isValidator: false,
-  // isBuilder: false,
   login: async () => {},
   logout: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>();
-  // const [roles, setRoles] = useState<string[] | null>()
   const [email, setEmail] = useState<string | null>();
-  const [userId, setUserId] = useState<string>("");
+  const [userId, setUserId] = useState<string>('');
   const navigate = useNavigate();
 
-  const { data: profileData } = useProfileQuery({
+  const { data: profileData, error } = useProfileQuery({
     skip: !token,
-    fetchPolicy: "network-only",
+    fetchPolicy: 'network-only',
   });
 
   const [loginMutation] = useLoginMutation();
 
   useEffect(() => {
-    setUserId(profileData?.profile?.id ?? "");
+    setUserId(profileData?.profile?.id ?? '');
   }, [profileData]);
 
   useEffect(() => {
-    const tkn = localStorage.getItem("token");
-    // const roles = JSON.parse(localStorage.getItem('roles') ?? "[]")
+    const tkn = localStorage.getItem('token');
     if (tkn) setToken(tkn);
-    // if (roles.length) setRoles(roles)
   }, []);
 
   const login = async ({
@@ -79,30 +73,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       },
       onCompleted: (data) => {
         setToken(data.login);
-        // setRoles(data?.login?.userRoles)
         setEmail(email);
-        localStorage.setItem("token", data.login ?? "");
-        // localStorage.setItem('roles', JSON.stringify(data?.login?.userRoles) ?? "")
+        localStorage.setItem('token', data.login ?? '');
       },
     });
   };
 
   const logout = async () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("roles");
-    // setRoles(null)
+    localStorage.removeItem('token');
+    localStorage.removeItem('roles');
     setToken(null);
-    navigate("/");
+    navigate('/');
   };
 
-  // const isSponsor = !!roles?.find(r => r === 'sponsor')
-  // const isValidator = !!roles?.find(r => r === 'validator')
-  // const isBuilder = !!roles?.find(r => r === 'builder')
+  useEffect(() => {
+    if (error) {
+      console.error('Error fetching profile:', error);
+      logout();
+    }
+  }, [error]);
 
   return (
-    <AuthContext.Provider
-      value={{ userId, email, token, isAuthed: !!token, login, logout }}
-    >
+    <AuthContext.Provider value={{ userId, email, token, isAuthed: !!token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

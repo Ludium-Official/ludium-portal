@@ -15,13 +15,18 @@ function SubmitMilestoneForm({
   const [links, setLinks] = useState<string[]>(['']);
 
   const [submitMutation] = useSubmitMilestoneMutation();
+  const [linksError, setLinksError] = useState(false);
 
   const submitMilestone = (milestoneId: string) => {
+    if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
+      setLinksError(true);
+      return;
+    }
+
     submitMutation({
       variables: {
         input: {
           id: milestoneId,
-          // status: MilestoneStatus.RevisionRequested,
           links: links.map((l) => ({ title: l, url: l })),
           description,
         },
@@ -38,7 +43,6 @@ function SubmitMilestoneForm({
 
       <label htmlFor="title">
         <p className="font-medium text-sm">{milestone.title}</p>
-        {/* <Input id="title" /> */}
       </label>
 
       <label htmlFor="description">
@@ -92,7 +96,13 @@ function SubmitMilestoneForm({
         >
           Add URL
         </Button>
-        {/* {extraErrors.validator && <span className="text-red-400 text-sm block">Links is required</span>} */}
+
+        {linksError && (
+          <span className="text-red-400 text-sm block">
+            The provided link is not valid. All links must begin with{' '}
+            <span className="font-bold">https://</span>.
+          </span>
+        )}
       </label>
 
       <Button

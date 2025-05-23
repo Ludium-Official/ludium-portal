@@ -1,17 +1,17 @@
-import { useProfileQuery } from "@/apollo/queries/profile.generated";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
+import { useProfileQuery } from '@/apollo/queries/profile.generated';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { useForm } from 'react-hook-form';
 
-import { useUpdateProfileMutation } from "@/apollo/mutation/updateProfile.generated";
-import avatarPlaceholder from "@/assets/avatar-placeholder.png";
-import { useAuth } from "@/lib/hooks/use-auth";
-import notify from "@/lib/notify";
-import { usePrivy } from "@privy-io/react-auth";
-import { Wallet, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useUpdateProfileMutation } from '@/apollo/mutation/updateProfile.generated';
+import avatarPlaceholder from '@/assets/avatar-placeholder.png';
+import { useAuth } from '@/lib/hooks/use-auth';
+import notify from '@/lib/notify';
+import { usePrivy } from '@privy-io/react-auth';
+import { Wallet, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 function EditProfilePage() {
   const navigate = useNavigate();
@@ -20,17 +20,17 @@ function EditProfilePage() {
   const { user, login: privyLogin } = usePrivy();
 
   const { data: profileData, refetch } = useProfileQuery({
-    fetchPolicy: "network-only",
+    fetchPolicy: 'network-only',
   });
 
   useEffect(() => {
     const links = profileData?.profile?.links;
     if (links?.length) {
-      setLinks(links?.filter((l) => l)?.map((l) => l.url ?? ""));
+      setLinks(links?.filter((l) => l)?.map((l) => l.url ?? ''));
     }
   }, [profileData]);
 
-  const [links, setLinks] = useState<string[]>([""]);
+  const [links, setLinks] = useState<string[]>(['']);
 
   const [updateProfile] = useUpdateProfileMutation();
 
@@ -39,18 +39,24 @@ function EditProfilePage() {
     name: string;
   }>({
     values: {
-      description: profileData?.profile?.about ?? "",
-      name: profileData?.profile?.organizationName ?? "",
+      description: profileData?.profile?.about ?? '',
+      name: profileData?.profile?.organizationName ?? '',
     },
   });
 
   const [selectedAvatar, setSelectedAvatar] = useState<File>();
+  const [linksError, setLinksError] = useState(false);
 
   const onSubmit = (data: { description: string; name: string }) => {
+    if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
+      setLinksError(true);
+      return;
+    }
+
     updateProfile({
       variables: {
         input: {
-          id: profileData?.profile?.id ?? "",
+          id: profileData?.profile?.id ?? '',
           image: selectedAvatar,
           organizationName: data?.name,
           about: data?.description,
@@ -60,18 +66,17 @@ function EditProfilePage() {
         },
       },
       onCompleted: () => {
-        notify("Profile successfully updated");
+        notify('Profile successfully updated');
         refetch();
-        navigate("/profile");
+        navigate('/profile');
       },
     });
   };
 
   const isNoChanges =
-    profileData?.profile?.organizationName === watch("name") &&
-    profileData?.profile?.about === watch("description") &&
-    JSON.stringify(profileData.profile.links?.map((l) => l.url)) ===
-      JSON.stringify(links);
+    profileData?.profile?.organizationName === watch('name') &&
+    profileData?.profile?.about === watch('description') &&
+    JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links);
 
   const walletInfo = user?.wallet;
 
@@ -87,9 +92,7 @@ function EditProfilePage() {
         };
 
         return (
-          (Object.keys(types) as Array<keyof typeof types>).find(
-            (key) => types[key]
-          ) || "wallet"
+          (Object.keys(types) as Array<keyof typeof types>).find((key) => types[key]) || 'wallet'
         );
       })();
 
@@ -103,8 +106,8 @@ function EditProfilePage() {
         });
       }
     } catch (error) {
-      notify("Failed to login", "error");
-      console.error("Failed to login:", error);
+      notify('Failed to login', 'error');
+      console.error('Failed to login:', error);
     }
   };
 
@@ -114,9 +117,6 @@ function EditProfilePage() {
         <section className="w-[60%] px-10 py-5">
           <div>
             <p className="font-medium text-sm mb-2">Profile image</p>
-            <span className="block text-sm text-[#71717A] mb-2">
-              This is an input description
-            </span>
             <div className="flex items-end mb-9 gap-12 ">
               <div className="relative">
                 <img
@@ -126,7 +126,7 @@ function EditProfilePage() {
                   src={
                     selectedAvatar
                       ? URL.createObjectURL(selectedAvatar)
-                      : profileData?.profile?.image ?? avatarPlaceholder
+                      : (profileData?.profile?.image ?? avatarPlaceholder)
                   }
                   alt="Avatar"
                 />
@@ -142,7 +142,7 @@ function EditProfilePage() {
                   size="sm"
                   className="w-10 h-10 absolute right-0 bottom-0"
                   onClick={() => {
-                    document.getElementById("image-input")?.click();
+                    document.getElementById('image-input')?.click();
                   }}
                 >
                   +
@@ -150,50 +150,32 @@ function EditProfilePage() {
               </div>
             </div>
 
-            <label
-              htmlFor="name"
-              className="block text-foreground font-medium mb-2 text-sm"
-            >
+            <label htmlFor="name" className="block text-foreground font-medium mb-2 text-sm">
               Organization / Person name
             </label>
             <Input
-              {...register("name", {
-                required: "Organization Name is required.",
+              {...register('name', {
+                required: 'Organization Name is required.',
               })}
               id="name"
               type="text"
               placeholder="Input text"
-              className="mb-2 h-10"
+              className="mb-5 h-10"
             />
-            <span className="block text-sm text-[#71717A] mb-10">
-              This is an input description
-            </span>
 
-            <label
-              htmlFor="description"
-              className="block text-foreground font-medium mb-2 text-sm"
-            >
+            <label htmlFor="description" className="block text-foreground font-medium mb-2 text-sm">
               Description
             </label>
             <Textarea
-              {...register("description")}
+              {...register('description')}
               id="description"
               placeholder="Input text"
-              className="mb-2 h-10"
+              className="mb-5 h-10"
             />
-            <span className="block text-sm text-[#71717A] mb-10">
-              This is an input description
-            </span>
 
-            <label
-              htmlFor="description"
-              className="block text-foreground font-medium mb-2 text-sm"
-            >
+            <label htmlFor="description" className="block text-foreground font-medium mb-2 text-sm">
               Wallet
             </label>
-            <span className="block text-sm text-[#71717A] mb-5">
-              This is an input description
-            </span>
             <div className="p-6 mb-10 border bg-muted w-[282px] h-[156px] rounded-lg shadow-sm relative">
               <label
                 htmlFor="description"
@@ -202,7 +184,7 @@ function EditProfilePage() {
                 My Wallet
               </label>
               <span className="block text-sm text-[#71717A] mb-5">
-                {user ? "Your wallet is connected" : "Connect your wallet"}
+                {user ? 'Your wallet is connected' : 'Connect your wallet'}
               </span>
 
               <Button
@@ -251,7 +233,7 @@ function EditProfilePage() {
                 </div>
               ))}
               <Button
-                onClick={() => setLinks((prev) => [...prev, ""])}
+                onClick={() => setLinks((prev) => [...prev, ''])}
                 type="button"
                 variant="outline"
                 size="sm"
@@ -259,12 +241,15 @@ function EditProfilePage() {
               >
                 Add URL
               </Button>
+              {linksError && (
+                <span className="text-red-400 text-sm block">
+                  The provided link is not valid. All links must begin with{' '}
+                  <span className="font-bold">https://</span>.
+                </span>
+              )}
             </label>
 
-            <Button
-              disabled={isNoChanges}
-              className="w-[153px] h-[44px] ml-auto block mb-[83px]"
-            >
+            <Button disabled={isNoChanges} className="w-[153px] h-[44px] ml-auto block mb-[83px]">
               Save Changes
             </Button>
           </div>
