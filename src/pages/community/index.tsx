@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PageSize, Pagination } from '@/components/ui/pagination';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { getInitials } from '@/lib/utils';
@@ -12,6 +13,8 @@ import { ArrowRight, CirclePlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import PostCard from './_components/post-card';
+
+PageSize;
 
 const CommunityPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('all');
@@ -80,8 +83,8 @@ const CommunityPage: React.FC = () => {
   const { data } = usePostsQuery({
     variables: {
       pagination: {
-        limit: 5,
-        offset: (currentPage - 1) * 10,
+        limit: PageSize,
+        offset: (currentPage - 1) * PageSize,
         filter: filter,
         sort: selectedTab === 'by-oldest' ? SortEnum.Asc : SortEnum.Desc,
       },
@@ -106,7 +109,6 @@ const CommunityPage: React.FC = () => {
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="by-oldest">By oldest</TabsTrigger>
-              {/* <TabsTrigger value="by-number-of-projects">By number of projects</TabsTrigger> */}
             </TabsList>
           </Tabs>
 
@@ -117,9 +119,6 @@ const CommunityPage: React.FC = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            {/* <Button variant="outline" className="rounded-md flex items-center gap-2 h-10">
-              <ListFilter className="h-4 w-4" /> Filter
-            </Button> */}
             {isAuthed && (
               <Button
                 className="rounded-md bg-purple-500 hover:bg-purple-600 flex items-center gap-2 h-10"
@@ -131,33 +130,37 @@ const CommunityPage: React.FC = () => {
           </div>
         </div>
 
-        {posts.length > 0 && (
-          <div className="grid grid-cols-2 grid-rows-3 gap-4">
-            <div className="row-span-2">
-              <PostCard post={posts[0]} variant="large" maxComments={3} />
+        <div className="mb-6">
+          {posts.length > 0 && (
+            <div className="grid grid-cols-2 grid-rows-3 gap-4">
+              <div className="row-span-2">
+                <PostCard post={posts[0]} variant="large" maxComments={3} />
+              </div>
+              {posts[1] && (
+                <div className="col-start-2 row-start-1">
+                  <PostCard post={posts[1]} variant="small" maxComments={1} />
+                </div>
+              )}
+              {posts[2] && (
+                <div className="col-start-2 row-start-2">
+                  <PostCard post={posts[2]} variant="small" maxComments={1} />
+                </div>
+              )}
+              {posts[3] && (
+                <div className="col-start-1 row-start-3">
+                  <PostCard post={posts[3]} variant="small" maxComments={1} />
+                </div>
+              )}
+              {posts[4] && (
+                <div className="row-start-3">
+                  <PostCard post={posts[4]} variant="small" maxComments={1} />
+                </div>
+              )}
             </div>
-            {posts[1] && (
-              <div className="col-start-2 row-start-1">
-                <PostCard post={posts[1]} variant="small" maxComments={1} />
-              </div>
-            )}
-            {posts[2] && (
-              <div className="col-start-2 row-start-2">
-                <PostCard post={posts[2]} variant="small" maxComments={1} />
-              </div>
-            )}
-            {posts[3] && (
-              <div className="col-start-1 row-start-3">
-                <PostCard post={posts[3]} variant="small" maxComments={1} />
-              </div>
-            )}
-            {posts[4] && (
-              <div className="row-start-3">
-                <PostCard post={posts[4]} variant="small" maxComments={1} />
-              </div>
-            )}
-          </div>
-        )}
+          )}
+        </div>
+
+        <Pagination totalCount={data?.posts?.count ?? 0} pageSize={PageSize} />
       </div>
 
       <div className="rounded-t-xl bg-white p-10">

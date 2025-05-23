@@ -1,10 +1,11 @@
-import client from "@/apollo/client";
-import { useAcceptProgramMutation } from "@/apollo/mutation/accept-program.generated";
-import { usePublishProgramMutation } from "@/apollo/mutation/publish-program.generated";
-import { useRejectProgramMutation } from "@/apollo/mutation/reject-program.generated";
-import { ProgramDocument } from "@/apollo/queries/program.generated";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import client from '@/apollo/client';
+import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
+import { useRejectProgramMutation } from '@/apollo/mutation/reject-program.generated';
+import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
+import { ProgramDocument } from '@/apollo/queries/program.generated';
+import MarkdownPreviewer from '@/components/markdown-previewer';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -12,33 +13,33 @@ import {
   DialogDescription,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { useContract } from "@/lib/hooks/use-contract";
-import notify from "@/lib/notify";
-import { formatProgramStatus } from "@/lib/utils";
-import type { Program, User } from "@/types/types.generated";
-import { format } from "date-fns";
-import { Settings, TriangleAlert } from "lucide-react";
-import { Link, useParams } from "react-router";
-import CreateApplicationForm from "./create-application-form";
+} from '@/components/ui/dialog';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { useContract } from '@/lib/hooks/use-contract';
+import notify from '@/lib/notify';
+import { formatProgramStatus } from '@/lib/utils';
+import type { Program, User } from '@/types/types.generated';
+import { format } from 'date-fns';
+import { Settings, TriangleAlert } from 'lucide-react';
+import { Link, useParams } from 'react-router';
+import CreateApplicationForm from './create-application-form';
 
 function MainSection({ program }: { program?: Program | null }) {
   const { userId } = useAuth();
   const { id } = useParams();
-  const contract = useContract(program?.network || "educhain");
+  const contract = useContract(program?.network || 'educhain');
 
-  const badgeVariants = ["teal", "orange", "pink"];
+  const badgeVariants = ['teal', 'orange', 'pink'];
 
   const programActionOptions = {
-    variables: { id: program?.id ?? id ?? "" },
+    variables: { id: program?.id ?? id ?? '' },
     onCompleted: () => {
       client.refetchQueries({ include: [ProgramDocument] });
     },
   };
 
   const [acceptProgram] = useAcceptProgramMutation(programActionOptions);
-  const [publishProgram] = usePublishProgramMutation();
+  const [publishProgram] = useSubmitProgramMutation();
   const [rejectProgram] = useRejectProgramMutation(programActionOptions);
 
   const callTx = async () => {
@@ -54,19 +55,19 @@ function MainSection({ program }: { program?: Program | null }) {
         if (result) {
           await publishProgram({
             variables: {
-              id: program?.id ?? "",
+              id: program?.id ?? '',
               educhainProgramId: result.programId,
               txHash: result.txHash,
             },
           });
 
-          notify("Program published successfully", "success");
+          notify('Program published successfully', 'success');
         } else {
-          notify("Program published failed", "error");
+          notify('Program published failed', 'error');
         }
       }
     } catch (error) {
-      notify((error as Error).message, "error");
+      notify((error as Error).message, 'error');
     }
   };
 
@@ -80,10 +81,7 @@ function MainSection({ program }: { program?: Program | null }) {
                 <Badge
                   key={k.id}
                   variant={
-                    badgeVariants[i % badgeVariants.length] as
-                      | "default"
-                      | "secondary"
-                      | "purple"
+                    badgeVariants[i % badgeVariants.length] as 'default' | 'secondary' | 'purple'
                   }
                 >
                   {k.name}
@@ -91,12 +89,11 @@ function MainSection({ program }: { program?: Program | null }) {
               ))}
             </div>
             <span className="font-medium flex gap-2 items-center text-sm">
-              {formatProgramStatus(program)}{" "}
+              {formatProgramStatus(program)}{' '}
               {program?.creator?.id === userId && (
                 <>
                   {program &&
-                    (program.network === "base" ||
-                      program.network === "base-sepolia") && (
+                    (program.network === 'base' || program.network === 'base-sepolia') && (
                       <Button
                         className="h-8 w-12 p-2 bg-[#F8ECFF] text-[#B331FF] text-xs hover:bg-[#F8ECFF]"
                         onClick={() => {
@@ -104,10 +101,10 @@ function MainSection({ program }: { program?: Program | null }) {
                             `https://ludium-farcaster.vercel.app/api/programs/${
                               program.name
                             }/${id}/${Math.floor(
-                              new Date(program.deadline).getTime() / 1000
-                            )}/${program.price}/${program.currency}`
+                              new Date(program.deadline).getTime() / 1000,
+                            )}/${program.price}/${program.currency}`,
                           );
-                          notify("Copied program frame!", "success");
+                          notify('Copied program frame!', 'success');
                         }}
                       >
                         Copy
@@ -132,11 +129,8 @@ function MainSection({ program }: { program?: Program | null }) {
               </span>
               <span className="h-3 border-l border-[#B331FF] inline-block" />
               <span className="inline-block ml-2">
-                DEADLINE{" "}
-                {format(
-                  new Date(program?.deadline ?? new Date()),
-                  "dd . MMM . yyyy"
-                ).toUpperCase()}
+                DEADLINE{' '}
+                {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
               </span>
             </p>
           </div>
@@ -149,19 +143,25 @@ function MainSection({ program }: { program?: Program | null }) {
 
         <div className="mb-9">
           <h3 className="text-lg font-bold mb-3">DESCRIPTION</h3>
-          <p className="text-slate-600 text-sm">{program?.description}</p>
+          {program?.description && <MarkdownPreviewer value={program?.description} />}
         </div>
 
         <div className="mb-9">
           <h3 className="text-lg font-bold mb-3">LINKS</h3>
           {program?.links?.map((l) => (
-            <p key={l.url} className="text-slate-600 text-sm">
+            <a
+              href={l?.url ?? ''}
+              key={l.url}
+              className="block hover:underline text-slate-600 text-sm"
+              target="_blank"
+              rel="noreferrer"
+            >
               {l?.url}
-            </p>
+            </a>
           ))}
         </div>
 
-        {program?.status === "published" &&
+        {program?.status === 'published' &&
           program.creator?.id !== userId &&
           program.validator?.id !== userId && (
             <Dialog>
@@ -179,19 +179,15 @@ function MainSection({ program }: { program?: Program | null }) {
             </Dialog>
           )}
 
-        {program?.validator?.id === userId && program.status === "draft" && (
+        {program?.validator?.id === userId && program.status === 'draft' && (
           <div className="flex justify-end gap-4">
-            <Button
-              onClick={() => rejectProgram()}
-              variant="outline"
-              className="h-11 w-[118px]"
-            >
+            <Button onClick={() => rejectProgram()} variant="outline" className="h-11 w-[118px]">
               Reject
             </Button>
             <Button
               onClick={async () => {
                 await acceptProgram();
-                notify("Program accepted", "success");
+                notify('Program accepted', 'success');
               }}
               className="h-11 w-[118px]"
             >
@@ -200,32 +196,31 @@ function MainSection({ program }: { program?: Program | null }) {
           </div>
         )}
 
-        {program?.creator?.id === userId &&
-          program.status === "payment_required" && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="mt-6 mb-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]">
-                  Pay
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[400px] p-6 max-h-screen overflow-y-auto">
-                <DialogClose id="pay-dialog-close" />
-                <div className="text-center">
-                  <span className="text-red-600 w-[42px] h-[42px] rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-                    <TriangleAlert />
-                  </span>
-                  <DialogTitle className="font-semibold text-lg text-[#18181B] mb-2">
-                    Are you sure to pay the settlement for the program?
-                  </DialogTitle>
-                  <DialogDescription className="text-muted-foreground text-sm mb-4">
-                    The amount will be securely stored until you will confirm
-                    the completion of the project.
-                  </DialogDescription>
-                  <Button onClick={callTx}>Yex, Pay now</Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
+        {program?.creator?.id === userId && program.status === 'payment_required' && (
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="mt-6 mb-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]">
+                Pay
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-[400px] p-6 max-h-screen overflow-y-auto">
+              <DialogClose id="pay-dialog-close" />
+              <div className="text-center">
+                <span className="text-red-600 w-[42px] h-[42px] rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                  <TriangleAlert />
+                </span>
+                <DialogTitle className="font-semibold text-lg text-[#18181B] mb-2">
+                  Are you sure to pay the settlement for the program?
+                </DialogTitle>
+                <DialogDescription className="text-muted-foreground text-sm mb-4">
+                  The amount will be securely stored until you will confirm the completion of the
+                  project.
+                </DialogDescription>
+                <Button onClick={callTx}>Yex, Pay now</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </section>
 
       <section className="px-10 py-[60px] w-full max-w-[40%] bg-white">
@@ -254,9 +249,15 @@ function MainSection({ program }: { program?: Program | null }) {
             <p className="text-xs font-bold w-[57px]">Links</p>
             <div>
               {program?.creator?.links?.map((l) => (
-                <p className="text-xs" key={l.url}>
-                  {l.url}
-                </p>
+                <a
+                  href={l?.url ?? ''}
+                  key={l.url}
+                  className="block hover:underline text-slate-600 text-sm"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {l?.url}
+                </a>
               ))}
             </div>
           </div>
@@ -288,9 +289,15 @@ function MainSection({ program }: { program?: Program | null }) {
               <p className="text-xs font-bold w-[57px]">Links</p>
               <div>
                 {program?.validator?.links?.map((l) => (
-                  <p className="text-xs" key={l.url}>
-                    {l.url}
-                  </p>
+                  <a
+                    href={l?.url ?? ''}
+                    key={l.url}
+                    className="block hover:underline text-slate-600 text-sm"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {l?.url}
+                  </a>
                 ))}
               </div>
             </div>

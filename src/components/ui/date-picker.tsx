@@ -6,13 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import type { Matcher } from 'react-day-picker';
 
 export function DatePicker({
   date,
   setDate,
-}: { date?: Date; setDate: React.Dispatch<React.SetStateAction<Date | undefined>> }) {
-  // const [date, setDate] = React.useState<Date>()
-
+  disabled,
+}: {
+  date?: Date;
+  setDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
+  disabled?: Matcher | Matcher[] | undefined;
+}) {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -28,7 +32,13 @@ export function DatePicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
-        <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
+        <Calendar
+          disabled={disabled}
+          mode="single"
+          selected={date}
+          onSelect={setDate}
+          initialFocus
+        />
       </PopoverContent>
     </Popover>
   );

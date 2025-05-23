@@ -18,7 +18,6 @@ function UsersPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = Number(searchParams.get('page')) || 1;
 
-  // const [userSearch, setUserSearch] = useState<string>('');
   const [debouncedUserSearch, setDebouncedUserSearch] = useState<string>('');
 
   useEffect(() => {
@@ -35,7 +34,6 @@ function UsersPage() {
     variables: {
       input: {
         limit: userPageSize,
-        // offset: (currentPage - 1) * 2,
         offset: (currentPage - 1) * userPageSize,
         sort: selectedTab === 'by-newest' ? SortEnum.Desc : SortEnum.Asc,
         filter: [
@@ -61,9 +59,6 @@ function UsersPage() {
       <div className="bg-white p-4">
         <div className="flex justify-between items-center mb-9">
           <h3 className="text-[#18181B] font-bold text-xl">Users</h3>
-          {/* <Button className="h-9 text-sm py-2 px-3">
-          View more <ArrowRight className="w-4 h-4" />
-        </Button> */}
         </div>
 
         <div className="flex justify-between items-center mb-6">

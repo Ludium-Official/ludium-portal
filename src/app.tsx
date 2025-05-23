@@ -18,7 +18,6 @@ import { Route, Routes } from "react-router";
 
 function App() {
   return (
-    // <BrowserRouter>
     <ScrollWrapper>
       <Routes>
         <Route path="/" element={<Layout />}>
@@ -48,7 +47,6 @@ function App() {
         </Route>
       </Routes>
     </ScrollWrapper>
-    // </BrowserRouter>
   );
 }
 

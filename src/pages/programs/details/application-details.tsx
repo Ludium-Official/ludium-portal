@@ -1,16 +1,16 @@
-import { useApproveApplicationMutation } from "@/apollo/mutation/approve-application.generated";
-import { useCheckMilestoneMutation } from "@/apollo/mutation/check-milestone.generated";
-import { useDenyApplicationMutation } from "@/apollo/mutation/deny-application.generated";
-import { useApplicationQuery } from "@/apollo/queries/application.generated";
-import { useProgramQuery } from "@/apollo/queries/program.generated";
+import { useAcceptApplicationMutation } from '@/apollo/mutation/accept-application.generated';
+import { useCheckMilestoneMutation } from '@/apollo/mutation/check-milestone.generated';
+import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
+import { useApplicationQuery } from '@/apollo/queries/application.generated';
+import { useProgramQuery } from '@/apollo/queries/program.generated';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -18,19 +18,15 @@ import {
   DialogDescription,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { useContract } from "@/lib/hooks/use-contract";
-import notify from "@/lib/notify";
-import SubmitMilestoneForm from "@/pages/programs/details/_components/submit-milestone-form";
-import {
-  ApplicationStatus,
-  CheckMilestoneStatus,
-  MilestoneStatus,
-} from "@/types/types.generated";
-import { format } from "date-fns";
-import { ArrowRight } from "lucide-react";
-import { Link, useNavigate, useParams } from "react-router";
+} from '@/components/ui/dialog';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { useContract } from '@/lib/hooks/use-contract';
+import notify from '@/lib/notify';
+import SubmitMilestoneForm from '@/pages/programs/details/_components/submit-milestone-form';
+import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from '@/types/types.generated';
+import { format } from 'date-fns';
+import { ArrowRight } from 'lucide-react';
+import { Link, useNavigate, useParams } from 'react-router';
 
 function ApplicationDetails() {
   const { userId } = useAuth();
@@ -38,14 +34,14 @@ function ApplicationDetails() {
 
   const { data, refetch } = useApplicationQuery({
     variables: {
-      id: applicationId ?? "",
+      id: applicationId ?? '',
     },
     skip: !applicationId,
   });
 
   const { data: programData, refetch: programRefetch } = useProgramQuery({
     variables: {
-      id: id ?? "",
+      id: id ?? '',
     },
   });
 
@@ -53,7 +49,7 @@ function ApplicationDetails() {
 
   const { name, keywords, network } = program ?? {};
 
-  const contract = useContract(network || "educhain");
+  const contract = useContract(network || 'educhain');
 
   const applicationMutationParams = {
     onCompleted: () => {
@@ -61,39 +57,33 @@ function ApplicationDetails() {
       programRefetch();
     },
     variables: {
-      id: applicationId ?? "",
+      id: applicationId ?? '',
     },
   };
 
   const [checkMilestone] = useCheckMilestoneMutation();
-  const [approveApplication] = useApproveApplicationMutation(
-    applicationMutationParams
-  );
-  const [denyApplication] = useDenyApplicationMutation(
-    applicationMutationParams
-  );
+
+  const [approveApplication] = useAcceptApplicationMutation(applicationMutationParams);
+  const [denyApplication] = useRejectApplicationMutation(applicationMutationParams);
 
   const navigate = useNavigate();
 
-  const badgeVariants = ["teal", "orange", "pink"];
+  const badgeVariants = ['teal', 'orange', 'pink'];
 
-  const callTx = async (
-    price?: string | null,
-    applicationId?: string | null
-  ) => {
+  const callTx = async (price?: string | null, applicationId?: string | null) => {
     try {
       if (program) {
         const tx = await contract.acceptMilestone(
           Number(program?.educhainProgramId),
-          data?.application?.applicant?.walletAddress ?? "",
-          price ?? ""
+          data?.application?.applicant?.walletAddress ?? '',
+          price ?? '',
         );
 
         if (tx) {
           await checkMilestone({
             variables: {
               input: {
-                id: applicationId ?? "",
+                id: applicationId ?? '',
                 status: CheckMilestoneStatus.Completed,
               },
             },
@@ -103,13 +93,13 @@ function ApplicationDetails() {
             },
           });
 
-          notify("Milestone accept successfully", "success");
+          notify('Milestone accept successfully', 'success');
         } else {
-          notify("Can't found acceptMilestone event", "error");
+          notify("Can't found acceptMilestone event", 'error');
         }
       }
     } catch (error) {
-      notify((error as Error).message, "error");
+      notify((error as Error).message, 'error');
     }
   };
 
@@ -122,10 +112,7 @@ function ApplicationDetails() {
               <Badge
                 key={k.id}
                 variant={
-                  badgeVariants[i % badgeVariants.length] as
-                    | "default"
-                    | "secondary"
-                    | "purple"
+                  badgeVariants[i % badgeVariants.length] as 'default' | 'secondary' | 'purple'
                 }
               >
                 {k.name}
@@ -152,11 +139,8 @@ function ApplicationDetails() {
             </span>
             <span className="h-3 border-l border-[#B331FF] inline-block" />
             <span className="inline-block ml-2">
-              DEADLINE{" "}
-              {format(
-                new Date(program?.deadline ?? new Date()),
-                "dd . MMM . yyyy"
-              ).toUpperCase()}
+              DEADLINE{' '}
+              {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
             </span>
           </p>
         </div>
@@ -172,44 +156,32 @@ function ApplicationDetails() {
 
           <Link to={`/programs/${id}`} className="flex items-center gap-4 mb-4">
             <div className="w-10 h-10 bg-gray-200 rounded-full" />
-            <h2 className="text-lg font-bold">
-              {data?.application?.applicant?.organizationName}
-            </h2>
+            <h2 className="text-lg font-bold">{data?.application?.applicant?.organizationName}</h2>
           </Link>
           <div className="mb-6">
             <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
               <span className="inline-block mr-2">
-                {data?.application?.milestones?.reduce(
-                  (prev, curr) => prev + (Number(curr?.price) ?? 0),
-                  0
-                )}{" "}
+                {data?.application?.milestones
+                  ?.reduce((prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)), BigNumber(0, 10))
+                  .toFixed()}{' '}
                 {program?.currency}
               </span>
               <span className="h-3 border-l border-[#B331FF] inline-block" />
               <span className="inline-block ml-2">
-                DEADLINE{" "}
-                {format(
-                  new Date(program?.deadline ?? new Date()),
-                  "dd . MMM . yyyy"
-                ).toUpperCase()}
+                DEADLINE{' '}
+                {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
               </span>
             </p>
           </div>
 
           <div className="mb-6">
-            <h2 className="font-bold text-[#18181B] text-lg mb-3">
-              APPLICATION
-            </h2>
+            <h2 className="font-bold text-[#18181B] text-lg mb-3">APPLICATION</h2>
             <p className="text-slate-600 text-sm">{data?.application?.name}</p>
           </div>
 
           <div className="mb-6">
-            <h2 className="font-bold text-[#18181B] text-lg mb-3">
-              DESCRIPTION
-            </h2>
-            <p className="text-slate-600 text-sm">
-              {data?.application?.content}
-            </p>
+            <h2 className="font-bold text-[#18181B] text-lg mb-3">DESCRIPTION</h2>
+            <p className="text-slate-600 text-sm">{data?.application?.content}</p>
           </div>
 
           <div className="mb-6">
@@ -221,26 +193,21 @@ function ApplicationDetails() {
             ))}
           </div>
 
-          {program?.validator?.id === userId &&
-            data?.application?.status === "pending" && (
-              <div className="flex justify-end gap-3">
-                <Button
-                  className="h-10"
-                  variant="outline"
-                  onClick={() => denyApplication()}
-                >
-                  Deny
-                </Button>
-                <Button
-                  className="h-10"
-                  onClick={() => {
-                    approveApplication();
-                  }}
-                >
-                  Select
-                </Button>
-              </div>
-            )}
+          {program?.validator?.id === userId && data?.application?.status === 'pending' && (
+            <div className="flex justify-end gap-3">
+              <Button className="h-10" variant="outline" onClick={() => denyApplication()}>
+                Deny
+              </Button>
+              <Button
+                className="h-10"
+                onClick={() => {
+                  approveApplication();
+                }}
+              >
+                Select
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="border-r" />
@@ -254,9 +221,7 @@ function ApplicationDetails() {
                   <Badge variant="secondary" className="mb-2">
                     {m.status}
                   </Badge>
-                  <h2 className="text-lg font-bold mb-2">
-                    Milestone #{idx + 1}
-                  </h2>
+                  <h2 className="text-lg font-bold mb-2">Milestone #{idx + 1}</h2>
                   <div className="mb-6">
                     <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
                       <span className="inline-block mr-2">
@@ -264,84 +229,74 @@ function ApplicationDetails() {
                       </span>
                       <span className="h-3 border-l border-[#B331FF] inline-block" />
                       <span className="inline-block ml-2">
-                        DEADLINE{" "}
+                        DEADLINE{' '}
                         {format(
                           new Date(program?.deadline ?? new Date()),
-                          "dd . MMM . yyyy"
+                          'dd . MMM . yyyy',
                         ).toUpperCase()}
                       </span>
                     </p>
                   </div>
 
                   <div className="mb-6">
-                    <h2 className="font-bold text-[#18181B] text-sm mb-3">
-                      SUMMARY
-                    </h2>
+                    <h2 className="font-bold text-[#18181B] text-sm mb-3">SUMMARY</h2>
                     <p className="text-slate-600 text-xs">{m.description}</p>
                   </div>
 
                   {!!m.links?.length && (
                     <div className="mb-10">
-                      <h2 className="font-bold text-[#18181B] text-sm mb-3">
-                        LINKS
-                      </h2>
+                      <h2 className="font-bold text-[#18181B] text-sm mb-3">LINKS</h2>
                       {m.links?.map((l) => (
-                        <p key={l.url} className="text-slate-600 text-xs">
-                          {l.url}
-                        </p>
+                        <a
+                          href={l?.url ?? ''}
+                          key={l.url}
+                          className="block hover:underline text-slate-600 text-sm"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {l?.url}
+                        </a>
                       ))}
                     </div>
                   )}
 
-                  {m.status === MilestoneStatus.RevisionRequested &&
-                    program?.validator?.id === userId && (
-                      <div className="flex justify-between">
-                        <Button
-                          className="h-10"
-                          variant="outline"
-                          onClick={() => {
-                            checkMilestone({
-                              variables: {
-                                input: {
-                                  id: m.id ?? "",
-                                  status: CheckMilestoneStatus.Pending,
-                                },
-                              },
-                              onCompleted: () => {
-                                refetch();
-                                programRefetch();
-                              },
-                            });
-                          }}
-                        >
-                          Reject Milestone
-                        </Button>
-                        <Button
-                          className="h-10"
-                          onClick={() => callTx(m.price, m.id)}
-                        >
-                          Accept Milestone
-                        </Button>
-                      </div>
-                    )}
+                  {m.status === MilestoneStatus.Submitted && program?.validator?.id === userId && (
+                    <div className="flex justify-between">
+                      <Button
+                        className="h-10"
+                        variant="outline"
+                        onClick={() => {
+                          checkMilestone({
+                            variables: {
+                              input: { id: m.id ?? '', status: CheckMilestoneStatus.Pending },
+                            },
+                            onCompleted: () => {
+                              refetch();
+                              programRefetch();
+                            },
+                          });
+                        }}
+                      >
+                        Reject Milestone
+                      </Button>
+                      <Button className="h-10" onClick={() => callTx(m.price, m.id)}>
+                        Accept Milestone
+                      </Button>
+                    </div>
+                  )}
 
                   {m.status === MilestoneStatus.Pending &&
-                    data?.application?.status === ApplicationStatus.Approved &&
+                    data?.application?.status === ApplicationStatus.Accepted &&
                     data?.application?.applicant?.id === userId && (
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button className="h-10 block ml-auto">
-                            Submit Milestone
-                          </Button>
+                          <Button className="h-10 block ml-auto">Submit Milestone</Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogTitle />
                           <DialogDescription />
                           <DialogClose id="submit-milestone-dialog-close" />
-                          <SubmitMilestoneForm
-                            milestone={m}
-                            refetch={refetch}
-                          />
+                          <SubmitMilestoneForm milestone={m} refetch={refetch} />
                         </DialogContent>
                       </Dialog>
                     )}

@@ -1,18 +1,15 @@
-import { useAuth } from "@/lib/hooks/use-auth";
-import notify from "@/lib/notify";
-import { reduceString } from "@/lib/utils";
-import { usePrivy } from "@privy-io/react-auth";
-import { useEffect } from "react";
-import { useNavigate } from "react-router";
-import { Button } from "../ui/button";
+import Notifications from '@/components/notifications';
+
+import { useAuth } from '@/lib/hooks/use-auth';
+import notify from '@/lib/notify';
+import { reduceString } from '@/lib/utils';
+import { usePrivy } from '@privy-io/react-auth';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import { Button } from '../ui/button';
 
 function Header() {
-  const {
-    user,
-    authenticated,
-    login: privyLogin,
-    logout: privyLogout,
-  } = usePrivy();
+  const { user, authenticated, login: privyLogin, logout: privyLogout } = usePrivy();
   const { login: authLogin, logout: authLogout } = useAuth();
   const navigate = useNavigate();
 
@@ -30,9 +27,7 @@ function Header() {
         };
 
         return (
-          (Object.keys(types) as Array<keyof typeof types>).find(
-            (key) => types[key]
-          ) || "wallet"
+          (Object.keys(types) as Array<keyof typeof types>).find((key) => types[key]) || 'wallet'
         );
       })();
 
@@ -46,8 +41,8 @@ function Header() {
         });
       }
     } catch (error) {
-      notify("Failed to login", "error");
-      console.error("Failed to login:", error);
+      notify('Failed to login', 'error');
+      console.error('Failed to login:', error);
     }
   };
 
@@ -56,11 +51,11 @@ function Header() {
       authLogout();
       privyLogout();
 
-      notify("Successfully logged out", "success");
-      navigate("/");
+      notify('Successfully logged out', 'success');
+      navigate('/');
     } catch (error) {
-      notify("Error logging out", "error");
-      console.error("Error logging out:", error);
+      notify('Error logging out', 'error');
+      console.error('Error logging out:', error);
     }
   };
 
@@ -75,14 +70,13 @@ function Header() {
       <div />
 
       <div className="flex gap-2">
+        {authenticated && <Notifications />}
         <div>
           <Button
             className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-fit"
             onClick={authenticated ? logout : login}
           >
-            {authenticated
-              ? reduceString(walletInfo?.address || "", 6, 6)
-              : "Login"}
+            {authenticated ? reduceString(walletInfo?.address || '', 6, 6) : 'Login'}
           </Button>
         </div>
       </div>

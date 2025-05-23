@@ -1,8 +1,9 @@
-import { useApproveApplicationMutation } from '@/apollo/mutation/approve-application.generated';
-import { useDenyApplicationMutation } from '@/apollo/mutation/deny-application.generated';
+import { useAcceptApplicationMutation } from '@/apollo/mutation/accept-application.generated';
+import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { Application } from '@/types/types.generated';
+import BigNumber from 'bignumber.js';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
 
@@ -17,8 +18,8 @@ function ApplicationCard({
   hideSeeDetails?: boolean | null;
   hideControls?: boolean | null;
 }) {
-  const [approveApplication] = useApproveApplicationMutation();
-  const [denyApplication] = useDenyApplicationMutation();
+  const [approveApplication] = useAcceptApplicationMutation();
+  const [denyApplication] = useRejectApplicationMutation();
 
   return (
     <div className="border rounded-xl p-6">
@@ -39,8 +40,10 @@ function ApplicationCard({
       </div>
       <div className="mb-6">
         <span className="text-xs text-muted-foreground">
-          {application?.milestones?.reduce((prev, curr) => prev + (Number(curr?.price) ?? 0), 0)}{' '}
-          {application?.milestones?.[0]?.currency} | DEADLINE 30, MAR, 2025
+          {application?.milestones
+            ?.reduce((prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)), BigNumber(0, 10))
+            .toFixed()}{' '}
+          {application?.milestones?.[0]?.currency}
         </span>
       </div>
       <div className="flex justify-between">

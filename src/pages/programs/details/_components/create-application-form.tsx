@@ -47,7 +47,14 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   const [createMilestones, { loading: milestonesLoading }] =
     useCreateMilestonesMutation();
 
+  const [linksError, setLinksError] = useState(false);
+
   const onSubmit = async () => {
+    if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
+      setLinksError(true);
+      return;
+    }
+
     try {
       createApplication({
         variables: {
@@ -183,7 +190,12 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         >
           Add URL
         </Button>
-        {/* {extraErrors.validator && <span className="text-red-400 text-sm block">Links is required</span>} */}
+        {linksError && (
+          <span className="text-red-400 text-sm block">
+            The provided link is not valid. All links must begin with{' '}
+            <span className="font-bold">https://</span>.
+          </span>
+        )}
       </label>
 
       {milestones.map((m, idx) => (

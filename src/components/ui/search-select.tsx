@@ -29,7 +29,6 @@ export function SearchSelect({
   setValue,
 }: SearchSelectProps) {
   const [open, setOpen] = React.useState(false);
-  // const [value, setValue] = React.useState("")
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -50,7 +49,13 @@ export function SearchSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full max-w-[586px] p-0">
-        <Command>
+        <Command
+          filter={(value, search) => {
+            if (!search) return 1;
+            const label = options.find((option) => option.value === value)?.label;
+            return label?.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
+          }}
+        >
           <CommandInput placeholder="Search..." />
           <CommandList>
             <CommandEmpty>No result found.</CommandEmpty>
@@ -71,7 +76,7 @@ export function SearchSelect({
                       value === option.value ? 'opacity-100' : 'opacity-0',
                     )}
                   />
-                  {option.label}
+                  <span>{option.label}</span>
                 </CommandItem>
               ))}
             </CommandGroup>
