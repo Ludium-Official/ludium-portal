@@ -1,33 +1,34 @@
-import { useProfileQuery } from '@/apollo/queries/profile.generated';
-import { useProgramsQuery } from '@/apollo/queries/programs.generated';
-import avatarPlaceholder from '@/assets/avatar-placeholder.png';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/lib/hooks/use-auth';
-import notify from '@/lib/notify';
-import { cn } from '@/lib/utils';
-import { usePrivy } from '@privy-io/react-auth';
-import { ArrowRight, Settings, Wallet } from 'lucide-react';
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { useProfileQuery } from "@/apollo/queries/profile.generated";
+import { useProgramsQuery } from "@/apollo/queries/programs.generated";
+import avatarPlaceholder from "@/assets/avatar-placeholder.png";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/lib/hooks/use-auth";
+import notify from "@/lib/notify";
+import { cn } from "@/lib/utils";
+import { usePrivy } from "@privy-io/react-auth";
+import { ArrowRight, Settings, Wallet } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router";
 
 function ProfilePage() {
-  const roles = JSON.parse(localStorage.getItem('roles') ?? '[]') as string[];
+  const roles = JSON.parse(localStorage.getItem("roles") ?? "[]") as string[];
 
-  const [selectedTab, setSelectedTab] = useState(roles?.[0] ?? 'sponsor');
+  const [selectedTab, setSelectedTab] = useState(roles?.[0] ?? "sponsor");
 
   const filterBasedOnRole = {
-    sponsor: 'creatorId',
-    validator: 'validatorId',
-    builder: 'applicantId',
+    sponsor: "creatorId",
+    validator: "validatorId",
+    builder: "applicantId",
   };
 
-  const { login: authLogin } = useAuth();
-  const { user, login: privyLogin } = usePrivy();
+  const { user, login: privyLogin, logout: privyLogout } = usePrivy();
+  const { login: authLogin, logout: authLogout } = useAuth();
+  const navigate = useNavigate();
 
   const { data: profileData } = useProfileQuery({
-    fetchPolicy: 'network-only',
+    fetchPolicy: "network-only",
   });
 
   const { data } = useProgramsQuery({
@@ -37,8 +38,11 @@ function ProfilePage() {
         offset: 0,
         filter: [
           {
-            value: profileData?.profile?.id ?? '',
-            field: filterBasedOnRole[selectedTab as 'sponsor' | 'validator' | 'builder'],
+            value: profileData?.profile?.id ?? "",
+            field:
+              filterBasedOnRole[
+                selectedTab as "sponsor" | "validator" | "builder"
+              ],
           },
         ],
       },
@@ -60,7 +64,9 @@ function ProfilePage() {
         };
 
         return (
-          (Object.keys(types) as Array<keyof typeof types>).find((key) => types[key]) || 'wallet'
+          (Object.keys(types) as Array<keyof typeof types>).find(
+            (key) => types[key]
+          ) || "wallet"
         );
       })();
 
@@ -74,8 +80,21 @@ function ProfilePage() {
         });
       }
     } catch (error) {
-      notify('Failed to login', 'error');
-      console.error('Failed to login:', error);
+      notify("Failed to login", "error");
+      console.error("Failed to login:", error);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      authLogout();
+      privyLogout();
+
+      notify("Successfully logged out", "success");
+      navigate("/");
+    } catch (error) {
+      notify("Error logging out", "error");
+      console.error("Error logging out:", error);
     }
   };
 
@@ -85,7 +104,9 @@ function ProfilePage() {
         <section className="">
           <h1 className="text-xl font-bold mb-6">Profile</h1>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Profile image</h3>
+          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">
+            Profile image
+          </h3>
 
           <div className="px-6 py-2 mb-9">
             <img
@@ -95,29 +116,40 @@ function ProfilePage() {
             />
           </div>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Organization / Person name</h3>
+          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">
+            Organization / Person name
+          </h3>
           <p className="text-[#18181B] text-sm font-medium mb-10">
             {profileData?.profile?.organizationName}
           </p>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Description</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">{profileData?.profile?.about}</p>
+          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">
+            Description
+          </h3>
+          <p className="text-[#18181B] text-sm font-medium mb-10">
+            {profileData?.profile?.about}
+          </p>
 
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Wallet</h3>
           <div className="p-6 mb-10 border min-w-[282px] bg-muted rounded-lg shadow-sm relative">
-            <label htmlFor="description" className="block text-foreground font-medium mb-2 text-sm">
+            <label
+              htmlFor="description"
+              className="block text-foreground font-medium mb-2 text-sm"
+            >
               My Wallet
             </label>
             <span
               className={cn(
-                'block text-sm text-[#71717A] mb-5',
-                !!profileData?.profile?.walletAddress && 'mb-2',
+                "block text-sm text-[#71717A] mb-5",
+                !!profileData?.profile?.walletAddress && "mb-2"
               )}
             >
-              {user ? 'Your wallet is connected' : 'Connect your wallet'}
+              {user ? "Your wallet is connected" : "Connect your wallet"}
             </span>
             {profileData?.profile?.walletAddress && (
-              <p className="text-xs text-[#71717A] mb-5">{profileData?.profile?.walletAddress}</p>
+              <p className="text-xs text-[#71717A] mb-5">
+                {profileData?.profile?.walletAddress}
+              </p>
             )}
 
             <Button
@@ -125,7 +157,7 @@ function ProfilePage() {
               disabled={user !== null}
               className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-9 w-[133px] ml-auto flex text-xs"
             >
-              {user ? 'Connected' : 'Connect wallet'} <Wallet />
+              {user ? "Connected" : "Connect wallet"} <Wallet />
             </Button>
           </div>
 
@@ -133,8 +165,10 @@ function ProfilePage() {
           <p className="text-[#18181B] text-sm font-medium mb-10">
             {roles.map((r, idx) =>
               r.length
-                ? `${r[0].toUpperCase()}${r.slice(1)}${idx === roles.length - 1 ? '' : ', '}`
-                : r,
+                ? `${r[0].toUpperCase()}${r.slice(1)}${
+                    idx === roles.length - 1 ? "" : ", "
+                  }`
+                : r
             )}
           </p>
 
@@ -144,10 +178,15 @@ function ProfilePage() {
               <p key={l.url}>{l.url}</p>
             ))}
           </p>
+
+          <Button onClick={logout}>Logout</Button>
         </section>
 
         <section>
-          <Link to="./edit" className="text-sm font-medium flex items-center gap-2">
+          <Link
+            to="./edit"
+            className="text-sm font-medium flex items-center gap-2"
+          >
             <Settings className="w-4 h-4" /> Edit
           </Link>
         </section>
@@ -156,13 +195,15 @@ function ProfilePage() {
       <div className="bg-white p-5 rounded-t-2xl">
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="w-full">
-            <TabsTrigger value={'sponsor'}>Programs as sponsor</TabsTrigger>
-            <TabsTrigger value={'validator'}>Programs as validator</TabsTrigger>
-            <TabsTrigger value={'builder'}>Programs as builder</TabsTrigger>
+            <TabsTrigger value={"sponsor"}>Programs as sponsor</TabsTrigger>
+            <TabsTrigger value={"validator"}>Programs as validator</TabsTrigger>
+            <TabsTrigger value={"builder"}>Programs as builder</TabsTrigger>
           </TabsList>
         </Tabs>
 
-        <h2 className="text-xl font-bold mt-10 mb-6">Programs as {selectedTab}</h2>
+        <h2 className="text-xl font-bold mt-10 mb-6">
+          Programs as {selectedTab}
+        </h2>
 
         {!data?.programs?.data?.length && (
           <p className="text-sm text-muted-foreground">No programs found</p>
@@ -172,7 +213,10 @@ function ProfilePage() {
           <div key={p.id} className="border rounded-xl p-6 mb-6">
             <div className="flex justify-between mb-4">
               <Badge>{p.status}</Badge>
-              <Link to={`/programs/${p.id}`} className="flex gap-2 text-sm items-center">
+              <Link
+                to={`/programs/${p.id}`}
+                className="flex gap-2 text-sm items-center"
+              >
                 See more <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

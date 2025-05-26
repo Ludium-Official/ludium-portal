@@ -1,29 +1,29 @@
-import logo from '@/assets/logo.svg';
-import { useAuth } from '@/lib/hooks/use-auth';
-import { CircleAlert, Scroll, UserRound, Users } from 'lucide-react';
+import logo from "@/assets/logo.svg";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { CircleAlert, Scroll, UserRound, Users } from "lucide-react";
 
-import { useRef, useState } from 'react';
-import { Link, NavLink } from 'react-router';
+import { useRef, useState } from "react";
+import { Link, NavLink } from "react-router";
 
 const Sidebar = () => {
-  const { isAuthed } = useAuth();
+  const { isLoggedIn } = useAuth();
   const [communityMenuOpen, setCommunityMenuOpen] = useState(false);
   const closeTimeout = useRef<NodeJS.Timeout | null>(null);
   const links = [
-    { name: 'Programs', path: '/programs', icon: Scroll },
+    { name: "Programs", path: "/programs", icon: Scroll },
     {
-      name: 'Community',
-      path: '/community',
+      name: "Community",
+      path: "/community",
       icon: Users,
       submenu: [
-        { name: 'Community', path: '/community', icon: Users },
-        { name: 'Users', path: '/community/users', icon: UserRound },
+        { name: "Community", path: "/community", icon: Users },
+        { name: "Users", path: "/community/users", icon: UserRound },
       ],
     },
   ];
 
-  if (isAuthed) {
-    links.unshift({ name: 'Profile', path: '/profile', icon: UserRound });
+  if (isLoggedIn) {
+    links.unshift({ name: "Profile", path: "/profile", icon: UserRound });
   }
 
   return (
@@ -58,8 +58,8 @@ const Sidebar = () => {
                     className={({ isActive }) =>
                       `group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium ${
                         isActive
-                          ? 'bg-[#F8ECFF] text-[#861CC4]'
-                          : 'hover:bg-[#F8ECFF] hover:text-[#861CC4]'
+                          ? "bg-[#F8ECFF] text-[#861CC4]"
+                          : "hover:bg-[#F8ECFF] hover:text-[#861CC4]"
                       }`
                     }
                   >
@@ -73,7 +73,7 @@ const Sidebar = () => {
                           <NavLink
                             to={sublink.path}
                             className={
-                              'flex gap-3 items-center px-4 py-3 rounded-lg transition-all text-[16px] font-medium hover:bg-[#F8ECFF] hover:text-[#861CC4]'
+                              "flex gap-3 items-center px-4 py-3 rounded-lg transition-all text-[16px] font-medium hover:bg-[#F8ECFF] hover:text-[#861CC4]"
                             }
                           >
                             <sublink.icon className="group-active:text-[#861CC4] group-hover:text-[#861CC4]" />
@@ -90,8 +90,8 @@ const Sidebar = () => {
                   className={({ isActive }) =>
                     `group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium ${
                       isActive
-                        ? 'bg-[#F8ECFF] text-[#861CC4]'
-                        : 'hover:bg-[#F8ECFF] hover:text-[#861CC4]'
+                        ? "bg-[#F8ECFF] text-[#861CC4]"
+                        : "hover:bg-[#F8ECFF] hover:text-[#861CC4]"
                     }`
                   }
                 >

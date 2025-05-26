@@ -1,6 +1,6 @@
 // import EtcIcon from "@/assets/icons/crypto/etc"
+import BaseIcon from "@/assets/icons/crypto/base";
 import EduIcon from "@/assets/icons/crypto/edu";
-import EthIcon from "@/assets/icons/crypto/eth";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,10 +23,10 @@ export const currencies = [
     display: "EDUChain Testnet",
     isTestnet: true,
   },
-  { code: "base", icon: <EthIcon />, display: "Base", isTestnet: false },
+  { code: "base", icon: <BaseIcon />, display: "Base", isTestnet: false },
   {
     code: "base-sepolia",
-    icon: <EthIcon />,
+    icon: <BaseIcon />,
     display: "Base Sepolia",
     isTestnet: true,
   },

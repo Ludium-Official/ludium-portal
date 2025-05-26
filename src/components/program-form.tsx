@@ -53,7 +53,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   const [selectedValidator, setSelectedValidator] = useState<string>();
   const [links, setLinks] = useState<string[]>([""]);
   const [network, setNetwork] = useState("educhain");
-  const [currency, setCurrency] = useState(data?.program?.currency ?? "ETH");
+  const [currency, setCurrency] = useState("");
 
   const { data: keywords } = useKeywordsQuery();
   const { data: validators } = useUsersQuery();
@@ -84,6 +84,8 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
     if (data?.program?.links)
       setLinks(data?.program?.links.map((l) => l.url ?? ""));
+    if (data?.program?.network) setNetwork(data?.program?.network);
+    if (data?.program?.currency) setCurrency(data?.program?.currency);
   }, [data]);
 
   const {

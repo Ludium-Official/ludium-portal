@@ -1,5 +1,6 @@
 import Notifications from "@/components/notifications";
 
+import { useProfileQuery } from "@/apollo/queries/profile.generated";
 import { useAuth } from "@/lib/hooks/use-auth";
 import notify from "@/lib/notify";
 import { reduceString } from "@/lib/utils";
@@ -9,14 +10,13 @@ import { useNavigate } from "react-router";
 import { Button } from "../ui/button";
 
 function Header() {
-  const {
-    user,
-    authenticated,
-    login: privyLogin,
-    logout: privyLogout,
-  } = usePrivy();
-  const { login: authLogin, logout: authLogout } = useAuth();
+  const { user, authenticated, login: privyLogin } = usePrivy();
+  const { login: authLogin } = useAuth();
   const navigate = useNavigate();
+
+  const { data: profileData } = useProfileQuery({
+    fetchPolicy: "network-only",
+  });
 
   const walletInfo = user?.wallet;
 
@@ -53,19 +53,6 @@ function Header() {
     }
   };
 
-  const logout = async () => {
-    try {
-      authLogout();
-      privyLogout();
-
-      notify("Successfully logged out", "success");
-      navigate("/");
-    } catch (error) {
-      notify("Error logging out", "error");
-      console.error("Error logging out:", error);
-    }
-  };
-
   useEffect(() => {
     if (authenticated && user) {
       login();
@@ -81,10 +68,17 @@ function Header() {
         <div>
           <Button
             className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-fit"
-            onClick={authenticated ? logout : login}
+            onClick={
+              authenticated
+                ? profileData?.profile?.organizationName
+                  ? () => navigate("/profile")
+                  : () => navigate("/profile/edit")
+                : login
+            }
           >
             {authenticated
-              ? reduceString(walletInfo?.address || "", 6, 6)
+              ? profileData?.profile?.organizationName ??
+                reduceString(walletInfo?.address || "", 6, 6)
               : "Login"}
           </Button>
         </div>

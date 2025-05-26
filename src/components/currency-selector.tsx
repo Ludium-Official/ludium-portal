@@ -1,25 +1,17 @@
-import EduIcon from '@/assets/icons/crypto/edu';
-import EthIcon from '@/assets/icons/crypto/eth';
-import UsdtIcon from '@/assets/icons/crypto/usdt';
-import { Button } from '@/components/ui/button';
+import EduIcon from "@/assets/icons/crypto/edu";
+import EthIcon from "@/assets/icons/crypto/eth";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useEffect, useMemo, useState } from 'react';
+} from "@/components/ui/dropdown-menu";
+import { useEffect, useMemo, useState } from "react";
 
-export const eduCurrencies = [
-  { code: 'EDU', icon: <EduIcon /> },
-  { code: 'ETH', icon: <EthIcon /> },
-  { code: 'USDT', icon: <UsdtIcon /> },
-];
+export const eduCurrencies = [{ code: "EDU", icon: <EduIcon /> }];
 
-export const baseCurrencies = [
-  { code: 'ETH', icon: <EthIcon /> },
-  { code: 'USDT', icon: <UsdtIcon /> },
-];
+export const baseCurrencies = [{ code: "ETH", icon: <EthIcon /> }];
 
 function CurrencySelector({
   className,
@@ -34,10 +26,10 @@ function CurrencySelector({
   network: string;
   disabled?: boolean;
 }) {
-  const [selectedCurrency, setSelectedCurrency] = useState(value ?? 'ETH');
+  const [selectedCurrency, setSelectedCurrency] = useState(value ?? "");
 
   const displayCurrencies = useMemo(() => {
-    if (network === 'base' || network === 'base-sepolia') {
+    if (network === "base" || network === "base-sepolia") {
       return baseCurrencies;
     }
 
@@ -49,10 +41,12 @@ function CurrencySelector({
   }, [selectedCurrency]);
 
   useEffect(() => {
-    value && value !== selectedCurrency && setSelectedCurrency(value);
-  }, [value]);
+    setSelectedCurrency(displayCurrencies[0].code);
+  }, [displayCurrencies]);
 
-  const currWithIcon = displayCurrencies.find((c) => c.code === selectedCurrency);
+  const currWithIcon = displayCurrencies.find(
+    (c) => c.code === selectedCurrency
+  );
 
   return (
     <DropdownMenu>
@@ -63,7 +57,10 @@ function CurrencySelector({
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         {displayCurrencies.map((c) => (
-          <DropdownMenuItem onClick={() => setSelectedCurrency(c.code)} key={c.code}>
+          <DropdownMenuItem
+            onClick={() => setSelectedCurrency(c.code)}
+            key={c.code}
+          >
             {c.icon} {c.code}
           </DropdownMenuItem>
         ))}
