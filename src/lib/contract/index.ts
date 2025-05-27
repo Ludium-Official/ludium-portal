@@ -5,6 +5,16 @@ import { ethers } from "ethers";
 import type { PublicClient } from "viem";
 import { encodeFunctionData } from "viem";
 
+const ERC20_ABI = [
+  {
+    constant: true,
+    inputs: [{ name: "account", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ name: "", type: "uint256" }],
+    type: "function",
+  },
+];
+
 class ChainContract {
   private contractAddress: string;
   private chainId: number;
@@ -21,6 +31,25 @@ class ChainContract {
     this.chainId = chainId;
     this.sendTransaction = sendTransaction;
     this.client = client;
+  }
+
+  async getAmount(tokenAddress: string, walletAddress: string) {
+    const balance = await this.client.readContract({
+      address: tokenAddress as `0x${string}`,
+      abi: ERC20_ABI,
+      functionName: "balanceOf",
+      args: [walletAddress as `0x${string}`],
+    });
+
+    return balance;
+  }
+
+  async getBalance(walletAddress: string) {
+    const balance = await this.client.getBalance({
+      address: walletAddress as `0x${string}`,
+    });
+
+    return balance;
   }
 
   async findReceipt(hash: `0x${string}`, signature: string) {

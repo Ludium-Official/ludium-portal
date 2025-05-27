@@ -119,16 +119,16 @@ function ProfilePage() {
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">
             Organization / Person name
           </h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">
+          <div className="text-[#18181B] text-sm font-medium mb-10">
             {profileData?.profile?.organizationName}
-          </p>
+          </div>
 
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">
             Description
           </h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">
+          <div className="text-[#18181B] text-sm font-medium mb-10">
             {profileData?.profile?.about}
-          </p>
+          </div>
 
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Wallet</h3>
           <div className="p-6 mb-10 border min-w-[282px] bg-muted rounded-lg shadow-sm relative">
@@ -147,9 +147,9 @@ function ProfilePage() {
               {user ? "Your wallet is connected" : "Connect your wallet"}
             </span>
             {profileData?.profile?.walletAddress && (
-              <p className="text-xs text-[#71717A] mb-5">
+              <div className="text-xs text-[#71717A] mb-5">
                 {profileData?.profile?.walletAddress}
-              </p>
+              </div>
             )}
 
             <Button
@@ -162,7 +162,7 @@ function ProfilePage() {
           </div>
 
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Roles</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">
+          <div className="text-[#18181B] text-sm font-medium mb-10">
             {roles.map((r, idx) =>
               r.length
                 ? `${r[0].toUpperCase()}${r.slice(1)}${
@@ -170,16 +170,14 @@ function ProfilePage() {
                   }`
                 : r
             )}
-          </p>
+          </div>
 
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Links</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">
+          <div className="text-[#18181B] text-sm font-medium mb-10">
             {profileData?.profile?.links?.map((l) => (
-              <p key={l.url}>{l.url}</p>
+              <div key={l.url}>{l.url}</div>
             ))}
-          </p>
-
-          <Button onClick={logout}>Logout</Button>
+          </div>
         </section>
 
         <section>
@@ -206,7 +204,7 @@ function ProfilePage() {
         </h2>
 
         {!data?.programs?.data?.length && (
-          <p className="text-sm text-muted-foreground">No programs found</p>
+          <div className="text-sm text-muted-foreground">No programs found</div>
         )}
 
         {data?.programs?.data?.map((p) => (
@@ -226,7 +224,7 @@ function ProfilePage() {
               {p.price} {p.currency}
             </span>
 
-            <p className="text-sm font-medium">{p.description}</p>
+            <div className="text-sm font-medium">{p.description}</div>
           </div>
         ))}
       </div>
