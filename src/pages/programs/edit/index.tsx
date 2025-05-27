@@ -4,7 +4,9 @@ import { ProgramDocument } from "@/apollo/queries/program.generated";
 import { ProgramsDocument } from "@/apollo/queries/programs.generated";
 import type { OnSubmitProgramFunc } from "@/components/program-form";
 import ProgramForm from "@/components/program-form";
+import { useAuth } from "@/lib/hooks/use-auth";
 import notify from "@/lib/notify";
+import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 
 const EditProgram: React.FC = () => {
@@ -13,6 +15,19 @@ const EditProgram: React.FC = () => {
   const { id } = useParams();
 
   const [updateProgram] = useUpdateProgramMutation();
+  const { isLoggedIn, isAuthed } = useAuth();
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate("/");
+      notify("Please login first", "success");
+      return;
+    } else if (!isAuthed) {
+      navigate("/profile/edit");
+      notify("Please add your email", "success");
+      return;
+    }
+  }, [isLoggedIn, isAuthed]);
 
   const onSubmit: OnSubmitProgramFunc = (args) => {
     updateProgram({

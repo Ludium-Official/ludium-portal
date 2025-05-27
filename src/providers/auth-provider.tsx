@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         token,
         isLoggedIn: !!token,
-        isAuthed: !!token && !!profileData?.profile?.organizationName,
+        isAuthed: !!token && !!profileData?.profile?.email,
         login,
         logout,
       }}

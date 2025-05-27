@@ -1,48 +1,49 @@
-import { useProgramsQuery } from '@/apollo/queries/programs.generated';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { PageSize, Pagination } from '@/components/ui/pagination';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/lib/hooks/use-auth';
-import ProgramCard from '@/pages/programs/_components/program-card';
-import { SortEnum } from '@/types/types.generated';
-import { CirclePlus, ListFilter } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useProgramsQuery } from "@/apollo/queries/programs.generated";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { PageSize, Pagination } from "@/components/ui/pagination";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/lib/hooks/use-auth";
+import notify from "@/lib/notify";
+import ProgramCard from "@/pages/programs/_components/program-card";
+import { SortEnum } from "@/types/types.generated";
+import { CirclePlus, ListFilter } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 
 const ProgramsPage: React.FC = () => {
-  const [selectedTab, setSelectedTab] = useState('all');
+  const [selectedTab, setSelectedTab] = useState("all");
 
-  const { isAuthed, userId } = useAuth();
+  const { isLoggedIn, isAuthed, userId } = useAuth();
 
   const navigate = useNavigate();
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const currentPage = Number(searchParams.get('page')) || 1;
+  const currentPage = Number(searchParams.get("page")) || 1;
 
-  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedSearch(searchParams.get('search') ?? '');
+      setDebouncedSearch(searchParams.get("search") ?? "");
     }, 300); // Adjust the debounce delay as needed
 
     return () => {
       clearTimeout(handler);
     };
-  }, [searchParams.get('search')]);
+  }, [searchParams.get("search")]);
 
   const filter = [
-    ...(selectedTab === 'my-programs'
+    ...(selectedTab === "my-programs"
       ? [
           {
-            field: 'userId',
+            field: "userId",
             value: userId,
           },
         ]
       : []),
     {
-      field: 'name',
+      field: "name",
       value: debouncedSearch,
     },
   ];
@@ -61,7 +62,11 @@ const ProgramsPage: React.FC = () => {
   const totalCount = data?.programs?.count ?? 0;
 
   return (
-    <Tabs className="p-10 pr-[55px]" value={selectedTab} onValueChange={setSelectedTab}>
+    <Tabs
+      className="p-10 pr-[55px]"
+      value={selectedTab}
+      onValueChange={setSelectedTab}
+    >
       <section className="flex justify-between items-center mb-3">
         <TabsList className="">
           <TabsTrigger value="all">All</TabsTrigger>
@@ -71,12 +76,12 @@ const ProgramsPage: React.FC = () => {
           <Input
             className="h-full w-[432px]"
             placeholder="Search..."
-            value={searchParams.get('search') ?? ''}
+            value={searchParams.get("search") ?? ""}
             onChange={(e) => {
               const value = e.target.value;
               const newSP = new URLSearchParams();
 
-              newSP.set('search', value);
+              newSP.set("search", value);
               setSearchParams(newSP);
             }}
           />
@@ -84,8 +89,19 @@ const ProgramsPage: React.FC = () => {
           <Button variant="outline" className="h-full rounded-[6px] ">
             <ListFilter /> Filter
           </Button>
-          {isAuthed && (
-            <Button className="h-[32px] rounded-[6px] gap-2" onClick={() => navigate('create')}>
+          {isLoggedIn && (
+            <Button
+              className="h-[32px] rounded-[6px] gap-2"
+              onClick={() => {
+                if (!isAuthed) {
+                  notify("Please add your email", "success");
+                  navigate("/profile/edit");
+                  return;
+                }
+
+                navigate("create");
+              }}
+            >
               <CirclePlus /> Create Program
             </Button>
           )}

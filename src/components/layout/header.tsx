@@ -37,7 +37,7 @@ function Header() {
   >([]);
 
   const { data: profileData } = useProfileQuery({
-    fetchPolicy: "network-only",
+    fetchPolicy: "cache-first",
   });
 
   const walletInfo = user?.wallet;
@@ -46,11 +46,13 @@ function Header() {
     try {
       const googleInfo = user?.google;
       const farcasterInfo = user?.farcaster;
+      const twitterInfo = user?.twitter;
 
       const loginType = (() => {
         const types = {
           google: googleInfo,
           farcaster: farcasterInfo,
+          twitter: twitterInfo,
         };
 
         return (
@@ -102,7 +104,7 @@ function Header() {
     try {
       const balance = await contract.getAmount(tokenAddress, walletAddress);
 
-      return balance as bigint; // Ensure the returned value is cast to bigint
+      return balance as bigint;
     } catch (error) {
       console.error("Error fetching token balance:", error);
       return null;

@@ -18,7 +18,7 @@ function Providers({ children }: { children: React.ReactNode }) {
               embeddedWallets: {
                 createOnLogin: "all-users",
               },
-              loginMethods: ["farcaster", "google"],
+              loginMethods: ["twitter", "farcaster", "google"],
             }}
           >
             {children}

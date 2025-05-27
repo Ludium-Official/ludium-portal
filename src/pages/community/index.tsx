@@ -1,35 +1,36 @@
-import { usePostsQuery } from '@/apollo/queries/posts.generated';
-import { useUsersQuery } from '@/apollo/queries/users.generated';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { PageSize, Pagination } from '@/components/ui/pagination';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/lib/hooks/use-auth';
-import { getInitials } from '@/lib/utils';
-import { type Post, SortEnum } from '@/types/types.generated';
-import { ArrowRight, CirclePlus } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router';
-import PostCard from './_components/post-card';
+import { usePostsQuery } from "@/apollo/queries/posts.generated";
+import { useUsersQuery } from "@/apollo/queries/users.generated";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { PageSize, Pagination } from "@/components/ui/pagination";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/lib/hooks/use-auth";
+import notify from "@/lib/notify";
+import { getInitials } from "@/lib/utils";
+import { type Post, SortEnum } from "@/types/types.generated";
+import { ArrowRight, CirclePlus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router";
+import PostCard from "./_components/post-card";
 
 PageSize;
 
 const CommunityPage: React.FC = () => {
-  const [selectedTab, setSelectedTab] = useState('all');
-  const [selectedTabUsers, setSelectedTabUsers] = useState('all');
+  const [selectedTab, setSelectedTab] = useState("all");
+  const [selectedTabUsers, setSelectedTabUsers] = useState("all");
 
   const [posts, setPosts] = useState<Post[]>([]);
-  const { isAuthed } = useAuth();
+  const { isAuthed, isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const currentPage = Number(searchParams.get('page')) || 1;
+  const currentPage = Number(searchParams.get("page")) || 1;
 
-  const [search, setSearch] = useState<string>('');
-  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
-  const [userSearch, setUserSearch] = useState<string>('');
-  const [debouncedUserSearch, setDebouncedUserSearch] = useState<string>('');
+  const [search, setSearch] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [userSearch, setUserSearch] = useState<string>("");
+  const [debouncedUserSearch, setDebouncedUserSearch] = useState<string>("");
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -57,14 +58,14 @@ const CommunityPage: React.FC = () => {
         offset: 0,
         filter: [
           {
-            field: 'search',
+            field: "search",
             value: debouncedUserSearch,
           },
-          ...(selectedTabUsers === 'by-projects'
+          ...(selectedTabUsers === "by-projects"
             ? [
                 {
-                  field: 'byNumberOfProjects',
-                  value: 'asc',
+                  field: "byNumberOfProjects",
+                  value: "asc",
                 },
               ]
             : []),
@@ -75,7 +76,7 @@ const CommunityPage: React.FC = () => {
 
   const filter = [
     {
-      field: 'title',
+      field: "title",
       value: debouncedSearch,
     },
   ];
@@ -86,7 +87,7 @@ const CommunityPage: React.FC = () => {
         limit: PageSize,
         offset: (currentPage - 1) * PageSize,
         filter: filter,
-        sort: selectedTab === 'by-oldest' ? SortEnum.Asc : SortEnum.Desc,
+        sort: selectedTab === "by-oldest" ? SortEnum.Asc : SortEnum.Desc,
       },
     },
   });
@@ -119,10 +120,17 @@ const CommunityPage: React.FC = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            {isAuthed && (
+            {isLoggedIn && (
               <Button
                 className="rounded-md bg-purple-500 hover:bg-purple-600 flex items-center gap-2 h-10"
-                onClick={() => navigate('create')}
+                onClick={() => {
+                  if (!isAuthed) {
+                    notify("Please add your email", "success");
+                    navigate("/profile/edit");
+                    return;
+                  }
+                  navigate("create");
+                }}
               >
                 <CirclePlus className="h-4 w-4" /> Create Community
               </Button>
@@ -177,7 +185,9 @@ const CommunityPage: React.FC = () => {
           <Tabs value={selectedTabUsers} onValueChange={setSelectedTabUsers}>
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="by-projects">By number of projects</TabsTrigger>
+              <TabsTrigger value="by-projects">
+                By number of projects
+              </TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -197,7 +207,9 @@ const CommunityPage: React.FC = () => {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex gap-2">
                   <Badge className="bg-red-500 px-2.5 py-0.5">BD</Badge>
-                  <Badge className="bg-[#B331FF] px-2.5 py-0.5">Developer</Badge>
+                  <Badge className="bg-[#B331FF] px-2.5 py-0.5">
+                    Developer
+                  </Badge>
                   <Badge className="bg-pink-300 px-2.5 py-0.5">Solidity</Badge>
                 </div>
 
@@ -212,11 +224,13 @@ const CommunityPage: React.FC = () => {
               <div className="gap-4 flex items-center mb-6">
                 <Avatar className="w-[64px] h-[64px]">
                   <AvatarImage
-                    src={user?.image || ''}
+                    src={user?.image || ""}
                     alt={`${user?.firstName} ${user?.lastName}`}
                   />
                   <AvatarFallback>
-                    {getInitials(`${user?.firstName || ''} ${user?.lastName || ''}`)}
+                    {getInitials(
+                      `${user?.firstName || ""} ${user?.lastName || ""}`
+                    )}
                   </AvatarFallback>
                 </Avatar>
 

@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import { usePrivy } from "@privy-io/react-auth";
 import { ArrowRight, Settings, Wallet } from "lucide-react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link } from "react-router";
 
 function ProfilePage() {
   const roles = JSON.parse(localStorage.getItem("roles") ?? "[]") as string[];
@@ -23,9 +23,8 @@ function ProfilePage() {
     builder: "applicantId",
   };
 
-  const { user, login: privyLogin, logout: privyLogout } = usePrivy();
-  const { login: authLogin, logout: authLogout } = useAuth();
-  const navigate = useNavigate();
+  const { user, login: privyLogin } = usePrivy();
+  const { login: authLogin } = useAuth();
 
   const { data: profileData } = useProfileQuery({
     fetchPolicy: "network-only",
@@ -82,19 +81,6 @@ function ProfilePage() {
     } catch (error) {
       notify("Failed to login", "error");
       console.error("Failed to login:", error);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      authLogout();
-      privyLogout();
-
-      notify("Successfully logged out", "success");
-      navigate("/");
-    } catch (error) {
-      notify("Error logging out", "error");
-      console.error("Error logging out:", error);
     }
   };
 
