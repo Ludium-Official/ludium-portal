@@ -65,6 +65,7 @@ export type CreateApplicationInput = {
   content: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
   metadata?: InputMaybe<Scalars['JSON']['input']>;
+  milestones: Array<CreateMilestoneInput>;
   name: Scalars['String']['input'];
   price: Scalars['String']['input'];
   programId: Scalars['String']['input'];
@@ -78,7 +79,6 @@ export type CreateCommentInput = {
 };
 
 export type CreateMilestoneInput = {
-  applicationId: Scalars['String']['input'];
   currency?: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
@@ -155,7 +155,6 @@ export type Mutation = {
   checkMilestone?: Maybe<Milestone>;
   createApplication?: Maybe<Application>;
   createComment?: Maybe<Comment>;
-  createMilestones?: Maybe<Array<Milestone>>;
   createPost?: Maybe<Post>;
   createProgram?: Maybe<Program>;
   createUser?: Maybe<User>;
@@ -200,11 +199,6 @@ export type MutationCreateApplicationArgs = {
 
 export type MutationCreateCommentArgs = {
   input: CreateCommentInput;
-};
-
-
-export type MutationCreateMilestonesArgs = {
-  input: Array<CreateMilestoneInput>;
 };
 
 

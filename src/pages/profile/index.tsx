@@ -101,6 +101,9 @@ function ProfilePage() {
             {profileData?.profile?.organizationName}
           </p>
 
+          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Email</h3>
+          <p className="text-[#18181B] text-sm font-medium mb-10">{profileData?.profile?.email}</p>
+
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Summary</h3>
           <p className="text-[#18181B] text-sm font-medium mb-10">
             {profileData?.profile?.summary}

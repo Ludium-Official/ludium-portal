@@ -45,11 +45,13 @@ function EditProfilePage() {
 
   const { register, handleSubmit, watch } = useForm<{
     // description: string;
+    email: string;
     summary: string;
     name: string;
   }>({
     values: {
       // description: profileData?.profile?.about ?? '',
+      email: profileData?.profile?.email ?? '',
       summary: profileData?.profile?.summary ?? '',
       name: profileData?.profile?.organizationName ?? '',
     },
@@ -58,7 +60,7 @@ function EditProfilePage() {
   const [selectedAvatar, setSelectedAvatar] = useState<File>();
   const [linksError, setLinksError] = useState(false);
 
-  const onSubmit = (data: { summary: string; name: string }) => {
+  const onSubmit = (data: { summary: string; name: string; email: string }) => {
     if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
       setLinksError(true);
       return;
@@ -71,6 +73,7 @@ function EditProfilePage() {
         input: {
           id: profileData?.profile?.id ?? '',
           image: selectedAvatar,
+          email: data.email,
           organizationName: data?.name,
           summary: data?.summary,
           about: content,
@@ -174,6 +177,19 @@ function EditProfilePage() {
               })}
               id="name"
               type="text"
+              placeholder="Input text"
+              className="mb-5 h-10"
+            />
+
+            <label htmlFor="email" className="block text-foreground font-medium mb-2 text-sm">
+              Email
+            </label>
+            <Input
+              {...register('email', {
+                required: 'Organization Name is required.',
+              })}
+              id="email"
+              type="email"
               placeholder="Input text"
               className="mb-5 h-10"
             />

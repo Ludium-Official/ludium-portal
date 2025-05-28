@@ -65,13 +65,16 @@ function UserDetailsPage() {
             {userData?.user?.lastName}
           </p>
 
+          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Email</h3>
+          <p className="text-[#18181B] text-sm font-medium mb-10">{userData?.user?.email}</p>
+
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Summary</h3>
           <p className="text-[#18181B] text-sm font-medium mb-10">{userData?.user?.summary}</p>
 
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Description</h3>
           {userData?.user?.about && <MarkdownPreviewer value={userData?.user?.about ?? ''} />}
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Links</h3>
+          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2 mt-3">Links</h3>
           <p className="text-[#18181B] text-sm font-medium mb-10">
             {userData?.user?.links?.map((l) => (
               <a

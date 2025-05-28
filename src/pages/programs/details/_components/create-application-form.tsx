@@ -1,6 +1,6 @@
 import client from '@/apollo/client';
 import { useCreateApplicationMutation } from '@/apollo/mutation/create-application.generated';
-import { useCreateMilestonesMutation } from '@/apollo/mutation/create-milestones.generated';
+// import { useCreateMilestonesMutation } from '@/apollo/mutation/create-milestones.generated';
 import { ProgramDocument } from '@/apollo/queries/program.generated';
 import { eduCurrencies } from '@/components/currency-selector';
 import MarkdownEditor from '@/components/markdown-editor';
@@ -38,7 +38,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   const totalPrice = milestones.reduce((prev, curr) => Number(curr.price ?? 0) + prev, 0);
 
   const [createApplication, { loading }] = useCreateApplicationMutation();
-  const [createMilestones, { loading: milestonesLoading }] = useCreateMilestonesMutation();
+  // const [createMilestones, { loading: milestonesLoading }] = useCreateMilestonesMutation();
 
   const [linksError, setLinksError] = useState(false);
 
@@ -55,34 +55,27 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             programId: program?.id ?? '',
             content: content ?? '',
             name: name ?? '',
+            milestones: milestones.map((m) => ({
+              price: m.price,
+              title: m.title,
+              description: m.description,
+              currency: program?.currency ?? 'EDU',
+            })),
             price: milestones
               .reduce((prev, curr) => BigNumber(curr?.price ?? '0').plus(prev), BigNumber(0))
               .toFixed(18),
             links: links.map((l) => ({ title: l, url: l })),
           },
         },
-        onCompleted: async (data) => {
-          createMilestones({
-            variables: {
-              input: milestones.map((m) => ({
-                applicationId: data.createApplication?.id ?? '',
-                price: m.price,
-                title: m.title,
-                description: m.description,
-                currency: program?.currency ?? 'EDU',
-              })),
-            },
-            onCompleted: () => {
-              client.refetchQueries({
-                include: [ProgramDocument],
-              });
-              notify('Application successfully created');
-              document.getElementById('purposal-dialog-close')?.click();
-            },
-            onError: (e) => {
-              notify(e.message, 'error');
-            },
+        onCompleted: async () => {
+          client.refetchQueries({
+            include: [ProgramDocument],
           });
+          notify('Application successfully created');
+          document.getElementById('purposal-dialog-close')?.click();
+        },
+        onError: (e) => {
+          notify(`Failed to create application: ${e.message}`, 'error');
         },
       });
     } catch (e) {
@@ -260,16 +253,12 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         </span>
       )}
       <Button
-        disabled={loading || milestonesLoading || !milestoneValid || !name || !content}
+        disabled={loading || !milestoneValid || !name || !content}
         type="button"
         className="bg-[#861CC4] h-10 ml-auto block hover:bg-[#861CC4]/90 min-w-[161px]"
         onClick={onSubmit}
       >
-        {loading || milestonesLoading ? (
-          <LoaderCircle className="animate-spin mx-auto" />
-        ) : (
-          'SUBMIT APPLICATION'
-        )}
+        {loading ? <LoaderCircle className="animate-spin mx-auto" /> : 'SUBMIT APPLICATION'}
       </Button>
     </form>
   );
