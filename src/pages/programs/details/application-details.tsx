@@ -274,7 +274,10 @@ function ApplicationDetails() {
                         onClick={() => {
                           checkMilestone({
                             variables: {
-                              input: { id: m.id ?? '', status: CheckMilestoneStatus.Pending },
+                              input: {
+                                id: m.id ?? '',
+                                status: CheckMilestoneStatus.Pending,
+                              },
                             },
                             onCompleted: () => {
                               refetch();

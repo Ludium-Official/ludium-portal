@@ -150,7 +150,8 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       keywords: selectedKeywords,
       validatorId: selectedValidator ?? '',
       links: links.map((l) => ({ title: l, url: l })),
-      network,
+      network:
+        isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
     });
   };
 

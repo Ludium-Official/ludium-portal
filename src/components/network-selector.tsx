@@ -11,10 +11,25 @@ import {
 import { useEffect, useState } from "react";
 
 export const currencies = [
-  { code: "educhain", icon: <EduIcon />, display: "EDUChain" },
-  { code: "educhain-testnet", icon: <EduIcon />, display: "EDUChain Testnet" },
-  { code: "base", icon: <EthIcon />, display: "Base" },
-  { code: "base-sepolia", icon: <EthIcon />, display: "Base Sepolia" },
+  {
+    code: "educhain",
+    icon: <EduIcon />,
+    display: "EDUChain",
+    isTestnet: false,
+  },
+  {
+    code: "educhain-testnet",
+    icon: <EduIcon />,
+    display: "EDUChain Testnet",
+    isTestnet: true,
+  },
+  { code: "base", icon: <EthIcon />, display: "Base", isTestnet: false },
+  {
+    code: "base-sepolia",
+    icon: <EthIcon />,
+    display: "Base Sepolia",
+    isTestnet: true,
+  },
 ];
 
 function NetworkSelector({
@@ -39,6 +54,13 @@ function NetworkSelector({
   }, [value]);
 
   const currWithIcon = currencies.find((c) => c.code === selectedCurrency);
+  const separateCurrencies = currencies.filter((currency) => {
+    if (import.meta.env.VITE_VERCEL_ENVIRONMENT === "mainnet") {
+      return !currency.isTestnet;
+    }
+
+    return currency;
+  });
 
   return (
     <DropdownMenu>
@@ -48,7 +70,7 @@ function NetworkSelector({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        {currencies.map((c) => (
+        {separateCurrencies.map((c) => (
           <DropdownMenuItem
             key={c.code}
             onClick={() => setSelectedCurrency(c.code)}
