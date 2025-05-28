@@ -20,7 +20,7 @@ interface PostCardProps {
 
 function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
   const { isSponsor } = useAuth();
-  const { id, title, content, keywords, createdAt } = post ?? {};
+  const { id, title, keywords, createdAt, summary } = post ?? {};
   const badgeVariants = ['teal', 'orange', 'pink'];
 
   const postId = id || '';
@@ -33,7 +33,10 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
     fetchPolicy: 'cache-and-network',
   });
 
-  const authorName = `${post?.author?.firstName} ${post?.author?.lastName}`;
+  const authorName =
+    post?.author?.firstName && post?.author?.lastName
+      ? `${post?.author?.firstName} ${post?.author?.lastName}`
+      : post?.author?.firstName || post?.author?.lastName || '';
 
   if (loading && !data) {
     return (
@@ -93,7 +96,9 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
                 </div>
               </div>
 
-              <p className="text-sm text-gray-700 mb-3 line-clamp-3">{content}</p>
+              {/* <p className="text-sm text-gray-700 mb-3 line-clamp-3">{content}</p> */}
+              <p className="text-sm text-gray-700 mb-3 line-clamp-3">{summary}</p>
+              {/* <MarkdownPreviewer value={content ?? ''} /> */}
             </div>
 
             <div className="border-t border-gray-100 pt-2 pb-1">
@@ -191,7 +196,7 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
               </div>
             </div>
 
-            <p className="text-sm text-gray-700 mb-3 line-clamp-4">{content}</p>
+            <p className="text-sm text-gray-700 mb-3 line-clamp-4">{summary}</p>
           </div>
         </div>
 

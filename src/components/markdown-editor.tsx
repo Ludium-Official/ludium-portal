@@ -58,7 +58,7 @@ function MarkdownEditor({
       ref={mdxRef}
       markdown={content}
       className="border rounded-md shadow-md"
-      contentEditableClassName="prose"
+      contentEditableClassName="prose min-h-[300px] cursor-text"
       onChange={(value) => debouncedOnChange(value)}
       plugins={[
         headingsPlugin(),

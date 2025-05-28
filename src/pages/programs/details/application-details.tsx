@@ -3,6 +3,7 @@ import { useCheckMilestoneMutation } from '@/apollo/mutation/check-milestone.gen
 import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
 import { useApplicationQuery } from '@/apollo/queries/application.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
+import MarkdownPreviewer from '@/components/markdown-previewer';
 import {
   Accordion,
   AccordionContent,
@@ -24,6 +25,7 @@ import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import SubmitMilestoneForm from '@/pages/programs/details/_components/submit-milestone-form';
 import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from '@/types/types.generated';
+import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
 import { ArrowRight } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router';
@@ -107,7 +109,7 @@ function ApplicationDetails() {
     <div className="bg-[#F7F7F7]">
       <section className="bg-white p-10 mb-3 rounded-b-2xl">
         <div className="flex justify-between mb-5">
-          <div className="flex gap-2 mb-1">
+          <div className="flex gap-2 mb-1 flex-wrap max-w-[70%]">
             {keywords?.map((k, i) => (
               <Badge
                 key={k.id}
@@ -135,7 +137,10 @@ function ApplicationDetails() {
         <div className="mb-4">
           <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
             <span className="inline-block mr-2">
-              {program?.price} {program?.currency}
+              {data?.application?.milestones
+                ?.reduce((prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)), BigNumber(0, 10))
+                .toFixed()}{' '}
+              {program?.currency} / {program?.price} {program?.currency}
             </span>
             <span className="h-3 border-l border-[#B331FF] inline-block" />
             <span className="inline-block ml-2">
@@ -181,7 +186,8 @@ function ApplicationDetails() {
 
           <div className="mb-6">
             <h2 className="font-bold text-[#18181B] text-lg mb-3">DESCRIPTION</h2>
-            <p className="text-slate-600 text-sm">{data?.application?.content}</p>
+            {data?.application?.content && <MarkdownPreviewer value={data?.application?.content} />}
+            {/* <p className="text-slate-600 text-sm">{data?.application?.content}</p> */}
           </div>
 
           <div className="mb-6">
@@ -289,7 +295,14 @@ function ApplicationDetails() {
                     data?.application?.status === ApplicationStatus.Accepted &&
                     data?.application?.applicant?.id === userId && (
                       <Dialog>
-                        <DialogTrigger asChild>
+                        <DialogTrigger
+                          asChild
+                          disabled={
+                            idx !== 0 &&
+                            data?.application?.milestones?.[idx - 1]?.status !==
+                              MilestoneStatus.Completed
+                          }
+                        >
                           <Button className="h-10 block ml-auto">Submit Milestone</Button>
                         </DialogTrigger>
                         <DialogContent>

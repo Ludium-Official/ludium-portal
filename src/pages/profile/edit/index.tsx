@@ -1,11 +1,12 @@
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+// import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 
 import { useUpdateProfileMutation } from '@/apollo/mutation/updateProfile.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
+import MarkdownEditor from '@/components/markdown-editor';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import { usePrivy } from '@privy-io/react-auth';
@@ -23,6 +24,14 @@ function EditProfilePage() {
     fetchPolicy: 'network-only',
   });
 
+  const [content, setContent] = useState<string>('');
+
+  useEffect(() => {
+    if (profileData?.profile?.about) {
+      setContent(profileData?.profile?.about);
+    }
+  }, [profileData]);
+
   useEffect(() => {
     const links = profileData?.profile?.links;
     if (links?.length) {
@@ -35,11 +44,13 @@ function EditProfilePage() {
   const [updateProfile] = useUpdateProfileMutation();
 
   const { register, handleSubmit, watch } = useForm<{
-    description: string;
+    // description: string;
+    summary: string;
     name: string;
   }>({
     values: {
-      description: profileData?.profile?.about ?? '',
+      // description: profileData?.profile?.about ?? '',
+      summary: profileData?.profile?.summary ?? '',
       name: profileData?.profile?.organizationName ?? '',
     },
   });
@@ -47,11 +58,13 @@ function EditProfilePage() {
   const [selectedAvatar, setSelectedAvatar] = useState<File>();
   const [linksError, setLinksError] = useState(false);
 
-  const onSubmit = (data: { description: string; name: string }) => {
+  const onSubmit = (data: { summary: string; name: string }) => {
     if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
       setLinksError(true);
       return;
     }
+
+    console.log(data, 'DATA!!!!!!');
 
     updateProfile({
       variables: {
@@ -59,7 +72,8 @@ function EditProfilePage() {
           id: profileData?.profile?.id ?? '',
           image: selectedAvatar,
           organizationName: data?.name,
-          about: data?.description,
+          summary: data?.summary,
+          about: content,
           links: links?.filter((l) => l)?.length
             ? links?.filter((l) => l).map((l) => ({ title: l, url: l }))
             : undefined,
@@ -74,8 +88,9 @@ function EditProfilePage() {
   };
 
   const isNoChanges =
+    profileData?.profile?.summary === watch('summary') &&
     profileData?.profile?.organizationName === watch('name') &&
-    profileData?.profile?.about === watch('description') &&
+    profileData?.profile?.about === content &&
     JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links);
 
   const walletInfo = user?.wallet;
@@ -163,17 +178,39 @@ function EditProfilePage() {
               className="mb-5 h-10"
             />
 
-            <label htmlFor="description" className="block text-foreground font-medium mb-2 text-sm">
-              Description
+            <label htmlFor="summary" className="block text-foreground font-medium mb-2 text-sm">
+              Summary
             </label>
-            <Textarea
-              {...register('description')}
-              id="description"
+            <Input
+              {...register('summary', {
+                required: 'Summary is required.',
+              })}
+              id="name"
+              type="text"
               placeholder="Input text"
               className="mb-5 h-10"
             />
 
             <label htmlFor="description" className="block text-foreground font-medium mb-2 text-sm">
+              Description
+            </label>
+
+            <MarkdownEditor onChange={setContent} content={content} />
+
+            {!content.length && (
+              <span className="text-red-400 text-sm block">Content is required</span>
+            )}
+            {/* <Textarea
+              {...register('description')}
+              id="description"
+              placeholder="Input text"
+              className="mb-5 h-10"
+            /> */}
+
+            <label
+              htmlFor="description"
+              className="block text-foreground font-medium mb-2 text-sm mt-5"
+            >
               Wallet
             </label>
             <div className="p-6 mb-10 border bg-muted w-[282px] h-[156px] rounded-lg shadow-sm relative">

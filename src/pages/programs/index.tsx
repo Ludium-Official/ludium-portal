@@ -32,12 +32,24 @@ const ProgramsPage: React.FC = () => {
     };
   }, [searchParams.get('search')]);
 
+  useEffect(() => {
+    setSearchParams(new URLSearchParams());
+  }, [selectedTab]);
+
   const filter = [
     ...(selectedTab === 'my-programs'
       ? [
           {
             field: 'userId',
             value: userId,
+          },
+        ]
+      : []),
+    ...(selectedTab === 'published'
+      ? [
+          {
+            field: 'status',
+            value: 'published',
           },
         ]
       : []),
@@ -66,6 +78,7 @@ const ProgramsPage: React.FC = () => {
         <TabsList className="">
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="my-programs">My programs</TabsTrigger>
+          <TabsTrigger value="published">Published</TabsTrigger>
         </TabsList>
         <div className="h-10 flex items-center gap-3">
           <Input

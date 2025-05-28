@@ -2,6 +2,7 @@ import { useKeywordsQuery } from '@/apollo/queries/keywords.generated';
 import { usePostQuery } from '@/apollo/queries/post.generated';
 import MarkdownEditor from '@/components/markdown-editor';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -12,9 +13,11 @@ import { useParams } from 'react-router';
 export type OnSubmitPostFunc = (data: {
   id?: string;
   title: string;
+  summary: string;
   content: string;
   keywords: string[];
   image: File | undefined;
+  isBanner?: boolean;
 }) => void;
 
 export interface PostFormProps {
@@ -24,6 +27,8 @@ export interface PostFormProps {
 
 function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
   const { id } = useParams();
+
+  const [isBanner, setIsBanner] = useState<boolean>();
 
   const { data } = usePostQuery({
     variables: {
@@ -65,11 +70,13 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
   } = useForm({
     values: {
       title: data?.post?.title ?? '',
+      summary: data?.post?.summary ?? '',
     },
   });
 
   const onSubmit = (submitData: {
     title: string;
+    summary: string;
   }) => {
     if (extraErrors.keyword) return;
     if (!content.length) return;
@@ -77,9 +84,11 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
     onSubmitPost({
       id: data?.post?.id ?? id,
       title: submitData.title,
+      summary: submitData.summary,
       content,
       keywords: selectedKeywords,
       image: selectedImage,
+      isBanner,
     });
   };
 
@@ -120,6 +129,18 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
         )}
       </label>
 
+      <label htmlFor="summary" className="space-y-2 block mb-10">
+        <p className="text-sm font-medium">Summary</p>
+        <Input
+          id="summary"
+          type="text"
+          placeholder="Type title"
+          className="h-10"
+          {...register('summary', { required: true })}
+        />
+        {errors.title && <span className="text-red-400 text-sm block">Summary is required</span>}
+      </label>
+
       <label htmlFor="content" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Content</p>
 
@@ -134,6 +155,20 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
           <Input id="picture" type="file" onChange={(e) => setSelectedImage(e.target.files?.[0])} />
         </div>
       </label>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="isBanner"
+          checked={isBanner}
+          onCheckedChange={(value) => setIsBanner(value === 'indeterminate' ? undefined : value)}
+        />
+        <label
+          htmlFor="isBanner"
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          Set post as main banner
+        </label>
+      </div>
 
       {isEdit ? (
         <div className="px-[32px] py-3 flex justify-end gap-4">

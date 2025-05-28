@@ -14,9 +14,11 @@ const CreateCommunityPage: React.FC = () => {
       variables: {
         input: {
           title: args.title,
+          summary: args.summary,
           content: args.content,
           keywords: args.keywords,
           image: args.image,
+          isBanner: args.isBanner,
         },
       },
       onCompleted: () => {

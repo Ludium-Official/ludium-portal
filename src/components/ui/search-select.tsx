@@ -20,6 +20,10 @@ interface SearchSelectProps {
   placeholder?: string;
   value?: string;
   setValue: React.Dispatch<React.SetStateAction<string | undefined>>;
+  inputValue?: string;
+  setInputValue?: React.Dispatch<React.SetStateAction<string | undefined>>;
+  emptyText?: string;
+  loading?: boolean;
 }
 
 export function SearchSelect({
@@ -27,6 +31,10 @@ export function SearchSelect({
   placeholder = 'Select',
   value,
   setValue,
+  inputValue,
+  setInputValue,
+  emptyText = 'No result found.',
+  loading,
 }: SearchSelectProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -56,9 +64,9 @@ export function SearchSelect({
             return label?.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
           }}
         >
-          <CommandInput placeholder="Search..." />
+          <CommandInput value={inputValue} onValueChange={setInputValue} placeholder="Search..." />
           <CommandList>
-            <CommandEmpty>No result found.</CommandEmpty>
+            <CommandEmpty className="p-4">{loading ? 'Loading...' : emptyText}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem

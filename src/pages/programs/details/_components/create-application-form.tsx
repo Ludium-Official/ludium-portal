@@ -1,21 +1,18 @@
-import client from "@/apollo/client";
-import { useCreateApplicationMutation } from "@/apollo/mutation/create-application.generated";
-import { useCreateMilestonesMutation } from "@/apollo/mutation/create-milestones.generated";
-import { ProgramDocument } from "@/apollo/queries/program.generated";
-import { eduCurrencies } from "@/components/currency-selector";
-import { Button } from "@/components/ui/button";
-import {
-  DialogClose,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import notify from "@/lib/notify";
-import type { Program } from "@/types/types.generated";
-import BigNumber from "bignumber.js";
-import { LoaderCircle, X } from "lucide-react";
-import { useState } from "react";
+import client from '@/apollo/client';
+import { useCreateApplicationMutation } from '@/apollo/mutation/create-application.generated';
+import { useCreateMilestonesMutation } from '@/apollo/mutation/create-milestones.generated';
+import { ProgramDocument } from '@/apollo/queries/program.generated';
+import { eduCurrencies } from '@/components/currency-selector';
+import MarkdownEditor from '@/components/markdown-editor';
+import { Button } from '@/components/ui/button';
+import { DialogClose, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import notify from '@/lib/notify';
+import type { Program } from '@/types/types.generated';
+import BigNumber from 'bignumber.js';
+import { LoaderCircle, X } from 'lucide-react';
+import { useState } from 'react';
 
 type MilestoneType = {
   title: string;
@@ -24,28 +21,24 @@ type MilestoneType = {
 };
 
 const emptyMilestone = {
-  title: "",
-  price: "",
-  description: "",
+  title: '',
+  price: '',
+  description: '',
 };
 
 function CreateApplicationForm({ program }: { program?: Program | null }) {
   const [name, setName] = useState<string>();
-  const [description, setDescription] = useState<string>();
+  // const [description, setDescription] = useState<string>();
 
-  const [links, setLinks] = useState<string[]>([""]);
-  const [milestones, setMilestones] = useState<MilestoneType[]>([
-    emptyMilestone,
-  ]);
+  const [content, setContent] = useState<string>('');
 
-  const totalPrice = milestones.reduce(
-    (prev, curr) => Number(curr.price ?? 0) + prev,
-    0
-  );
+  const [links, setLinks] = useState<string[]>(['']);
+  const [milestones, setMilestones] = useState<MilestoneType[]>([emptyMilestone]);
+
+  const totalPrice = milestones.reduce((prev, curr) => Number(curr.price ?? 0) + prev, 0);
 
   const [createApplication, { loading }] = useCreateApplicationMutation();
-  const [createMilestones, { loading: milestonesLoading }] =
-    useCreateMilestonesMutation();
+  const [createMilestones, { loading: milestonesLoading }] = useCreateMilestonesMutation();
 
   const [linksError, setLinksError] = useState(false);
 
@@ -59,14 +52,11 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       createApplication({
         variables: {
           input: {
-            programId: program?.id ?? "",
-            content: description ?? "",
-            name: name ?? "",
+            programId: program?.id ?? '',
+            content: content ?? '',
+            name: name ?? '',
             price: milestones
-              .reduce(
-                (prev, curr) => BigNumber(curr?.price ?? "0").plus(prev),
-                BigNumber(0)
-              )
+              .reduce((prev, curr) => BigNumber(curr?.price ?? '0').plus(prev), BigNumber(0))
               .toFixed(18),
             links: links.map((l) => ({ title: l, url: l })),
           },
@@ -75,35 +65,29 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           createMilestones({
             variables: {
               input: milestones.map((m) => ({
-                applicationId: data.createApplication?.id ?? "",
+                applicationId: data.createApplication?.id ?? '',
                 price: m.price,
                 title: m.title,
                 description: m.description,
-                currency: program?.currency ?? "EDU",
+                currency: program?.currency ?? 'EDU',
               })),
             },
             onCompleted: () => {
               client.refetchQueries({
                 include: [ProgramDocument],
               });
-              notify("Application successfully created");
-              document.getElementById("purposal-dialog-close")?.click();
+              notify('Application successfully created');
+              document.getElementById('purposal-dialog-close')?.click();
             },
             onError: (e) => {
-              notify(e.message, "error");
+              notify(e.message, 'error');
             },
           });
         },
       });
     } catch (e) {
-      notify(
-        e instanceof Error ? e.message : "An unknown error occurred",
-        "error"
-      );
-      console.error(
-        e instanceof Error ? e.message : "An unknown error occurred",
-        "error"
-      );
+      notify(e instanceof Error ? e.message : 'An unknown error occurred', 'error');
+      console.error(e instanceof Error ? e.message : 'An unknown error occurred', 'error');
     }
   };
 
@@ -111,15 +95,11 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
     program?.price &&
     totalPrice <= (Number(program?.price) ?? 0) &&
     milestones.every((m) => !!m.title && !!m.price);
-  const programCurrency = eduCurrencies.find(
-    (c) => c.code === program?.currency
-  );
+  const programCurrency = eduCurrencies.find((c) => c.code === program?.currency);
 
   return (
     <form>
-      <DialogTitle className="text-2xl font-semibold mb-6">
-        Send an application
-      </DialogTitle>
+      <DialogTitle className="text-2xl font-semibold mb-6">Send an application</DialogTitle>
 
       <DialogDescription className="hidden" />
       <DialogClose id="purposal-dialog-close" className="hidden" />
@@ -131,18 +111,12 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <p className="text-[#71717A] text-sm">This is an input description.</p>
       </label>
 
       <label htmlFor="description" className="w-full mb-6 block">
         <p className="text-sm font-medium mb-2">Description</p>
-        <Textarea
-          id="description"
-          className="h-10 w-full mb-2"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-        <p className="text-[#71717A] text-sm">This is an input description.</p>
+
+        <MarkdownEditor onChange={setContent} content={content} />
       </label>
 
       <label htmlFor="links" className="space-y-2 block mb-10">
@@ -169,10 +143,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
               <X
                 onClick={() =>
                   setLinks((prev) => {
-                    const newLinks = [
-                      ...[...prev].slice(0, idx),
-                      ...[...prev].slice(idx + 1),
-                    ];
+                    const newLinks = [...[...prev].slice(0, idx), ...[...prev].slice(idx + 1)];
 
                     return newLinks;
                   })
@@ -182,7 +153,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           </div>
         ))}
         <Button
-          onClick={() => setLinks((prev) => [...prev, ""])}
+          onClick={() => setLinks((prev) => [...prev, ''])}
           type="button"
           variant="outline"
           size="sm"
@@ -265,10 +236,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
               size="sm"
               variant="outline"
               onClick={() =>
-                setMilestones((prev) => [
-                  ...prev.slice(0, idx),
-                  ...prev.slice(idx + 1),
-                ])
+                setMilestones((prev) => [...prev.slice(0, idx), ...prev.slice(idx + 1)])
               }
             >
               Delete
@@ -292,13 +260,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         </span>
       )}
       <Button
-        disabled={
-          loading ||
-          milestonesLoading ||
-          !milestoneValid ||
-          !name ||
-          !description
-        }
+        disabled={loading || milestonesLoading || !milestoneValid || !name || !content}
         type="button"
         className="bg-[#861CC4] h-10 ml-auto block hover:bg-[#861CC4]/90 min-w-[161px]"
         onClick={onSubmit}
@@ -306,7 +268,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         {loading || milestonesLoading ? (
           <LoaderCircle className="animate-spin mx-auto" />
         ) : (
-          "SUBMIT APPLICATION"
+          'SUBMIT APPLICATION'
         )}
       </Button>
     </form>

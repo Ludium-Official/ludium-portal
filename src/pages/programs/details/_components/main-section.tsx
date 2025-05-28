@@ -75,8 +75,8 @@ function MainSection({ program }: { program?: Program | null }) {
     <div className="flex bg-white rounded-b-2xl">
       <section className=" w-full max-w-[60%] border-r px-10 pt-5 pb-[50px]">
         <div className="w-full mb-9">
-          <div className="flex justify-between mb-5">
-            <div className="flex gap-2 mb-1">
+          <div className="flex justify-between mb-5 items-start">
+            <div className="flex gap-2 mb-1 max-w-[70%] flex-wrap">
               {program?.keywords?.map((k, i) => (
                 <Badge
                   key={k.id}
@@ -225,10 +225,13 @@ function MainSection({ program }: { program?: Program | null }) {
 
       <section className="px-10 py-[60px] w-full max-w-[40%] bg-white">
         <div className="border rounded-xl w-full p-6 mb-6">
-          <h2 className="flex gap-4 items-center text-lg font-bold mb-5">
+          <Link
+            to={`/users/${program?.creator?.id}`}
+            className="flex gap-4 items-center text-lg font-bold mb-5"
+          >
             <div className="w-10 h-10 bg-gray-200 rounded-full" />
             PROGRAM SPONSOR
-          </h2>
+          </Link>
 
           <div className="flex gap-3 mb-4">
             <p className="text-xs font-bold w-[57px]">Name</p>
@@ -236,39 +239,20 @@ function MainSection({ program }: { program?: Program | null }) {
           </div>
 
           <div className="flex gap-3 mb-4">
-            <p className="text-xs font-bold w-[57px]">Summary</p>
-            <p className="text-xs">{program?.creator?.about}</p>
-          </div>
-
-          <div className="flex gap-3 mb-4">
             <p className="text-xs font-bold w-[57px]">Email</p>
             <p className="text-xs">{program?.creator?.email}</p>
-          </div>
-
-          <div className="flex gap-3">
-            <p className="text-xs font-bold w-[57px]">Links</p>
-            <div>
-              {program?.creator?.links?.map((l) => (
-                <a
-                  href={l?.url ?? ''}
-                  key={l.url}
-                  className="block hover:underline text-slate-600 text-sm"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {l?.url}
-                </a>
-              ))}
-            </div>
           </div>
         </div>
 
         {program?.validator && (
           <div className="border rounded-xl w-full p-6">
-            <h2 className="flex gap-4 items-center text-lg font-bold mb-5">
+            <Link
+              to={`/users/${program.validator.id}`}
+              className="flex gap-4 items-center text-lg font-bold mb-5"
+            >
               <div className="w-10 h-10 bg-gray-200 rounded-full" />
               PROGRAM VALIDATOR
-            </h2>
+            </Link>
 
             <div className="flex gap-3 mb-4">
               <p className="text-xs font-bold w-[57px]">Name</p>
@@ -276,30 +260,8 @@ function MainSection({ program }: { program?: Program | null }) {
             </div>
 
             <div className="flex gap-3 mb-4">
-              <p className="text-xs font-bold w-[57px]">Summary</p>
-              <p className="text-xs">{program?.validator?.about}</p>
-            </div>
-
-            <div className="flex gap-3 mb-4">
               <p className="text-xs font-bold w-[57px]">Email</p>
               <p className="text-xs">{program?.validator?.email}</p>
-            </div>
-
-            <div className="flex gap-3">
-              <p className="text-xs font-bold w-[57px]">Links</p>
-              <div>
-                {program?.validator?.links?.map((l) => (
-                  <a
-                    href={l?.url ?? ''}
-                    key={l.url}
-                    className="block hover:underline text-slate-600 text-sm"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {l?.url}
-                  </a>
-                ))}
-              </div>
             </div>
           </div>
         )}

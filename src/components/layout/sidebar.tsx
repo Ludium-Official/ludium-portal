@@ -3,9 +3,10 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { CircleAlert, Scroll, UserRound, Users } from 'lucide-react';
 
 import { useRef, useState } from 'react';
-import { Link, NavLink } from 'react-router';
+import { Link, NavLink, useLocation } from 'react-router';
 
 const Sidebar = () => {
+  const location = useLocation();
   const { isAuthed } = useAuth();
   const [communityMenuOpen, setCommunityMenuOpen] = useState(false);
   const closeTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -17,7 +18,7 @@ const Sidebar = () => {
       icon: Users,
       submenu: [
         { name: 'Community', path: '/community', icon: Users },
-        { name: 'Users', path: '/community/users', icon: UserRound },
+        { name: 'Users', path: '/users', icon: UserRound },
       ],
     },
   ];
@@ -53,19 +54,18 @@ const Sidebar = () => {
             >
               {link.submenu ? (
                 <>
-                  <NavLink
-                    to={link.path}
-                    className={({ isActive }) =>
-                      `group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium ${
-                        isActive
-                          ? 'bg-[#F8ECFF] text-[#861CC4]'
-                          : 'hover:bg-[#F8ECFF] hover:text-[#861CC4]'
-                      }`
-                    }
+                  <p
+                    // to={link.path}
+                    className={`group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium cursor-default ${
+                      location.pathname.startsWith('/community') ||
+                      location.pathname.startsWith('/users')
+                        ? 'bg-[#F8ECFF] text-[#861CC4]'
+                        : 'hover:bg-[#F8ECFF] hover:text-[#861CC4]'
+                    }`}
                   >
                     <link.icon className="group-active:text-[#861CC4] group-hover:text-[#861CC4]" />
                     {link.name}
-                  </NavLink>
+                  </p>
                   {communityMenuOpen && (
                     <ul className="absolute z-50 left-full -top-1/2 ml-2 w-48 bg-white rounded-xl shadow-lg p-3 space-y-2">
                       {link.submenu.map((sublink) => (

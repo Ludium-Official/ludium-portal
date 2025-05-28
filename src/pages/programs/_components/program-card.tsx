@@ -16,7 +16,7 @@ function ProgramCard({ program }: { program: Program }) {
     <div className="block w-full border border-[#E9E9E9] rounded-[20px] px-10 pt-8 pb-6">
       <div className="flex justify-between mb-5">
         <div className="flex gap-2 mb-1">
-          {keywords?.map((k, i) => (
+          {keywords?.slice(0, 3)?.map((k, i) => (
             <Badge
               key={k.id}
               variant={
@@ -26,6 +26,10 @@ function ProgramCard({ program }: { program: Program }) {
               {k.name}
             </Badge>
           ))}
+
+          {(program?.keywords?.length ?? 0) > 3 && (
+            <Badge variant="purple">+{(program?.keywords?.length ?? 0) - 3} more</Badge>
+          )}
         </div>
         <span className="font-medium flex gap-2 items-center text-sm">
           {formatProgramStatus(program)}{' '}

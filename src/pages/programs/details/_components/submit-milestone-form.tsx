@@ -23,6 +23,8 @@ function SubmitMilestoneForm({
       return;
     }
 
+    document.getElementById('submit-milestone-dialog-close')?.click();
+
     submitMutation({
       variables: {
         input: {
@@ -108,7 +110,6 @@ function SubmitMilestoneForm({
       <Button
         className="bg-[#B331FF] hover:bg-[#B331FF]/90 max-w-[165px] w-full ml-auto h-10"
         onClick={() => {
-          document.getElementById('submit-milestone-dialog-close')?.click();
           submitMilestone(milestone?.id ?? '');
         }}
       >

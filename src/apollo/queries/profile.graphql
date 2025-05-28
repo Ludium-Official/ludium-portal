@@ -1,9 +1,11 @@
 query profile {
   profile {
     about
+    summary
     email
     firstName
     id
+    isAdmin
     image
     lastName
     links {

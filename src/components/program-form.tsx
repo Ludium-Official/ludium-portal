@@ -56,7 +56,33 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   const [currency, setCurrency] = useState(data?.program?.currency ?? 'ETH');
 
   const { data: keywords } = useKeywordsQuery();
-  const { data: validators } = useUsersQuery();
+
+  const [validatorInput, setValidatorInput] = useState<string>();
+  const [debouncedValidatorInput, setDebouncedValidatorInput] = useState<string>();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedValidatorInput(validatorInput);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [validatorInput]);
+
+  const { data: validators, loading } = useUsersQuery({
+    variables: {
+      input: {
+        limit: 5,
+        offset: 0,
+        filter: [
+          {
+            field: 'search',
+            value: debouncedValidatorInput ?? '',
+          },
+        ],
+      },
+    },
+    skip: !validatorInput,
+  });
   const [extraErrors, dispatchErrors] = useReducer(extraErrorReducer, {
     keyword: false,
     deadline: false,
@@ -80,6 +106,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     if (data?.program?.validator) setSelectedValidator(data?.program.validator.id ?? '');
     if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
     if (data?.program?.links) setLinks(data?.program?.links.map((l) => l.url ?? ''));
+    if (data?.program?.description) setContent(data?.program.description);
   }, [data]);
 
   const {
@@ -243,6 +270,10 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           options={validatorOptions ?? []}
           value={selectedValidator}
           setValue={setSelectedValidator}
+          inputValue={validatorInput}
+          setInputValue={setValidatorInput}
+          emptyText="Enter validator email or organization name"
+          loading={loading}
         />
         {extraErrors.validator && (
           <span className="text-red-400 text-sm block">Validator is required</span>

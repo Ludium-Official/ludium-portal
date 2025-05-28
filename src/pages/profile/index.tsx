@@ -1,6 +1,7 @@
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
+import MarkdownPreviewer from '@/components/markdown-previewer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -100,8 +101,16 @@ function ProfilePage() {
             {profileData?.profile?.organizationName}
           </p>
 
+          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Summary</h3>
+          <p className="text-[#18181B] text-sm font-medium mb-10">
+            {profileData?.profile?.summary}
+          </p>
+
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Description</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">{profileData?.profile?.about}</p>
+          {profileData?.profile?.about && (
+            <MarkdownPreviewer value={profileData?.profile?.about ?? ''} />
+          )}
+          {/* <p className="text-[#18181B] text-sm font-medium mb-10">{profileData?.profile?.about}</p> */}
 
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Wallet</h3>
           <div className="p-6 mb-10 border min-w-[282px] bg-muted rounded-lg shadow-sm relative">
@@ -129,19 +138,18 @@ function ProfilePage() {
             </Button>
           </div>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Roles</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">
-            {roles.map((r, idx) =>
-              r.length
-                ? `${r[0].toUpperCase()}${r.slice(1)}${idx === roles.length - 1 ? '' : ', '}`
-                : r,
-            )}
-          </p>
-
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Links</h3>
           <p className="text-[#18181B] text-sm font-medium mb-10">
             {profileData?.profile?.links?.map((l) => (
-              <p key={l.url}>{l.url}</p>
+              <a
+                href={l?.url ?? ''}
+                key={l.url}
+                className="block hover:underline text-slate-600 text-sm"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {l?.url}
+              </a>
             ))}
           </p>
         </section>
@@ -182,7 +190,7 @@ function ProfilePage() {
               {p.price} {p.currency}
             </span>
 
-            <p className="text-sm font-medium">{p.description}</p>
+            <p className="text-sm font-medium">{p.summary}</p>
           </div>
         ))}
       </div>

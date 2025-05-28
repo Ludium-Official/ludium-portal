@@ -12,6 +12,7 @@ interface AuthValues {
   isSponsor?: boolean;
   isValidator?: boolean;
   isBuilder?: boolean;
+  isAdmin?: boolean | null;
   login: ({
     email,
     walletAddress,
@@ -30,6 +31,7 @@ export const AuthContext = createContext<AuthValues>({
   roles: null,
   userId: '',
   isAuthed: false,
+  isAdmin: false,
   login: async () => {},
   logout: async () => {},
 });
@@ -38,6 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>();
   const [email, setEmail] = useState<string | null>();
   const [userId, setUserId] = useState<string>('');
+  const [isAdmin, setIsAdmin] = useState<boolean | null>();
   const navigate = useNavigate();
 
   const { data: profileData, error } = useProfileQuery({
@@ -49,6 +52,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     setUserId(profileData?.profile?.id ?? '');
+    setIsAdmin(profileData?.profile?.isAdmin);
   }, [profileData]);
 
   useEffect(() => {
@@ -94,7 +98,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [error]);
 
   return (
-    <AuthContext.Provider value={{ userId, email, token, isAuthed: !!token, login, logout }}>
+    <AuthContext.Provider
+      value={{ userId, email, token, isAuthed: !!token, login, logout, isAdmin }}
+    >
       {children}
     </AuthContext.Provider>
   );

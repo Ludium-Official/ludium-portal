@@ -17,6 +17,7 @@ query program($id: ID!) {
       content
       id
       metadata
+      name
       milestones {
         currency
         description

@@ -16,9 +16,11 @@ const EditCommunityPage: React.FC = () => {
         input: {
           id: id ?? '',
           title: args.title,
+          summary: args.summary,
           content: args.content,
           keywords: args.keywords,
           image: args.image,
+          isBanner: args.isBanner,
         },
       },
       onCompleted: () => {
