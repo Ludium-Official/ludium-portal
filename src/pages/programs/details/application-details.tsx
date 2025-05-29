@@ -19,6 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { tokenAddresses } from "@/constant/token-address";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useContract } from "@/lib/hooks/use-contract";
 import notify from "@/lib/notify";
@@ -85,10 +86,17 @@ function ApplicationDetails() {
   ) => {
     try {
       if (program) {
+        const network = program.network as keyof typeof tokenAddresses;
+        const tokens = tokenAddresses[network] || [];
+        const targetToken = tokens.find(
+          (token) => token.name === program.currency
+        );
+
         const tx = await contract.acceptMilestone(
           Number(program?.educhainProgramId),
           data?.application?.applicant?.walletAddress ?? "",
-          price ?? ""
+          price ?? "",
+          targetToken
         );
 
         if (tx) {

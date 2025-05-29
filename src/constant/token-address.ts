@@ -43,7 +43,7 @@ export const tokenAddresses = {
     },
     {
       name: "USDC",
-      address: "0xe7ffE105F7dC49F2ff4412D5c6E8f3C3d1ABc317",
+      address: "0x19EeaDcBA1801Afec43e87Cefcd4239E13fc294d",
       decimal: 6,
     },
   ],

@@ -1,5 +1,7 @@
 import EduIcon from "@/assets/icons/crypto/edu";
 import EthIcon from "@/assets/icons/crypto/eth";
+import UsdcIcon from "@/assets/icons/crypto/usdc";
+import UsdtIcon from "@/assets/icons/crypto/usdt";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -9,9 +11,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useEffect, useMemo, useState } from "react";
 
-export const eduCurrencies = [{ code: "EDU", icon: <EduIcon /> }];
+export const eduCurrencies = [
+  { code: "EDU", icon: <EduIcon /> },
+  { code: "USDT", icon: <UsdtIcon /> },
+  { code: "USDC", icon: <UsdcIcon /> },
+];
 
-export const baseCurrencies = [{ code: "ETH", icon: <EthIcon /> }];
+export const baseCurrencies = [
+  { code: "ETH", icon: <EthIcon /> },
+  { code: "USDT", icon: <UsdtIcon /> },
+  { code: "USDC", icon: <UsdcIcon /> },
+];
 
 function CurrencySelector({
   className,
