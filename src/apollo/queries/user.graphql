@@ -1,5 +1,6 @@
 query user($id: ID!) {
   user(id: $id) {
+    summary
     about
     avatar
     email

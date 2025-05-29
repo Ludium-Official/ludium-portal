@@ -1,6 +1,7 @@
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { useUserQuery } from '@/apollo/queries/user.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
+import MarkdownPreviewer from '@/components/markdown-previewer';
 import { Badge } from '@/components/ui/badge';
 import { PageSize, Pagination } from '@/components/ui/pagination';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -64,13 +65,27 @@ function UserDetailsPage() {
             {userData?.user?.lastName}
           </p>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Description</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">{userData?.user?.about}</p>
+          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Email</h3>
+          <p className="text-[#18181B] text-sm font-medium mb-10">{userData?.user?.email}</p>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Links</h3>
+          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Summary</h3>
+          <p className="text-[#18181B] text-sm font-medium mb-10">{userData?.user?.summary}</p>
+
+          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Description</h3>
+          {userData?.user?.about && <MarkdownPreviewer value={userData?.user?.about ?? ''} />}
+
+          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2 mt-3">Links</h3>
           <p className="text-[#18181B] text-sm font-medium mb-10">
             {userData?.user?.links?.map((l) => (
-              <p key={l.url}>{l.url}</p>
+              <a
+                href={l?.url ?? ''}
+                key={l.url}
+                className="block hover:underline text-slate-600 text-sm"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {l?.url}
+              </a>
             ))}
             {userData?.user?.links?.length === 0 && <span>No links provided</span>}
           </p>
@@ -106,7 +121,7 @@ function UserDetailsPage() {
               {p.price} {p.currency}
             </span>
 
-            <p className="text-sm font-medium">{p.description}</p>
+            <p className="text-sm font-medium">{p.summary}</p>
           </div>
         ))}
 

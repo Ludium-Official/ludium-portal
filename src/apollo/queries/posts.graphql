@@ -4,6 +4,7 @@ query posts($pagination: PaginationInput) {
     data {
       id
       title
+      summary
       content
       image
       keywords {

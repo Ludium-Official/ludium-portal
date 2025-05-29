@@ -1,12 +1,12 @@
-import client from "@/apollo/client";
-import { useCreateProgramMutation } from "@/apollo/mutation/create-program.generated";
-import { ProgramsDocument } from "@/apollo/queries/programs.generated";
-import type { OnSubmitProgramFunc } from "@/components/program-form";
-import ProgramForm from "@/components/program-form";
-import { useAuth } from "@/lib/hooks/use-auth";
-import notify from "@/lib/notify";
-import { useEffect } from "react";
-import { useNavigate } from "react-router";
+import client from '@/apollo/client';
+import { useCreateProgramMutation } from '@/apollo/mutation/create-program.generated';
+import { ProgramsDocument } from '@/apollo/queries/programs.generated';
+import type { OnSubmitProgramFunc } from '@/components/program-form';
+import ProgramForm from '@/components/program-form';
+import { useAuth } from '@/lib/hooks/use-auth';
+import notify from '@/lib/notify';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router';
 
 const CreateProgram: React.FC = () => {
   const navigate = useNavigate();
@@ -16,12 +16,13 @@ const CreateProgram: React.FC = () => {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      navigate("/");
-      notify("Please login first", "success");
+      navigate('/');
+      notify('Please login first', 'success');
       return;
-    } else if (!isAuthed) {
-      navigate("/profile/edit");
-      notify("Please add your email", "success");
+    }
+    if (!isAuthed) {
+      navigate('/profile/edit');
+      notify('Please add your email', 'success');
       return;
     }
   }, [isLoggedIn, isAuthed]);
@@ -32,10 +33,10 @@ const CreateProgram: React.FC = () => {
         input: {
           name: args.programName,
           currency: args.currency,
-          price: args.price ?? "0",
+          price: args.price ?? '0',
           description: args.description,
           summary: args.summary,
-          deadline: args.deadline ?? "",
+          deadline: args.deadline ?? '',
           keywords: args.keywords,
           validatorId: args.validatorId,
           links: args.links,
@@ -43,7 +44,7 @@ const CreateProgram: React.FC = () => {
         },
       },
       onCompleted: () => {
-        navigate("/programs");
+        navigate('/programs');
 
         client.refetchQueries({ include: [ProgramsDocument] });
       },

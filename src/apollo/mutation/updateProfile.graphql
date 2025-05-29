@@ -1,6 +1,7 @@
 mutation updateProfile($input: UserUpdateInput!) {
   updateProfile(input: $input) {
     about
+    summary
     email
     firstName
     id

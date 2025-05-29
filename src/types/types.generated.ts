@@ -29,6 +29,7 @@ export type Application = {
   name?: Maybe<Scalars['String']['output']>;
   price?: Maybe<Scalars['String']['output']>;
   status?: Maybe<ApplicationStatus>;
+  summary?: Maybe<Scalars['String']['output']>;
 };
 
 export enum ApplicationStatus {
@@ -64,9 +65,11 @@ export type CreateApplicationInput = {
   content: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
   metadata?: InputMaybe<Scalars['JSON']['input']>;
+  milestones: Array<CreateMilestoneInput>;
   name: Scalars['String']['input'];
   price: Scalars['String']['input'];
   programId: Scalars['String']['input'];
+  summary?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateCommentInput = {
@@ -76,7 +79,6 @@ export type CreateCommentInput = {
 };
 
 export type CreateMilestoneInput = {
-  applicationId: Scalars['String']['input'];
   currency?: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
@@ -87,7 +89,9 @@ export type CreateMilestoneInput = {
 export type CreatePostInput = {
   content: Scalars['String']['input'];
   image?: InputMaybe<Scalars['Upload']['input']>;
+  isBanner?: InputMaybe<Scalars['Boolean']['input']>;
   keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
+  summary: Scalars['String']['input'];
   title: Scalars['String']['input'];
 };
 
@@ -151,7 +155,6 @@ export type Mutation = {
   checkMilestone?: Maybe<Milestone>;
   createApplication?: Maybe<Application>;
   createComment?: Maybe<Comment>;
-  createMilestones?: Maybe<Array<Milestone>>;
   createPost?: Maybe<Post>;
   createProgram?: Maybe<Program>;
   createUser?: Maybe<User>;
@@ -196,11 +199,6 @@ export type MutationCreateApplicationArgs = {
 
 export type MutationCreateCommentArgs = {
   input: CreateCommentInput;
-};
-
-
-export type MutationCreateMilestonesArgs = {
-  input: Array<CreateMilestoneInput>;
 };
 
 
@@ -377,6 +375,7 @@ export type Post = {
   id?: Maybe<Scalars['ID']['output']>;
   image?: Maybe<Scalars['String']['output']>;
   keywords?: Maybe<Array<Keyword>>;
+  summary?: Maybe<Scalars['String']['output']>;
   title?: Maybe<Scalars['String']['output']>;
 };
 
@@ -413,6 +412,7 @@ export type Query = {
   __typename?: 'Query';
   application?: Maybe<Application>;
   applications?: Maybe<PaginatedApplications>;
+  banner?: Maybe<Post>;
   comment?: Maybe<Comment>;
   comments?: Maybe<PaginatedComments>;
   commentsByPost?: Maybe<Array<Comment>>;
@@ -521,6 +521,7 @@ export type UpdateApplicationInput = {
   metadata?: InputMaybe<Scalars['JSON']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<ApplicationStatus>;
+  summary?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateCommentInput = {
@@ -542,7 +543,9 @@ export type UpdatePostInput = {
   content?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   image?: InputMaybe<Scalars['Upload']['input']>;
+  isBanner?: InputMaybe<Scalars['Boolean']['input']>;
   keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
+  summary?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -574,6 +577,7 @@ export type User = {
   links?: Maybe<Array<Link>>;
   loginType?: Maybe<Scalars['String']['output']>;
   organizationName?: Maybe<Scalars['String']['output']>;
+  summary?: Maybe<Scalars['String']['output']>;
   walletAddress?: Maybe<Scalars['String']['output']>;
 };
 
@@ -587,11 +591,13 @@ export type UserInput = {
   loginType?: InputMaybe<Scalars['String']['input']>;
   organizationName?: InputMaybe<Scalars['String']['input']>;
   password: Scalars['String']['input'];
+  summary?: InputMaybe<Scalars['String']['input']>;
   walletAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UserUpdateInput = {
   about?: InputMaybe<Scalars['String']['input']>;
+  email?: InputMaybe<Scalars['String']['input']>;
   firstName?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   image?: InputMaybe<Scalars['Upload']['input']>;
@@ -599,5 +605,6 @@ export type UserUpdateInput = {
   links?: InputMaybe<Array<LinkInput>>;
   loginType?: InputMaybe<Scalars['String']['input']>;
   organizationName?: InputMaybe<Scalars['String']['input']>;
+  summary?: InputMaybe<Scalars['String']['input']>;
   walletAddress?: InputMaybe<Scalars['String']['input']>;
 };

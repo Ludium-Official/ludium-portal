@@ -48,6 +48,11 @@ function PostComment({
     }
   };
 
+  const authorName =
+    comment.author?.firstName && comment.author?.lastName
+      ? `${comment.author?.firstName} ${comment.author?.lastName}`
+      : (comment.author?.firstName ?? comment.author?.lastName ?? '');
+
   return (
     <div key={comment.id} className="border-b last:border-b-0 pb-4">
       <div className="flex gap-3">
@@ -63,7 +68,7 @@ function PostComment({
         <div className="flex-1">
           <div className="flex flex-col">
             <div className="flex items-center">
-              <span className="font-medium">{`${comment.author?.firstName} ${comment.author?.lastName}`}</span>
+              <span className="font-medium">{authorName}</span>
               <span className="text-xs text-gray-500 ml-2">
                 {format(new Date(comment.createdAt), 'dd.MM.yyyy, h:mm a')}
               </span>
@@ -71,7 +76,11 @@ function PostComment({
             {comment.parent && (
               <div className="text-xs text-gray-500 mb-1">
                 Reply to{' '}
-                <span className="font-medium">{`${comment.parent.author?.firstName} ${comment.parent.author?.lastName}`}</span>
+                <span className="font-medium">
+                  {comment.parent.author?.firstName && comment.parent.author?.lastName
+                    ? `${comment.parent.author?.firstName} ${comment.parent.author?.lastName}`
+                    : (comment.parent.author?.firstName ?? comment.parent.author?.lastName)}
+                </span>
               </div>
             )}
             <p className="text-gray-700 mt-2 mb-3 text-sm font-medium">{comment.content}</p>
@@ -96,7 +105,7 @@ function PostComment({
           {/* Reply input field for replies to comments */}
           <div className="mt-4 ml-14">
             <textarea
-              placeholder={`Reply to ${comment.author?.firstName}...`}
+              placeholder={`Reply to ${authorName}...`}
               className="w-full p-3 border border-gray-300 rounded-md text-sm bg-white"
               rows={3}
               value={replyValue || ''}
@@ -132,14 +141,17 @@ function PostComment({
                   <div className="flex-1">
                     <div className="flex flex-col">
                       <div className="flex items-center">
-                        <span className="font-medium">{`${reply.author?.firstName} ${reply.author?.lastName}`}</span>
+                        <span className="font-medium">
+                          {reply.author?.firstName && reply.author?.lastName
+                            ? `${reply.author?.firstName} ${reply.author?.lastName}`
+                            : (reply.author?.firstName ?? reply.author?.lastName)}
+                        </span>
                         <span className="text-xs text-gray-500 ml-2">
                           {format(new Date(reply.createdAt), 'dd.MM.yyyy, h:mm a')}
                         </span>
                       </div>
                       <div className="text-xs text-gray-500 mb-1">
-                        Reply to{' '}
-                        <span className="font-medium">{`${comment.author?.firstName} ${comment.author?.lastName}`}</span>
+                        Reply to <span className="font-medium">{authorName}</span>
                       </div>
                       <p className="text-gray-700 mt-2 text-sm font-medium">{reply.content}</p>
                     </div>

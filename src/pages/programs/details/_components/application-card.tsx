@@ -49,7 +49,7 @@ function ApplicationCard({
       <div className="flex justify-between">
         <div>
           <h4 className="text-sm font-bold mb-1">Application</h4>
-          <p className="truncate max-w-[600px] text-sm">{application?.content}</p>
+          <p className="truncate max-w-[600px] text-sm">{application?.name}</p>
         </div>
         {!hideControls && (
           <div className="gap-3 flex">

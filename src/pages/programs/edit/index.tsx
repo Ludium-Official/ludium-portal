@@ -1,13 +1,13 @@
-import client from "@/apollo/client";
-import { useUpdateProgramMutation } from "@/apollo/mutation/update-program.generated";
-import { ProgramDocument } from "@/apollo/queries/program.generated";
-import { ProgramsDocument } from "@/apollo/queries/programs.generated";
-import type { OnSubmitProgramFunc } from "@/components/program-form";
-import ProgramForm from "@/components/program-form";
-import { useAuth } from "@/lib/hooks/use-auth";
-import notify from "@/lib/notify";
-import { useEffect } from "react";
-import { useNavigate, useParams } from "react-router";
+import client from '@/apollo/client';
+import { useUpdateProgramMutation } from '@/apollo/mutation/update-program.generated';
+import { ProgramDocument } from '@/apollo/queries/program.generated';
+import { ProgramsDocument } from '@/apollo/queries/programs.generated';
+import type { OnSubmitProgramFunc } from '@/components/program-form';
+import ProgramForm from '@/components/program-form';
+import { useAuth } from '@/lib/hooks/use-auth';
+import notify from '@/lib/notify';
+import { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router';
 
 const EditProgram: React.FC = () => {
   const navigate = useNavigate();
@@ -19,12 +19,13 @@ const EditProgram: React.FC = () => {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      navigate("/");
-      notify("Please login first", "success");
+      navigate('/');
+      notify('Please login first', 'success');
       return;
-    } else if (!isAuthed) {
-      navigate("/profile/edit");
-      notify("Please add your email", "success");
+    }
+    if (!isAuthed) {
+      navigate('/profile/edit');
+      notify('Please add your email', 'success');
       return;
     }
   }, [isLoggedIn, isAuthed]);
@@ -33,7 +34,7 @@ const EditProgram: React.FC = () => {
     updateProgram({
       variables: {
         input: {
-          id: args.id ?? "",
+          id: args.id ?? '',
           name: args.programName,
           price: args.price,
           description: args.description,
@@ -47,7 +48,7 @@ const EditProgram: React.FC = () => {
         },
       },
       onCompleted: () => {
-        notify("Program successfully updated.");
+        notify('Program successfully updated.');
         client.refetchQueries({ include: [ProgramsDocument, ProgramDocument] });
         navigate(`/programs/${id}`);
       },

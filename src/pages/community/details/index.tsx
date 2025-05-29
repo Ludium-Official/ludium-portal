@@ -16,7 +16,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 
 const CommunityDetailsPage: React.FC = () => {
-  const { userId } = useAuth();
+  const { userId, isAdmin } = useAuth();
 
   const { id } = useParams();
   const [post, setPost] = useState<Post | null>(null);
@@ -139,11 +139,12 @@ const CommunityDetailsPage: React.FC = () => {
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-xl font-bold">{post?.title}</h1>
 
-              {data?.post?.author?.id === userId && (
-                <Link to={`/community/posts/${data?.post?.id}/edit`}>
-                  <Settings className="w-4 h-4" />
-                </Link>
-              )}
+              {data?.post?.author?.id === userId ||
+                (isAdmin && (
+                  <Link to={`/community/posts/${data?.post?.id}/edit`}>
+                    <Settings className="w-4 h-4" />
+                  </Link>
+                ))}
             </div>
 
             {/* Author info */}

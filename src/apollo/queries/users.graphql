@@ -3,6 +3,7 @@ query users($input: PaginationInput) {
     count
     data {
       about
+      summary
       avatar
       email
       firstName

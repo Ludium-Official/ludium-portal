@@ -4,6 +4,7 @@ query post($id: ID!) {
     title
     content
     image
+    summary
     keywords {
       id
       name

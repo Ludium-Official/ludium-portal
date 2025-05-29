@@ -41,8 +41,8 @@ function Notifications() {
           )}
         >
           {data?.notifications?.length ? (
-            <>
-              <div className="space-y-4 max-h-screen mb-10">
+            <div>
+              <div className="space-y-4 mb-10">
                 {data?.notifications?.map((n) => (
                   <NotificationCard notification={n} key={n.id} />
                 ))}
@@ -54,7 +54,7 @@ function Notifications() {
               >
                 Delete All
               </Button>
-            </>
+            </div>
           ) : (
             <p className="text-sm text-center">No notifications yet.</p>
           )}

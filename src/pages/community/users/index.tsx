@@ -96,7 +96,7 @@ function UsersPage() {
                 </div>
 
                 <Link
-                  to={`/community/users/${user.id}`}
+                  to={`/users/${user.id}`}
                   className="flex gap-2 text-sm items-center font-medium"
                 >
                   See details <ArrowRight className="w-4 h-4" />
@@ -120,7 +120,7 @@ function UsersPage() {
               </div>
 
               <h4 className="text-sm font-bold text-foreground">Summary</h4>
-              <p className="text-sm">{user.about}</p>
+              <p className="text-sm">{user.summary}</p>
             </div>
           ))}
         </div>
