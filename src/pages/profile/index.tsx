@@ -24,8 +24,8 @@ function ProfilePage() {
     builder: 'applicantId',
   };
 
-  const { login: authLogin } = useAuth();
   const { user, login: privyLogin } = usePrivy();
+  const { login: authLogin } = useAuth();
 
   const { data: profileData } = useProfileQuery({
     fetchPolicy: 'network-only',
@@ -97,9 +97,9 @@ function ProfilePage() {
           </div>
 
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Organization / Person name</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">
+          <div className="text-[#18181B] text-sm font-medium mb-10">
             {profileData?.profile?.organizationName}
-          </p>
+          </div>
 
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Email</h3>
           <p className="text-[#18181B] text-sm font-medium mb-10">{profileData?.profile?.email}</p>
@@ -129,7 +129,9 @@ function ProfilePage() {
               {user ? 'Your wallet is connected' : 'Connect your wallet'}
             </span>
             {profileData?.profile?.walletAddress && (
-              <p className="text-xs text-[#71717A] mb-5">{profileData?.profile?.walletAddress}</p>
+              <div className="text-xs text-[#71717A] mb-5">
+                {profileData?.profile?.walletAddress}
+              </div>
             )}
 
             <Button
@@ -142,7 +144,7 @@ function ProfilePage() {
           </div>
 
           <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Links</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">
+          <div className="text-[#18181B] text-sm font-medium mb-10">
             {profileData?.profile?.links?.map((l) => (
               <a
                 href={l?.url ?? ''}
@@ -154,7 +156,7 @@ function ProfilePage() {
                 {l?.url}
               </a>
             ))}
-          </p>
+          </div>
         </section>
 
         <section>
@@ -176,7 +178,7 @@ function ProfilePage() {
         <h2 className="text-xl font-bold mt-10 mb-6">Programs as {selectedTab}</h2>
 
         {!data?.programs?.data?.length && (
-          <p className="text-sm text-muted-foreground">No programs found</p>
+          <div className="text-sm text-muted-foreground">No programs found</div>
         )}
 
         {data?.programs?.data?.map((p) => (

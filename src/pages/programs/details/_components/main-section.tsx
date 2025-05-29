@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
@@ -45,11 +46,17 @@ function MainSection({ program }: { program?: Program | null }) {
   const callTx = async () => {
     try {
       if (program) {
+        const network = program.network as keyof typeof tokenAddresses;
+        const tokens = tokenAddresses[network] || [];
+        const targetToken = tokens.find((token) => token.name === program.currency);
+
         const result = await contract.createProgram({
           name: program.name as string | undefined,
           price: program.price as string | undefined,
           deadline: program.deadline,
           validatorAddress: program?.validator as User | undefined,
+          token: targetToken,
+          ownerAddress: program.validator?.walletAddress || '',
         });
 
         if (result) {
@@ -216,7 +223,7 @@ function MainSection({ program }: { program?: Program | null }) {
                   The amount will be securely stored until you will confirm the completion of the
                   project.
                 </DialogDescription>
-                <Button onClick={callTx}>Yex, Pay now</Button>
+                <Button onClick={callTx}>Yes, Pay now</Button>
               </div>
             </DialogContent>
           </Dialog>

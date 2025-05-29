@@ -1,10 +1,10 @@
 import { usePostsQuery } from '@/apollo/queries/posts.generated';
-import {} from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PageSize, Pagination } from '@/components/ui/pagination';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
+import notify from '@/lib/notify';
 import { type Post, SortEnum } from '@/types/types.generated';
 import { CirclePlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -17,7 +17,7 @@ const CommunityPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('all');
 
   const [posts, setPosts] = useState<Post[]>([]);
-  const { isAuthed } = useAuth();
+  const { isAuthed, isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -81,10 +81,17 @@ const CommunityPage: React.FC = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            {isAuthed && (
+            {isLoggedIn && (
               <Button
                 className="rounded-md bg-purple-500 hover:bg-purple-600 flex items-center gap-2 h-10"
-                onClick={() => navigate('create')}
+                onClick={() => {
+                  if (!isAuthed) {
+                    notify('Please add your email', 'success');
+                    navigate('/profile/edit');
+                    return;
+                  }
+                  navigate('create');
+                }}
               >
                 <CirclePlus className="h-4 w-4" /> Create Community
               </Button>

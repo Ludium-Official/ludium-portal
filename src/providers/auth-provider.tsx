@@ -8,6 +8,7 @@ interface AuthValues {
   token?: string | null;
   roles?: string[] | null;
   userId: string;
+  isLoggedIn?: boolean;
   isAuthed?: boolean;
   isSponsor?: boolean;
   isValidator?: boolean;
@@ -30,6 +31,7 @@ export const AuthContext = createContext<AuthValues>({
   token: null,
   roles: null,
   userId: '',
+  isLoggedIn: false,
   isAuthed: false,
   isAdmin: false,
   login: async () => {},
@@ -99,7 +101,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ userId, email, token, isAuthed: !!token, login, logout, isAdmin }}
+      value={{
+        userId,
+        email,
+        token,
+        isLoggedIn: !!token,
+        isAuthed: !!token && !!profileData?.profile?.email,
+        login,
+        logout,
+        isAdmin,
+      }}
     >
       {children}
     </AuthContext.Provider>

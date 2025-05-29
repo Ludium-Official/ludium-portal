@@ -30,3 +30,9 @@ export const reduceString = (
     ? str.substring(0, from) + "..." + str.substring(str.length - end)
     : "-";
 };
+
+export const commaNumber = (num: number | string) => {
+  const [integer, decimal] = num.toString().split(".");
+  const formattedInt = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return decimal ? `${formattedInt}.${decimal}` : formattedInt;
+};

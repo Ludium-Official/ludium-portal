@@ -6,8 +6,8 @@ import { useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 
 const Sidebar = () => {
+  const { isLoggedIn } = useAuth();
   const location = useLocation();
-  const { isAuthed } = useAuth();
   const [communityMenuOpen, setCommunityMenuOpen] = useState(false);
   const closeTimeout = useRef<NodeJS.Timeout | null>(null);
   const links = [
@@ -23,7 +23,7 @@ const Sidebar = () => {
     },
   ];
 
-  if (isAuthed) {
+  if (isLoggedIn) {
     links.unshift({ name: 'Profile', path: '/profile', icon: UserRound });
   }
 
