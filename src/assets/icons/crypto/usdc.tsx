@@ -1,4 +1,4 @@
-import type React from "react";
+import type React from 'react';
 
 interface SvgIconProps {
   width?: number;
@@ -10,8 +10,8 @@ interface SvgIconProps {
 const UsdcIcon: React.FC<SvgIconProps> = ({
   width = 24,
   height = 24,
-  fill = "#2775CA",
-  secondaryFill = "white",
+  fill = '#2775CA',
+  secondaryFill = 'white',
 }) => {
   return (
     <svg

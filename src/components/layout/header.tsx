@@ -1,18 +1,18 @@
-import Notifications from "@/components/notifications";
+import Notifications from '@/components/notifications';
 
-import { useProfileQuery } from "@/apollo/queries/profile.generated";
-import { tokenAddresses } from "@/constant/token-address";
-import ChainContract from "@/lib/contract";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { useContract } from "@/lib/hooks/use-contract";
-import notify from "@/lib/notify";
-import { commaNumber, reduceString } from "@/lib/utils";
-import { usePrivy } from "@privy-io/react-auth";
-import { ethers } from "ethers";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
-import NetworkSelector from "../network-selector";
-import { Button } from "../ui/button";
+import { useProfileQuery } from '@/apollo/queries/profile.generated';
+import { tokenAddresses } from '@/constant/token-address';
+import ChainContract from '@/lib/contract';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { useContract } from '@/lib/hooks/use-contract';
+import notify from '@/lib/notify';
+import { commaNumber, reduceString } from '@/lib/utils';
+import { usePrivy } from '@privy-io/react-auth';
+import { ethers } from 'ethers';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
+import NetworkSelector from '../network-selector';
+import { Button } from '../ui/button';
 import {
   Dialog,
   DialogContent,
@@ -20,22 +20,17 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../ui/dialog";
+} from '../ui/dialog';
 
 function Header() {
-  const {
-    user,
-    authenticated,
-    login: privyLogin,
-    logout: privyLogout,
-  } = usePrivy();
+  const { user, authenticated, login: privyLogin, logout: privyLogout } = usePrivy();
   const { login: authLogin, logout: authLogout } = useAuth();
   const navigate = useNavigate();
   const { data: profileData } = useProfileQuery({
-    fetchPolicy: "cache-first",
+    fetchPolicy: 'cache-first',
   });
 
-  const [network, setNetwork] = useState("educhain");
+  const [network, setNetwork] = useState('educhain');
   const [balances, setBalances] = useState<
     { name: string; amount: bigint | null; decimal: number }[]
   >([]);
@@ -58,9 +53,7 @@ function Header() {
         };
 
         return (
-          (Object.keys(types) as Array<keyof typeof types>).find(
-            (key) => types[key]
-          ) || "wallet"
+          (Object.keys(types) as Array<keyof typeof types>).find((key) => types[key]) || 'wallet'
         );
       })();
 
@@ -74,8 +67,8 @@ function Header() {
         });
       }
     } catch (error) {
-      notify("Failed to login", "error");
-      console.error("Failed to login:", error);
+      notify('Failed to login', 'error');
+      console.error('Failed to login:', error);
     }
   };
 
@@ -84,25 +77,25 @@ function Header() {
       authLogout();
       privyLogout();
 
-      notify("Successfully logged out", "success");
-      navigate("/");
+      notify('Successfully logged out', 'success');
+      navigate('/');
     } catch (error) {
-      notify("Error logging out", "error");
-      console.error("Error logging out:", error);
+      notify('Error logging out', 'error');
+      console.error('Error logging out:', error);
     }
   };
 
   const callTokenBalance = async (
     contract: ChainContract,
     tokenAddress: string,
-    walletAddress: string
+    walletAddress: string,
   ): Promise<bigint | null> => {
     try {
       const balance = await contract.getAmount(tokenAddress, walletAddress);
 
       return balance as bigint;
     } catch (error) {
-      console.error("Error fetching token balance:", error);
+      console.error('Error fetching token balance:', error);
       return null;
     }
   };
@@ -123,24 +116,19 @@ function Header() {
 
         const balancesPromises = tokens.map(
           (token: { address: string; decimal: number; name: string }) =>
-            callTokenBalance(contract, token.address, walletInfo.address).then(
-              (balance) => ({
-                name: token.name,
-                amount: balance,
-                decimal: token.decimal,
-              })
-            )
+            callTokenBalance(contract, token.address, walletInfo.address).then((balance) => ({
+              name: token.name,
+              amount: balance,
+              decimal: token.decimal,
+            })),
         );
 
         const ercBalances = await Promise.all(balancesPromises);
         const nativeBalance = await contract.getBalance(walletInfo.address);
 
-        setBalances([
-          { name: "Native", amount: nativeBalance, decimal: 18 },
-          ...ercBalances,
-        ]);
+        setBalances([{ name: 'Native', amount: nativeBalance, decimal: 18 }, ...ercBalances]);
       } catch (error) {
-        console.error("Error fetching token balances:", error);
+        console.error('Error fetching token balances:', error);
       }
     };
 
@@ -155,10 +143,7 @@ function Header() {
         {authenticated && <Notifications />}
         <div>
           {!authenticated && (
-            <Button
-              className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-fit"
-              onClick={login}
-            >
+            <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-fit" onClick={login}>
               Login
             </Button>
           )}
@@ -167,14 +152,12 @@ function Header() {
               <DialogTrigger>
                 <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-fit">
                   {profileData?.profile?.organizationName ??
-                    reduceString(walletInfo?.address || "", 6, 6)}
+                    reduceString(walletInfo?.address || '', 6, 6)}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle className="text-center text-[20px] font-bold">
-                    Profile
-                  </DialogTitle>
+                  <DialogTitle className="text-center text-[20px] font-bold">Profile</DialogTitle>
                   <DialogDescription className="flex flex-col gap-4 mt-5">
                     <div className="border border-[#E9E9E9] rounded-[10px] p-5">
                       <div className="flex items-center justify-between mb-3 text-[16px] font-bold">
@@ -191,15 +174,12 @@ function Header() {
                         {balances.map((balance) => {
                           return (
                             <div key={balance.name} className="mb-2">
-                              {balance.name}:{" "}
+                              {balance.name}:{' '}
                               {balance.amount !== null
                                 ? commaNumber(
-                                    ethers.utils.formatUnits(
-                                      balance.amount,
-                                      balance.decimal
-                                    )
+                                    ethers.utils.formatUnits(balance.amount, balance.decimal),
                                   )
-                                : "Fetching..."}
+                                : 'Fetching...'}
                             </div>
                           );
                         })}
@@ -210,13 +190,11 @@ function Header() {
                       <div
                         className="cursor-pointer hover:underline"
                         onClick={() => {
-                          navigator.clipboard.writeText(
-                            walletInfo?.address || ""
-                          );
-                          notify("Copied address!", "success");
+                          navigator.clipboard.writeText(walletInfo?.address || '');
+                          notify('Copied address!', 'success');
                         }}
                       >
-                        {reduceString(walletInfo?.address || "", 8, 8)}
+                        {reduceString(walletInfo?.address || '', 8, 8)}
                       </div>
                     </div>
                     <Button onClick={logout}>Logout</Button>

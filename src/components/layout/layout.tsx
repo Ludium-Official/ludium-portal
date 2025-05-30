@@ -1,8 +1,8 @@
-import Footer from "@/components/layout/footer";
-import Header from "@/components/layout/header";
-import Sidebar from "@/components/layout/sidebar";
-import { Toaster } from "react-hot-toast";
-import { Outlet } from "react-router";
+import Footer from '@/components/layout/footer';
+import Header from '@/components/layout/header';
+import Sidebar from '@/components/layout/sidebar';
+import { Toaster } from 'react-hot-toast';
+import { Outlet } from 'react-router';
 
 function Layout() {
   return (

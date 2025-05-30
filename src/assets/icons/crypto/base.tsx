@@ -1,4 +1,4 @@
-const BaseIcon = ({ size = 24, className = "" }) => {
+const BaseIcon = ({ size = 24, className = '' }) => {
   return (
     <svg
       width={size}
