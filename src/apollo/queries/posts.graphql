@@ -16,6 +16,8 @@ query posts($pagination: PaginationInput) {
         firstName
         lastName
         image
+        email
+        organizationName
       }
       createdAt
     }

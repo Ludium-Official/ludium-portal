@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { cn, getInitials } from '@/lib/utils';
+import { cn, getInitials, getUserName } from '@/lib/utils';
 import PostComment from '@/pages/community/details/_components/comment';
 import { type Post, SortEnum } from '@/types/types.generated';
 import { format } from 'date-fns';
@@ -16,7 +16,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 
 const CommunityDetailsPage: React.FC = () => {
-  const { userId, isAdmin } = useAuth();
+  const { userId, isAdmin, isLoggedIn } = useAuth();
 
   const { id } = useParams();
   const [post, setPost] = useState<Post | null>(null);
@@ -158,7 +158,7 @@ const CommunityDetailsPage: React.FC = () => {
                   {getInitials(`${post?.author?.firstName} ${post?.author?.lastName}`)}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm font-semibold">{`${post?.author?.firstName || ''} ${post?.author?.lastName || ''}`}</span>
+              <span className="text-sm font-semibold">{getUserName(post?.author)}</span>
               {/* {post?.createdAt && (
                 <span className="text-xs text-gray-500">
                   • {format(new Date(post.createdAt), 'dd.MM.yyyy')}
@@ -219,24 +219,26 @@ const CommunityDetailsPage: React.FC = () => {
               {/* Comment input */}
               {commentsOpen && (
                 <div className="bg-[#F4F4F5] rounded-md">
-                  <div className="mb-4 p-4 border-b">
-                    <textarea
-                      className="w-full p-3 border border-gray-300 rounded-md text-sm bg-white"
-                      rows={5}
-                      placeholder="Enter your comment..."
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                    />
-                    <div className="flex justify-end mt-2">
-                      <Button
-                        className="bg-black text-white font-medium text-sm px-4 py-[10px] h-auto rounded-md"
-                        onClick={handleSubmitComment}
-                        disabled={submittingComment || !comment.trim()}
-                      >
-                        Send
-                      </Button>
+                  {isLoggedIn && (
+                    <div className="mb-4 p-4 border-b">
+                      <textarea
+                        className="w-full p-3 border border-gray-300 rounded-md text-sm bg-white"
+                        rows={5}
+                        placeholder="Enter your comment..."
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                      />
+                      <div className="flex justify-end mt-2">
+                        <Button
+                          className="bg-black text-white font-medium text-sm px-4 py-[10px] h-auto rounded-md"
+                          onClick={handleSubmitComment}
+                          disabled={submittingComment || !comment.trim()}
+                        >
+                          Send
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Comments list */}
                   <div className="space-y-6 p-4">
@@ -288,7 +290,7 @@ const CommunityDetailsPage: React.FC = () => {
                     )}
                     <h3 className="font-bold">{post.title}</h3>
                     <p className="text-muted-foreground text-xs font-bold">
-                      {post.author?.firstName} {post.author?.lastName}
+                      {getUserName(post.author)}
                     </p>
                     <div className="text-xs text-gray-500 mt-auto">{post.createdAt}</div>
                   </div>

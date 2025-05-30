@@ -28,7 +28,7 @@ const emptyMilestone = {
 
 function CreateApplicationForm({ program }: { program?: Program | null }) {
   const [name, setName] = useState<string>();
-  // const [description, setDescription] = useState<string>();
+  const [summary, setSummary] = useState<string>();
 
   const [content, setContent] = useState<string>('');
 
@@ -55,6 +55,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             programId: program?.id ?? '',
             content: content ?? '',
             name: name ?? '',
+            summary: summary ?? '',
             milestones: milestones.map((m) => ({
               price: m.price,
               title: m.title,
@@ -103,6 +104,16 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           className="h-10 w-full mb-2"
           value={name}
           onChange={(e) => setName(e.target.value)}
+        />
+      </label>
+
+      <label htmlFor="summary" className="w-full mb-6 block">
+        <p className="text-sm font-medium mb-2">Summary</p>
+        <Input
+          id="summary"
+          className="h-10 w-full mb-2"
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
         />
       </label>
 
@@ -253,7 +264,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         </span>
       )}
       <Button
-        disabled={loading || !milestoneValid || !name || !content}
+        disabled={loading || !milestoneValid || !name || !content || !summary}
         type="button"
         className="bg-[#861CC4] h-10 ml-auto block hover:bg-[#861CC4]/90 min-w-[161px]"
         onClick={onSubmit}

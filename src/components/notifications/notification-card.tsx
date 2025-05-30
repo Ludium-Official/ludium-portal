@@ -19,7 +19,7 @@ function NotificationCard({ notification }: { notification: Notification }) {
   } else if (type === NotificationType.Application) {
     text = `Application for your program has been ${action}!`;
     link = notification?.metadata?.programId
-      ? `/programs/${notification?.metadata?.programId}/application/${notification.entityId}/details`
+      ? `/programs/${notification?.metadata?.programId}/application/${notification.entityId}`
       : null;
   } else {
     text = `${type} ${action}`;

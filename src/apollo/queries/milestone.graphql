@@ -1,0 +1,14 @@
+query milestone($id: ID!) {
+  milestone(id: $id) {
+    currency
+    description
+    id
+    links {
+      title
+      url
+    }
+    price
+    status
+    title
+  }
+}

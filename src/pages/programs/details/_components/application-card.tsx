@@ -2,6 +2,7 @@ import { useAcceptApplicationMutation } from '@/apollo/mutation/accept-applicati
 import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { getUserName } from '@/lib/utils';
 import type { Application } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { ArrowRight } from 'lucide-react';
@@ -26,17 +27,16 @@ function ApplicationCard({
       <header className="flex justify-between mb-4">
         <Badge>{application?.status}</Badge>
         {!hideSeeDetails && (
-          <Link
-            to={`./application/${application?.id}/details`}
-            className="flex items-center gap-2 text-sm"
-          >
+          <Link to={`./application/${application?.id}`} className="flex items-center gap-2 text-sm">
             See details <ArrowRight className="w-4 h-4" />
           </Link>
         )}
       </header>
       <div className="flex gap-4 items-center mb-2">
         <div className="w-10 h-10 bg-slate-400 rounded-full" />
-        <h3 className="text-lg font-bold">{application?.applicant?.organizationName}</h3>
+        <h3 className="text-lg font-bold">
+          {application?.applicant?.organizationName ?? getUserName(application?.applicant)}
+        </h3>
       </div>
       <div className="mb-6">
         <span className="text-xs text-muted-foreground">

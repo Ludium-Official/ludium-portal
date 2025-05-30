@@ -1,4 +1,4 @@
-import type { Program } from '@/types/types.generated';
+import type { Program, User } from '@/types/types.generated';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -27,4 +27,10 @@ export const commaNumber = (num: number | string) => {
   const [integer, decimal] = num.toString().split('.');
   const formattedInt = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return decimal ? `${formattedInt}.${decimal}` : formattedInt;
+};
+
+export const getUserName = (user?: User | null) => {
+  return user?.firstName && user?.lastName
+    ? `${user.firstName} ${user.lastName}`
+    : (user?.firstName ?? user?.lastName ?? user?.email ?? user?.organizationName ?? '');
 };

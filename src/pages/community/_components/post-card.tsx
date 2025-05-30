@@ -2,7 +2,7 @@ import { useCommentsByPostQuery } from '@/apollo/queries/comments-by-post.genera
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { cn, getInitials } from '@/lib/utils';
+import { cn, getInitials, getUserName } from '@/lib/utils';
 import type { Post } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ArrowRight, Settings } from 'lucide-react';
@@ -33,10 +33,7 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
     fetchPolicy: 'cache-and-network',
   });
 
-  const authorName =
-    post?.author?.firstName && post?.author?.lastName
-      ? `${post?.author?.firstName} ${post?.author?.lastName}`
-      : post?.author?.firstName || post?.author?.lastName || '';
+  const authorName = getUserName(post?.author);
 
   if (loading && !data) {
     return (
@@ -129,7 +126,7 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
                   </Avatar>
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-sm">{`${comment.author?.firstName || ''} ${comment.author?.lastName || ''}`}</h4>
+                      <h4 className="font-medium text-sm">{getUserName(comment.author)}</h4>
                       <span className="text-xs text-gray-500">
                         {comment.createdAt
                           ? format(new Date(comment.createdAt), 'MMM dd, yyyy, h:mm:ss a')
@@ -226,7 +223,7 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
                 </Avatar>
                 <div className="w-full">
                   <div className="flex items-center mb-1 justify-between w-full">
-                    <h4 className="font-medium text-sm">{`${comment.author?.firstName || ''} ${comment.author?.lastName || ''}`}</h4>
+                    <h4 className="font-medium text-sm">{getUserName(comment.author)}</h4>
                     <span className="text-xs text-gray-500 ml-2">
                       {comment.createdAt ? format(new Date(comment.createdAt), 'MMM dd, yyyy') : ''}
                     </span>

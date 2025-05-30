@@ -31,10 +31,7 @@ function App() {
             <Route path="create" element={<CreateProgramPage />} />
             <Route path=":id" element={<ProgramDetailsPage />} />
             <Route path=":id/edit" element={<EditProgramPage />} />
-            <Route
-              path=":id/application/:applicationId/details"
-              element={<ApplicationDetailsPage />}
-            />
+            <Route path=":id/application/:applicationId" element={<ApplicationDetailsPage />} />
           </Route>
           <Route path="community">
             <Route index element={<CommunityPage />} />

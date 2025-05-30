@@ -8,6 +8,8 @@ query commentsByPost($postId: ID!) {
       firstName
       lastName
       image
+      email
+      organizationName
     }
     parent {
       id
@@ -18,6 +20,8 @@ query commentsByPost($postId: ID!) {
         firstName
         lastName
         image
+        email
+        organizationName
       }
     }
     replies {
@@ -29,6 +33,8 @@ query commentsByPost($postId: ID!) {
         firstName
         lastName
         image
+        email
+        organizationName
       }
     }
   }

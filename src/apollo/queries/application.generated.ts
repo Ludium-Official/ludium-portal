@@ -8,7 +8,7 @@ export type ApplicationQueryVariables = Types.Exact<{
 }>;
 
 
-export type ApplicationQuery = { __typename?: 'Query', application?: { __typename?: 'Application', content?: string | null, id?: string | null, name?: string | null, metadata?: any | null, status?: Types.ApplicationStatus | null, applicant?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, walletAddress?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, milestones?: Array<{ __typename?: 'Milestone', currency?: string | null, description?: string | null, id?: string | null, price?: string | null, status?: Types.MilestoneStatus | null, title?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null }> | null } | null };
+export type ApplicationQuery = { __typename?: 'Query', application?: { __typename?: 'Application', content?: string | null, summary?: string | null, id?: string | null, name?: string | null, metadata?: any | null, status?: Types.ApplicationStatus | null, applicant?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, walletAddress?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, milestones?: Array<{ __typename?: 'Milestone', currency?: string | null, description?: string | null, id?: string | null, price?: string | null, status?: Types.MilestoneStatus | null, title?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null }> | null } | null };
 
 
 export const ApplicationDocument = gql`
@@ -29,6 +29,7 @@ export const ApplicationDocument = gql`
       walletAddress
     }
     content
+    summary
     id
     name
     links {
