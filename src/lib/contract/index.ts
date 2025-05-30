@@ -1,52 +1,52 @@
-import contractJson from "@/lib/contract/contract.json";
-import { User } from "@/types/types.generated";
-import { usePrivy } from "@privy-io/react-auth";
-import { ethers } from "ethers";
-import type { PublicClient } from "viem";
-import { encodeFunctionData } from "viem";
+import contractJson from '@/lib/contract/contract.json';
+import { User } from '@/types/types.generated';
+import { usePrivy } from '@privy-io/react-auth';
+import { ethers } from 'ethers';
+import type { PublicClient } from 'viem';
+import { encodeFunctionData } from 'viem';
 
-const NATIVE_TOKEN = "0x0000000000000000000000000000000000000000";
+const NATIVE_TOKEN = '0x0000000000000000000000000000000000000000';
 const ERC20_ABI = [
   {
     constant: true,
-    inputs: [{ name: "account", type: "address" }],
-    name: "balanceOf",
-    outputs: [{ name: "", type: "uint256" }],
-    type: "function",
+    inputs: [{ name: 'account', type: 'address' }],
+    name: 'balanceOf',
+    outputs: [{ name: '', type: 'uint256' }],
+    type: 'function',
   },
   {
     constant: false,
     inputs: [
-      { name: "spender", type: "address" },
-      { name: "amount", type: "uint256" },
+      { name: 'spender', type: 'address' },
+      { name: 'amount', type: 'uint256' },
     ],
-    name: "approve",
-    outputs: [{ name: "", type: "bool" }],
-    type: "function",
+    name: 'approve',
+    outputs: [{ name: '', type: 'bool' }],
+    type: 'function',
   },
   {
     constant: true,
     inputs: [
-      { name: "owner", type: "address" },
-      { name: "spender", type: "address" },
+      { name: 'owner', type: 'address' },
+      { name: 'spender', type: 'address' },
     ],
-    name: "allowance",
-    outputs: [{ name: "", type: "uint256" }],
-    type: "function",
+    name: 'allowance',
+    outputs: [{ name: '', type: 'uint256' }],
+    type: 'function',
   },
 ];
 
 class ChainContract {
   private contractAddress: string;
   private chainId: number;
-  private sendTransaction: ReturnType<typeof usePrivy>["sendTransaction"];
+  private sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'];
   private client: PublicClient;
 
   constructor(
     contractAddress: string,
     chainId: number,
-    sendTransaction: ReturnType<typeof usePrivy>["sendTransaction"],
-    client: PublicClient
+    sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'],
+    client: PublicClient,
   ) {
     this.contractAddress = contractAddress;
     this.chainId = chainId;
@@ -58,7 +58,7 @@ class ChainContract {
     const balance = await this.client.readContract({
       address: tokenAddress as `0x${string}`,
       abi: ERC20_ABI,
-      functionName: "balanceOf",
+      functionName: 'balanceOf',
       args: [walletAddress as `0x${string}`],
     });
 
@@ -91,11 +91,8 @@ class ChainContract {
     const allowance = await this.client.readContract({
       address: tokenAddress as `0x${string}`,
       abi: ERC20_ABI,
-      functionName: "allowance",
-      args: [
-        ownerAddress as `0x${string}`,
-        this.contractAddress as `0x${string}`,
-      ],
+      functionName: 'allowance',
+      args: [ownerAddress as `0x${string}`, this.contractAddress as `0x${string}`],
     });
 
     return allowance as bigint;
@@ -104,7 +101,7 @@ class ChainContract {
   async approveToken(tokenAddress: string, amount: ethers.BigNumber) {
     const data = encodeFunctionData({
       abi: ERC20_ABI,
-      functionName: "approve",
+      functionName: 'approve',
       args: [this.contractAddress, amount],
     });
 
@@ -133,14 +130,11 @@ class ChainContract {
       const useToken = program.token?.address ?? NATIVE_TOKEN;
       const isNative = useToken === NATIVE_TOKEN;
       const price = isNative
-        ? ethers.utils.parseEther(program.price || "0")
-        : ethers.utils.parseUnits(program.price || "0", program.token?.decimal);
+        ? ethers.utils.parseEther(program.price || '0')
+        : ethers.utils.parseUnits(program.price || '0', program.token?.decimal);
 
       if (useToken !== NATIVE_TOKEN) {
-        const allowance = await this.getAllowance(
-          useToken,
-          program.ownerAddress
-        );
+        const allowance = await this.getAllowance(useToken, program.ownerAddress);
         const priceInWei = BigInt(price.toString());
 
         if (allowance < priceInWei) {
@@ -150,7 +144,7 @@ class ChainContract {
 
       const data = encodeFunctionData({
         abi: contractJson.abi,
-        functionName: "createEduProgram",
+        functionName: 'createEduProgram',
         args: [
           program.name,
           price,
@@ -170,7 +164,7 @@ class ChainContract {
 
       const receiptResult = await this.findReceipt(
         tx.hash,
-        "ProgramCreated(uint256,address,address,uint256,address)"
+        'ProgramCreated(uint256,address,address,uint256,address)',
       );
 
       if (receiptResult) {
@@ -179,7 +173,7 @@ class ChainContract {
 
       return null;
     } catch (error) {
-      console.error("Failed to create program:", error);
+      console.error('Failed to create program:', error);
       throw error;
     }
   }
@@ -188,17 +182,17 @@ class ChainContract {
     programId: number,
     builderAddress: string,
     amount: string,
-    token?: { name: string; address: string; decimal: number }
+    token?: { name: string; address: string; decimal: number },
   ) {
     try {
       const isNative = token?.address === NATIVE_TOKEN;
       const reward = isNative
-        ? ethers.utils.parseEther(amount || "0")
-        : ethers.utils.parseUnits(amount || "0", token?.decimal);
+        ? ethers.utils.parseEther(amount || '0')
+        : ethers.utils.parseUnits(amount || '0', token?.decimal);
 
       const data = encodeFunctionData({
         abi: contractJson.abi,
-        functionName: "acceptMilestone",
+        functionName: 'acceptMilestone',
         args: [programId, builderAddress, reward],
       });
 
@@ -210,7 +204,7 @@ class ChainContract {
 
       const receiptResult = await this.findReceipt(
         tx.hash,
-        "MilestoneAccepted(uint256,address,uint256,address)"
+        'MilestoneAccepted(uint256,address,uint256,address)',
       );
 
       if (receiptResult) {
@@ -219,7 +213,7 @@ class ChainContract {
 
       return null;
     } catch (error) {
-      console.error("Failed to accept milestone:", error);
+      console.error('Failed to accept milestone:', error);
       throw error;
     }
   }

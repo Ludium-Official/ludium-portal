@@ -1,17 +1,14 @@
-import contractJson from "@/lib/contract/contract.json";
-import type {
-  TransactionError,
-  TransactionResponse,
-} from "@coinbase/onchainkit/transaction";
+import contractJson from '@/lib/contract/contract.json';
+import type { TransactionError, TransactionResponse } from '@coinbase/onchainkit/transaction';
 import {
   Transaction,
   TransactionButton,
   TransactionStatus,
   TransactionStatusAction,
   TransactionStatusLabel,
-} from "@coinbase/onchainkit/transaction";
-import type { ContractFunctionParameters } from "viem";
-import { baseSepolia } from "viem/chains";
+} from '@coinbase/onchainkit/transaction';
+import type { ContractFunctionParameters } from 'viem';
+import { baseSepolia } from 'viem/chains';
 
 export default function TransactionWrapper({
   handleSuccess,
@@ -34,7 +31,7 @@ export default function TransactionWrapper({
   ] as unknown as ContractFunctionParameters[];
 
   const handleError = (err: TransactionError) => {
-    console.error("Transaction error:", err);
+    console.error('Transaction error:', err);
   };
 
   return (
@@ -47,7 +44,7 @@ export default function TransactionWrapper({
       >
         <TransactionButton
           className="bg-[#B331FF] hover:bg-[#B331FF]/90 mt-0 mr-auto ml-auto max-w-full text-white"
-          text={buttonText || "Execute"}
+          text={buttonText || 'Execute'}
         />
         <TransactionStatus>
           <TransactionStatusLabel />

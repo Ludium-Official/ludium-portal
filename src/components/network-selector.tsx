@@ -1,33 +1,33 @@
 // import EtcIcon from "@/assets/icons/crypto/etc"
-import BaseIcon from "@/assets/icons/crypto/base";
-import EduIcon from "@/assets/icons/crypto/edu";
-import { Button } from "@/components/ui/button";
+import BaseIcon from '@/assets/icons/crypto/base';
+import EduIcon from '@/assets/icons/crypto/edu';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useEffect, useState } from "react";
+} from '@/components/ui/dropdown-menu';
+import { useEffect, useState } from 'react';
 
 export const currencies = [
   {
-    code: "educhain",
+    code: 'educhain',
     icon: <EduIcon />,
-    display: "EDUChain",
+    display: 'EDUChain',
     isTestnet: false,
   },
   {
-    code: "educhain-testnet",
+    code: 'educhain-testnet',
     icon: <EduIcon />,
-    display: "EDUChain Testnet",
+    display: 'EDUChain Testnet',
     isTestnet: true,
   },
-  { code: "base", icon: <BaseIcon />, display: "Base", isTestnet: false },
+  { code: 'base', icon: <BaseIcon />, display: 'Base', isTestnet: false },
   {
-    code: "base-sepolia",
+    code: 'base-sepolia',
     icon: <BaseIcon />,
-    display: "Base Sepolia",
+    display: 'Base Sepolia',
     isTestnet: true,
   },
 ];
@@ -43,7 +43,7 @@ function NetworkSelector({
   onValueChange?: (value: string) => void;
   disabled?: boolean;
 }) {
-  const [selectedCurrency, setSelectedCurrency] = useState(value ?? "educhain");
+  const [selectedCurrency, setSelectedCurrency] = useState(value ?? 'educhain');
 
   useEffect(() => {
     onValueChange?.(selectedCurrency);
@@ -55,7 +55,7 @@ function NetworkSelector({
 
   const currWithIcon = currencies.find((c) => c.code === selectedCurrency);
   const separateCurrencies = currencies.filter((currency) => {
-    if (import.meta.env.VITE_VERCEL_ENVIRONMENT === "mainnet") {
+    if (import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet') {
       return !currency.isTestnet;
     }
 
@@ -71,10 +71,7 @@ function NetworkSelector({
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         {separateCurrencies.map((c) => (
-          <DropdownMenuItem
-            key={c.code}
-            onClick={() => setSelectedCurrency(c.code)}
-          >
+          <DropdownMenuItem key={c.code} onClick={() => setSelectedCurrency(c.code)}>
             {c.icon} {c.display}
           </DropdownMenuItem>
         ))}
