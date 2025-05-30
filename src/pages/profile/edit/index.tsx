@@ -48,25 +48,33 @@ function EditProfilePage() {
     email: string;
     summary: string;
     name: string;
+    firstName: string;
+    lastName: string;
   }>({
     values: {
       // description: profileData?.profile?.about ?? '',
       email: profileData?.profile?.email ?? '',
       summary: profileData?.profile?.summary ?? '',
       name: profileData?.profile?.organizationName ?? '',
+      firstName: profileData?.profile?.firstName ?? '',
+      lastName: profileData?.profile?.lastName ?? '',
     },
   });
 
   const [selectedAvatar, setSelectedAvatar] = useState<File>();
   const [linksError, setLinksError] = useState(false);
 
-  const onSubmit = (data: { summary: string; name: string; email: string }) => {
+  const onSubmit = (data: {
+    summary: string;
+    name: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+  }) => {
     if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
       setLinksError(true);
       return;
     }
-
-    console.log(data, 'DATA!!!!!!');
 
     updateProfile({
       variables: {
@@ -76,6 +84,8 @@ function EditProfilePage() {
           email: data.email,
           organizationName: data?.name,
           summary: data?.summary,
+          firstName: data?.firstName,
+          lastName: data?.lastName,
           about: content,
           links: links?.filter((l) => l)?.length
             ? links?.filter((l) => l).map((l) => ({ title: l, url: l }))
@@ -87,12 +97,22 @@ function EditProfilePage() {
         refetch();
         navigate('/profile');
       },
+      onError: (e) => {
+        if (e.message === 'duplicate key value violates unique constraint "users_email_unique"') {
+          notify('This email is already taken.', 'error');
+        } else {
+          notify(e.message, 'error');
+        }
+      },
     });
   };
 
   const isNoChanges =
     profileData?.profile?.summary === watch('summary') &&
+    profileData?.profile?.firstName === watch('firstName') &&
+    profileData?.profile?.lastName === watch('lastName') &&
     profileData?.profile?.organizationName === watch('name') &&
+    profileData?.profile?.email === watch('email') &&
     profileData?.profile?.about === content &&
     JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links);
 
@@ -168,8 +188,34 @@ function EditProfilePage() {
               </div>
             </div>
 
+            <label htmlFor="firstName" className="block text-foreground font-medium mb-2 text-sm">
+              First name
+            </label>
+            <Input
+              {...register('firstName', {
+                required: 'First Name is required.',
+              })}
+              id="firstName"
+              type="text"
+              placeholder="Input text"
+              className="mb-5 h-10"
+            />
+
+            <label htmlFor="lastName" className="block text-foreground font-medium mb-2 text-sm">
+              Last name
+            </label>
+            <Input
+              {...register('lastName', {
+                required: 'Last Name is required.',
+              })}
+              id="lastName"
+              type="text"
+              placeholder="Input text"
+              className="mb-5 h-10"
+            />
+
             <label htmlFor="name" className="block text-foreground font-medium mb-2 text-sm">
-              Organization / Person name
+              Organization
             </label>
             <Input
               {...register('name', {

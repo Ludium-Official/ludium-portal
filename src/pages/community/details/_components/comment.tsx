@@ -1,7 +1,8 @@
 import { useCreateCommentMutation } from '@/apollo/mutation/create-comment.generated';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { cn, getInitials } from '@/lib/utils';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { cn, getInitials, getUserName } from '@/lib/utils';
 import type { Comment } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronDown } from 'lucide-react';
@@ -12,6 +13,8 @@ function PostComment({
   postId,
   refetchComments,
 }: { comment: Comment; postId?: string; refetchComments: () => void }) {
+  const { isLoggedIn } = useAuth();
+
   const [showReplies, setShowReplies] = useState(false);
   const [replyValue, setReplyValue] = useState<string>();
 
@@ -48,10 +51,7 @@ function PostComment({
     }
   };
 
-  const authorName =
-    comment.author?.firstName && comment.author?.lastName
-      ? `${comment.author?.firstName} ${comment.author?.lastName}`
-      : (comment.author?.firstName ?? comment.author?.lastName ?? '');
+  const authorName = getUserName(comment.author);
 
   return (
     <div key={comment.id} className="border-b last:border-b-0 pb-4">
@@ -75,12 +75,7 @@ function PostComment({
             </div>
             {comment.parent && (
               <div className="text-xs text-gray-500 mb-1">
-                Reply to{' '}
-                <span className="font-medium">
-                  {comment.parent.author?.firstName && comment.parent.author?.lastName
-                    ? `${comment.parent.author?.firstName} ${comment.parent.author?.lastName}`
-                    : (comment.parent.author?.firstName ?? comment.parent.author?.lastName)}
-                </span>
+                Reply to <span className="font-medium">{getUserName(comment.parent.author)}</span>
               </div>
             )}
             <p className="text-gray-700 mt-2 mb-3 text-sm font-medium">{comment.content}</p>
@@ -103,26 +98,28 @@ function PostComment({
       {showReplies && (
         <div>
           {/* Reply input field for replies to comments */}
-          <div className="mt-4 ml-14">
-            <textarea
-              placeholder={`Reply to ${authorName}...`}
-              className="w-full p-3 border border-gray-300 rounded-md text-sm bg-white"
-              rows={3}
-              value={replyValue || ''}
-              onChange={(e) => {
-                setReplyValue(e.target.value);
-              }}
-            />
-            <div className="flex items-center justify-end mt-2">
-              <Button
-                className="bg-black text-white font-medium text-sm px-4 py-[10px] h-auto rounded-md"
-                onClick={() => handleSubmitReply(comment.id || '')}
-                disabled={submittingComment || !replyValue?.trim()}
-              >
-                Send
-              </Button>
+          {isLoggedIn && (
+            <div className="mt-4 ml-14">
+              <textarea
+                placeholder={`Reply to ${authorName}...`}
+                className="w-full p-3 border border-gray-300 rounded-md text-sm bg-white"
+                rows={3}
+                value={replyValue || ''}
+                onChange={(e) => {
+                  setReplyValue(e.target.value);
+                }}
+              />
+              <div className="flex items-center justify-end mt-2">
+                <Button
+                  className="bg-black text-white font-medium text-sm px-4 py-[10px] h-auto rounded-md"
+                  onClick={() => handleSubmitReply(comment.id || '')}
+                  disabled={submittingComment || !replyValue?.trim()}
+                >
+                  Send
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Replies */}
           {comment.replies && comment.replies.length > 0 && (
@@ -141,11 +138,7 @@ function PostComment({
                   <div className="flex-1">
                     <div className="flex flex-col">
                       <div className="flex items-center">
-                        <span className="font-medium">
-                          {reply.author?.firstName && reply.author?.lastName
-                            ? `${reply.author?.firstName} ${reply.author?.lastName}`
-                            : (reply.author?.firstName ?? reply.author?.lastName)}
-                        </span>
+                        <span className="font-medium">{getUserName(reply.author)}</span>
                         <span className="text-xs text-gray-500 ml-2">
                           {format(new Date(reply.createdAt), 'dd.MM.yyyy, h:mm a')}
                         </span>

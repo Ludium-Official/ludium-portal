@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { getInitials } from '@/lib/utils';
+import { getInitials, getUserName } from '@/lib/utils';
 import { SortEnum } from '@/types/types.generated';
 import { ArrowRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -114,9 +114,7 @@ function UsersPage() {
                   </AvatarFallback>
                 </Avatar>
 
-                <p className="text-lg font-bold">
-                  {user.firstName} {user?.lastName}
-                </p>
+                <p className="text-lg font-bold">{getUserName(user)}</p>
               </div>
 
               <h4 className="text-sm font-bold text-foreground">Summary</h4>

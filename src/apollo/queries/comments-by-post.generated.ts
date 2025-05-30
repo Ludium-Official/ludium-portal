@@ -8,7 +8,7 @@ export type CommentsByPostQueryVariables = Types.Exact<{
 }>;
 
 
-export type CommentsByPostQuery = { __typename?: 'Query', commentsByPost?: Array<{ __typename?: 'Comment', id?: string | null, content?: string | null, createdAt?: any | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, image?: string | null } | null, parent?: { __typename?: 'Comment', id?: string | null, content?: string | null, createdAt?: any | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, image?: string | null } | null } | null, replies?: Array<{ __typename?: 'Comment', id?: string | null, content?: string | null, createdAt?: any | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, image?: string | null } | null }> | null }> | null };
+export type CommentsByPostQuery = { __typename?: 'Query', commentsByPost?: Array<{ __typename?: 'Comment', id?: string | null, content?: string | null, createdAt?: any | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, image?: string | null, email?: string | null, organizationName?: string | null } | null, parent?: { __typename?: 'Comment', id?: string | null, content?: string | null, createdAt?: any | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, image?: string | null, email?: string | null, organizationName?: string | null } | null } | null, replies?: Array<{ __typename?: 'Comment', id?: string | null, content?: string | null, createdAt?: any | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, image?: string | null, email?: string | null, organizationName?: string | null } | null }> | null }> | null };
 
 
 export const CommentsByPostDocument = gql`
@@ -22,6 +22,8 @@ export const CommentsByPostDocument = gql`
       firstName
       lastName
       image
+      email
+      organizationName
     }
     parent {
       id
@@ -32,6 +34,8 @@ export const CommentsByPostDocument = gql`
         firstName
         lastName
         image
+        email
+        organizationName
       }
     }
     replies {
@@ -43,6 +47,8 @@ export const CommentsByPostDocument = gql`
         firstName
         lastName
         image
+        email
+        organizationName
       }
     }
   }

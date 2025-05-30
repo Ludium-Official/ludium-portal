@@ -24,14 +24,20 @@ import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
+import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
+import EditMilestoneForm from '@/pages/programs/details/_components/edit-milestone-form';
 import SubmitMilestoneForm from '@/pages/programs/details/_components/submit-milestone-form';
 import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Settings } from 'lucide-react';
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
 function ApplicationDetails() {
+  const [mountKey, setMountKey] = useState(0);
+  const remountKey = () => setMountKey((v) => v + 1);
+
   const { userId } = useAuth();
   const { id, applicationId } = useParams();
 
@@ -163,6 +169,25 @@ function ApplicationDetails() {
             <div className="flex gap-2 mb-1">
               <Badge variant="default">{data?.application?.status}</Badge>
             </div>
+
+            {(data?.application?.status === ApplicationStatus.Pending ||
+              data?.application?.status === ApplicationStatus.Rejected) &&
+              data?.application?.applicant?.id === userId && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Settings className="w-4 h-4 cursor-pointer" />
+                  </DialogTrigger>
+                  <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
+                    <EditApplicationForm
+                      application={data?.application}
+                      refetch={() => {
+                        refetch();
+                        remountKey();
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
+              )}
           </div>
 
           <Link to={`/programs/${id}`} className="flex items-center gap-4 mb-4">
@@ -191,8 +216,15 @@ function ApplicationDetails() {
           </div>
 
           <div className="mb-6">
+            <h2 className="font-bold text-[#18181B] text-lg mb-3">SUMMARY</h2>
+            <p className="text-slate-600 text-sm">{data?.application?.summary}</p>
+          </div>
+
+          <div className="mb-6">
             <h2 className="font-bold text-[#18181B] text-lg mb-3">DESCRIPTION</h2>
-            {data?.application?.content && <MarkdownPreviewer value={data?.application?.content} />}
+            {data?.application?.content && (
+              <MarkdownPreviewer key={mountKey} value={data?.application?.content} />
+            )}
             {/* <p className="text-slate-600 text-sm">{data?.application?.content}</p> */}
           </div>
 
@@ -230,9 +262,22 @@ function ApplicationDetails() {
               <AccordionItem key={m.id} value={`${m.id}${idx}`}>
                 <AccordionTrigger>{m.title}</AccordionTrigger>
                 <AccordionContent>
-                  <Badge variant="secondary" className="mb-2">
-                    {m.status}
-                  </Badge>
+                  <div className="flex justify-between">
+                    <Badge variant="secondary" className="mb-2">
+                      {m.status}
+                    </Badge>
+                    {m.status === MilestoneStatus.Pending &&
+                      data?.application?.applicant?.id === userId && (
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Settings className="w-4 h-4 cursor-pointer" />
+                          </DialogTrigger>
+                          <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
+                            <EditMilestoneForm milestone={m} refetch={refetch} />
+                          </DialogContent>
+                        </Dialog>
+                      )}
+                  </div>
                   <h2 className="text-lg font-bold mb-2">Milestone #{idx + 1}</h2>
                   <div className="mb-6">
                     <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">

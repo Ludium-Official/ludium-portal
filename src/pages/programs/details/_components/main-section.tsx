@@ -19,7 +19,8 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import { formatProgramStatus } from '@/lib/utils';
-import type { Program, User } from '@/types/types.generated';
+import { ApplicationStatus, type Program, type User } from '@/types/types.generated';
+import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
 import { Settings, TriangleAlert } from 'lucide-react';
 import { Link, useParams } from 'react-router';
@@ -30,6 +31,21 @@ function MainSection({ program }: { program?: Program | null }) {
   const { id } = useParams();
   const contract = useContract(program?.network || 'educhain');
 
+  console.log('🚀 ~ MainSection ~ program:', program);
+  const acceptedPrice = program?.applications
+    ?.filter((a) => a.status === ApplicationStatus.Accepted)
+    .reduce(
+      (mlPrev, mlCurr) => {
+        const mlPrice = mlCurr?.milestones?.reduce(
+          (prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)),
+          BigNumber(0, 10),
+        );
+        return mlPrev.plus(BigNumber(mlPrice ?? 0));
+      },
+      BigNumber(0, 10),
+    )
+    .toFixed();
+  // console.log('🚀 ~ acceptedPrice ~ acceptedPrice:', acceptedPrice?.toFixed());
   const badgeVariants = ['teal', 'orange', 'pink'];
 
   const programActionOptions = {
@@ -132,6 +148,8 @@ function MainSection({ program }: { program?: Program | null }) {
           <div className="mb-1">
             <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
               <span className="inline-block mr-2">
+                {acceptedPrice} {program?.currency}
+                {acceptedPrice && ' / '}
                 {program?.price} {program?.currency}
               </span>
               <span className="h-3 border-l border-[#B331FF] inline-block" />

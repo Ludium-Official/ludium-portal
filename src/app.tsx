@@ -12,6 +12,7 @@ import ProgramsPage from '@/pages/programs';
 import CreateProgramPage from '@/pages/programs/create';
 import ProgramDetailsPage from '@/pages/programs/details';
 import ApplicationDetailsPage from '@/pages/programs/details/application-details';
+import ApplicationEdit from '@/pages/programs/details/application-edit';
 import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Route, Routes } from 'react-router';
@@ -31,10 +32,8 @@ function App() {
             <Route path="create" element={<CreateProgramPage />} />
             <Route path=":id" element={<ProgramDetailsPage />} />
             <Route path=":id/edit" element={<EditProgramPage />} />
-            <Route
-              path=":id/application/:applicationId/details"
-              element={<ApplicationDetailsPage />}
-            />
+            <Route path=":id/application/:applicationId" element={<ApplicationDetailsPage />} />
+            <Route path=":id/application/:applicationId/edit" element={<ApplicationEdit />} />
           </Route>
           <Route path="community">
             <Route index element={<CommunityPage />} />

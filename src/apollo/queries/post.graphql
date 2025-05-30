@@ -14,6 +14,8 @@ query post($id: ID!) {
       firstName
       lastName
       image
+      email
+      organizationName
     }
     createdAt
   }
