@@ -18,18 +18,19 @@ import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
-import { formatProgramStatus } from '@/lib/utils';
+import { formatProgramStatus, mainnetDefaultNetwork } from '@/lib/utils';
 import { ApplicationStatus, type Program, type User } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
 import { Settings, TriangleAlert } from 'lucide-react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import CreateApplicationForm from './create-application-form';
 
 function MainSection({ program }: { program?: Program | null }) {
-  const { userId } = useAuth();
+  const { userId, isAuthed, isLoggedIn } = useAuth();
   const { id } = useParams();
-  const contract = useContract(program?.network || 'educhain');
+  const contract = useContract(program?.network || mainnetDefaultNetwork);
+  const navigate = useNavigate();
 
   console.log('🚀 ~ MainSection ~ program:', program);
   const acceptedPrice = program?.applications
@@ -186,13 +187,22 @@ function MainSection({ program }: { program?: Program | null }) {
           ))}
         </div>
 
-        {program?.status === 'published' &&
+        {isLoggedIn &&
+          program?.status === 'published' &&
           program.creator?.id !== userId &&
           program.validator?.id !== userId && (
             <Dialog>
               <DialogTrigger asChild>
                 <Button
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    if (!isAuthed) {
+                      notify('Please add your email', 'success');
+                      navigate('/profile/edit');
+                      return;
+                    }
+
+                    e.stopPropagation();
+                  }}
                   className="mt-6 mb-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]"
                 >
                   Send an application
