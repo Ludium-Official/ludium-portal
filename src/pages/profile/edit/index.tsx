@@ -134,7 +134,7 @@ function EditProfilePage() {
         );
       })();
 
-      privyLogin();
+      privyLogin({ disableSignup: false });
 
       if (user && walletInfo) {
         await authLogin({

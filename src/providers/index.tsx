@@ -16,7 +16,7 @@ function Providers({ children }: { children: React.ReactNode }) {
               defaultChain: baseSepolia,
               supportedChains: [baseSepolia, base, eduChain, eduChainTestnet],
               embeddedWallets: {
-                createOnLogin: 'all-users',
+                createOnLogin: 'users-without-wallets',
               },
               loginMethods: ['farcaster', 'google', 'wallet'],
               externalWallets: {

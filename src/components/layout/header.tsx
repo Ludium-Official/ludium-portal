@@ -55,7 +55,7 @@ function Header() {
         );
       })();
 
-      privyLogin();
+      privyLogin({ disableSignup: false });
 
       if (user && walletInfo) {
         await authLogin({

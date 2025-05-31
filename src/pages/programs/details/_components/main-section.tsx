@@ -32,9 +32,10 @@ function MainSection({ program }: { program?: Program | null }) {
   const contract = useContract(program?.network || mainnetDefaultNetwork);
   const navigate = useNavigate();
 
-  console.log('🚀 ~ MainSection ~ program:', program);
   const acceptedPrice = program?.applications
-    ?.filter((a) => a.status === ApplicationStatus.Accepted)
+    ?.filter(
+      (a) => a.status === ApplicationStatus.Accepted || a.status === ApplicationStatus.Completed,
+    )
     .reduce(
       (mlPrev, mlCurr) => {
         const mlPrice = mlCurr?.milestones?.reduce(
