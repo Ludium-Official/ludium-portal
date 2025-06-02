@@ -28,6 +28,7 @@ export type Application = {
   milestones?: Maybe<Array<Milestone>>;
   name?: Maybe<Scalars['String']['output']>;
   price?: Maybe<Scalars['String']['output']>;
+  rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<ApplicationStatus>;
   summary?: Maybe<Scalars['String']['output']>;
 };
@@ -241,11 +242,13 @@ export type MutationMarkNotificationAsReadArgs = {
 
 export type MutationRejectApplicationArgs = {
   id: Scalars['ID']['input'];
+  rejectionReason?: InputMaybe<Scalars['String']['input']>;
 };
 
 
 export type MutationRejectProgramArgs = {
   id: Scalars['ID']['input'];
+  rejectionReason?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -393,6 +396,7 @@ export type Program = {
   name?: Maybe<Scalars['String']['output']>;
   network?: Maybe<Scalars['String']['output']>;
   price?: Maybe<Scalars['String']['output']>;
+  rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<ProgramStatus>;
   summary?: Maybe<Scalars['String']['output']>;
   txHash?: Maybe<Scalars['String']['output']>;

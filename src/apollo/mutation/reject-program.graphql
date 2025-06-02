@@ -1,5 +1,5 @@
-mutation rejectProgram($id: ID!) {
-  rejectProgram(id: $id) {
+mutation rejectProgram($id: ID!, $rejectionReason: String) {
+  rejectProgram(id: $id, rejectionReason: $rejectionReason) {
     creator {
       about
       email

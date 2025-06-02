@@ -1,8 +1,10 @@
 import { useAcceptApplicationMutation } from '@/apollo/mutation/accept-application.generated';
-import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
+// import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { getUserName } from '@/lib/utils';
+import RejectApplicationForm from '@/pages/programs/details/_components/reject-application-form';
 import type { Application } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { ArrowRight } from 'lucide-react';
@@ -20,7 +22,7 @@ function ApplicationCard({
   hideControls?: boolean | null;
 }) {
   const [approveApplication] = useAcceptApplicationMutation();
-  const [denyApplication] = useRejectApplicationMutation();
+  // const [denyApplication] = useRejectApplicationMutation();
 
   return (
     <div className="border rounded-xl p-6">
@@ -53,7 +55,22 @@ function ApplicationCard({
         </div>
         {!hideControls && (
           <div className="gap-3 flex">
-            <Button
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button onClick={(e) => e.stopPropagation()} className="h-10" variant="outline">
+                  Reject
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
+                <RejectApplicationForm
+                  applicationId={application?.id}
+                  refetch={() => {
+                    refetch?.();
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+            {/* <Button
               className="h-10"
               variant="outline"
               onClick={() => {
@@ -68,7 +85,7 @@ function ApplicationCard({
               }}
             >
               Deny
-            </Button>
+            </Button> */}
             <Button
               className="h-10"
               onClick={() => {

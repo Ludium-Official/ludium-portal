@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { DialogClose, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import notify from '@/lib/notify';
-import type { Application } from '@/types/types.generated';
+import { type Application, ApplicationStatus } from '@/types/types.generated';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -28,7 +28,7 @@ function EditApplicationForm({
     }
   }, [application]);
 
-  const onSubmit = async () => {
+  const onSubmit = async (resubmit?: boolean) => {
     if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
       setLinksError(true);
       return;
@@ -41,6 +41,7 @@ function EditApplicationForm({
           content,
           links: links.map((l) => ({ title: l, url: l })),
           summary,
+          status: resubmit ? ApplicationStatus.Pending : undefined,
           name,
         },
       },
@@ -143,14 +144,27 @@ function EditApplicationForm({
         )}
       </label>
 
-      <Button
-        disabled={!name || !content || !summary || noChanges}
-        type="button"
-        className="bg-[#861CC4] h-10 ml-auto block hover:bg-[#861CC4]/90 min-w-[161px]"
-        onClick={onSubmit}
-      >
-        {'EDIT APPLICATION'}
-      </Button>
+      <div className="flex justify-end gap-4">
+        <Button
+          disabled={!name || !content || !summary || noChanges}
+          type="button"
+          className="bg-[#861CC4] h-10 block hover:bg-[#861CC4]/90 min-w-[161px]"
+          onClick={() => onSubmit()}
+        >
+          {'EDIT APPLICATION'}
+        </Button>
+
+        {application?.status === ApplicationStatus.Rejected && (
+          <Button
+            disabled={!name || !content || !summary}
+            type="button"
+            className="bg-[#861CC4] h-10 block hover:bg-[#861CC4]/90 min-w-[161px]"
+            onClick={() => onSubmit(true)}
+          >
+            EDIT AND RESUBMIT
+          </Button>
+        )}
+      </div>
     </form>
   );
 }

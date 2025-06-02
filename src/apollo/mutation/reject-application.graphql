@@ -1,5 +1,5 @@
-mutation rejectApplication($id: ID!) {
-  rejectApplication(id: $id) {
+mutation rejectApplication($id: ID!, $rejectionReason: String) {
+  rejectApplication(id: $id, rejectionReason: $rejectionReason) {
     content
     id
     links {

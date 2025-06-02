@@ -5,6 +5,7 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type RejectApplicationMutationVariables = Types.Exact<{
   id: Types.Scalars['ID']['input'];
+  rejectionReason?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
 
 
@@ -12,8 +13,8 @@ export type RejectApplicationMutation = { __typename?: 'Mutation', rejectApplica
 
 
 export const RejectApplicationDocument = gql`
-    mutation rejectApplication($id: ID!) {
-  rejectApplication(id: $id) {
+    mutation rejectApplication($id: ID!, $rejectionReason: String) {
+  rejectApplication(id: $id, rejectionReason: $rejectionReason) {
     content
     id
     links {
@@ -43,6 +44,7 @@ export type RejectApplicationMutationFn = Apollo.MutationFunction<RejectApplicat
  * const [rejectApplicationMutation, { data, loading, error }] = useRejectApplicationMutation({
  *   variables: {
  *      id: // value for 'id'
+ *      rejectionReason: // value for 'rejectionReason'
  *   },
  * });
  */
