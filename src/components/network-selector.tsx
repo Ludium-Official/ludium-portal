@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { mainnetDefaultNetwork } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
 export const currencies = [
@@ -43,7 +44,7 @@ function NetworkSelector({
   onValueChange?: (value: string) => void;
   disabled?: boolean;
 }) {
-  const [selectedCurrency, setSelectedCurrency] = useState(value ?? 'educhain');
+  const [selectedCurrency, setSelectedCurrency] = useState(value || mainnetDefaultNetwork);
 
   useEffect(() => {
     onValueChange?.(selectedCurrency);
@@ -59,7 +60,7 @@ function NetworkSelector({
       return !currency.isTestnet;
     }
 
-    return currency;
+    return currency.isTestnet;
   });
 
   return (

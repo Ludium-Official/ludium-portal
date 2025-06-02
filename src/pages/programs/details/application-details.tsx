@@ -24,6 +24,7 @@ import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
+import { mainnetDefaultNetwork } from '@/lib/utils';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
 import EditMilestoneForm from '@/pages/programs/details/_components/edit-milestone-form';
 import RejectApplicationForm from '@/pages/programs/details/_components/reject-application-form';
@@ -59,7 +60,7 @@ function ApplicationDetails() {
 
   const { name, keywords, network } = program ?? {};
 
-  const contract = useContract(network || 'educhain');
+  const contract = useContract(network || mainnetDefaultNetwork);
 
   const applicationMutationParams = {
     onCompleted: () => {

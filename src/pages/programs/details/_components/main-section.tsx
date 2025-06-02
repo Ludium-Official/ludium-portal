@@ -17,22 +17,25 @@ import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
-import { formatProgramStatus } from '@/lib/utils';
+import { formatProgramStatus, mainnetDefaultNetwork } from '@/lib/utils';
 import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 import { ApplicationStatus, type Program, type User } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
 import { Settings, TriangleAlert } from 'lucide-react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import CreateApplicationForm from './create-application-form';
 
 function MainSection({ program, refetch }: { program?: Program | null; refetch: () => void }) {
-  const { userId } = useAuth();
+  const { userId, isAuthed, isLoggedIn } = useAuth();
   const { id } = useParams();
-  const contract = useContract(program?.network || 'educhain');
+  const contract = useContract(program?.network || mainnetDefaultNetwork);
+  const navigate = useNavigate();
 
   const acceptedPrice = program?.applications
-    ?.filter((a) => a.status === ApplicationStatus.Accepted)
+    ?.filter(
+      (a) => a.status === ApplicationStatus.Accepted || a.status === ApplicationStatus.Completed,
+    )
     .reduce(
       (mlPrev, mlCurr) => {
         const mlPrice = mlCurr?.milestones?.reduce(
@@ -192,13 +195,22 @@ function MainSection({ program, refetch }: { program?: Program | null; refetch: 
           </div>
         )}
 
-        {program?.status === 'published' &&
+        {isLoggedIn &&
+          program?.status === 'published' &&
           program.creator?.id !== userId &&
           program.validator?.id !== userId && (
             <Dialog>
               <DialogTrigger asChild>
                 <Button
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    if (!isAuthed) {
+                      notify('Please add your email', 'success');
+                      navigate('/profile/edit');
+                      return;
+                    }
+
+                    e.stopPropagation();
+                  }}
                   className="mt-6 mb-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]"
                 >
                   Send an application

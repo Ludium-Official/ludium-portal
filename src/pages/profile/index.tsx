@@ -65,7 +65,7 @@ function ProfilePage() {
         );
       })();
 
-      privyLogin();
+      privyLogin({ disableSignup: false });
 
       if (user && walletInfo) {
         await authLogin({

@@ -9,6 +9,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { SearchSelect } from '@/components/ui/search-select';
+import { mainnetDefaultNetwork } from '@/lib/utils';
 import type { LinkInput } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { X } from 'lucide-react';
@@ -37,8 +38,6 @@ export interface ProgramFormProps {
 }
 
 function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
-  const [content, setContent] = useState<string>('');
-
   const { id } = useParams();
 
   const { data } = useProgramQuery({
@@ -48,11 +47,12 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     skip: !isEdit,
   });
 
+  const [content, setContent] = useState<string>('');
   const [deadline, setDeadline] = useState<Date>();
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
   const [selectedValidator, setSelectedValidator] = useState<string>();
   const [links, setLinks] = useState<string[]>(['']);
-  const [network, setNetwork] = useState('educhain');
+  const [network, setNetwork] = useState(mainnetDefaultNetwork);
   const [currency, setCurrency] = useState('');
 
   const { data: keywords } = useKeywordsQuery();

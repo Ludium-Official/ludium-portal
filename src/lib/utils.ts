@@ -34,3 +34,6 @@ export const getUserName = (user?: User | null) => {
     ? `${user.firstName} ${user.lastName}`
     : (user?.firstName ?? user?.lastName ?? user?.email ?? user?.organizationName ?? '');
 };
+
+export const mainnetDefaultNetwork =
+  import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet' ? 'educhain' : 'educhain-testnet';

@@ -6,7 +6,7 @@ import ChainContract from '@/lib/contract';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
-import { commaNumber, reduceString } from '@/lib/utils';
+import { commaNumber, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
 import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
@@ -30,7 +30,7 @@ function Header() {
     fetchPolicy: 'cache-first',
   });
 
-  const [network, setNetwork] = useState('educhain');
+  const [network, setNetwork] = useState(mainnetDefaultNetwork);
   const [balances, setBalances] = useState<
     { name: string; amount: bigint | null; decimal: number }[]
   >([]);
@@ -43,13 +43,11 @@ function Header() {
     try {
       const googleInfo = user?.google;
       const farcasterInfo = user?.farcaster;
-      const twitterInfo = user?.twitter;
 
       const loginType = (() => {
         const types = {
           google: googleInfo,
           farcaster: farcasterInfo,
-          twitter: twitterInfo,
         };
 
         return (
@@ -57,7 +55,7 @@ function Header() {
         );
       })();
 
-      privyLogin();
+      privyLogin({ disableSignup: false });
 
       if (user && walletInfo) {
         await authLogin({
@@ -151,8 +149,9 @@ function Header() {
             <Dialog>
               <DialogTrigger>
                 <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-fit">
-                  {profileData?.profile?.organizationName ??
-                    reduceString(walletInfo?.address || '', 6, 6)}
+                  {profileData?.profile?.firstName && profileData?.profile?.lastName
+                    ? `${profileData.profile.firstName} ${profileData.profile.lastName}`
+                    : reduceString(walletInfo?.address || '', 6, 6)}
                 </Button>
               </DialogTrigger>
               <DialogContent>
