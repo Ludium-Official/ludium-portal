@@ -1,6 +1,5 @@
 import client from '@/apollo/client';
 import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
-import { useRejectProgramMutation } from '@/apollo/mutation/reject-program.generated';
 import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
 import { ProgramDocument } from '@/apollo/queries/program.generated';
 import MarkdownPreviewer from '@/components/markdown-previewer';
@@ -19,6 +18,7 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import { formatProgramStatus, mainnetDefaultNetwork } from '@/lib/utils';
+import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 import { ApplicationStatus, type Program, type User } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
@@ -26,7 +26,7 @@ import { Settings, TriangleAlert } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router';
 import CreateApplicationForm from './create-application-form';
 
-function MainSection({ program }: { program?: Program | null }) {
+function MainSection({ program, refetch }: { program?: Program | null; refetch: () => void }) {
   const { userId, isAuthed, isLoggedIn } = useAuth();
   const { id } = useParams();
   const contract = useContract(program?.network || mainnetDefaultNetwork);
@@ -59,7 +59,7 @@ function MainSection({ program }: { program?: Program | null }) {
 
   const [acceptProgram] = useAcceptProgramMutation(programActionOptions);
   const [publishProgram] = useSubmitProgramMutation();
-  const [rejectProgram] = useRejectProgramMutation(programActionOptions);
+  // const [rejectProgram] = useRejectProgramMutation(programActionOptions);
 
   const callTx = async () => {
     try {
@@ -188,6 +188,13 @@ function MainSection({ program }: { program?: Program | null }) {
           ))}
         </div>
 
+        {!program?.validator && program?.rejectionReason && (
+          <div className="mb-6">
+            <h3 className="font-bold text-[#18181B] text-lg mb-3">Validator Rejection Reason</h3>
+            <p className="text-sm text-red-400">{program?.rejectionReason}</p>
+          </div>
+        )}
+
         {isLoggedIn &&
           program?.status === 'published' &&
           program.creator?.id !== userId &&
@@ -217,9 +224,19 @@ function MainSection({ program }: { program?: Program | null }) {
 
         {program?.validator?.id === userId && program.status === 'draft' && (
           <div className="flex justify-end gap-4">
-            <Button onClick={() => rejectProgram()} variant="outline" className="h-11 w-[118px]">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="h-11 w-[118px]">
+                  Reject
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
+                <RejectProgramForm programId={program.id} refetch={refetch} />
+              </DialogContent>
+            </Dialog>
+            {/* <Button onClick={() => rejectProgram()} variant="outline" className="h-11 w-[118px]">
               Reject
-            </Button>
+            </Button> */}
             <Button
               onClick={async () => {
                 await acceptProgram();

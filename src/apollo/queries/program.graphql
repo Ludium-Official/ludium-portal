@@ -59,6 +59,7 @@ query program($id: ID!) {
     price
     status
     summary
+    rejectionReason
     validator {
       about
       email
@@ -67,7 +68,6 @@ query program($id: ID!) {
       image
       lastName
       organizationName
-
       links {
         title
         url

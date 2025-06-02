@@ -16,6 +16,7 @@ query application($id: ID!) {
     }
     content
     summary
+    rejectionReason
     id
     name
     links {

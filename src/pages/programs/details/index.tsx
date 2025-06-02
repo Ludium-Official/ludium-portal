@@ -31,7 +31,7 @@ const DetailsPage: React.FC = () => {
 
   return (
     <div className="bg-[#F7F7F7]">
-      <MainSection program={program} />
+      <MainSection program={program} refetch={() => refetch} />
 
       <Tabs className="mt-3 bg-white p-10 rounded-t-2xl" id="applications">
         <h2 className="text-xl font-bold mb-4">Applications</h2>

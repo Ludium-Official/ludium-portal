@@ -5,6 +5,7 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type RejectProgramMutationVariables = Types.Exact<{
   id: Types.Scalars['ID']['input'];
+  rejectionReason?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
 
 
@@ -12,8 +13,8 @@ export type RejectProgramMutation = { __typename?: 'Mutation', rejectProgram?: {
 
 
 export const RejectProgramDocument = gql`
-    mutation rejectProgram($id: ID!) {
-  rejectProgram(id: $id) {
+    mutation rejectProgram($id: ID!, $rejectionReason: String) {
+  rejectProgram(id: $id, rejectionReason: $rejectionReason) {
     creator {
       about
       email
@@ -59,6 +60,7 @@ export type RejectProgramMutationFn = Apollo.MutationFunction<RejectProgramMutat
  * const [rejectProgramMutation, { data, loading, error }] = useRejectProgramMutation({
  *   variables: {
  *      id: // value for 'id'
+ *      rejectionReason: // value for 'rejectionReason'
  *   },
  * });
  */

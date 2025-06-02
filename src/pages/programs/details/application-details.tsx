@@ -1,6 +1,6 @@
 import { useAcceptApplicationMutation } from '@/apollo/mutation/accept-application.generated';
 import { useCheckMilestoneMutation } from '@/apollo/mutation/check-milestone.generated';
-import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
+// import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
 import { useApplicationQuery } from '@/apollo/queries/application.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import MarkdownPreviewer from '@/components/markdown-previewer';
@@ -27,6 +27,7 @@ import notify from '@/lib/notify';
 import { mainnetDefaultNetwork } from '@/lib/utils';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
 import EditMilestoneForm from '@/pages/programs/details/_components/edit-milestone-form';
+import RejectApplicationForm from '@/pages/programs/details/_components/reject-application-form';
 import SubmitMilestoneForm from '@/pages/programs/details/_components/submit-milestone-form';
 import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
@@ -74,7 +75,7 @@ function ApplicationDetails() {
   const [checkMilestone] = useCheckMilestoneMutation();
 
   const [approveApplication] = useAcceptApplicationMutation(applicationMutationParams);
-  const [denyApplication] = useRejectApplicationMutation(applicationMutationParams);
+  // const [denyApplication] = useRejectApplicationMutation(applicationMutationParams);
 
   const navigate = useNavigate();
 
@@ -238,11 +239,40 @@ function ApplicationDetails() {
             ))}
           </div>
 
+          {data?.application?.rejectionReason &&
+            data?.application?.status === ApplicationStatus.Rejected && (
+              <div className="mb-6">
+                <h2 className="font-bold text-[#18181B] text-lg mb-3">Rejection Reason</h2>
+                <p className="text-sm text-red-400">{data?.application?.rejectionReason}</p>
+              </div>
+            )}
+
+          {data?.application?.status === ApplicationStatus.Rejected &&
+            data?.application.applicant?.id === userId && (
+              <p className="text-sm text-red-400">You can edit and resubmit your application.</p>
+            )}
+
           {program?.validator?.id === userId && data?.application?.status === 'pending' && (
             <div className="flex justify-end gap-3">
-              <Button className="h-10" variant="outline" onClick={() => denyApplication()}>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button onClick={(e) => e.stopPropagation()} className="h-10" variant="outline">
+                    Reject
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
+                  <RejectApplicationForm
+                    applicationId={applicationId}
+                    refetch={() => {
+                      refetch();
+                      programRefetch();
+                    }}
+                  />
+                </DialogContent>
+              </Dialog>
+              {/* <Button className="h-10" variant="outline" onClick={() => denyApplication()}>
                 Deny
-              </Button>
+              </Button> */}
               <Button
                 className="h-10"
                 onClick={() => {
