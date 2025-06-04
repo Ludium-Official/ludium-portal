@@ -55,7 +55,6 @@ function ApplicationDetails() {
       id: id ?? '',
     },
   });
-  console.log(data);
 
   const program = programData?.program;
 
