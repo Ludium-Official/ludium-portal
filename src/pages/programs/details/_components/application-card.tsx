@@ -36,9 +36,12 @@ function ApplicationCard({
       </header>
       <div className="flex gap-4 items-center mb-2">
         <div className="w-10 h-10 bg-slate-400 rounded-full" />
-        <h3 className="text-lg font-bold">
+        <Link
+          className="text-lg font-bold hover:underline"
+          to={`/users/${application?.applicant?.id}`}
+        >
           {application?.applicant?.organizationName ?? getUserName(application?.applicant)}
-        </h3>
+        </Link>
       </div>
       <div className="mb-6">
         <span className="text-xs text-muted-foreground">

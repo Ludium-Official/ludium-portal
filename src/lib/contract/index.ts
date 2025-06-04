@@ -98,18 +98,33 @@ class ChainContract {
     return allowance as bigint;
   }
 
-  async approveToken(tokenAddress: string, amount: ethers.BigNumber) {
+  async approveToken(tokenAddress: string, amount: ethers.BigNumber, tokenName?: string) {
     const data = encodeFunctionData({
       abi: ERC20_ABI,
       functionName: 'approve',
       args: [this.contractAddress, amount],
     });
 
-    const tx = await this.sendTransaction({
-      to: tokenAddress,
-      data,
-      chainId: this.chainId,
-    });
+    const tx = await this.sendTransaction(
+      {
+        to: tokenAddress,
+        data,
+        chainId: this.chainId,
+      },
+      {
+        uiOptions: {
+          showWalletUIs: true,
+          description: `Approve ${amount} ${tokenName} for use in the contract.`,
+          buttonText: 'Approve Token',
+          transactionInfo: {
+            title: 'Approve Token',
+            action: 'Grant Permission',
+          },
+          successHeader: 'Token Approved Successfully!',
+          successDescription: `You have successfully approved ${amount} ${tokenName} for use in the contract.`,
+        },
+      },
+    );
 
     await this.client.waitForTransactionReceipt({
       hash: tx.hash,
@@ -138,7 +153,7 @@ class ChainContract {
         const priceInWei = BigInt(price.toString());
 
         if (allowance < priceInWei) {
-          await this.approveToken(useToken, price);
+          await this.approveToken(useToken, price, program.token?.name);
         }
       }
 
@@ -155,12 +170,27 @@ class ChainContract {
         ],
       });
 
-      const tx = await this.sendTransaction({
-        to: this.contractAddress,
-        data,
-        value: useToken === NATIVE_TOKEN ? BigInt(price.toString()) : BigInt(0),
-        chainId: this.chainId,
-      });
+      const tx = await this.sendTransaction(
+        {
+          to: this.contractAddress,
+          data,
+          value: useToken === NATIVE_TOKEN ? BigInt(price.toString()) : BigInt(0),
+          chainId: this.chainId,
+        },
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            description: `To create a program, you need to accept ${program.price} ${program.token?.name} to the contract.`,
+            buttonText: 'Submit Transaction',
+            transactionInfo: {
+              title: 'Transaction Details',
+              action: 'Create Program',
+            },
+            successHeader: 'Program Created Successfully!',
+            successDescription: 'Your program has been created and is now live.',
+          },
+        },
+      );
 
       const receiptResult = await this.findReceipt(
         tx.hash,
@@ -196,11 +226,25 @@ class ChainContract {
         args: [programId, builderAddress, reward],
       });
 
-      const tx = await this.sendTransaction({
-        to: this.contractAddress,
-        data,
-        chainId: this.chainId,
-      });
+      const tx = await this.sendTransaction(
+        {
+          to: this.contractAddress,
+          data,
+          chainId: this.chainId,
+        },
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            description: `Accept milestone and send ${amount} ${token?.name} to ${builderAddress}.`,
+            transactionInfo: {
+              title: 'Accept Milestone',
+              action: 'Accepted Milestone',
+            },
+            successHeader: 'Milestone Accepted Successfully!',
+            successDescription: `You have successfully accepted the milestone and sent ${amount} ${token?.name} to ${builderAddress}.`,
+          },
+        },
+      );
 
       const receiptResult = await this.findReceipt(
         tx.hash,

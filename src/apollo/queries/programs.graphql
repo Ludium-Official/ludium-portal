@@ -70,6 +70,7 @@ query programs($pagination: PaginationInput) {
       price
       status
       summary
+      network
       validator {
         about
         email

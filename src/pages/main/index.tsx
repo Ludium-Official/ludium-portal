@@ -4,7 +4,7 @@ import thumbnail from '@/assets/thumbnail.jpg';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useDraggableScroll } from '@/lib/hooks/use-draggable-scroll';
+import { changeNetwork } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ArrowRight } from 'lucide-react';
@@ -24,7 +24,6 @@ function MainPage() {
       },
     },
   });
-  const scrollRef = useDraggableScroll();
 
   const { data: bannerData, loading: bannerLoading } = useBannerQuery();
 
@@ -100,12 +99,13 @@ function MainPage() {
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
-          <div
-            ref={scrollRef}
-            className="flex gap-3 overflow-x-auto whitespace-nowrap pb-4 cursor-grab active:cursor-grabbing select-none"
-          >
+          <div className="flex gap-3 overflow-x-auto whitespace-nowrap pb-4 select-none">
             {data?.programs?.data?.map((program) => (
-              <div key={program.id} className="border min-w-[425px] p-6 rounded-lg">
+              <Link
+                to={`/programs/${program.id}`}
+                key={program.id}
+                className="border min-w-[425px] p-6 rounded-lg hover:border-gray-400"
+              >
                 <div className="flex justify-between mb-5">
                   <div className="flex gap-2 mb-1">
                     {program?.keywords?.slice(0, 3)?.map((k, i) => (
@@ -129,51 +129,43 @@ function MainPage() {
 
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-10 h-10 bg-gray-200 rounded-full" />
-                  <Link
-                    to={`/programs/${program.id}`}
-                    className="text-lg font-bold truncate max-w-[310px]"
-                  >
-                    {program?.name}
-                  </Link>
+                  <div className="text-lg font-bold truncate max-w-[310px]">{program?.name}</div>
                 </div>
                 <div className="mb-4">
-                  <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
-                    <span className="inline-block mr-2">
-                      {program?.price} {program?.currency}
-                    </span>
-                    <span className="h-3 border-l border-[#B331FF] inline-block" />
-                    <span className="inline-block ml-2">
-                      DEADLINE{' '}
-                      {format(
-                        new Date(program?.deadline ?? new Date()),
-                        'dd . MMM . yyyy',
-                      ).toUpperCase()}
-                    </span>
+                  <p className="flex flex-col w-fit font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs py-1 px-2 rounded-[6px]">
+                    <div className="mb-1">{changeNetwork(program.network)}</div>
+                    <div>
+                      <span className="inline-block mr-2">
+                        {program?.price} {program?.currency}
+                      </span>
+                      <span className="h-3 border-l border-[#B331FF] inline-block" />
+                      <span className="inline-block ml-2">
+                        DEADLINE{' '}
+                        {format(
+                          new Date(program?.deadline ?? new Date()),
+                          'dd . MMM . yyyy',
+                        ).toUpperCase()}
+                      </span>
+                    </div>
                   </p>
                 </div>
 
                 <p className="text-sm line-clamp-2 mb-6">{program?.summary}</p>
 
-                <div className="space-x-3 mb-2">
-                  <Link
-                    to={`/programs/${program.id}#applications`}
-                    className="text-xs font-semibold bg-[#F4F4F5] rounded-full px-2.5 py-0.5 leading-4"
-                  >
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="text-xs font-semibold bg-[#F4F4F5] rounded-full px-2.5 py-0.5 leading-4">
                     Submitted Application{' '}
                     <span className="text-[#B331FF]">{program.applications?.length ?? 0}</span>
-                  </Link>
-                  <Link
-                    to={`/programs/${program.id}#applications`}
-                    className="text-xs font-semibold bg-[#18181B] text-white rounded-full px-2.5 py-0.5"
-                  >
+                  </div>
+                  <div className="text-xs font-semibold bg-[#18181B] text-white rounded-full px-2.5 py-0.5">
                     Approved Application{' '}
                     <span className="text-[#FDE047]">
                       {program.applications?.filter((a) => a.status === ApplicationStatus.Accepted)
                         .length ?? 0}
                     </span>
-                  </Link>
+                  </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </section>

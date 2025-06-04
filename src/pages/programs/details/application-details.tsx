@@ -24,7 +24,7 @@ import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
-import { mainnetDefaultNetwork } from '@/lib/utils';
+import { changeNetwork, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
 import EditMilestoneForm from '@/pages/programs/details/_components/edit-milestone-form';
 import RejectApplicationForm from '@/pages/programs/details/_components/reject-application-form';
@@ -55,6 +55,7 @@ function ApplicationDetails() {
       id: id ?? '',
     },
   });
+  console.log(data);
 
   const program = programData?.program;
 
@@ -149,18 +150,21 @@ function ApplicationDetails() {
           <h2 className="text-lg font-bold">{name}</h2>
         </Link>
         <div className="mb-4">
-          <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
-            <span className="inline-block mr-2">
-              {data?.application?.milestones
-                ?.reduce((prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)), BigNumber(0, 10))
-                .toFixed()}{' '}
-              {program?.currency} / {program?.price} {program?.currency}
-            </span>
-            <span className="h-3 border-l border-[#B331FF] inline-block" />
-            <span className="inline-block ml-2">
-              DEADLINE{' '}
-              {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
-            </span>
+          <p className="flex flex-col w-fit font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs py-1 px-2 rounded-[6px]">
+            <div className="mb-1">{changeNetwork(program?.network)}</div>
+            <div>
+              <span className="inline-block mr-2">
+                {data?.application?.milestones
+                  ?.reduce((prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)), BigNumber(0, 10))
+                  .toFixed()}{' '}
+                {program?.currency} / {program?.price} {program?.currency}
+              </span>
+              <span className="h-3 border-l border-[#B331FF] inline-block" />
+              <span className="inline-block ml-2">
+                DEADLINE{' '}
+                {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
+              </span>
+            </div>
           </p>
         </div>
       </section>
@@ -192,10 +196,15 @@ function ApplicationDetails() {
               )}
           </div>
 
-          <Link to={`/programs/${id}`} className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-4 mb-4">
             <div className="w-10 h-10 bg-gray-200 rounded-full" />
-            <h2 className="text-lg font-bold">{data?.application?.applicant?.organizationName}</h2>
-          </Link>
+            <Link
+              className="text-lg font-bold hover:underline"
+              to={`/users/${data?.application?.applicant?.id}`}
+            >
+              {getUserName(data?.application?.applicant)}
+            </Link>
+          </div>
           <div className="mb-6">
             <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
               <span className="inline-block mr-2">

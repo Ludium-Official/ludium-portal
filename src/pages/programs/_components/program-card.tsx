@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import {} from '@/components/ui/dialog';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { formatProgramStatus } from '@/lib/utils';
+import { changeNetwork, formatProgramStatus } from '@/lib/utils';
 import { ApplicationStatus, type Program } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ArrowRight, Settings } from 'lucide-react';
@@ -46,15 +46,18 @@ function ProgramCard({ program }: { program: Program }) {
         <h2 className="text-lg font-bold">{name}</h2>
       </Link>
       <div className="mb-4">
-        <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
-          <span className="inline-block mr-2">
-            {program?.price} {program?.currency}
-          </span>
-          <span className="h-3 border-l border-[#B331FF] inline-block" />
-          <span className="inline-block ml-2">
-            DEADLINE{' '}
-            {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
-          </span>
+        <p className="flex flex-col w-fit font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs py-1 px-2 rounded-[6px]">
+          <div className="mb-1">{changeNetwork(program?.network)}</div>
+          <div>
+            <span className="inline-block mr-2">
+              {program?.price} {program?.currency}
+            </span>
+            <span className="h-3 border-l border-[#B331FF] inline-block" />
+            <span className="inline-block ml-2">
+              DEADLINE{' '}
+              {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
+            </span>
+          </div>
         </p>
       </div>
 

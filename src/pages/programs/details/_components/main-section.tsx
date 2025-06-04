@@ -17,7 +17,7 @@ import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
-import { formatProgramStatus, mainnetDefaultNetwork } from '@/lib/utils';
+import { changeNetwork, formatProgramStatus, mainnetDefaultNetwork } from '@/lib/utils';
 import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 import { ApplicationStatus, type Program, type User } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
@@ -26,7 +26,13 @@ import { Settings, TriangleAlert } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router';
 import CreateApplicationForm from './create-application-form';
 
-function MainSection({ program, refetch }: { program?: Program | null; refetch: () => void }) {
+function MainSection({
+  program,
+  refetch,
+}: {
+  program?: Program | null;
+  refetch: () => void;
+}) {
   const { userId, isAuthed, isLoggedIn } = useAuth();
   const { id } = useParams();
   const contract = useContract(program?.network || mainnetDefaultNetwork);
@@ -148,17 +154,23 @@ function MainSection({ program, refetch }: { program?: Program | null; refetch: 
             <h2 className="text-lg font-bold">{program?.name}</h2>
           </div>
           <div className="mb-1">
-            <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
-              <span className="inline-block mr-2">
-                {acceptedPrice} {program?.currency}
-                {acceptedPrice && ' / '}
-                {program?.price} {program?.currency}
-              </span>
-              <span className="h-3 border-l border-[#B331FF] inline-block" />
-              <span className="inline-block ml-2">
-                DEADLINE{' '}
-                {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
-              </span>
+            <p className="flex flex-col w-fit font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs py-1 px-2 rounded-[6px]">
+              <div className="mb-1">{changeNetwork(program?.network)}</div>
+              <div>
+                <span className="inline-block mr-2">
+                  {acceptedPrice} {program?.currency}
+                  {acceptedPrice && ' / '}
+                  {program?.price} {program?.currency}
+                </span>
+                <span className="h-3 border-l border-[#B331FF] inline-block" />
+                <span className="inline-block ml-2">
+                  DEADLINE{' '}
+                  {format(
+                    new Date(program?.deadline ?? new Date()),
+                    'dd . MMM . yyyy',
+                  ).toUpperCase()}
+                </span>
+              </div>
             </p>
           </div>
         </div>

@@ -37,3 +37,15 @@ export const getUserName = (user?: User | null) => {
 
 export const mainnetDefaultNetwork =
   import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet' ? 'educhain' : 'educhain-testnet';
+
+export const changeNetwork = (network?: string | null) => {
+  if (network === 'educhain-testnet') {
+    return 'EDUChain Testnet';
+  } else if (network === 'base') {
+    return 'Base';
+  } else if (network === 'base-sepolia') {
+    return 'Base Sepolia';
+  }
+
+  return 'EDUChain';
+};
