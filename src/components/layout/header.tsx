@@ -23,7 +23,7 @@ import {
 } from '../ui/dialog';
 
 function Header() {
-  const { user, authenticated, login: privyLogin, logout: privyLogout } = usePrivy();
+  const { user, authenticated, login: privyLogin, logout: privyLogout, exportWallet } = usePrivy();
   const { login: authLogin, logout: authLogout } = useAuth();
   const navigate = useNavigate();
   const { data: profileData } = useProfileQuery({
@@ -38,6 +38,7 @@ function Header() {
   const contract = useContract(network);
 
   const walletInfo = user?.wallet;
+  const injectedWallet = user?.wallet?.connectorType === 'injected';
 
   const login = async () => {
     try {
@@ -186,15 +187,21 @@ function Header() {
                     </div>
                     <div className="border border-[#E9E9E9] rounded-[10px] p-5">
                       <div className="mb-3 text-[16px] font-bold">Account</div>
-                      <div
-                        className="cursor-pointer hover:underline"
-                        onClick={() => {
-                          navigator.clipboard.writeText(walletInfo?.address || '');
-                          notify('Copied address!', 'success');
-                        }}
-                      >
-                        {reduceString(walletInfo?.address || '', 8, 8)}
-                      </div>
+                      {injectedWallet ? (
+                        <div
+                          className="cursor-pointer hover:underline"
+                          onClick={() => {
+                            navigator.clipboard.writeText(walletInfo?.address || '');
+                            notify('Copied address!', 'success');
+                          }}
+                        >
+                          {reduceString(walletInfo?.address || '', 8, 8)}
+                        </div>
+                      ) : (
+                        <Button className="h-10" onClick={exportWallet}>
+                          See Wallet Detail
+                        </Button>
+                      )}
                     </div>
                     <Button onClick={logout}>Logout</Button>
                   </DialogDescription>
