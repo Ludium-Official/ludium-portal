@@ -4,7 +4,7 @@ import thumbnail from '@/assets/thumbnail.jpg';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { changeNetwork } from '@/lib/utils';
+import { getCurrency } from '@/lib/utils';
 import { ApplicationStatus } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ArrowRight } from 'lucide-react';
@@ -133,7 +133,7 @@ function MainPage() {
                 </div>
                 <div className="mb-4">
                   <p className="flex flex-col w-fit font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs py-1 px-2 rounded-[6px]">
-                    <div className="mb-1">{changeNetwork(program.network)}</div>
+                    <div className="mb-1">{getCurrency(program.network)?.display}</div>
                     <div>
                       <span className="inline-block mr-2">
                         {program?.price} {program?.currency}

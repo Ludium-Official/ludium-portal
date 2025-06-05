@@ -24,7 +24,7 @@ import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
-import { changeNetwork, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
+import { getCurrency, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
 import EditMilestoneForm from '@/pages/programs/details/_components/edit-milestone-form';
 import RejectApplicationForm from '@/pages/programs/details/_components/reject-application-form';
@@ -150,7 +150,7 @@ function ApplicationDetails() {
         </Link>
         <div className="mb-4">
           <p className="flex flex-col w-fit font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs py-1 px-2 rounded-[6px]">
-            <div className="mb-1">{changeNetwork(program?.network)}</div>
+            <div className="mb-1">{getCurrency(program?.network)?.display}</div>
             <div>
               <span className="inline-block mr-2">
                 {data?.application?.milestones
