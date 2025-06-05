@@ -1,20 +1,21 @@
-import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
+import { useCheckMilestoneMutation } from '@/apollo/mutation/check-milestone.generated';
 import { Button } from '@/components/ui/button';
 import { DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { CheckMilestoneStatus } from '@/types/types.generated';
 import { useState } from 'react';
 
-function RejectApplicationForm({
+function RejectMilestoneForm({
   refetch,
-  applicationId,
-}: { refetch?: () => void; applicationId?: string | null }) {
+  milestoneId,
+}: { refetch?: () => void; milestoneId?: string | null }) {
   const [reason, setReason] = useState<string>();
 
-  const [rejectApplication] = useRejectApplicationMutation();
+  const [checkMilestone] = useCheckMilestoneMutation();
 
   return (
     <form>
-      <DialogTitle className="text-2xl font-semibold mb-6">Reject application</DialogTitle>
+      <DialogTitle className="text-2xl font-semibold mb-6">Reject milestone</DialogTitle>
 
       <DialogDescription className="hidden" />
 
@@ -29,10 +30,13 @@ function RejectApplicationForm({
           className="h-10 ml-auto"
           variant="outline"
           onClick={() =>
-            rejectApplication({
+            checkMilestone({
               variables: {
-                id: applicationId ?? '',
-                rejectionReason: reason,
+                input: {
+                  id: milestoneId ?? '',
+                  rejectionReason: reason,
+                  status: CheckMilestoneStatus.Pending,
+                },
               },
               onCompleted: () => {
                 refetch?.();
@@ -47,4 +51,4 @@ function RejectApplicationForm({
   );
 }
 
-export default RejectApplicationForm;
+export default RejectMilestoneForm;
