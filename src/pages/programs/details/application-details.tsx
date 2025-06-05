@@ -271,9 +271,6 @@ function ApplicationDetails() {
                   />
                 </DialogContent>
               </Dialog>
-              {/* <Button className="h-10" variant="outline" onClick={() => denyApplication()}>
-                Deny
-              </Button> */}
               <Button
                 className="h-10"
                 onClick={() => {
@@ -378,26 +375,6 @@ function ApplicationDetails() {
                           />
                         </DialogContent>
                       </Dialog>
-                      {/* <Button
-                        className="h-10"
-                        variant="outline"
-                        onClick={() => {
-                          checkMilestone({
-                            variables: {
-                              input: {
-                                id: m.id ?? '',
-                                status: CheckMilestoneStatus.Pending,
-                              },
-                            },
-                            onCompleted: () => {
-                              refetch();
-                              programRefetch();
-                            },
-                          });
-                        }}
-                      >
-                        Reject Milestone
-                      </Button> */}
                       <Button className="h-10" onClick={() => callTx(m.price, m.id)}>
                         Accept Milestone
                       </Button>
