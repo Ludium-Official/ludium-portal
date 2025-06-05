@@ -27,6 +27,7 @@ query application($id: ID!) {
     milestones {
       currency
       description
+      rejectionReason
       id
       price
       status

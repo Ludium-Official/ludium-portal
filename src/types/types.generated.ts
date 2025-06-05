@@ -43,6 +43,7 @@ export enum ApplicationStatus {
 
 export type CheckMilestoneInput = {
   id: Scalars['String']['input'];
+  rejectionReason?: InputMaybe<Scalars['String']['input']>;
   status: CheckMilestoneStatus;
 };
 
@@ -138,6 +139,7 @@ export type Milestone = {
   id?: Maybe<Scalars['ID']['output']>;
   links?: Maybe<Array<Link>>;
   price?: Maybe<Scalars['String']['output']>;
+  rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<MilestoneStatus>;
   title?: Maybe<Scalars['String']['output']>;
 };
