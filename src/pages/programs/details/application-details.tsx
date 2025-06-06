@@ -28,6 +28,7 @@ import { getCurrency, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
 import EditMilestoneForm from '@/pages/programs/details/_components/edit-milestone-form';
 import RejectApplicationForm from '@/pages/programs/details/_components/reject-application-form';
+import RejectMilestoneForm from '@/pages/programs/details/_components/reject-milestone-form';
 import SubmitMilestoneForm from '@/pages/programs/details/_components/submit-milestone-form';
 import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
@@ -278,9 +279,6 @@ function ApplicationDetails() {
                   />
                 </DialogContent>
               </Dialog>
-              {/* <Button className="h-10" variant="outline" onClick={() => denyApplication()}>
-                Deny
-              </Button> */}
               <Button
                 className="h-10"
                 onClick={() => {
@@ -356,28 +354,35 @@ function ApplicationDetails() {
                     </div>
                   )}
 
+                  {m.rejectionReason && m.status === MilestoneStatus.Pending && (
+                    <div className="mb-6">
+                      <h2 className="font-bold text-[#18181B] text-sm mb-3">REJECTION REASON</h2>
+                      <p className="text-red-400 text-xs">{m.rejectionReason}</p>
+                    </div>
+                  )}
+
                   {m.status === MilestoneStatus.Submitted && program?.validator?.id === userId && (
                     <div className="flex justify-between">
-                      <Button
-                        className="h-10"
-                        variant="outline"
-                        onClick={() => {
-                          checkMilestone({
-                            variables: {
-                              input: {
-                                id: m.id ?? '',
-                                status: CheckMilestoneStatus.Pending,
-                              },
-                            },
-                            onCompleted: () => {
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            onClick={(e) => e.stopPropagation()}
+                            className="h-10"
+                            variant="outline"
+                          >
+                            Reject Milestone
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
+                          <RejectMilestoneForm
+                            milestoneId={m.id}
+                            refetch={() => {
                               refetch();
                               programRefetch();
-                            },
-                          });
-                        }}
-                      >
-                        Reject Milestone
-                      </Button>
+                            }}
+                          />
+                        </DialogContent>
+                      </Dialog>
                       <Button className="h-10" onClick={() => callTx(m.price, m.id)}>
                         Accept Milestone
                       </Button>
