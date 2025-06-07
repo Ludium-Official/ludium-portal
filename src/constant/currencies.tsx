@@ -1,3 +1,4 @@
+import ArbitrumIcon from '@/assets/icons/crypto/arbitrum';
 import BaseIcon from '@/assets/icons/crypto/base';
 import EduIcon from '@/assets/icons/crypto/edu';
 
@@ -19,6 +20,18 @@ export const currencies = [
     code: 'base-sepolia',
     icon: <BaseIcon />,
     display: 'Base Sepolia',
+    isTestnet: true,
+  },
+  {
+    code: 'arbitrum',
+    icon: <ArbitrumIcon />,
+    display: 'Arbitrum',
+    isTestnet: false,
+  },
+  {
+    code: 'arbitrum-sepolia',
+    icon: <ArbitrumIcon />,
+    display: 'Arbitrum Sepolia',
     isTestnet: true,
   },
 ];

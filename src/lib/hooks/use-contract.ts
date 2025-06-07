@@ -2,7 +2,14 @@ import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import type { PublicClient } from 'viem';
 import { createPublicClient, http } from 'viem';
-import { base, baseSepolia, eduChain, eduChainTestnet } from 'viem/chains';
+import {
+  arbitrum,
+  arbitrumSepolia,
+  base,
+  baseSepolia,
+  eduChain,
+  eduChainTestnet,
+} from 'viem/chains';
 import ChainContract from '../contract';
 
 async function getSigner(checkNetwork: any) {
@@ -41,6 +48,10 @@ export function useContract(network: string) {
       return baseSepolia;
     } else if (network === 'educhain-testnet') {
       return eduChainTestnet;
+    } else if (network === 'arbitrum') {
+      return arbitrum;
+    } else if (network === 'arbitrum-sepolia') {
+      return arbitrumSepolia;
     }
 
     return eduChain;
@@ -57,6 +68,8 @@ export function useContract(network: string) {
   const checkContract = (() => {
     if (network === 'base' || network === 'base-sepolia') {
       return import.meta.env.VITE_BASE_CONTRACT_ADDRESS;
+    } else if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
+      return import.meta.env.VITE_ARBITRUM_CONTRACT_ADDRESS;
     }
 
     return import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS;

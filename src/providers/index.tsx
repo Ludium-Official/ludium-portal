@@ -3,7 +3,14 @@ import { AuthProvider } from '@/providers/auth-provider';
 import { ApolloProvider } from '@apollo/client';
 import { PrivyProvider } from '@privy-io/react-auth';
 import { BrowserRouter } from 'react-router';
-import { base, baseSepolia, eduChain, eduChainTestnet } from 'viem/chains';
+import {
+  arbitrum,
+  arbitrumSepolia,
+  base,
+  baseSepolia,
+  eduChain,
+  eduChainTestnet,
+} from 'viem/chains';
 
 function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -14,7 +21,14 @@ function Providers({ children }: { children: React.ReactNode }) {
             appId={import.meta.env.VITE_PRIVY_APP_ID}
             config={{
               defaultChain: baseSepolia,
-              supportedChains: [baseSepolia, base, eduChain, eduChainTestnet],
+              supportedChains: [
+                baseSepolia,
+                base,
+                eduChain,
+                eduChainTestnet,
+                arbitrum,
+                arbitrumSepolia,
+              ],
               embeddedWallets: {
                 createOnLogin: 'users-without-wallets',
               },

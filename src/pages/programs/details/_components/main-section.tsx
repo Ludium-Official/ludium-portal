@@ -79,7 +79,7 @@ function MainSection({
           price: program.price as string | undefined,
           deadline: program.deadline,
           validatorAddress: program?.validator as User | undefined,
-          token: targetToken,
+          token: targetToken ?? { name: program.currency as string },
           ownerAddress: program.validator?.walletAddress || '',
         });
 

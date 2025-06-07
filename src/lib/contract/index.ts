@@ -2,8 +2,10 @@ import contractJson from '@/lib/contract/contract.json';
 import { User } from '@/types/types.generated';
 import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
+import { formatUnits } from 'ethers/lib/utils';
 import type { PublicClient } from 'viem';
 import { encodeFunctionData } from 'viem';
+import { reduceString } from '../utils';
 
 const NATIVE_TOKEN = '0x0000000000000000000000000000000000000000';
 const ERC20_ABI = [
@@ -98,12 +100,17 @@ class ChainContract {
     return allowance as bigint;
   }
 
-  async approveToken(tokenAddress: string, amount: ethers.BigNumber, tokenName?: string) {
+  async approveToken(
+    tokenAddress: string,
+    amount: ethers.BigNumber,
+    token?: { name: string; address?: string; decimal?: number },
+  ) {
     const data = encodeFunctionData({
       abi: ERC20_ABI,
       functionName: 'approve',
       args: [this.contractAddress, amount],
     });
+    const price = token?.decimal ? Number(formatUnits(amount, token.decimal)) : amount;
 
     const tx = await this.sendTransaction(
       {
@@ -114,14 +121,14 @@ class ChainContract {
       {
         uiOptions: {
           showWalletUIs: true,
-          description: `Approve ${amount} ${tokenName} for use in the contract.`,
+          description: `Approve ${price} ${token?.name} for use in the contract.`,
           buttonText: 'Approve Token',
           transactionInfo: {
             title: 'Approve Token',
             action: 'Grant Permission',
           },
           successHeader: 'Token Approved Successfully!',
-          successDescription: `You have successfully approved ${amount} ${tokenName} for use in the contract.`,
+          successDescription: `You have successfully approved ${price} ${token?.name} for use in the contract.`,
         },
       },
     );
@@ -138,7 +145,7 @@ class ChainContract {
     price?: string;
     deadline: string;
     validatorAddress?: User;
-    token?: { name: string; address: string; decimal: number };
+    token?: { name: string; address?: string; decimal?: number };
     ownerAddress: string;
   }) {
     try {
@@ -153,7 +160,7 @@ class ChainContract {
         const priceInWei = BigInt(price.toString());
 
         if (allowance < priceInWei) {
-          await this.approveToken(useToken, price, program.token?.name);
+          await this.approveToken(useToken, price, program.token);
         }
       }
 
@@ -212,7 +219,7 @@ class ChainContract {
     programId: number,
     builderAddress: string,
     amount: string,
-    token?: { name: string; address: string; decimal: number },
+    token?: { name: string; address?: string; decimal?: number },
   ) {
     try {
       const isNative = token?.address === NATIVE_TOKEN;
@@ -235,13 +242,17 @@ class ChainContract {
         {
           uiOptions: {
             showWalletUIs: true,
-            description: `Accept milestone and send ${amount} ${token?.name} to ${builderAddress}.`,
+            description: `Accept milestone and send ${amount} ${
+              token?.name
+            } to ${reduceString(builderAddress || '', 6, 6)}.`,
             transactionInfo: {
               title: 'Accept Milestone',
               action: 'Accepted Milestone',
             },
             successHeader: 'Milestone Accepted Successfully!',
-            successDescription: `You have successfully accepted the milestone and sent ${amount} ${token?.name} to ${builderAddress}.`,
+            successDescription: `You have successfully accepted the milestone and sent ${amount} ${
+              token?.name
+            } to ${reduceString(builderAddress || '', 6, 6)}.`,
           },
         },
       );

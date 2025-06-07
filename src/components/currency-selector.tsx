@@ -23,6 +23,12 @@ export const baseCurrencies = [
   { code: 'USDC', icon: <UsdcIcon /> },
 ];
 
+export const arbitrumCurrencies = [
+  { code: 'ETH', icon: <EthIcon /> },
+  { code: 'USDT', icon: <UsdtIcon /> },
+  { code: 'USDC', icon: <UsdcIcon /> },
+];
+
 function CurrencySelector({
   className,
   value,
@@ -41,6 +47,8 @@ function CurrencySelector({
   const displayCurrencies = useMemo(() => {
     if (network === 'base' || network === 'base-sepolia') {
       return baseCurrencies;
+    } else if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
+      return arbitrumCurrencies;
     }
 
     return eduCurrencies;

@@ -93,7 +93,7 @@ function ApplicationDetails() {
           Number(program?.educhainProgramId),
           data?.application?.applicant?.walletAddress ?? '',
           price ?? '',
-          targetToken,
+          targetToken ?? { name: program.currency as string },
         );
 
         if (tx) {
