@@ -38,6 +38,7 @@ async function getSigner(checkNetwork: any) {
 
 export function useContract(network: string) {
   const { user, sendTransaction } = usePrivy();
+
   const injectedWallet = user?.wallet?.connectorType === 'injected';
   let sendTx = sendTransaction;
 

@@ -151,11 +151,12 @@ class ChainContract {
     try {
       const useToken = program.token?.address ?? NATIVE_TOKEN;
       const isNative = useToken === NATIVE_TOKEN;
+
       const price = isNative
         ? ethers.utils.parseEther(program.price || '0')
-        : ethers.utils.parseUnits(program.price || '0', program.token?.decimal);
+        : ethers.utils.parseUnits(program.price || '0', program.token?.decimal ?? 18);
 
-      if (useToken !== NATIVE_TOKEN) {
+      if (!isNative) {
         const allowance = await this.getAllowance(useToken, program.ownerAddress);
         const priceInWei = BigInt(price.toString());
 
@@ -164,15 +165,18 @@ class ChainContract {
         }
       }
 
+      const nowInSec = Math.floor(Date.now() / 1000);
+      const deadlineInSec = Math.floor(new Date(program.deadline).getTime() / 1000);
+
       const data = encodeFunctionData({
         abi: contractJson.abi,
         functionName: 'createEduProgram',
         args: [
-          program.name,
+          program.name ?? '',
           price,
-          Math.floor(Math.floor(Date.now()) / 1000),
-          Math.floor(Math.floor(new Date(program.deadline).getTime()) / 1000),
-          program.validatorAddress?.walletAddress,
+          nowInSec,
+          deadlineInSec,
+          program.validatorAddress?.walletAddress ?? ethers.constants.AddressZero,
           useToken,
         ],
       });
@@ -181,13 +185,15 @@ class ChainContract {
         {
           to: this.contractAddress,
           data,
-          value: useToken === NATIVE_TOKEN ? BigInt(price.toString()) : BigInt(0),
+          value: isNative ? BigInt(price.toString()) : BigInt(0),
           chainId: this.chainId,
         },
         {
           uiOptions: {
             showWalletUIs: true,
-            description: `To create a program, you need to accept ${program.price} ${program.token?.name} to the contract.`,
+            description: `To create a program, you need to accept ${
+              program.price
+            } ${program.token?.name ?? 'token'} to the contract.`,
             buttonText: 'Submit Transaction',
             transactionInfo: {
               title: 'Transaction Details',
