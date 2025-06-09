@@ -2,6 +2,7 @@ import client from '@/apollo/client';
 import { AuthProvider } from '@/providers/auth-provider';
 import { ApolloProvider } from '@apollo/client';
 import { PrivyProvider } from '@privy-io/react-auth';
+import { SmartWalletsProvider } from '@privy-io/react-auth/smart-wallets';
 import { BrowserRouter } from 'react-router';
 import {
   arbitrum,
@@ -36,9 +37,12 @@ function Providers({ children }: { children: React.ReactNode }) {
               externalWallets: {
                 walletConnect: { enabled: true },
               },
+              appearance: {
+                walletList: ['metamask', 'coinbase_wallet'],
+              },
             }}
           >
-            {children}
+            <SmartWalletsProvider>{children}</SmartWalletsProvider>
           </PrivyProvider>
         </AuthProvider>
       </BrowserRouter>

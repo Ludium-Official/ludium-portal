@@ -38,7 +38,7 @@ function Header() {
   const contract = useContract(network);
 
   const walletInfo = user?.wallet;
-  const injectedWallet = user?.wallet?.connectorType === 'injected';
+  const injectedWallet = user?.wallet?.connectorType !== 'embedded';
 
   const login = async () => {
     try {
