@@ -7,12 +7,17 @@ import type { Comment } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router';
 
 function PostComment({
   comment,
   postId,
   refetchComments,
-}: { comment: Comment; postId?: string; refetchComments: () => void }) {
+}: {
+  comment: Comment;
+  postId?: string;
+  refetchComments: () => void;
+}) {
   const { isLoggedIn } = useAuth();
 
   const [showReplies, setShowReplies] = useState(false);
@@ -68,7 +73,9 @@ function PostComment({
         <div className="flex-1">
           <div className="flex flex-col">
             <div className="flex items-center">
-              <span className="font-medium">{authorName}</span>
+              <span className="font-medium">
+                <Link to={`/users/${comment.author?.id}`}>{authorName}</Link>
+              </span>
               <span className="text-xs text-gray-500 ml-2">
                 {format(new Date(comment.createdAt), 'dd.MM.yyyy, h:mm a')}
               </span>
@@ -138,7 +145,9 @@ function PostComment({
                   <div className="flex-1">
                     <div className="flex flex-col">
                       <div className="flex items-center">
-                        <span className="font-medium">{getUserName(reply.author)}</span>
+                        <span className="font-medium">
+                          <Link to={`/users/${reply.author?.id}`}>{getUserName(reply.author)}</Link>
+                        </span>
                         <span className="text-xs text-gray-500 ml-2">
                           {format(new Date(reply.createdAt), 'dd.MM.yyyy, h:mm a')}
                         </span>

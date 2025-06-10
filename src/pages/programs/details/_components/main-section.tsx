@@ -17,7 +17,7 @@ import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
-import { changeNetwork, formatProgramStatus, mainnetDefaultNetwork } from '@/lib/utils';
+import { formatProgramStatus, getCurrency, mainnetDefaultNetwork } from '@/lib/utils';
 import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 import { ApplicationStatus, type Program, type User } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
@@ -79,7 +79,7 @@ function MainSection({
           price: program.price as string | undefined,
           deadline: program.deadline,
           validatorAddress: program?.validator as User | undefined,
-          token: targetToken,
+          token: targetToken ?? { name: program.currency as string },
           ownerAddress: program.validator?.walletAddress || '',
         });
 
@@ -155,7 +155,7 @@ function MainSection({
           </div>
           <div className="mb-1">
             <p className="flex flex-col w-fit font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs py-1 px-2 rounded-[6px]">
-              <div className="mb-1">{changeNetwork(program?.network)}</div>
+              <div className="mb-1">{getCurrency(program?.network)?.display}</div>
               <div>
                 <span className="inline-block mr-2">
                   {acceptedPrice} {program?.currency}

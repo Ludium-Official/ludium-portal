@@ -1,3 +1,4 @@
+import { currencies } from '@/constant/currencies';
 import type { Program, User } from '@/types/types.generated';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -38,14 +39,6 @@ export const getUserName = (user?: User | null) => {
 export const mainnetDefaultNetwork =
   import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet' ? 'educhain' : 'educhain-testnet';
 
-export const changeNetwork = (network?: string | null) => {
-  if (network === 'educhain-testnet') {
-    return 'EDUChain Testnet';
-  } else if (network === 'base') {
-    return 'Base';
-  } else if (network === 'base-sepolia') {
-    return 'Base Sepolia';
-  }
-
-  return 'EDUChain';
+export const getCurrency = (network?: string | null) => {
+  return currencies.find((c) => c.code === network);
 };

@@ -1,13 +1,21 @@
-import { usePrivy } from '@privy-io/react-auth';
+import { ConnectedWallet, usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
-import type { PublicClient } from 'viem';
+import type { Chain, PublicClient } from 'viem';
 import { createPublicClient, http } from 'viem';
-import { base, baseSepolia, eduChain, eduChainTestnet } from 'viem/chains';
+import {
+  arbitrum,
+  arbitrumSepolia,
+  base,
+  baseSepolia,
+  eduChain,
+  eduChainTestnet,
+} from 'viem/chains';
 import ChainContract from '../contract';
 
-async function getSigner(checkNetwork: any) {
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
-  const signer = provider.getSigner();
+async function getSigner(checkNetwork: Chain, currentWallet: ConnectedWallet) {
+  const eip1193Provider = await currentWallet.getEthereumProvider();
+
+  const provider = new ethers.providers.Web3Provider(eip1193Provider);
 
   const targetNetwork = {
     chainId: '0x' + checkNetwork.id.toString(16),
@@ -15,48 +23,58 @@ async function getSigner(checkNetwork: any) {
     rpcUrls: checkNetwork.rpcUrls.default.http,
     nativeCurrency: checkNetwork.nativeCurrency,
   };
-  const currentChainId = await window.ethereum.request({
+  const currentChainId = await eip1193Provider.request({
     method: 'eth_chainId',
   });
 
   if (currentChainId !== targetNetwork.chainId) {
-    await window.ethereum.request({
+    await eip1193Provider.request({
       method: 'wallet_addEthereumChain',
       params: [targetNetwork],
     });
   }
 
-  return signer;
+  return provider.getSigner();
 }
 
 export function useContract(network: string) {
   const { user, sendTransaction } = usePrivy();
-  const injectedWallet = user?.wallet?.connectorType === 'injected';
+
+  const { wallets } = useWallets();
+  const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
+
+  const injectedWallet = user?.wallet?.connectorType !== 'embedded';
   let sendTx = sendTransaction;
 
-  const checkNetwork = (() => {
+  const checkNetwork: Chain = (() => {
     if (network === 'base') {
       return base;
     } else if (network === 'base-sepolia') {
       return baseSepolia;
     } else if (network === 'educhain-testnet') {
       return eduChainTestnet;
+    } else if (network === 'arbitrum') {
+      return arbitrum;
+    } else if (network === 'arbitrum-sepolia') {
+      return arbitrumSepolia;
     }
 
     return eduChain;
   })();
 
-  if (injectedWallet) {
+  if (injectedWallet && currentWallet) {
     sendTx = async (input) => {
-      const signer = await getSigner(checkNetwork);
-      const transactionResponse = await signer.sendTransaction(input);
-      return { hash: transactionResponse.hash as `0x${string}` };
+      const signer = await getSigner(checkNetwork, currentWallet);
+      const txResponse = await signer.sendTransaction(input);
+      return { hash: txResponse.hash as `0x${string}` };
     };
   }
 
   const checkContract = (() => {
     if (network === 'base' || network === 'base-sepolia') {
       return import.meta.env.VITE_BASE_CONTRACT_ADDRESS;
+    } else if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
+      return import.meta.env.VITE_ARBITRUM_CONTRACT_ADDRESS;
     }
 
     return import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS;

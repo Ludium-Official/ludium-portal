@@ -23,6 +23,30 @@ export const tokenAddresses = {
       decimal: 6,
     },
   ],
+  arbitrum: [
+    {
+      name: 'USDT',
+      address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+      decimal: 6,
+    },
+    {
+      name: 'USDC',
+      address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+      decimal: 6,
+    },
+  ],
+  'arbitrum-sepolia': [
+    {
+      name: 'USDT',
+      address: '0xe5b6c29411b3ad31c3613bba0145293fc9957256',
+      decimal: 6,
+    },
+    {
+      name: 'USDC',
+      address: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d',
+      decimal: 6,
+    },
+  ],
   educhain: [
     {
       name: 'USDT',
