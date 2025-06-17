@@ -285,7 +285,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
 
       <label htmlFor="links" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Links</p>
-        <span className="block text-[#71717A] text-sm">
+        <span className="block text-gray-text text-sm">
           Add links to your website, blog, or social media profiles.
         </span>
 
@@ -337,7 +337,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       {isEdit ? (
         <div className="px-[32px] py-3 flex justify-end gap-4">
           <Button
-            className="bg-[#B331FF] hover:bg-[#B331FF]/90 min-w-[177px]"
+            className="bg-primary hover:bg-primary/90 min-w-[177px]"
             type="submit"
             onClick={() => {
               extraValidation();

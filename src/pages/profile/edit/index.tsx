@@ -289,7 +289,8 @@ function EditProfilePage() {
               <Button
                 onClick={login}
                 disabled={user !== null}
-                className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-9 w-[133px] absolute bottom-6 right-6 text-xs"
+                variant="purple"
+                className="h-9 w-[133px] absolute bottom-6 right-6 text-xs"
               >
                 Connect wallet <Wallet />
               </Button>

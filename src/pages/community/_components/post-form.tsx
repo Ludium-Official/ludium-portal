@@ -173,7 +173,8 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
       {isEdit ? (
         <div className="px-[32px] py-3 flex justify-end gap-4">
           <Button
-            className="bg-[#B331FF] hover:bg-[#B331FF]/90 min-w-[177px]"
+            variant="purple"
+            className="min-w-[177px]"
             type="submit"
             onClick={() => {
               extraValidation();

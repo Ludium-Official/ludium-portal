@@ -7,7 +7,7 @@ import { Link } from 'react-router';
 
 function Footer() {
   return (
-    <footer className="border-t min-h-[310px] py-[64px] px-[60px] text-[#A4A4A4]">
+    <footer className="border-t min-h-[310px] py-[64px] px-[60px] text-gray-text">
       <div className="flex justify-between items-start">
         <div className="flex items-start gap-[252px]">
           <Link to="/">

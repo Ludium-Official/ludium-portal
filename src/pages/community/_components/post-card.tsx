@@ -45,7 +45,7 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
 
   if (variant === 'large') {
     return (
-      <div className="block w-full h-full border border-[#E9E9E9] rounded-[20px] overflow-hidden p-6">
+      <div className="block w-full h-full border border-gray-border rounded-[20px] overflow-hidden p-6">
         <div className="relative h-full flex flex-col">
           <div className="w-full aspect-video bg-gradient-to-r from-purple-300 to-blue-300 flex-shrink-0 rounded-lg overflow-hidden">
             {post?.image ? (
@@ -81,9 +81,9 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
                       key={k.id}
                       variant={
                         badgeVariants[i % badgeVariants.length] as
-                          | 'default'
-                          | 'secondary'
-                          | 'purple'
+                        | 'default'
+                        | 'secondary'
+                        | 'purple'
                       }
                       className="rounded-full px-2 py-0.5 text-xs"
                     >
@@ -155,7 +155,7 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
 
   // Default small card
   return (
-    <div className="block w-full h-full border border-[#E9E9E9] rounded-[20px] overflow-hidden p-6">
+    <div className="block w-full h-full border border-gray-border rounded-[20px] overflow-hidden p-6">
       <div className="relative h-full flex flex-col">
         <div className="flex gap-4 mb-5">
           <div className="aspect-video w-1/2 bg-gradient-to-r from-purple-300 to-blue-300 flex-shrink-0 rounded-lg overflow-hidden">

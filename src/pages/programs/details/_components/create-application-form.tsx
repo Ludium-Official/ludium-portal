@@ -125,7 +125,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
 
       <label htmlFor="links" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Links</p>
-        <span className="block text-[#71717A] text-sm">
+        <span className="block text-gray-text text-sm">
           Add links to your website, blog, or social media profiles.
         </span>
 
@@ -266,7 +266,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       <Button
         disabled={loading || !milestoneValid || !name || !content || !summary}
         type="button"
-        className="bg-[#861CC4] h-10 ml-auto block hover:bg-[#861CC4]/90 min-w-[161px]"
+        className="bg-primary hover:bg-primary/90 h-10 ml-auto block min-w-[161px]"
         onClick={onSubmit}
       >
         {loading ? <LoaderCircle className="animate-spin mx-auto" /> : 'SUBMIT APPLICATION'}

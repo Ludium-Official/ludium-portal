@@ -113,9 +113,9 @@ function MainPage() {
                         key={k.id}
                         variant={
                           badgeVariants[i % badgeVariants.length] as
-                            | 'default'
-                            | 'secondary'
-                            | 'purple'
+                          | 'default'
+                          | 'secondary'
+                          | 'purple'
                         }
                       >
                         {k.name}
@@ -132,13 +132,13 @@ function MainPage() {
                   <div className="text-lg font-bold truncate max-w-[310px]">{program?.name}</div>
                 </div>
                 <div className="mb-4">
-                  <p className="flex flex-col w-fit font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs py-1 px-2 rounded-[6px]">
+                  <p className="flex flex-col w-fit font-sans font-bold bg-primary-light text-primary leading-4 text-xs py-1 px-2 rounded-[6px]">
                     <div className="mb-1">{getCurrency(program.network)?.display}</div>
                     <div>
                       <span className="inline-block mr-2">
                         {program?.price} {program?.currency}
                       </span>
-                      <span className="h-3 border-l border-[#B331FF] inline-block" />
+                      <span className="h-3 border-l border-primary inline-block" />
                       <span className="inline-block ml-2">
                         DEADLINE{' '}
                         {format(
@@ -153,13 +153,13 @@ function MainPage() {
                 <p className="text-sm line-clamp-2 mb-6">{program?.summary}</p>
 
                 <div className="flex items-center space-x-3 mb-2">
-                  <div className="text-xs font-semibold bg-[#F4F4F5] rounded-full px-2.5 py-0.5 leading-4">
+                  <div className="text-xs font-semibold bg-gray-light rounded-full px-2.5 py-0.5 leading-4">
                     Submitted Application{' '}
-                    <span className="text-[#B331FF]">{program.applications?.length ?? 0}</span>
+                    <span className="text-primary">{program.applications?.length ?? 0}</span>
                   </div>
-                  <div className="text-xs font-semibold bg-[#18181B] text-white rounded-full px-2.5 py-0.5">
+                  <div className="text-xs font-semibold bg-gray-dark text-white rounded-full px-2.5 py-0.5">
                     Approved Application{' '}
-                    <span className="text-[#FDE047]">
+                    <span className="text-yellow-warning">
                       {program.applications?.filter((a) => a.status === ApplicationStatus.Accepted)
                         .length ?? 0}
                     </span>

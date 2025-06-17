@@ -58,7 +58,7 @@ function SubmitMilestoneForm({
 
       <label htmlFor="links" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Links</p>
-        <span className="block text-[#71717A] text-sm">
+        <span className="block text-gray-text text-sm">
           Add links to your website, blog, or social media profiles.
         </span>
 
@@ -108,7 +108,7 @@ function SubmitMilestoneForm({
       </label>
 
       <Button
-        className="bg-[#B331FF] hover:bg-[#B331FF]/90 max-w-[165px] w-full ml-auto h-10"
+        className="bg-primary hover:bg-primary/90 max-w-[165px] w-full ml-auto h-10"
         onClick={() => {
           submitMilestone(milestone?.id ?? '');
         }}

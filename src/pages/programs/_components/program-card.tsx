@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import {} from '@/components/ui/dialog';
+import { } from '@/components/ui/dialog';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { formatProgramStatus, getCurrency } from '@/lib/utils';
 import { ApplicationStatus, type Program } from '@/types/types.generated';
@@ -13,7 +13,7 @@ function ProgramCard({ program }: { program: Program }) {
   const badgeVariants = ['teal', 'orange', 'pink'];
 
   return (
-    <div className="block w-full border border-[#E9E9E9] rounded-[20px] px-10 pt-8 pb-6">
+    <div className="block w-full border border-gray-border rounded-[20px] px-10 pt-8 pb-6">
       <div className="flex justify-between mb-5">
         <div className="flex gap-2 mb-1">
           {keywords?.slice(0, 3)?.map((k, i) => (
@@ -46,13 +46,13 @@ function ProgramCard({ program }: { program: Program }) {
         <h2 className="text-lg font-bold">{name}</h2>
       </Link>
       <div className="mb-4">
-        <p className="flex flex-col w-fit font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs py-1 px-2 rounded-[6px]">
+        <p className="flex flex-col w-fit font-sans font-bold bg-primary-light text-primary leading-4 text-xs py-1 px-2 rounded-[6px]">
           <div className="mb-1">{getCurrency(program?.network)?.display}</div>
           <div>
             <span className="inline-block mr-2">
               {program?.price} {program?.currency}
             </span>
-            <span className="h-3 border-l border-[#B331FF] inline-block" />
+            <span className="h-3 border-l border-primary inline-block" />
             <span className="inline-block ml-2">
               DEADLINE{' '}
               {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
@@ -69,17 +69,17 @@ function ProgramCard({ program }: { program: Program }) {
         <div className="space-x-3">
           <Link
             to={`/programs/${id}#applications`}
-            className="text-xs font-semibold bg-[#F4F4F5] rounded-full px-2.5 py-0.5 leading-4"
+            className="text-xs font-semibold bg-gray-light rounded-full px-2.5 py-0.5 leading-4"
           >
             Submitted Application{' '}
-            <span className="text-[#B331FF]">{program.applications?.length ?? 0}</span>
+            <span className="text-primary">{program.applications?.length ?? 0}</span>
           </Link>
           <Link
             to={`/programs/${id}#applications`}
-            className="text-xs font-semibold bg-[#18181B] text-white rounded-full px-2.5 py-0.5"
+            className="text-xs font-semibold bg-gray-dark text-white rounded-full px-2.5 py-0.5"
           >
             Approved Application{' '}
-            <span className="text-[#FDE047]">
+            <span className="text-yellow-warning">
               {program.applications?.filter((a) => a.status === ApplicationStatus.Accepted)
                 .length ?? 0}
             </span>

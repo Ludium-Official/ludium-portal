@@ -43,11 +43,11 @@ function UsersPage() {
           },
           ...(selectedTab === 'by-projects'
             ? [
-                {
-                  field: 'byNumberOfProjects',
-                  value: 'asc',
-                },
-              ]
+              {
+                field: 'byNumberOfProjects',
+                value: 'asc',
+              },
+            ]
             : []),
         ],
       },
@@ -58,7 +58,7 @@ function UsersPage() {
     <div className="pb-10">
       <div className="bg-white p-4">
         <div className="flex justify-between items-center mb-9">
-          <h3 className="text-[#18181B] font-bold text-xl">Users</h3>
+          <h3 className="text-gray-dark font-bold text-xl">Users</h3>
         </div>
 
         <div className="flex justify-between items-center mb-6">
@@ -91,7 +91,7 @@ function UsersPage() {
               <div className="flex items-center justify-between mb-2">
                 <div className="flex gap-2">
                   <Badge className="bg-red-500 px-2.5 py-0.5">BD</Badge>
-                  <Badge className="bg-[#B331FF] px-2.5 py-0.5">Developer</Badge>
+                  <Badge className="bg-primary px-2.5 py-0.5">Developer</Badge>
                   <Badge className="bg-pink-300 px-2.5 py-0.5">Solidity</Badge>
                 </div>
 
