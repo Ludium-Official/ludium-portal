@@ -1,0 +1,70 @@
+.no-padding {
+  padding: 0 !important;
+}
+
+.prose {
+  color: #18181b;
+  font-family: Inter, sans-serif;
+  margin-bottom: 30px;
+  letter-spacing: -0.4px;
+  h1 {
+    font-size: 36px;
+    line-height: 40px;
+    font-weight: 800;
+  }
+  h2 {
+    margin-top: 30px;
+    font-size: 30px;
+    line-height: 36px;
+    font-weight: 600;
+  }
+  h3 {
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+  }
+  h4 {
+    font-size: 20px;
+    line-height: 28px;
+    font-weight: 600;
+  }
+  p {
+    font-size: 16px;
+    line-height: 20px;
+    font-weight: 400;
+  }
+  blockquote {
+    font-weight: 400;
+    line-height: 24px;
+    border-inline-start-width: 2px;
+    padding-inline-start: 24px;
+  }
+  th:hover,
+  td:hover {
+    background-color: #f4f4f5;
+  }
+  th,
+  td {
+    padding: 8px 16px !important;
+  }
+  th p {
+    font-weight: 700;
+  }
+  ul {
+    margin-left: 16px;
+  }
+  li::marker {
+    color: #18181b;
+  }
+
+  code::after {
+    content: "";
+  }
+  code::before {
+    content: "";
+  }
+
+  button[title="Delete code block"]:disabled {
+    display: none;
+  }
+}
