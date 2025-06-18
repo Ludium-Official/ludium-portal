@@ -3,7 +3,7 @@ import { useCheckMilestoneMutation } from '@/apollo/mutation/check-milestone.gen
 // import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
 import { useApplicationQuery } from '@/apollo/queries/application.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
-import MarkdownPreviewer from '@/components/markdown-previewer';
+import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import {
   Accordion,
   AccordionContent,

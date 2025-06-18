@@ -2,7 +2,7 @@ import client from '@/apollo/client';
 import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
 import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
 import { ProgramDocument } from '@/apollo/queries/program.generated';
-import MarkdownPreviewer from '@/components/markdown-previewer';
+import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {

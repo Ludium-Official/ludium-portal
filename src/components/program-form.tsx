@@ -2,7 +2,7 @@ import { useKeywordsQuery } from '@/apollo/queries/keywords.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
 import CurrencySelector from '@/components/currency-selector';
-import MarkdownEditor from '@/components/markdown-editor';
+import { MarkdownEditor } from '@/components/markdown';
 import NetworkSelector from '@/components/network-selector';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';

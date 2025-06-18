@@ -1,3 +1,4 @@
+import { YouTubeButton, YoutubeDescriptor } from '@/components/markdown/youtube';
 import {
   AdmonitionDirectiveDescriptor,
   BlockTypeSelect,
@@ -134,7 +135,7 @@ function MarkdownEditor({
         thematicBreakPlugin(),
         frontmatterPlugin(),
         directivesPlugin({
-          directiveDescriptors: [AdmonitionDirectiveDescriptor],
+          directiveDescriptors: [AdmonitionDirectiveDescriptor, YoutubeDescriptor],
         }),
         diffSourcePlugin({ viewMode: 'rich-text', diffMarkdown: prevVal }),
         codeBlockPlugin({ defaultCodeBlockLanguage: 'js' }),
@@ -166,6 +167,7 @@ function MarkdownEditor({
                 <CreateLink />
                 <InsertTable />
                 <ListsToggle />
+                <YouTubeButton />
               </DiffSourceToggleWrapper>
             </>
           ),

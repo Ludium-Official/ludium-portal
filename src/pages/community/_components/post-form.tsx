@@ -1,6 +1,6 @@
 import { useKeywordsQuery } from '@/apollo/queries/keywords.generated';
 import { usePostQuery } from '@/apollo/queries/post.generated';
-import MarkdownEditor from '@/components/markdown-editor';
+import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';

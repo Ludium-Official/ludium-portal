@@ -1,5 +1,5 @@
 import { useUpdateApplicationMutation } from '@/apollo/mutation/update-application.generated';
-import MarkdownEditor from '@/components/markdown-editor';
+import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';

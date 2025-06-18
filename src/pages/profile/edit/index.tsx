@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 
 import { useUpdateProfileMutation } from '@/apollo/mutation/updateProfile.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
-import MarkdownEditor from '@/components/markdown-editor';
+import { MarkdownEditor } from '@/components/markdown';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import { usePrivy } from '@privy-io/react-auth';

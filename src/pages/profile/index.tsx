@@ -1,7 +1,7 @@
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
-import MarkdownPreviewer from '@/components/markdown-previewer';
+import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';

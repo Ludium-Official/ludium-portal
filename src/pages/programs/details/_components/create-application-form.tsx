@@ -3,7 +3,7 @@ import { useCreateApplicationMutation } from '@/apollo/mutation/create-applicati
 // import { useCreateMilestonesMutation } from '@/apollo/mutation/create-milestones.generated';
 import { ProgramDocument } from '@/apollo/queries/program.generated';
 import { eduCurrencies } from '@/components/currency-selector';
-import MarkdownEditor from '@/components/markdown-editor';
+import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
