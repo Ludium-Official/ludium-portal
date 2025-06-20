@@ -67,4 +67,15 @@
   button[title="Delete code block"]:disabled {
     display: none;
   }
+
+  /* To hide language selector */
+  /* span[data-state="closed"]:has(button:disabled) {
+    display: none;
+  } */
+
+  span[data-state="closed"]:has(button:disabled) span:has(svg),
+  span[data-state="delayed-open"]:has(button:disabled) span:has(svg),
+  span[data-state="instant-open"]:has(button:disabled) span:has(svg) {
+    display: none;
+  }
 }

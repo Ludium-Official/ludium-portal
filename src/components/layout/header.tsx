@@ -135,7 +135,7 @@ function Header() {
   }, [authenticated, walletInfo, network]);
 
   return (
-    <header className="flex justify-between items-center px-10 py-[14px] border-b">
+    <header className="bg-white flex justify-between items-center px-10 py-[14px] backdrop-blur-2xl">
       <div />
 
       <div className="flex gap-2">
@@ -148,7 +148,7 @@ function Header() {
           )}
           {authenticated && (
             <Dialog>
-              <DialogTrigger>
+              <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/90 h-fit">
                   {profileData?.profile?.firstName && profileData?.profile?.lastName
                     ? `${profileData.profile.firstName} ${profileData.profile.lastName}`
@@ -188,6 +188,7 @@ function Header() {
                     <div className="border border-gray-border rounded-[10px] p-5">
                       <div className="mb-3 text-[16px] font-bold">Account</div>
                       {injectedWallet ? (
+                        // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
                         <div
                           className="cursor-pointer hover:underline"
                           onClick={() => {

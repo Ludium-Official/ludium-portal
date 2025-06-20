@@ -48,7 +48,7 @@ const multiSelectVariants = cva(
  */
 interface MultiSelectProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof multiSelectVariants> {
+  VariantProps<typeof multiSelectVariants> {
   /**
    * An array of option objects to be displayed in the multi-select component.
    * Each option object has a label, value, and an optional icon.
@@ -180,7 +180,7 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
             {...props}
             onClick={handleTogglePopover}
             className={cn(
-              'flex w-full p-1 rounded-md border min-h-10 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto',
+              'flex w-full p-1 rounded-md border min-h-10 h-auto items-center justify-between bg-white hover:bg-inherit [&_svg]:pointer-events-auto',
               className,
             )}
           >
@@ -246,9 +246,9 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                 <CommandItem key="all" onSelect={toggleAll} className="cursor-pointer">
                   <div
                     className={cn(
-                      'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+                      'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
                       selectedValues.length === options.length
-                        ? 'bg-primary text-primary-foreground'
+                        ? 'bg-gray-dark text-primary-foreground'
                         : 'opacity-50 [&_svg]:invisible',
                     )}
                   >
@@ -266,9 +266,9 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                     >
                       <div
                         className={cn(
-                          'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+                          'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
                           isSelected
-                            ? 'bg-primary text-primary-foreground'
+                            ? 'bg-gray-dark text-primary-foreground'
                             : 'opacity-50 [&_svg]:invisible',
                         )}
                       >

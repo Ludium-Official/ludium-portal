@@ -24,7 +24,7 @@ function Notifications() {
   return (
     <div>
       <Popover open={openNotifications} onOpenChange={setOpenNotifications}>
-        <PopoverTrigger>
+        <PopoverTrigger asChild>
           <Button variant="ghost" className="h-10 relative">
             <Bell />
             {!!countData?.countNotifications && (

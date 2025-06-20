@@ -40,19 +40,19 @@ const ProgramsPage: React.FC = () => {
   const filter = [
     ...(selectedTab === 'my-programs'
       ? [
-          {
-            field: 'userId',
-            value: userId,
-          },
-        ]
+        {
+          field: 'userId',
+          value: userId,
+        },
+      ]
       : []),
     ...(selectedTab === 'published'
       ? [
-          {
-            field: 'status',
-            value: 'published',
-          },
-        ]
+        {
+          field: 'status',
+          value: 'published',
+        },
+      ]
       : []),
     {
       field: 'name',
@@ -117,7 +117,7 @@ const ProgramsPage: React.FC = () => {
         </div>
       </section>
 
-      <section className="w-full space-y-4 mb-5">
+      <section className="w-full space-y-4 mb-5 grid grid-cols-2 gap-5">
         {data?.programs?.data?.map((program) => (
           <ProgramCard key={program.id} program={program} />
         ))}
