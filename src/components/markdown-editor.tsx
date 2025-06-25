@@ -61,7 +61,10 @@ const simpleSandpackConfig: SandpackConfig = {
 export async function expressImageUploadHandler(image: File) {
   const formData = new FormData();
   formData.append('image', image);
-  const response = await fetch('/uploads/new', { method: 'POST', body: formData });
+  const response = await fetch('/uploads/new', {
+    method: 'POST',
+    body: formData,
+  });
   const json = (await response.json()) as { url: string };
   return json.url;
 }
@@ -79,7 +82,10 @@ const debounce = (fn: (value: string) => void, delay: number) => {
 function MarkdownEditor({
   onChange,
   content,
-}: { onChange: React.Dispatch<React.SetStateAction<string>>; content: string }) {
+}: {
+  onChange: React.Dispatch<React.SetStateAction<string>>;
+  content: string;
+}) {
   const mdxRef = useRef<MDXEditorMethods>(null);
   const [prevVal, setPrevVal] = useState<string>('');
 
@@ -107,7 +113,7 @@ function MarkdownEditor({
     <MDXEditor
       ref={mdxRef}
       markdown={content}
-      className="border rounded-md shadow-md"
+      className="overflow-auto max-h-[500px] border rounded-md shadow-md"
       contentEditableClassName="prose min-h-[300px] cursor-text"
       onChange={(value) => debouncedOnChange(value)}
       plugins={[
@@ -127,7 +133,9 @@ function MarkdownEditor({
         tablePlugin(),
         thematicBreakPlugin(),
         frontmatterPlugin(),
-        directivesPlugin({ directiveDescriptors: [AdmonitionDirectiveDescriptor] }),
+        directivesPlugin({
+          directiveDescriptors: [AdmonitionDirectiveDescriptor],
+        }),
         diffSourcePlugin({ viewMode: 'rich-text', diffMarkdown: prevVal }),
         codeBlockPlugin({ defaultCodeBlockLanguage: 'js' }),
         codeMirrorPlugin({

@@ -2,8 +2,10 @@ import contractJson from '@/lib/contract/contract.json';
 import { User } from '@/types/types.generated';
 import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
+import { formatUnits } from 'ethers/lib/utils';
 import type { PublicClient } from 'viem';
 import { encodeFunctionData } from 'viem';
+import { reduceString } from '../utils';
 
 const NATIVE_TOKEN = '0x0000000000000000000000000000000000000000';
 const ERC20_ABI = [
@@ -98,12 +100,17 @@ class ChainContract {
     return allowance as bigint;
   }
 
-  async approveToken(tokenAddress: string, amount: ethers.BigNumber, tokenName?: string) {
+  async approveToken(
+    tokenAddress: string,
+    amount: ethers.BigNumber,
+    token?: { name: string; address?: string; decimal?: number },
+  ) {
     const data = encodeFunctionData({
       abi: ERC20_ABI,
       functionName: 'approve',
       args: [this.contractAddress, amount],
     });
+    const price = token?.decimal ? Number(formatUnits(amount, token.decimal)) : amount;
 
     const tx = await this.sendTransaction(
       {
@@ -114,14 +121,14 @@ class ChainContract {
       {
         uiOptions: {
           showWalletUIs: true,
-          description: `Approve ${amount} ${tokenName} for use in the contract.`,
+          description: `Approve ${price} ${token?.name} for use in the contract.`,
           buttonText: 'Approve Token',
           transactionInfo: {
             title: 'Approve Token',
             action: 'Grant Permission',
           },
           successHeader: 'Token Approved Successfully!',
-          successDescription: `You have successfully approved ${amount} ${tokenName} for use in the contract.`,
+          successDescription: `You have successfully approved ${price} ${token?.name} for use in the contract.`,
         },
       },
     );
@@ -138,34 +145,38 @@ class ChainContract {
     price?: string;
     deadline: string;
     validatorAddress?: User;
-    token?: { name: string; address: string; decimal: number };
+    token?: { name: string; address?: string; decimal?: number };
     ownerAddress: string;
   }) {
     try {
       const useToken = program.token?.address ?? NATIVE_TOKEN;
       const isNative = useToken === NATIVE_TOKEN;
+
       const price = isNative
         ? ethers.utils.parseEther(program.price || '0')
-        : ethers.utils.parseUnits(program.price || '0', program.token?.decimal);
+        : ethers.utils.parseUnits(program.price || '0', program.token?.decimal ?? 18);
 
-      if (useToken !== NATIVE_TOKEN) {
+      if (!isNative) {
         const allowance = await this.getAllowance(useToken, program.ownerAddress);
         const priceInWei = BigInt(price.toString());
 
         if (allowance < priceInWei) {
-          await this.approveToken(useToken, price, program.token?.name);
+          await this.approveToken(useToken, price, program.token);
         }
       }
+
+      const nowInSec = Math.floor(Date.now() / 1000);
+      const deadlineInSec = Math.floor(new Date(program.deadline).getTime() / 1000);
 
       const data = encodeFunctionData({
         abi: contractJson.abi,
         functionName: 'createEduProgram',
         args: [
-          program.name,
+          program.name ?? '',
           price,
-          Math.floor(Math.floor(Date.now()) / 1000),
-          Math.floor(Math.floor(new Date(program.deadline).getTime()) / 1000),
-          program.validatorAddress?.walletAddress,
+          nowInSec,
+          deadlineInSec,
+          program.validatorAddress?.walletAddress ?? ethers.constants.AddressZero,
           useToken,
         ],
       });
@@ -174,13 +185,15 @@ class ChainContract {
         {
           to: this.contractAddress,
           data,
-          value: useToken === NATIVE_TOKEN ? BigInt(price.toString()) : BigInt(0),
+          value: isNative ? BigInt(price.toString()) : BigInt(0),
           chainId: this.chainId,
         },
         {
           uiOptions: {
             showWalletUIs: true,
-            description: `To create a program, you need to accept ${program.price} ${program.token?.name} to the contract.`,
+            description: `To create a program, you need to accept ${
+              program.price
+            } ${program.token?.name ?? 'token'} to the contract.`,
             buttonText: 'Submit Transaction',
             transactionInfo: {
               title: 'Transaction Details',
@@ -212,7 +225,7 @@ class ChainContract {
     programId: number,
     builderAddress: string,
     amount: string,
-    token?: { name: string; address: string; decimal: number },
+    token?: { name: string; address?: string; decimal?: number },
   ) {
     try {
       const isNative = token?.address === NATIVE_TOKEN;
@@ -235,13 +248,17 @@ class ChainContract {
         {
           uiOptions: {
             showWalletUIs: true,
-            description: `Accept milestone and send ${amount} ${token?.name} to ${builderAddress}.`,
+            description: `Accept milestone and send ${amount} ${
+              token?.name
+            } to ${reduceString(builderAddress || '', 6, 6)}.`,
             transactionInfo: {
               title: 'Accept Milestone',
               action: 'Accepted Milestone',
             },
             successHeader: 'Milestone Accepted Successfully!',
-            successDescription: `You have successfully accepted the milestone and sent ${amount} ${token?.name} to ${builderAddress}.`,
+            successDescription: `You have successfully accepted the milestone and sent ${amount} ${
+              token?.name
+            } to ${reduceString(builderAddress || '', 6, 6)}.`,
           },
         },
       );
