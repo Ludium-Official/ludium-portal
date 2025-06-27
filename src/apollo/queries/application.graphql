@@ -31,6 +31,7 @@ query application($id: ID!) {
       id
       price
       status
+      file
       title
       links {
         title

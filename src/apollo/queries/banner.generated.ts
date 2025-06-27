@@ -6,7 +6,7 @@ const defaultOptions = {} as const;
 export type BannerQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type BannerQuery = { __typename?: 'Query', banner?: { __typename?: 'Post', content?: string | null, summary?: string | null, createdAt?: any | null, id?: string | null, image?: string | null, title?: string | null, author?: { __typename?: 'User', about?: string | null, avatar?: any | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, isAdmin?: boolean | null, lastName?: string | null, loginType?: string | null, organizationName?: string | null, walletAddress?: string | null } | null, keywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null } | null };
+export type BannerQuery = { __typename?: 'Query', banner?: { __typename?: 'Post', content?: string | null, summary?: string | null, createdAt?: any | null, id?: string | null, image?: string | null, title?: string | null, author?: { __typename?: 'User', about?: string | null, avatar?: any | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, role?: Types.UserRole | null, lastName?: string | null, loginType?: string | null, organizationName?: string | null, walletAddress?: string | null } | null, keywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null } | null };
 
 
 export const BannerDocument = gql`
@@ -19,7 +19,7 @@ export const BannerDocument = gql`
       firstName
       id
       image
-      isAdmin
+      role
       lastName
       loginType
       organizationName

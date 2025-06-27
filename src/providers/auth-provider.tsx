@@ -1,5 +1,6 @@
 import { useLoginMutation } from '@/apollo/mutation/login.generated';
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
+import { UserRole } from '@/types/types.generated';
 import { createContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -34,8 +35,8 @@ export const AuthContext = createContext<AuthValues>({
   isLoggedIn: false,
   isAuthed: false,
   isAdmin: false,
-  login: async () => {},
-  logout: async () => {},
+  login: async () => { },
+  logout: async () => { },
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -54,7 +55,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     setUserId(profileData?.profile?.id ?? '');
-    setIsAdmin(profileData?.profile?.isAdmin);
+    setIsAdmin(profileData?.profile?.role === UserRole.Admin || profileData?.profile?.role === UserRole.Superadmin);
   }, [profileData]);
 
   useEffect(() => {

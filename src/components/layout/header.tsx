@@ -135,7 +135,7 @@ function Header() {
   }, [authenticated, walletInfo, network]);
 
   return (
-    <header className="bg-white flex justify-between items-center px-10 py-[14px] backdrop-blur-2xl">
+    <header className="bg-white rounded-t-2xl flex justify-between items-center px-10 py-[14px] backdrop-blur-2xl">
       <div />
 
       <div className="flex gap-2">

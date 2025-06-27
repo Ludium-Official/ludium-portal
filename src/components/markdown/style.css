@@ -79,3 +79,7 @@
     display: none;
   }
 }
+
+.mdxeditor-popup-container:has(div[role="dialog"]) {
+  z-index: 60 !important;
+}

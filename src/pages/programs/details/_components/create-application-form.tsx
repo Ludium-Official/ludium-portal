@@ -120,7 +120,9 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       <label htmlFor="description" className="w-full mb-6 block">
         <p className="text-sm font-medium mb-2">Description</p>
 
+        {/* <div className='max-w-[500px]'> */}
         <MarkdownEditor onChange={setContent} content={content} />
+        {/* </div> */}
       </label>
 
       <label htmlFor="links" className="space-y-2 block mb-10">

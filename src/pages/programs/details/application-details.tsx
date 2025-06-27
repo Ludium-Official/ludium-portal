@@ -41,7 +41,7 @@ function ApplicationDetails() {
   const [mountKey, setMountKey] = useState(0);
   const remountKey = () => setMountKey((v) => v + 1);
 
-  const { userId } = useAuth();
+  const { userId, isAdmin } = useAuth();
   const { id, applicationId } = useParams();
 
   const { data, refetch } = useApplicationQuery({
@@ -339,7 +339,7 @@ function ApplicationDetails() {
                   </div>
 
                   {!!m.links?.length && (
-                    <div className="mb-10">
+                    <div className="mb-6">
                       <h2 className="font-bold text-gray-dark text-sm mb-3">LINKS</h2>
                       {m.links?.map((l) => (
                         <a
@@ -352,6 +352,14 @@ function ApplicationDetails() {
                           {l?.url}
                         </a>
                       ))}
+                    </div>
+                  )}
+
+                  {(program?.creator?.id === userId || program?.validator?.id === userId || isAdmin || data?.application?.applicant?.id === userId) && m.file && (
+                    <div className='mb-6'>
+
+                      <h2 className="font-bold text-gray-dark text-sm mb-3">UPLOAD</h2>
+                      <a href={m.file ?? ''} download className='underline text-slate-600' target='_blank' rel="noreferrer">Click to see upload</a>
                     </div>
                   )}
 

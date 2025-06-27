@@ -5,7 +5,8 @@ query profile {
     email
     firstName
     id
-    isAdmin
+    # isAdmin
+    role
     image
     lastName
     links {

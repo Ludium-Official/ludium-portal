@@ -227,7 +227,7 @@ function MainSection({
                   Send an application
                 </Button>
               </DialogTrigger>
-              <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
+              <DialogContent className="min-w-[800px] z-50 w-full max-w-[1440px] p-6 max-h-screen overflow-y-auto">
                 <CreateApplicationForm program={program} />
               </DialogContent>
             </Dialog>

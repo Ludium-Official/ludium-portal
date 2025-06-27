@@ -136,6 +136,7 @@ export type Milestone = {
   __typename?: 'Milestone';
   currency?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
+  file?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   links?: Maybe<Array<Link>>;
   price?: Maybe<Scalars['String']['output']>;
@@ -146,6 +147,7 @@ export type Milestone = {
 
 export enum MilestoneStatus {
   Completed = 'completed',
+  Draft = 'draft',
   Pending = 'pending',
   Rejected = 'rejected',
   Submitted = 'submitted'
@@ -510,9 +512,16 @@ export enum SortEnum {
 
 export type SubmitMilestoneInput = {
   description?: InputMaybe<Scalars['String']['input']>;
+  file?: InputMaybe<Scalars['Upload']['input']>;
   id: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
+  status: SubmitMilestoneStatus;
 };
+
+export enum SubmitMilestoneStatus {
+  Draft = 'draft',
+  Submitted = 'submitted'
+}
 
 export type Subscription = {
   __typename?: 'Subscription';
@@ -578,11 +587,11 @@ export type User = {
   firstName?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   image?: Maybe<Scalars['String']['output']>;
-  isAdmin?: Maybe<Scalars['Boolean']['output']>;
   lastName?: Maybe<Scalars['String']['output']>;
   links?: Maybe<Array<Link>>;
   loginType?: Maybe<Scalars['String']['output']>;
   organizationName?: Maybe<Scalars['String']['output']>;
+  role?: Maybe<UserRole>;
   summary?: Maybe<Scalars['String']['output']>;
   walletAddress?: Maybe<Scalars['String']['output']>;
 };
@@ -600,6 +609,12 @@ export type UserInput = {
   summary?: InputMaybe<Scalars['String']['input']>;
   walletAddress?: InputMaybe<Scalars['String']['input']>;
 };
+
+export enum UserRole {
+  Admin = 'admin',
+  Superadmin = 'superadmin',
+  User = 'user'
+}
 
 export type UserUpdateInput = {
   about?: InputMaybe<Scalars['String']['input']>;
