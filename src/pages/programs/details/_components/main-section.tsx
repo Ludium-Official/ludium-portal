@@ -33,7 +33,7 @@ function MainSection({
   program?: Program | null;
   refetch: () => void;
 }) {
-  const { userId, isAuthed, isLoggedIn } = useAuth();
+  const { userId, isAuthed, isLoggedIn, isAdmin } = useAuth();
   const { id } = useParams();
   const contract = useContract(program?.network || mainnetDefaultNetwork);
   const navigate = useNavigate();
@@ -121,7 +121,7 @@ function MainSection({
             </div>
             <span className="font-medium flex gap-2 items-center text-sm">
               {formatProgramStatus(program)}{' '}
-              {program?.creator?.id === userId && (
+              {(program?.creator?.id === userId || isAdmin) && (
                 <>
                   {program &&
                     (program.network === 'base' || program.network === 'base-sepolia') && (

@@ -1,0 +1,28 @@
+query CarouselItems {
+  carouselItems {
+    data {
+      __typename
+      ... on Post {
+        title
+        image
+        keywords {
+          name
+        }
+        summary
+      }
+      ... on Program {
+        name
+
+        keywords {
+          name
+        }
+        summary
+      }
+    }
+    displayOrder
+    id
+    isActive
+    itemId
+    itemType
+  }
+}
