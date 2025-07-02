@@ -1,3 +1,5 @@
+import { useCreateCarouselItemMutation } from '@/apollo/mutation/create-carousel-item.generated';
+import { useCarouselItemsQuery } from '@/apollo/queries/carousel-items.generated';
 import { useKeywordsQuery } from '@/apollo/queries/keywords.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
@@ -12,7 +14,7 @@ import { SearchSelect } from '@/components/ui/search-select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { mainnetDefaultNetwork } from '@/lib/utils';
-import type { LinkInput } from '@/types/types.generated';
+import { CarouselItemType, type LinkInput } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronRight, X } from 'lucide-react';
 import { useEffect, useReducer, useState } from 'react';
@@ -172,6 +174,11 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
     }
   };
+
+
+  const { data: carouselItems, refetch } = useCarouselItemsQuery();
+
+  const [createCarouselItem] = useCreateCarouselItemMutation();
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className='max-w-[820px] w-full mx-auto'>
@@ -368,6 +375,26 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           </div>
         </TabsContent>
       </Tabs>
+
+
+      {isEdit && (
+        <Button
+          type="button"
+          onClick={() => {
+            createCarouselItem({
+              variables: {
+                input: {
+                  itemId: data?.program?.id ?? '',
+                  itemType: CarouselItemType.Program,
+                  displayOrder: carouselItems?.carouselItems?.length ?? 0,
+                  isActive: true,
+                },
+              },
+            }).then(() => refetch());
+          }} disabled={carouselItems?.carouselItems?.some(item => item.itemId === data?.program?.id || (carouselItems?.carouselItems?.length ?? 0) >= 5)}>
+          {carouselItems?.carouselItems?.some(item => item.itemId === data?.program?.id) ? "Already in Carousel" : "Add to Main Carousel"}
+        </Button>
+      )}
 
 
       {isEdit ? (

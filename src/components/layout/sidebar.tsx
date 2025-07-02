@@ -1,12 +1,12 @@
 import logo from '@/assets/logo.svg';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { CircleAlert, Scroll, UserRound, Users } from 'lucide-react';
+import { CircleAlert, Scroll, ShieldCheck, UserRound, Users } from 'lucide-react';
 
 import { useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 
 const Sidebar = () => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isAdmin } = useAuth();
   const location = useLocation();
   const [communityMenuOpen, setCommunityMenuOpen] = useState(false);
   const closeTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -57,9 +57,9 @@ const Sidebar = () => {
                   <p
                     // to={link.path}
                     className={`group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium cursor-default ${location.pathname.startsWith('/community') ||
-                        location.pathname.startsWith('/users')
-                        ? 'bg-primary-light text-primary'
-                        : 'hover:bg-primary-light hover:text-primary'
+                      location.pathname.startsWith('/users')
+                      ? 'bg-primary-light text-primary'
+                      : 'hover:bg-primary-light hover:text-primary'
                       }`}
                   >
                     <link.icon className="group-active:text-primary group-hover:text-primary" />
@@ -110,6 +110,14 @@ const Sidebar = () => {
               About
             </a>
           </li>
+          {isAdmin && (
+            <li>
+              <NavLink to="/admin" className="group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium hover:bg-primary-light hover:text-primary">
+                <ShieldCheck />
+                Admin
+              </NavLink>
+            </li>
+          )}
         </ul>
       </nav>
     </aside>
