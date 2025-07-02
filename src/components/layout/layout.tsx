@@ -33,9 +33,12 @@ function Layout() {
           ) : (
             <>
               <Sidebar />
-              <main className="bg-white rounded-2xl m-3 ml-[240px]">
-                <Header />
-                <Outlet />
+              <main className="bg-gray-light rounded-2xl m-3 ml-[240px] flex flex-col gap-3">
+                <div>
+                  <Header />
+                  <Outlet />
+                </div>
+
                 <Footer />
               </main>
             </>
