@@ -114,7 +114,6 @@ export type CreateMilestoneInput = {
 export type CreatePostInput = {
   content: Scalars['String']['input'];
   image?: InputMaybe<Scalars['Upload']['input']>;
-  isBanner?: InputMaybe<Scalars['Boolean']['input']>;
   keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
   summary: Scalars['String']['input'];
   title: Scalars['String']['input'];
@@ -124,6 +123,7 @@ export type CreateProgramInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
   deadline: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
+  image?: InputMaybe<Scalars['Upload']['input']>;
   keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
   links?: InputMaybe<Array<LinkInput>>;
   name: Scalars['String']['input'];
@@ -452,6 +452,7 @@ export type Program = {
   description?: Maybe<Scalars['String']['output']>;
   educhainProgramId?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
+  image?: Maybe<Scalars['String']['output']>;
   keywords?: Maybe<Array<Keyword>>;
   links?: Maybe<Array<Link>>;
   name?: Maybe<Scalars['String']['output']>;
@@ -477,7 +478,6 @@ export type Query = {
   __typename?: 'Query';
   application?: Maybe<Application>;
   applications?: Maybe<PaginatedApplications>;
-  banner?: Maybe<Post>;
   carouselItems?: Maybe<Array<EnrichedCarouselItem>>;
   comment?: Maybe<Comment>;
   comments?: Maybe<PaginatedComments>;
@@ -629,7 +629,6 @@ export type UpdatePostInput = {
   content?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   image?: InputMaybe<Scalars['Upload']['input']>;
-  isBanner?: InputMaybe<Scalars['Boolean']['input']>;
   keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
   summary?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
@@ -640,6 +639,7 @@ export type UpdateProgramInput = {
   deadline?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
+  image?: InputMaybe<Scalars['Upload']['input']>;
   keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
   links?: InputMaybe<Array<LinkInput>>;
   name?: InputMaybe<Scalars['String']['input']>;

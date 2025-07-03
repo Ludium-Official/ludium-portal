@@ -6,7 +6,7 @@ const defaultOptions = {} as const;
 export type CarouselItemsQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type CarouselItemsQuery = { __typename?: 'Query', carouselItems?: Array<{ __typename?: 'EnrichedCarouselItem', displayOrder?: number | null, id?: string | null, isActive?: boolean | null, itemId?: string | null, itemType?: Types.CarouselItemType | null, data?: { __typename: 'Post', title?: string | null, image?: string | null, summary?: string | null, keywords?: Array<{ __typename?: 'Keyword', name?: string | null }> | null } | { __typename: 'Program', name?: string | null, summary?: string | null, keywords?: Array<{ __typename?: 'Keyword', name?: string | null }> | null } | null }> | null };
+export type CarouselItemsQuery = { __typename?: 'Query', carouselItems?: Array<{ __typename?: 'EnrichedCarouselItem', displayOrder?: number | null, id?: string | null, isActive?: boolean | null, itemId?: string | null, itemType?: Types.CarouselItemType | null, data?: { __typename: 'Post', title?: string | null, image?: string | null, summary?: string | null, keywords?: Array<{ __typename?: 'Keyword', name?: string | null }> | null } | { __typename: 'Program', name?: string | null, image?: string | null, summary?: string | null, keywords?: Array<{ __typename?: 'Keyword', name?: string | null }> | null } | null }> | null };
 
 
 export const CarouselItemsDocument = gql`
@@ -24,6 +24,7 @@ export const CarouselItemsDocument = gql`
       }
       ... on Program {
         name
+        image
         keywords {
           name
         }

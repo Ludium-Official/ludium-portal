@@ -41,6 +41,7 @@ const CreateProgram: React.FC = () => {
           validatorId: args.validatorId,
           links: args.links,
           network: args.network,
+          image: args.image,
         },
       },
       onCompleted: () => {

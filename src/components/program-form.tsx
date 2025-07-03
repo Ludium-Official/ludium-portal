@@ -9,6 +9,7 @@ import NetworkSelector from '@/components/network-selector';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { SearchSelect } from '@/components/ui/search-select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -34,6 +35,8 @@ export type OnSubmitProgramFunc = (data: {
   links: LinkInput[];
   // isPublish?: boolean;
   network: string;
+
+  image?: File;
 }) => void;
 
 export interface ProgramFormProps {
@@ -60,6 +63,8 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   const [links, setLinks] = useState<string[]>(['']);
   const [network, setNetwork] = useState(mainnetDefaultNetwork);
   const [currency, setCurrency] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File>();
+
 
   const { data: keywords } = useKeywordsQuery();
 
@@ -160,6 +165,8 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       links: links.map((l) => ({ title: l, url: l })),
       network:
         isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
+
+      image: selectedImage
     });
   };
 
@@ -219,6 +226,13 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
               {extraErrors.keyword && (
                 <span className="text-red-400 text-sm block">Keywords is required</span>
               )}
+            </label>
+
+            <label htmlFor="image" className="space-y-2 block mt-10">
+              <div className="grid w-full max-w-sm items-center gap-1.5">
+                <Label htmlFor="picture">Picture</Label>
+                <Input id="picture" type="file" onChange={(e) => setSelectedImage(e.target.files?.[0])} />
+              </div>
             </label>
           </div>
 

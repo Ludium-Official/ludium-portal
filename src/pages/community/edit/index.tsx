@@ -20,7 +20,6 @@ const EditCommunityPage: React.FC = () => {
           content: args.content,
           keywords: args.keywords,
           image: args.image,
-          isBanner: args.isBanner,
         },
       },
       onCompleted: () => {
