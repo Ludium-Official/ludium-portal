@@ -1,8 +1,10 @@
-import { formatProgramStatus } from "@/lib/utils"
-import { type Program, ProgramStatus } from "@/types/types.generated"
+import { cn, formatProgramStatus } from "@/lib/utils"
+import { type Maybe, type Program, ProgramStatus } from "@/types/types.generated"
 
-function ProgramStatusBadge({ program }: { program: Program }) {
-  let statusColor = <span className="bg-gray-400 w-[14px] h-[14px] rounded-full block" />
+function ProgramStatusBadge({ program, className }: { program?: Maybe<Program>, className?: string }) {
+  if (!program) return null;
+
+  let statusColor = <span className={"bg-gray-400 w-[14px] h-[14px] rounded-full block"} />
 
   switch (program.status) {
     case ProgramStatus.Cancelled:
@@ -25,7 +27,7 @@ function ProgramStatusBadge({ program }: { program: Program }) {
       break;
   }
 
-  return (<span className="flex items-center gap-2 bg-gray-light px-2.5 py-0.5 rounded-full">{statusColor}{formatProgramStatus(program)}</span>)
+  return (<span className={cn("flex items-center gap-2 bg-gray-light px-2.5 py-0.5 rounded-full", className)}>{statusColor}{formatProgramStatus(program)}</span>)
 }
 
 export default ProgramStatusBadge

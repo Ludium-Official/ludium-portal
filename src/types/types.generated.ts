@@ -91,7 +91,6 @@ export type CreateApplicationInput = {
 };
 
 export type CreateCarouselItemInput = {
-  displayOrder: Scalars['Int']['input'];
   isActive: Scalars['Boolean']['input'];
   itemId: Scalars['String']['input'];
   itemType: CarouselItemType;

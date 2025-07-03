@@ -400,7 +400,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 input: {
                   itemId: data?.program?.id ?? '',
                   itemType: CarouselItemType.Program,
-                  displayOrder: carouselItems?.carouselItems?.length ?? 0,
                   isActive: true,
                 },
               },
