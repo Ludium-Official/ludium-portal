@@ -1,12 +1,12 @@
 import logo from '@/assets/logo.svg';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { CircleAlert, Scroll, UserRound, Users } from 'lucide-react';
+import { CircleAlert, Scroll, ShieldCheck, UserRound, Users } from 'lucide-react';
 
 import { useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 
 const Sidebar = () => {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isAdmin } = useAuth();
   const location = useLocation();
   const [communityMenuOpen, setCommunityMenuOpen] = useState(false);
   const closeTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -56,14 +56,13 @@ const Sidebar = () => {
                 <>
                   <p
                     // to={link.path}
-                    className={`group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium cursor-default ${
-                      location.pathname.startsWith('/community') ||
+                    className={`group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium cursor-default ${location.pathname.startsWith('/community') ||
                       location.pathname.startsWith('/users')
-                        ? 'bg-[#F8ECFF] text-[#861CC4]'
-                        : 'hover:bg-[#F8ECFF] hover:text-[#861CC4]'
-                    }`}
+                      ? 'bg-primary-light text-primary'
+                      : 'hover:bg-primary-light hover:text-primary'
+                      }`}
                   >
-                    <link.icon className="group-active:text-[#861CC4] group-hover:text-[#861CC4]" />
+                    <link.icon className="group-active:text-primary group-hover:text-primary" />
                     {link.name}
                   </p>
                   {communityMenuOpen && (
@@ -73,10 +72,10 @@ const Sidebar = () => {
                           <NavLink
                             to={sublink.path}
                             className={
-                              'flex gap-3 items-center px-4 py-3 rounded-lg transition-all text-[16px] font-medium hover:bg-[#F8ECFF] hover:text-[#861CC4]'
+                              'flex gap-3 items-center px-4 py-3 rounded-lg transition-all text-[16px] font-medium hover:bg-primary-light hover:text-primary'
                             }
                           >
-                            <sublink.icon className="group-active:text-[#861CC4] group-hover:text-[#861CC4]" />
+                            <sublink.icon className="group-active:text-primary group-hover:text-primary" />
                             {sublink.name}
                           </NavLink>
                         </li>
@@ -88,14 +87,13 @@ const Sidebar = () => {
                 <NavLink
                   to={link.path}
                   className={({ isActive }) =>
-                    `group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium ${
-                      isActive
-                        ? 'bg-[#F8ECFF] text-[#861CC4]'
-                        : 'hover:bg-[#F8ECFF] hover:text-[#861CC4]'
+                    `group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium ${isActive
+                      ? 'bg-primary-light text-primary'
+                      : 'hover:bg-primary-light hover:text-primary'
                     }`
                   }
                 >
-                  <link.icon className="group-active:text-[#861CC4] group-hover:text-[#861CC4]" />
+                  <link.icon className="group-active:text-primary group-hover:text-primary" />
                   {link.name}
                 </NavLink>
               )}
@@ -104,7 +102,7 @@ const Sidebar = () => {
           <li>
             <a
               href="https://ludium.oopy.io/"
-              className="group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium hover:bg-[#F8ECFF] hover:text-[#861CC4]"
+              className="group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium hover:bg-primary-light hover:text-primary"
               target="_blank"
               rel="noreferrer"
             >
@@ -112,6 +110,14 @@ const Sidebar = () => {
               About
             </a>
           </li>
+          {isAdmin && (
+            <li>
+              <NavLink to="/admin" className="group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium hover:bg-primary-light hover:text-primary">
+                <ShieldCheck />
+                Admin
+              </NavLink>
+            </li>
+          )}
         </ul>
       </nav>
     </aside>

@@ -1,7 +1,7 @@
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { useUserQuery } from '@/apollo/queries/user.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
-import MarkdownPreviewer from '@/components/markdown-previewer';
+import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { Badge } from '@/components/ui/badge';
 import { PageSize, Pagination } from '@/components/ui/pagination';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -49,7 +49,7 @@ function UserDetailsPage() {
         <section className="">
           <h1 className="text-xl font-bold mb-6">Profile</h1>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Profile image</h3>
+          <h3 className="text-gray-text text-xs font-medium mb-2">Profile image</h3>
 
           <div className="px-6 py-2 mb-9">
             <img
@@ -59,23 +59,23 @@ function UserDetailsPage() {
             />
           </div>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Organization / Person name</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">
+          <h3 className="text-gray-text text-xs font-medium mb-2">Organization / Person name</h3>
+          <p className="text-gray-dark text-sm font-medium mb-10">
             {userData?.user?.organizationName} / {userData?.user?.firstName}{' '}
             {userData?.user?.lastName}
           </p>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Email</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">{userData?.user?.email}</p>
+          <h3 className="text-gray-text text-xs font-medium mb-2">Email</h3>
+          <p className="text-gray-dark text-sm font-medium mb-10">{userData?.user?.email}</p>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Summary</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">{userData?.user?.summary}</p>
+          <h3 className="text-gray-text text-xs font-medium mb-2">Summary</h3>
+          <p className="text-gray-dark text-sm font-medium mb-10">{userData?.user?.summary}</p>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Description</h3>
+          <h3 className="text-gray-text text-xs font-medium mb-2">Description</h3>
           {userData?.user?.about && <MarkdownPreviewer value={userData?.user?.about ?? ''} />}
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2 mt-3">Links</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">
+          <h3 className="text-gray-text text-xs font-medium mb-2 mt-3">Links</h3>
+          <p className="text-gray-dark text-sm font-medium mb-10">
             {userData?.user?.links?.map((l) => (
               <a
                 href={l?.url ?? ''}
@@ -117,7 +117,7 @@ function UserDetailsPage() {
             </div>
 
             <h2 className="text-lg font-semibold mb-[6px]">{p.name}</h2>
-            <span className="inline-block py-1 px-2 mb-4 rounded-[6px] text-xs font-bold text-[#B331FF] bg-[#F8ECFF]">
+            <span className="inline-block py-1 px-2 mb-4 rounded-[6px] text-xs font-bold text-primary bg-primary-light">
               {p.price} {p.currency}
             </span>
 

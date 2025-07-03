@@ -2,7 +2,7 @@ import client from '@/apollo/client';
 import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
 import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
 import { ProgramDocument } from '@/apollo/queries/program.generated';
-import MarkdownPreviewer from '@/components/markdown-previewer';
+import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,7 +33,7 @@ function MainSection({
   program?: Program | null;
   refetch: () => void;
 }) {
-  const { userId, isAuthed, isLoggedIn } = useAuth();
+  const { userId, isAuthed, isLoggedIn, isAdmin } = useAuth();
   const { id } = useParams();
   const contract = useContract(program?.network || mainnetDefaultNetwork);
   const navigate = useNavigate();
@@ -121,16 +121,15 @@ function MainSection({
             </div>
             <span className="font-medium flex gap-2 items-center text-sm">
               {formatProgramStatus(program)}{' '}
-              {program?.creator?.id === userId && (
+              {(program?.creator?.id === userId || isAdmin) && (
                 <>
                   {program &&
                     (program.network === 'base' || program.network === 'base-sepolia') && (
                       <Button
-                        className="h-8 w-12 p-2 bg-[#F8ECFF] text-[#B331FF] text-xs hover:bg-[#F8ECFF]"
+                        className="h-8 w-12 p-2 bg-primary-light text-primary text-xs hover:bg-primary-light"
                         onClick={() => {
                           navigator.clipboard.writeText(
-                            `https://ludium-farcaster.vercel.app/api/programs/${
-                              program.name
+                            `https://ludium-farcaster.vercel.app/api/programs/${program.name
                             }/${id}/${Math.floor(
                               new Date(program.deadline).getTime() / 1000,
                             )}/${program.price}/${program.currency}`,
@@ -154,7 +153,7 @@ function MainSection({
             <h2 className="text-lg font-bold">{program?.name}</h2>
           </div>
           <div className="mb-1">
-            <p className="flex flex-col w-fit font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs py-1 px-2 rounded-[6px]">
+            <p className="flex flex-col w-fit font-sans font-bold bg-primary-light text-primary leading-4 text-xs py-1 px-2 rounded-[6px]">
               <div className="mb-1">{getCurrency(program?.network)?.display}</div>
               <div>
                 <span className="inline-block mr-2">
@@ -162,7 +161,7 @@ function MainSection({
                   {acceptedPrice && ' / '}
                   {program?.price} {program?.currency}
                 </span>
-                <span className="h-3 border-l border-[#B331FF] inline-block" />
+                <span className="h-3 border-l border-primary inline-block" />
                 <span className="inline-block ml-2">
                   DEADLINE{' '}
                   {format(
@@ -202,7 +201,7 @@ function MainSection({
 
         {!program?.validator && program?.rejectionReason && (
           <div className="mb-6">
-            <h3 className="font-bold text-[#18181B] text-lg mb-3">Validator Rejection Reason</h3>
+            <h3 className="font-bold text-gray-dark text-lg mb-3">Validator Rejection Reason</h3>
             <p className="text-sm text-red-400">{program?.rejectionReason}</p>
           </div>
         )}
@@ -228,7 +227,7 @@ function MainSection({
                   Send an application
                 </Button>
               </DialogTrigger>
-              <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
+              <DialogContent className="min-w-[800px] z-50 w-full max-w-[1440px] p-6 max-h-screen overflow-y-auto">
                 <CreateApplicationForm program={program} />
               </DialogContent>
             </Dialog>
@@ -274,7 +273,7 @@ function MainSection({
                 <span className="text-red-600 w-[42px] h-[42px] rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                   <TriangleAlert />
                 </span>
-                <DialogTitle className="font-semibold text-lg text-[#18181B] mb-2">
+                <DialogTitle className="font-semibold text-lg text-gray-dark mb-2">
                   Are you sure to pay the settlement for the program?
                 </DialogTitle>
                 <DialogDescription className="text-muted-foreground text-sm mb-4">

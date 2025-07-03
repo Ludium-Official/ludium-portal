@@ -3,7 +3,7 @@ import { useCheckMilestoneMutation } from '@/apollo/mutation/check-milestone.gen
 // import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
 import { useApplicationQuery } from '@/apollo/queries/application.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
-import MarkdownPreviewer from '@/components/markdown-previewer';
+import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import {
   Accordion,
   AccordionContent,
@@ -41,7 +41,7 @@ function ApplicationDetails() {
   const [mountKey, setMountKey] = useState(0);
   const remountKey = () => setMountKey((v) => v + 1);
 
-  const { userId } = useAuth();
+  const { userId, isAdmin } = useAuth();
   const { id, applicationId } = useParams();
 
   const { data, refetch } = useApplicationQuery({
@@ -150,7 +150,7 @@ function ApplicationDetails() {
           <h2 className="text-lg font-bold">{name}</h2>
         </Link>
         <div className="mb-4">
-          <p className="flex flex-col w-fit font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs py-1 px-2 rounded-[6px]">
+          <p className="flex flex-col w-fit font-sans font-bold bg-primary-light text-primary leading-4 text-xs py-1 px-2 rounded-[6px]">
             <div className="mb-1">{getCurrency(program?.network)?.display}</div>
             <div>
               <span className="inline-block mr-2">
@@ -159,7 +159,7 @@ function ApplicationDetails() {
                   .toFixed()}{' '}
                 {program?.currency} / {program?.price} {program?.currency}
               </span>
-              <span className="h-3 border-l border-[#B331FF] inline-block" />
+              <span className="h-3 border-l border-primary inline-block" />
               <span className="inline-block ml-2">
                 DEADLINE{' '}
                 {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
@@ -206,14 +206,14 @@ function ApplicationDetails() {
             </Link>
           </div>
           <div className="mb-6">
-            <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
+            <p className="font-sans font-bold bg-primary-light text-primary leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
               <span className="inline-block mr-2">
                 {data?.application?.milestones
                   ?.reduce((prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)), BigNumber(0, 10))
                   .toFixed()}{' '}
                 {program?.currency}
               </span>
-              <span className="h-3 border-l border-[#B331FF] inline-block" />
+              <span className="h-3 border-l border-primary inline-block" />
               <span className="inline-block ml-2">
                 DEADLINE{' '}
                 {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
@@ -222,17 +222,17 @@ function ApplicationDetails() {
           </div>
 
           <div className="mb-6">
-            <h2 className="font-bold text-[#18181B] text-lg mb-3">APPLICATION</h2>
+            <h2 className="font-bold text-gray-dark text-lg mb-3">APPLICATION</h2>
             <p className="text-slate-600 text-sm">{data?.application?.name}</p>
           </div>
 
           <div className="mb-6">
-            <h2 className="font-bold text-[#18181B] text-lg mb-3">SUMMARY</h2>
+            <h2 className="font-bold text-gray-dark text-lg mb-3">SUMMARY</h2>
             <p className="text-slate-600 text-sm">{data?.application?.summary}</p>
           </div>
 
           <div className="mb-6">
-            <h2 className="font-bold text-[#18181B] text-lg mb-3">DESCRIPTION</h2>
+            <h2 className="font-bold text-gray-dark text-lg mb-3">DESCRIPTION</h2>
             {data?.application?.content && (
               <MarkdownPreviewer key={mountKey} value={data?.application?.content} />
             )}
@@ -240,7 +240,7 @@ function ApplicationDetails() {
           </div>
 
           <div className="mb-6">
-            <h2 className="font-bold text-[#18181B] text-lg mb-3">LINKS</h2>
+            <h2 className="font-bold text-gray-dark text-lg mb-3">LINKS</h2>
             {data?.application?.links?.map((l) => (
               <p className="text-slate-600 text-sm" key={l.url}>
                 {l.url}
@@ -249,9 +249,10 @@ function ApplicationDetails() {
           </div>
 
           {data?.application?.rejectionReason &&
-            data?.application?.status === ApplicationStatus.Rejected && (
+            data?.application?.status === ApplicationStatus.Rejected &&
+            data?.application.applicant?.id === userId && (
               <div className="mb-6">
-                <h2 className="font-bold text-[#18181B] text-lg mb-3">Rejection Reason</h2>
+                <h2 className="font-bold text-gray-dark text-lg mb-3">Rejection Reason</h2>
                 <p className="text-sm text-red-400">{data?.application?.rejectionReason}</p>
               </div>
             )}
@@ -317,11 +318,11 @@ function ApplicationDetails() {
                   </div>
                   <h2 className="text-lg font-bold mb-2">Milestone #{idx + 1}</h2>
                   <div className="mb-6">
-                    <p className="font-sans font-bold bg-[#F8ECFF] text-[#B331FF] leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
+                    <p className="font-sans font-bold bg-primary-light text-primary leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
                       <span className="inline-block mr-2">
                         {m?.price} {program?.currency}
                       </span>
-                      <span className="h-3 border-l border-[#B331FF] inline-block" />
+                      <span className="h-3 border-l border-primary inline-block" />
                       <span className="inline-block ml-2">
                         DEADLINE{' '}
                         {format(
@@ -333,13 +334,13 @@ function ApplicationDetails() {
                   </div>
 
                   <div className="mb-6">
-                    <h2 className="font-bold text-[#18181B] text-sm mb-3">SUMMARY</h2>
+                    <h2 className="font-bold text-gray-dark text-sm mb-3">SUMMARY</h2>
                     <p className="text-slate-600 text-xs">{m.description}</p>
                   </div>
 
                   {!!m.links?.length && (
-                    <div className="mb-10">
-                      <h2 className="font-bold text-[#18181B] text-sm mb-3">LINKS</h2>
+                    <div className="mb-6">
+                      <h2 className="font-bold text-gray-dark text-sm mb-3">LINKS</h2>
                       {m.links?.map((l) => (
                         <a
                           href={l?.url ?? ''}
@@ -354,9 +355,17 @@ function ApplicationDetails() {
                     </div>
                   )}
 
+                  {(program?.creator?.id === userId || program?.validator?.id === userId || isAdmin || data?.application?.applicant?.id === userId) && m.file && (
+                    <div className='mb-6'>
+
+                      <h2 className="font-bold text-gray-dark text-sm mb-3">UPLOAD</h2>
+                      <a href={m.file ?? ''} download className='underline text-slate-600' target='_blank' rel="noreferrer">Click to see upload</a>
+                    </div>
+                  )}
+
                   {m.rejectionReason && m.status === MilestoneStatus.Pending && (
                     <div className="mb-6">
-                      <h2 className="font-bold text-[#18181B] text-sm mb-3">REJECTION REASON</h2>
+                      <h2 className="font-bold text-gray-dark text-sm mb-3">REJECTION REASON</h2>
                       <p className="text-red-400 text-xs">{m.rejectionReason}</p>
                     </div>
                   )}
@@ -398,7 +407,7 @@ function ApplicationDetails() {
                           disabled={
                             idx !== 0 &&
                             data?.application?.milestones?.[idx - 1]?.status !==
-                              MilestoneStatus.Completed
+                            MilestoneStatus.Completed
                           }
                         >
                           <Button className="h-10 block ml-auto">Submit Milestone</Button>

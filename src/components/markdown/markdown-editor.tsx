@@ -1,15 +1,17 @@
+import { simpleSandpackConfig } from '@/components/markdown/configs';
+import { YouTubeButton, YoutubeDescriptor } from '@/components/markdown/youtube';
 import {
   AdmonitionDirectiveDescriptor,
   BlockTypeSelect,
   BoldItalicUnderlineToggles,
   CreateLink,
   DiffSourceToggleWrapper,
+  InsertCodeBlock,
   InsertTable,
   InsertThematicBreak,
   ListsToggle,
   MDXEditor,
   type MDXEditorMethods,
-  type SandpackConfig,
   UndoRedo,
   codeBlockPlugin,
   codeMirrorPlugin,
@@ -31,32 +33,34 @@ import {
 import '@mdxeditor/editor/style.css';
 import { useEffect, useRef, useState } from 'react';
 
-const defaultSnippetContent = `
-export default function App() {
-  return (
-    <div className="App">
-      <h1>Hello CodeSandbox</h1>
-      <h2>Start editing to see some magic happen!</h2>
-    </div>
-  );
-}
-`.trim();
+import './style.css'
 
-const simpleSandpackConfig: SandpackConfig = {
-  defaultPreset: 'react',
-  presets: [
-    {
-      label: 'React',
-      name: 'react',
-      meta: 'live react',
-      sandpackTemplate: 'react',
-      sandpackTheme: 'light',
-      snippetFileName: '/App.js',
-      snippetLanguage: 'jsx',
-      initialSnippetContent: defaultSnippetContent,
-    },
-  ],
-};
+// const defaultSnippetContent = `
+// export default function App() {
+//   return (
+//     <div className="App">
+//       <h1>Hello CodeSandbox</h1>
+//       <h2>Start editing to see some magic happen!</h2>
+//     </div>
+//   );
+// }
+// `.trim();
+
+// const simpleSandpackConfig: SandpackConfig = {
+//   defaultPreset: 'react',
+//   presets: [
+//     {
+//       label: 'React',
+//       name: 'react',
+//       meta: 'live react',
+//       sandpackTemplate: 'react',
+//       sandpackTheme: 'light',
+//       snippetFileName: '/App.js',
+//       snippetLanguage: 'jsx',
+//       initialSnippetContent: defaultSnippetContent,
+//     },
+//   ],
+// };
 
 export async function expressImageUploadHandler(image: File) {
   const formData = new FormData();
@@ -114,7 +118,7 @@ function MarkdownEditor({
       ref={mdxRef}
       markdown={content}
       className="overflow-auto max-h-[500px] border rounded-md shadow-md"
-      contentEditableClassName="prose min-h-[300px] cursor-text"
+      contentEditableClassName="prose min-h-[300px] cursor-text w-full"
       onChange={(value) => debouncedOnChange(value)}
       plugins={[
         listsPlugin(),
@@ -134,11 +138,12 @@ function MarkdownEditor({
         thematicBreakPlugin(),
         frontmatterPlugin(),
         directivesPlugin({
-          directiveDescriptors: [AdmonitionDirectiveDescriptor],
+          directiveDescriptors: [AdmonitionDirectiveDescriptor, YoutubeDescriptor],
         }),
         diffSourcePlugin({ viewMode: 'rich-text', diffMarkdown: prevVal }),
         codeBlockPlugin({ defaultCodeBlockLanguage: 'js' }),
         codeMirrorPlugin({
+          codeMirrorExtensions: [],
           autoLoadLanguageSupport: true,
           codeBlockLanguages: {
             js: 'JavaScript',
@@ -166,6 +171,8 @@ function MarkdownEditor({
                 <CreateLink />
                 <InsertTable />
                 <ListsToggle />
+                <InsertCodeBlock />
+                <YouTubeButton />
               </DiffSourceToggleWrapper>
             </>
           ),

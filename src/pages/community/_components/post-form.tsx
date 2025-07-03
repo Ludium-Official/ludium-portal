@@ -1,11 +1,14 @@
+import { useCreateCarouselItemMutation } from '@/apollo/mutation/create-carousel-item.generated';
+import { useCarouselItemsQuery } from '@/apollo/queries/carousel-items.generated';
 import { useKeywordsQuery } from '@/apollo/queries/keywords.generated';
 import { usePostQuery } from '@/apollo/queries/post.generated';
-import MarkdownEditor from '@/components/markdown-editor';
+import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+// import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { CarouselItemType } from '@/types/types.generated';
 import { useEffect, useReducer, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
@@ -28,7 +31,11 @@ export interface PostFormProps {
 function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
   const { id } = useParams();
 
-  const [isBanner, setIsBanner] = useState<boolean>();
+  // const [isBanner, setIsBanner] = useState<boolean>();
+
+  const { data: carouselItems, refetch } = useCarouselItemsQuery();
+
+  const [createCarouselItem] = useCreateCarouselItemMutation();
 
   const { data } = usePostQuery({
     variables: {
@@ -88,7 +95,7 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
       content,
       keywords: selectedKeywords,
       image: selectedImage,
-      isBanner,
+      // isBanner,
     });
   };
 
@@ -156,7 +163,7 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
         </div>
       </label>
 
-      <div className="flex items-center space-x-2">
+      {/* <div className="flex items-center space-x-2">
         <Checkbox
           id="isBanner"
           checked={isBanner}
@@ -168,12 +175,31 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
         >
           Set post as main banner
         </label>
-      </div>
+      </div> */}
+
+      {isEdit && (
+        <Button
+          type="button"
+          onClick={() => {
+            createCarouselItem({
+              variables: {
+                input: {
+                  itemId: data?.post?.id ?? '',
+                  itemType: CarouselItemType.Post,
+                  isActive: true,
+                },
+              },
+            }).then(() => refetch());
+          }} disabled={carouselItems?.carouselItems?.some(item => item.itemId === data?.post?.id || (carouselItems?.carouselItems?.length ?? 0) >= 5)}>
+          {carouselItems?.carouselItems?.some(item => item.itemId === data?.post?.id) ? "Already in Carousel" : "Add to Main Carousel"}
+        </Button>
+      )}
 
       {isEdit ? (
         <div className="px-[32px] py-3 flex justify-end gap-4">
           <Button
-            className="bg-[#B331FF] hover:bg-[#B331FF]/90 min-w-[177px]"
+            variant="purple"
+            className="min-w-[177px]"
             type="submit"
             onClick={() => {
               extraValidation();

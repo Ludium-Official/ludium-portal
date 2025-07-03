@@ -12,10 +12,12 @@ export function DatePicker({
   date,
   setDate,
   disabled,
+  align = 'start',
 }: {
   date?: Date;
   setDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
   disabled?: Matcher | Matcher[] | undefined;
+  align?: "center" | "start" | "end" | undefined;
 }) {
   return (
     <Popover>
@@ -31,7 +33,7 @@ export function DatePicker({
           {date ? format(date, 'PPP') : <span>Pick a date</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
+      <PopoverContent align={align} className="w-auto p-0">
         <Calendar
           disabled={disabled}
           mode="single"

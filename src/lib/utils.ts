@@ -21,7 +21,7 @@ export function getInitials(name: string) {
 }
 
 export const reduceString = (str: string, from: number, end: number): string => {
-  return str ? str.substring(0, from) + '...' + str.substring(str.length - end) : '-';
+  return str ? `${str.substring(0, from)}...${str.substring(str.length - end)}` : '-';
 };
 
 export const commaNumber = (num: number | string) => {

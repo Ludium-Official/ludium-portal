@@ -2,7 +2,7 @@ import { useCreateCommentMutation } from '@/apollo/mutation/create-comment.gener
 import { useCommentsByPostQuery } from '@/apollo/queries/comments-by-post.generated';
 import { usePostQuery } from '@/apollo/queries/post.generated';
 import { usePostsQuery } from '@/apollo/queries/posts.generated';
-import MarkdownPreviewer from '@/components/markdown-previewer';
+import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -167,7 +167,7 @@ const CommunityDetailsPage: React.FC = () => {
             </div>
 
             {post?.createdAt && (
-              <div className="text-xs font-bold mb-6 bg-[#F8ECFF] text-[#B331FF] rounded inline-block px-2 py-1">
+              <div className="text-xs font-bold mb-6 bg-primary-light text-primary rounded inline-block px-2 py-1">
                 {format(new Date(post.createdAt), 'dd.MM.yyyy')}
               </div>
             )}
@@ -204,11 +204,11 @@ const CommunityDetailsPage: React.FC = () => {
                 onClick={() => setCommentsOpen((prev) => !prev)}
                 className={cn(
                   'text-sm font-medium tracking-wider mb-2 rounded-md text-secondary-foreground flex items-center px-4 py-[10px]',
-                  commentsOpen && 'bg-[#F4F4F5]',
+                  commentsOpen && 'bg-gray-light',
                 )}
               >
                 Comment{' '}
-                <span className="font-bold text-[#B331FF] ml-1">
+                <span className="font-bold text-primary ml-1">
                   {comments?.commentsByPost?.length}
                 </span>
                 <ChevronDown
@@ -218,7 +218,7 @@ const CommunityDetailsPage: React.FC = () => {
 
               {/* Comment input */}
               {commentsOpen && (
-                <div className="bg-[#F4F4F5] rounded-md">
+                <div className="bg-gray-light rounded-md">
                   {isLoggedIn && (
                     <div className="mb-4 p-4 border-b">
                       <textarea
@@ -284,7 +284,7 @@ const CommunityDetailsPage: React.FC = () => {
                   </div>
                   <div className="flex flex-col justify-between items-start">
                     {!!post.keywords?.[0]?.name && (
-                      <span className="font-medium bg-gray-800 text-white rounded-full px-2.5 py-0.5 text-[10px] text-center">
+                      <span className="font-medium bg-gray-dark text-white rounded-full px-2.5 py-0.5 text-[10px] text-center">
                         {post.keywords?.[0]?.name}
                       </span>
                     )}

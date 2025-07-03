@@ -119,7 +119,7 @@ const Pagination = ({ totalCount, pageSize }: { totalCount: number; pageSize?: n
             <PaginationItem key={idx}>
               <PaginationLink
                 isActive={currentPage === idx + 1}
-                className="aria-[current]:bg-[#FCF8FF] border-none aria-[current]:text-[#B331FF]"
+                className="aria-[current]:bg-primary-light border-none aria-[current]:text-primary"
                 onClick={() => goToPage(idx + 1)}
               >
                 {idx + 1}

@@ -41,6 +41,7 @@ const CreateProgram: React.FC = () => {
           validatorId: args.validatorId,
           links: args.links,
           network: args.network,
+          image: args.image,
         },
       },
       onCompleted: () => {
@@ -52,7 +53,7 @@ const CreateProgram: React.FC = () => {
   };
 
   return (
-    <div className="p-10 pr-[55px] w-[681px]" defaultValue="edit">
+    <div className="w-full bg-[#f7f7f7] p-10 pr-[55px]" defaultValue="edit">
       <ProgramForm isEdit={false} onSubmitProgram={onSubmit} />
     </div>
   );

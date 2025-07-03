@@ -2,7 +2,7 @@ import Notifications from '@/components/notifications';
 
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { tokenAddresses } from '@/constant/token-address';
-import ChainContract from '@/lib/contract';
+import type ChainContract from '@/lib/contract';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
@@ -135,21 +135,21 @@ function Header() {
   }, [authenticated, walletInfo, network]);
 
   return (
-    <header className="flex justify-between items-center px-10 py-[14px] border-b">
+    <header className="bg-white rounded-t-2xl flex justify-between items-center px-10 py-[14px] backdrop-blur-2xl">
       <div />
 
       <div className="flex gap-2">
         {authenticated && <Notifications />}
         <div>
           {!authenticated && (
-            <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-fit" onClick={login}>
+            <Button className="bg-primary hover:bg-primary/90 h-fit" onClick={login}>
               Login
             </Button>
           )}
           {authenticated && (
             <Dialog>
-              <DialogTrigger>
-                <Button className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-fit">
+              <DialogTrigger asChild>
+                <Button className="bg-primary hover:bg-primary/90 h-fit">
                   {profileData?.profile?.firstName && profileData?.profile?.lastName
                     ? `${profileData.profile.firstName} ${profileData.profile.lastName}`
                     : reduceString(walletInfo?.address || '', 6, 6)}
@@ -159,7 +159,7 @@ function Header() {
                 <DialogHeader>
                   <DialogTitle className="text-center text-[20px] font-bold">Profile</DialogTitle>
                   <DialogDescription className="flex flex-col gap-4 mt-5">
-                    <div className="border border-[#E9E9E9] rounded-[10px] p-5">
+                    <div className="border border-gray-border rounded-[10px] p-5">
                       <div className="flex items-center justify-between mb-3 text-[16px] font-bold">
                         Balance
                         <div>
@@ -177,17 +177,18 @@ function Header() {
                               {balance.name}:{' '}
                               {balance.amount !== null
                                 ? commaNumber(
-                                    ethers.utils.formatUnits(balance.amount, balance.decimal),
-                                  )
+                                  ethers.utils.formatUnits(balance.amount, balance.decimal),
+                                )
                                 : 'Fetching...'}
                             </div>
                           );
                         })}
                       </div>
                     </div>
-                    <div className="border border-[#E9E9E9] rounded-[10px] p-5">
+                    <div className="border border-gray-border rounded-[10px] p-5">
                       <div className="mb-3 text-[16px] font-bold">Account</div>
                       {injectedWallet ? (
+                        // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
                         <div
                           className="cursor-pointer hover:underline"
                           onClick={() => {

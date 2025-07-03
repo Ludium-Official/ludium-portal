@@ -33,7 +33,7 @@ function NotificationCard({ notification }: { notification: Notification }) {
   return (
     <div className="border rounded-md py-4 px-3">
       <div className="flex justify-between items-center mb-2">
-        <h3 className="font-medium text-[#861CC4]">
+        <h3 className="font-medium text-primary">
           {typeUpperFirst} {actionUpperFirst}
         </h3>
 

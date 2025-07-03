@@ -1,4 +1,6 @@
+import AdminOutlet from '@/components/layout/admin-outlet';
 import Layout from '@/components/layout/layout';
+import AdminPage from '@/pages/admin';
 import CommunityPage from '@/pages/community';
 import CreateCommunityPage from '@/pages/community/create';
 import CommunityDetailsPage from '@/pages/community/details';
@@ -45,6 +47,10 @@ function App() {
           <Route path="users">
             <Route index element={<UsersPage />} />
             <Route path=":id" element={<UserDetailsPage />} />
+          </Route>
+
+          <Route path="admin" element={<AdminOutlet />}>
+            <Route index element={<AdminPage />} />
           </Route>
         </Route>
       </Routes>

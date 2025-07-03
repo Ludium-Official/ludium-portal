@@ -3,7 +3,7 @@ import { useCreateApplicationMutation } from '@/apollo/mutation/create-applicati
 // import { useCreateMilestonesMutation } from '@/apollo/mutation/create-milestones.generated';
 import { ProgramDocument } from '@/apollo/queries/program.generated';
 import { eduCurrencies } from '@/components/currency-selector';
-import MarkdownEditor from '@/components/markdown-editor';
+import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -120,12 +120,14 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       <label htmlFor="description" className="w-full mb-6 block">
         <p className="text-sm font-medium mb-2">Description</p>
 
+        {/* <div className='max-w-[500px]'> */}
         <MarkdownEditor onChange={setContent} content={content} />
+        {/* </div> */}
       </label>
 
       <label htmlFor="links" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Links</p>
-        <span className="block text-[#71717A] text-sm">
+        <span className="block text-gray-text text-sm">
           Add links to your website, blog, or social media profiles.
         </span>
 
@@ -266,7 +268,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       <Button
         disabled={loading || !milestoneValid || !name || !content || !summary}
         type="button"
-        className="bg-[#861CC4] h-10 ml-auto block hover:bg-[#861CC4]/90 min-w-[161px]"
+        className="bg-primary hover:bg-primary/90 h-10 ml-auto block min-w-[161px]"
         onClick={onSubmit}
       >
         {loading ? <LoaderCircle className="animate-spin mx-auto" /> : 'SUBMIT APPLICATION'}
