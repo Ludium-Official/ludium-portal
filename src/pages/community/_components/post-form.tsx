@@ -186,7 +186,6 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
                 input: {
                   itemId: data?.post?.id ?? '',
                   itemType: CarouselItemType.Post,
-                  displayOrder: carouselItems?.carouselItems?.length ?? 0,
                   isActive: true,
                 },
               },
