@@ -77,7 +77,7 @@ function PostComment({
                 <Link to={`/users/${comment.author?.id}`}>{authorName}</Link>
               </span>
               <span className="text-xs text-gray-500 ml-2">
-                {format(new Date(comment.createdAt), 'dd.MM.yyyy, h:mm a')}
+                {format(new Date(comment.createdAt), 'MMM d, yyyy, h:mm:ss a')}
               </span>
             </div>
             {comment.parent && (
@@ -92,8 +92,7 @@ function PostComment({
               onClick={() => setShowReplies((prev) => !prev)}
               className="text-sm font-medium tracking-wider mb-2 rounded-md text-secondary-foreground flex items-center px-3 py-[10px]"
             >
-              Reply{' '}
-              <span className="font-bold text-primary ml-1">{comment?.replies?.length}</span>
+              Reply <span className="font-bold text-primary ml-1">{comment?.replies?.length}</span>
               <ChevronDown
                 className={cn('w-4 h-4 ml-2 transition-transform', showReplies && 'rotate-180')}
               />

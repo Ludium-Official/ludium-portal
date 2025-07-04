@@ -1,39 +1,35 @@
 import { usePostsQuery } from '@/apollo/queries/posts.generated';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PageSize, Pagination } from '@/components/ui/pagination';
+import { PageSize } from '@/components/ui/pagination';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import { type Post, SortEnum } from '@/types/types.generated';
-import { CirclePlus } from 'lucide-react';
+import { CirclePlus, SearchIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import PostCard from './_components/post-card';
 
-PageSize;
-
 const CommunityPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('all');
-
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [posts, setPosts] = useState<Post[]>([]);
   const { isAuthed, isLoggedIn } = useAuth();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const currentPage = Number(searchParams.get('page')) || 1;
-
-  const [search, setSearch] = useState<string>('');
+  const [searchParams, setSearchParams] = useSearchParams();
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedSearch(search);
+      setDebouncedSearch(searchParams.get('search') ?? '');
     }, 300); // Adjust the debounce delay as needed
 
     return () => {
       clearTimeout(handler);
     };
-  }, [search]);
+  }, [searchParams.get('search')]);
 
   const filter = [
     {
@@ -42,94 +38,154 @@ const CommunityPage: React.FC = () => {
     },
   ];
 
-  const { data } = usePostsQuery({
+  const { data, fetchMore } = usePostsQuery({
     variables: {
       pagination: {
         limit: PageSize,
-        offset: (currentPage - 1) * PageSize,
+        offset: (page - 1) * PageSize,
         filter: filter,
         sort: selectedTab === 'by-oldest' ? SortEnum.Asc : SortEnum.Desc,
       },
     },
   });
 
-  useEffect(() => {
-    if (data?.posts?.data && data.posts.data.length > 0) {
-      setPosts(data.posts.data);
+  const loadMore = async () => {
+    const nextPage = page + 1;
+
+    const { data: moreData } = await fetchMore({
+      variables: {
+        pagination: {
+          limit: PageSize,
+          offset: (nextPage - 1) * PageSize,
+          filter,
+          sort: selectedTab === 'by-oldest' ? SortEnum.Asc : SortEnum.Desc,
+        },
+      },
+    });
+
+    const newPosts = moreData?.posts?.data;
+
+    if (Array.isArray(newPosts) && newPosts.length > 0) {
+      setPosts((prev) => [...prev, ...newPosts]);
+      setPage(nextPage);
+      setHasMore(newPosts.length === PageSize);
+    } else {
+      setHasMore(false);
     }
-  }, [data]);
+  };
+
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    setPosts([]);
+  }, [debouncedSearch, selectedTab]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const viewportHeight = window.innerHeight;
+      const fullHeight = document.documentElement.scrollHeight;
+      const distanceFromBottom = fullHeight - (scrollTop + viewportHeight);
+
+      if (distanceFromBottom < 310 && hasMore) {
+        loadMore();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMore, page, debouncedSearch, selectedTab]);
+
+  useEffect(() => {
+    if (data?.posts?.data && page === 1) {
+      setPosts(data.posts.data);
+      setHasMore(data.posts.data.length === PageSize);
+    }
+  }, [data, page]);
+
+  const numberOfColumns = 2;
+  let firstColumn: Post[] = [];
+  let secondColumn: Post[] = [];
+
+  if (posts.length < 5) {
+    firstColumn = posts.filter((_, index) => index % numberOfColumns === 0);
+    secondColumn = posts.filter((_, index) => index % numberOfColumns === 1);
+  } else {
+    firstColumn = posts.filter((_, index) => index % numberOfColumns === 1);
+    secondColumn = posts.filter((_, index) => index % numberOfColumns === 0);
+  }
 
   return (
-    <div className="bg-[#F7F7F7] space-y-3">
-      <div className="p-10 bg-white">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">Community</h1>
-        </div>
+    <div className="pb-[60px] px-10 bg-white rounded-b-2xl" id="scrollableDiv">
+      <div className="flex justify-between items-center pt-9 pb-4">
+        <h1 className="text-3xl font-bold">Community</h1>
+      </div>
 
-        <div className="flex justify-between items-center mb-6">
-          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-            <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="by-oldest">By oldest</TabsTrigger>
-            </TabsList>
-          </Tabs>
+      <div className="flex justify-between items-center py-[14px]">
+        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+          <TabsList className="rounded-md">
+            <TabsTrigger value="all" className="rounded-xs px-4">
+              All
+            </TabsTrigger>
+            <TabsTrigger value="by-oldest" className="rounded-xs px-4">
+              By oldest
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-          <div className="flex items-center gap-3">
-            <Input
-              className="w-[432px] rounded-md h-10"
-              placeholder="Search..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            {isLoggedIn && (
-              <Button
-                className="rounded-md bg-purple-500 hover:bg-purple-600 flex items-center gap-2 h-10"
-                onClick={() => {
-                  if (!isAuthed) {
-                    notify('Please add your email', 'success');
-                    navigate('/profile/edit');
-                    return;
-                  }
-                  navigate('create');
-                }}
-              >
-                <CirclePlus className="h-4 w-4" /> Create Community
-              </Button>
-            )}
-          </div>
-        </div>
-
-        <div className="mb-6">
-          {posts.length > 0 && (
-            <div className="grid grid-cols-2 grid-rows-3 gap-4">
-              <div className="row-span-2">
-                <PostCard post={posts[0]} variant="large" maxComments={3} />
-              </div>
-              {posts[1] && (
-                <div className="col-start-2 row-start-1">
-                  <PostCard post={posts[1]} variant="small" maxComments={1} />
-                </div>
-              )}
-              {posts[2] && (
-                <div className="col-start-2 row-start-2">
-                  <PostCard post={posts[2]} variant="small" maxComments={1} />
-                </div>
-              )}
-              {posts[3] && (
-                <div className="col-start-1 row-start-3">
-                  <PostCard post={posts[3]} variant="small" maxComments={1} />
-                </div>
-              )}
-              {posts[4] && (
-                <div className="row-start-3">
-                  <PostCard post={posts[4]} variant="small" maxComments={1} />
-                </div>
-              )}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center relative px-0">
+            <div className="absolute bottom-0 left-3 top-0 my-auto flex items-center justify-center">
+              <SearchIcon color="#71717A" width={16} height={16} strokeWidth={2} />
             </div>
+            <Input
+              className="w-[360px] rounded-md h-10 bg-slate-50 pl-8"
+              placeholder="Search..."
+              value={searchParams.get('search') ?? ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                const newSP = new URLSearchParams();
+
+                newSP.set('search', value);
+                setSearchParams(newSP);
+              }}
+            />
+          </div>
+
+          {isLoggedIn && (
+            <Button
+              className="rounded-md bg-gray-dark hover:bg-purple-600 flex items-center gap-2 h-10"
+              onClick={() => {
+                if (!isAuthed) {
+                  notify('Please add your email', 'success');
+                  navigate('/profile/edit');
+                  return;
+                }
+                navigate('create');
+              }}
+            >
+              <CirclePlus className="h-4 w-4" />
+              <p className="text-sm">Create Content</p>
+            </Button>
           )}
         </div>
-
-        <Pagination totalCount={data?.posts?.count ?? 0} pageSize={PageSize} />
+      </div>
+      <div className="grid grid-cols-2 gap-5 pt-[26px]">
+        <div className="flex flex-col gap-5">
+          {firstColumn.map((post, index) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              variant={index === 0 ? 'large' : 'small'}
+              maxComments={index === 0 ? 3 : 1}
+            />
+          ))}
+        </div>
+        <div className="flex flex-col gap-5">
+          {secondColumn.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))}
+        </div>
       </div>
     </div>
   );
