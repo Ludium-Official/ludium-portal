@@ -1,15 +1,16 @@
 import { useCreateCommentMutation } from '@/apollo/mutation/create-comment.generated';
-import { useCommentsByPostQuery } from '@/apollo/queries/comments-by-post.generated';
+import { useCommentsByCommentableQuery } from '@/apollo/queries/comments-by-commentable.generated';
 import { usePostQuery } from '@/apollo/queries/post.generated';
 import { usePostsQuery } from '@/apollo/queries/posts.generated';
+import { CommentSection } from '@/components/comment-section';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+
 import { useAuth } from '@/lib/hooks/use-auth';
-import { cn, getInitials, getUserName } from '@/lib/utils';
-import PostComment from '@/pages/community/details/_components/comment';
-import { type Post, SortEnum } from '@/types/types.generated';
+import { getInitials, getUserName } from '@/lib/utils';
+
+import { CommentableTypeEnum, type Post, SortEnum } from '@/types/types.generated';
 import { format } from 'date-fns';
-import { ChevronDown, ChevronLeft, ChevronRight, Settings } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 
@@ -19,9 +20,7 @@ const CommunityDetailsPage: React.FC = () => {
   const { id } = useParams();
   const [post, setPost] = useState<Post | null>(null);
   // const [replyValues, setReplyValues] = useState<Record<string, string>>({});
-  const [comment, setComment] = useState('');
 
-  const [commentsOpen, setCommentsOpen] = useState(false);
   const [authorId, setAuthorId] = useState<string | null>(null);
   const postId = id || '';
 
@@ -57,35 +56,16 @@ const CommunityDetailsPage: React.FC = () => {
     },
   });
 
-  const { data: comments, refetch: refetchComments } = useCommentsByPostQuery({
+  const { data: comments, refetch: refetchComments } = useCommentsByCommentableQuery({
     variables: {
-      postId,
+      commentableId: postId,
+      commentableType: CommentableTypeEnum.Post,
     },
     skip: !postId,
     fetchPolicy: 'cache-and-network',
   });
 
-  const [createComment, { loading: submittingComment }] = useCreateCommentMutation();
-
-  const handleSubmitComment = async () => {
-    if (!comment.trim() || !postId) return;
-
-    try {
-      await createComment({
-        variables: {
-          input: {
-            content: comment,
-            postId,
-          },
-        },
-      });
-
-      setComment('');
-      refetchComments();
-    } catch (error) {
-      console.error('Error submitting comment:', error);
-    }
-  };
+  const [createComment] = useCreateCommentMutation();
 
   useEffect(() => {
     const hash = window.location.hash.slice(1);
@@ -204,62 +184,24 @@ const CommunityDetailsPage: React.FC = () => {
           </div>
         </div>
         {/* Comment Section */}
-        <div>
-          <button
-            type="button"
-            onClick={() => setCommentsOpen((prev) => !prev)}
-            className={cn(
-              'text-sm font-medium tracking-wider mb-2 rounded-md text-secondary-foreground flex items-center px-4 py-[10px]',
-              commentsOpen && 'bg-gray-light',
-            )}
-          >
-            Comment{' '}
-            <span className="font-bold text-primary ml-1">{comments?.commentsByPost?.length}</span>
-            <ChevronDown
-              className={cn('w-4 h-4 ml-2 transition-transform', commentsOpen && 'rotate-180')}
-            />
-          </button>
+        <CommentSection
+          postId={postId}
+          comments={comments?.commentsByCommentable ?? []}
+          isLoggedIn={isLoggedIn ?? false}
+          onSubmitComment={async (content) =>
+            await createComment({
+              variables: {
+                input: {
+                  content,
+                  commentableId: postId,
+                  commentableType: CommentableTypeEnum.Post,
+                },
+              },
+            })
+          }
+          refetchComments={refetchComments}
+        />
 
-          {/* Comment input */}
-          {commentsOpen && (
-            <div className="bg-gray-light rounded-md">
-              {isLoggedIn && (
-                <div className="mb-4 p-4 border-b">
-                  <textarea
-                    className="w-full p-3 border border-gray-300 rounded-md text-sm bg-white"
-                    rows={5}
-                    placeholder="Leave your comment..."
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                  />
-                  <div className="flex justify-end mt-2">
-                    <Button
-                      className="bg-black text-white font-medium text-sm px-4 py-[10px] h-auto rounded-md"
-                      onClick={handleSubmitComment}
-                      disabled={submittingComment || !comment.trim()}
-                    >
-                      Send
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Comments list */}
-              <div className="space-y-6 p-4">
-                {comments?.commentsByPost
-                  ?.filter((comment) => !comment.parent)
-                  .map((topComment) => (
-                    <PostComment
-                      key={topComment.id}
-                      postId={postId}
-                      comment={topComment}
-                      refetchComments={refetchComments}
-                    />
-                  ))}
-              </div>
-            </div>
-          )}
-        </div>
         <div className="flex items-center justify-between">
           <Link
             to={prevPost ? `/community/posts/${prevPost.id}` : '#'}

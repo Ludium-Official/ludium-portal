@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { cn, getInitials, getUserName } from '@/lib/utils';
-import type { Comment } from '@/types/types.generated';
+import { CommentableTypeEnum, type Comment } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
@@ -34,7 +34,8 @@ function PostComment({
         variables: {
           input: {
             content: replyValue,
-            postId,
+            commentableId: postId,
+            commentableType: CommentableTypeEnum.Post,
             parentId,
           },
         },

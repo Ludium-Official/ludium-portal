@@ -36,6 +36,7 @@ export type Application = {
 export enum ApplicationStatus {
   Accepted = 'accepted',
   Completed = 'completed',
+  Draft = 'draft',
   Pending = 'pending',
   Rejected = 'rejected',
   Submitted = 'submitted'
@@ -71,13 +72,20 @@ export enum CheckMilestoneStatus {
 export type Comment = {
   __typename?: 'Comment';
   author?: Maybe<User>;
+  commentableId?: Maybe<Scalars['String']['output']>;
+  commentableType?: Maybe<Scalars['String']['output']>;
   content?: Maybe<Scalars['String']['output']>;
   createdAt?: Maybe<Scalars['Date']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   parent?: Maybe<Comment>;
-  post?: Maybe<Post>;
   replies?: Maybe<Array<Comment>>;
 };
+
+export enum CommentableTypeEnum {
+  Milestone = 'milestone',
+  Post = 'post',
+  Program = 'program'
+}
 
 export type CreateApplicationInput = {
   content: Scalars['String']['input'];
@@ -87,6 +95,7 @@ export type CreateApplicationInput = {
   name: Scalars['String']['input'];
   price: Scalars['String']['input'];
   programId: Scalars['String']['input'];
+  status: ApplicationStatus;
   summary?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -97,9 +106,10 @@ export type CreateCarouselItemInput = {
 };
 
 export type CreateCommentInput = {
+  commentableId: Scalars['ID']['input'];
+  commentableType: CommentableTypeEnum;
   content: Scalars['String']['input'];
   parentId?: InputMaybe<Scalars['ID']['input']>;
-  postId: Scalars['ID']['input'];
 };
 
 export type CreateMilestoneInput = {
@@ -130,6 +140,7 @@ export type CreateProgramInput = {
   price: Scalars['String']['input'];
   summary?: InputMaybe<Scalars['String']['input']>;
   validatorId: Scalars['ID']['input'];
+  visibility?: InputMaybe<ProgramVisibility>;
 };
 
 export type EnrichedCarouselItem = {
@@ -166,6 +177,7 @@ export type LinkInput = {
 
 export type Milestone = {
   __typename?: 'Milestone';
+  comments?: Maybe<Array<Comment>>;
   currency?: Maybe<Scalars['String']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   file?: Maybe<Scalars['String']['output']>;
@@ -199,6 +211,7 @@ export type Mutation = {
   deleteCarouselItem?: Maybe<CarouselItem>;
   deleteProgram?: Maybe<Scalars['Boolean']['output']>;
   deleteUser?: Maybe<User>;
+  inviteUserToProgram?: Maybe<Program>;
   login?: Maybe<Scalars['String']['output']>;
   markAllNotificationsAsRead?: Maybe<Scalars['Boolean']['output']>;
   markNotificationAsRead?: Maybe<Scalars['Boolean']['output']>;
@@ -275,6 +288,12 @@ export type MutationDeleteProgramArgs = {
 
 export type MutationDeleteUserArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationInviteUserToProgramArgs = {
+  programId: Scalars['ID']['input'];
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -375,6 +394,7 @@ export enum NotificationAction {
   Broadcast = 'broadcast',
   Completed = 'completed',
   Created = 'created',
+  Invited = 'invited',
   Rejected = 'rejected',
   Submitted = 'submitted'
 }
@@ -433,6 +453,7 @@ export type PaginationInput = {
 export type Post = {
   __typename?: 'Post';
   author?: Maybe<User>;
+  comments?: Maybe<Array<Comment>>;
   content?: Maybe<Scalars['String']['output']>;
   createdAt?: Maybe<Scalars['Date']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
@@ -445,6 +466,7 @@ export type Post = {
 export type Program = {
   __typename?: 'Program';
   applications?: Maybe<Array<Application>>;
+  comments?: Maybe<Array<Comment>>;
   creator?: Maybe<User>;
   currency?: Maybe<Scalars['String']['output']>;
   deadline?: Maybe<Scalars['Date']['output']>;
@@ -462,6 +484,7 @@ export type Program = {
   summary?: Maybe<Scalars['String']['output']>;
   txHash?: Maybe<Scalars['String']['output']>;
   validator?: Maybe<User>;
+  visibility?: Maybe<ProgramVisibility>;
 };
 
 export enum ProgramStatus {
@@ -473,6 +496,12 @@ export enum ProgramStatus {
   Published = 'published'
 }
 
+export enum ProgramVisibility {
+  Private = 'private',
+  Public = 'public',
+  Restricted = 'restricted'
+}
+
 export type Query = {
   __typename?: 'Query';
   application?: Maybe<Application>;
@@ -480,7 +509,7 @@ export type Query = {
   carouselItems?: Maybe<Array<EnrichedCarouselItem>>;
   comment?: Maybe<Comment>;
   comments?: Maybe<PaginatedComments>;
-  commentsByPost?: Maybe<Array<Comment>>;
+  commentsByCommentable?: Maybe<Array<Comment>>;
   countNotifications?: Maybe<Scalars['Int']['output']>;
   keywords?: Maybe<Array<Keyword>>;
   milestone?: Maybe<Milestone>;
@@ -517,8 +546,9 @@ export type QueryCommentsArgs = {
 };
 
 
-export type QueryCommentsByPostArgs = {
-  postId: Scalars['ID']['input'];
+export type QueryCommentsByCommentableArgs = {
+  commentableId: Scalars['ID']['input'];
+  commentableType: CommentableTypeEnum;
 };
 
 
@@ -647,6 +677,7 @@ export type UpdateProgramInput = {
   status?: InputMaybe<ProgramStatus>;
   summary?: InputMaybe<Scalars['String']['input']>;
   validatorId?: InputMaybe<Scalars['ID']['input']>;
+  visibility?: InputMaybe<ProgramVisibility>;
 };
 
 export type User = {

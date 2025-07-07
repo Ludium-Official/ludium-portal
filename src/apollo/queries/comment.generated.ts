@@ -8,7 +8,7 @@ export type CommentQueryVariables = Types.Exact<{
 }>;
 
 
-export type CommentQuery = { __typename?: 'Query', comment?: { __typename?: 'Comment', id?: string | null, content?: string | null, createdAt?: any | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, image?: string | null } | null, parent?: { __typename?: 'Comment', id?: string | null, content?: string | null, createdAt?: any | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, image?: string | null } | null } | null, post?: { __typename?: 'Post', id?: string | null, title?: string | null } | null, replies?: Array<{ __typename?: 'Comment', id?: string | null, content?: string | null, createdAt?: any | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, image?: string | null } | null }> | null } | null };
+export type CommentQuery = { __typename?: 'Query', comment?: { __typename?: 'Comment', id?: string | null, content?: string | null, createdAt?: any | null, commentableId?: string | null, commentableType?: string | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, image?: string | null } | null, parent?: { __typename?: 'Comment', id?: string | null, content?: string | null, createdAt?: any | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, image?: string | null } | null } | null, replies?: Array<{ __typename?: 'Comment', id?: string | null, content?: string | null, createdAt?: any | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, image?: string | null } | null }> | null } | null };
 
 
 export const CommentDocument = gql`
@@ -34,10 +34,8 @@ export const CommentDocument = gql`
         image
       }
     }
-    post {
-      id
-      title
-    }
+    commentableId
+    commentableType
     replies {
       id
       content

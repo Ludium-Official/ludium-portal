@@ -20,10 +20,8 @@ query comment($id: ID!) {
         image
       }
     }
-    post {
-      id
-      title
-    }
+    commentableId
+    commentableType
     replies {
       id
       content

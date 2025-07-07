@@ -1,9 +1,9 @@
-import { useCommentsByPostQuery } from '@/apollo/queries/comments-by-post.generated';
+import { useCommentsByCommentableQuery } from '@/apollo/queries/comments-by-commentable.generated';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { cn, getInitials, getUserName } from '@/lib/utils';
-import type { Post } from '@/types/types.generated';
+import { CommentableTypeEnum, type Post } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { Settings } from 'lucide-react';
 import { Link } from 'react-router';
@@ -24,9 +24,10 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
 
   const postId = id || '';
 
-  const { data, loading } = useCommentsByPostQuery({
+  const { data, loading } = useCommentsByCommentableQuery({
     variables: {
-      postId,
+      commentableId: postId,
+      commentableType: CommentableTypeEnum.Post,
     },
     skip: !postId,
     fetchPolicy: 'cache-and-network',
@@ -86,17 +87,17 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
           <Separator />
           <div className="flex-grow flex flex-col gap-4">
             <div>
-              {!data?.commentsByPost?.length && (
+              {!data?.commentsByCommentable?.length && (
                 <p className="font-medium text-sm mb-50 py-2">No comments yet</p>
               )}
-              {!!data?.commentsByPost?.length && (
+              {!!data?.commentsByCommentable?.length && (
                 <span className="px-[10px] py-[2px] font-semibold text-secondary-foreground bg-secondary rounded-full text-xs inline-block">
                   New comment
                 </span>
               )}
             </div>
             <div className="flex flex-col gap-3">
-              {data?.commentsByPost?.slice(0, maxComments).map((comment, idx) => (
+              {data?.commentsByCommentable?.slice(0, maxComments).map((comment, idx) => (
                 <div
                   key={comment.id}
                   className={cn('flex gap-4', idx < maxComments - 1 && 'border-b pb-4')}
@@ -172,8 +173,10 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
       <Separator />
       <div className="flex-grow flex flex-col gap-4">
         <div>
-          {!data?.commentsByPost?.length && <p className="font-medium text-sm">No comments yet</p>}
-          {!!data?.commentsByPost?.length && (
+          {!data?.commentsByCommentable?.length && (
+            <p className="font-medium text-sm">No comments yet</p>
+          )}
+          {!!data?.commentsByCommentable?.length && (
             <span className="px-[10px] py-[2px] font-semibold text-gray-dark bg-secondary rounded-full text-xs inline-block">
               New comment
             </span>
@@ -181,7 +184,7 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
         </div>
 
         <div className="flex flex-col gap-3">
-          {data?.commentsByPost?.slice(0, maxComments).map((comment, idx) => (
+          {data?.commentsByCommentable?.slice(0, maxComments).map((comment, idx) => (
             <div
               key={comment.id}
               className={cn('flex gap-4', idx < maxComments - 1 && 'border-b pb-4')}
