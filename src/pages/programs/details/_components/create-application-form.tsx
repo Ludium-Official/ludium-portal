@@ -5,16 +5,15 @@ import { ProgramDocument } from '@/apollo/queries/program.generated';
 import { eduCurrencies } from '@/components/currency-selector';
 import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
-import { DialogClose, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import notify from '@/lib/notify';
+import { ApplicationDynamicTabs, useApplicationDynamicTabs } from '@/pages/programs/details/_components/application-form-dynamic-tab';
 import type { Program } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
-import { LoaderCircle, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useState } from 'react';
 
-type MilestoneType = {
+export type MilestoneType = {
   title: string;
   price: string;
   description: string;
@@ -36,11 +35,109 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   const [milestones, setMilestones] = useState<MilestoneType[]>([emptyMilestone]);
 
   const totalPrice = milestones.reduce((prev, curr) => Number(curr.price ?? 0) + prev, 0);
+  console.log("🚀 ~ CreateApplicationForm ~ links:", links)
 
   const [createApplication, { loading }] = useCreateApplicationMutation();
   // const [createMilestones, { loading: milestonesLoading }] = useCreateMilestonesMutation();
 
   const [linksError, setLinksError] = useState(false);
+
+  const { tabs, setTabs, refreshTabs } = useApplicationDynamicTabs([
+    {
+      id: 'overview',
+      label: 'Overview',
+      isFixed: true,
+      content: (
+        <>
+          <label htmlFor="name" className="w-full mb-6 block">
+            <p className="text-sm font-medium mb-2">Name <span className='text-primary'>*</span></p>
+            <Input
+              id="name"
+              className="h-10 w-full mb-2"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </label>
+          <label htmlFor="links" className="space-y-2 block mb-10">
+            <p className="text-sm font-medium">Links</p>
+            <span className="block text-gray-text text-sm">
+              Add links to your website, blog, or social media profiles.
+            </span>
+
+            {links.map((l, idx) => (
+              <div key={l} className="flex items-center gap-2">
+                <Input
+                  className="h-10 max-w-[431.61px]"
+                  value={l}
+                  onChange={(e) => {
+                    setLinks((prev) => {
+                      const newLinks = [...prev];
+                      newLinks[idx] = e.target.value;
+                      return newLinks;
+                    });
+                  }}
+                />
+                {idx !== 0 && (
+                  <X
+                    onClick={() =>
+                      setLinks((prev) => {
+                        const newLinks = [...[...prev].slice(0, idx), ...[...prev].slice(idx + 1)];
+
+                        return newLinks;
+                      })
+                    }
+                  />
+                )}
+              </div>
+            ))}
+            <Button
+              onClick={() => {
+                setLinks((prev) => [...prev, ''])
+                refreshTabs()
+              }}
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-[6px]"
+            >
+              Add URL
+            </Button>
+            {linksError && (
+              <span className="text-red-400 text-sm block">
+                The provided link is not valid. All links must begin with{' '}
+                <span className="font-bold">https://</span>.
+              </span>
+            )}
+          </label>
+        </>
+      )
+    },
+    {
+      id: 'description',
+      label: 'Description',
+      isFixed: true,
+      content: (
+        <>
+
+          <label htmlFor="summary" className="w-full mb-6 block">
+            <p className="text-sm font-medium mb-2">Summary</p>
+            <Input
+              id="summary"
+              className="h-10 w-full mb-2"
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+            />
+          </label>
+
+          <label htmlFor="description" className="w-full mb-6 block">
+            <p className="text-sm font-medium mb-2">Description</p>
+
+            <MarkdownEditor onChange={setContent} content={content} />
+          </label>
+        </>
+      )
+    }
+  ])
 
   const onSubmit = async () => {
     if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
@@ -89,16 +186,21 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
     program?.price &&
     totalPrice <= (Number(program?.price) ?? 0) &&
     milestones.every((m) => !!m.title && !!m.price);
+
   const programCurrency = eduCurrencies.find((c) => c.code === program?.currency);
 
   return (
     <form>
-      <DialogTitle className="text-2xl font-semibold mb-6">Send an application</DialogTitle>
+      <ApplicationDynamicTabs setMilestones={setMilestones} tabs={tabs} onTabsChange={setTabs} defaultActiveTab='overview' />
+
+      {/* <DialogTitle className="text-2xl font-semibold mb-6">Submit application</DialogTitle>
 
       <DialogDescription className="hidden" />
       <DialogClose id="purposal-dialog-close" className="hidden" />
+
+
       <label htmlFor="name" className="w-full mb-6 block">
-        <p className="text-sm font-medium mb-2">Name</p>
+        <p className="text-sm font-medium mb-2">Name <span className='text-primary'>*</span></p>
         <Input
           id="name"
           className="h-10 w-full mb-2"
@@ -120,9 +222,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       <label htmlFor="description" className="w-full mb-6 block">
         <p className="text-sm font-medium mb-2">Description</p>
 
-        {/* <div className='max-w-[500px]'> */}
         <MarkdownEditor onChange={setContent} content={content} />
-        {/* </div> */}
       </label>
 
       <label htmlFor="links" className="space-y-2 block mb-10">
@@ -132,7 +232,6 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         </span>
 
         {links.map((l, idx) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
           <div key={idx} className="flex items-center gap-2">
             <Input
               className="h-10 max-w-[431.61px]"
@@ -176,7 +275,6 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       </label>
 
       {milestones.map((m, idx) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: <No other way>
         <div key={idx} className="mb-6">
           <div className="flex items-end w-full gap-4 mb-4">
             <label htmlFor={`title${idx}`} className="w-full">
@@ -272,7 +370,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         onClick={onSubmit}
       >
         {loading ? <LoaderCircle className="animate-spin mx-auto" /> : 'SUBMIT APPLICATION'}
-      </Button>
+      </Button> */}
     </form>
   );
 }

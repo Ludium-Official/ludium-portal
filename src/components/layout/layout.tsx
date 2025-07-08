@@ -33,7 +33,7 @@ function Layout() {
           ) : (
             <>
               <Sidebar />
-              <main className="bg-white rounded-2xl m-3 ml-[240px]">
+              <main className="bg-white h-[calc(100dvh-24px)] overflow-y-auto rounded-2xl m-3 ml-[240px]">
                 <Header />
                 <Outlet />
                 <Footer />
