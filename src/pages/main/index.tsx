@@ -51,7 +51,7 @@ function MainPage() {
   const { data: carouselItemsData, loading: carouselLoading } = useCarouselItemsQuery()
 
   return (
-    <div className="mx-10 my-[60px]">
+    <div className="px-10 py-[60px] bg-white rounded-b-2xl">
       {carouselLoading && (
         <section className="flex justify-between items-center mb-20">
           <div>

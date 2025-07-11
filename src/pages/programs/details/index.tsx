@@ -118,7 +118,7 @@ const DetailsPage: React.FC = () => {
             {isLoggedIn &&
               program?.status === 'published' &&
               program.creator?.id !== userId &&
-              program.validator?.id !== userId && (
+              program?.validators?.every(validator => validator.id !== userId) && (
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button
@@ -154,7 +154,7 @@ const DetailsPage: React.FC = () => {
             <div className='mt-6'>
               <p className='text-muted-foreground text-sm font-bold mb-3'>SUMMARY</p>
 
-              <p className='text-slate-600 text-sm'>{program?.summary}</p>
+              <p className='text-slate-600 text-sm whitespace-pre-wrap'>{program?.summary}</p>
             </div>
 
             <div className="mt-6">
@@ -207,39 +207,43 @@ const DetailsPage: React.FC = () => {
               </div>
             </div>
 
-            {program?.validator && <div className="mt-6">
+            {!!program?.validators?.length && <div className="mt-6">
               <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM VALIDATOR</p>
-              <div className="border rounded-xl w-full p-6 mb-6">
-                <Link
-                  to={`/users/${program?.creator?.id}`}
-                  className="flex gap-4 items-center text-lg font-bold mb-5"
-                >
-                  {/* <div className="w-10 h-10 bg-gray-200 rounded-full" /> */}
 
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage
-                      src={program?.validator?.image || ''}
-                      alt={`${program?.validator?.firstName} ${program?.validator?.lastName}`}
-                    />
-                    <AvatarFallback>
-                      {getInitials(
-                        `${program?.validator?.firstName || ''} ${program?.validator?.lastName || ''}`,
-                      )}
-                    </AvatarFallback>
-                  </Avatar>
-                  {getUserName(program?.validator)}
-                </Link>
+              {program.validators.map(validator => (
+                <div className="border rounded-xl w-full p-6 mb-6" key={validator.id}>
+                  <Link
+                    to={`/users/${program?.creator?.id}`}
+                    className="flex gap-4 items-center text-lg font-bold mb-5"
+                  >
+                    {/* <div className="w-10 h-10 bg-gray-200 rounded-full" /> */}
 
-                <div className="flex gap-3 mb-4">
-                  <p className="text-xs font-bold w-[57px]">Summary</p>
-                  <p className="text-xs">{program?.validator?.summary}</p>
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage
+                        src={validator?.image || ''}
+                        alt={`${validator?.firstName} ${validator?.lastName}`}
+                      />
+                      <AvatarFallback>
+                        {getInitials(
+                          `${validator?.firstName || ''} ${validator?.lastName || ''}`,
+                        )}
+                      </AvatarFallback>
+                    </Avatar>
+                    {getUserName(validator)}
+                  </Link>
+
+                  <div className="flex gap-3 mb-4">
+                    <p className="text-xs font-bold w-[57px]">Summary</p>
+                    <p className="text-xs">{validator?.summary}</p>
+                  </div>
+
+                  <div className="flex gap-3 mb-4">
+                    <p className="text-xs font-bold w-[57px]">Email</p>
+                    <p className="text-xs">{validator?.email}</p>
+                  </div>
                 </div>
+              ))}
 
-                <div className="flex gap-3 mb-4">
-                  <p className="text-xs font-bold w-[57px]">Email</p>
-                  <p className="text-xs">{program?.validator?.email}</p>
-                </div>
-              </div>
             </div>}
           </div>
 
@@ -279,7 +283,7 @@ const DetailsPage: React.FC = () => {
               application={a}
               refetch={refetch}
               hideControls={
-                a.status !== ApplicationStatus.Pending || program?.validator?.id !== userId
+                a.status !== ApplicationStatus.Pending || program?.validators?.every(validator => validator.id !== userId)
               }
             />
           ))}

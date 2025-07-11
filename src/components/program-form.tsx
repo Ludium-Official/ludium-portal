@@ -11,14 +11,15 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { SearchSelect } from '@/components/ui/search-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { mainnetDefaultNetwork } from '@/lib/utils';
 import { CarouselItemType, type LinkInput } from '@/types/types.generated';
 import { format } from 'date-fns';
-import { ChevronRight, X } from 'lucide-react';
-import { useEffect, useReducer, useState } from 'react';
+import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
 
@@ -31,12 +32,14 @@ export type OnSubmitProgramFunc = (data: {
   currency: string;
   deadline?: string;
   keywords: string[];
-  validatorId: string;
+  // validatorId: string;
   links: LinkInput[];
   // isPublish?: boolean;
   network: string;
-
+  validators: string[];
   image?: File;
+  visibility: 'public' | 'restricted' | 'private';
+  builders?: string[];
 }) => void;
 
 export interface ProgramFormProps {
@@ -59,11 +62,18 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   const [content, setContent] = useState<string>('');
   const [deadline, setDeadline] = useState<Date>();
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
-  const [selectedValidator, setSelectedValidator] = useState<string>();
+  const [selectedValidators, setSelectedValidators] = useState<string[]>([]);
   const [links, setLinks] = useState<string[]>(['']);
   const [network, setNetwork] = useState(mainnetDefaultNetwork);
   const [currency, setCurrency] = useState('');
   const [selectedImage, setSelectedImage] = useState<File>();
+  const [visibility, setVisibility] = useState<'public' | 'restricted' | 'private'>('public');
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedBuilders, setSelectedBuilders] = useState<string[]>([]);
+  const [selectedBuilderItems, setSelectedBuilderItems] = useState<{ label: string; value: string }[]>([]);
+  const [builderInput, setBuilderInput] = useState<string>();
+  const [debouncedBuilderInput, setDebouncedBuilderInput] = useState<string>();
 
 
   const { data: keywords } = useKeywordsQuery();
@@ -114,13 +124,41 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   useEffect(() => {
     if (data?.program?.keywords)
       setSelectedKeywords(data?.program?.keywords?.map((k) => k.id ?? '') ?? []);
-    if (data?.program?.validator) setSelectedValidator(data?.program.validator.id ?? '');
+    if (data?.program?.validators) setSelectedValidators(data?.program.validators?.map((k) => k.id ?? '') ?? '');
     if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
     if (data?.program?.links) setLinks(data?.program?.links.map((l) => l.url ?? ''));
     if (data?.program?.description) setContent(data?.program.description);
     if (data?.program?.network) setNetwork(data?.program?.network);
     if (data?.program?.currency) setCurrency(data?.program?.currency);
   }, [data]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedBuilderInput(builderInput);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [builderInput]);
+
+  const { data: buildersData, loading: buildersLoading } = useUsersQuery({
+    variables: {
+      input: {
+        limit: 5,
+        offset: 0,
+        filter: [
+          {
+            field: 'search',
+            value: debouncedBuilderInput ?? '',
+          },
+        ],
+      },
+    },
+    skip: !builderInput,
+  });
+
+  const builderOptions = buildersData?.users?.data?.map((v) => ({
+    value: v.id ?? '',
+    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
+  }));
 
   const {
     register,
@@ -139,13 +177,16 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     price: string;
     summary: string;
   }) => {
+    console.log("IM HERE!!!!!!!!!!!!!")
     if (
+      imageError ||
       extraErrors.deadline ||
       extraErrors.keyword ||
       extraErrors.links ||
       extraErrors.validator ||
       extraErrors.invalidLink ||
-      !content.length
+      !content.length ||
+      !selectedImage
     )
       return;
 
@@ -161,25 +202,29 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           : currency,
       deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
       keywords: selectedKeywords,
-      validatorId: selectedValidator ?? '',
+      validators: selectedValidators ?? '',
       links: links.map((l) => ({ title: l, url: l })),
       network:
         isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
-
-      image: selectedImage
+      image: selectedImage,
+      visibility: visibility,
+      builders: selectedBuilders,
     });
   };
 
   const extraValidation = () => {
     dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
+    if (!selectedImage) setImageError('Picture is required.')
     if (!selectedKeywords?.length)
       dispatchErrors({ type: ExtraErrorActionKind.SET_KEYWORDS_ERROR });
-    if (!selectedValidator) dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
+    if (!selectedValidators?.length) dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
     if (!deadline) dispatchErrors({ type: ExtraErrorActionKind.SET_DEADLINE_ERROR });
     if (!links?.[0]) dispatchErrors({ type: ExtraErrorActionKind.SET_LINKS_ERROR });
     if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
       dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
     }
+
+    formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))
   };
 
 
@@ -187,8 +232,58 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
 
   const [createCarouselItem] = useCreateCarouselItemMutation();
 
+  const [selectedKeywordItems, setSelectedKeywordItems] = useState<{
+    label: string;
+    value: string;
+  }[]>([])
+  const [selectedValidatorItems, setSelectedValidatorItems] = useState<{
+    label: string;
+    value: string;
+  }[]>([])
+
+  const formRef = useRef<HTMLFormElement>(null)
+
+  // image input handler
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImageError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Validate type
+    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+      setImageError('Only PNG, JPG, or JPEG files are allowed.');
+      setSelectedImage(undefined);
+      setImagePreview(null);
+      return;
+    }
+    // Validate size
+    if (file.size > 2 * 1024 * 1024) {
+      setImageError('Image must be under 2MB.');
+      setSelectedImage(undefined);
+      setImagePreview(null);
+      return;
+    }
+    // Validate square
+    const img = new window.Image();
+    img.onload = () => {
+      if (img.width !== img.height) {
+        setImageError('Image must be square (1:1).');
+        setSelectedImage(undefined);
+        setImagePreview(null);
+      } else {
+        setSelectedImage(file);
+        setImagePreview(URL.createObjectURL(file));
+      }
+    };
+    img.onerror = () => {
+      setImageError('Invalid image file.');
+      setSelectedImage(undefined);
+      setImagePreview(null);
+    };
+    img.src = URL.createObjectURL(file);
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className='max-w-[820px] w-full mx-auto'>
+    <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className='max-w-[820px] w-full mx-auto'>
       <h1 className="font-medium text-xl mb-6">Program</h1>
       {/* <h1 className="font-medium text-xl mb-6">{isEdit ? 'Edit Program' : 'Create Program'}</h1> */}
 
@@ -209,7 +304,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 {...register('programName', { required: true })}
               />
               {errors.programName && (
-                <span className="text-red-400 text-sm block">Program name is required</span>
+                <span className="text-destructive text-sm block">Program name is required</span>
               )}
             </label>
 
@@ -221,17 +316,47 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 onValueChange={setSelectedKeywords}
                 placeholder="Select keywords"
                 animation={2}
-                maxCount={3}
+                selectedItems={selectedKeywordItems}
+                setSelectedItems={setSelectedKeywordItems}
+                maxCount={20}
               />
               {extraErrors.keyword && (
-                <span className="text-red-400 text-sm block">Keywords is required</span>
+                <span className="text-destructive text-sm block">Keywords is required</span>
               )}
             </label>
 
             <label htmlFor="image" className="space-y-2 block mt-10">
-              <div className="grid w-full max-w-sm items-center gap-1.5">
-                <Label htmlFor="picture">Picture</Label>
-                <Input id="picture" type="file" onChange={(e) => setSelectedImage(e.target.files?.[0])} />
+              <div className="flex items-start gap-6">
+                {/* Image input with preview/placeholder */}
+                <div className="relative w-[200px] h-[200px] flex items-center justify-center bg-[#eaeaea] rounded-lg overflow-hidden group">
+                  <input
+                    id="picture"
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    onChange={handleImageChange}
+                  />
+                  {imagePreview ? (
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center w-full h-full">
+                      <ImageIcon className="w-10 h-10 text-[#666666] mb-2" />
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 right-0 bg-black/80 rounded-md w-10 h-10 flex justify-center items-center">
+                    <Plus className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+                {/* Text info */}
+                <div className="flex-1">
+                  <p className="font-medium text-base">Cover image <span className="text-primary">*</span></p>
+                  <p className="text-sm text-muted-foreground">Logo image must be square, under 2MB, and in PNG, JPG, or JPEG format.<br />This image is used in the program list</p>
+                  {imageError && <span className="text-destructive text-sm block mt-28">{imageError}</span>}
+                </div>
               </div>
             </label>
           </div>
@@ -271,9 +396,9 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 />
               </div>
 
-              {errors.price && <span className="text-red-400 text-sm block">Price is required</span>}
+              {errors.price && <span className="text-destructive text-sm block">Price is required</span>}
               {isEdit && data?.program?.status !== 'draft' && (
-                <span className="text-red-400 text-sm block">
+                <span className="text-destructive text-sm block">
                   Price can't be updated after publishing.
                 </span>
               )}
@@ -283,13 +408,13 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
               <p className="text-sm font-medium">Deadline <span className='text-primary'>*</span></p>
               <DatePicker date={deadline} setDate={setDeadline} disabled={{ before: new Date() }} />
               {extraErrors.deadline && (
-                <span className="text-red-400 text-sm block">Deadline is required</span>
+                <span className="text-destructive text-sm block">Deadline is required</span>
               )}
             </label>
 
             <label htmlFor="validator" className="space-y-2 block mb-10">
               <p className="text-sm font-medium">Validators <span className='text-primary'>*</span></p>
-              <SearchSelect
+              {/* <SearchSelect
                 options={validatorOptions ?? []}
                 value={selectedValidator}
                 setValue={setSelectedValidator}
@@ -297,9 +422,24 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 setInputValue={setValidatorInput}
                 emptyText="Enter validator email or organization name"
                 loading={loading}
+              /> */}
+              <MultiSelect
+                options={validatorOptions ?? []}
+                value={selectedValidators}
+                onValueChange={setSelectedValidators}
+                placeholder="Select validators"
+                animation={2}
+                maxCount={20}
+                inputValue={validatorInput}
+                setInputValue={setValidatorInput}
+
+                selectedItems={selectedValidatorItems}
+                setSelectedItems={setSelectedValidatorItems}
+                emptyText="Enter validator email or organization name"
+                loading={loading}
               />
               {extraErrors.validator && (
-                <span className="text-red-400 text-sm block">Validator is required</span>
+                <span className="text-destructive text-sm block">Validator is required</span>
               )}
             </label>
           </div>
@@ -350,9 +490,9 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
               >
                 Add URL
               </Button>
-              {extraErrors.links && <span className="text-red-400 text-sm block">Links is required</span>}
+              {extraErrors.links && <span className="text-destructive text-sm block">Links is required</span>}
               {extraErrors.invalidLink && (
-                <span className="text-red-400 text-sm block">
+                <span className="text-destructive text-sm block">
                   The provided link is not valid. All links must begin with{' '}
                   <span className="font-bold">https://</span>.
                 </span>
@@ -372,7 +512,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 className="h-10"
                 {...register('summary', { required: true })}
               />
-              {errors.summary && <span className="text-red-400 text-sm block">Summary is required</span>}
+              {errors.summary && <span className="text-destructive text-sm block">Summary is required</span>}
             </label>
           </div>
 
@@ -382,7 +522,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
 
               <MarkdownEditor onChange={setContent} content={content} />
               {!content.length && (
-                <span className="text-red-400 text-sm block">Description is required</span>
+                <span className="text-destructive text-sm block">Description is required</span>
               )}
             </label>
 
@@ -424,17 +564,71 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
         </div>
       ) : (
         <div className="py-3 flex justify-end gap-4">
-          <Button
-            className="min-w-[97px]"
-            size='lg'
-            onClick={() => {
-              extraValidation();
-            }}
-          >
-            Save
-          </Button>
+          <Popover>
+            <PopoverTrigger>
+              <Button
+                type='button'
+                className="min-w-[97px]"
+                size='lg'
+              >
+                Save
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className='min-w-[440px]'>
+              <h2 className='text-foreground font-semibold text-center text-lg'>Visibility</h2>
+              <p className='text-center text-muted-foreground text-sm mb-4'>Choose when to publish and who can see your program.</p>
+
+              <RadioGroup defaultValue="public" className='space-y-2 mb-8' value={visibility} onValueChange={v => setVisibility(v as 'public' | 'private' | 'restricted')}>
+                <div className="flex items-start gap-3">
+                  <RadioGroupItem value="private" id="r1" className='border-foreground' />
+                  <div className="flex-1">
+                    <Label htmlFor="r1" className='font-medium mb-[6px]'>Private</Label>
+                    <p className='text-sm text-muted-foreground mb-2'>Only invited users can view this program.</p>
+                    {visibility === 'private' && (
+                      <MultiSelect
+                        options={builderOptions ?? []}
+                        value={selectedBuilders}
+                        onValueChange={setSelectedBuilders}
+                        placeholder="Search Builder"
+                        animation={2}
+                        maxCount={20}
+                        inputValue={builderInput}
+                        setInputValue={setBuilderInput}
+                        selectedItems={selectedBuilderItems}
+                        setSelectedItems={setSelectedBuilderItems}
+                        emptyText="Enter builder email or organization name"
+                        loading={buildersLoading}
+                        className="mt-2"
+                      />
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <RadioGroupItem value="restricted" id="r2" className='border-foreground' />
+                  <div>
+                    <Label htmlFor="r2">Restricted</Label>
+                    <p className='text-sm text-muted-foreground'>Only users with links can view.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <RadioGroupItem value="public" id="r3" className='border-foreground' />
+                  <div>
+                    <Label htmlFor="r3">Public</Label>
+                    <p className='text-sm text-muted-foreground'>Anyone can view this program.</p>
+                  </div>
+                </div>
+              </RadioGroup>
+
+              <Button
+                onClick={() => {
+                  console.log("onCLICK!!!!")
+                  extraValidation();
+                }} type='submit' className='w-full bg-primary hover:bg-primary/90'>Save</Button>
+            </PopoverContent>
+          </Popover>
+
           {selectedTab === 'overview' && (
-            <Button size='lg' variant='outline' onClick={() => setSelectedTab('details')}>Next to Details <ChevronRight /></Button>
+            <Button type='button' size='lg' variant='outline' onClick={() => setSelectedTab('details')}>Next to Details <ChevronRight /></Button>
           )}
         </div>
       )}

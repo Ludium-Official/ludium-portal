@@ -50,7 +50,7 @@ function NetworkSelector({
           <ChevronDown />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent align='start'>
         {separateCurrencies.map((c) => (
           <DropdownMenuItem key={c.code} onClick={() => setSelectedCurrency(c.code)}>
             {c.icon} {c.display}

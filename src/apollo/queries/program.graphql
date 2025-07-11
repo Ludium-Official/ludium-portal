@@ -61,7 +61,26 @@ query program($id: ID!) {
     status
     summary
     rejectionReason
-    validator {
+    visibility
+    invitedBuilders {
+      about
+      avatar
+      email
+      firstName
+      id
+      image
+      lastName
+      links {
+        title
+        url
+      }
+      loginType
+      organizationName
+      role
+      summary
+      walletAddress
+    }
+    validators {
       about
       email
       firstName

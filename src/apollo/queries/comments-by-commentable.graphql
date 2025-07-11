@@ -1,0 +1,45 @@
+query CommentsByCommentable($commentableId: ID!, $commentableType: CommentableTypeEnum!) {
+  commentsByCommentable(commentableId: $commentableId, commentableType: $commentableType) {
+    author {
+      about
+      avatar
+      email
+      firstName
+      id
+      image
+      lastName
+      links {
+        title
+        url
+      }
+      loginType
+      organizationName
+      role
+      summary
+      walletAddress
+    }
+    commentableId
+    commentableType
+    content
+    createdAt
+    id
+    parent {
+      id
+    }
+    replies {
+      author {
+        id
+        firstName
+        lastName
+      }
+      commentableId
+      commentableType
+      content
+      createdAt
+      id
+      replies {
+        id
+      }
+    }
+  }
+}

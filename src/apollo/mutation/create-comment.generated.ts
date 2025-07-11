@@ -8,7 +8,7 @@ export type CreateCommentMutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateCommentMutation = { __typename?: 'Mutation', createComment?: { __typename?: 'Comment', id?: string | null, content?: string | null, createdAt?: any | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null } | null, post?: { __typename?: 'Post', id?: string | null, title?: string | null } | null, parent?: { __typename?: 'Comment', id?: string | null, content?: string | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null } | null } | null } | null };
+export type CreateCommentMutation = { __typename?: 'Mutation', createComment?: { __typename?: 'Comment', id?: string | null, content?: string | null, createdAt?: any | null, commentableId?: string | null, commentableType?: string | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null } | null, parent?: { __typename?: 'Comment', id?: string | null, content?: string | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null } | null } | null } | null };
 
 
 export const CreateCommentDocument = gql`
@@ -22,10 +22,8 @@ export const CreateCommentDocument = gql`
       firstName
       lastName
     }
-    post {
-      id
-      title
-    }
+    commentableId
+    commentableType
     author {
       id
       firstName

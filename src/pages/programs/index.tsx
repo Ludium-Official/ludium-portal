@@ -1,7 +1,7 @@
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PageSize, Pagination } from '@/components/ui/pagination';
+import { Pagination } from '@/components/ui/pagination';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
@@ -10,6 +10,8 @@ import { SortEnum } from '@/types/types.generated';
 import { CirclePlus, ListFilter } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
+
+const PageSize = 12
 
 const ProgramsPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('all');
@@ -74,7 +76,7 @@ const ProgramsPage: React.FC = () => {
   const totalCount = data?.programs?.count ?? 0;
 
   return (
-    <Tabs className="p-10 pr-[55px]" value={selectedTab} onValueChange={setSelectedTab}>
+    <Tabs className="p-10 pr-[55px] bg-white rounded-b-2xl" value={selectedTab} onValueChange={setSelectedTab}>
       <section className="flex justify-between items-center mb-3">
         <TabsList className="">
           <TabsTrigger value="all">All</TabsTrigger>
@@ -123,7 +125,7 @@ const ProgramsPage: React.FC = () => {
         ))}
       </section>
 
-      <Pagination totalCount={totalCount} />
+      <Pagination totalCount={totalCount} pageSize={PageSize} />
     </Tabs>
   );
 };

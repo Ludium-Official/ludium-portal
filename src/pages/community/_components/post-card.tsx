@@ -1,11 +1,11 @@
-import { useCommentsByPostQuery } from '@/apollo/queries/comments-by-post.generated';
+import { useCommentsByCommentableQuery } from '@/apollo/queries/comments-by-commentable.generated';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { cn, getInitials, getUserName } from '@/lib/utils';
-import type { Post } from '@/types/types.generated';
+import { CommentableTypeEnum, type Post } from '@/types/types.generated';
 import { format } from 'date-fns';
-import { ArrowRight, Settings } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { Link } from 'react-router';
 
 interface ExtendedPost extends Post {
@@ -20,14 +20,14 @@ interface PostCardProps {
 
 function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
   const { isSponsor } = useAuth();
-  const { id, title, keywords, createdAt, summary } = post ?? {};
-  const badgeVariants = ['teal', 'orange', 'pink'];
+  const { id, title, createdAt, summary } = post ?? {};
 
   const postId = id || '';
 
-  const { data, loading } = useCommentsByPostQuery({
+  const { data, loading } = useCommentsByCommentableQuery({
     variables: {
-      postId,
+      commentableId: postId,
+      commentableType: CommentableTypeEnum.Post,
     },
     skip: !postId,
     fetchPolicy: 'cache-and-network',
@@ -45,75 +45,64 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
 
   if (variant === 'large') {
     return (
-      <div className="block w-full h-full border border-gray-border rounded-[20px] overflow-hidden p-6">
-        <div className="relative h-full flex flex-col">
-          <div className="w-full aspect-video bg-gradient-to-r from-purple-300 to-blue-300 flex-shrink-0 rounded-lg overflow-hidden">
-            {post?.image ? (
-              <img
-                src={post.image}
-                alt={title || 'Post'}
-                className="w-full h-[500px] object-cover"
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="w-16 h-16 bg-white/20 rounded-full" />
-              </div>
-            )}
-          </div>
-
-          <div className="pt-3 flex-grow flex flex-col justify-between">
-            <div>
-              <h2 className="font-bold text-base mb-0.5">{title || 'Community'}</h2>
-
-              <p className="text-xs mb-0.5 text-muted-foreground font-bold">{authorName}</p>
-              <div className="flex items-center mb-2 justify-between">
-                <p className="text-xs text-muted-foreground">
-                  {createdAt ? format(new Date(createdAt), 'yyyy.MM.dd') : ''}
+      <Link
+        to={`/community/posts/${id}`}
+        className="block w-full border border-gray-border rounded-lg overflow-hidden p-5"
+      >
+        <div className="relative h-full flex flex-col gap-5">
+          <div className="flex flex-col gap-3">
+            <div className="w-full aspect-video bg-gradient-to-r from-purple-300 to-blue-300 flex-shrink-0 rounded-lg overflow-hidden">
+              {post?.image ? (
+                <img src={post.image} alt={title || 'Post'} className="w-full object-cover" />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="w-16 h-16 bg-white/20 rounded-full" />
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center justify-between">
+                <h2 className="font-bold text-base mb-0.5">{title || 'Community'}</h2>
+                <div className="text-xs text-muted-foreground">
+                  {createdAt ? (
+                    <div className="flex gap-[6px] text-xs text-gray-500">
+                      <span>{format(new Date(post.createdAt), 'dd.MM.yyyy')}</span>
+                      <span>•</span>
+                      <span>Views {12}</span>
+                    </div>
+                  ) : (
+                    ''
+                  )}
                   {isSponsor && (
                     <Link to={`/community/${post?.id}/edit`} className="ml-2">
                       <Settings className="w-4 h-4 inline" />
                     </Link>
                   )}
-                </p>
-                <div className="flex gap-1 flex-wrap">
-                  {keywords?.slice(0, 3).map((k, i) => (
-                    <Badge
-                      key={k.id}
-                      variant={
-                        badgeVariants[i % badgeVariants.length] as
-                        | 'default'
-                        | 'secondary'
-                        | 'purple'
-                      }
-                      className="rounded-full px-2 py-0.5 text-xs"
-                    >
-                      {k.name}
-                    </Badge>
-                  ))}
                 </div>
               </div>
-
-              {/* <p className="text-sm text-gray-700 mb-3 line-clamp-3">{content}</p> */}
-              <p className="text-sm text-gray-700 mb-3 line-clamp-3">{summary}</p>
-              {/* <MarkdownPreviewer value={content ?? ''} /> */}
+              <p className="text-xs mb-0.5 text-muted-foreground font-bold">{authorName}</p>
             </div>
-
-            <div className="border-t border-gray-100 pt-2 pb-1">
-              {!data?.commentsByPost?.length && (
+            <p className="text-sm text-slate-500 line-clamp-3 font-inter">{summary}</p>
+          </div>
+          <Separator />
+          <div className="flex-grow flex flex-col gap-4">
+            <div>
+              {!data?.commentsByCommentable?.length && (
                 <p className="font-medium text-sm mb-50 py-2">No comments yet</p>
               )}
-              {!!data?.commentsByPost?.length && (
-                <span className="px-[10px] py-[2px] mb-4 font-semibold text-secondary-foreground bg-secondary rounded-full text-xs inline-block">
+              {!!data?.commentsByCommentable?.length && (
+                <span className="px-[10px] py-[2px] font-semibold text-secondary-foreground bg-secondary rounded-full text-xs inline-block">
                   New comment
                 </span>
               )}
-
-              {data?.commentsByPost?.slice(0, maxComments).map((comment, idx) => (
+            </div>
+            <div className="flex flex-col gap-3">
+              {data?.commentsByCommentable?.slice(0, maxComments).map((comment, idx) => (
                 <div
                   key={comment.id}
-                  className={cn('flex mb-4', idx < maxComments - 1 && 'border-b pb-2')}
+                  className={cn('flex gap-4', idx < maxComments - 1 && 'border-b pb-4')}
                 >
-                  <Avatar className="w-8 h-8 mr-3">
+                  <Avatar className="w-10 h-10">
                     <AvatarImage
                       src={comment.author?.image || ''}
                       alt={`${comment.author?.firstName} ${comment.author?.lastName}`}
@@ -124,127 +113,111 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
                       )}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-medium text-sm">{getUserName(comment.author)}</h4>
-                      <span className="text-xs text-gray-500">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-sm">{getUserName(comment.author)}</h4>
+                      <span className="text-xs text-muted-foreground">
                         {comment.createdAt
                           ? format(new Date(comment.createdAt), 'MMM dd, yyyy, h:mm:ss a')
                           : ''}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-700">{comment.content}</p>
+                    <p className="font-medium text-xs text-gray-dark line-clamp-1 font-inter">
+                      {comment.content}
+                    </p>
                   </div>
                 </div>
               ))}
-
-              <div className="flex justify-end">
-                <Link
-                  to={`/community/posts/${id}`}
-                  className="flex items-center text-sm font-medium text-foreground hover:text-gray-800"
-                >
-                  View more <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </div>
             </div>
           </div>
         </div>
-      </div>
+      </Link>
     );
   }
 
   // Default small card
   return (
-    <div className="block w-full h-full border border-gray-border rounded-[20px] overflow-hidden p-6">
-      <div className="relative h-full flex flex-col">
-        <div className="flex gap-4 mb-5">
-          <div className="aspect-video w-1/2 bg-gradient-to-r from-purple-300 to-blue-300 flex-shrink-0 rounded-lg overflow-hidden">
-            {post?.image ? (
-              <img src={post.image} alt={title || 'Post'} className="w-full h-full object-cover" />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="w-10 h-10 bg-white/20 rounded-full" />
-              </div>
-            )}
-          </div>
-
-          <div className="w-full">
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="font-bold text-base line-clamp-1 w-full">{title || 'Community'}</h2>
+    <Link
+      to={`/community/posts/${id}`}
+      className="w-full border border-gray-border rounded-lg overflow-hidden p-5 flex flex-col gap-5"
+    >
+      <div className="flex gap-5">
+        <div className="aspect-video w-1/2 bg-gradient-to-r from-purple-300 to-blue-300 flex-shrink-0 rounded-lg overflow-hidden">
+          {post?.image ? (
+            <img src={post.image} alt={title || 'Post'} className="w-full h-full object-cover" />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="w-10 h-10 bg-white/20 rounded-full" />
             </div>
-
-            <p className="text-xs font-bold text-muted-foreground">{authorName}</p>
-            <div className="flex items-center justify-between mb-3 w-full">
-              <p className="text-xs text-gray-500 mr-3">
-                {createdAt ? format(new Date(createdAt), 'yyyy.MM.dd') : ''}
-              </p>
-              <div className="flex gap-1">
-                {keywords?.slice(0, 1).map((k, i) => (
-                  <Badge
-                    key={k.id}
-                    variant={
-                      badgeVariants[i % badgeVariants.length] as 'default' | 'secondary' | 'purple'
-                    }
-                    className="rounded-full px-2 py-0.5 text-xs"
-                  >
-                    {k.name}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            <p className="text-sm text-gray-700 mb-3 line-clamp-4">{summary}</p>
-          </div>
+          )}
         </div>
 
-        <div className="pt-4 flex-grow flex flex-col justify-between">
-          <div className="border-t pt-5 border-gray-100 pb-1">
-            {!data?.commentsByPost?.length && (
-              <p className="font-medium text-sm">No comments yet</p>
-            )}
-            {!!data?.commentsByPost?.length && (
-              <span className="px-[10px] py-[2px] mb-4 font-semibold text-secondary-foreground bg-secondary rounded-full text-xs inline-block">
-                New comment
-              </span>
-            )}
-
-            {data?.commentsByPost?.slice(0, maxComments).map((comment) => (
-              <div key={comment.id} className="flex mb-2">
-                <Avatar className="w-10 h-10 mr-2">
-                  <AvatarImage
-                    src={comment.author?.image || ''}
-                    alt={`${comment.author?.firstName} ${comment.author?.lastName}`}
-                  />
-                  <AvatarFallback className="text-[10px]">
-                    {getInitials(
-                      `${comment.author?.firstName || ''} ${comment.author?.lastName || ''}`,
-                    )}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="w-full">
-                  <div className="flex items-center mb-1 justify-between w-full">
-                    <h4 className="font-medium text-sm">{getUserName(comment.author)}</h4>
-                    <span className="text-xs text-gray-500 ml-2">
-                      {comment.createdAt ? format(new Date(comment.createdAt), 'MMM dd, yyyy') : ''}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-700 line-clamp-1">{comment.content}</p>
-                </div>
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-0.5">
+            <h2 className="font-bold text-base line-clamp-1 w-full font-inter">
+              {title || 'Community'}
+            </h2>
+            <p className="text-xs font-bold text-muted-foreground">{authorName}</p>
+            {post?.createdAt && (
+              <div className="flex gap-[6px] text-xs text-muted-foreground">
+                <span>{format(new Date(post.createdAt), 'dd.MM.yyyy')}</span>
+                <span>•</span>
+                <span>Views {12}</span>
               </div>
-            ))}
+            )}
           </div>
 
-          <div className="flex justify-end mt-auto">
-            <Link
-              to={`/community/posts/${id}`}
-              className="flex items-center text-sm font-medium text-foreground hover:text-gray-800"
-            >
-              View more <ArrowRight className="w-4 h-4 ml-1" />
-            </Link>
-          </div>
+          <p className="text-sm text-slate-500 line-clamp-4 font-inter">{summary}</p>
         </div>
       </div>
-    </div>
+      <Separator />
+      <div className="flex-grow flex flex-col gap-4">
+        <div>
+          {!data?.commentsByCommentable?.length && (
+            <p className="font-medium text-sm">No comments yet</p>
+          )}
+          {!!data?.commentsByCommentable?.length && (
+            <span className="px-[10px] py-[2px] font-semibold text-gray-dark bg-secondary rounded-full text-xs inline-block">
+              New comment
+            </span>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-3">
+          {data?.commentsByCommentable?.slice(0, maxComments).map((comment, idx) => (
+            <div
+              key={comment.id}
+              className={cn('flex gap-4', idx < maxComments - 1 && 'border-b pb-4')}
+            >
+              <Avatar className="w-10 h-10">
+                <AvatarImage
+                  src={comment.author?.image || ''}
+                  alt={`${comment.author?.firstName} ${comment.author?.lastName}`}
+                />
+                <AvatarFallback>
+                  {getInitials(
+                    `${comment.author?.firstName || ''} ${comment.author?.lastName || ''}`,
+                  )}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col gap-1 flex-1">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-sm">{getUserName(comment.author)}</h4>
+                  <span className="text-xs text-muted-foreground">
+                    {comment.createdAt
+                      ? format(new Date(comment.createdAt), 'MMM dd, yyyy, h:mm:ss a')
+                      : ''}
+                  </span>
+                </div>
+                <p className="font-medium text-xs text-gray-dark line-clamp-1 font-inter">
+                  {comment.content}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Link>
   );
 }
 
