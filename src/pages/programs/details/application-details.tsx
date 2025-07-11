@@ -262,7 +262,7 @@ function ApplicationDetails() {
               <p className="text-sm text-red-400">You can edit and resubmit your application.</p>
             )}
 
-          {program?.validator?.id === userId && data?.application?.status === 'pending' && (
+          {program?.validators?.some(v => v.id === userId) && data?.application?.status === 'pending' && (
             <div className="flex justify-end gap-3">
               <Dialog>
                 <DialogTrigger asChild>
@@ -355,7 +355,7 @@ function ApplicationDetails() {
                     </div>
                   )}
 
-                  {(program?.creator?.id === userId || program?.validator?.id === userId || isAdmin || data?.application?.applicant?.id === userId) && m.file && (
+                  {(program?.creator?.id === userId || program?.validators?.some(v => v.id === userId) || isAdmin || data?.application?.applicant?.id === userId) && m.file && (
                     <div className='mb-6'>
 
                       <h2 className="font-bold text-gray-dark text-sm mb-3">UPLOAD</h2>
@@ -370,7 +370,7 @@ function ApplicationDetails() {
                     </div>
                   )}
 
-                  {m.status === MilestoneStatus.Submitted && program?.validator?.id === userId && (
+                  {m.status === MilestoneStatus.Submitted && program?.validators?.some(v => v.id === userId) && (
                     <div className="flex justify-between">
                       <Dialog>
                         <DialogTrigger asChild>
