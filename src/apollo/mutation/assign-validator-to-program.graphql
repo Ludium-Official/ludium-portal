@@ -1,0 +1,11 @@
+mutation assignValidatorToProgram($programId: ID!, $validatorId: ID!) {
+  assignValidatorToProgram(programId: $programId, validatorId: $validatorId) {
+    validators {
+      about
+      firstName
+      lastName
+      organizationName
+      walletAddress
+    }
+  }
+}

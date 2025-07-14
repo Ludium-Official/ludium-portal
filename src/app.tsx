@@ -1,5 +1,7 @@
 import AdminOutlet from '@/components/layout/admin-outlet';
 import Layout from '@/components/layout/layout';
+import { CustomDynamicTabsExample } from '@/components/ui/dynamic-tab-example';
+// import { DynamicTabsExample } from '@/components/ui/dynamic-tab-example';
 import AdminPage from '@/pages/admin';
 import CommunityPage from '@/pages/community';
 import CreateCommunityPage from '@/pages/community/create';
@@ -23,6 +25,7 @@ function App() {
     <ScrollWrapper>
       <Routes>
         <Route path="/" element={<Layout />}>
+          <Route path="test" element={<CustomDynamicTabsExample />} />
           <Route index element={<MainPage />} />
           <Route path="profile">
             <Route index element={<ProfilePage />} />

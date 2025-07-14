@@ -42,7 +42,7 @@ const EditProgram: React.FC = () => {
           currency: args.currency,
           deadline: args.deadline,
           keywords: args.keywords,
-          validatorId: args.validatorId,
+          // validatorId: args.validatorId,
           links: args.links,
           network: args.network,
         },

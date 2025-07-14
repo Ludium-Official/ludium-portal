@@ -18,6 +18,7 @@ export default function TransactionWrapper({
 }: {
   handleSuccess: (response: TransactionResponse) => Promise<void>;
   functionName: string;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   args: any;
   buttonText?: string;
 }) {

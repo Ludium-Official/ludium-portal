@@ -1,25 +1,27 @@
-
 import { useCarouselItemsQuery } from '@/apollo/queries/carousel-items.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import thumbnail from '@/assets/thumbnail.jpg';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Carousel, type CarouselApi, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+import {
+  Carousel,
+  type CarouselApi,
+  CarouselContent,
+  CarouselItem,
+} from '@/components/ui/carousel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getCurrency } from '@/lib/utils';
 import { ApplicationStatus, type Post, type Program } from '@/types/types.generated';
 import { format } from 'date-fns';
-import Autoplay from 'embla-carousel-autoplay'
+import Autoplay from 'embla-carousel-autoplay';
 import { ArrowRight } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 
 function MainPage() {
-
   const [api, setApi] = useState<CarouselApi | null>(null);
   const [current, setCurrent] = useState(0);
   const [snaps, setSnaps] = useState<number[]>([]);
-
 
   const onSelect = useCallback(() => {
     if (!api) return;
@@ -30,8 +32,10 @@ function MainPage() {
     if (!api) return;
     setSnaps(api.scrollSnapList());
     onSelect();
-    api.on("select", onSelect);
-    return () => { api.off("select", onSelect) };
+    api.on('select', onSelect);
+    return () => {
+      api.off('select', onSelect);
+    };
   }, [api, onSelect]);
 
   const badgeVariants = ['teal', 'orange', 'pink'];
@@ -48,10 +52,10 @@ function MainPage() {
     },
   });
 
-  const { data: carouselItemsData, loading: carouselLoading } = useCarouselItemsQuery()
+  const { data: carouselItemsData, loading: carouselLoading } = useCarouselItemsQuery();
 
   return (
-    <div className="mx-10 my-[60px]">
+    <div className="px-10 py-[60px] bg-white rounded-b-2xl">
       {carouselLoading && (
         <section className="flex justify-between items-center mb-20">
           <div>
@@ -63,55 +67,66 @@ function MainPage() {
         </section>
       )}
 
-      {!!carouselItemsData?.carouselItems?.length && <Carousel
-        setApi={setApi}
-        plugins={[Autoplay({
-          delay: 4000,
-        })]}
-        opts={{
-          align: "start",
-          loop: true,
-        }}
-      >
-        <CarouselContent>
-          {carouselItemsData?.carouselItems?.map(item => (
-            <CarouselItem key={item.id}>
-              <section className="flex justify-between items-center mb-20">
-                <div className="max-w-[50%]">
-                  <div className="flex gap-3">
-                    {(item.data as Post)?.keywords?.slice(0, 3)?.map((k) => (
-                      <Badge className="h-[20px] font-sans" key={k.id}>
-                        {k.name}
-                      </Badge>
-                    ))}
+      {!!carouselItemsData?.carouselItems?.length && (
+        <Carousel
+          setApi={setApi}
+          plugins={[
+            Autoplay({
+              delay: 4000,
+            }),
+          ]}
+          opts={{
+            align: 'start',
+            loop: true,
+          }}
+        >
+          <CarouselContent>
+            {carouselItemsData?.carouselItems?.map((item) => (
+              <CarouselItem key={item.id}>
+                <section className="flex justify-between items-center mb-20">
+                  <div className="max-w-[50%]">
+                    <div className="flex gap-3">
+                      {(item.data as Post)?.keywords?.slice(0, 3)?.map((k) => (
+                        <Badge className="h-[20px] font-sans" key={k.id}>
+                          {k.name}
+                        </Badge>
+                      ))}
+                    </div>
+                    <h1 className="text-5xl font-bold font-sans mb-3">
+                      {item?.data?.__typename === 'Post'
+                        ? (item.data as Post)?.title
+                        : (item.data as Program)?.name}
+                    </h1>
+                    <p className="text-lg mb-15">{item.data?.summary}</p>
+                    <Button type="button" variant="purple" className="w-[152px] h-11" asChild>
+                      <Link
+                        to={`${item.data?.__typename === 'Post' ? '/community/posts/' : '/programs/'}${item.itemId}`}
+                      >
+                        VIEW DETAIL
+                      </Link>
+                    </Button>
                   </div>
-                  <h1 className="text-5xl font-bold font-sans mb-3">{item?.data?.__typename === 'Post' ? (item.data as Post)?.title : (item.data as Program)?.name}</h1>
-                  <p className="text-lg mb-15">{item.data?.summary}</p>
-                  <Button type="button" variant="purple" className="w-[152px] h-11" asChild>
-                    <Link to={`${item.data?.__typename === 'Post' ? '/community/posts/' : '/programs/'}${item.itemId}`}>VIEW DETAIL</Link>
-                  </Button>
-                </div>
-                <div className="flex w-[544px] h-[306px]">
-                  {(item.data as Post)?.image ? (
-                    <img
-                      src={(item.data as Post)?.image ?? ''}
-                      alt="main"
-                      className="rounded-lg w-full h-full object-cover"
-                    />
-                  ) : (
-                    // <div className="rounded-lg w-full h-full" />
-                    <img src={thumbnail} alt="main" className="rounded-lg" />
-
-                  )}
-                </div>
-              </section>
-            </CarouselItem>
-          ))}
-          {/* <CarouselItem>...</CarouselItem>
+                  <div className="flex w-[544px] h-[306px]">
+                    {(item.data as Post)?.image ? (
+                      <img
+                        src={(item.data as Post)?.image ?? ''}
+                        alt="main"
+                        className="rounded-lg w-full h-full object-cover"
+                      />
+                    ) : (
+                      // <div className="rounded-lg w-full h-full" />
+                      <img src={thumbnail} alt="main" className="rounded-lg" />
+                    )}
+                  </div>
+                </section>
+              </CarouselItem>
+            ))}
+            {/* <CarouselItem>...</CarouselItem>
           <CarouselItem>...</CarouselItem>
           <CarouselItem>...</CarouselItem> */}
-        </CarouselContent>
-      </Carousel>}
+          </CarouselContent>
+        </Carousel>
+      )}
 
       <div className="flex justify-center mt-4 space-x-2">
         {snaps.map((_, i) => (
@@ -120,8 +135,9 @@ function MainPage() {
             key={i}
             onClick={() => api?.scrollTo(i)}
             size="icon"
-            className={`w-2 h-2 rounded-full hover:bg-primary-light ${current === i ? "bg-primary" : "bg-gray-300"
-              }`}
+            className={`w-2 h-2 rounded-full hover:bg-primary-light ${
+              current === i ? 'bg-primary' : 'bg-gray-300'
+            }`}
           />
         ))}
       </div>
@@ -158,9 +174,9 @@ function MainPage() {
                         key={k.id}
                         variant={
                           badgeVariants[i % badgeVariants.length] as
-                          | 'default'
-                          | 'secondary'
-                          | 'purple'
+                            | 'default'
+                            | 'secondary'
+                            | 'purple'
                         }
                       >
                         {k.name}

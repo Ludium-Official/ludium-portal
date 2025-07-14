@@ -17,7 +17,7 @@ mutation submitProgram($id: ID!, $educhainProgramId: Int!, $txHash: String!) {
     price
     status
     summary
-    validator {
+    validators {
       about
       email
       firstName

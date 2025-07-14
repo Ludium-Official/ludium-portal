@@ -3,7 +3,7 @@
 }
 
 .prose {
-  color: #18181b;
+  color: var(--color-slate-600);
   font-family: Inter, sans-serif;
   margin-bottom: 30px;
   letter-spacing: -0.4px;
@@ -66,6 +66,10 @@
 
   button[title="Delete code block"]:disabled {
     display: none;
+  }
+
+  strong {
+    color: var(--color-slate-600);
   }
 
   /* To hide language selector */

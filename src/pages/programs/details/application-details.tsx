@@ -262,34 +262,35 @@ function ApplicationDetails() {
               <p className="text-sm text-red-400">You can edit and resubmit your application.</p>
             )}
 
-          {program?.validator?.id === userId && data?.application?.status === 'pending' && (
-            <div className="flex justify-end gap-3">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button onClick={(e) => e.stopPropagation()} className="h-10" variant="outline">
-                    Reject
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
-                  <RejectApplicationForm
-                    applicationId={applicationId}
-                    refetch={() => {
-                      refetch();
-                      programRefetch();
-                    }}
-                  />
-                </DialogContent>
-              </Dialog>
-              <Button
-                className="h-10"
-                onClick={() => {
-                  approveApplication();
-                }}
-              >
-                Select
-              </Button>
-            </div>
-          )}
+          {program?.validators?.some((v) => v.id === userId) &&
+            data?.application?.status === 'pending' && (
+              <div className="flex justify-end gap-3">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button onClick={(e) => e.stopPropagation()} className="h-10" variant="outline">
+                      Reject
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
+                    <RejectApplicationForm
+                      applicationId={applicationId}
+                      refetch={() => {
+                        refetch();
+                        programRefetch();
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
+                <Button
+                  className="h-10"
+                  onClick={() => {
+                    approveApplication();
+                  }}
+                >
+                  Select
+                </Button>
+              </div>
+            )}
         </div>
 
         <div className="border-r" />
@@ -355,13 +356,24 @@ function ApplicationDetails() {
                     </div>
                   )}
 
-                  {(program?.creator?.id === userId || program?.validator?.id === userId || isAdmin || data?.application?.applicant?.id === userId) && m.file && (
-                    <div className='mb-6'>
-
-                      <h2 className="font-bold text-gray-dark text-sm mb-3">UPLOAD</h2>
-                      <a href={m.file ?? ''} download className='underline text-slate-600' target='_blank' rel="noreferrer">Click to see upload</a>
-                    </div>
-                  )}
+                  {(program?.creator?.id === userId ||
+                    program?.validators?.some((v) => v.id === userId) ||
+                    isAdmin ||
+                    data?.application?.applicant?.id === userId) &&
+                    m.file && (
+                      <div className="mb-6">
+                        <h2 className="font-bold text-gray-dark text-sm mb-3">UPLOAD</h2>
+                        <a
+                          href={m.file ?? ''}
+                          download
+                          className="underline text-slate-600"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Click to see upload
+                        </a>
+                      </div>
+                    )}
 
                   {m.rejectionReason && m.status === MilestoneStatus.Pending && (
                     <div className="mb-6">
@@ -370,33 +382,34 @@ function ApplicationDetails() {
                     </div>
                   )}
 
-                  {m.status === MilestoneStatus.Submitted && program?.validator?.id === userId && (
-                    <div className="flex justify-between">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            onClick={(e) => e.stopPropagation()}
-                            className="h-10"
-                            variant="outline"
-                          >
-                            Reject Milestone
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
-                          <RejectMilestoneForm
-                            milestoneId={m.id}
-                            refetch={() => {
-                              refetch();
-                              programRefetch();
-                            }}
-                          />
-                        </DialogContent>
-                      </Dialog>
-                      <Button className="h-10" onClick={() => callTx(m.price, m.id)}>
-                        Accept Milestone
-                      </Button>
-                    </div>
-                  )}
+                  {m.status === MilestoneStatus.Submitted &&
+                    program?.validators?.some((v) => v.id === userId) && (
+                      <div className="flex justify-between">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              onClick={(e) => e.stopPropagation()}
+                              className="h-10"
+                              variant="outline"
+                            >
+                              Reject Milestone
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
+                            <RejectMilestoneForm
+                              milestoneId={m.id}
+                              refetch={() => {
+                                refetch();
+                                programRefetch();
+                              }}
+                            />
+                          </DialogContent>
+                        </Dialog>
+                        <Button className="h-10" onClick={() => callTx(m.price, m.id)}>
+                          Accept Milestone
+                        </Button>
+                      </div>
+                    )}
 
                   {m.status === MilestoneStatus.Pending &&
                     data?.application?.status === ApplicationStatus.Accepted &&
@@ -407,7 +420,7 @@ function ApplicationDetails() {
                           disabled={
                             idx !== 0 &&
                             data?.application?.milestones?.[idx - 1]?.status !==
-                            MilestoneStatus.Completed
+                              MilestoneStatus.Completed
                           }
                         >
                           <Button className="h-10 block ml-auto">Submit Milestone</Button>
