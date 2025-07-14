@@ -33,7 +33,7 @@ import {
 import '@mdxeditor/editor/style.css';
 import { useEffect, useRef, useState } from 'react';
 
-import './style.css'
+import './style.css';
 
 // const defaultSnippetContent = `
 // export default function App() {

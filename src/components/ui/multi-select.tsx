@@ -47,7 +47,7 @@ const multiSelectVariants = cva(
  */
 interface MultiSelectProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-  VariantProps<typeof multiSelectVariants> {
+    VariantProps<typeof multiSelectVariants> {
   /**
    * An array of option objects to be displayed in the multi-select component.
    * Each option object has a label, value, and an optional icon.
@@ -118,12 +118,15 @@ interface MultiSelectProps
   selectedItems?: {
     label: string;
     value: string;
-  }[]
-  setSelectedItems?: React.Dispatch<React.SetStateAction<{
-    label: string;
-    value: string;
-  }[]>>;
-
+  }[];
+  setSelectedItems?: React.Dispatch<
+    React.SetStateAction<
+      {
+        label: string;
+        value: string;
+      }[]
+    >
+  >;
 
   inputValue?: string;
   setInputValue?: React.Dispatch<React.SetStateAction<string | undefined>>;
@@ -173,13 +176,13 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
         ? selectedItems?.filter((val) => val.value !== value)
         : [...(selectedItems ?? []), { value, label }];
       setSelectedValues(newSelectedValues);
-      setSelectedItems?.(newSelectedItems ?? [])
+      setSelectedItems?.(newSelectedItems ?? []);
       onValueChange(newSelectedValues);
     };
 
     const handleClear = () => {
       setSelectedValues([]);
-      setSelectedItems?.([])
+      setSelectedItems?.([]);
       onValueChange([]);
     };
 
@@ -193,11 +196,10 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
       } else {
         const allValues = options.map((option) => option.value);
         setSelectedValues(allValues);
-        setSelectedItems?.(options)
+        setSelectedItems?.(options);
         onValueChange(allValues);
       }
     };
-
 
     return (
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen} modal={modalPopover}>
@@ -215,10 +217,12 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
               <div className="flex justify-between items-center w-full">
                 <div className="flex flex-wrap items-center">
                   {(selectedItems ?? selectedValues)?.slice(0, maxCount).map((item) => {
-                    const option = !selectedItems?.length ? options.find((o) => o.value === item) : (item as {
-                      label: string;
-                      value: string;
-                    });
+                    const option = !selectedItems?.length
+                      ? options.find((o) => o.value === item)
+                      : (item as {
+                          label: string;
+                          value: string;
+                        });
                     // const IconComponent = option?.icon;
                     return (
                       <Badge
@@ -268,30 +272,39 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
           align="start"
           onEscapeKeyDown={() => setIsPopoverOpen(false)}
         >
-          <Command filter={(value, search) => {
-            if (!search) return 1;
-            if (selectedValues.includes(value)) return 1;
-            const label = options.find((option) => option.value === value)?.label;
-            return label?.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
-          }}>
-            <CommandInput value={inputValue} onValueChange={setInputValue} placeholder="Search..." />
-            <CommandEmpty className='px-3 py-6 text-sm text-center'>{loading ? 'Loading...' : emptyText}</CommandEmpty>
+          <Command
+            filter={(value, search) => {
+              if (!search) return 1;
+              if (selectedValues.includes(value)) return 1;
+              const label = options.find((option) => option.value === value)?.label;
+              return label?.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
+            }}
+          >
+            <CommandInput
+              value={inputValue}
+              onValueChange={setInputValue}
+              placeholder="Search..."
+            />
+            <CommandEmpty className="px-3 py-6 text-sm text-center">
+              {loading ? 'Loading...' : emptyText}
+            </CommandEmpty>
             <CommandList>
               <CommandGroup>
-
-                {options?.length > 0 && !inputValue && <CommandItem key="all" onSelect={toggleAll} className="cursor-pointer">
-                  <div
-                    className={cn(
-                      'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
-                      selectedValues?.length === options?.length
-                        ? 'bg-gray-dark text-primary-foreground'
-                        : 'opacity-50 [&_svg]:invisible',
-                    )}
-                  >
-                    <CheckIcon className="h-4 w-4" />
-                  </div>
-                  <span>(Select All)</span>
-                </CommandItem>}
+                {options?.length > 0 && !inputValue && (
+                  <CommandItem key="all" onSelect={toggleAll} className="cursor-pointer">
+                    <div
+                      className={cn(
+                        'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
+                        selectedValues?.length === options?.length
+                          ? 'bg-gray-dark text-primary-foreground'
+                          : 'opacity-50 [&_svg]:invisible',
+                      )}
+                    >
+                      <CheckIcon className="h-4 w-4" />
+                    </div>
+                    <span>(Select All)</span>
+                  </CommandItem>
+                )}
 
                 {selectedItems?.map((option) => {
                   // const option = options.find(o => o.value === opt)
@@ -307,9 +320,9 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                         className={cn(
                           'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
                           // isSelected
-                          //   ? 
-                          'bg-gray-dark text-primary-foreground'
-                          // : 
+                          //   ?
+                          'bg-gray-dark text-primary-foreground',
+                          // :
                           // 'opacity-50 [&_svg]:invisible',
                         )}
                       >
@@ -319,33 +332,35 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                     </CommandItem>
                   );
                 })}
-                {options.filter(o => !selectedValues.includes(o.value)).map((option) => {
-                  // const isSelected = selectedValues?.includes(option.value);
-                  return (
-                    <CommandItem
-                      value={option.value}
-                      key={option.value}
-                      onSelect={() => toggleOption(option.value, option.label)}
-                      className="cursor-pointer"
-                    >
-                      <div
-                        className={cn(
-                          'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
-                          // isSelected
-                          // ? 'bg-gray-dark text-primary-foreground'
-                          // : 
-                          'opacity-50 [&_svg]:invisible',
-                        )}
+                {options
+                  .filter((o) => !selectedValues.includes(o.value))
+                  .map((option) => {
+                    // const isSelected = selectedValues?.includes(option.value);
+                    return (
+                      <CommandItem
+                        value={option.value}
+                        key={option.value}
+                        onSelect={() => toggleOption(option.value, option.label)}
+                        className="cursor-pointer"
                       >
-                        <CheckIcon className="h-4 w-4" />
-                      </div>
-                      {option.icon && (
-                        <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                      )}
-                      <span>{option.label}</span>
-                    </CommandItem>
-                  );
-                })}
+                        <div
+                          className={cn(
+                            'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
+                            // isSelected
+                            // ? 'bg-gray-dark text-primary-foreground'
+                            // :
+                            'opacity-50 [&_svg]:invisible',
+                          )}
+                        >
+                          <CheckIcon className="h-4 w-4" />
+                        </div>
+                        {option.icon && (
+                          <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                        )}
+                        <span>{option.label}</span>
+                      </CommandItem>
+                    );
+                  })}
               </CommandGroup>
             </CommandList>
           </Command>

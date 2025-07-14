@@ -15,7 +15,7 @@ const CreateProgram: React.FC = () => {
   const navigate = useNavigate();
   const [createProgram] = useCreateProgramMutation();
 
-  const [assignValidatorToProgram] = useAssignValidatorToProgramMutation()
+  const [assignValidatorToProgram] = useAssignValidatorToProgramMutation();
   const [inviteUserToProgram] = useInviteUserToProgramMutation();
 
   const { isLoggedIn, isAuthed } = useAuth();
@@ -48,21 +48,35 @@ const CreateProgram: React.FC = () => {
           network: args.network,
           image: args.image,
 
-          visibility: args.visibility as ProgramVisibility
+          visibility: args.visibility as ProgramVisibility,
         },
       },
       onCompleted: async (data) => {
-        const results = await Promise.allSettled(args.validators.map((validatorId) => assignValidatorToProgram({ variables: { validatorId, programId: data.createProgram?.id ?? '' } })))
+        const results = await Promise.allSettled(
+          args.validators.map((validatorId) =>
+            assignValidatorToProgram({
+              variables: { validatorId, programId: data.createProgram?.id ?? '' },
+            }),
+          ),
+        );
 
-        if (results.some(r => r.status === 'rejected')) {
-          notify('Failed to assign validators to the program due to an unexpected error.', 'error')
+        if (results.some((r) => r.status === 'rejected')) {
+          notify('Failed to assign validators to the program due to an unexpected error.', 'error');
         }
         // Invite builders if private
-        if (args.visibility === 'private' && Array.isArray(args.builders) && args.builders.length > 0) {
+        if (
+          args.visibility === 'private' &&
+          Array.isArray(args.builders) &&
+          args.builders.length > 0
+        ) {
           const inviteResults = await Promise.allSettled(
-            args.builders.map((userId) => inviteUserToProgram({ variables: { programId: data.createProgram?.id ?? '', userId } }))
+            args.builders.map((userId) =>
+              inviteUserToProgram({
+                variables: { programId: data.createProgram?.id ?? '', userId },
+              }),
+            ),
           );
-          if (inviteResults.some(r => r.status === 'rejected')) {
+          if (inviteResults.some((r) => r.status === 'rejected')) {
             notify('Failed to invite some builders to the program.', 'error');
           }
         }

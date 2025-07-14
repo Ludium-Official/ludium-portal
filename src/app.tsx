@@ -25,7 +25,7 @@ function App() {
     <ScrollWrapper>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route path='test' element={<CustomDynamicTabsExample />} />
+          <Route path="test" element={<CustomDynamicTabsExample />} />
           <Route index element={<MainPage />} />
           <Route path="profile">
             <Route index element={<ProfilePage />} />

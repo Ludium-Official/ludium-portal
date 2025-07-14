@@ -11,7 +11,7 @@ import { CirclePlus, ListFilter } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 
-const PageSize = 12
+const PageSize = 12;
 
 const ProgramsPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('all');
@@ -42,19 +42,19 @@ const ProgramsPage: React.FC = () => {
   const filter = [
     ...(selectedTab === 'my-programs'
       ? [
-        {
-          field: 'userId',
-          value: userId,
-        },
-      ]
+          {
+            field: 'userId',
+            value: userId,
+          },
+        ]
       : []),
     ...(selectedTab === 'published'
       ? [
-        {
-          field: 'status',
-          value: 'published',
-        },
-      ]
+          {
+            field: 'status',
+            value: 'published',
+          },
+        ]
       : []),
     {
       field: 'name',
@@ -76,7 +76,11 @@ const ProgramsPage: React.FC = () => {
   const totalCount = data?.programs?.count ?? 0;
 
   return (
-    <Tabs className="p-10 pr-[55px] bg-white rounded-b-2xl" value={selectedTab} onValueChange={setSelectedTab}>
+    <Tabs
+      className="p-10 pr-[55px] bg-white rounded-b-2xl"
+      value={selectedTab}
+      onValueChange={setSelectedTab}
+    >
       <section className="flex justify-between items-center mb-3">
         <TabsList className="">
           <TabsTrigger value="all">All</TabsTrigger>

@@ -190,8 +190,15 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
                 },
               },
             }).then(() => refetch());
-          }} disabled={carouselItems?.carouselItems?.some(item => item.itemId === data?.post?.id || (carouselItems?.carouselItems?.length ?? 0) >= 5)}>
-          {carouselItems?.carouselItems?.some(item => item.itemId === data?.post?.id) ? "Already in Carousel" : "Add to Main Carousel"}
+          }}
+          disabled={carouselItems?.carouselItems?.some(
+            (item) =>
+              item.itemId === data?.post?.id || (carouselItems?.carouselItems?.length ?? 0) >= 5,
+          )}
+        >
+          {carouselItems?.carouselItems?.some((item) => item.itemId === data?.post?.id)
+            ? 'Already in Carousel'
+            : 'Add to Main Carousel'}
         </Button>
       )}
 

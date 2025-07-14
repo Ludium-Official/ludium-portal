@@ -28,7 +28,7 @@ export function ApplicationDynamicTabs({
   const [activeTab, setActiveTab] = React.useState(defaultActiveTab || tabs[0]?.id || '');
 
   React.useEffect(() => {
-    if (!tabs.find(tab => tab.id === activeTab)) {
+    if (!tabs.find((tab) => tab.id === activeTab)) {
       setActiveTab(tabs[0]?.id || '');
     }
   }, [tabs, activeTab]);
@@ -63,7 +63,7 @@ export function ApplicationDynamicTabs({
               {!tab.isFixed && (
                 <button
                   type="button"
-                  onClick={e => {
+                  onClick={(e) => {
                     e.stopPropagation();
                     onRemoveMilestone(idx - 3);
                   }}
@@ -82,7 +82,7 @@ export function ApplicationDynamicTabs({
           type="button"
           onClick={onAddMilestone}
           className={cn(
-            'ml-2 p-0 bg-transparent border-none text-black hover:text-primary transition-colors'
+            'ml-2 p-0 bg-transparent border-none text-black hover:text-primary transition-colors',
           )}
           aria-label="Add tab"
         >

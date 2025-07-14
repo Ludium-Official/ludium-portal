@@ -71,10 +71,11 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   const [imageError, setImageError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedBuilders, setSelectedBuilders] = useState<string[]>([]);
-  const [selectedBuilderItems, setSelectedBuilderItems] = useState<{ label: string; value: string }[]>([]);
+  const [selectedBuilderItems, setSelectedBuilderItems] = useState<
+    { label: string; value: string }[]
+  >([]);
   const [builderInput, setBuilderInput] = useState<string>();
   const [debouncedBuilderInput, setDebouncedBuilderInput] = useState<string>();
-
 
   const { data: keywords } = useKeywordsQuery();
 
@@ -124,7 +125,8 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   useEffect(() => {
     if (data?.program?.keywords)
       setSelectedKeywords(data?.program?.keywords?.map((k) => k.id ?? '') ?? []);
-    if (data?.program?.validators) setSelectedValidators(data?.program.validators?.map((k) => k.id ?? '') ?? '');
+    if (data?.program?.validators)
+      setSelectedValidators(data?.program.validators?.map((k) => k.id ?? '') ?? '');
     if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
     if (data?.program?.links) setLinks(data?.program?.links.map((l) => l.url ?? ''));
     if (data?.program?.description) setContent(data?.program.description);
@@ -177,7 +179,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     price: string;
     summary: string;
   }) => {
-    console.log("IM HERE!!!!!!!!!!!!!")
+    console.log('IM HERE!!!!!!!!!!!!!');
     if (
       imageError ||
       extraErrors.deadline ||
@@ -214,34 +216,38 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
 
   const extraValidation = () => {
     dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
-    if (!selectedImage) setImageError('Picture is required.')
+    if (!selectedImage) setImageError('Picture is required.');
     if (!selectedKeywords?.length)
       dispatchErrors({ type: ExtraErrorActionKind.SET_KEYWORDS_ERROR });
-    if (!selectedValidators?.length) dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
+    if (!selectedValidators?.length)
+      dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
     if (!deadline) dispatchErrors({ type: ExtraErrorActionKind.SET_DEADLINE_ERROR });
     if (!links?.[0]) dispatchErrors({ type: ExtraErrorActionKind.SET_LINKS_ERROR });
     if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
       dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
     }
 
-    formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }))
+    formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
   };
-
 
   const { data: carouselItems, refetch } = useCarouselItemsQuery();
 
   const [createCarouselItem] = useCreateCarouselItemMutation();
 
-  const [selectedKeywordItems, setSelectedKeywordItems] = useState<{
-    label: string;
-    value: string;
-  }[]>([])
-  const [selectedValidatorItems, setSelectedValidatorItems] = useState<{
-    label: string;
-    value: string;
-  }[]>([])
+  const [selectedKeywordItems, setSelectedKeywordItems] = useState<
+    {
+      label: string;
+      value: string;
+    }[]
+  >([]);
+  const [selectedValidatorItems, setSelectedValidatorItems] = useState<
+    {
+      label: string;
+      value: string;
+    }[]
+  >([]);
 
-  const formRef = useRef<HTMLFormElement>(null)
+  const formRef = useRef<HTMLFormElement>(null);
 
   // image input handler
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -283,19 +289,21 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   };
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className='max-w-[820px] w-full mx-auto'>
+    <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="max-w-[820px] w-full mx-auto">
       <h1 className="font-medium text-xl mb-6">Program</h1>
       {/* <h1 className="font-medium text-xl mb-6">{isEdit ? 'Edit Program' : 'Create Program'}</h1> */}
 
-      <Tabs defaultValue='overview' value={selectedTab} onValueChange={setSelectedTab}>
-        <TabsList className='w-full px-0 mb-3'>
-          <TabsTrigger value='overview'>Overview</TabsTrigger>
-          <TabsTrigger value='details'>Details</TabsTrigger>
+      <Tabs defaultValue="overview" value={selectedTab} onValueChange={setSelectedTab}>
+        <TabsList className="w-full px-0 mb-3">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="details">Details</TabsTrigger>
         </TabsList>
-        <TabsContent value='overview'>
-          <div className='bg-white py-6 px-10 rounded-lg mb-3'>
+        <TabsContent value="overview">
+          <div className="bg-white py-6 px-10 rounded-lg mb-3">
             <label htmlFor="programName" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium">Program name <span className='text-primary'>*</span></p>
+              <p className="text-sm font-medium">
+                Program name <span className="text-primary">*</span>
+              </p>
               <Input
                 id="programName"
                 type="text"
@@ -309,7 +317,9 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
             </label>
 
             <label htmlFor="keyword" className="space-y-2 block">
-              <p className="text-sm font-medium">Keywords <span className='text-primary'>*</span></p>
+              <p className="text-sm font-medium">
+                Keywords <span className="text-primary">*</span>
+              </p>
               <MultiSelect
                 options={keywordOptions ?? []}
                 value={selectedKeywords}
@@ -337,11 +347,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                     onChange={handleImageChange}
                   />
                   {imagePreview ? (
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="object-cover w-full h-full"
-                    />
+                    <img src={imagePreview} alt="Preview" className="object-cover w-full h-full" />
                   ) : (
                     <div className="flex flex-col items-center justify-center w-full h-full">
                       <ImageIcon className="w-10 h-10 text-[#666666] mb-2" />
@@ -353,20 +359,29 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 </div>
                 {/* Text info */}
                 <div className="flex-1">
-                  <p className="font-medium text-base">Cover image <span className="text-primary">*</span></p>
-                  <p className="text-sm text-muted-foreground">Logo image must be square, under 2MB, and in PNG, JPG, or JPEG format.<br />This image is used in the program list</p>
-                  {imageError && <span className="text-destructive text-sm block mt-28">{imageError}</span>}
+                  <p className="font-medium text-base">
+                    Cover image <span className="text-primary">*</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Logo image must be square, under 2MB, and in PNG, JPG, or JPEG format.
+                    <br />
+                    This image is used in the program list
+                  </p>
+                  {imageError && (
+                    <span className="text-destructive text-sm block mt-28">{imageError}</span>
+                  )}
                 </div>
               </div>
             </label>
           </div>
 
-          <div className='bg-white px-10 py-6 rounded-lg mb-3'>
-
+          <div className="bg-white px-10 py-6 rounded-lg mb-3">
             <label htmlFor="price" className="space-y-2 block mb-10">
               <div className="flex gap-2 items-end">
-                <div className='w-1/2'>
-                  <p className="text-sm font-medium mb-2">Network <span className='text-primary'>*</span></p>
+                <div className="w-1/2">
+                  <p className="text-sm font-medium mb-2">
+                    Network <span className="text-primary">*</span>
+                  </p>
                   <NetworkSelector
                     disabled={isEdit && data?.program?.status !== 'draft'}
                     value={network}
@@ -374,8 +389,10 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                     className="min-w-[120px] h-10 w-full flex justify-between bg-white text-gray-dark border border-input shadow-sm hover:bg-white"
                   />
                 </div>
-                <div className='flex-1'>
-                  <p className="text-sm font-medium mb-2">Price <span className='text-primary'>*</span></p>
+                <div className="flex-1">
+                  <p className="text-sm font-medium mb-2">
+                    Price <span className="text-primary">*</span>
+                  </p>
                   <Input
                     disabled={isEdit && data?.program?.status !== 'draft'}
                     step={0.000000000000000001}
@@ -396,7 +413,9 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 />
               </div>
 
-              {errors.price && <span className="text-destructive text-sm block">Price is required</span>}
+              {errors.price && (
+                <span className="text-destructive text-sm block">Price is required</span>
+              )}
               {isEdit && data?.program?.status !== 'draft' && (
                 <span className="text-destructive text-sm block">
                   Price can't be updated after publishing.
@@ -405,7 +424,9 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
             </label>
 
             <label htmlFor="deadline" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium">Deadline <span className='text-primary'>*</span></p>
+              <p className="text-sm font-medium">
+                Deadline <span className="text-primary">*</span>
+              </p>
               <DatePicker date={deadline} setDate={setDeadline} disabled={{ before: new Date() }} />
               {extraErrors.deadline && (
                 <span className="text-destructive text-sm block">Deadline is required</span>
@@ -413,7 +434,9 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
             </label>
 
             <label htmlFor="validator" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium">Validators <span className='text-primary'>*</span></p>
+              <p className="text-sm font-medium">
+                Validators <span className="text-primary">*</span>
+              </p>
               {/* <SearchSelect
                 options={validatorOptions ?? []}
                 value={selectedValidator}
@@ -432,7 +455,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 maxCount={20}
                 inputValue={validatorInput}
                 setInputValue={setValidatorInput}
-
                 selectedItems={selectedValidatorItems}
                 setSelectedItems={setSelectedValidatorItems}
                 emptyText="Enter validator email or organization name"
@@ -444,10 +466,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
             </label>
           </div>
 
-
-
-          <div className='px-10 py-6 bg-white rounded-lg'>
-
+          <div className="px-10 py-6 bg-white rounded-lg">
             <label htmlFor="links" className="space-y-2 block mb-10">
               <p className="text-sm font-medium">Links</p>
               <span className="block text-gray-text text-sm">
@@ -472,7 +491,10 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                     <X
                       onClick={() =>
                         setLinks((prev) => {
-                          const newLinks = [...[...prev].slice(0, idx), ...[...prev].slice(idx + 1)];
+                          const newLinks = [
+                            ...[...prev].slice(0, idx),
+                            ...[...prev].slice(idx + 1),
+                          ];
 
                           return newLinks;
                         })
@@ -490,7 +512,9 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
               >
                 Add URL
               </Button>
-              {extraErrors.links && <span className="text-destructive text-sm block">Links is required</span>}
+              {extraErrors.links && (
+                <span className="text-destructive text-sm block">Links is required</span>
+              )}
               {extraErrors.invalidLink && (
                 <span className="text-destructive text-sm block">
                   The provided link is not valid. All links must begin with{' '}
@@ -499,11 +523,10 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
               )}
             </label>
           </div>
-
         </TabsContent>
 
-        <TabsContent value='details'>
-          <div className='bg-white px-10 py-6 rounded-lg mb-3'>
+        <TabsContent value="details">
+          <div className="bg-white px-10 py-6 rounded-lg mb-3">
             <label htmlFor="summary" className="space-y-2 block mb-10">
               <p className="text-sm font-medium">Summary</p>
               <Textarea
@@ -512,11 +535,13 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 className="h-10"
                 {...register('summary', { required: true })}
               />
-              {errors.summary && <span className="text-destructive text-sm block">Summary is required</span>}
+              {errors.summary && (
+                <span className="text-destructive text-sm block">Summary is required</span>
+              )}
             </label>
           </div>
 
-          <div className='px-10 py-6 bg-white rounded-lg'>
+          <div className="px-10 py-6 bg-white rounded-lg">
             <label htmlFor="description" className="space-y-2 block mb-10">
               <p className="text-sm font-medium">Description</p>
 
@@ -525,11 +550,9 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 <span className="text-destructive text-sm block">Description is required</span>
               )}
             </label>
-
           </div>
         </TabsContent>
       </Tabs>
-
 
       {isEdit && (
         <Button
@@ -544,11 +567,17 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 },
               },
             }).then(() => refetch());
-          }} disabled={carouselItems?.carouselItems?.some(item => item.itemId === data?.program?.id || (carouselItems?.carouselItems?.length ?? 0) >= 5)}>
-          {carouselItems?.carouselItems?.some(item => item.itemId === data?.program?.id) ? "Already in Carousel" : "Add to Main Carousel"}
+          }}
+          disabled={carouselItems?.carouselItems?.some(
+            (item) =>
+              item.itemId === data?.program?.id || (carouselItems?.carouselItems?.length ?? 0) >= 5,
+          )}
+        >
+          {carouselItems?.carouselItems?.some((item) => item.itemId === data?.program?.id)
+            ? 'Already in Carousel'
+            : 'Add to Main Carousel'}
         </Button>
       )}
-
 
       {isEdit ? (
         <div className="py-3 flex justify-end gap-4">
@@ -566,24 +595,31 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
         <div className="py-3 flex justify-end gap-4">
           <Popover>
             <PopoverTrigger>
-              <Button
-                type='button'
-                className="min-w-[97px]"
-                size='lg'
-              >
+              <Button type="button" className="min-w-[97px]" size="lg">
                 Save
               </Button>
             </PopoverTrigger>
-            <PopoverContent className='min-w-[440px]'>
-              <h2 className='text-foreground font-semibold text-center text-lg'>Visibility</h2>
-              <p className='text-center text-muted-foreground text-sm mb-4'>Choose when to publish and who can see your program.</p>
+            <PopoverContent className="min-w-[440px]">
+              <h2 className="text-foreground font-semibold text-center text-lg">Visibility</h2>
+              <p className="text-center text-muted-foreground text-sm mb-4">
+                Choose when to publish and who can see your program.
+              </p>
 
-              <RadioGroup defaultValue="public" className='space-y-2 mb-8' value={visibility} onValueChange={v => setVisibility(v as 'public' | 'private' | 'restricted')}>
+              <RadioGroup
+                defaultValue="public"
+                className="space-y-2 mb-8"
+                value={visibility}
+                onValueChange={(v) => setVisibility(v as 'public' | 'private' | 'restricted')}
+              >
                 <div className="flex items-start gap-3">
-                  <RadioGroupItem value="private" id="r1" className='border-foreground' />
+                  <RadioGroupItem value="private" id="r1" className="border-foreground" />
                   <div className="flex-1">
-                    <Label htmlFor="r1" className='font-medium mb-[6px]'>Private</Label>
-                    <p className='text-sm text-muted-foreground mb-2'>Only invited users can view this program.</p>
+                    <Label htmlFor="r1" className="font-medium mb-[6px]">
+                      Private
+                    </Label>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Only invited users can view this program.
+                    </p>
                     {visibility === 'private' && (
                       <MultiSelect
                         options={builderOptions ?? []}
@@ -604,31 +640,43 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <RadioGroupItem value="restricted" id="r2" className='border-foreground' />
+                  <RadioGroupItem value="restricted" id="r2" className="border-foreground" />
                   <div>
                     <Label htmlFor="r2">Restricted</Label>
-                    <p className='text-sm text-muted-foreground'>Only users with links can view.</p>
+                    <p className="text-sm text-muted-foreground">Only users with links can view.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <RadioGroupItem value="public" id="r3" className='border-foreground' />
+                  <RadioGroupItem value="public" id="r3" className="border-foreground" />
                   <div>
                     <Label htmlFor="r3">Public</Label>
-                    <p className='text-sm text-muted-foreground'>Anyone can view this program.</p>
+                    <p className="text-sm text-muted-foreground">Anyone can view this program.</p>
                   </div>
                 </div>
               </RadioGroup>
 
               <Button
                 onClick={() => {
-                  console.log("onCLICK!!!!")
+                  console.log('onCLICK!!!!');
                   extraValidation();
-                }} type='submit' className='w-full bg-primary hover:bg-primary/90'>Save</Button>
+                }}
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90"
+              >
+                Save
+              </Button>
             </PopoverContent>
           </Popover>
 
           {selectedTab === 'overview' && (
-            <Button type='button' size='lg' variant='outline' onClick={() => setSelectedTab('details')}>Next to Details <ChevronRight /></Button>
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              onClick={() => setSelectedTab('details')}
+            >
+              Next to Details <ChevronRight />
+            </Button>
           )}
         </div>
       )}

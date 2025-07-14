@@ -177,8 +177,8 @@ function Header() {
                               {balance.name}:{' '}
                               {balance.amount !== null
                                 ? commaNumber(
-                                  ethers.utils.formatUnits(balance.amount, balance.decimal),
-                                )
+                                    ethers.utils.formatUnits(balance.amount, balance.decimal),
+                                  )
                                 : 'Fetching...'}
                             </div>
                           );

@@ -30,8 +30,8 @@ export function DynamicTabs({
   const [activeTab, setActiveTab] = React.useState(defaultActiveTab || tabs[0]?.id || '');
 
   // Split tabs into fixed and dynamic
-  const fixedTabs = tabs.filter(tab => tab.isFixed);
-  const dynamicTabs = tabs.filter(tab => !tab.isFixed);
+  const fixedTabs = tabs.filter((tab) => tab.isFixed);
+  const dynamicTabs = tabs.filter((tab) => !tab.isFixed);
 
   // Handler for adding a new tab
   const handleAddTab = () => {
@@ -50,7 +50,7 @@ export function DynamicTabs({
 
   // Handler for removing a tab
   const handleRemoveTab = (tabId: string) => {
-    const updatedTabs = tabs.filter(tab => tab.id !== tabId);
+    const updatedTabs = tabs.filter((tab) => tab.id !== tabId);
     onTabsChange(updatedTabs);
     // If the removed tab was active, switch to the first available tab
     if (activeTab === tabId) {
@@ -126,7 +126,7 @@ export function DynamicTabs({
               <span>{tab.label}</span>
               <button
                 type="button"
-                onClick={e => {
+                onClick={(e) => {
                   e.stopPropagation();
                   handleRemoveTab(tab.id);
                 }}
@@ -145,7 +145,7 @@ export function DynamicTabs({
           onClick={handleAddTab}
           className={cn(
             'ml-2 p-0 bg-transparent border-none text-black hover:text-primary transition-colors',
-            dynamicTabs.length >= maxDynamicTabs && 'opacity-50 pointer-events-none'
+            dynamicTabs.length >= maxDynamicTabs && 'opacity-50 pointer-events-none',
           )}
           aria-label="Add tab"
         >
@@ -154,11 +154,7 @@ export function DynamicTabs({
       </div>
       {/* Tab content */}
       {tabs.map((tab) => (
-        <TabsPrimitive.Content
-          key={tab.id}
-          value={tab.id}
-          className="flex-1 outline-none"
-        >
+        <TabsPrimitive.Content key={tab.id} value={tab.id} className="flex-1 outline-none">
           {tab.content}
         </TabsPrimitive.Content>
       ))}
@@ -176,25 +172,23 @@ export function useDynamicTabs(initialTabs: TabItem[] = []) {
       ...tab,
       id: `tab-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     };
-    setTabs(prev => [...prev, newTab]);
+    setTabs((prev) => [...prev, newTab]);
     return newTab.id;
   }, []);
 
   // Remove a tab by id
   const removeTab = React.useCallback((tabId: string) => {
-    setTabs(prev => prev.filter(tab => tab.id !== tabId));
+    setTabs((prev) => prev.filter((tab) => tab.id !== tabId));
   }, []);
 
   // Update a tab by id
   const updateTab = React.useCallback((tabId: string, updates: Partial<TabItem>) => {
-    setTabs(prev => prev.map(tab =>
-      tab.id === tabId ? { ...tab, ...updates } : tab
-    ));
+    setTabs((prev) => prev.map((tab) => (tab.id === tabId ? { ...tab, ...updates } : tab)));
   }, []);
 
   // Reorder tabs
   const reorderTabs = React.useCallback((fromIndex: number, toIndex: number) => {
-    setTabs(prev => {
+    setTabs((prev) => {
       const newTabs = [...prev];
       const [removed] = newTabs.splice(fromIndex, 1);
       newTabs.splice(toIndex, 0, removed);

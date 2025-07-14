@@ -44,13 +44,13 @@ function NetworkSelector({
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={disabled}>
         <Button className={className}>
-          <span className='flex items-center gap-2'>
+          <span className="flex items-center gap-2">
             {currWithIcon?.icon} {currWithIcon?.display}
           </span>
           <ChevronDown />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align='start'>
+      <DropdownMenuContent align="start">
         {separateCurrencies.map((c) => (
           <DropdownMenuItem key={c.code} onClick={() => setSelectedCurrency(c.code)}>
             {c.icon} {c.display}

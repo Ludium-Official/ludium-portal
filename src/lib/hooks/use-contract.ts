@@ -1,7 +1,7 @@
-import { ConnectedWallet, usePrivy, useWallets } from '@privy-io/react-auth';
+import { type ConnectedWallet, usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import type { Chain, PublicClient } from 'viem';
-import { createPublicClient, http } from 'viem';
+import { http, createPublicClient } from 'viem';
 import {
   arbitrum,
   arbitrumSepolia,
@@ -18,7 +18,7 @@ async function getSigner(checkNetwork: Chain, currentWallet: ConnectedWallet) {
   const provider = new ethers.providers.Web3Provider(eip1193Provider);
 
   const targetNetwork = {
-    chainId: '0x' + checkNetwork.id.toString(16),
+    chainId: `0x${checkNetwork.id.toString(16)}`,
     chainName: checkNetwork.name,
     rpcUrls: checkNetwork.rpcUrls.default.http,
     nativeCurrency: checkNetwork.nativeCurrency,
@@ -49,13 +49,17 @@ export function useContract(network: string) {
   const checkNetwork: Chain = (() => {
     if (network === 'base') {
       return base;
-    } else if (network === 'base-sepolia') {
+    }
+    if (network === 'base-sepolia') {
       return baseSepolia;
-    } else if (network === 'educhain-testnet') {
+    }
+    if (network === 'educhain-testnet') {
       return eduChainTestnet;
-    } else if (network === 'arbitrum') {
+    }
+    if (network === 'arbitrum') {
       return arbitrum;
-    } else if (network === 'arbitrum-sepolia') {
+    }
+    if (network === 'arbitrum-sepolia') {
       return arbitrumSepolia;
     }
 
@@ -73,7 +77,8 @@ export function useContract(network: string) {
   const checkContract = (() => {
     if (network === 'base' || network === 'base-sepolia') {
       return import.meta.env.VITE_BASE_CONTRACT_ADDRESS;
-    } else if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
+    }
+    if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
       return import.meta.env.VITE_ARBITRUM_CONTRACT_ADDRESS;
     }
 

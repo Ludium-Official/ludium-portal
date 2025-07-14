@@ -13,7 +13,7 @@ function SubmitMilestoneForm({
   const [file, setFile] = useState<File>();
   const [description, setDescription] = useState<string>(milestone?.description ?? '');
 
-  const [links, setLinks] = useState<string[]>(milestone.links?.map(l => l.url ?? '') ?? ['']);
+  const [links, setLinks] = useState<string[]>(milestone.links?.map((l) => l.url ?? '') ?? ['']);
 
   const [submitMutation] = useSubmitMilestoneMutation();
   const [linksError, setLinksError] = useState(false);
@@ -176,11 +176,7 @@ function SubmitMilestoneForm({
             Selected file: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
           </p>
         )}
-        {fileError && (
-          <p className="text-sm text-red-600 mt-1">
-            {fileError}
-          </p>
-        )}
+        {fileError && <p className="text-sm text-red-600 mt-1">{fileError}</p>}
       </div>
 
       <Button

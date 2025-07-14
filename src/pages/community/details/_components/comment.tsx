@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { cn, getInitials, getUserName } from '@/lib/utils';
-import { CommentableTypeEnum, type Comment } from '@/types/types.generated';
+import { type Comment, CommentableTypeEnum } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';

@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import PostComment from '@/pages/community/details/_components/comment';
 import type { Comment } from '@/types/types.generated';
 import type { FetchResult } from '@apollo/client';
+import { ChevronDown } from 'lucide-react';
+import { useState } from 'react';
 
 interface CommentSectionProps<T> {
   postId: string;

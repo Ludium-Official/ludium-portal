@@ -67,9 +67,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   const handleMilestoneChange = (idx: number, field: keyof MilestoneType, value: string) => {
     setFormData((prev) => ({
       ...prev,
-      milestones: prev.milestones.map((m, i) =>
-        i === idx ? { ...m, [field]: value } : m
-      ),
+      milestones: prev.milestones.map((m, i) => (i === idx ? { ...m, [field]: value } : m)),
     }));
   };
 
@@ -118,7 +116,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
 
   // Submit
   const onSubmit = async (isDraft?: boolean) => {
-    console.log('submit start')
+    console.log('submit start');
     // Validation for links
     if (formData.overview.links.some((l) => l && !/^https?:\/\/[\w.-]+/.test(l))) {
       setLinksError(true);
@@ -171,7 +169,9 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       content: (
         <div className="space-y-6">
           <label htmlFor="name" className="w-full block">
-            <p className="text-sm font-medium mb-2">Name <span className='text-primary'>*</span></p>
+            <p className="text-sm font-medium mb-2">
+              Name <span className="text-primary">*</span>
+            </p>
             <Input
               id="name"
               className="h-10 w-full mb-2"
@@ -193,10 +193,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                   onChange={(e) => handleLinkChange(idx, e.target.value)}
                 />
                 {idx !== 0 && (
-                  <X
-                    onClick={() => handleRemoveLink(idx)}
-                    className="cursor-pointer"
-                  />
+                  <X onClick={() => handleRemoveLink(idx)} className="cursor-pointer" />
                 )}
               </div>
             ))}
@@ -237,7 +234,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           <label htmlFor="description" className="w-full block">
             <p className="text-sm font-medium mb-2">Description</p>
             <MarkdownEditor
-              onChange={val => handleDescriptionChange('content', val as string)}
+              onChange={(val) => handleDescriptionChange('content', val as string)}
               content={formData.description.content}
             />
           </label>
@@ -274,7 +271,20 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             </label>
             <label htmlFor="deadline0" className="w-full block">
               <p className="text-sm font-medium mb-2">Deadline</p>
-              <DatePicker date={formData.milestones[0]?.deadline ? new Date(formData.milestones[0]?.deadline) : undefined} setDate={date => handleMilestoneChange(0, 'deadline', date ? (date as Date).toISOString().slice(0, 10) : '')} />
+              <DatePicker
+                date={
+                  formData.milestones[0]?.deadline
+                    ? new Date(formData.milestones[0]?.deadline)
+                    : undefined
+                }
+                setDate={(date) =>
+                  handleMilestoneChange(
+                    0,
+                    'deadline',
+                    date ? (date as Date).toISOString().slice(0, 10) : '',
+                  )
+                }
+              />
             </label>
           </div>
           <label htmlFor="summary0" className="w-full block">
@@ -326,7 +336,17 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             </label>
             <label htmlFor={`deadline${idx + 1}`} className="w-full block">
               <p className="text-sm font-medium mb-2">Deadline</p>
-              <DatePicker disabled={{ before: new Date() }} date={m.deadline ? new Date(m.deadline) : undefined} setDate={date => handleMilestoneChange(idx + 1, 'deadline', date ? (date as Date).toISOString().slice(0, 10) : '')} />
+              <DatePicker
+                disabled={{ before: new Date() }}
+                date={m.deadline ? new Date(m.deadline) : undefined}
+                setDate={(date) =>
+                  handleMilestoneChange(
+                    idx + 1,
+                    'deadline',
+                    date ? (date as Date).toISOString().slice(0, 10) : '',
+                  )
+                }
+              />
             </label>
           </div>
           <label htmlFor={`summary${idx + 1}`} className="w-full block">
@@ -352,12 +372,21 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
 
   // Validation for submit
   const milestoneValid = formData.milestones.every((m) => !!m.title && !!m.price);
-  const allValid = formData.overview.name && formData.description.content && formData.description.summary && milestoneValid;
+  const allValid =
+    formData.overview.name &&
+    formData.description.content &&
+    formData.description.summary &&
+    milestoneValid;
 
   return (
-    <form onSubmit={e => { e.preventDefault(); onSubmit(); }}>
-      <DialogClose className='hidden' id='proposal-dialog-close' />
-      <DialogTitle className='text-2xl mb-6'>Submit application</DialogTitle>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit();
+      }}
+    >
+      <DialogClose className="hidden" id="proposal-dialog-close" />
+      <DialogTitle className="text-2xl mb-6">Submit application</DialogTitle>
 
       <ApplicationDynamicTabs
         tabs={tabs}
@@ -366,11 +395,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         onRemoveMilestone={handleRemoveMilestone}
       />
       <div className="flex gap-2 justify-end absolute bottom-6 right-6">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => onSubmit(true)}
-        >
+        <Button type="button" variant="outline" onClick={() => onSubmit(true)}>
           Save draft
         </Button>
         <Button

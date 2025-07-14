@@ -1,4 +1,3 @@
-
 import { DynamicTabs, type TabItem, useDynamicTabs } from './dynamic-tab';
 
 // Пример компонента с динамичными табами
@@ -12,8 +11,8 @@ export function DynamicTabsExample() {
         <div className="p-6">
           <h3 className="text-lg font-semibold mb-4">Обзор программы</h3>
           <p className="text-muted-foreground">
-            Здесь отображается общая информация о программе, включая описание,
-            цели и основные характеристики.
+            Здесь отображается общая информация о программе, включая описание, цели и основные
+            характеристики.
           </p>
         </div>
       ),
@@ -26,8 +25,8 @@ export function DynamicTabsExample() {
         <div className="p-6">
           <h3 className="text-lg font-semibold mb-4">Заявки участников</h3>
           <p className="text-muted-foreground">
-            Список всех заявок на участие в программе с возможностью
-            просмотра деталей и управления статусами.
+            Список всех заявок на участие в программе с возможностью просмотра деталей и управления
+            статусами.
           </p>
         </div>
       ),
@@ -40,8 +39,7 @@ export function DynamicTabsExample() {
         <div className="p-6">
           <h3 className="text-lg font-semibold mb-4">Аналитические данные</h3>
           <p className="text-muted-foreground">
-            Графики и статистика по программе, включая метрики
-            эффективности и ключевые показатели.
+            Графики и статистика по программе, включая метрики эффективности и ключевые показатели.
           </p>
         </div>
       ),
@@ -56,8 +54,8 @@ export function DynamicTabsExample() {
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2">Управление программой</h2>
         <p className="text-muted-foreground">
-          Используйте табы для организации различных разделов программы.
-          Фиксированные табы нельзя удалить, а динамичные можно добавлять и удалять.
+          Используйте табы для организации различных разделов программы. Фиксированные табы нельзя
+          удалить, а динамичные можно добавлять и удалять.
         </p>
       </div>
 
@@ -91,7 +89,9 @@ export function CustomDynamicTabsExample() {
           <h3 className="text-lg font-semibold mb-4">Новый раздел</h3>
           <div className="space-y-4">
             <div>
-              <label htmlFor="tab-name" className="block text-sm font-medium mb-2">Название</label>
+              <label htmlFor="tab-name" className="block text-sm font-medium mb-2">
+                Название
+              </label>
               <input
                 id="tab-name"
                 type="text"
@@ -100,7 +100,9 @@ export function CustomDynamicTabsExample() {
               />
             </div>
             <div>
-              <label htmlFor="tab-description" className="block text-sm font-medium mb-2">Описание</label>
+              <label htmlFor="tab-description" className="block text-sm font-medium mb-2">
+                Описание
+              </label>
               <textarea
                 id="tab-description"
                 className="w-full px-3 py-2 border rounded-md"
@@ -119,9 +121,7 @@ export function CustomDynamicTabsExample() {
     <div className="w-full max-w-4xl mx-auto p-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2">Кастомные табы</h2>
-        <p className="text-muted-foreground mb-4">
-          Пример с кастомным контентом для новых табов.
-        </p>
+        <p className="text-muted-foreground mb-4">Пример с кастомным контентом для новых табов.</p>
         <button
           type="button"
           onClick={handleAddCustomTab}
@@ -139,4 +139,4 @@ export function CustomDynamicTabsExample() {
       />
     </div>
   );
-} 
+}

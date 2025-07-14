@@ -17,7 +17,7 @@ export function DatePicker({
   date?: Date;
   setDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
   disabled?: Matcher | Matcher[] | undefined;
-  align?: "center" | "start" | "end" | undefined;
+  align?: 'center' | 'start' | 'end' | undefined;
 }) {
   return (
     <Popover>

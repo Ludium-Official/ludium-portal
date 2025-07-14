@@ -8,7 +8,7 @@ mutation createComment($input: CreateCommentInput!) {
       firstName
       lastName
     }
-   commentableId
+    commentableId
     commentableType
     author {
       id

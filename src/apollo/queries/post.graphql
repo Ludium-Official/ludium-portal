@@ -16,7 +16,7 @@ query post($id: ID!) {
       image
       email
       organizationName
-      links{
+      links {
         title
         url
       }

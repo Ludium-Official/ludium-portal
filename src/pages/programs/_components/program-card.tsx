@@ -17,10 +17,7 @@ function ProgramCard({ program }: { program: Program }) {
       <div className="flex justify-between mb-2">
         <div className="flex gap-2 mb-1">
           {keywords?.slice(0, 3)?.map((k) => (
-            <Badge
-              key={k.id}
-              variant='secondary'
-            >
+            <Badge key={k.id} variant="secondary">
               {k.name}
             </Badge>
           ))}
@@ -44,11 +41,20 @@ function ProgramCard({ program }: { program: Program }) {
 
       <Link to={`/programs/${id}`} className="flex items-stretch gap-4 mb-4">
         <div className="w-[104px] h-[104px] bg-slate-200 rounded-md " />
-        <div className='flex flex-col justify-between'>
+        <div className="flex flex-col justify-between">
           <h2 className="text-lg font-bold">{name}</h2>
-          <div className='inline-flex self-start text-sm bg-secondary py-1 px-2 items-center rounded-md'><span className='text-neutral-400 mr-3'>PRICE</span> <span className='flex items-center text-muted-foreground gap-1 font-medium'>{getCurrency(program?.network)?.icon} {program?.price} {program?.currency}</span><span className='block ml-2 border-l pl-2 text-muted-foreground font-medium'>{getCurrency(program?.network)?.display}</span></div>
-          <div className='inline-flex self-start text-sm bg-secondary py-1 px-2 items-center rounded-md'><span className='text-neutral-400 mr-3'>DEADLINE</span>
-            <span className='font-medium text-muted-foreground'>
+          <div className="inline-flex self-start text-sm bg-secondary py-1 px-2 items-center rounded-md">
+            <span className="text-neutral-400 mr-3">PRICE</span>{' '}
+            <span className="flex items-center text-muted-foreground gap-1 font-medium">
+              {getCurrency(program?.network)?.icon} {program?.price} {program?.currency}
+            </span>
+            <span className="block ml-2 border-l pl-2 text-muted-foreground font-medium">
+              {getCurrency(program?.network)?.display}
+            </span>
+          </div>
+          <div className="inline-flex self-start text-sm bg-secondary py-1 px-2 items-center rounded-md">
+            <span className="text-neutral-400 mr-3">DEADLINE</span>
+            <span className="font-medium text-muted-foreground">
               {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
             </span>
           </div>
@@ -73,8 +79,8 @@ function ProgramCard({ program }: { program: Program }) {
         >
           Approved Application{' '}
           <span className="text-green-600">
-            {program.applications?.filter((a) => a.status === ApplicationStatus.Accepted)
-              .length ?? 0}
+            {program.applications?.filter((a) => a.status === ApplicationStatus.Accepted).length ??
+              0}
           </span>
         </Link>
       </div>

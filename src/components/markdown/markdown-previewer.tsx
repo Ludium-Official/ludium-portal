@@ -21,14 +21,14 @@ import {
 import '@mdxeditor/editor/style.css';
 
 import { cn } from '@/lib/utils';
-import './style.css'
+import './style.css';
 
 function MarkdownPreviewer({ value }: { value: string }) {
   return (
     <MDXEditor
       readOnly
       markdown={value}
-      contentEditableClassName={cn("prose no-padding")}
+      contentEditableClassName={cn('prose no-padding')}
       plugins={[
         listsPlugin(),
         quotePlugin(),
