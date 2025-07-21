@@ -28,6 +28,7 @@ function Header() {
   const navigate = useNavigate();
   const { data: profileData } = useProfileQuery({
     fetchPolicy: 'cache-first',
+    // skip: !isLoggedIn
   });
 
   const [network, setNetwork] = useState(mainnetDefaultNetwork);
@@ -57,6 +58,8 @@ function Header() {
       })();
 
       privyLogin({ disableSignup: false });
+      console.log("🚀 ~ login ~ user:", user)
+      console.log("🚀 ~ login ~ walletInfo:", walletInfo)
 
       if (user && walletInfo) {
         await authLogin({
@@ -177,8 +180,8 @@ function Header() {
                               {balance.name}:{' '}
                               {balance.amount !== null
                                 ? commaNumber(
-                                    ethers.utils.formatUnits(balance.amount, balance.decimal),
-                                  )
+                                  ethers.utils.formatUnits(balance.amount, balance.decimal),
+                                )
                                 : 'Fetching...'}
                             </div>
                           );

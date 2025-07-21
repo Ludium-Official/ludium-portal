@@ -65,9 +65,23 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
 
   // Update milestone
   const handleMilestoneChange = (idx: number, field: keyof MilestoneType, value: string) => {
+    let newValue = value;
+    if (field === 'price') {
+      const num = Number(value);
+      if (Number.isNaN(num) || value === '') {
+        newValue = '';
+      } else if (num < 0) {
+        newValue = '0';
+      } else if (num > 100) {
+        newValue = '100';
+      } else {
+        newValue = num.toString();
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
-      milestones: prev.milestones.map((m, i) => (i === idx ? { ...m, [field]: value } : m)),
+      milestones: prev.milestones.map((m, i) => (i === idx ? { ...m, [field]: newValue } : m)),
     }));
   };
 
@@ -133,6 +147,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             name: formData.overview.name,
             summary: formData.description.summary,
             milestones: formData.milestones.map((m) => ({
+              percentage: m.price,
               price: m.price,
               title: m.title,
               description: m.description,
@@ -259,14 +274,16 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           </label>
           <div className="flex gap-4">
             <label htmlFor="price0" className="w-full block">
-              <p className="text-sm font-medium mb-2">Price</p>
+              <p className="text-sm font-medium mb-2">Milestone Payout (% of Funding)</p>
               <Input
                 type="number"
-                step={0.000000000000000001}
                 id="price0"
                 className="h-10 w-full"
                 value={formData.milestones[0]?.price}
-                onChange={(e) => handleMilestoneChange(0, 'price', e.target.value)}
+                onChange={e => handleMilestoneChange(0, 'price', e.target.value)}
+                placeholder="0%"
+                min={0}
+                max={100}
               />
             </label>
             <label htmlFor="deadline0" className="w-full block">
@@ -324,14 +341,16 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           </label>
           <div className="flex gap-4">
             <label htmlFor={`price${idx + 1}`} className="w-full block">
-              <p className="text-sm font-medium mb-2">Price</p>
+              <p className="text-sm font-medium mb-2">Milestone Payout (% of Funding)</p>
               <Input
                 type="number"
-                step={0.000000000000000001}
                 id={`price${idx + 1}`}
                 className="h-10 w-full"
                 value={m.price}
-                onChange={(e) => handleMilestoneChange(idx + 1, 'price', e.target.value)}
+                onChange={e => handleMilestoneChange(idx + 1, 'price', e.target.value)}
+                placeholder="0%"
+                min={0}
+                max={100}
               />
             </label>
             <label htmlFor={`deadline${idx + 1}`} className="w-full block">
