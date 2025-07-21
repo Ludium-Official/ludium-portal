@@ -1,0 +1,74 @@
+import { Link, useLocation, useParams } from 'react-router';
+
+export const sidebarLinks = [
+  { label: 'Overview', path: 'overview' },
+  {
+    label: 'Program',
+    children: [
+      {
+        label: 'Recruitment',
+        path: 'recruitment',
+        children: [
+          { label: 'Sponsor', path: 'program/recruitment/sponsor' },
+          { label: 'Validator', path: 'program/recruitment/validator' },
+          { label: 'Builder', path: 'program/recruitment/builder' },
+          { label: 'Reclaim', path: 'program/recruitment/reclaim' },
+        ],
+      },
+      {
+        label: 'Investment',
+        path: 'investment',
+        children: [
+          { label: 'Host', path: 'program/investment/Host' },
+          { label: 'Project', path: 'program/investment/project' },
+          { label: 'Supporter', path: 'program/investment/supporter' },
+          { label: 'Reclaim', path: 'program/investment/reclaim' },
+        ],
+      },
+    ],
+  },
+  { label: 'Community', path: 'community' },
+];
+
+type SidebarItemType = {
+  label: string;
+  path?: string;
+  children?: SidebarItemType[];
+};
+
+export function SidebarLinks({ item }: { item: SidebarItemType }) {
+  const { id } = useParams();
+  const location = useLocation();
+
+  const fullPath = item.path ? `/users/${id}/${item.path}` : '';
+
+  const isActive = location.pathname === fullPath;
+
+  return (
+    <div>
+      {item.path ? (
+        <Link
+          to={fullPath}
+          className={`px-2 h-8 flex items-center text-sm ${
+            isActive
+              ? 'font-medium text-gray-dark bg-sidebar-accent rounded-md'
+              : 'text-gray-asphalt font-normal'
+          }`}
+        >
+          {item.label}
+        </Link>
+      ) : (
+        <div className="text-sm px-2 h-8 flex items-center text-gray-dark select-none">
+          {item.label}
+        </div>
+      )}
+      {item.children && (
+        <div className={`ml-4 pl-2 ${item.path && 'border-l'} border-gray-200 space-y-1`}>
+          {item.children.map((child) => (
+            <SidebarLinks key={child.label} item={child} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

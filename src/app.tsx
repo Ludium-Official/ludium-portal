@@ -18,7 +18,8 @@ import ProgramDetailsPage from '@/pages/programs/details';
 import ApplicationDetailsPage from '@/pages/programs/details/application-details';
 import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
-import { Route, Routes } from 'react-router';
+import { Navigate, Route, Routes } from 'react-router';
+import UserOverviewTab from '@/pages/community/users/_components/overview-tab';
 
 function App() {
   return (
@@ -49,7 +50,10 @@ function App() {
 
           <Route path="users">
             <Route index element={<UsersPage />} />
-            <Route path=":id" element={<UserDetailsPage />} />
+            <Route path=":id" element={<UserDetailsPage />}>
+              <Route index element={<Navigate to="overview" />} />
+              <Route path="overview" element={<UserOverviewTab />} />
+            </Route>
           </Route>
 
           <Route path="admin" element={<AdminOutlet />}>
