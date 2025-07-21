@@ -117,7 +117,7 @@ export type CreateMilestoneInput = {
   deadline: Scalars['Date']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
-  price: Scalars['String']['input'];
+  percentage: Scalars['String']['input'];
   title: Scalars['String']['input'];
 };
 
@@ -184,6 +184,7 @@ export type Milestone = {
   file?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   links?: Maybe<Array<Link>>;
+  percentage?: Maybe<Scalars['String']['output']>;
   price?: Maybe<Scalars['String']['output']>;
   rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<MilestoneStatus>;
@@ -503,6 +504,16 @@ export type Program = {
   visibility?: Maybe<ProgramVisibility>;
 };
 
+export type ProgramStatsByStatus = {
+  __typename?: 'ProgramStatsByStatus';
+  completed?: Maybe<Scalars['Int']['output']>;
+  confirmed?: Maybe<Scalars['Int']['output']>;
+  notConfirmed?: Maybe<Scalars['Int']['output']>;
+  paymentRequired?: Maybe<Scalars['Int']['output']>;
+  published?: Maybe<Scalars['Int']['output']>;
+  refund?: Maybe<Scalars['Int']['output']>;
+};
+
 export enum ProgramStatus {
   Cancelled = 'cancelled',
   Closed = 'closed',
@@ -666,7 +677,7 @@ export type UpdateMilestoneInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
-  price?: InputMaybe<Scalars['String']['input']>;
+  percentage?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<MilestoneStatus>;
   title?: InputMaybe<Scalars['String']['input']>;
 };
@@ -708,6 +719,7 @@ export type User = {
   links?: Maybe<Array<Link>>;
   loginType?: Maybe<Scalars['String']['output']>;
   organizationName?: Maybe<Scalars['String']['output']>;
+  programStatistics?: Maybe<UserProgramStatistics>;
   role?: Maybe<UserRole>;
   summary?: Maybe<Scalars['String']['output']>;
   walletAddress?: Maybe<Scalars['String']['output']>;
@@ -725,6 +737,13 @@ export type UserInput = {
   password: Scalars['String']['input'];
   summary?: InputMaybe<Scalars['String']['input']>;
   walletAddress?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UserProgramStatistics = {
+  __typename?: 'UserProgramStatistics';
+  asBuilder?: Maybe<ProgramStatsByStatus>;
+  asSponsor?: Maybe<ProgramStatsByStatus>;
+  asValidator?: Maybe<ProgramStatsByStatus>;
 };
 
 export enum UserRole {

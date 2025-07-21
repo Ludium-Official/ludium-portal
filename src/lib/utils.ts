@@ -1,5 +1,5 @@
 import { currencies } from '@/constant/currencies';
-import type { Program, User } from '@/types/types.generated';
+import type { Application, Milestone, Program, User } from '@/types/types.generated';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -10,6 +10,19 @@ export function cn(...inputs: ClassValue[]) {
 export function formatProgramStatus(program?: Program | null) {
   if (!program?.status) return '';
   return `${program?.status?.[0].toUpperCase()}${program?.status?.slice(1)}`.replace('_', ' ');
+}
+
+export function formatApplicationStatus(application?: Application | null) {
+  if (!application?.status) return '';
+  return `${application?.status?.[0].toUpperCase()}${application?.status?.slice(1)}`.replace(
+    '_',
+    ' ',
+  );
+}
+
+export function formatMilestoneStatus(milestone?: Milestone | null) {
+  if (!milestone?.status) return '';
+  return `${milestone?.status?.[0].toUpperCase()}${milestone?.status?.slice(1)}`.replace('_', ' ');
 }
 
 export function getInitials(name: string) {

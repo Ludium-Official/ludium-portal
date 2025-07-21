@@ -39,7 +39,7 @@ function EditMilestoneForm({ milestone, refetch }: { milestone: Milestone; refet
           id: milestone.id ?? '',
           description,
           title,
-          price,
+          // price,
           links: links.map((l) => ({ title: l, url: l })),
         },
       },

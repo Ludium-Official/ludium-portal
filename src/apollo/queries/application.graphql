@@ -28,6 +28,7 @@ query application($id: ID!) {
       currency
       description
       rejectionReason
+      percentage
       id
       price
       status

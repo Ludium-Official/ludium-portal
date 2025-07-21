@@ -8,9 +8,9 @@ import { DialogClose, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import notify from '@/lib/notify';
+import { getCurrency } from '@/lib/utils';
 import { ApplicationDynamicTabs } from '@/pages/programs/details/_components/application-form-dynamic-tab';
 import { ApplicationStatus, type Program } from '@/types/types.generated';
-import BigNumber from 'bignumber.js';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 
@@ -27,6 +27,7 @@ type FormData = {
   overview: {
     name: string;
     links: string[];
+    price: string;
   };
   description: {
     summary: string;
@@ -40,7 +41,7 @@ const emptyMilestone = { title: '', price: '', deadline: '', summary: '', descri
 function CreateApplicationForm({ program }: { program?: Program | null }) {
   // Single state for the form
   const [formData, setFormData] = useState<FormData>({
-    overview: { name: '', links: [''] },
+    overview: { name: '', links: [''], price: "0" },
     description: { summary: '', content: '' },
     milestones: [{ ...emptyMilestone }],
   });
@@ -65,9 +66,23 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
 
   // Update milestone
   const handleMilestoneChange = (idx: number, field: keyof MilestoneType, value: string) => {
+    let newValue = value;
+    if (field === 'price') {
+      const num = Number(value);
+      if (Number.isNaN(num) || value === '') {
+        newValue = '';
+      } else if (num < 0) {
+        newValue = '0';
+      } else if (num > 100) {
+        newValue = '100';
+      } else {
+        newValue = num.toString();
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
-      milestones: prev.milestones.map((m, i) => (i === idx ? { ...m, [field]: value } : m)),
+      milestones: prev.milestones.map((m, i) => (i === idx ? { ...m, [field]: newValue } : m)),
     }));
   };
 
@@ -133,15 +148,17 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             name: formData.overview.name,
             summary: formData.description.summary,
             milestones: formData.milestones.map((m) => ({
-              price: m.price,
+              percentage: m.price,
+              // price: m.price,
               title: m.title,
               description: m.description,
               currency: program?.currency ?? 'EDU',
               deadline: m.deadline,
             })),
-            price: formData.milestones
-              .reduce((prev, curr) => BigNumber(curr?.price ?? '0').plus(prev), BigNumber(0))
-              .toFixed(18),
+            price: formData.overview.price,
+            // price: formData.milestones
+            //   .reduce((prev, curr) => BigNumber(curr?.price ?? '0').plus(prev), BigNumber(0))
+            //   .toFixed(18),
             links: formData.overview.links.filter(Boolean).map((l) => ({ title: l, url: l })),
           },
         },
@@ -178,6 +195,21 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
               value={formData.overview.name}
               onChange={(e) => handleOverviewChange('name', e.target.value)}
             />
+          </label>
+          <label htmlFor="price" className="w-full block">
+            <p className="text-sm font-medium mb-2">
+              Price <span className="text-primary">*</span>
+            </p>
+            <div className='flex gap-2'>
+              <Input
+                id="price"
+                type='number'
+                className="h-10 w-full mb-2"
+                value={formData.overview.price}
+                onChange={(e) => handleOverviewChange('price', e.target.value)}
+              />
+              <Button type='button'>{getCurrency(program?.network)?.icon}{getCurrency(program?.network)?.display}</Button>
+            </div>
           </label>
           <div className="space-y-2 block">
             <p className="text-sm font-medium">Links</p>
@@ -259,14 +291,16 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           </label>
           <div className="flex gap-4">
             <label htmlFor="price0" className="w-full block">
-              <p className="text-sm font-medium mb-2">Price</p>
+              <p className="text-sm font-medium mb-2">Milestone Payout (% of Funding)</p>
               <Input
                 type="number"
-                step={0.000000000000000001}
                 id="price0"
                 className="h-10 w-full"
                 value={formData.milestones[0]?.price}
-                onChange={(e) => handleMilestoneChange(0, 'price', e.target.value)}
+                onChange={e => handleMilestoneChange(0, 'price', e.target.value)}
+                placeholder="0%"
+                min={0}
+                max={100}
               />
             </label>
             <label htmlFor="deadline0" className="w-full block">
@@ -324,14 +358,16 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           </label>
           <div className="flex gap-4">
             <label htmlFor={`price${idx + 1}`} className="w-full block">
-              <p className="text-sm font-medium mb-2">Price</p>
+              <p className="text-sm font-medium mb-2">Milestone Payout (% of Funding)</p>
               <Input
                 type="number"
-                step={0.000000000000000001}
                 id={`price${idx + 1}`}
                 className="h-10 w-full"
                 value={m.price}
-                onChange={(e) => handleMilestoneChange(idx + 1, 'price', e.target.value)}
+                onChange={e => handleMilestoneChange(idx + 1, 'price', e.target.value)}
+                placeholder="0%"
+                min={0}
+                max={100}
               />
             </label>
             <label htmlFor={`deadline${idx + 1}`} className="w-full block">
@@ -374,6 +410,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   const milestoneValid = formData.milestones.every((m) => !!m.title && !!m.price);
   const allValid =
     formData.overview.name &&
+    formData.overview.price &&
     formData.description.content &&
     formData.description.summary &&
     milestoneValid;

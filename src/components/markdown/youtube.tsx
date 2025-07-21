@@ -5,7 +5,6 @@ import {
   usePublisher,
 } from '@mdxeditor/editor';
 
-// внутри контейнера плагина:
 export const YoutubeDescriptor: DirectiveDescriptor = {
   name: 'youtube',
   testNode: (node) => node.name === 'youtube',
