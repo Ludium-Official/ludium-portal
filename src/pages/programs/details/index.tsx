@@ -131,10 +131,12 @@ const DetailsPage: React.FC = () => {
               </p>
             </div>
 
-            {isLoggedIn &&
+            {
+              isLoggedIn &&
               program?.status === 'published' &&
               program.creator?.id !== userId &&
-              program?.validators?.every((validator) => validator.id !== userId) && (
+              program?.validators?.every((validator) => validator.id !== userId) &&
+              (
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button

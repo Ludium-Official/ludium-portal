@@ -8,9 +8,9 @@ import { DialogClose, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import notify from '@/lib/notify';
+import { getCurrency } from '@/lib/utils';
 import { ApplicationDynamicTabs } from '@/pages/programs/details/_components/application-form-dynamic-tab';
 import { ApplicationStatus, type Program } from '@/types/types.generated';
-import BigNumber from 'bignumber.js';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 
@@ -27,6 +27,7 @@ type FormData = {
   overview: {
     name: string;
     links: string[];
+    price: string;
   };
   description: {
     summary: string;
@@ -40,7 +41,7 @@ const emptyMilestone = { title: '', price: '', deadline: '', summary: '', descri
 function CreateApplicationForm({ program }: { program?: Program | null }) {
   // Single state for the form
   const [formData, setFormData] = useState<FormData>({
-    overview: { name: '', links: [''] },
+    overview: { name: '', links: [''], price: "0" },
     description: { summary: '', content: '' },
     milestones: [{ ...emptyMilestone }],
   });
@@ -148,15 +149,16 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             summary: formData.description.summary,
             milestones: formData.milestones.map((m) => ({
               percentage: m.price,
-              price: m.price,
+              // price: m.price,
               title: m.title,
               description: m.description,
               currency: program?.currency ?? 'EDU',
               deadline: m.deadline,
             })),
-            price: formData.milestones
-              .reduce((prev, curr) => BigNumber(curr?.price ?? '0').plus(prev), BigNumber(0))
-              .toFixed(18),
+            price: formData.overview.price,
+            // price: formData.milestones
+            //   .reduce((prev, curr) => BigNumber(curr?.price ?? '0').plus(prev), BigNumber(0))
+            //   .toFixed(18),
             links: formData.overview.links.filter(Boolean).map((l) => ({ title: l, url: l })),
           },
         },
@@ -193,6 +195,21 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
               value={formData.overview.name}
               onChange={(e) => handleOverviewChange('name', e.target.value)}
             />
+          </label>
+          <label htmlFor="price" className="w-full block">
+            <p className="text-sm font-medium mb-2">
+              Price <span className="text-primary">*</span>
+            </p>
+            <div className='flex gap-2'>
+              <Input
+                id="price"
+                type='number'
+                className="h-10 w-full mb-2"
+                value={formData.overview.price}
+                onChange={(e) => handleOverviewChange('price', e.target.value)}
+              />
+              <Button type='button'>{getCurrency(program?.network)?.icon}{getCurrency(program?.network)?.display}</Button>
+            </div>
           </label>
           <div className="space-y-2 block">
             <p className="text-sm font-medium">Links</p>
@@ -393,6 +410,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   const milestoneValid = formData.milestones.every((m) => !!m.title && !!m.price);
   const allValid =
     formData.overview.name &&
+    formData.overview.price &&
     formData.description.content &&
     formData.description.summary &&
     milestoneValid;
