@@ -242,10 +242,9 @@ function InvestmentCard({ program }: InvestmentCardProps) {
         </div>
 
         {/* Content */}
-        <div className="flex gap-4">
+        <Link to={`/investments/${program?.id}`} className="flex gap-4">
           {/* Thumbnail */}
           {program.image ? <img src={program.image} className='w-29 h-29 rounded-md' alt='Program' /> : <div className="w-29 h-29 bg-slate-200 rounded-md " />}
-          {/* <div className="w-29 h-20 bg-gray-200 rounded-md flex-shrink-0" /> */}
 
           {/* Title and details */}
           <div className="flex-1 min-w-0">
@@ -285,19 +284,19 @@ function InvestmentCard({ program }: InvestmentCardProps) {
               </p>
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Footer buttons */}
         <div className="flex justify-between">
           <Link
-            to={`/programs/${program?.id}#applications`}
+            to={`/investments/${program?.id}#applications`}
             className="text-xs font-semibold bg-gray-light rounded-md px-3 py-2 leading-4"
           >
             Submitted Application{' '}
             <span className="text-primary">{program.applications?.length ?? 0}</span>
           </Link>
           <Link
-            to={`/programs/${program?.id}#applications`}
+            to={`/investments/${program?.id}#applications`}
             className="text-xs font-semibold bg-gray-light rounded-md px-3 py-2 leading-4"
           >
             Approved Application{' '}

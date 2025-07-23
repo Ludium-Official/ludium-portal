@@ -12,6 +12,7 @@ import UserOverviewTab from '@/pages/community/users/_components/overview-tab';
 import UserDetailsPage from '@/pages/community/users/details';
 import InvestmentsPage from '@/pages/investments';
 import CreateInvestmentPage from '@/pages/investments/create';
+import InvestmentDetailsPage from '@/pages/investments/details';
 import MainPage from '@/pages/main';
 import ProfilePage from '@/pages/profile';
 import EditProfilePage from '@/pages/profile/edit';
@@ -46,6 +47,7 @@ function App() {
           <Route path='investments'>
             <Route index element={<InvestmentsPage />} />
             <Route path="create" element={<CreateInvestmentPage />} />
+            <Route path=":id" element={<InvestmentDetailsPage />} />
           </Route>
 
           <Route path="community">

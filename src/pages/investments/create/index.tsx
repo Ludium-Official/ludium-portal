@@ -7,11 +7,11 @@ import type { OnSubmitProgramFunc } from '@/components/program-form';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import InvestmentForm from '@/pages/investments/_components/investment-form';
-import type { ProgramVisibility } from '@/types/types.generated';
+import { ProgramType, type ProgramVisibility } from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
-const CreateProgram: React.FC = () => {
+const CreateInvestment: React.FC = () => {
   const navigate = useNavigate();
   const [createProgram] = useCreateProgramMutation();
 
@@ -49,6 +49,16 @@ const CreateProgram: React.FC = () => {
           image: args.image,
 
           visibility: args.visibility as ProgramVisibility,
+
+          type: ProgramType.Funding,
+
+          // applicationStartDate: args.applicationStartDate ?? '',
+          // applicationEndDate: args.applicationDueDate ?? '',
+          // fundingStartDate: args.fundingStartDate ?? '',
+          // fundingEndDate: args.fundingDueDate ?? '',
+
+          // fundingCondition: args.fundingCondition,
+          // tierSettings: args.tierSettings,
         },
       },
       onCompleted: async (data) => {
@@ -93,4 +103,4 @@ const CreateProgram: React.FC = () => {
   );
 };
 
-export default CreateProgram;
+export default CreateInvestment;
