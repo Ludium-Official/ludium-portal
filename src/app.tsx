@@ -8,7 +8,10 @@ import CreateCommunityPage from '@/pages/community/create';
 import CommunityDetailsPage from '@/pages/community/details';
 import EditCommunityPage from '@/pages/community/edit';
 import UsersPage from '@/pages/community/users';
+import UserOverviewTab from '@/pages/community/users/_components/overview-tab';
 import UserDetailsPage from '@/pages/community/users/details';
+import InvestmentsPage from '@/pages/investments';
+import CreateInvestmentPage from '@/pages/investments/create';
 import MainPage from '@/pages/main';
 import ProfilePage from '@/pages/profile';
 import EditProfilePage from '@/pages/profile/edit';
@@ -19,7 +22,6 @@ import ApplicationDetailsPage from '@/pages/programs/details/application-details
 import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Navigate, Route, Routes } from 'react-router';
-import UserOverviewTab from '@/pages/community/users/_components/overview-tab';
 
 function App() {
   return (
@@ -32,6 +34,7 @@ function App() {
             <Route index element={<ProfilePage />} />
             <Route path="edit" element={<EditProfilePage />} />
           </Route>
+
           <Route path="programs">
             <Route index element={<ProgramsPage />} />
             <Route path="create" element={<CreateProgramPage />} />
@@ -39,6 +42,12 @@ function App() {
             <Route path=":id/edit" element={<EditProgramPage />} />
             <Route path=":id/application/:applicationId" element={<ApplicationDetailsPage />} />
           </Route>
+
+          <Route path='investments'>
+            <Route index element={<InvestmentsPage />} />
+            <Route path="create" element={<CreateInvestmentPage />} />
+          </Route>
+
           <Route path="community">
             <Route index element={<CommunityPage />} />
             <Route path="create" element={<CreateCommunityPage />} />

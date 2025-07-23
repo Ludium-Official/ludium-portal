@@ -40,7 +40,7 @@ function ProgramCard({ program }: { program: Program }) {
       </div>
 
       <Link to={`/programs/${id}`} className="flex items-stretch gap-4 mb-4">
-        <div className="w-[104px] h-[104px] bg-slate-200 rounded-md " />
+        {program.image ? <img src={program.image} className='w-[104px] h-[104px] rounded-md' alt='Program' /> : <div className="w-[104px] h-[104px] bg-slate-200 rounded-md " />}
         <div className="flex flex-col justify-between">
           <h2 className="text-lg font-bold">{name}</h2>
           <div className="inline-flex self-start text-sm bg-secondary py-1 px-2 items-center rounded-md">
