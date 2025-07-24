@@ -8,21 +8,20 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { type SidebarItemType, sidebarLinks } from './sidebar-links';
+import React from 'react';
 
 function findBreadcrumbTrail(
   items: SidebarItemType[],
   segments: string[],
 ): SidebarItemType[] | null {
   for (const item of items) {
-    if (!item.path) {
-      if (item.children) {
-        const childTrail = findBreadcrumbTrail(item.children, segments);
-        if (childTrail) {
-          return [item, ...childTrail];
-        }
-      }
+    if (!item.path && item.children) {
+      const childTrail = findBreadcrumbTrail(item.children, segments);
+      if (childTrail) return [item, ...childTrail];
       continue;
     }
+
+    if (!item.path) continue;
 
     const itemSegments = item.path.split('/');
 
@@ -33,8 +32,9 @@ function findBreadcrumbTrail(
       if (itemSegments.length === segments.length) {
         return [item];
       }
+
       if (item.children) {
-        const childTrail = findBreadcrumbTrail(item.children, segments.slice(itemSegments.length));
+        const childTrail = findBreadcrumbTrail(item.children, segments);
         if (childTrail) {
           return [item, ...childTrail];
         }
@@ -43,6 +43,7 @@ function findBreadcrumbTrail(
       return [item];
     }
   }
+
   return null;
 }
 
@@ -60,11 +61,13 @@ export function AgentBreadcrumbs() {
   if (segments.length === 1 && ['overview', 'description', 'community'].includes(segments[0])) {
     return (
       <Breadcrumb>
-        <BreadcrumbItem>
-          <BreadcrumbLink className="font-semibold">
-            {segments[0][0].toUpperCase() + segments[0].slice(1)}
-          </BreadcrumbLink>
-        </BreadcrumbItem>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink className="font-semibold">
+              {segments[0][0].toUpperCase() + segments[0].slice(1)}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+        </BreadcrumbList>
       </Breadcrumb>
     );
   }
@@ -82,21 +85,23 @@ export function AgentBreadcrumbs() {
 
           if (!item.path) {
             return (
-              <BreadcrumbItem key={item.label}>
-                {item.label}
+              <React.Fragment key={item.label}>
+                <BreadcrumbItem>{item.label}</BreadcrumbItem>
                 <BreadcrumbSeparator />
-              </BreadcrumbItem>
+              </React.Fragment>
             );
           }
           return (
-            <BreadcrumbItem key={item.label}>
-              {isLast ? (
-                <BreadcrumbPage>{item.label}</BreadcrumbPage>
-              ) : (
-                <BreadcrumbLink href={fullPath}>{item.label}</BreadcrumbLink>
-              )}
+            <React.Fragment key={item.label}>
+              <BreadcrumbItem>
+                {isLast ? (
+                  <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink href={fullPath}>{item.label}</BreadcrumbLink>
+                )}
+              </BreadcrumbItem>{' '}
               {!isLast && <BreadcrumbSeparator />}
-            </BreadcrumbItem>
+            </React.Fragment>
           );
         })}
       </BreadcrumbList>

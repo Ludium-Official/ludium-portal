@@ -25,6 +25,7 @@ import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Navigate, Route, Routes } from 'react-router';
 import UserDescriptionTab from './pages/community/users/_components/description-tab';
 import UserRecruitmentTab from './pages/community/users/_components/recruitment-tab';
+import UserRecruitmentRoleTab from './pages/community/users/_components/recruitment-role-tab';
 
 function App() {
   return (
@@ -69,6 +70,7 @@ function App() {
               <Route path="overview" element={<UserOverviewTab />} />
               <Route path="description" element={<UserDescriptionTab />} />
               <Route path="program/recruitment" element={<UserRecruitmentTab />} />
+              <Route path="program/recruitment/:role" element={<UserRecruitmentRoleTab />} />
             </Route>
           </Route>
 
