@@ -23,6 +23,8 @@ import ApplicationDetailsPage from '@/pages/programs/details/application-details
 import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Navigate, Route, Routes } from 'react-router';
+import UserDescriptionTab from './pages/community/users/_components/description-tab';
+import UserRecruitmentTab from './pages/community/users/_components/recruitment-tab';
 
 function App() {
   return (
@@ -44,7 +46,7 @@ function App() {
             <Route path=":id/application/:applicationId" element={<ApplicationDetailsPage />} />
           </Route>
 
-          <Route path='investments'>
+          <Route path="investments">
             <Route index element={<InvestmentsPage />} />
             <Route path="create" element={<CreateInvestmentPage />} />
             <Route path=":id" element={<InvestmentDetailsPage />} />
@@ -61,9 +63,12 @@ function App() {
 
           <Route path="users">
             <Route index element={<UsersPage />} />
+
             <Route path=":id" element={<UserDetailsPage />}>
               <Route index element={<Navigate to="overview" />} />
               <Route path="overview" element={<UserOverviewTab />} />
+              <Route path="description" element={<UserDescriptionTab />} />
+              <Route path="program/recruitment" element={<UserRecruitmentTab />} />
             </Route>
           </Route>
 

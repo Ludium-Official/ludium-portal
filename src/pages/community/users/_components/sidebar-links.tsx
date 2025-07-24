@@ -2,12 +2,13 @@ import { Link, useLocation, useParams } from 'react-router';
 
 export const sidebarLinks = [
   { label: 'Overview', path: 'overview' },
+  { label: 'Description', path: 'description' },
   {
     label: 'Program',
     children: [
       {
         label: 'Recruitment',
-        path: 'recruitment',
+        path: 'program/recruitment',
         children: [
           { label: 'Sponsor', path: 'program/recruitment/sponsor' },
           { label: 'Validator', path: 'program/recruitment/validator' },
@@ -17,7 +18,7 @@ export const sidebarLinks = [
       },
       {
         label: 'Investment',
-        path: 'investment',
+        path: 'program/investment',
         children: [
           { label: 'Host', path: 'program/investment/Host' },
           { label: 'Project', path: 'program/investment/project' },
@@ -30,7 +31,7 @@ export const sidebarLinks = [
   { label: 'Community', path: 'community' },
 ];
 
-type SidebarItemType = {
+export type SidebarItemType = {
   label: string;
   path?: string;
   children?: SidebarItemType[];
