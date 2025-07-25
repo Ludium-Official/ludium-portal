@@ -47,7 +47,8 @@ function CurrencySelector({
   const displayCurrencies = useMemo(() => {
     if (network === 'base' || network === 'base-sepolia') {
       return baseCurrencies;
-    } if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
+    }
+    if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
       return arbitrumCurrencies;
     }
 

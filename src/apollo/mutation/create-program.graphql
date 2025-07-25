@@ -13,5 +13,14 @@ mutation createProgram($input: CreateProgramInput!) {
     status
     summary
     network
+    type
+    applicationStartDate
+    applicationEndDate
+    fundingStartDate
+    fundingEndDate
+    fundingCondition
+    feePercentage
+    customFeePercentage
+    visibility
   }
 }

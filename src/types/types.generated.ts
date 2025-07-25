@@ -22,7 +22,12 @@ export type Application = {
   __typename?: 'Application';
   applicant?: Maybe<User>;
   content?: Maybe<Scalars['String']['output']>;
+  currentFunding?: Maybe<Scalars['String']['output']>;
+  fundingSuccessful?: Maybe<Scalars['Boolean']['output']>;
+  fundingTarget?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
+  investmentTerms?: Maybe<Scalars['JSON']['output']>;
+  investments?: Maybe<Array<Investment>>;
   links?: Maybe<Array<Link>>;
   metadata?: Maybe<Scalars['JSON']['output']>;
   milestones?: Maybe<Array<Milestone>>;
@@ -31,6 +36,7 @@ export type Application = {
   rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<ApplicationStatus>;
   summary?: Maybe<Scalars['String']['output']>;
+  walletAddress?: Maybe<Scalars['String']['output']>;
 };
 
 export enum ApplicationStatus {
@@ -96,6 +102,8 @@ export enum CommentableTypeEnum {
 
 export type CreateApplicationInput = {
   content: Scalars['String']['input'];
+  fundingTarget?: InputMaybe<Scalars['String']['input']>;
+  investmentTerms?: InputMaybe<Scalars['JSON']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   metadata?: InputMaybe<Scalars['JSON']['input']>;
   milestones: Array<CreateMilestoneInput>;
@@ -104,6 +112,7 @@ export type CreateApplicationInput = {
   programId: Scalars['String']['input'];
   status: ApplicationStatus;
   summary?: InputMaybe<Scalars['String']['input']>;
+  walletAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateCarouselItemInput = {
@@ -117,6 +126,12 @@ export type CreateCommentInput = {
   commentableType: CommentableTypeEnum;
   content: Scalars['String']['input'];
   parentId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+export type CreateInvestmentInput = {
+  amount: Scalars['String']['input'];
+  projectId: Scalars['ID']['input'];
+  txHash?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateMilestoneInput = {
@@ -183,6 +198,27 @@ export enum FundingCondition {
   Tier = 'tier'
 }
 
+export type Investment = {
+  __typename?: 'Investment';
+  amount?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  project?: Maybe<Application>;
+  reclaimTxHash?: Maybe<Scalars['String']['output']>;
+  reclaimed?: Maybe<Scalars['Boolean']['output']>;
+  reclaimedAt?: Maybe<Scalars['Date']['output']>;
+  status?: Maybe<InvestmentStatus>;
+  supporter?: Maybe<User>;
+  tier?: Maybe<Scalars['String']['output']>;
+  txHash?: Maybe<Scalars['String']['output']>;
+};
+
+export enum InvestmentStatus {
+  Confirmed = 'confirmed',
+  Failed = 'failed',
+  Pending = 'pending',
+  Refunded = 'refunded'
+}
+
 export enum InvestmentTier {
   Bronze = 'bronze',
   Gold = 'gold',
@@ -223,6 +259,20 @@ export type Milestone = {
   title?: Maybe<Scalars['String']['output']>;
 };
 
+export type MilestonePayout = {
+  __typename?: 'MilestonePayout';
+  amount?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['Date']['output']>;
+  errorMessage?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  investment?: Maybe<Investment>;
+  milestone?: Maybe<Milestone>;
+  percentage?: Maybe<Scalars['String']['output']>;
+  processedAt?: Maybe<Scalars['Date']['output']>;
+  status?: Maybe<PayoutStatus>;
+  txHash?: Maybe<Scalars['String']['output']>;
+};
+
 export enum MilestoneStatus {
   Completed = 'completed',
   Draft = 'draft',
@@ -241,6 +291,7 @@ export type Mutation = {
   createApplication?: Maybe<Application>;
   createCarouselItem?: Maybe<CarouselItem>;
   createComment?: Maybe<Comment>;
+  createInvestment?: Maybe<Investment>;
   createPost?: Maybe<Post>;
   createProgram?: Maybe<Program>;
   createUser?: Maybe<User>;
@@ -251,6 +302,8 @@ export type Mutation = {
   login?: Maybe<Scalars['String']['output']>;
   markAllNotificationsAsRead?: Maybe<Scalars['Boolean']['output']>;
   markNotificationAsRead?: Maybe<Scalars['Boolean']['output']>;
+  processMilestonePayouts?: Maybe<Array<MilestonePayout>>;
+  reclaimInvestment?: Maybe<Investment>;
   rejectApplication?: Maybe<Application>;
   rejectProgram?: Maybe<Program>;
   removeUserTier?: Maybe<Scalars['Boolean']['output']>;
@@ -310,6 +363,11 @@ export type MutationCreateCommentArgs = {
 };
 
 
+export type MutationCreateInvestmentArgs = {
+  input: CreateInvestmentInput;
+};
+
+
 export type MutationCreatePostArgs = {
   input: CreatePostInput;
 };
@@ -355,6 +413,16 @@ export type MutationLoginArgs = {
 
 export type MutationMarkNotificationAsReadArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationProcessMilestonePayoutsArgs = {
+  input: ProcessPayoutsInput;
+};
+
+
+export type MutationReclaimInvestmentArgs = {
+  input: ReclaimInvestmentInput;
 };
 
 
@@ -480,6 +548,18 @@ export type PaginatedComments = {
   data?: Maybe<Array<Comment>>;
 };
 
+export type PaginatedInvestments = {
+  __typename?: 'PaginatedInvestments';
+  count?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<Investment>>;
+};
+
+export type PaginatedMilestonePayouts = {
+  __typename?: 'PaginatedMilestonePayouts';
+  count?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<MilestonePayout>>;
+};
+
 export type PaginatedMilestones = {
   __typename?: 'PaginatedMilestones';
   count?: Maybe<Scalars['Int']['output']>;
@@ -511,6 +591,13 @@ export type PaginationInput = {
   sort?: InputMaybe<SortEnum>;
 };
 
+export enum PayoutStatus {
+  Completed = 'completed',
+  Failed = 'failed',
+  Pending = 'pending',
+  Processing = 'processing'
+}
+
 export type Post = {
   __typename?: 'Post';
   author?: Maybe<User>;
@@ -522,6 +609,11 @@ export type Post = {
   keywords?: Maybe<Array<Keyword>>;
   summary?: Maybe<Scalars['String']['output']>;
   title?: Maybe<Scalars['String']['output']>;
+};
+
+export type ProcessPayoutsInput = {
+  contractAddress: Scalars['String']['input'];
+  milestoneId: Scalars['ID']['input'];
 };
 
 export type Program = {
@@ -601,8 +693,12 @@ export type Query = {
   comments?: Maybe<PaginatedComments>;
   commentsByCommentable?: Maybe<Array<Comment>>;
   countNotifications?: Maybe<Scalars['Int']['output']>;
+  investment?: Maybe<Investment>;
+  investments?: Maybe<PaginatedInvestments>;
   keywords?: Maybe<Array<Keyword>>;
   milestone?: Maybe<Milestone>;
+  milestonePayout?: Maybe<MilestonePayout>;
+  milestonePayouts?: Maybe<PaginatedMilestonePayouts>;
   milestones?: Maybe<PaginatedMilestones>;
   notifications?: Maybe<Array<Notification>>;
   post?: Maybe<Post>;
@@ -642,8 +738,33 @@ export type QueryCommentsByCommentableArgs = {
 };
 
 
+export type QueryInvestmentArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryInvestmentsArgs = {
+  pagination?: InputMaybe<PaginationInput>;
+  projectId?: InputMaybe<Scalars['ID']['input']>;
+  supporterId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
 export type QueryMilestoneArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryMilestonePayoutArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryMilestonePayoutsArgs = {
+  investmentId?: InputMaybe<Scalars['ID']['input']>;
+  milestoneId?: InputMaybe<Scalars['ID']['input']>;
+  pagination?: InputMaybe<PaginationInput>;
+  status?: InputMaybe<PayoutStatus>;
 };
 
 
@@ -680,6 +801,11 @@ export type QueryUserArgs = {
 
 export type QueryUsersArgs = {
   pagination?: InputMaybe<PaginationInput>;
+};
+
+export type ReclaimInvestmentInput = {
+  investmentId: Scalars['ID']['input'];
+  txHash: Scalars['String']['input'];
 };
 
 export type ReorderCarouselItemInput = {
@@ -739,12 +865,16 @@ export type TierSettingsInput = {
 
 export type UpdateApplicationInput = {
   content?: InputMaybe<Scalars['String']['input']>;
+  fundingSuccessful?: InputMaybe<Scalars['Boolean']['input']>;
+  fundingTarget?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
+  investmentTerms?: InputMaybe<Scalars['JSON']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   metadata?: InputMaybe<Scalars['JSON']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<ApplicationStatus>;
   summary?: InputMaybe<Scalars['String']['input']>;
+  walletAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateCarouselItemInput = {
