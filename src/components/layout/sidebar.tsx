@@ -64,22 +64,18 @@ const Sidebar = () => {
                   <button
                     type="button"
                     onClick={() => setProgramMenuOpen(!programMenuOpen)}
-                    className={`group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium w-full text-left ${location.pathname.startsWith('/programs') ||
+                    className={`group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium w-full text-left ${
+                      location.pathname.startsWith('/programs') ||
                       location.pathname.startsWith('/investments')
-                      ? 'bg-[#B331FF0A] text-primary'
-                      : 'hover:bg-[#B331FF0A] hover:text-primary'
-                      }`}
+                        ? 'bg-[#B331FF0A] text-primary'
+                        : 'hover:bg-[#B331FF0A] hover:text-primary'
+                    }`}
                   >
                     <link.icon className="group-active:text-primary group-hover:text-primary" />
                     {link.name}
                   </button>
                   <div className="overflow-hidden transition-all duration-300 ease-in-out">
-                    <div
-                      className={cn(
-                        "relative ml-6",
-                        programMenuOpen ? "h-20 mt-2" : "h-0"
-                      )}
-                    >
+                    <div className={cn('relative ml-6', programMenuOpen ? 'h-20 mt-2' : 'h-0')}>
                       <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300" />
                       <ul className="space-y-1">
                         {link.submenu.map((sublink, index) => (
@@ -88,15 +84,15 @@ const Sidebar = () => {
                               to={sublink.path}
                               className={({ isActive }) =>
                                 cn(
-                                  "block px-4 py-2 rounded-lg transition-all duration-300 ease-in-out text-[16px] font-normal hover:text-primary",
-                                  isActive ? "text-primary font-medium" : "text-gray-600",
+                                  'block px-4 py-2 rounded-lg transition-all duration-300 ease-in-out text-[16px] font-normal hover:text-primary',
+                                  isActive ? 'text-primary font-medium' : 'text-gray-600',
                                   programMenuOpen
-                                    ? "opacity-100 translate-y-0"
-                                    : "opacity-0 -translate-y-2"
+                                    ? 'opacity-100 translate-y-0'
+                                    : 'opacity-0 -translate-y-2',
                                 )
                               }
                               style={{
-                                transitionDelay: programMenuOpen ? `${index * 50}ms` : '0ms'
+                                transitionDelay: programMenuOpen ? `${index * 50}ms` : '0ms',
                               }}
                             >
                               {sublink.name}
@@ -111,9 +107,10 @@ const Sidebar = () => {
                 <NavLink
                   to={link.path}
                   className={({ isActive }) =>
-                    `group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium ${isActive
-                      ? 'bg-[#B331FF0A] text-primary'
-                      : 'hover:bg-[#B331FF0A] hover:text-primary'
+                    `group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium ${
+                      isActive
+                        ? 'bg-[#B331FF0A] text-primary'
+                        : 'hover:bg-[#B331FF0A] hover:text-primary'
                     }`
                   }
                 >

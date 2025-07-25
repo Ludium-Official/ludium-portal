@@ -265,15 +265,13 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
   // Tier handlers
   const handleTierChange = (tierName: string, enabled: boolean) => {
-    setTiers(prev => prev.map(tier =>
-      tier.name === tierName ? { ...tier, enabled } : tier
-    ));
+    setTiers((prev) => prev.map((tier) => (tier.name === tierName ? { ...tier, enabled } : tier)));
   };
 
   const handleTierAmountChange = (tierName: string, amount: string) => {
-    setTiers(prev => prev.map(tier =>
-      tier.name === tierName ? { ...tier, maxAmount: amount } : tier
-    ));
+    setTiers((prev) =>
+      prev.map((tier) => (tier.name === tierName ? { ...tier, maxAmount: amount } : tier)),
+    );
   };
 
   // image input handler
@@ -405,12 +403,12 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
           <div className="bg-white px-10 py-6 rounded-lg mb-3">
             <label htmlFor="applicationDate" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium text-muted-foreground">
-                Application date
-              </p>
+              <p className="text-sm font-medium text-muted-foreground">Application date</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1">
-                  <p className="text-sm font-medium mb-2">Start Date <span className="text-primary">*</span></p>
+                  <p className="text-sm font-medium mb-2">
+                    Start Date <span className="text-primary">*</span>
+                  </p>
                   <div className="flex-1">
                     <DatePicker
                       date={applicationStartDate}
@@ -422,28 +420,29 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                 <div className="w-3 h-px bg-muted-foreground self-end mb-5" />
 
                 <div className="flex-1">
-                  <p className="text-sm font-medium mb-2">Due Date <span className="text-primary">*</span></p>
+                  <p className="text-sm font-medium mb-2">
+                    Due Date <span className="text-primary">*</span>
+                  </p>
                   <div className="flex-1">
                     <DatePicker
                       date={applicationDueDate}
                       setDate={setApplicationDueDate}
                       disabled={{
-                        before: applicationStartDate ? applicationStartDate : new Date()
+                        before: applicationStartDate ? applicationStartDate : new Date(),
                       }}
                     />
                   </div>
-
                 </div>
               </div>
             </label>
 
             <label htmlFor="fundingDate" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium text-muted-foreground">
-                Funding date
-              </p>
+              <p className="text-sm font-medium text-muted-foreground">Funding date</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1">
-                  <p className="text-sm font-medium mb-2">Start Date <span className="text-primary">*</span></p>
+                  <p className="text-sm font-medium mb-2">
+                    Start Date <span className="text-primary">*</span>
+                  </p>
                   <div className="flex-1">
                     <DatePicker
                       date={fundingStartDate}
@@ -455,13 +454,15 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                 <div className="w-3 h-px bg-muted-foreground self-end mb-5" />
 
                 <div className="flex-1">
-                  <p className="text-sm font-medium mb-2">Due Date <span className="text-primary">*</span></p>
+                  <p className="text-sm font-medium mb-2">
+                    Due Date <span className="text-primary">*</span>
+                  </p>
                   <div className="flex-1">
                     <DatePicker
                       date={fundingDueDate}
                       setDate={setFundingDueDate}
                       disabled={{
-                        before: fundingStartDate ? fundingStartDate : new Date()
+                        before: fundingStartDate ? fundingStartDate : new Date(),
                       }}
                     />
                   </div>
@@ -592,7 +593,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
         <TabsContent value="condition">
           <div className="bg-white px-10 py-8 rounded-lg mb-3">
             <label htmlFor="price" className="space-y-2 block">
-              <p className="text-sm font-medium text-muted-foreground">Maximum funding amount for the project</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Maximum funding amount for the project
+              </p>
               <div className="flex gap-2 items-end">
                 <div className="w-1/2">
                   <p className="text-sm font-medium mb-2">
@@ -642,7 +645,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
           <div className="bg-white px-10 py-6 rounded-lg mb-3">
             <label htmlFor="condition" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium text-muted-foreground mb-8">Setting up condition <span className="text-primary">*</span></p>
+              <p className="text-sm font-medium text-muted-foreground mb-8">
+                Setting up condition <span className="text-primary">*</span>
+              </p>
               <RadioGroup
                 defaultValue="open"
                 className="space-y-4"
@@ -673,20 +678,35 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                     <div>
                       <Label
                         htmlFor={tier.name}
-                        className={cn("flex-1", conditionType !== 'tier' && "text-muted-foreground")}
+                        className={cn(
+                          'flex-1',
+                          conditionType !== 'tier' && 'text-muted-foreground',
+                        )}
                       >
-                        <span className={cn(
-                          "px-2 py-1 rounded-full text-xs font-medium",
-                          tier.name === 'Bronze' && "bg-amber-100 text-amber-800",
-                          tier.name === 'Silver' && "bg-slate-100 text-slate-800",
-                          tier.name === 'Gold' && "bg-orange-100 text-orange-800",
-                          tier.name === 'Platinum' && "bg-emerald-100 text-emerald-800"
-                        )}>
+                        <span
+                          className={cn(
+                            'px-2 py-1 rounded-full text-xs font-medium',
+                            tier.name === 'Bronze' && 'bg-amber-100 text-amber-800',
+                            tier.name === 'Silver' && 'bg-slate-100 text-slate-800',
+                            tier.name === 'Gold' && 'bg-orange-100 text-orange-800',
+                            tier.name === 'Platinum' && 'bg-emerald-100 text-emerald-800',
+                          )}
+                        >
                           {tier.name}
-                        </span> can invest
+                        </span>{' '}
+                        can invest
                       </Label>
                       <div className="flex items-center gap-4">
-                        <span className={cn("text-sm mb-1", conditionType !== 'tier' || !tier.enabled ? "text-muted-foreground" : "text-foreground")}>Maximum amount</span>
+                        <span
+                          className={cn(
+                            'text-sm mb-1',
+                            conditionType !== 'tier' || !tier.enabled
+                              ? 'text-muted-foreground'
+                              : 'text-foreground',
+                          )}
+                        >
+                          Maximum amount
+                        </span>
                         <Input
                           type="number"
                           min={0}
@@ -735,7 +755,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                   disabled={feeType !== 'custom'}
                   className="w-32 h-8"
                 />
-                <span className={cn("text-sm", feeType !== 'custom' && "text-muted-foreground")}>%</span>
+                <span className={cn('text-sm', feeType !== 'custom' && 'text-muted-foreground')}>
+                  %
+                </span>
               </div>
             </label>
           </div>

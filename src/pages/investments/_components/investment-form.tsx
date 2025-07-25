@@ -32,14 +32,25 @@ export type OnSubmitInvestmentFunc = (data: {
   currency: string;
   deadline?: string;
   keywords: string[];
-  // validatorId: string;
   links: LinkInput[];
-  // isPublish?: boolean;
   network: string;
   validators: string[];
   image?: File;
   visibility: 'public' | 'restricted' | 'private';
   builders?: string[];
+  applicationStartDate?: string;
+  applicationEndDate?: string;
+  fundingStartDate?: string;
+  fundingEndDate?: string;
+  fundingCondition?: 'open' | 'tier';
+  tierSettings?: {
+    bronze?: { enabled: boolean; maxAmount: string };
+    silver?: { enabled: boolean; maxAmount: string };
+    gold?: { enabled: boolean; maxAmount: string };
+    platinum?: { enabled: boolean; maxAmount: string };
+  };
+  feePercentage?: number;
+  customFeePercentage?: number;
 }) => void;
 
 export interface InvestmentFormProps {
@@ -126,6 +137,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     validator: false,
     links: false,
     invalidLink: false,
+    dates: false,
   });
 
   const keywordOptions = keywords?.keywords?.map((k) => ({
@@ -194,17 +206,95 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     price: string;
     summary: string;
   }) => {
-    if (
-      imageError ||
-      extraErrors.deadline ||
-      extraErrors.keyword ||
-      extraErrors.links ||
-      extraErrors.validator ||
-      extraErrors.invalidLink ||
-      !content.length ||
-      !selectedImage
-    )
+    console.log('Form submitted with data:', submitData);
+    console.log('Validation state:', {
+      imageError,
+      contentLength: content.length,
+      dates: {
+        applicationStartDate,
+        applicationDueDate,
+        fundingStartDate,
+        fundingDueDate,
+      },
+      selectedKeywords,
+      selectedValidators,
+      deadline,
+      links,
+    });
+
+    // Validate required fields
+    let hasErrors = false;
+    dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
+
+    if (!selectedKeywords?.length) {
+      dispatchErrors({ type: ExtraErrorActionKind.SET_KEYWORDS_ERROR });
+      hasErrors = true;
+    }
+    if (!selectedValidators?.length) {
+      dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
+      hasErrors = true;
+    }
+    // Deadline is optional for investment programs
+    // if (!deadline) {
+    //   dispatchErrors({ type: ExtraErrorActionKind.SET_DEADLINE_ERROR });
+    //   hasErrors = true;
+    // }
+    if (!links?.[0]) {
+      dispatchErrors({ type: ExtraErrorActionKind.SET_LINKS_ERROR });
+      hasErrors = true;
+    }
+    if (links?.some((l) => l && !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
+      dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
+      hasErrors = true;
+    }
+    if (!applicationStartDate || !applicationDueDate || !fundingStartDate || !fundingDueDate) {
+      dispatchErrors({ type: ExtraErrorActionKind.SET_DATE_ERROR });
+      hasErrors = true;
+    }
+    if (!content.length) {
+      hasErrors = true;
+    }
+
+    if (hasErrors || imageError) {
+      console.log('Form validation failed');
       return;
+    }
+
+    // Transform tier settings from array to object format
+    const tierSettingsObject =
+      conditionType === 'tier'
+        ? {
+            bronze: tiers.find((t) => t.name === 'Bronze')?.enabled
+              ? {
+                  enabled: true,
+                  maxAmount: tiers.find((t) => t.name === 'Bronze')?.maxAmount || '0',
+                }
+              : undefined,
+            silver: tiers.find((t) => t.name === 'Silver')?.enabled
+              ? {
+                  enabled: true,
+                  maxAmount: tiers.find((t) => t.name === 'Silver')?.maxAmount || '0',
+                }
+              : undefined,
+            gold: tiers.find((t) => t.name === 'Gold')?.enabled
+              ? {
+                  enabled: true,
+                  maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '0',
+                }
+              : undefined,
+            platinum: tiers.find((t) => t.name === 'Platinum')?.enabled
+              ? {
+                  enabled: true,
+                  maxAmount: tiers.find((t) => t.name === 'Platinum')?.maxAmount || '0',
+                }
+              : undefined,
+          }
+        : undefined;
+
+    // Calculate fee percentage in basis points (3% = 300)
+    const calculatedFeePercentage = feeType === 'default' ? 300 : undefined;
+    const calculatedCustomFeePercentage =
+      feeType === 'custom' ? Math.round(Number.parseFloat(customFee) * 100) : undefined;
 
     onSubmitInvestment({
       id: data?.program?.id ?? id,
@@ -218,30 +308,24 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
           : currency,
       deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
       keywords: selectedKeywords,
-      validators: selectedValidators ?? '',
+      validators: selectedValidators ?? [],
       links: links.map((l) => ({ title: l, url: l })),
       network:
         isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
       image: selectedImage,
       visibility: visibility,
       builders: selectedBuilders,
+      applicationStartDate: applicationStartDate
+        ? format(applicationStartDate, 'yyyy-MM-dd')
+        : undefined,
+      applicationEndDate: applicationDueDate ? format(applicationDueDate, 'yyyy-MM-dd') : undefined,
+      fundingStartDate: fundingStartDate ? format(fundingStartDate, 'yyyy-MM-dd') : undefined,
+      fundingEndDate: fundingDueDate ? format(fundingDueDate, 'yyyy-MM-dd') : undefined,
+      fundingCondition: conditionType,
+      tierSettings: tierSettingsObject,
+      feePercentage: calculatedFeePercentage,
+      customFeePercentage: calculatedCustomFeePercentage,
     });
-  };
-
-  const extraValidation = () => {
-    dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
-    if (!selectedImage) setImageError('Picture is required.');
-    if (!selectedKeywords?.length)
-      dispatchErrors({ type: ExtraErrorActionKind.SET_KEYWORDS_ERROR });
-    if (!selectedValidators?.length)
-      dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
-    if (!deadline) dispatchErrors({ type: ExtraErrorActionKind.SET_DEADLINE_ERROR });
-    if (!links?.[0]) dispatchErrors({ type: ExtraErrorActionKind.SET_LINKS_ERROR });
-    if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
-      dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
-    }
-
-    formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
   };
 
   const { data: carouselItems, refetch } = useCarouselItemsQuery();
@@ -265,15 +349,13 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
   // Tier handlers
   const handleTierChange = (tierName: string, enabled: boolean) => {
-    setTiers(prev => prev.map(tier =>
-      tier.name === tierName ? { ...tier, enabled } : tier
-    ));
+    setTiers((prev) => prev.map((tier) => (tier.name === tierName ? { ...tier, enabled } : tier)));
   };
 
   const handleTierAmountChange = (tierName: string, amount: string) => {
-    setTiers(prev => prev.map(tier =>
-      tier.name === tierName ? { ...tier, maxAmount: amount } : tier
-    ));
+    setTiers((prev) =>
+      prev.map((tier) => (tier.name === tierName ? { ...tier, maxAmount: amount } : tier)),
+    );
   };
 
   // image input handler
@@ -316,7 +398,14 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   };
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="max-w-[820px] w-full mx-auto">
+    <form
+      ref={formRef}
+      onSubmit={(e) => {
+        console.log('Form submit event triggered');
+        handleSubmit(onSubmit)(e);
+      }}
+      className="max-w-[820px] w-full mx-auto"
+    >
       <h1 className="font-medium text-xl mb-6">Program</h1>
       {/* <h1 className="font-medium text-xl mb-6">{isEdit ? 'Edit Program' : 'Create Program'}</h1> */}
 
@@ -387,9 +476,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 </div>
                 {/* Text info */}
                 <div className="flex-1">
-                  <p className="font-medium text-base">
-                    Cover image <span className="text-primary">*</span>
-                  </p>
+                  <p className="font-medium text-base">Cover image</p>
                   <p className="text-sm text-muted-foreground">
                     Logo image must be square, under 2MB, and in PNG, JPG, or JPEG format.
                     <br />
@@ -405,12 +492,12 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
           <div className="bg-white px-10 py-6 rounded-lg mb-3">
             <label htmlFor="applicationDate" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium text-muted-foreground">
-                Application date
-              </p>
+              <p className="text-sm font-medium text-muted-foreground">Application date</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1">
-                  <p className="text-sm font-medium mb-2">Start Date <span className="text-primary">*</span></p>
+                  <p className="text-sm font-medium mb-2">
+                    Start Date <span className="text-primary">*</span>
+                  </p>
                   <div className="flex-1">
                     <DatePicker
                       date={applicationStartDate}
@@ -422,28 +509,34 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 <div className="w-3 h-px bg-muted-foreground self-end mb-5" />
 
                 <div className="flex-1">
-                  <p className="text-sm font-medium mb-2">Due Date <span className="text-primary">*</span></p>
+                  <p className="text-sm font-medium mb-2">
+                    Due Date <span className="text-primary">*</span>
+                  </p>
                   <div className="flex-1">
                     <DatePicker
                       date={applicationDueDate}
                       setDate={setApplicationDueDate}
                       disabled={{
-                        before: applicationStartDate ? applicationStartDate : new Date()
+                        before: applicationStartDate ? applicationStartDate : new Date(),
                       }}
                     />
                   </div>
-
                 </div>
               </div>
+              {extraErrors.dates && (
+                <span className="text-destructive text-sm block mt-2">
+                  All date fields are required
+                </span>
+              )}
             </label>
 
             <label htmlFor="fundingDate" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium text-muted-foreground">
-                Funding date
-              </p>
+              <p className="text-sm font-medium text-muted-foreground">Funding date</p>
               <div className="flex items-center gap-2">
                 <div className="flex-1">
-                  <p className="text-sm font-medium mb-2">Start Date <span className="text-primary">*</span></p>
+                  <p className="text-sm font-medium mb-2">
+                    Start Date <span className="text-primary">*</span>
+                  </p>
                   <div className="flex-1">
                     <DatePicker
                       date={fundingStartDate}
@@ -455,13 +548,15 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 <div className="w-3 h-px bg-muted-foreground self-end mb-5" />
 
                 <div className="flex-1">
-                  <p className="text-sm font-medium mb-2">Due Date <span className="text-primary">*</span></p>
+                  <p className="text-sm font-medium mb-2">
+                    Due Date <span className="text-primary">*</span>
+                  </p>
                   <div className="flex-1">
                     <DatePicker
                       date={fundingDueDate}
                       setDate={setFundingDueDate}
                       disabled={{
-                        before: fundingStartDate ? fundingStartDate : new Date()
+                        before: fundingStartDate ? fundingStartDate : new Date(),
                       }}
                     />
                   </div>
@@ -592,7 +687,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         <TabsContent value="condition">
           <div className="bg-white px-10 py-8 rounded-lg mb-3">
             <label htmlFor="price" className="space-y-2 block">
-              <p className="text-sm font-medium text-muted-foreground">Maximum funding amount for the project</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Maximum funding amount for the project
+              </p>
               <div className="flex gap-2 items-end">
                 <div className="w-1/2">
                   <p className="text-sm font-medium mb-2">
@@ -642,7 +739,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
           <div className="bg-white px-10 py-6 rounded-lg mb-3">
             <label htmlFor="condition" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium text-muted-foreground mb-8">Setting up condition <span className="text-primary">*</span></p>
+              <p className="text-sm font-medium text-muted-foreground mb-8">
+                Setting up condition <span className="text-primary">*</span>
+              </p>
               <RadioGroup
                 defaultValue="open"
                 className="space-y-4"
@@ -673,20 +772,35 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     <div>
                       <Label
                         htmlFor={tier.name}
-                        className={cn("flex-1", conditionType !== 'tier' && "text-muted-foreground")}
+                        className={cn(
+                          'flex-1',
+                          conditionType !== 'tier' && 'text-muted-foreground',
+                        )}
                       >
-                        <span className={cn(
-                          "px-2 py-1 rounded-full text-xs font-medium",
-                          tier.name === 'Bronze' && "bg-amber-100 text-amber-800",
-                          tier.name === 'Silver' && "bg-slate-100 text-slate-800",
-                          tier.name === 'Gold' && "bg-orange-100 text-orange-800",
-                          tier.name === 'Platinum' && "bg-emerald-100 text-emerald-800"
-                        )}>
+                        <span
+                          className={cn(
+                            'px-2 py-1 rounded-full text-xs font-medium',
+                            tier.name === 'Bronze' && 'bg-amber-100 text-amber-800',
+                            tier.name === 'Silver' && 'bg-slate-100 text-slate-800',
+                            tier.name === 'Gold' && 'bg-orange-100 text-orange-800',
+                            tier.name === 'Platinum' && 'bg-emerald-100 text-emerald-800',
+                          )}
+                        >
                           {tier.name}
-                        </span> can invest
+                        </span>{' '}
+                        can invest
                       </Label>
                       <div className="flex items-center gap-4">
-                        <span className={cn("text-sm mb-1", conditionType !== 'tier' || !tier.enabled ? "text-muted-foreground" : "text-foreground")}>Maximum amount</span>
+                        <span
+                          className={cn(
+                            'text-sm mb-1',
+                            conditionType !== 'tier' || !tier.enabled
+                              ? 'text-muted-foreground'
+                              : 'text-foreground',
+                          )}
+                        >
+                          Maximum amount
+                        </span>
                         <Input
                           type="number"
                           min={0}
@@ -735,7 +849,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                   disabled={feeType !== 'custom'}
                   className="w-32 h-8"
                 />
-                <span className={cn("text-sm", feeType !== 'custom' && "text-muted-foreground")}>%</span>
+                <span className={cn('text-sm', feeType !== 'custom' && 'text-muted-foreground')}>
+                  %
+                </span>
               </div>
             </label>
           </div>
@@ -769,13 +885,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
       {isEdit ? (
         <div className="py-3 flex justify-end gap-4">
-          <Button
-            className="bg-primary hover:bg-primary/90 min-w-[177px]"
-            type="submit"
-            onClick={() => {
-              extraValidation();
-            }}
-          >
+          <Button className="bg-primary hover:bg-primary/90 min-w-[177px]" type="submit">
             Edit Program
           </Button>
         </div>
@@ -844,12 +954,11 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
               </RadioGroup>
 
               <Button
-                onClick={() => {
-                  console.log('onCLICK!!!!');
-                  extraValidation();
-                }}
-                type="submit"
+                type="button"
                 className="w-full bg-primary hover:bg-primary/90"
+                onClick={() => {
+                  handleSubmit(onSubmit)();
+                }}
               >
                 Save
               </Button>
@@ -881,6 +990,7 @@ enum ExtraErrorActionKind {
   SET_LINKS_ERROR = 'SET_LINKS_ERROR',
   CLEAR_ERRORS = 'CLEAR_ERRORS',
   SET_INVALID_LINK_ERROR = 'SET_INVALID_LINK_ERROR',
+  SET_DATE_ERROR = 'SET_DATE_ERROR',
 }
 
 interface ExtraErrorAction {
@@ -893,6 +1003,7 @@ interface ExtraErrorState {
   deadline: boolean;
   links: boolean;
   invalidLink: boolean;
+  dates: boolean;
 }
 
 function extraErrorReducer(state: ExtraErrorState, action: ExtraErrorAction) {
@@ -923,6 +1034,11 @@ function extraErrorReducer(state: ExtraErrorState, action: ExtraErrorAction) {
         ...state,
         invalidLink: true,
       };
+    case ExtraErrorActionKind.SET_DATE_ERROR:
+      return {
+        ...state,
+        dates: true,
+      };
     case ExtraErrorActionKind.CLEAR_ERRORS:
       return {
         keyword: false,
@@ -930,6 +1046,7 @@ function extraErrorReducer(state: ExtraErrorState, action: ExtraErrorAction) {
         deadline: false,
         links: false,
         invalidLink: false,
+        dates: false,
       };
     default:
       return state;

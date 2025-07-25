@@ -8,7 +8,7 @@ export type ProgramQueryVariables = Types.Exact<{
 }>;
 
 
-export type ProgramQuery = { __typename?: 'Query', program?: { __typename?: 'Program', currency?: string | null, deadline?: any | null, description?: string | null, educhainProgramId?: number | null, id?: string | null, name?: string | null, image?: string | null, price?: string | null, status?: Types.ProgramStatus | null, summary?: string | null, rejectionReason?: string | null, visibility?: Types.ProgramVisibility | null, network?: string | null, applications?: Array<{ __typename?: 'Application', content?: string | null, id?: string | null, metadata?: any | null, name?: string | null, status?: Types.ApplicationStatus | null, applicant?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null, milestones?: Array<{ __typename?: 'Milestone', currency?: string | null, description?: string | null, id?: string | null, price?: string | null, status?: Types.MilestoneStatus | null, title?: string | null }> | null }> | null, creator?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, summary?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null, keywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, invitedBuilders?: Array<{ __typename?: 'User', about?: string | null, avatar?: any | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, loginType?: string | null, organizationName?: string | null, role?: Types.UserRole | null, summary?: string | null, walletAddress?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null }> | null, validators?: Array<{ __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, summary?: string | null, lastName?: string | null, organizationName?: string | null, walletAddress?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null }> | null } | null };
+export type ProgramQuery = { __typename?: 'Query', program?: { __typename?: 'Program', currency?: string | null, deadline?: any | null, description?: string | null, educhainProgramId?: number | null, id?: string | null, name?: string | null, image?: string | null, price?: string | null, status?: Types.ProgramStatus | null, summary?: string | null, rejectionReason?: string | null, visibility?: Types.ProgramVisibility | null, network?: string | null, type?: Types.ProgramType | null, applicationStartDate?: any | null, applicationEndDate?: any | null, fundingStartDate?: any | null, fundingEndDate?: any | null, fundingCondition?: Types.FundingCondition | null, feePercentage?: number | null, customFeePercentage?: number | null, applications?: Array<{ __typename?: 'Application', content?: string | null, id?: string | null, metadata?: any | null, name?: string | null, status?: Types.ApplicationStatus | null, applicant?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null, milestones?: Array<{ __typename?: 'Milestone', currency?: string | null, description?: string | null, id?: string | null, price?: string | null, status?: Types.MilestoneStatus | null, title?: string | null }> | null }> | null, creator?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, summary?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null, keywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, invitedBuilders?: Array<{ __typename?: 'User', about?: string | null, avatar?: any | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, loginType?: string | null, organizationName?: string | null, role?: Types.UserRole | null, summary?: string | null, walletAddress?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null }> | null, validators?: Array<{ __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, summary?: string | null, lastName?: string | null, organizationName?: string | null, walletAddress?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null }> | null, tierSettings?: { __typename?: 'TierSettings', bronze?: { __typename?: 'TierConfig', enabled?: boolean | null, maxAmount?: string | null } | null, silver?: { __typename?: 'TierConfig', enabled?: boolean | null, maxAmount?: string | null } | null, gold?: { __typename?: 'TierConfig', enabled?: boolean | null, maxAmount?: string | null } | null, platinum?: { __typename?: 'TierConfig', enabled?: boolean | null, maxAmount?: string | null } | null } | null } | null };
 
 
 export const ProgramDocument = gql`
@@ -110,6 +110,32 @@ export const ProgramDocument = gql`
       walletAddress
     }
     network
+    type
+    applicationStartDate
+    applicationEndDate
+    fundingStartDate
+    fundingEndDate
+    fundingCondition
+    tierSettings {
+      bronze {
+        enabled
+        maxAmount
+      }
+      silver {
+        enabled
+        maxAmount
+      }
+      gold {
+        enabled
+        maxAmount
+      }
+      platinum {
+        enabled
+        maxAmount
+      }
+    }
+    feePercentage
+    customFeePercentage
   }
 }
     `;

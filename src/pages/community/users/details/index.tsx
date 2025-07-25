@@ -1,12 +1,12 @@
 import { useUserQuery } from '@/apollo/queries/user.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
 import { Badge } from '@/components/ui/badge';
-import { Share2Icon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Outlet, useParams } from 'react-router';
 import { Separator } from '@radix-ui/react-dropdown-menu';
-import { platformIcons } from '../agent-utils';
+import { Share2Icon } from 'lucide-react';
+import { Outlet, useParams } from 'react-router';
 import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
+import { platformIcons } from '../agent-utils';
 
 function UserDetailsPage() {
   const { id } = useParams();
