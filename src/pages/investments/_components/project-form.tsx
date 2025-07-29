@@ -1,12 +1,10 @@
 import { useCreateCarouselItemMutation } from '@/apollo/mutation/create-carousel-item.generated';
 import { useCarouselItemsQuery } from '@/apollo/queries/carousel-items.generated';
-import { useKeywordsQuery } from '@/apollo/queries/keywords.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
-import CurrencySelector from '@/components/currency-selector';
 import { MarkdownEditor } from '@/components/markdown';
-import NetworkSelector from '@/components/network-selector';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,28 +13,25 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { cn, mainnetDefaultNetwork } from '@/lib/utils';
+import { getCurrency, mainnetDefaultNetwork } from '@/lib/utils';
 import { CarouselItemType, type LinkInput } from '@/types/types.generated';
 import { format } from 'date-fns';
-import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
+import { ChevronRight, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
 
 export type OnSubmitProjectFunc = (data: {
   id?: string;
-  programName: string;
-  price?: string;
+  name: string;
+  fundingToBeRaised?: string;
   description: string;
   summary: string;
   currency: string;
   deadline?: string;
-  keywords: string[];
-  // validatorId: string;
   links: LinkInput[];
   // isPublish?: boolean;
   network: string;
-  validators: string[];
   image?: File;
   visibility: 'public' | 'restricted' | 'private';
   builders?: string[];
@@ -54,26 +49,17 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     variables: {
       id: id ?? '',
     },
-    skip: !isEdit,
+    // skip: !isEdit,
   });
 
   const [selectedTab, setSelectedTab] = useState<string>('overview');
 
   const [content, setContent] = useState<string>('');
   const [deadline, setDeadline] = useState<Date>();
-  const [applicationStartDate, setApplicationStartDate] = useState<Date>();
-  const [applicationDueDate, setApplicationDueDate] = useState<Date>();
-  const [fundingStartDate, setFundingStartDate] = useState<Date>();
-  const [fundingDueDate, setFundingDueDate] = useState<Date>();
-  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
-  const [selectedValidators, setSelectedValidators] = useState<string[]>([]);
   const [links, setLinks] = useState<string[]>(['']);
   const [network, setNetwork] = useState(mainnetDefaultNetwork);
   const [currency, setCurrency] = useState('');
-  const [selectedImage, setSelectedImage] = useState<File>();
   const [visibility, setVisibility] = useState<'public' | 'restricted' | 'private'>('public');
-  const [imageError, setImageError] = useState<string | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedBuilders, setSelectedBuilders] = useState<string[]>([]);
   const [selectedBuilderItems, setSelectedBuilderItems] = useState<
     { label: string; value: string }[]
@@ -81,67 +67,60 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
   const [builderInput, setBuilderInput] = useState<string>();
   const [debouncedBuilderInput, setDebouncedBuilderInput] = useState<string>();
 
-  // Condition tab state
-  const [conditionType, setConditionType] = useState<'open' | 'tier'>('open');
-  const [tiers, setTiers] = useState([
-    { name: 'Bronze', enabled: false, maxAmount: '0' },
-    { name: 'Silver', enabled: false, maxAmount: '0' },
-    { name: 'Gold', enabled: false, maxAmount: '0' },
-    { name: 'Platinum', enabled: false, maxAmount: '0' },
-  ]);
-  const [feeType, setFeeType] = useState<'default' | 'custom'>('default');
-  const [customFee, setCustomFee] = useState<string>('0');
+  // Supporter tier state
+  const [supporterTierConfirmed, setSupporterTierConfirmed] = useState<boolean>(false);
 
-  const { data: keywords } = useKeywordsQuery();
+  // Terms state
+  interface Term {
+    id: number;
+    title: string;
+    prize: string;
+    purchaseLimit: string;
+    description: string;
+  }
 
-  const [validatorInput, setValidatorInput] = useState<string>();
-  const [debouncedValidatorInput, setDebouncedValidatorInput] = useState<string>();
+  const [nextTermId, setNextTermId] = useState<number>(2); // Start from 2 since Term 1 has id 1
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedValidatorInput(validatorInput);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [validatorInput]);
-
-  const { data: validators, loading } = useUsersQuery({
-    variables: {
-      input: {
-        limit: 5,
-        offset: 0,
-        filter: [
-          {
-            field: 'search',
-            value: debouncedValidatorInput ?? '',
-          },
-        ],
-      },
+  const [terms, setTerms] = useState<Term[]>([
+    {
+      id: 1,
+      title: '',
+      prize: '',
+      purchaseLimit: '',
+      description: '',
     },
-    skip: !validatorInput,
-  });
+  ]);
+
+  // Milestones state
+  interface Milestone {
+    id: number;
+    title: string;
+    payoutPercentage: string;
+    endDate: Date | undefined;
+    summary: string;
+    description: string;
+  }
+
+  const [nextMilestoneId, setNextMilestoneId] = useState<number>(2); // Start from 2 since Milestone 1 has id 1
+
+  const [milestones, setMilestones] = useState<Milestone[]>([
+    {
+      id: 1,
+      title: '',
+      payoutPercentage: '0',
+      endDate: undefined,
+      summary: '',
+      description: '',
+    },
+  ]);
+
   const [extraErrors, dispatchErrors] = useReducer(extraErrorReducer, {
-    keyword: false,
     deadline: false,
-    validator: false,
     links: false,
     invalidLink: false,
   });
 
-  const keywordOptions = keywords?.keywords?.map((k) => ({
-    value: k.id ?? '',
-    label: k.name ?? '',
-  }));
-  const validatorOptions = validators?.users?.data?.map((v) => ({
-    value: v.id ?? '',
-    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
-  }));
-
   useEffect(() => {
-    if (data?.program?.keywords)
-      setSelectedKeywords(data?.program?.keywords?.map((k) => k.id ?? '') ?? []);
-    if (data?.program?.validators)
-      setSelectedValidators(data?.program.validators?.map((k) => k.id ?? '') ?? '');
     if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
     if (data?.program?.links) setLinks(data?.program?.links.map((l) => l.url ?? ''));
     if (data?.program?.description) setContent(data?.program.description);
@@ -183,33 +162,30 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     formState: { errors },
   } = useForm({
     values: {
-      programName: data?.program?.name ?? '',
-      price: data?.program?.price ?? '',
+      name: data?.program?.name ?? '',
+      fundingToBeRaised: data?.program?.price ?? '',
       summary: data?.program?.summary ?? '',
     },
   });
 
   const onSubmit = (submitData: {
-    programName: string;
-    price: string;
+    name: string;
+    fundingToBeRaised: string;
     summary: string;
   }) => {
     if (
-      imageError ||
       extraErrors.deadline ||
-      extraErrors.keyword ||
       extraErrors.links ||
-      extraErrors.validator ||
       extraErrors.invalidLink ||
       !content.length ||
-      !selectedImage
+      !supporterTierConfirmed
     )
       return;
 
     onSubmitProject({
       id: data?.program?.id ?? id,
-      programName: submitData.programName,
-      price: isEdit && data?.program?.status !== 'draft' ? undefined : submitData.price,
+      name: submitData.name,
+      fundingToBeRaised: isEdit && data?.program?.status !== 'draft' ? undefined : submitData.fundingToBeRaised,
       description: content,
       summary: submitData.summary,
       currency:
@@ -217,12 +193,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
           ? (data?.program?.currency as string)
           : currency,
       deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
-      keywords: selectedKeywords,
-      validators: selectedValidators ?? '',
       links: links.map((l) => ({ title: l, url: l })),
       network:
         isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
-      image: selectedImage,
       visibility: visibility,
       builders: selectedBuilders,
     });
@@ -230,11 +203,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
   const extraValidation = () => {
     dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
-    if (!selectedImage) setImageError('Picture is required.');
-    if (!selectedKeywords?.length)
-      dispatchErrors({ type: ExtraErrorActionKind.SET_KEYWORDS_ERROR });
-    if (!selectedValidators?.length)
-      dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
     if (!deadline) dispatchErrors({ type: ExtraErrorActionKind.SET_DEADLINE_ERROR });
     if (!links?.[0]) dispatchErrors({ type: ExtraErrorActionKind.SET_LINKS_ERROR });
     if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
@@ -248,260 +216,156 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
   const [createCarouselItem] = useCreateCarouselItemMutation();
 
-  const [selectedKeywordItems, setSelectedKeywordItems] = useState<
-    {
-      label: string;
-      value: string;
-    }[]
-  >([]);
-  const [selectedValidatorItems, setSelectedValidatorItems] = useState<
-    {
-      label: string;
-      value: string;
-    }[]
-  >([]);
-
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Tier handlers
-  const handleTierChange = (tierName: string, enabled: boolean) => {
-    setTiers((prev) => prev.map((tier) => (tier.name === tierName ? { ...tier, enabled } : tier)));
+  // Terms handlers
+  const addTerm = () => {
+    setTerms((prevTerms) => [
+      ...prevTerms,
+      {
+        id: nextTermId,
+        title: '',
+        prize: '',
+        purchaseLimit: '',
+        description: '',
+      },
+    ]);
+    setNextTermId((prev) => prev + 1);
   };
 
-  const handleTierAmountChange = (tierName: string, amount: string) => {
-    setTiers((prev) =>
-      prev.map((tier) => (tier.name === tierName ? { ...tier, maxAmount: amount } : tier)),
+  const removeTerm = (index: number) => {
+    if (index === 0) return; // Term 1 cannot be deleted
+    setTerms((prevTerms) => prevTerms.filter((_, i) => i !== index));
+  };
+
+  const updateTerm = (index: number, field: keyof Term, value: string) => {
+    setTerms((prevTerms) =>
+      prevTerms.map((term, i) =>
+        i === index ? { ...term, [field]: value } : term,
+      ),
     );
   };
 
-  // image input handler
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setImageError(null);
-    const file = e.target.files?.[0];
-    if (!file) return;
-    // Validate type
-    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
-      setImageError('Only PNG, JPG, or JPEG files are allowed.');
-      setSelectedImage(undefined);
-      setImagePreview(null);
-      return;
-    }
-    // Validate size
-    if (file.size > 2 * 1024 * 1024) {
-      setImageError('Image must be under 2MB.');
-      setSelectedImage(undefined);
-      setImagePreview(null);
-      return;
-    }
-    // Validate square
-    const img = new window.Image();
-    img.onload = () => {
-      if (img.width !== img.height) {
-        setImageError('Image must be square (1:1).');
-        setSelectedImage(undefined);
-        setImagePreview(null);
-      } else {
-        setSelectedImage(file);
-        setImagePreview(URL.createObjectURL(file));
-      }
-    };
-    img.onerror = () => {
-      setImageError('Invalid image file.');
-      setSelectedImage(undefined);
-      setImagePreview(null);
-    };
-    img.src = URL.createObjectURL(file);
+  // Milestones handlers
+  const addMilestone = () => {
+    setMilestones((prevMilestones) => [
+      ...prevMilestones,
+      {
+        id: nextMilestoneId,
+        title: '',
+        payoutPercentage: '0',
+        endDate: undefined,
+        summary: '',
+        description: '',
+      },
+    ]);
+    setNextMilestoneId((prev) => prev + 1);
+  };
+
+  const removeMilestone = (index: number) => {
+    if (index === 0) return; // Milestone 1 cannot be deleted
+    setMilestones((prevMilestones) => prevMilestones.filter((_, i) => i !== index));
+  };
+
+  const updateMilestone = (index: number, field: keyof Milestone, value: string | Date | undefined) => {
+    setMilestones((prevMilestones) =>
+      prevMilestones.map((milestone, i) =>
+        i === index ? { ...milestone, [field]: value } : milestone,
+      ),
+    );
   };
 
   return (
     <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="max-w-[820px] w-full mx-auto">
-      <h1 className="font-medium text-xl mb-6">Program</h1>
+      <h1 className="font-medium text-xl mb-6">Submit Project</h1>
       {/* <h1 className="font-medium text-xl mb-6">{isEdit ? 'Edit Program' : 'Create Program'}</h1> */}
 
       <Tabs defaultValue="overview" value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList className="w-full px-0 mb-3">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="condition">Condition</TabsTrigger>
+          <TabsTrigger value="terms">Terms</TabsTrigger>
+          <TabsTrigger value="milestone">Milestones</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
           <div className="bg-white py-6 px-10 rounded-lg mb-3">
-            <label htmlFor="programName" className="space-y-2 block mb-10">
+            <label htmlFor="name" className="space-y-2 block mb-10">
               <p className="text-sm font-medium">
-                Program name <span className="text-primary">*</span>
+                Name <span className="text-primary">*</span>
               </p>
               <Input
-                id="programName"
+                id="name"
                 type="text"
                 placeholder="Type name"
                 className="h-10"
-                {...register('programName', { required: true })}
+                {...register('name', { required: true })}
               />
-              {errors.programName && (
-                <span className="text-destructive text-sm block">Program name is required</span>
+              {errors.name && (
+                <span className="text-destructive text-sm block">Name is required</span>
               )}
             </label>
 
-            <label htmlFor="keyword" className="space-y-2 block">
+            <label htmlFor="price" className="space-y-2 block">
               <p className="text-sm font-medium">
-                Keywords <span className="text-primary">*</span>
+                Funding to be raised <span className="text-primary">*</span>
               </p>
-              <MultiSelect
-                options={keywordOptions ?? []}
-                value={selectedKeywords}
-                onValueChange={setSelectedKeywords}
-                placeholder="Select keywords"
-                animation={2}
-                selectedItems={selectedKeywordItems}
-                setSelectedItems={setSelectedKeywordItems}
-                maxCount={20}
+
+              <div className="flex items-center justify-between bg-secondary rounded-md p-3">
+                <p className='text-sm font-bold text-muted-foreground'>Maximum funding amount</p>
+                <div className="flex items-center gap-2">
+                  <span>{getCurrency(data?.program?.network)?.icon}</span> <span className='font-bold'>{data?.program?.price} {data?.program?.currency}</span> <span className='text-muted-foreground text-sm text-bold'>{getCurrency(data?.program?.network)?.display}</span>
+                </div>
+              </div>
+
+              <Input
+                id="fundingToBeRaised"
+                type="number"
+                placeholder="Enter price"
+                className="h-10"
+                {...register('fundingToBeRaised', { required: true })}
               />
-              {extraErrors.keyword && (
-                <span className="text-destructive text-sm block">Keywords is required</span>
+              {errors.fundingToBeRaised && (
+                <span className="text-destructive text-sm block">Amount is required</span>
               )}
             </label>
 
-            <label htmlFor="image" className="space-y-2 block mt-10">
-              <div className="flex items-start gap-6">
-                {/* Image input with preview/placeholder */}
-                <div className="relative w-[200px] h-[200px] flex items-center justify-center bg-[#eaeaea] rounded-lg overflow-hidden group">
-                  <input
-                    id="picture"
-                    type="file"
-                    accept="image/png, image/jpeg, image/jpg"
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                    onChange={handleImageChange}
-                  />
-                  {imagePreview ? (
-                    <img src={imagePreview} alt="Preview" className="object-cover w-full h-full" />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center w-full h-full">
-                      <ImageIcon className="w-10 h-10 text-[#666666] mb-2" />
-                    </div>
-                  )}
-                  <div className="absolute bottom-0 right-0 bg-black/80 rounded-md w-10 h-10 flex justify-center items-center">
-                    <Plus className="w-5 h-5 text-white" />
+            <label htmlFor="supporterTier" className="space-y-2 block mt-10">
+              <p className="text-sm font-medium text-muted-foreground">
+                Supporter Tier <span className="text-primary">*</span>
+              </p>
+
+              {/* Program Tier Condition Box */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center justify-between border-b pb-2 mb-2">
+                  <p className="text-sm font-medium text-gray-700">Program Tier Condition</p>
+                  <div className="flex items-center gap-2">
+                    <span className="bg-[#FFDEA1] text-[#CA8A04] px-2 py-0.5 rounded-full text-sm font-semibold">
+                      Gold
+                    </span>
+                    <span className="font-bold text-black">or higher</span>
                   </div>
                 </div>
-                {/* Text info */}
-                <div className="flex-1">
-                  <p className="font-medium text-base">
-                    Cover image <span className="text-primary">*</span>
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Logo image must be square, under 2MB, and in PNG, JPG, or JPEG format.
-                    <br />
-                    This image is used in the program list
-                  </p>
-                  {imageError && (
-                    <span className="text-destructive text-sm block mt-28">{imageError}</span>
-                  )}
+                <div className="flex flex-col items-end space-y-1">
+                  <div className="text-sm text-gray-600">Gold 10,000</div>
+                  <div className="text-sm text-gray-600">Platinum 20,000</div>
                 </div>
+              </div>
+
+              {/* Confirmed Checkbox */}
+              <div className="flex items-center space-x-2 mt-4">
+                <Checkbox
+                  id="supporterTierConfirmed"
+                  checked={supporterTierConfirmed}
+                  onCheckedChange={(checked) => setSupporterTierConfirmed(checked as boolean)}
+                />
+                <Label htmlFor="supporterTierConfirmed" className="text-sm font-medium">
+                  Confirmed
+                </Label>
               </div>
             </label>
           </div>
 
-          <div className="bg-white px-10 py-6 rounded-lg mb-3">
-            <label htmlFor="applicationDate" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium text-muted-foreground">Application date</p>
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <p className="text-sm font-medium mb-2">
-                    Start Date <span className="text-primary">*</span>
-                  </p>
-                  <div className="flex-1">
-                    <DatePicker
-                      date={applicationStartDate}
-                      setDate={setApplicationStartDate}
-                      disabled={{ before: new Date() }}
-                    />
-                  </div>
-                </div>
-                <div className="w-3 h-px bg-muted-foreground self-end mb-5" />
 
-                <div className="flex-1">
-                  <p className="text-sm font-medium mb-2">
-                    Due Date <span className="text-primary">*</span>
-                  </p>
-                  <div className="flex-1">
-                    <DatePicker
-                      date={applicationDueDate}
-                      setDate={setApplicationDueDate}
-                      disabled={{
-                        before: applicationStartDate ? applicationStartDate : new Date(),
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </label>
-
-            <label htmlFor="fundingDate" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium text-muted-foreground">Funding date</p>
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <p className="text-sm font-medium mb-2">
-                    Start Date <span className="text-primary">*</span>
-                  </p>
-                  <div className="flex-1">
-                    <DatePicker
-                      date={fundingStartDate}
-                      setDate={setFundingStartDate}
-                      disabled={{ before: new Date() }}
-                    />
-                  </div>
-                </div>
-                <div className="w-3 h-px bg-muted-foreground self-end mb-5" />
-
-                <div className="flex-1">
-                  <p className="text-sm font-medium mb-2">
-                    Due Date <span className="text-primary">*</span>
-                  </p>
-                  <div className="flex-1">
-                    <DatePicker
-                      date={fundingDueDate}
-                      setDate={setFundingDueDate}
-                      disabled={{
-                        before: fundingStartDate ? fundingStartDate : new Date(),
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            </label>
-
-            <label htmlFor="validator" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium">
-                Validators <span className="text-primary">*</span>
-              </p>
-              {/* <SearchSelect
-                options={validatorOptions ?? []}
-                value={selectedValidator}
-                setValue={setSelectedValidator}
-                inputValue={validatorInput}
-                setInputValue={setValidatorInput}
-                emptyText="Enter validator email or organization name"
-                loading={loading}
-              /> */}
-              <MultiSelect
-                options={validatorOptions ?? []}
-                value={selectedValidators}
-                onValueChange={setSelectedValidators}
-                placeholder="Select validators"
-                animation={2}
-                maxCount={20}
-                inputValue={validatorInput}
-                setInputValue={setValidatorInput}
-                selectedItems={selectedValidatorItems}
-                setSelectedItems={setSelectedValidatorItems}
-                emptyText="Enter validator email or organization name"
-                loading={loading}
-              />
-              {extraErrors.validator && (
-                <span className="text-destructive text-sm block">Validator is required</span>
-              )}
-            </label>
-          </div>
 
           <div className="px-10 py-6 bg-white rounded-lg">
             <label htmlFor="links" className="space-y-2 block mb-10">
@@ -590,176 +454,225 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
           </div>
         </TabsContent>
 
-        <TabsContent value="condition">
-          <div className="bg-white px-10 py-8 rounded-lg mb-3">
-            <label htmlFor="price" className="space-y-2 block">
-              <p className="text-sm font-medium text-muted-foreground">
-                Maximum funding amount for the project
-              </p>
-              <div className="flex gap-2 items-end">
-                <div className="w-1/2">
-                  <p className="text-sm font-medium mb-2">
-                    Network <span className="text-primary">*</span>
-                  </p>
-                  <NetworkSelector
-                    disabled={isEdit && data?.program?.status !== 'draft'}
-                    value={network}
-                    onValueChange={setNetwork}
-                    className="min-w-[120px] h-10 w-full flex justify-between bg-white text-gray-dark border border-input shadow-sm hover:bg-white"
-                  />
+        <TabsContent value="terms">
+          <div className="space-y-4">
+            {terms.map((term, index) => (
+              <div key={term.id} className="bg-white rounded-lg p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-medium text-gray-900">Term {index + 1}</h3>
+                  {index !== 0 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeTerm(index)}
+                      className='bg-secondary'
+                    >
+                      Delete
+                    </Button>
+                  )}
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium mb-2">
-                    Terms <span className="text-primary">*</span>
-                  </p>
-                  <Input
-                    disabled={isEdit && data?.program?.status !== 'draft'}
-                    step={0.000000000000000001}
-                    id="price"
-                    type="number"
-                    min={0}
-                    placeholder="Enter price"
-                    className="h-10 w-full"
-                    {...register('price', { required: true })}
-                  />
-                </div>
-                <CurrencySelector
-                  disabled={isEdit && data?.program?.status !== 'draft'}
-                  value={currency}
-                  onValueChange={setCurrency}
-                  network={network}
-                  className="w-[108px] h-10"
-                />
-              </div>
 
-              {errors.price && (
-                <span className="text-destructive text-sm block">Price is required</span>
-              )}
-              {isEdit && data?.program?.status !== 'draft' && (
-                <span className="text-destructive text-sm block">
-                  Price can't be updated after publishing.
-                </span>
-              )}
-            </label>
-          </div>
-
-          <div className="bg-white px-10 py-6 rounded-lg mb-3">
-            <label htmlFor="condition" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium text-muted-foreground mb-8">
-                Setting up condition <span className="text-primary">*</span>
-              </p>
-              <RadioGroup
-                defaultValue="open"
-                className="space-y-4"
-                value={conditionType}
-                onValueChange={(value) => setConditionType(value as 'open' | 'tier')}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="open" id="open" />
-                  <Label htmlFor="open">Open</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="tier" id="tier" />
-                  <Label htmlFor="tier">Revealed by tier</Label>
-                </div>
-              </RadioGroup>
-
-              <div className="space-y-4 mt-4 ml-4">
-                {tiers.map((tier) => (
-                  <div key={tier.name} className="flex items-start gap-2">
-                    <input
-                      type="checkbox"
-                      id={tier.name}
-                      checked={tier.enabled}
-                      onChange={(e) => handleTierChange(tier.name, e.target.checked)}
-                      disabled={conditionType !== 'tier'}
-                      className="rounded w-4 h-4 mt-1"
+                <div className="space-y-6">
+                  {/* Title */}
+                  <div>
+                    <Label htmlFor={`title-${index}`} className="text-sm font-medium">
+                      Title <span className="text-primary">*</span>
+                    </Label>
+                    <Input
+                      id={`title-${index}`}
+                      placeholder="Placeholder"
+                      value={term.title}
+                      onChange={(e) => updateTerm(index, 'title', e.target.value)}
+                      className="mt-2 h-10"
                     />
+                  </div>
+
+                  {/* Prize and Purchase Limit */}
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label
-                        htmlFor={tier.name}
-                        className={cn(
-                          'flex-1',
-                          conditionType !== 'tier' && 'text-muted-foreground',
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            'px-2 py-1 rounded-full text-xs font-medium',
-                            tier.name === 'Bronze' && 'bg-amber-100 text-amber-800',
-                            tier.name === 'Silver' && 'bg-slate-100 text-slate-800',
-                            tier.name === 'Gold' && 'bg-orange-100 text-orange-800',
-                            tier.name === 'Platinum' && 'bg-emerald-100 text-emerald-800',
-                          )}
-                        >
-                          {tier.name}
-                        </span>{' '}
-                        can invest
+                      <Label htmlFor={`prize-${index}`} className="text-sm font-medium">
+                        Prize <span className="text-primary">*</span>
                       </Label>
-                      <div className="flex items-center gap-4">
-                        <span
-                          className={cn(
-                            'text-sm mb-1',
-                            conditionType !== 'tier' || !tier.enabled
-                              ? 'text-muted-foreground'
-                              : 'text-foreground',
-                          )}
-                        >
-                          Maximum amount
-                        </span>
-                        <Input
-                          type="number"
-                          min={0}
-                          placeholder="0"
-                          value={tier.maxAmount}
-                          onChange={(e) => handleTierAmountChange(tier.name, e.target.value)}
-                          disabled={conditionType !== 'tier' || !tier.enabled}
-                          className="w-[296px] h-8"
+                      <Input
+                        id={`prize-${index}`}
+                        type="number"
+                        placeholder="Input number"
+                        value={term.prize}
+                        onChange={(e) => updateTerm(index, 'prize', e.target.value)}
+                        className="mt-2 h-10"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`purchaseLimit-${index}`} className="text-sm font-medium">
+                        Purchase limit <span className="text-primary">*</span>
+                      </Label>
+                      <Input
+                        id={`purchaseLimit-${index}`}
+                        type="number"
+                        placeholder="Input number"
+                        value={term.purchaseLimit}
+                        onChange={(e) => updateTerm(index, 'purchaseLimit', e.target.value)}
+                        className="mt-2 h-10"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <Label htmlFor={`description-${index}`} className="text-sm font-medium">
+                      Description <span className="text-primary">*</span>
+                    </Label>
+                    <div className="mt-2">
+                      <MarkdownEditor
+                        content={term.description}
+                        onChange={(value) => {
+                          if (typeof value === 'string') {
+                            updateTerm(index, 'description', value);
+                          } else if (typeof value === 'function') {
+                            const newValue = value(term.description);
+                            updateTerm(index, 'description', newValue);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Add more terms button - only show after the last term */}
+                  {index === terms.length - 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addTerm}
+                      className="bg-white border border-gray-300 text-gray-700 mt-6"
+                    >
+                      <X className="w-4 h-4 mr-2 rotate-45" />
+                      Add more terms
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="milestone">
+          <div className="space-y-4">
+            {milestones.map((milestone, index) => (
+              <div key={milestone.id} className="bg-white rounded-lg p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-medium text-gray-900">Milestone {index + 1}</h3>
+                  {index !== 0 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeMilestone(index)}
+                      className='bg-secondary'
+                    >
+                      Delete
+                    </Button>
+                  )}
+                </div>
+
+                <div className="space-y-6">
+                  {/* Title */}
+                  <div>
+                    <Label htmlFor={`milestone-title-${index}`} className="text-sm font-medium">
+                      Title <span className="text-primary">*</span>
+                    </Label>
+                    <Input
+                      id={`milestone-title-${index}`}
+                      placeholder="Placeholder"
+                      value={milestone.title}
+                      onChange={(e) => updateMilestone(index, 'title', e.target.value)}
+                      className="mt-2 h-10"
+                    />
+                  </div>
+
+                  <div className='grid grid-cols-2 gap-4'>
+
+                    {/* Payout Percentage */}
+                    <div>
+                      <Label htmlFor={`milestone-payout-${index}`} className="text-sm font-medium">
+                        Milestone Payout (% of Funding) <span className="text-primary">*</span>
+                      </Label>
+                      <Input
+                        id={`milestone-payout-${index}`}
+                        type="number"
+                        placeholder="0"
+                        value={milestone.payoutPercentage}
+                        onChange={(e) => updateMilestone(index, 'payoutPercentage', e.target.value)}
+                        className="mt-2 h-10"
+                      />
+                    </div>
+
+                    {/* End Date */}
+                    <div>
+                      <Label htmlFor={`milestone-enddate-${index}`} className="text-sm font-medium">
+                        End date <span className="text-primary">*</span>
+                      </Label>
+                      <div className="mt-2">
+                        <DatePicker
+                          date={milestone.endDate}
+                          setDate={(date) => updateMilestone(index, 'endDate', date as Date)}
+                          disabled={{ before: new Date() }}
                         />
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </label>
-          </div>
 
-          <div className="bg-white px-10 py-6 rounded-lg">
-            <label htmlFor="fee" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium text-muted-foreground mb-8">Fee settings *</p>
-              <RadioGroup
-                defaultValue="default"
-                className="space-y-4"
-                value={feeType}
-                onValueChange={(value) => setFeeType(value as 'default' | 'custom')}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="default" id="default" />
-                  <Label htmlFor="default">Default fee (3%)</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="custom" id="custom" />
-                  <Label htmlFor="custom">Enter directly</Label>
-                </div>
-              </RadioGroup>
 
-              <div className="flex items-center gap-2 mt-4 ml-6">
-                <Input
-                  type="number"
-                  min={0}
-                  max={100}
-                  step={0.01}
-                  placeholder="0"
-                  value={customFee}
-                  onChange={(e) => setCustomFee(e.target.value)}
-                  disabled={feeType !== 'custom'}
-                  className="w-32 h-8"
-                />
-                <span className={cn('text-sm', feeType !== 'custom' && 'text-muted-foreground')}>
-                  %
-                </span>
+                  {/* Summary */}
+                  <div>
+                    <Label htmlFor={`milestone-summary-${index}`} className="text-sm font-medium">
+                      Summary <span className="text-primary">*</span>
+                    </Label>
+                    <Textarea
+                      id={`milestone-summary-${index}`}
+                      placeholder="Placeholder"
+                      value={milestone.summary}
+                      onChange={(e) => updateMilestone(index, 'summary', e.target.value)}
+                      className="mt-2"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">This is a textarea description.</p>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <Label htmlFor={`milestone-description-${index}`} className="text-sm font-medium">
+                      Description <span className="text-primary">*</span>
+                    </Label>
+                    <div className="mt-2">
+                      <MarkdownEditor
+                        content={milestone.description}
+                        onChange={(value) => {
+                          if (typeof value === 'string') {
+                            updateMilestone(index, 'description', value);
+                          } else if (typeof value === 'function') {
+                            const newValue = value(milestone.description);
+                            updateMilestone(index, 'description', newValue);
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Add more milestones button - only show after the last milestone */}
+                  {index === milestones.length - 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={addMilestone}
+                      className="bg-white border border-gray-300 text-gray-700 mt-6"
+                    >
+                      <X className="w-4 h-4 mr-2 rotate-45" />
+                      Add more milestones
+                    </Button>
+                  )}
+                </div>
               </div>
-            </label>
+            ))}
           </div>
         </TabsContent>
       </Tabs>
@@ -897,8 +810,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 export default ProjectForm;
 
 enum ExtraErrorActionKind {
-  SET_KEYWORDS_ERROR = 'SET_KEYWORDS_ERROR',
-  SET_VALIDATOR_ERROR = 'SET_VALIDATOR_ERROR',
   SET_DEADLINE_ERROR = 'SET_DEADLINE_ERROR',
   SET_LINKS_ERROR = 'SET_LINKS_ERROR',
   CLEAR_ERRORS = 'CLEAR_ERRORS',
@@ -910,8 +821,6 @@ interface ExtraErrorAction {
 }
 
 interface ExtraErrorState {
-  keyword: boolean;
-  validator: boolean;
   deadline: boolean;
   links: boolean;
   invalidLink: boolean;
@@ -920,20 +829,10 @@ interface ExtraErrorState {
 function extraErrorReducer(state: ExtraErrorState, action: ExtraErrorAction) {
   const { type } = action;
   switch (type) {
-    case ExtraErrorActionKind.SET_KEYWORDS_ERROR:
-      return {
-        ...state,
-        keyword: true,
-      };
     case ExtraErrorActionKind.SET_DEADLINE_ERROR:
       return {
         ...state,
         deadline: true,
-      };
-    case ExtraErrorActionKind.SET_VALIDATOR_ERROR:
-      return {
-        ...state,
-        validator: true,
       };
     case ExtraErrorActionKind.SET_LINKS_ERROR:
       return {
@@ -947,8 +846,6 @@ function extraErrorReducer(state: ExtraErrorState, action: ExtraErrorAction) {
       };
     case ExtraErrorActionKind.CLEAR_ERRORS:
       return {
-        keyword: false,
-        validator: false,
         deadline: false,
         links: false,
         invalidLink: false,

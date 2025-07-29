@@ -12,6 +12,7 @@ import UserOverviewTab from '@/pages/community/users/_components/overview-tab';
 import UserDetailsPage from '@/pages/community/users/details';
 import InvestmentsPage from '@/pages/investments';
 import CreateInvestmentPage from '@/pages/investments/create';
+import CreateProjectPage from '@/pages/investments/create-project';
 import InvestmentDetailsPage from '@/pages/investments/details';
 import MainPage from '@/pages/main';
 import ProfilePage from '@/pages/profile';
@@ -24,8 +25,8 @@ import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Navigate, Route, Routes } from 'react-router';
 import UserDescriptionTab from './pages/community/users/_components/description-tab';
-import UserRecruitmentTab from './pages/community/users/_components/recruitment-tab';
 import UserRecruitmentRoleTab from './pages/community/users/_components/recruitment-role-tab';
+import UserRecruitmentTab from './pages/community/users/_components/recruitment-tab';
 
 function App() {
   return (
@@ -51,6 +52,7 @@ function App() {
             <Route index element={<InvestmentsPage />} />
             <Route path="create" element={<CreateInvestmentPage />} />
             <Route path=":id" element={<InvestmentDetailsPage />} />
+            <Route path=":id/create-project" element={<CreateProjectPage />} />
           </Route>
 
           <Route path="community">

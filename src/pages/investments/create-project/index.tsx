@@ -4,34 +4,32 @@ import { useCreateProgramMutation } from '@/apollo/mutation/create-program.gener
 import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
 import { ProgramsDocument } from '@/apollo/queries/programs.generated';
 import type { OnSubmitProgramFunc } from '@/components/program-form';
-import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import ProjectForm from '@/pages/investments/_components/project-form';
 import { ProgramType, type ProgramVisibility } from '@/types/types.generated';
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
-const CreatePorject: React.FC = () => {
+const CreateProjectPage: React.FC = () => {
   const navigate = useNavigate();
   const [createProgram] = useCreateProgramMutation();
 
   const [assignValidatorToProgram] = useAssignValidatorToProgramMutation();
   const [inviteUserToProgram] = useInviteUserToProgramMutation();
 
-  const { isLoggedIn, isAuthed } = useAuth();
+  // const { isLoggedIn, isAuthed } = useAuth();
 
-  useEffect(() => {
-    if (!isLoggedIn) {
-      navigate('/');
-      notify('Please login first', 'success');
-      return;
-    }
-    if (!isAuthed) {
-      navigate('/profile/edit');
-      notify('Please add your email', 'success');
-      return;
-    }
-  }, [isLoggedIn, isAuthed]);
+  // useEffect(() => {
+  //   if (!isLoggedIn) {
+  //     navigate('/');
+  //     notify('Please login first', 'success');
+  //     return;
+  //   }
+  //   if (!isAuthed) {
+  //     navigate('/profile/edit');
+  //     notify('Please add your email', 'success');
+  //     return;
+  //   }
+  // }, [isLoggedIn, isAuthed]);
 
   const onSubmit: OnSubmitProgramFunc = (args) => {
     createProgram({
@@ -103,4 +101,4 @@ const CreatePorject: React.FC = () => {
   );
 };
 
-export default CreatePorject;
+export default CreateProjectPage;

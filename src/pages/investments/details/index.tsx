@@ -3,7 +3,7 @@ import { MarkdownPreviewer } from '@/components/markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {} from '@/components/ui/dialog';
+import { } from '@/components/ui/dialog';
 import { Tabs } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { getInitials, getUserName } from '@/lib/utils';
@@ -207,6 +207,12 @@ const InvestmentDetailsPage: React.FC = () => {
                 </a>
               ))}
             </div>
+
+            <Link to={`/investments/${program?.id}/create-project`}>
+              <Button size='lg' className="w-full mt-6">
+                Create Project
+              </Button>
+            </Link>
 
             <div className="mt-6">
               <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM HOST</p>
