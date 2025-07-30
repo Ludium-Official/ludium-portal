@@ -14,6 +14,7 @@ import InvestmentsPage from '@/pages/investments';
 import CreateInvestmentPage from '@/pages/investments/create';
 import CreateProjectPage from '@/pages/investments/create-project';
 import InvestmentDetailsPage from '@/pages/investments/details';
+import ProjectDetailsPage from '@/pages/investments/details/project-details';
 import MainPage from '@/pages/main';
 import ProfilePage from '@/pages/profile';
 import EditProfilePage from '@/pages/profile/edit';
@@ -53,6 +54,7 @@ function App() {
             <Route path="create" element={<CreateInvestmentPage />} />
             <Route path=":id" element={<InvestmentDetailsPage />} />
             <Route path=":id/create-project" element={<CreateProjectPage />} />
+            <Route path=":id/project/:projectId" element={<ProjectDetailsPage />} />
           </Route>
 
           <Route path="community">

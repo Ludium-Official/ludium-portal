@@ -3,12 +3,11 @@ import { MarkdownPreviewer } from '@/components/markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { } from '@/components/ui/dialog';
 import { Tabs } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { getInitials, getUserName } from '@/lib/utils';
+import ProjectCard from '@/pages/investments/details/_components/application-card';
 import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
-import ApplicationCard from '@/pages/programs/details/_components/application-card';
 import { ApplicationStatus } from '@/types/types.generated';
 import { Settings, Share2 } from 'lucide-react';
 import { useEffect } from 'react';
@@ -380,7 +379,7 @@ const InvestmentDetailsPage: React.FC = () => {
             <div className="text-slate-600 text-sm">No applications yet.</div>
           )}
           {data?.program?.applications?.map((a) => (
-            <ApplicationCard
+            <ProjectCard
               key={a.id}
               application={a}
               refetch={refetch}
