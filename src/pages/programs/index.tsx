@@ -42,19 +42,19 @@ const ProgramsPage: React.FC = () => {
   const filter = [
     ...(selectedTab === 'my-programs'
       ? [
-        {
-          field: 'userId',
-          value: userId,
-        },
-      ]
+          {
+            field: 'userId',
+            value: userId,
+          },
+        ]
       : []),
     ...(selectedTab === 'published'
       ? [
-        {
-          field: 'status',
-          value: 'published',
-        },
-      ]
+          {
+            field: 'status',
+            value: 'published',
+          },
+        ]
       : []),
     {
       field: 'name',
@@ -96,7 +96,6 @@ const ProgramsPage: React.FC = () => {
             <TabsTrigger value="published">Published</TabsTrigger>
           </TabsList>
           <div className="h-10 flex items-center gap-3">
-
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input

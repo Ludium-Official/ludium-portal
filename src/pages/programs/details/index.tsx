@@ -92,7 +92,7 @@ const DetailsPage: React.FC = () => {
             {/* Temporary image placeholder until the actual image is added */}
             {/* <div className='bg-[#eaeaea] w-full rounded-xl aspect-square mb-6' /> */}
             {program?.image ? (
-              <img src={program?.image} alt="program" className='w-full aspect-square rounded-xl' />
+              <img src={program?.image} alt="program" className="w-full aspect-square rounded-xl" />
             ) : (
               <div className="bg-[#eaeaea] w-full rounded-xl aspect-square mb-6" />
             )}
@@ -131,12 +131,10 @@ const DetailsPage: React.FC = () => {
               </p>
             </div>
 
-            {
-              isLoggedIn &&
+            {isLoggedIn &&
               program?.status === 'published' &&
               program.creator?.id !== userId &&
-              program?.validators?.every((validator) => validator.id !== userId) &&
-              (
+              program?.validators?.every((validator) => validator.id !== userId) && (
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button

@@ -96,5 +96,31 @@ query program($id: ID!) {
       walletAddress
     }
     network
+    type
+    applicationStartDate
+    applicationEndDate
+    fundingStartDate
+    fundingEndDate
+    fundingCondition
+    tierSettings {
+      bronze {
+        enabled
+        maxAmount
+      }
+      silver {
+        enabled
+        maxAmount
+      }
+      gold {
+        enabled
+        maxAmount
+      }
+      platinum {
+        enabled
+        maxAmount
+      }
+    }
+    feePercentage
+    customFeePercentage
   }
 }

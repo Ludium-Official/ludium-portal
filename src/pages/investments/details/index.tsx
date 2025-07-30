@@ -3,21 +3,18 @@ import { MarkdownPreviewer } from '@/components/markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { } from '@/components/ui/dialog';
 import { Tabs } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { getInitials, getUserName } from '@/lib/utils';
+import ProjectCard from '@/pages/investments/details/_components/application-card';
 import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
-import ApplicationCard from '@/pages/programs/details/_components/application-card';
 import { ApplicationStatus } from '@/types/types.generated';
-import BigNumber from 'bignumber.js';
 import { Settings, Share2 } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { useEffect } from 'react';
+import { Link, useParams } from 'react-router';
 
 const InvestmentDetailsPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { userId, isAdmin, isLoggedIn, isAuthed } = useAuth();
+  const { userId, isAdmin } = useAuth();
   const { id } = useParams();
 
   const { data, refetch } = useProgramQuery({
@@ -28,26 +25,26 @@ const InvestmentDetailsPage: React.FC = () => {
 
   const program = data?.program;
 
-  const acceptedPrice = useMemo(
-    () =>
-      program?.applications
-        ?.filter(
-          (a) =>
-            a.status === ApplicationStatus.Accepted || a.status === ApplicationStatus.Completed,
-        )
-        .reduce(
-          (mlPrev, mlCurr) => {
-            const mlPrice = mlCurr?.milestones?.reduce(
-              (prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)),
-              BigNumber(0, 10),
-            );
-            return mlPrev.plus(BigNumber(mlPrice ?? 0));
-          },
-          BigNumber(0, 10),
-        )
-        .toFixed() || '0',
-    [program],
-  );
+  // const acceptedPrice = useMemo(
+  //   () =>
+  //     program?.applications
+  //       ?.filter(
+  //         (a) =>
+  //           a.status === ApplicationStatus.Accepted || a.status === ApplicationStatus.Completed,
+  //       )
+  //       .reduce(
+  //         (mlPrev, mlCurr) => {
+  //           const mlPrice = mlCurr?.milestones?.reduce(
+  //             (prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)),
+  //             BigNumber(0, 10),
+  //           );
+  //           return mlPrev.plus(BigNumber(mlPrice ?? 0));
+  //         },
+  //         BigNumber(0, 10),
+  //       )
+  //       .toFixed() || '0',
+  //   [program],
+  // );
 
   useEffect(() => {
     const hash = window.location.hash.slice(1);
@@ -88,7 +85,7 @@ const InvestmentDetailsPage: React.FC = () => {
             {/* Temporary image placeholder until the actual image is added */}
             {/* <div className='bg-[#eaeaea] w-full rounded-xl aspect-square mb-6' /> */}
             {program?.image ? (
-              <img src={program?.image} alt="program" className='w-full aspect-square rounded-xl' />
+              <img src={program?.image} alt="program" className="w-full aspect-square rounded-xl" />
             ) : (
               <div className="bg-[#eaeaea] w-full rounded-xl aspect-square mb-6" />
             )}
@@ -158,7 +155,9 @@ const InvestmentDetailsPage: React.FC = () => {
                   <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" />
                   <div className="flex items-center justify-between gap-4 flex-1">
                     <span className="font-bold text-gray-900 text-sm">APPLICATION</span>
-                    <span className="font-bold text-gray-900 text-sm">30. MAR. 2025 – 30. JUL. 2025</span>
+                    <span className="font-bold text-gray-900 text-sm">
+                      30. MAR. 2025 – 30. JUL. 2025
+                    </span>
                   </div>
                 </div>
 
@@ -167,7 +166,9 @@ const InvestmentDetailsPage: React.FC = () => {
                   <div className="w-2 h-2 bg-gray-400 rounded-full flex-shrink-0" />
                   <div className="flex items-center  justify-between gap-4 flex-1">
                     <span className="font-bold text-gray-400 text-sm">FUNDING</span>
-                    <span className="font-bold text-gray-400 text-sm">30. MAR. 2025 – 30. JUL. 2025</span>
+                    <span className="font-bold text-gray-400 text-sm">
+                      30. MAR. 2025 – 30. JUL. 2025
+                    </span>
                   </div>
                 </div>
               </div>
@@ -205,6 +206,12 @@ const InvestmentDetailsPage: React.FC = () => {
                 </a>
               ))}
             </div>
+
+            <Link to={`/investments/${program?.id}/create-project`}>
+              <Button size='lg' className="w-full mt-6">
+                Create Project
+              </Button>
+            </Link>
 
             <div className="mt-6">
               <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM HOST</p>
@@ -280,6 +287,71 @@ const InvestmentDetailsPage: React.FC = () => {
                 ))}
               </div>
             )}
+
+            {/* Funding Condition */}
+            {program?.fundingCondition && (
+              <div className="mt-6">
+                <p className="text-muted-foreground text-sm font-bold mb-3">FUNDING CONDITION</p>
+                <p className="text-slate-600 text-sm capitalize">
+                  {program.fundingCondition === 'tier' ? 'Tier-based' : program.fundingCondition}
+                </p>
+              </div>
+            )}
+
+            {/* Tier Settings */}
+            {program?.fundingCondition === 'tier' && program?.tierSettings && (
+              <div className="mt-6">
+                <p className="text-muted-foreground text-sm font-bold mb-3">TIER SETTINGS</p>
+                <div className="space-y-2">
+                  {program.tierSettings.bronze?.enabled && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Bronze</span>
+                      <span className="text-sm text-gray-600">
+                        Max: ${program.tierSettings.bronze.maxAmount}
+                      </span>
+                    </div>
+                  )}
+                  {program.tierSettings.silver?.enabled && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Silver</span>
+                      <span className="text-sm text-gray-600">
+                        Max: ${program.tierSettings.silver.maxAmount}
+                      </span>
+                    </div>
+                  )}
+                  {program.tierSettings.gold?.enabled && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Gold</span>
+                      <span className="text-sm text-gray-600">
+                        Max: ${program.tierSettings.gold.maxAmount}
+                      </span>
+                    </div>
+                  )}
+                  {program.tierSettings.platinum?.enabled && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Platinum</span>
+                      <span className="text-sm text-gray-600">
+                        Max: ${program.tierSettings.platinum.maxAmount}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Fee Information */}
+            {(program?.feePercentage || program?.customFeePercentage) && (
+              <div className="mt-6">
+                <p className="text-muted-foreground text-sm font-bold mb-3">PLATFORM FEE</p>
+                <p className="text-slate-600 text-sm">
+                  {program.feePercentage
+                    ? `${(program.feePercentage / 100).toFixed(1)}% (Default)`
+                    : program.customFeePercentage
+                      ? `${(program.customFeePercentage / 100).toFixed(1)}% (Custom)`
+                      : 'Not Set'}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Details */}
@@ -307,7 +379,7 @@ const InvestmentDetailsPage: React.FC = () => {
             <div className="text-slate-600 text-sm">No applications yet.</div>
           )}
           {data?.program?.applications?.map((a) => (
-            <ApplicationCard
+            <ProjectCard
               key={a.id}
               application={a}
               refetch={refetch}

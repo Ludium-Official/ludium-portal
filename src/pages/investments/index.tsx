@@ -6,18 +6,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/lib/hooks/use-auth';
-import { cn, formatProgramStatus, getCurrency } from '@/lib/utils';
-import { ApplicationStatus, type Program, SortEnum } from '@/types/types.generated';
-import {
-  CirclePlus,
-  Search
-} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { ApplicationStatus, type Program, ProgramType, SortEnum } from '@/types/types.generated';
+import { CirclePlus, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
 export default function InvestmentsPage() {
-  const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('newest');
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,12 +25,20 @@ export default function InvestmentsPage() {
         limit: itemsPerPage,
         offset: (currentPage - 1) * itemsPerPage,
         sort: SortEnum.Desc,
-        filter: searchQuery ? [
+        filter: [
           {
-            field: 'name',
-            value: searchQuery,
+            field: 'type',
+            value: ProgramType.Funding,
           },
-        ] : undefined,
+          ...(searchQuery
+            ? [
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
+            : []),
+        ],
       },
     },
   });
@@ -46,9 +49,10 @@ export default function InvestmentsPage() {
 
   const filteredPrograms = useMemo(() => {
     if (!searchQuery) return programs;
-    return programs.filter(program =>
-      program.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      program.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    return programs.filter(
+      (program) =>
+        program.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        program.description?.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [programs, searchQuery]);
 
@@ -62,9 +66,9 @@ export default function InvestmentsPage() {
     setCurrentPage(1);
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
+  // const handlePageChange = (page: number) => {
+  //   setCurrentPage(page);
+  // };
 
   return (
     <div className="">
@@ -85,8 +89,8 @@ export default function InvestmentsPage() {
                 <TabsTrigger
                   value="newest"
                   className={cn(
-                    "data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm",
-                    "text-gray-500 px-4 py-1.5 text-sm font-medium"
+                    'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
+                    'text-gray-500 px-4 py-1.5 text-sm font-medium',
                   )}
                 >
                   Newest
@@ -94,8 +98,8 @@ export default function InvestmentsPage() {
                 <TabsTrigger
                   value="imminent"
                   className={cn(
-                    "data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm",
-                    "text-gray-500 px-4 py-1.5 text-sm font-medium"
+                    'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
+                    'text-gray-500 px-4 py-1.5 text-sm font-medium',
                   )}
                 >
                   Imminent
@@ -103,8 +107,8 @@ export default function InvestmentsPage() {
                 <TabsTrigger
                   value="my-program"
                   className={cn(
-                    "data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm",
-                    "text-gray-500 px-4 py-1.5 text-sm font-medium"
+                    'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
+                    'text-gray-500 px-4 py-1.5 text-sm font-medium',
                   )}
                 >
                   My program
@@ -112,8 +116,8 @@ export default function InvestmentsPage() {
                 <TabsTrigger
                   value="completed"
                   className={cn(
-                    "data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm",
-                    "text-gray-500 px-4 py-1.5 text-sm font-medium"
+                    'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
+                    'text-gray-500 px-4 py-1.5 text-sm font-medium',
                   )}
                 >
                   Completed
@@ -133,7 +137,10 @@ export default function InvestmentsPage() {
                   className="pl-10 w-90 h-10 bg-gray-50 border-gray-200 focus:border-gray-300"
                 />
               </div>
-              <Button className="bg-gray-900 text-white hover:bg-gray-800 px-3 py-2 text-sm" onClick={() => navigate('/investments/create')}>
+              <Button
+                className="bg-gray-900 text-white hover:bg-gray-800 px-3 py-2 text-sm"
+                onClick={() => navigate('/investments/create')}
+              >
                 <CirclePlus />
                 Create Investment
               </Button>
@@ -148,8 +155,13 @@ export default function InvestmentsPage() {
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {Array.from({ length: 12 }).map((_, i) => (
-                <Card key={`investment-skeleton-${// biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                  i}`} className="w-full border border-gray-200 rounded-lg">
+                <Card
+                  key={`investment-skeleton-${
+                    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                    i
+                  }`}
+                  className="w-full border border-gray-200 rounded-lg"
+                >
                   <CardContent className="p-5">
                     <div className="animate-pulse">
                       <div className="flex justify-between items-start mb-4">
@@ -189,10 +201,7 @@ export default function InvestmentsPage() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center mt-8">
-            <Pagination
-              totalCount={totalCount}
-              pageSize={itemsPerPage}
-            />
+            <Pagination totalCount={totalCount} pageSize={itemsPerPage} />
           </div>
         )}
       </div>
@@ -205,11 +214,13 @@ interface InvestmentCardProps {
 }
 
 function InvestmentCard({ program }: InvestmentCardProps) {
-  const currency = getCurrency(program.currency);
-  const status = formatProgramStatus(program);
+  // const currency = getCurrency(program.currency);
+  // const status = formatProgramStatus(program);
 
   const daysUntilDeadline = program.deadline
-    ? Math.ceil((new Date(program.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+    ? Math.ceil(
+        (new Date(program.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
+      )
     : null;
 
   return (
@@ -244,7 +255,11 @@ function InvestmentCard({ program }: InvestmentCardProps) {
         {/* Content */}
         <Link to={`/investments/${program?.id}`} className="flex gap-4">
           {/* Thumbnail */}
-          {program.image ? <img src={program.image} className='w-29 h-29 rounded-md' alt='Program' /> : <div className="w-29 h-29 bg-slate-200 rounded-md " />}
+          {program.image ? (
+            <img src={program.image} className="w-29 h-29 rounded-md" alt="Program" />
+          ) : (
+            <div className="w-29 h-29 bg-slate-200 rounded-md " />
+          )}
 
           {/* Title and details */}
           <div className="flex-1 min-w-0">
@@ -257,21 +272,37 @@ function InvestmentCard({ program }: InvestmentCardProps) {
               <div className="bg-[#0000000A] rounded-md p-2 flex items-center">
                 <div className="text-sm font-semibold text-gray-500">DATE</div>
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
-                    <span>30</span>
-                    <span>.</span>
-                    <span>MAR</span>
-                    <span>.</span>
-                    <span>2025</span>
-                  </div>
-                  <div className="w-px h-4 bg-gray-300" />
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
-                    <span>01</span>
-                    <span>.</span>
-                    <span>JUL</span>
-                    <span>.</span>
-                    <span>2025</span>
-                  </div>
+                  {program.applicationStartDate && program.applicationEndDate ? (
+                    <>
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        {new Date(program.applicationStartDate)
+                          .toLocaleDateString('en-US', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                          })
+                          .toUpperCase()
+                          .split(' ')
+                          .join(' . ')}
+                      </div>
+                      <div className="w-px h-4 bg-gray-300" />
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        {new Date(program.applicationEndDate)
+                          .toLocaleDateString('en-US', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                          })
+                          .toUpperCase()
+                          .split(' ')
+                          .join(' . ')}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                      No dates set
+                    </div>
+                  )}
                 </div>
                 <Badge className="bg-gray-900 text-white text-xs font-semibold">
                   D-{daysUntilDeadline || 7}
@@ -280,7 +311,8 @@ function InvestmentCard({ program }: InvestmentCardProps) {
 
               {/* Description */}
               <p className="text-sm text-gray-600 line-clamp-2">
-                {program.description || "Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) to ensure secure, private, and verifiable task-based payments. It enables seamless collaboration between sponsors and builders, automating fund disbursement upon task completion while maintaining privacy and trust."}
+                {program.description ||
+                  "Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) to ensure secure, private, and verifiable task-based payments. It enables seamless collaboration between sponsors and builders, automating fund disbursement upon task completion while maintaining privacy and trust."}
               </p>
             </div>
           </div>
@@ -301,8 +333,8 @@ function InvestmentCard({ program }: InvestmentCardProps) {
           >
             Approved Application{' '}
             <span className="text-green-600">
-              {program.applications?.filter((a) => a.status === ApplicationStatus.Accepted).length ??
-                0}
+              {program.applications?.filter((a) => a.status === ApplicationStatus.Accepted)
+                .length ?? 0}
             </span>
           </Link>
         </div>

@@ -23,15 +23,12 @@ import {
 } from '../ui/dialog';
 
 function Header() {
-  // 'authenticated' is temporarily commented out during development
-  const { user, /*authenticated,*/ login: privyLogin, logout: privyLogout, exportWallet } = usePrivy();
-
-  // Temporarily using isLoggedIn instead of privy authenticated during development
-  const { login: authLogin, logout: authLogout, isLoggedIn: authenticated } = useAuth();
+  const { user, authenticated, login: privyLogin, logout: privyLogout, exportWallet } = usePrivy();
+  const { login: authLogin, logout: authLogout } = useAuth();
   const navigate = useNavigate();
   const { data: profileData } = useProfileQuery({
     fetchPolicy: 'cache-first',
-    // skip: !isLoggedIn
+    skip: !authenticated
   });
 
   const [network, setNetwork] = useState(mainnetDefaultNetwork);
@@ -45,47 +42,40 @@ function Header() {
   const injectedWallet = user?.wallet?.connectorType !== 'embedded';
 
   const login = async () => {
+    try {
+      const googleInfo = user?.google;
+      const farcasterInfo = user?.farcaster;
 
-    // The privy authentication logic is commented out for easier testing during development.
-    await authLogin({
-      email: 'test@test.com',
-      walletAddress: '0x0000000000000000000000000000000000000000',
-      loginType: 'wallet',
-    });
-    // try {
-    //   const googleInfo = user?.google;
-    //   const farcasterInfo = user?.farcaster;
+      const loginType = (() => {
+        const types = {
+          google: googleInfo,
+          farcaster: farcasterInfo,
+        };
 
-    //   const loginType = (() => {
-    //     const types = {
-    //       google: googleInfo,
-    //       farcaster: farcasterInfo,
-    //     };
+        return (
+          (Object.keys(types) as Array<keyof typeof types>).find((key) => types[key]) || 'wallet'
+        );
+      })();
 
-    //     return (
-    //       (Object.keys(types) as Array<keyof typeof types>).find((key) => types[key]) || 'wallet'
-    //     );
-    //   })();
+      privyLogin({ disableSignup: false });
 
-    //   privyLogin({ disableSignup: false });
-
-    //   if (user && walletInfo) {
-    //     await authLogin({
-    //       email: googleInfo?.email || null,
-    //       walletAddress: walletInfo.address,
-    //       loginType,
-    //     });
-    //   }
-    // } catch (error) {
-    //   notify('Failed to login', 'error');
-    //   console.error('Failed to login:', error);
-    // }
+      if (user && walletInfo) {
+        await authLogin({
+          email: googleInfo?.email || null,
+          walletAddress: walletInfo.address,
+          loginType,
+        });
+      }
+    } catch (error) {
+      notify('Failed to login', 'error');
+      console.error('Failed to login:', error);
+    }
   };
 
   const logout = async () => {
     try {
       authLogout();
-      // privyLogout();
+      privyLogout();
 
       notify('Successfully logged out', 'success');
       navigate('/');
@@ -110,11 +100,11 @@ function Header() {
     }
   };
 
-  // useEffect(() => {
-  //   if (authenticated && user) {
-  //     login();
-  //   }
-  // }, [user]);
+  useEffect(() => {
+    if (authenticated && user) {
+      login();
+    }
+  }, [user]);
 
   useEffect(() => {
     const fetchBalances = async () => {
@@ -188,8 +178,8 @@ function Header() {
                               {balance.name}:{' '}
                               {balance.amount !== null
                                 ? commaNumber(
-                                  ethers.utils.formatUnits(balance.amount, balance.decimal),
-                                )
+                                    ethers.utils.formatUnits(balance.amount, balance.decimal),
+                                  )
                                 : 'Fetching...'}
                             </div>
                           );

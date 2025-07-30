@@ -71,6 +71,33 @@ query programs($pagination: PaginationInput) {
       status
       summary
       network
+      type
+      applicationStartDate
+      applicationEndDate
+      fundingStartDate
+      fundingEndDate
+      fundingCondition
+      tierSettings {
+        bronze {
+          enabled
+          maxAmount
+        }
+        silver {
+          enabled
+          maxAmount
+        }
+        gold {
+          enabled
+          maxAmount
+        }
+        platinum {
+          enabled
+          maxAmount
+        }
+      }
+      feePercentage
+      customFeePercentage
+      image
       validators {
         about
         email
