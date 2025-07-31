@@ -82,7 +82,7 @@ function ProfilePage() {
 
   return (
     <div className="bg-gray-light">
-      <div className="flex px-10 py-5 justify-between bg-white rounded-b-2xl mb-3">
+      <div className="flex px-10 py-5 justify-between bg-white rounded-2xl mb-3">
         <section className="">
           <h1 className="text-xl font-bold mb-6">Profile</h1>
 
@@ -167,7 +167,7 @@ function ProfilePage() {
         </section>
       </div>
 
-      <div className="bg-white p-5 rounded-t-2xl">
+      <div className="bg-white p-5 rounded-2xl">
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="w-full">
             <TabsTrigger value={'sponsor'}>Programs as sponsor</TabsTrigger>

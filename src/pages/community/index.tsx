@@ -116,75 +116,77 @@ const CommunityPage: React.FC = () => {
   }
 
   return (
-    <div className="pb-[60px] px-10 bg-white rounded-b-2xl" id="scrollableDiv">
-      <div className="flex justify-between items-center pt-9 pb-4">
-        <h1 className="text-3xl font-bold">Community</h1>
-      </div>
+    <div className="bg-white rounded-2xl pb-[60px] px-10" id="scrollableDiv">
+      <div className="max-w-1440 mx-auto">
+        <div className="flex justify-between items-center pt-9 pb-4">
+          <h1 className="text-3xl font-bold">Community</h1>
+        </div>
 
-      <div className="flex justify-between items-center py-[14px]">
-        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="rounded-md">
-            <TabsTrigger value="all" className="rounded-xs px-4">
-              All
-            </TabsTrigger>
-            <TabsTrigger value="by-oldest" className="rounded-xs px-4">
-              By oldest
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex justify-between items-center py-[14px]">
+          <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+            <TabsList className="rounded-md">
+              <TabsTrigger value="all" className="rounded-xs px-4">
+                All
+              </TabsTrigger>
+              <TabsTrigger value="by-oldest" className="rounded-xs px-4">
+                By oldest
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center relative px-0">
-            <div className="absolute bottom-0 left-3 top-0 my-auto flex items-center justify-center">
-              <SearchIcon color="#71717A" width={16} height={16} strokeWidth={2} />
+          <div className="flex items-center gap-3">
+            <div className="flex items-center relative px-0">
+              <div className="absolute bottom-0 left-3 top-0 my-auto flex items-center justify-center">
+                <SearchIcon color="#71717A" width={16} height={16} strokeWidth={2} />
+              </div>
+              <Input
+                className="w-[360px] rounded-md h-10 bg-slate-50 pl-8"
+                placeholder="Search..."
+                value={searchParams.get('search') ?? ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const newSP = new URLSearchParams();
+
+                  newSP.set('search', value);
+                  setSearchParams(newSP);
+                }}
+              />
             </div>
-            <Input
-              className="w-[360px] rounded-md h-10 bg-slate-50 pl-8"
-              placeholder="Search..."
-              value={searchParams.get('search') ?? ''}
-              onChange={(e) => {
-                const value = e.target.value;
-                const newSP = new URLSearchParams();
 
-                newSP.set('search', value);
-                setSearchParams(newSP);
-              }}
-            />
+            {isLoggedIn && (
+              <Button
+                className="rounded-md bg-gray-dark hover:bg-purple-600 flex items-center gap-2 h-10"
+                onClick={() => {
+                  if (!isAuthed) {
+                    notify('Please add your email', 'success');
+                    navigate('/profile/edit');
+                    return;
+                  }
+                  navigate('create');
+                }}
+              >
+                <CirclePlus className="h-4 w-4" />
+                <p className="text-sm">Create Content</p>
+              </Button>
+            )}
           </div>
-
-          {isLoggedIn && (
-            <Button
-              className="rounded-md bg-gray-dark hover:bg-purple-600 flex items-center gap-2 h-10"
-              onClick={() => {
-                if (!isAuthed) {
-                  notify('Please add your email', 'success');
-                  navigate('/profile/edit');
-                  return;
-                }
-                navigate('create');
-              }}
-            >
-              <CirclePlus className="h-4 w-4" />
-              <p className="text-sm">Create Content</p>
-            </Button>
-          )}
         </div>
-      </div>
-      <div className="grid grid-cols-2 gap-5 pt-[26px]">
-        <div className="flex flex-col gap-5">
-          {firstColumn.map((post, index) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              variant={index === 0 ? 'large' : 'small'}
-              maxComments={index === 0 ? 3 : 1}
-            />
-          ))}
-        </div>
-        <div className="flex flex-col gap-5">
-          {secondColumn.map((post) => (
-            <PostCard key={post.id} post={post} />
-          ))}
+        <div className="grid grid-cols-2 gap-5 pt-[26px]">
+          <div className="flex flex-col gap-5">
+            {firstColumn.map((post, index) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                variant={index === 0 ? 'large' : 'small'}
+                maxComments={index === 0 ? 3 : 1}
+              />
+            ))}
+          </div>
+          <div className="flex flex-col gap-5">
+            {secondColumn.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </div>
         </div>
       </div>
     </div>

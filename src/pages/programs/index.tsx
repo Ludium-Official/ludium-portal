@@ -42,19 +42,19 @@ const ProgramsPage: React.FC = () => {
   const filter = [
     ...(selectedTab === 'my-programs'
       ? [
-          {
-            field: 'userId',
-            value: userId,
-          },
-        ]
+        {
+          field: 'userId',
+          value: userId,
+        },
+      ]
       : []),
     ...(selectedTab === 'published'
       ? [
-          {
-            field: 'status',
-            value: 'published',
-          },
-        ]
+        {
+          field: 'status',
+          value: 'published',
+        },
+      ]
       : []),
     {
       field: 'name',
@@ -76,61 +76,67 @@ const ProgramsPage: React.FC = () => {
   const totalCount = data?.programs?.count ?? 0;
 
   return (
-    <Tabs
-      className="p-10 pr-[55px] bg-white rounded-b-2xl"
-      value={selectedTab}
-      onValueChange={setSelectedTab}
-    >
-      <section className="flex justify-between items-center mb-3">
-        <TabsList className="">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="my-programs">My programs</TabsTrigger>
-          <TabsTrigger value="published">Published</TabsTrigger>
-        </TabsList>
-        <div className="h-10 flex items-center gap-3">
-          <Input
-            className="h-full w-[432px]"
-            placeholder="Search..."
-            value={searchParams.get('search') ?? ''}
-            onChange={(e) => {
-              const value = e.target.value;
-              const newSP = new URLSearchParams();
-
-              newSP.set('search', value);
-              setSearchParams(newSP);
-            }}
-          />
-
-          <Button variant="outline" className="h-full rounded-[6px] ">
-            <ListFilter /> Filter
-          </Button>
-          {isLoggedIn && (
-            <Button
-              className="h-[32px] rounded-[6px] gap-2"
-              onClick={() => {
-                if (!isAuthed) {
-                  notify('Please add your email', 'success');
-                  navigate('/profile/edit');
-                  return;
-                }
-
-                navigate('create');
-              }}
-            >
-              <CirclePlus /> Create Program
-            </Button>
-          )}
+    <div className="bg-white rounded-2xl p-10 pr-[55px]">
+      <div className="max-w-1440 mx-auto">
+        <div className="flex justify-between items-center pb-4">
+          <h1 className="text-3xl font-bold">Recruitment</h1>
         </div>
-      </section>
+        <Tabs
+          value={selectedTab}
+          onValueChange={setSelectedTab}
+        >
+          <section className="flex justify-between items-center py-[14px]">
+            <TabsList className="">
+              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="my-programs">My programs</TabsTrigger>
+              <TabsTrigger value="published">Published</TabsTrigger>
+            </TabsList>
+            <div className="h-10 flex items-center gap-3">
+              <Input
+                className="h-full w-[432px]"
+                placeholder="Search..."
+                value={searchParams.get('search') ?? ''}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const newSP = new URLSearchParams();
 
-      <section className="w-full space-y-4 mb-5 grid grid-cols-2 gap-5">
-        {data?.programs?.data?.map((program) => (
-          <ProgramCard key={program.id} program={program} />
-        ))}
-      </section>
+                  newSP.set('search', value);
+                  setSearchParams(newSP);
+                }}
+              />
 
-      <Pagination totalCount={totalCount} pageSize={PageSize} />
-    </Tabs>
+              <Button variant="outline" className="h-full rounded-[6px] ">
+                <ListFilter /> Filter
+              </Button>
+              {isLoggedIn && (
+                <Button
+                  className="h-[32px] rounded-[6px] gap-2"
+                  onClick={() => {
+                    if (!isAuthed) {
+                      notify('Please add your email', 'success');
+                      navigate('/profile/edit');
+                      return;
+                    }
+
+                    navigate('create');
+                  }}
+                >
+                  <CirclePlus /> Create Program
+                </Button>
+              )}
+            </div>
+          </section>
+
+          <section className="w-full space-y-4 mb-5 grid grid-cols-2 gap-5">
+            {data?.programs?.data?.map((program) => (
+              <ProgramCard key={program.id} program={program} />
+            ))}
+          </section>
+
+          <Pagination totalCount={totalCount} pageSize={PageSize} />
+        </Tabs>
+      </div>
+    </div>
   );
 };
 
