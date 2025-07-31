@@ -36,7 +36,7 @@ export default function ProgramCard({ program }: Props) {
           <img
             src={program.creator.image}
             alt="Preview"
-            className="object-cover w-[100px] h-[100px]"
+            className="object-cover w-[100px] h-[100px] rounded-[6px]"
           />
         ) : (
           <div className="flex flex-col items-center justify-center w-full h-full">

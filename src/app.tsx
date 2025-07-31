@@ -25,9 +25,13 @@ import ApplicationDetailsPage from '@/pages/programs/details/application-details
 import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Navigate, Route, Routes } from 'react-router';
-import UserDescriptionTab from './pages/community/users/_components/description-tab';
-import UserRecruitmentRoleTab from './pages/community/users/_components/recruitment-role-tab';
-import UserRecruitmentTab from './pages/community/users/_components/recruitment-tab';
+import UserDescriptionTab from '@/pages/community/users/_components/description-tab';
+import UserRecruitmentTab from '@/pages/community/users/_components/recruitment-tab';
+import UserRecruitmentRoleTab from '@/pages/community/users/_components/recruitment-role-tab';
+import UserInvestmentTab from '@/pages/community/users/_components/investment-tab';
+import UserInvestmentHostTab from '@/pages/community/users/_components/investment-host-tab';
+import UserInvestmentProjectTab from '@/pages/community/users/_components/investment-project-tab';
+import UserCommunityTab from '@/pages/community/users/_components/community-tab';
 
 function App() {
   return (
@@ -75,6 +79,11 @@ function App() {
               <Route path="description" element={<UserDescriptionTab />} />
               <Route path="program/recruitment" element={<UserRecruitmentTab />} />
               <Route path="program/recruitment/:role" element={<UserRecruitmentRoleTab />} />
+              <Route path="program/investment" element={<UserInvestmentTab />} />
+              <Route path="program/investment/host" element={<UserInvestmentHostTab />} />
+              <Route path="program/investment/project" element={<UserInvestmentProjectTab />} />
+              <Route path="program/investment/supporter" element={<UserInvestmentProjectTab />} />
+              <Route path="community" element={<UserCommunityTab />} />
             </Route>
           </Route>
 
