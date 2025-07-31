@@ -1,20 +1,11 @@
-import client from '@/apollo/client';
-import { useAssignValidatorToProgramMutation } from '@/apollo/mutation/assign-validator-to-program.generated';
-import { useCreateProgramMutation } from '@/apollo/mutation/create-program.generated';
-import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
-import { ProgramsDocument } from '@/apollo/queries/programs.generated';
-import type { OnSubmitProgramFunc } from '@/components/program-form';
-import notify from '@/lib/notify';
-import ProjectForm from '@/pages/investments/_components/project-form';
-import { ProgramType, type ProgramVisibility } from '@/types/types.generated';
-import { useNavigate } from 'react-router';
+
+import { useCreateApplicationMutation } from '@/apollo/mutation/create-application.generated';
+import ProjectForm, { type OnSubmitProjectFunc } from '@/pages/investments/_components/project-form';
+import { ApplicationStatus, } from '@/types/types.generated';
 
 const CreateProjectPage: React.FC = () => {
-  const navigate = useNavigate();
-  const [createProgram] = useCreateProgramMutation();
+  const [createApplication] = useCreateApplicationMutation();
 
-  const [assignValidatorToProgram] = useAssignValidatorToProgramMutation();
-  const [inviteUserToProgram] = useInviteUserToProgramMutation();
 
   // const { isLoggedIn, isAuthed } = useAuth();
 
@@ -31,24 +22,40 @@ const CreateProjectPage: React.FC = () => {
   //   }
   // }, [isLoggedIn, isAuthed]);
 
-  const onSubmit: OnSubmitProgramFunc = (args) => {
-    createProgram({
+  const onSubmit: OnSubmitProjectFunc = (args) => {
+    createApplication({
       variables: {
         input: {
-          name: args.programName,
-          currency: args.currency,
-          price: args.price ?? '0',
-          description: args.description,
-          summary: args.summary,
-          deadline: args.deadline ?? '',
-          keywords: args.keywords,
+          name: args.name,
+          content: args.description,
+          milestones: args.milestones?.map((m) => ({
+            deadline: m.endDate,
+            title: m.title,
+            percentage: m.payoutPercentage,
+            summary: m.summary,
+            description: m.description,
+            // title: m.title,
+            // payoutPercentage: m.payoutPercentage,
+            // endDate: m.endDate,
+            // summary: m.summary,
+            // description: m.description,
+          })) ?? [],
+          price: args.fundingToBeRaised ?? '0',
+          programId: args?.programId ?? '',
+          status: ApplicationStatus.Pending,
+          // currency: args.currency,
+          // price: args.price ?? '0',
+          // description: args.description,
+          // summary: args.summary,
+          // deadline: args.deadline ?? '',
+          // keywords: args.keywords,
           links: args.links,
-          network: args.network,
-          image: args.image,
+          // network: args.network,
+          // image: args.image,
 
-          visibility: args.visibility as ProgramVisibility,
+          // visibility: args.visibility as ProgramVisibility,
 
-          type: ProgramType.Funding,
+          // type: ProgramType.Funding,
 
           // applicationStartDate: args.applicationStartDate ?? '',
           // applicationEndDate: args.applicationDueDate ?? '',
@@ -60,36 +67,10 @@ const CreateProjectPage: React.FC = () => {
         },
       },
       onCompleted: async (data) => {
-        const results = await Promise.allSettled(
-          args.validators.map((validatorId) =>
-            assignValidatorToProgram({
-              variables: { validatorId, programId: data.createProgram?.id ?? '' },
-            }),
-          ),
-        );
-
-        if (results.some((r) => r.status === 'rejected')) {
-          notify('Failed to assign validators to the program due to an unexpected error.', 'error');
-        }
-        // Invite builders if private
-        if (
-          args.visibility === 'private' &&
-          Array.isArray(args.builders) &&
-          args.builders.length > 0
-        ) {
-          const inviteResults = await Promise.allSettled(
-            args.builders.map((userId) =>
-              inviteUserToProgram({
-                variables: { programId: data.createProgram?.id ?? '', userId },
-              }),
-            ),
-          );
-          if (inviteResults.some((r) => r.status === 'rejected')) {
-            notify('Failed to invite some builders to the program.', 'error');
-          }
-        }
-        navigate('/programs');
-        client.refetchQueries({ include: [ProgramsDocument] });
+        console.log(data);
+      },
+      onError: (error) => {
+        console.log(error);
       },
     });
   };

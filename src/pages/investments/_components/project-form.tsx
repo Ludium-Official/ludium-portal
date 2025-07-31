@@ -21,6 +21,16 @@ import { useEffect, useReducer, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
 
+// Milestones state
+interface Milestone {
+  id: number;
+  title: string;
+  payoutPercentage: string;
+  endDate: Date | undefined;
+  summary: string;
+  description: string;
+}
+
 export type OnSubmitProjectFunc = (data: {
   id?: string;
   name: string;
@@ -35,6 +45,8 @@ export type OnSubmitProjectFunc = (data: {
   image?: File;
   visibility: 'public' | 'restricted' | 'private';
   builders?: string[];
+  milestones?: Milestone[];
+  programId?: string;
 }) => void;
 
 export interface ProjectFormProps {
@@ -91,15 +103,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     },
   ]);
 
-  // Milestones state
-  interface Milestone {
-    id: number;
-    title: string;
-    payoutPercentage: string;
-    endDate: Date | undefined;
-    summary: string;
-    description: string;
-  }
 
   const [nextMilestoneId, setNextMilestoneId] = useState<number>(2); // Start from 2 since Milestone 1 has id 1
 

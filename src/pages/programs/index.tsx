@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import ProgramCard from '@/pages/programs/_components/program-card';
-import { SortEnum } from '@/types/types.generated';
+import { ProgramType, SortEnum } from '@/types/types.generated';
 import { CirclePlus, ListFilter, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
@@ -42,23 +42,26 @@ const ProgramsPage: React.FC = () => {
   const filter = [
     ...(selectedTab === 'my-programs'
       ? [
-          {
-            field: 'userId',
-            value: userId,
-          },
-        ]
+        {
+          field: 'userId',
+          value: userId,
+        },
+      ]
       : []),
     ...(selectedTab === 'published'
       ? [
-          {
-            field: 'status',
-            value: 'published',
-          },
-        ]
+        {
+          field: 'status',
+          value: 'published',
+        },
+      ]
       : []),
     {
       field: 'name',
       value: debouncedSearch,
+    }, {
+      field: 'type',
+      value: ProgramType.Regular,
     },
   ];
 
