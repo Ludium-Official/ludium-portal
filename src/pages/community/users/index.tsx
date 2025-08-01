@@ -112,7 +112,11 @@ function UsersPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col gap-2">
-                    <p className="font-bold text-lg text-gray-dark">{`${user?.firstName} ${user?.lastName}`}</p>
+                    {user?.firstName && user?.lastName ? (
+                      <p className="font-bold text-lg text-gray-dark">{`${user.firstName} ${user.lastName}`}</p>
+                    ) : (
+                      <p className="font-bold text-lg text-gray-dark">{user.email}</p>
+                    )}
                     <div className="flex gap-[3.33px] items-center justify-start">
                       <Building2Icon width={16} height={16} color="#71717A" />
                       <p className="text-sm text-zinc-500">{user.organizationName}</p>
@@ -127,29 +131,56 @@ function UsersPage() {
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-2 items-center justify-between">
-                  <p className="line-clamp-6 text-sm text-gray-dark font-inter">{user.about}</p>
+                <div className="flex gap-2 items-start justify-between">
+                  <p className="line-clamp-6 text-sm text-gray-dark font-inter">{user.summary}</p>
                   <div className="flex gap-3">
-                    <div className="p-3 flex flex-col gap-1">
+                    <div className="p-3 flex flex-col gap-1 min-w-[132px]">
                       <p className="font-bold text-xs text-gray-dark">Recruitment</p>
                       <Separator />
                       <div className="flex justify-between">
                         <p className="font-bold text-xs text-zinc-500">Sponsor</p>
-                        <p className="font-bold text-xs text-gray-dark">3</p>
+                        <p className="font-bold text-xs text-gray-dark">
+                          {[
+                            user.programStatistics?.asSponsor?.completed ?? 0,
+                            user.programStatistics?.asSponsor?.confirmed ?? 0,
+                            user.programStatistics?.asSponsor?.notConfirmed ?? 0,
+                            user.programStatistics?.asSponsor?.paymentRequired ?? 0,
+                            user.programStatistics?.asSponsor?.published ?? 0,
+                            user.programStatistics?.asSponsor?.refund ?? 0,
+                          ].reduce((sum, val) => sum + val, 0)}
+                        </p>
                       </div>
                       <Separator />
                       <div className="flex justify-between">
                         <p className="font-bold text-xs text-zinc-500">Validator</p>
-                        <p className="font-bold text-xs text-gray-dark">4</p>
+                        <p className="font-bold text-xs text-gray-dark">
+                          {[
+                            user.programStatistics?.asValidator?.completed ?? 0,
+                            user.programStatistics?.asValidator?.confirmed ?? 0,
+                            user.programStatistics?.asValidator?.notConfirmed ?? 0,
+                            user.programStatistics?.asValidator?.paymentRequired ?? 0,
+                            user.programStatistics?.asValidator?.published ?? 0,
+                            user.programStatistics?.asValidator?.refund ?? 0,
+                          ].reduce((sum, val) => sum + val, 0)}
+                        </p>
                       </div>
                       <Separator />
                       <div className="flex justify-between">
                         <p className="font-bold text-xs text-zinc-500">Builder</p>
-                        <p className="font-bold text-xs text-gray-dark">2</p>
+                        <p className="font-bold text-xs text-gray-dark">
+                          {[
+                            user.programStatistics?.asBuilder?.completed ?? 0,
+                            user.programStatistics?.asBuilder?.confirmed ?? 0,
+                            user.programStatistics?.asBuilder?.notConfirmed ?? 0,
+                            user.programStatistics?.asBuilder?.paymentRequired ?? 0,
+                            user.programStatistics?.asBuilder?.published ?? 0,
+                            user.programStatistics?.asBuilder?.refund ?? 0,
+                          ].reduce((sum, val) => sum + val, 0)}
+                        </p>
                       </div>
                     </div>
 
-                    <div className="p-3 flex flex-col gap-1">
+                    <div className="p-3 flex flex-col gap-1 min-w-[132px]">
                       <p className="font-bold text-xs text-gray-dark">Investment</p>
                       <Separator />
                       <div className="flex justify-between">

@@ -117,7 +117,7 @@ function MarkdownEditor({
     <MDXEditor
       ref={mdxRef}
       markdown={content}
-      className="overflow-auto max-h-[500px] border rounded-md shadow-md"
+      className="overflow-auto max-h-[500px] border rounded-md"
       contentEditableClassName="prose min-h-[300px] cursor-text w-full"
       onChange={(value) => debouncedOnChange(value)}
       plugins={[

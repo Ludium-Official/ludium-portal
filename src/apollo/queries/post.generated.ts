@@ -8,7 +8,7 @@ export type PostQueryVariables = Types.Exact<{
 }>;
 
 
-export type PostQuery = { __typename?: 'Query', post?: { __typename?: 'Post', id?: string | null, title?: string | null, content?: string | null, image?: string | null, summary?: string | null, createdAt?: any | null, keywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, image?: string | null, email?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null } | null };
+export type PostQuery = { __typename?: 'Query', post?: { __typename?: 'Post', id?: string | null, title?: string | null, content?: string | null, image?: string | null, summary?: string | null, viewCount?: number | null, createdAt?: any | null, keywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, image?: string | null, email?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null } | null };
 
 
 export const PostDocument = gql`
@@ -19,6 +19,7 @@ export const PostDocument = gql`
     content
     image
     summary
+    viewCount
     keywords {
       id
       name

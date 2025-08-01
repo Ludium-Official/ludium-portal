@@ -1,8 +1,10 @@
 import { useCreateCommentMutation } from '@/apollo/mutation/create-comment.generated';
+import { useIncrementPostViewMutation } from '@/apollo/mutation/incerement-post-view.generated';
 import { useCommentsByCommentableQuery } from '@/apollo/queries/comments-by-commentable.generated';
 import { usePostQuery } from '@/apollo/queries/post.generated';
 import { usePostsQuery } from '@/apollo/queries/posts.generated';
 import { CommentSection } from '@/components/comment-section';
+import { MarkdownPreviewer } from '@/components/markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 import { useAuth } from '@/lib/hooks/use-auth';
@@ -29,19 +31,20 @@ const CommunityDetailsPage: React.FC = () => {
       pagination: {
         offset: 0,
         sort: SortEnum.Desc,
-        filter: authorId
-          ? [
-            {
-              field: 'authorId',
-              value: authorId,
-            },
-          ]
-          : [],
+        // filter: authorId
+        //   ? [
+        //     {
+        //       field: 'authorId',
+        //       value: authorId,
+        //     },
+        //   ]
+        //   : [],
       },
     },
     skip: !authorId,
     fetchPolicy: 'cache-and-network',
   });
+  console.log("🚀 ~ CommunityDetailsPage ~ postsData:", postsData)
 
   const { data, loading, error } = usePostQuery({
     variables: {
@@ -55,6 +58,14 @@ const CommunityDetailsPage: React.FC = () => {
       }
     },
   });
+
+  const [incrementPostView] = useIncrementPostViewMutation();
+
+  useEffect(() => {
+    if (postId) {
+      incrementPostView({ variables: { postId } });
+    }
+  }, [postId]);
 
   const { data: comments, refetch: refetchComments } = useCommentsByCommentableQuery({
     variables: {
@@ -113,7 +124,7 @@ const CommunityDetailsPage: React.FC = () => {
     <div className="bg-white rounded-2xl">
       <div className="max-w-1440 mx-auto">
         <div className="flex">
-          <div className="w-[70%] p-10 flex flex-col gap-20 border-r">
+          <div className="w-[70%] p-10 flex flex-col gap-20">
             <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <h1 className="text-xl font-bold">{post?.title}</h1>
@@ -143,9 +154,11 @@ const CommunityDetailsPage: React.FC = () => {
                 </div>
                 {post?.createdAt && (
                   <div className="flex gap-[6px] text-xs text-gray-500">
-                    <span>{format(new Date(post.createdAt), 'dd.MM.yyyy')}</span>
+                    <span>{format(new Date(post.createdAt), 'yyyy.MM.dd')}</span>
                     <span>•</span>
-                    <span>Views {12}</span>
+                    <span>Views {post.viewCount}</span>
+                    <span>•</span>
+                    <span className='text-secondary-foreground font-bold'>Comments {comments?.commentsByCommentable?.length}</span>
                   </div>
                 )}
               </div>
@@ -162,28 +175,9 @@ const CommunityDetailsPage: React.FC = () => {
                   )}
                 </div>
               </div>
-              <div className="flex flex-col gap-3">
-                <h1 className="font-bold text-lg">PROPOSAL</h1>
-                <p className="text-sm text-slate-600">{post?.summary}</p>
-              </div>
-              <div className="flex flex-col gap-3">
-                <h1 className="font-bold text-lg">DESCRIPTION</h1>
-                <p className="text-sm text-slate-600">{post?.content}</p>
-              </div>
-              <div className="flex flex-col gap-3">
-                <h1 className="font-bold text-lg">LINKS</h1>
-                {post?.author?.links?.map((link) => (
-                  <a
-                    href={link.url ?? ''}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    key={link.title}
-                    className="text-sm text-slate-600"
-                  >
-                    {link.url}
-                  </a>
-                ))}
-              </div>
+
+
+              <MarkdownPreviewer value={post?.content ?? ''} />
             </div>
             {/* Comment Section */}
             <CommentSection
@@ -236,7 +230,7 @@ const CommunityDetailsPage: React.FC = () => {
                 <Link
                   to={`/community/posts/${post.id}`}
                   key={post.id}
-                  className="flex gap-3 p-5 border border-gray-200 rounded-lg"
+                  className="flex gap-3 p-3 border-gray-200 rounded-lg"
                 >
                   <div className="w-[200px] h-[112px] bg-gradient-to-r from-purple-300 to-blue-300 rounded-md shrink-0">
                     {post?.image ? (
@@ -263,7 +257,7 @@ const CommunityDetailsPage: React.FC = () => {
                         {post.createdAt} <span>•</span>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground">Views {12}</p>
+                        <p className="text-xs text-muted-foreground">Views {post.viewCount}</p>
                       </div>
                     </div>
                   </div>

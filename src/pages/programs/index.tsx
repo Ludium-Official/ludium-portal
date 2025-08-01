@@ -7,14 +7,14 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import ProgramCard from '@/pages/programs/_components/program-card';
 import { SortEnum } from '@/types/types.generated';
-import { CirclePlus, ListFilter } from 'lucide-react';
+import { CirclePlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 
 const PageSize = 12;
 
 const ProgramsPage: React.FC = () => {
-  const [selectedTab, setSelectedTab] = useState('all');
+  const [selectedTab, setSelectedTab] = useState('newest');
 
   const { isLoggedIn, isAuthed, userId } = useAuth();
 
@@ -87,9 +87,10 @@ const ProgramsPage: React.FC = () => {
         >
           <section className="flex justify-between items-center py-[14px]">
             <TabsList className="">
-              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="newest">Newest</TabsTrigger>
+              <TabsTrigger value="imminent">Imminent</TabsTrigger>
               <TabsTrigger value="my-programs">My programs</TabsTrigger>
-              <TabsTrigger value="published">Published</TabsTrigger>
+              <TabsTrigger value="completed">Completed</TabsTrigger>
             </TabsList>
             <div className="h-10 flex items-center gap-3">
               <Input
@@ -105,12 +106,9 @@ const ProgramsPage: React.FC = () => {
                 }}
               />
 
-              <Button variant="outline" className="h-full rounded-[6px] ">
-                <ListFilter /> Filter
-              </Button>
               {isLoggedIn && (
                 <Button
-                  className="h-[32px] rounded-[6px] gap-2"
+                  className="rounded-[6px] gap-2 px-3"
                   onClick={() => {
                     if (!isAuthed) {
                       notify('Please add your email', 'success');
@@ -127,7 +125,7 @@ const ProgramsPage: React.FC = () => {
             </div>
           </section>
 
-          <section className="w-full space-y-4 mb-5 grid grid-cols-2 gap-5">
+          <section className="w-full space-y-4 my-5 grid grid-cols-2 gap-5">
             {data?.programs?.data?.map((program) => (
               <ProgramCard key={program.id} program={program} />
             ))}

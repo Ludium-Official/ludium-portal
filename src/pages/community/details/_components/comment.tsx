@@ -149,7 +149,7 @@ function PostComment({
                           <Link to={`/users/${reply.author?.id}`}>{getUserName(reply.author)}</Link>
                         </span>
                         <span className="text-xs text-gray-500 ml-2">
-                          {format(new Date(reply.createdAt), 'dd.MM.yyyy, h:mm a')}
+                          {format(new Date(reply.createdAt), 'MMM d, yyyy, h:mm:ss a')}
                         </span>
                       </div>
                       <div className="text-xs text-gray-500 mb-1">

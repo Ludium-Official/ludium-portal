@@ -69,17 +69,24 @@ const DetailsPage: React.FC = () => {
         <div className="max-w-1440 mx-auto p-10">
           <div className="flex justify-between items-center mb-2">
             <ProgramStatusBadge program={program} />
-            {(program?.creator?.id === userId || isAdmin) && (
-              <Link to={`/programs/${program?.id}/edit`}>
-                <Settings className="w-4 h-4" />
-              </Link>
-            )}
+
           </div>
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-xl font-bold">{program?.name}</h1>
-            <Button variant="ghost" className="flex gap-2 items-center">
-              Share <Share2 />
-            </Button>
+
+            <div className='flex gap-2'>
+              {(program?.creator?.id === userId || isAdmin) && (
+                <Link to={`/programs/${program?.id}/edit`}>
+                  <Button variant='ghost' className='flex gap-2 items-center bg-secondary'>
+                    Edit
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </Link>
+              )}
+              <Button variant="ghost" className="flex gap-2 items-center">
+                Share <Share2 />
+              </Button>
+            </div>
           </div>
 
           <div className="flex gap-6">
@@ -132,34 +139,29 @@ const DetailsPage: React.FC = () => {
                 </p>
               </div>
 
-              {
-                isLoggedIn &&
-                program?.status === 'published' &&
-                program.creator?.id !== userId &&
-                program?.validators?.every((validator) => validator.id !== userId) &&
-                (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        onClick={(e) => {
-                          if (!isAuthed) {
-                            notify('Please add your email', 'success');
-                            navigate('/profile/edit');
-                            return;
-                          }
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    disabled={!isLoggedIn || program?.status !== 'published' || program.creator?.id === userId || program?.validators?.some((validator) => validator.id === userId)}
+                    onClick={(e) => {
+                      if (!isAuthed) {
+                        notify('Please add your email', 'success');
+                        navigate('/profile/edit');
+                        return;
+                      }
 
-                          e.stopPropagation();
-                        }}
-                        className="mt-6 mb-3 text-sm w-full h-11 font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]"
-                      >
-                        Submit application
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="min-w-[800px] min-h-[760px] z-50 w-full max-w-[1440px] p-6 max-h-screen overflow-y-auto">
-                      <CreateApplicationForm program={program} />
-                    </DialogContent>
-                  </Dialog>
-                )}
+                      e.stopPropagation();
+                    }}
+                    className="mt-6 mb-3 text-sm w-full h-11 font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px]"
+                  >
+                    Submit application
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="min-w-[800px] min-h-[760px] z-50 w-full max-w-[1440px] p-6 max-h-screen overflow-y-auto">
+                  <CreateApplicationForm program={program} />
+                </DialogContent>
+              </Dialog>
+
 
               <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">KEYWORDS</p>
@@ -196,12 +198,15 @@ const DetailsPage: React.FC = () => {
 
               <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM HOST</p>
-                <div className="border rounded-xl w-full p-6 mb-6">
+                <div className="border rounded-xl w-full p-4 mb-6">
+                  <ProgramStatusBadge program={program} className='inline-flex mb-3' />
                   <Link
                     to={`/users/${program?.creator?.id}`}
-                    className="flex gap-4 items-center text-lg font-bold mb-5"
+                    className="flex gap-2 items-center text-lg font-bold mb-5"
                   >
                     {/* <div className="w-10 h-10 bg-gray-200 rounded-full" /> */}
+
+
 
                     <Avatar className="w-10 h-10">
                       <AvatarImage
@@ -214,17 +219,31 @@ const DetailsPage: React.FC = () => {
                         )}
                       </AvatarFallback>
                     </Avatar>
-                    {getUserName(program?.creator)}
+                    <p className='text-sm font-bold'>
+                      {getUserName(program?.creator)}
+                    </p>
                   </Link>
 
                   <div className="flex gap-3 mb-4">
                     <p className="text-xs font-bold w-[57px]">Summary</p>
-                    <p className="text-xs">{program?.creator?.summary}</p>
+                    <p className="text-xs text-slate-500 line-clamp-2">{program?.creator?.summary}</p>
                   </div>
 
                   <div className="flex gap-3 mb-4">
                     <p className="text-xs font-bold w-[57px]">Email</p>
                     <p className="text-xs">{program?.creator?.email}</p>
+                  </div>
+
+                  <div className='flex gap-2 flex-wrap'>
+                    <Badge variant='secondary' className='text-xs font-semibold'>
+                      DB
+                    </Badge>
+                    <Badge variant='secondary' className='text-xs font-semibold'>
+                      Developer
+                    </Badge>
+                    <Badge variant='secondary' className='text-xs font-semibold'>
+                      Solidity
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -235,9 +254,11 @@ const DetailsPage: React.FC = () => {
 
                   {program.validators.map((validator) => (
                     <div className="border rounded-xl w-full p-6 mb-6" key={validator.id}>
+
+                      <ProgramStatusBadge program={program} className='inline-flex mb-3' />
                       <Link
                         to={`/users/${program?.creator?.id}`}
-                        className="flex gap-4 items-center text-lg font-bold mb-5"
+                        className="flex gap-2 items-center text-lg font-bold"
                       >
                         {/* <div className="w-10 h-10 bg-gray-200 rounded-full" /> */}
 
@@ -252,18 +273,24 @@ const DetailsPage: React.FC = () => {
                             )}
                           </AvatarFallback>
                         </Avatar>
-                        {getUserName(validator)}
+                        <div>
+                          <p className='text-sm mb-2'>
+                            {getUserName(validator)}
+                          </p>
+
+                          <div className='flex gap-2 flex-wrap'>
+                            <Badge variant='secondary' className='text-xs font-semibold'>
+                              DB
+                            </Badge>
+                            <Badge variant='secondary' className='text-xs font-semibold'>
+                              Developer
+                            </Badge>
+                            <Badge variant='secondary' className='text-xs font-semibold'>
+                              Solidity
+                            </Badge>
+                          </div>
+                        </div>
                       </Link>
-
-                      <div className="flex gap-3 mb-4">
-                        <p className="text-xs font-bold w-[57px]">Summary</p>
-                        <p className="text-xs">{validator?.summary}</p>
-                      </div>
-
-                      <div className="flex gap-3 mb-4">
-                        <p className="text-xs font-bold w-[57px]">Email</p>
-                        <p className="text-xs">{validator?.email}</p>
-                      </div>
                     </div>
                   ))}
                 </div>
@@ -301,6 +328,7 @@ const DetailsPage: React.FC = () => {
                 <ApplicationCard
                   key={a.id}
                   application={a}
+                  program={data.program}
                   refetch={refetch}
                   hideControls={
                     a.status !== ApplicationStatus.Pending ||
