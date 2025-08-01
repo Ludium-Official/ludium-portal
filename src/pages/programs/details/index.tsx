@@ -1,23 +1,23 @@
-import { useProgramQuery } from '@/apollo/queries/program.generated';
-import { MarkdownPreviewer } from '@/components/markdown';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { Tabs } from '@/components/ui/tabs';
-import { useAuth } from '@/lib/hooks/use-auth';
-import notify from '@/lib/notify';
-import { getCurrency, getInitials, getUserName } from '@/lib/utils';
-import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
-import ApplicationCard from '@/pages/programs/details/_components/application-card';
-import CreateApplicationForm from '@/pages/programs/details/_components/create-application-form';
+import { useProgramQuery } from "@/apollo/queries/program.generated";
+import { MarkdownPreviewer } from "@/components/markdown";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs } from "@/components/ui/tabs";
+import { useAuth } from "@/lib/hooks/use-auth";
+import notify from "@/lib/notify";
+import { getCurrency, getInitials, getUserName } from "@/lib/utils";
+import ProgramStatusBadge from "@/pages/programs/_components/program-status-badge";
+import ApplicationCard from "@/pages/programs/details/_components/application-card";
+import CreateApplicationForm from "@/pages/programs/details/_components/create-application-form";
 // import MainSection from '@/pages/programs/details/_components/main-section';
-import { ApplicationStatus } from '@/types/types.generated';
-import BigNumber from 'bignumber.js';
-import { format } from 'date-fns';
-import { Settings, Share2 } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { ApplicationStatus } from "@/types/types.generated";
+import BigNumber from "bignumber.js";
+import { format } from "date-fns";
+import { Settings, Share2 } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import { Link, useNavigate, useParams } from "react-router";
 
 const DetailsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ const DetailsPage: React.FC = () => {
 
   const { data, refetch } = useProgramQuery({
     variables: {
-      id: id ?? '',
+      id: id ?? "",
     },
   });
 
@@ -37,20 +37,18 @@ const DetailsPage: React.FC = () => {
       program?.applications
         ?.filter(
           (a) =>
-            a.status === ApplicationStatus.Accepted || a.status === ApplicationStatus.Completed,
+            a.status === ApplicationStatus.Accepted ||
+            a.status === ApplicationStatus.Completed
         )
-        .reduce(
-          (mlPrev, mlCurr) => {
-            const mlPrice = mlCurr?.milestones?.reduce(
-              (prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)),
-              BigNumber(0, 10),
-            );
-            return mlPrev.plus(BigNumber(mlPrice ?? 0));
-          },
-          BigNumber(0, 10),
-        )
-        .toFixed() || '0',
-    [program],
+        .reduce((mlPrev, mlCurr) => {
+          const mlPrice = mlCurr?.milestones?.reduce(
+            (prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)),
+            BigNumber(0, 10)
+          );
+          return mlPrev.plus(BigNumber(mlPrice ?? 0));
+        }, BigNumber(0, 10))
+        .toFixed() || "0",
+    [program]
   );
 
   useEffect(() => {
@@ -58,7 +56,7 @@ const DetailsPage: React.FC = () => {
     if (hash) {
       const element = document.getElementById(hash);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+        element.scrollIntoView({ behavior: "smooth" });
       }
     }
   }, []);
@@ -85,14 +83,20 @@ const DetailsPage: React.FC = () => {
           {/* Overview */}
           <div className="w-full max-w-[360px]">
             <h3 className="flex items-end mb-3">
-              <span className="p-2 border-b border-b-primary font-medium text-sm">Overview</span>
+              <span className="p-2 border-b border-b-primary font-medium text-sm">
+                Overview
+              </span>
               <span className="block border-b w-full" />
             </h3>
 
             {/* Temporary image placeholder until the actual image is added */}
             {/* <div className='bg-[#eaeaea] w-full rounded-xl aspect-square mb-6' /> */}
             {program?.image ? (
-              <img src={program?.image} alt="program" className="w-full aspect-square rounded-xl" />
+              <img
+                src={program?.image}
+                alt="program"
+                className="w-full aspect-square rounded-xl"
+              />
             ) : (
               <div className="bg-[#eaeaea] w-full rounded-xl aspect-square mb-6" />
             )}
@@ -106,9 +110,9 @@ const DetailsPage: React.FC = () => {
               <div className="flex gap-2 items-center">
                 <span>{getCurrency(program?.network)?.icon}</span>
                 <p>
-                  <span className="text-xl">{acceptedPrice}</span>{' '}
+                  <span className="text-xl">{acceptedPrice}</span>{" "}
                   <span className="text-muted-foreground text-xs mr-1.5">
-                    {acceptedPrice && ' / '}
+                    {acceptedPrice && " / "}
                     {program?.price}
                   </span>
                   {program?.currency}
@@ -127,21 +131,26 @@ const DetailsPage: React.FC = () => {
               </div> */}
 
               <p className="text-xl leading-7">
-                {format(new Date(program?.deadline ?? new Date()), 'dd.MMM.yyyy').toUpperCase()}
+                {format(
+                  new Date(program?.deadline ?? new Date()),
+                  "dd.MMM.yyyy"
+                ).toUpperCase()}
               </p>
             </div>
 
             {isLoggedIn &&
-              program?.status === 'published' &&
+              program?.status === "published" &&
               program.creator?.id !== userId &&
-              program?.validators?.every((validator) => validator.id !== userId) && (
+              program?.validators?.every(
+                (validator) => validator.id !== userId
+              ) && (
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button
                       onClick={(e) => {
                         if (!isAuthed) {
-                          notify('Please add your email', 'success');
-                          navigate('/profile/edit');
+                          notify("Please add your email", "success");
+                          navigate("/profile/edit");
                           return;
                         }
 
@@ -159,7 +168,9 @@ const DetailsPage: React.FC = () => {
               )}
 
             <div className="mt-6">
-              <p className="text-muted-foreground text-sm font-bold mb-3">KEYWORDS</p>
+              <p className="text-muted-foreground text-sm font-bold mb-3">
+                KEYWORDS
+              </p>
 
               <div className="flex gap-2 flex-wrap">
                 {program?.keywords?.map((k) => (
@@ -171,16 +182,22 @@ const DetailsPage: React.FC = () => {
             </div>
 
             <div className="mt-6">
-              <p className="text-muted-foreground text-sm font-bold mb-3">SUMMARY</p>
+              <p className="text-muted-foreground text-sm font-bold mb-3">
+                SUMMARY
+              </p>
 
-              <p className="text-slate-600 text-sm whitespace-pre-wrap">{program?.summary}</p>
+              <p className="text-slate-600 text-sm whitespace-pre-wrap">
+                {program?.summary}
+              </p>
             </div>
 
             <div className="mt-6">
-              <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM LINKS</p>
+              <p className="text-muted-foreground text-sm font-bold mb-3">
+                PROGRAM LINKS
+              </p>
               {program?.links?.map((l) => (
                 <a
-                  href={l?.url ?? ''}
+                  href={l?.url ?? ""}
                   key={l.url}
                   className="block hover:underline text-slate-600 text-sm"
                   target="_blank"
@@ -192,7 +209,9 @@ const DetailsPage: React.FC = () => {
             </div>
 
             <div className="mt-6">
-              <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM HOST</p>
+              <p className="text-muted-foreground text-sm font-bold mb-3">
+                PROGRAM HOST
+              </p>
               <div className="border rounded-xl w-full p-6 mb-6">
                 <Link
                   to={`/users/${program?.creator?.id}`}
@@ -202,12 +221,14 @@ const DetailsPage: React.FC = () => {
 
                   <Avatar className="w-10 h-10">
                     <AvatarImage
-                      src={program?.creator?.image || ''}
+                      src={program?.creator?.image || ""}
                       alt={`${program?.creator?.firstName} ${program?.creator?.lastName}`}
                     />
                     <AvatarFallback>
                       {getInitials(
-                        `${program?.creator?.firstName || ''} ${program?.creator?.lastName || ''}`,
+                        `${program?.creator?.firstName || ""} ${
+                          program?.creator?.lastName || ""
+                        }`
                       )}
                     </AvatarFallback>
                   </Avatar>
@@ -228,10 +249,15 @@ const DetailsPage: React.FC = () => {
 
             {!!program?.validators?.length && (
               <div className="mt-6">
-                <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM VALIDATOR</p>
+                <p className="text-muted-foreground text-sm font-bold mb-3">
+                  PROGRAM VALIDATOR
+                </p>
 
                 {program.validators.map((validator) => (
-                  <div className="border rounded-xl w-full p-6 mb-6" key={validator.id}>
+                  <div
+                    className="border rounded-xl w-full p-6 mb-6"
+                    key={validator.id}
+                  >
                     <Link
                       to={`/users/${program?.creator?.id}`}
                       className="flex gap-4 items-center text-lg font-bold mb-5"
@@ -240,12 +266,14 @@ const DetailsPage: React.FC = () => {
 
                       <Avatar className="w-10 h-10">
                         <AvatarImage
-                          src={validator?.image || ''}
+                          src={validator?.image || ""}
                           alt={`${validator?.firstName} ${validator?.lastName}`}
                         />
                         <AvatarFallback>
                           {getInitials(
-                            `${validator?.firstName || ''} ${validator?.lastName || ''}`,
+                            `${validator?.firstName || ""} ${
+                              validator?.lastName || ""
+                            }`
                           )}
                         </AvatarFallback>
                       </Avatar>
@@ -270,12 +298,16 @@ const DetailsPage: React.FC = () => {
           {/* Details */}
           <div className="w-full">
             <h3 className="flex items-end">
-              <span className="p-2 border-b border-b-primary font-medium text-sm">Details</span>
+              <span className="p-2 border-b border-b-primary font-medium text-sm">
+                Details
+              </span>
               <span className="block border-b w-full" />
             </h3>
 
             <div className="mt-3">
-              {program?.description && <MarkdownPreviewer value={program?.description} />}
+              {program?.description && (
+                <MarkdownPreviewer value={program?.description} />
+              )}
             </div>
           </div>
         </div>
@@ -298,7 +330,9 @@ const DetailsPage: React.FC = () => {
               refetch={refetch}
               hideControls={
                 a.status !== ApplicationStatus.Pending ||
-                program?.validators?.every((validator) => validator.id !== userId)
+                program?.validators?.every(
+                  (validator) => validator.id !== userId
+                )
               }
             />
           ))}
