@@ -176,7 +176,11 @@ function ProjectDetailsPage() {
                 <h2 className="text-xl py-3 mb-2 font-bold">{name}</h2>
                 <div className="flex justify-between w-full pb-2 border-b">
                   <p className="text-muted-foreground text-sm font-bold">FUNDING DATE</p>
-                  <div className='flex items-center gap-2'><p className="text-sm text-foreground font-bold">30 . MAR . 2025</p> <span className='inline-block w-[10px] border-b border-muted-foreground' /> <p className="text-sm text-foreground font-bold">30 . APR . 2025</p></div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm text-foreground font-bold">30 . MAR . 2025</p>{' '}
+                    <span className="inline-block w-[10px] border-b border-muted-foreground" />{' '}
+                    <p className="text-sm text-foreground font-bold">30 . APR . 2025</p>
+                  </div>
                 </div>
 
                 <div className="flex justify-between w-full pb-2 border-b mt-2">
@@ -190,7 +194,6 @@ function ProjectDetailsPage() {
               </div>
             </div>
           </div>
-
 
           <div className="flex-1/2 bg-secondary self-stretch rounded-lg p-4">
             <h2 className="text-sm text-muted-foreground font-bold mb-3">SUMMARY</h2>
@@ -345,21 +348,18 @@ function ProjectDetailsPage() {
               </div>
             </div>
 
-            <div className='flex items-center gap-[20px] justify-between w-full mt-4'>
+            <div className="flex items-center gap-[20px] justify-between w-full mt-4">
               <h4 className="text-neutral-400 text-sm font-bold">STATUS</h4>
 
-              <Progress
-                value={25}
-                rootClassName='w-full'
-                indicatorClassName='bg-primary'
-              />
+              <Progress value={25} rootClassName="w-full" indicatorClassName="bg-primary" />
 
-              <p className='text-xl text-primary font-bold flex items-center'>25<span className='text-sm text-muted-foreground'>%</span></p>
+              <p className="text-xl text-primary font-bold flex items-center">
+                25<span className="text-sm text-muted-foreground">%</span>
+              </p>
             </div>
-
           </div>
 
-          <div className='flex justify-between items-center mb-6'>
+          <div className="flex justify-between items-center mb-6">
             <div className="flex items-start gap-3">
               <h2 className="font-bold text-muted-foreground text-sm mb-3">LINKS</h2>
               <div className="">
@@ -370,9 +370,9 @@ function ProjectDetailsPage() {
                 ))}
               </div>
             </div>
-            <div className='flex items-center gap-2'>
+            <div className="flex items-center gap-2">
               <Badge className="font-semibold text-[#CA8A04] bg-[#FFDEA1]">Gold</Badge>
-              <p className='text-sm text-muted-foreground'>or higher only</p>
+              <p className="text-sm text-muted-foreground">or higher only</p>
             </div>
           </div>
 
@@ -457,20 +457,22 @@ function ProjectDetailsPage() {
               <button
                 onClick={() => setActiveTab('terms')}
                 type="button"
-                className={`p-2 font-medium text-sm transition-colors ${activeTab === 'terms'
-                  ? 'border-b border-b-primary text-primary'
-                  : 'text-muted-foreground hover:text-foreground border-b'
-                  }`}
+                className={`p-2 font-medium text-sm transition-colors ${
+                  activeTab === 'terms'
+                    ? 'border-b border-b-primary text-primary'
+                    : 'text-muted-foreground hover:text-foreground border-b'
+                }`}
               >
                 Terms
               </button>
               <button
                 onClick={() => setActiveTab('milestones')}
                 type="button"
-                className={`p-2 font-medium text-sm transition-colors ${activeTab === 'milestones'
-                  ? 'border-b border-b-primary text-primary'
-                  : 'text-muted-foreground hover:text-foreground border-b'
-                  }`}
+                className={`p-2 font-medium text-sm transition-colors ${
+                  activeTab === 'milestones'
+                    ? 'border-b border-b-primary text-primary'
+                    : 'text-muted-foreground hover:text-foreground border-b'
+                }`}
               >
                 Milestones
               </button>
@@ -486,8 +488,12 @@ function ProjectDetailsPage() {
                 {/* Gold Tier */}
                 <div className="border rounded-lg p-4 bg-white shadow-sm">
                   <div className="flex justify-between items-start mb-3">
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Gold</Badge>
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">70 left</Badge>
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                      Gold
+                    </Badge>
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                      70 left
+                    </Badge>
                   </div>
                   <div className="mb-4">
                     <p className="text-sm text-muted-foreground mb-1">PRICE</p>
@@ -501,10 +507,13 @@ function ProjectDetailsPage() {
                   </div>
                   <div className="space-y-3 text-sm text-muted-foreground">
                     <p>
-                      Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) to ensure secure, private, and verifiable task-based payments.
+                      Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment
+                      solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) to
+                      ensure secure, private, and verifiable task-based payments.
                     </p>
                     <p>
-                      It enables seamless collaboration between sponsors and builders, automating fund disbursement upon task completion while maintaining privacy and trust.
+                      It enables seamless collaboration between sponsors and builders, automating
+                      fund disbursement upon task completion while maintaining privacy and trust.
                     </p>
                   </div>
                 </div>
@@ -512,8 +521,12 @@ function ProjectDetailsPage() {
                 {/* Platinum Tier */}
                 <div className="border rounded-lg p-4 bg-white shadow-sm">
                   <div className="flex justify-between items-start mb-3">
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">Platinum</Badge>
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">70 left</Badge>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      Platinum
+                    </Badge>
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                      70 left
+                    </Badge>
                   </div>
                   <div className="mb-4">
                     <p className="text-sm text-muted-foreground mb-1">PRICE</p>
@@ -527,10 +540,13 @@ function ProjectDetailsPage() {
                   </div>
                   <div className="space-y-3 text-sm text-muted-foreground">
                     <p>
-                      Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) to ensure secure, private, and verifiable task-based payments.
+                      Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment
+                      solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) to
+                      ensure secure, private, and verifiable task-based payments.
                     </p>
                     <p>
-                      It enables seamless collaboration between sponsors and builders, automating fund disbursement upon task completion while maintaining privacy and trust.
+                      It enables seamless collaboration between sponsors and builders, automating
+                      fund disbursement upon task completion while maintaining privacy and trust.
                     </p>
                   </div>
                 </div>
@@ -538,8 +554,12 @@ function ProjectDetailsPage() {
                 {/* Gold Tier (Duplicate) */}
                 <div className="border rounded-lg p-4 bg-white shadow-sm">
                   <div className="flex justify-between items-start mb-3">
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Gold</Badge>
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">70 left</Badge>
+                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                      Gold
+                    </Badge>
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                      70 left
+                    </Badge>
                   </div>
                   <div className="mb-4">
                     <p className="text-sm text-muted-foreground mb-1">PRICE</p>
@@ -553,10 +573,13 @@ function ProjectDetailsPage() {
                   </div>
                   <div className="space-y-3 text-sm text-muted-foreground">
                     <p>
-                      Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) to ensure secure, private, and verifiable task-based payments.
+                      Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment
+                      solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) to
+                      ensure secure, private, and verifiable task-based payments.
                     </p>
                     <p>
-                      It enables seamless collaboration between sponsors and builders, automating fund disbursement upon task completion while maintaining privacy and trust.
+                      It enables seamless collaboration between sponsors and builders, automating
+                      fund disbursement upon task completion while maintaining privacy and trust.
                     </p>
                   </div>
                 </div>
@@ -639,7 +662,16 @@ function ProjectDetailsPage() {
                         <div className="mb-6">
                           <h2 className="font-bold text-gray-dark text-sm mb-3">DESCRIPTION</h2>
                           <p className="text-slate-600 text-xs">
-                            Ludium's zkTLS Builder Escrow Payment Service introduces a trustless, decentralized payment solution for global builders and sponsors. By integrating zkTLS technology, it ensures secure and private verification of work completion without exposing sensitive data. Smart contracts serve as Escrow Treasuries, automating fund releases once tasks are validated. The platform simplifies grant allocations, hackathon payouts, and marketing incentives by streamlining payments through blockchain technology. With open-source development, Ludium fosters a collaborative ecosystem that enhances transparency, efficiency, and scalability for builder payments.
+                            Ludium's zkTLS Builder Escrow Payment Service introduces a trustless,
+                            decentralized payment solution for global builders and sponsors. By
+                            integrating zkTLS technology, it ensures secure and private verification
+                            of work completion without exposing sensitive data. Smart contracts
+                            serve as Escrow Treasuries, automating fund releases once tasks are
+                            validated. The platform simplifies grant allocations, hackathon payouts,
+                            and marketing incentives by streamlining payments through blockchain
+                            technology. With open-source development, Ludium fosters a collaborative
+                            ecosystem that enhances transparency, efficiency, and scalability for
+                            builder payments.
                           </p>
                         </div>
 
@@ -717,7 +749,7 @@ function ProjectDetailsPage() {
                                 disabled={
                                   idx !== 0 &&
                                   data?.application?.milestones?.[idx - 1]?.status !==
-                                  MilestoneStatus.Completed
+                                    MilestoneStatus.Completed
                                 }
                               >
                                 <Button className="h-10 block ml-auto">Submit Milestone</Button>
@@ -737,7 +769,6 @@ function ProjectDetailsPage() {
               </div>
             )}
 
-
             {/* Invest Button - Fixed to Bottom of Right Section */}
             <div className="sticky bottom-0 left-0 right-0">
               <Button
@@ -752,7 +783,6 @@ function ProjectDetailsPage() {
               </Button>
             </div>
           </ScrollArea>
-
         </div>
       </section>
     </div>

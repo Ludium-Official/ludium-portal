@@ -185,7 +185,8 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     onSubmitProject({
       id: data?.program?.id ?? id,
       name: submitData.name,
-      fundingToBeRaised: isEdit && data?.program?.status !== 'draft' ? undefined : submitData.fundingToBeRaised,
+      fundingToBeRaised:
+        isEdit && data?.program?.status !== 'draft' ? undefined : submitData.fundingToBeRaised,
       description: content,
       summary: submitData.summary,
       currency:
@@ -240,9 +241,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
   const updateTerm = (index: number, field: keyof Term, value: string) => {
     setTerms((prevTerms) =>
-      prevTerms.map((term, i) =>
-        i === index ? { ...term, [field]: value } : term,
-      ),
+      prevTerms.map((term, i) => (i === index ? { ...term, [field]: value } : term)),
     );
   };
 
@@ -267,7 +266,11 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     setMilestones((prevMilestones) => prevMilestones.filter((_, i) => i !== index));
   };
 
-  const updateMilestone = (index: number, field: keyof Milestone, value: string | Date | undefined) => {
+  const updateMilestone = (
+    index: number,
+    field: keyof Milestone,
+    value: string | Date | undefined,
+  ) => {
     setMilestones((prevMilestones) =>
       prevMilestones.map((milestone, i) =>
         i === index ? { ...milestone, [field]: value } : milestone,
@@ -311,9 +314,15 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
               </p>
 
               <div className="flex items-center justify-between bg-secondary rounded-md p-3">
-                <p className='text-sm font-bold text-muted-foreground'>Maximum funding amount</p>
+                <p className="text-sm font-bold text-muted-foreground">Maximum funding amount</p>
                 <div className="flex items-center gap-2">
-                  <span>{getCurrency(data?.program?.network)?.icon}</span> <span className='font-bold'>{data?.program?.price} {data?.program?.currency}</span> <span className='text-muted-foreground text-sm text-bold'>{getCurrency(data?.program?.network)?.display}</span>
+                  <span>{getCurrency(data?.program?.network)?.icon}</span>{' '}
+                  <span className="font-bold">
+                    {data?.program?.price} {data?.program?.currency}
+                  </span>{' '}
+                  <span className="text-muted-foreground text-sm text-bold">
+                    {getCurrency(data?.program?.network)?.display}
+                  </span>
                 </div>
               </div>
 
@@ -364,8 +373,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
               </div>
             </label>
           </div>
-
-
 
           <div className="px-10 py-6 bg-white rounded-lg">
             <label htmlFor="links" className="space-y-2 block mb-10">
@@ -466,7 +473,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => removeTerm(index)}
-                      className='bg-secondary'
+                      className="bg-secondary"
                     >
                       Delete
                     </Button>
@@ -568,7 +575,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => removeMilestone(index)}
-                      className='bg-secondary'
+                      className="bg-secondary"
                     >
                       Delete
                     </Button>
@@ -590,8 +597,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                     />
                   </div>
 
-                  <div className='grid grid-cols-2 gap-4'>
-
+                  <div className="grid grid-cols-2 gap-4">
                     {/* Payout Percentage */}
                     <div>
                       <Label htmlFor={`milestone-payout-${index}`} className="text-sm font-medium">
@@ -622,7 +628,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                     </div>
                   </div>
 
-
                   {/* Summary */}
                   <div>
                     <Label htmlFor={`milestone-summary-${index}`} className="text-sm font-medium">
@@ -640,7 +645,10 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
                   {/* Description */}
                   <div>
-                    <Label htmlFor={`milestone-description-${index}`} className="text-sm font-medium">
+                    <Label
+                      htmlFor={`milestone-description-${index}`}
+                      className="text-sm font-medium"
+                    >
                       Description <span className="text-primary">*</span>
                     </Label>
                     <div className="mt-2">

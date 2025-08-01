@@ -208,7 +208,7 @@ const InvestmentDetailsPage: React.FC = () => {
             </div>
 
             <Link to={`/investments/${program?.id}/create-project`}>
-              <Button size='lg' className="w-full mt-6">
+              <Button size="lg" className="w-full mt-6">
                 Create Project
               </Button>
             </Link>

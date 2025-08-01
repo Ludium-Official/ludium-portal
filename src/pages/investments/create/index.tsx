@@ -16,15 +16,15 @@ import { useNavigate } from 'react-router';
 // Helper functions
 function getRpcUrlForNetwork(network: string): string {
   const rpcMap: Record<string, string> = {
-    'sepolia': 'https://rpc.sepolia.org',
-    'base': 'https://mainnet.base.org',
+    sepolia: 'https://rpc.sepolia.org',
+    base: 'https://mainnet.base.org',
     'base-sepolia': 'https://sepolia.base.org',
     'educhain-testnet': 'https://open-campus-codex-sepolia.drpc.org',
-    'educhain': 'https://rpc.open-campus-codex.gelato.digital',
-    'arbitrum': 'https://arb1.arbitrum.io/rpc',
+    educhain: 'https://rpc.open-campus-codex.gelato.digital',
+    arbitrum: 'https://arb1.arbitrum.io/rpc',
     'arbitrum-sepolia': 'https://sepolia-rollup.arbitrum.io/rpc',
   };
-  
+
   return rpcMap[network] || rpcMap['educhain-testnet'];
 }
 
@@ -70,7 +70,11 @@ const CreateInvestment: React.FC = () => {
         }) as PublicClient;
 
         // Get the investment contract for the selected network
-        const investmentContract = getInvestmentContract(args.network, sendTransaction, publicClient);
+        const investmentContract = getInvestmentContract(
+          args.network,
+          sendTransaction,
+          publicClient,
+        );
 
         // Get validator wallet addresses
         // For now, we'll need to fetch validator data separately
@@ -103,7 +107,7 @@ const CreateInvestment: React.FC = () => {
         // Store the program ID if needed for future use
         const blockchainProgramId = contractResult.programId;
         txHash = contractResult.txHash;
-        
+
         if (blockchainProgramId) {
           console.log('Blockchain program ID:', blockchainProgramId);
         }
