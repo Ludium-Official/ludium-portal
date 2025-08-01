@@ -1,5 +1,18 @@
-import { cn, formatApplicationStatus, formatMilestoneStatus, formatProgramStatus } from '@/lib/utils';
-import { type Application, ApplicationStatus, type Maybe, type Milestone, MilestoneStatus, type Program, ProgramStatus } from '@/types/types.generated';
+import {
+  cn,
+  formatApplicationStatus,
+  formatMilestoneStatus,
+  formatProgramStatus,
+} from '@/lib/utils';
+import {
+  type Application,
+  ApplicationStatus,
+  type Maybe,
+  type Milestone,
+  MilestoneStatus,
+  type Program,
+  ProgramStatus,
+} from '@/types/types.generated';
 
 function ProgramStatusBadge({
   program,
@@ -32,7 +45,10 @@ function ProgramStatusBadge({
 
   return (
     <span
-      className={cn('flex items-center gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm', className)}
+      className={cn(
+        'flex items-center gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm',
+        className,
+      )}
     >
       {statusColor}
       {formatProgramStatus(program)}
@@ -71,14 +87,16 @@ function ApplicationStatusBadge({
 
   return (
     <span
-      className={cn('flex items-center gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm', className)}
+      className={cn(
+        'flex items-center gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm',
+        className,
+      )}
     >
       {statusColor}
       {formatApplicationStatus(application)}
     </span>
   );
 }
-
 
 function MilestoneStatusBadge({
   milestone,
@@ -108,7 +126,10 @@ function MilestoneStatusBadge({
 
   return (
     <span
-      className={cn('flex items-center gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm', className)}
+      className={cn(
+        'flex items-center gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm',
+        className,
+      )}
     >
       {statusColor}
       {formatMilestoneStatus(milestone)}
@@ -116,8 +137,4 @@ function MilestoneStatusBadge({
   );
 }
 
-export {
-  ProgramStatusBadge,
-  ApplicationStatusBadge,
-  MilestoneStatusBadge
-};
+export { ProgramStatusBadge, ApplicationStatusBadge, MilestoneStatusBadge };

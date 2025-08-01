@@ -41,7 +41,7 @@ const emptyMilestone = { title: '', price: '', deadline: '', summary: '', descri
 function CreateApplicationForm({ program }: { program?: Program | null }) {
   // Single state for the form
   const [formData, setFormData] = useState<FormData>({
-    overview: { name: '', links: [''], price: "0" },
+    overview: { name: '', links: [''], price: '0' },
     description: { summary: '', content: '' },
     milestones: [{ ...emptyMilestone }],
   });
@@ -200,15 +200,18 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             <p className="text-sm font-medium mb-2">
               Price <span className="text-primary">*</span>
             </p>
-            <div className='flex gap-2'>
+            <div className="flex gap-2">
               <Input
                 id="price"
-                type='number'
+                type="number"
                 className="h-10 w-full mb-2"
                 value={formData.overview.price}
                 onChange={(e) => handleOverviewChange('price', e.target.value)}
               />
-              <Button type='button'>{getCurrency(program?.network)?.icon}{getCurrency(program?.network)?.display}</Button>
+              <Button type="button">
+                {getCurrency(program?.network)?.icon}
+                {getCurrency(program?.network)?.display}
+              </Button>
             </div>
           </label>
           <div className="space-y-2 block">
@@ -297,7 +300,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                 id="price0"
                 className="h-10 w-full"
                 value={formData.milestones[0]?.price}
-                onChange={e => handleMilestoneChange(0, 'price', e.target.value)}
+                onChange={(e) => handleMilestoneChange(0, 'price', e.target.value)}
                 placeholder="0%"
                 min={0}
                 max={100}
@@ -364,7 +367,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                 id={`price${idx + 1}`}
                 className="h-10 w-full"
                 value={m.price}
-                onChange={e => handleMilestoneChange(idx + 1, 'price', e.target.value)}
+                onChange={(e) => handleMilestoneChange(idx + 1, 'price', e.target.value)}
                 placeholder="0%"
                 min={0}
                 max={100}
