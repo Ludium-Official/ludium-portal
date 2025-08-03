@@ -1,4 +1,4 @@
-# ludium-portal
+# coredao-ludium-portal
 
 # Overview
 
