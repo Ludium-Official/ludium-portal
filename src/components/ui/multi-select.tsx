@@ -47,7 +47,7 @@ const multiSelectVariants = cva(
  */
 interface MultiSelectProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof multiSelectVariants> {
+  VariantProps<typeof multiSelectVariants> {
   /**
    * An array of option objects to be displayed in the multi-select component.
    * Each option object has a label, value, and an optional icon.
@@ -132,6 +132,8 @@ interface MultiSelectProps
   setInputValue?: React.Dispatch<React.SetStateAction<string | undefined>>;
   loading?: boolean;
   emptyText?: string;
+
+  singleSelect?: boolean;
 }
 
 export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
@@ -155,6 +157,7 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
       emptyText = 'No result found.',
       selectedItems,
       setSelectedItems,
+      singleSelect = false,
       ...props
     },
     ref,
@@ -168,6 +171,15 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
     }, [value]);
 
     const toggleOption = (value: string, label: string) => {
+      if (singleSelect) {
+        const newSelectedValues = selectedValues?.includes(value)
+          ? selectedValues.filter((val) => val !== value)
+          : [value];
+        setSelectedValues(newSelectedValues);
+        setSelectedItems?.(newSelectedValues.map((val) => ({ value: val, label })));
+        onValueChange(newSelectedValues);
+        return;
+      }
       const newSelectedValues = selectedValues?.includes(value)
         ? selectedValues.filter((val) => val !== value)
         : [...selectedValues, value];
@@ -220,9 +232,9 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                     const option = !selectedItems?.length
                       ? options.find((o) => o.value === item)
                       : (item as {
-                          label: string;
-                          value: string;
-                        });
+                        label: string;
+                        value: string;
+                      });
                     // const IconComponent = option?.icon;
                     return (
                       <Badge

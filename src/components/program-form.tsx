@@ -1,11 +1,12 @@
 import { useCreateCarouselItemMutation } from '@/apollo/mutation/create-carousel-item.generated';
 import { useCarouselItemsQuery } from '@/apollo/queries/carousel-items.generated';
-import { useKeywordsQuery } from '@/apollo/queries/keywords.generated';
+
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
 import CurrencySelector from '@/components/currency-selector';
 import { MarkdownEditor } from '@/components/markdown';
 import NetworkSelector from '@/components/network-selector';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
@@ -15,7 +16,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import notify from '@/lib/notify';
 import { mainnetDefaultNetwork } from '@/lib/utils';
+import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { CarouselItemType, type LinkInput } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
@@ -33,7 +36,7 @@ export type OnSubmitProgramFunc = (data: {
   deadline?: string;
   keywords: string[];
   // validatorId: string;
-  links: LinkInput[];
+  links?: LinkInput[];
   // isPublish?: boolean;
   network: string;
   validators: string[];
@@ -45,9 +48,10 @@ export type OnSubmitProgramFunc = (data: {
 export interface ProgramFormProps {
   isEdit: boolean;
   onSubmitProgram: OnSubmitProgramFunc;
+  createLoading?: boolean;
 }
 
-function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
+function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProps) {
   const { id } = useParams();
 
   const { data } = useProgramQuery({
@@ -62,6 +66,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   const [content, setContent] = useState<string>('');
   const [deadline, setDeadline] = useState<Date>();
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+  const [keywordInput, setKeywordInput] = useState<string>('');
   const [selectedValidators, setSelectedValidators] = useState<string[]>([]);
   const [links, setLinks] = useState<string[]>(['']);
   const [network, setNetwork] = useState(mainnetDefaultNetwork);
@@ -77,7 +82,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   const [builderInput, setBuilderInput] = useState<string>();
   const [debouncedBuilderInput, setDebouncedBuilderInput] = useState<string>();
 
-  const { data: keywords } = useKeywordsQuery();
+  // Removed keywords query as it's no longer needed with the new input approach
 
   const [validatorInput, setValidatorInput] = useState<string>();
   const [debouncedValidatorInput, setDebouncedValidatorInput] = useState<string>();
@@ -113,10 +118,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     invalidLink: false,
   });
 
-  const keywordOptions = keywords?.keywords?.map((k) => ({
-    value: k.id ?? '',
-    label: k.name ?? '',
-  }));
+  // Removed keywordOptions as it's no longer needed with the new input approach
   const validatorOptions = validators?.users?.data?.map((v) => ({
     value: v.id ?? '',
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
@@ -124,7 +126,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
 
   useEffect(() => {
     if (data?.program?.keywords)
-      setSelectedKeywords(data?.program?.keywords?.map((k) => k.id ?? '') ?? []);
+      setSelectedKeywords(data?.program?.keywords?.map((k) => k.name ?? '') ?? []);
     if (data?.program?.validators)
       setSelectedValidators(data?.program.validators?.map((k) => k.id ?? '') ?? '');
     if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
@@ -166,6 +168,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
   } = useForm({
     values: {
       programName: data?.program?.name ?? '',
@@ -179,7 +182,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     price: string;
     summary: string;
   }) => {
-    console.log('IM HERE!!!!!!!!!!!!!');
     if (
       imageError ||
       extraErrors.deadline ||
@@ -189,8 +191,13 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       extraErrors.invalidLink ||
       !content.length ||
       !selectedImage
-    )
+    ) {
+      notify(
+        'Please fill in all required fields.',
+        'error'
+      );
       return;
+    }
 
     onSubmitProgram({
       id: data?.program?.id ?? id,
@@ -205,7 +212,10 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
       keywords: selectedKeywords,
       validators: selectedValidators ?? '',
-      links: links.map((l) => ({ title: l, url: l })),
+      links: (() => {
+        const { shouldSend } = validateLinks(links);
+        return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
+      })(),
       network:
         isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
       image: selectedImage,
@@ -215,6 +225,9 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   };
 
   const extraValidation = () => {
+    if (!watch('programName') || !watch('price') || !watch('summary')) {
+      notify('Please fill in all required fields.', 'error');
+    }
     dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
     if (!selectedImage) setImageError('Picture is required.');
     if (!selectedKeywords?.length)
@@ -222,8 +235,9 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     if (!selectedValidators?.length)
       dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
     if (!deadline) dispatchErrors({ type: ExtraErrorActionKind.SET_DEADLINE_ERROR });
-    if (!links?.[0]) dispatchErrors({ type: ExtraErrorActionKind.SET_LINKS_ERROR });
-    if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
+
+    const { isValid } = validateLinks(links);
+    if (!isValid) {
       dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
     }
 
@@ -234,12 +248,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
 
   const [createCarouselItem] = useCreateCarouselItemMutation();
 
-  const [selectedKeywordItems, setSelectedKeywordItems] = useState<
-    {
-      label: string;
-      value: string;
-    }[]
-  >([]);
+  // Removed selectedKeywordItems as it's no longer needed with the new input approach
   const [selectedValidatorItems, setSelectedValidatorItems] = useState<
     {
       label: string;
@@ -288,10 +297,29 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     img.src = URL.createObjectURL(file);
   };
 
+  const handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setKeywordInput(e.target.value);
+  };
+
+  const handleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ((e.key === ' ' || e.key === 'Enter') && keywordInput.trim()) {
+      e.preventDefault();
+      const newKeyword = keywordInput.trim();
+      if (newKeyword && !selectedKeywords.includes(newKeyword)) {
+        setSelectedKeywords([...selectedKeywords, newKeyword]);
+      }
+      setKeywordInput('');
+    }
+  };
+
+  const removeKeyword = (keywordToRemove: string) => {
+    setSelectedKeywords(selectedKeywords.filter(keyword => keyword !== keywordToRemove));
+  };
+
   return (
     <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="max-w-[820px] w-full mx-auto">
-      <h1 className="font-medium text-xl mb-6">Program</h1>
-      {/* <h1 className="font-medium text-xl mb-6">{isEdit ? 'Edit Program' : 'Create Program'}</h1> */}
+      {/* <h1 className="font-medium text-xl mb-6">Program</h1> */}
+      <h1 className="font-medium text-xl mb-6">{isEdit ? 'Edit Program' : 'Create Program'}</h1>
 
       <Tabs defaultValue="overview" value={selectedTab} onValueChange={setSelectedTab}>
         <TabsList className="w-full px-0 mb-3">
@@ -302,7 +330,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           <div className="bg-white py-6 px-10 rounded-lg mb-3">
             <label htmlFor="programName" className="space-y-2 block mb-10">
               <p className="text-sm font-medium">
-                Program name <span className="text-primary">*</span>
+                Program title <span className="text-primary">*</span>
               </p>
               <Input
                 id="programName"
@@ -320,16 +348,53 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
               <p className="text-sm font-medium">
                 Keywords <span className="text-primary">*</span>
               </p>
-              <MultiSelect
-                options={keywordOptions ?? []}
-                value={selectedKeywords}
-                onValueChange={setSelectedKeywords}
-                placeholder="Select keywords"
-                animation={2}
-                selectedItems={selectedKeywordItems}
-                setSelectedItems={setSelectedKeywordItems}
-                maxCount={20}
-              />
+              <div className="space-y-3">
+                <Input
+                  id="keyword"
+                  type="text"
+                  placeholder="직접입력"
+                  value={keywordInput}
+                  onChange={handleKeywordInputChange}
+                  onKeyDown={handleKeywordInputKeyDown}
+                  className="h-10"
+                />
+                {selectedKeywords.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedKeywords.map((keyword) => (
+                      <Badge
+                        key={keyword}
+                        variant="secondary"
+                        className="bg-[#F4F4F5] text-[#18181B] border-0 px-2.5 py-0.5 text-xs font-semibold"
+                      >
+                        {keyword}
+                        <button
+                          type="button"
+                          onClick={() => removeKeyword(keyword)}
+                          className="ml-1 hover:bg-gray-200 rounded-full p-0.5 transition-colors"
+                        >
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-label="Remove keyword"
+                          >
+                            <title>Remove keyword</title>
+                            <path
+                              d="M9 3L3 9M3 3L9 9"
+                              stroke="currentColor"
+                              strokeWidth="1.4"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
               {extraErrors.keyword && (
                 <span className="text-destructive text-sm block">Keywords is required</span>
               )}
@@ -375,7 +440,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
             </label>
           </div>
 
-          <div className="bg-white px-10 py-6 rounded-lg mb-3">
+          <div className="bg-white px-10 pt-6 pb-[32px] rounded-lg mb-3">
             <label htmlFor="price" className="space-y-2 block mb-10">
               <div className="flex gap-2 items-end">
                 <div className="w-1/2">
@@ -386,7 +451,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                     disabled={isEdit && data?.program?.status !== 'draft'}
                     value={network}
                     onValueChange={setNetwork}
-                    className="min-w-[120px] h-10 w-full flex justify-between bg-white text-gray-dark border border-input shadow-sm hover:bg-white"
+                    className="min-w-[120px] h-10 w-full flex justify-between bg-white text-gray-dark border border-input hover:bg-white"
                   />
                 </div>
                 <div className="flex-1">
@@ -433,9 +498,9 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
               )}
             </label>
 
-            <label htmlFor="validator" className="space-y-2 block mb-10">
+            <label htmlFor="validator" className="space-y-2 block">
               <p className="text-sm font-medium">
-                Validators <span className="text-primary">*</span>
+                Validator <span className="text-primary">*</span>
               </p>
               {/* <SearchSelect
                 options={validatorOptions ?? []}
@@ -450,7 +515,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 options={validatorOptions ?? []}
                 value={selectedValidators}
                 onValueChange={setSelectedValidators}
-                placeholder="Select validators"
+                placeholder="Select validator"
                 animation={2}
                 maxCount={20}
                 inputValue={validatorInput}
@@ -459,15 +524,19 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 setSelectedItems={setSelectedValidatorItems}
                 emptyText="Enter validator email or organization name"
                 loading={loading}
+                singleSelect={true} // TODO: remove this when multi validator flow is implemented
               />
               {extraErrors.validator && (
                 <span className="text-destructive text-sm block">Validator is required</span>
               )}
+              {/* <span className="block text-muted-foreground text-sm">
+                You can invite up to 5 validators.
+              </span> */}
             </label>
           </div>
 
-          <div className="px-10 py-6 bg-white rounded-lg">
-            <label htmlFor="links" className="space-y-2 block mb-10">
+          <div className="px-10 pt-6 pb-[32px] bg-white rounded-lg">
+            <label htmlFor="links" className="space-y-2 block">
               <p className="text-sm font-medium">Links</p>
               <span className="block text-gray-text text-sm">
                 Add links to your website, blog, or social media profiles.
@@ -477,7 +546,8 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                 <div key={idx} className="flex items-center gap-2">
                   <Input
-                    className="h-10 max-w-[555px]"
+                    className="h-10"
+                    placeholder='https://example.com/ludium'
                     value={l}
                     onChange={(e) => {
                       setLinks((prev) => {
@@ -527,8 +597,8 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
 
         <TabsContent value="details">
           <div className="bg-white px-10 py-6 rounded-lg mb-3">
-            <label htmlFor="summary" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium">Summary</p>
+            <label htmlFor="summary" className="space-y-2 block">
+              <p className="text-sm font-medium">Summary <span className="text-primary">*</span></p>
               <Textarea
                 id="summary"
                 placeholder="Type summary"
@@ -542,8 +612,8 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           </div>
 
           <div className="px-10 py-6 bg-white rounded-lg">
-            <label htmlFor="description" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium">Description</p>
+            <label htmlFor="description" className="space-y-2 block">
+              <p className="text-sm font-medium">Description <span className="text-primary">*</span></p>
 
               <MarkdownEditor onChange={setContent} content={content} />
               {!content.length && (
@@ -584,6 +654,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           <Button
             className="bg-primary hover:bg-primary/90 min-w-[177px]"
             type="submit"
+            disabled={createLoading}
             onClick={() => {
               extraValidation();
             }}
@@ -593,10 +664,53 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
         </div>
       ) : (
         <div className="py-3 flex justify-end gap-4">
-          <Popover>
+          <Button
+            type="button"
+            size="lg"
+            disabled={createLoading}
+            onClick={() => {
+              if (!watch('programName') || !watch('price')) {
+                notify('At least Program Title and Price are required to save draft', 'error');
+                return;
+              }
+              onSubmitProgram({
+                id: data?.program?.id ?? id,
+                programName: watch('programName'),
+                price: isEdit && data?.program?.status !== 'draft' ? undefined : watch('price'),
+                description: content,
+                summary: watch('summary'),
+                currency:
+                  isEdit && data?.program?.status !== 'draft'
+                    ? (data?.program?.currency as string)
+                    : currency,
+                deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
+                keywords: selectedKeywords,
+                validators: selectedValidators ?? '',
+                links: (() => {
+                  const { shouldSend } = validateLinks(links);
+                  return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
+                })(),
+                network:
+                  isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
+                image: selectedImage,
+                visibility: visibility,
+                builders: selectedBuilders,
+
+              });
+            }}
+          >
+            Save
+          </Button>
+
+          {selectedTab === 'details' && <Popover>
             <PopoverTrigger>
-              <Button type="button" className="min-w-[97px]" size="lg">
-                Save
+              <Button
+                type="button"
+                className="min-w-[97px] bg-primary hover:bg-primary/90"
+                size="lg"
+                disabled={createLoading}
+              >
+                Save and Upload
               </Button>
             </PopoverTrigger>
             <PopoverContent className="min-w-[440px]">
@@ -662,11 +776,12 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 }}
                 type="submit"
                 className="w-full bg-primary hover:bg-primary/90"
+                disabled={createLoading}
               >
                 Save
               </Button>
             </PopoverContent>
-          </Popover>
+          </Popover>}
 
           {selectedTab === 'overview' && (
             <Button

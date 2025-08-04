@@ -1,0 +1,3 @@
+mutation incrementPostView($postId: ID!) {
+  incrementPostView(postId: $postId)
+}

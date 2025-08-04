@@ -14,9 +14,9 @@ const CreateCommunityPage: React.FC = () => {
       variables: {
         input: {
           title: args.title,
-          summary: args.summary,
+          summary: '',
           content: args.content,
-          keywords: args.keywords,
+          keywords: [],
           image: args.image,
         },
       },
@@ -29,7 +29,7 @@ const CreateCommunityPage: React.FC = () => {
   };
 
   return (
-    <div className="p-10 pr-[55px] w-[681px]" defaultValue="edit">
+    <div className="p-10 pr-[55px]" defaultValue="edit">
       <PostForm isEdit={false} onSubmitPost={onSubmit} />
     </div>
   );
