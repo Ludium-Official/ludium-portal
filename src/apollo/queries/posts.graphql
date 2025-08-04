@@ -7,6 +7,7 @@ query posts($pagination: PaginationInput) {
       summary
       content
       image
+      viewCount
       keywords {
         id
         name

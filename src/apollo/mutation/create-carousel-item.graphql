@@ -1,0 +1,9 @@
+mutation CreateCarouselItem($input: CreateCarouselItemInput!) {
+  createCarouselItem(input: $input) {
+    displayOrder
+    id
+    isActive
+    itemId
+    itemType
+  }
+}

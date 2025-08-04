@@ -1,0 +1,11 @@
+mutation inviteUserToProgram($programId: ID!, $userId: ID!) {
+  inviteUserToProgram(programId: $programId, userId: $userId) {
+    invitedBuilders {
+      email
+      firstName
+      lastName
+      organizationName
+      walletAddress
+    }
+  }
+}

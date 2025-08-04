@@ -71,7 +71,7 @@ query programs($pagination: PaginationInput) {
       status
       summary
       network
-      validator {
+      validators {
         about
         email
         firstName

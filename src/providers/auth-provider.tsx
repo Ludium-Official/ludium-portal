@@ -1,5 +1,6 @@
 import { useLoginMutation } from '@/apollo/mutation/login.generated';
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
+import { UserRole } from '@/types/types.generated';
 import { createContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -40,6 +41,7 @@ export const AuthContext = createContext<AuthValues>({
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>();
+  console.log('🚀 ~ AuthProvider ~ token:', token);
   const [email, setEmail] = useState<string | null>();
   const [userId, setUserId] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState<boolean | null>();
@@ -54,7 +56,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     setUserId(profileData?.profile?.id ?? '');
-    setIsAdmin(profileData?.profile?.isAdmin);
+    setIsAdmin(
+      profileData?.profile?.role === UserRole.Admin ||
+        profileData?.profile?.role === UserRole.Superadmin,
+    );
   }, [profileData]);
 
   useEffect(() => {
@@ -78,6 +83,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         loginType,
       },
       onCompleted: (data) => {
+        console.log('🚀 ~ AuthProvider ~ data:', data);
         setToken(data.login);
         setEmail(email);
         localStorage.setItem('token', data.login ?? '');

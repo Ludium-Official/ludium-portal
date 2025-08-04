@@ -17,7 +17,7 @@ mutation rejectProgram($id: ID!, $rejectionReason: String) {
     price
     status
     summary
-    validator {
+    validators {
       about
       email
       firstName

@@ -11,10 +11,10 @@ function MobileWebView() {
         <img className="w-[53px]" src={logo} alt="LUDIUM" />
       </header>
       <body className="flex flex-col items-center">
-        <div className="w-full bg-gradient-to-t from-[#B331FF] via-[#B331FF] to-[#B331FF] bg-opacity-100 rounded-lg">
+        <div className="w-full bg-gradient-to-t from-primary via-primary to-primary bg-opacity-100 rounded-lg">
           <div className="relative flex flex-col items-center bg-gradient-to-b from-[rgba(255,255,255,0.12)] to-[rgba(0,0,0,0.2)] p-[12px] rounded-lg">
             <img className="absolute top-[-50px]" src={ludiumMobileView} alt="LUDIUM Mobile View" />
-            <div className="w-full mt-[353px] p-[12px] bg-[#18181B] rounded-lg text-white text-center text-[14px]">
+            <div className="w-full mt-[353px] p-[12px] bg-gray-dark rounded-lg text-white text-center text-[14px]">
               <div>
                 For the best Web3 builder experience,
                 <br />
@@ -25,13 +25,13 @@ function MobileWebView() {
         </div>
         <div className="flex flex-col gap-[8px] w-full mt-[8px]">
           <Button
-            className="bg-transparent w-full text-[#18181B] leading-[20px] rounded-lg shadow-none"
+            className="bg-transparent w-full text-gray-dark leading-[20px] rounded-lg shadow-none"
             onClick={() => notify('Please use PC web browser.', 'blank')}
           >
             DESKTOP ACCESS ONLY
           </Button>
           <Link to="https://ludium.oopy.io/" target="_blank">
-            <Button className="w-full text-[#FAFAFA] leading-[20px] rounded-lg">
+            <Button className="w-full text-gray-light leading-[20px] rounded-lg">
               ABOUT LUDIUM
             </Button>
           </Link>

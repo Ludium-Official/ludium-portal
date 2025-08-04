@@ -1,0 +1,11 @@
+mutation removeValidatorFromProgram($programId: ID!, $validatorId: ID!) {
+  removeValidatorFromProgram(programId: $programId, validatorId: $validatorId) {
+    validators {
+      about
+      firstName
+      lastName
+      organizationName
+      walletAddress
+    }
+  }
+}

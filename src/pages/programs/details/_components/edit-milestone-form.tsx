@@ -39,7 +39,7 @@ function EditMilestoneForm({ milestone, refetch }: { milestone: Milestone; refet
           id: milestone.id ?? '',
           description,
           title,
-          price,
+          // price,
           links: links.map((l) => ({ title: l, url: l })),
         },
       },
@@ -101,7 +101,7 @@ function EditMilestoneForm({ milestone, refetch }: { milestone: Milestone; refet
 
       <label htmlFor="links" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Links</p>
-        <span className="block text-[#71717A] text-sm">
+        <span className="block text-gray-text text-sm">
           Add links to your website, blog, or social media profiles.
         </span>
 
@@ -152,7 +152,7 @@ function EditMilestoneForm({ milestone, refetch }: { milestone: Milestone; refet
       <Button
         disabled={!title || !price || !description || noChanges || !links?.length}
         type="button"
-        className="bg-[#861CC4] h-10 ml-auto block hover:bg-[#861CC4]/90 min-w-[161px]"
+        className="bg-primary hover:bg-primary/90 h-10 ml-auto block min-w-[161px]"
         onClick={onSubmit}
       >
         {'EDIT MILESTONE'}

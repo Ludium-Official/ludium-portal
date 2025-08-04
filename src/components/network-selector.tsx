@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { currencies } from '@/constant/currencies';
 import { getCurrency, mainnetDefaultNetwork } from '@/lib/utils';
+import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 function NetworkSelector({
@@ -43,10 +44,13 @@ function NetworkSelector({
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={disabled}>
         <Button className={className}>
-          {currWithIcon?.icon} {currWithIcon?.display}
+          <span className="flex items-center gap-2">
+            {currWithIcon?.icon} {currWithIcon?.display}
+          </span>
+          <ChevronDown />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent align="start">
         {separateCurrencies.map((c) => (
           <DropdownMenuItem key={c.code} onClick={() => setSelectedCurrency(c.code)}>
             {c.icon} {c.display}

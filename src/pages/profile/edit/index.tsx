@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 
 import { useUpdateProfileMutation } from '@/apollo/mutation/updateProfile.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
-import MarkdownEditor from '@/components/markdown-editor';
+import { MarkdownEditor } from '@/components/markdown';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import { usePrivy } from '@privy-io/react-auth';
@@ -289,7 +289,8 @@ function EditProfilePage() {
               <Button
                 onClick={login}
                 disabled={user !== null}
-                className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-9 w-[133px] absolute bottom-6 right-6 text-xs"
+                variant="purple"
+                className="h-9 w-[133px] absolute bottom-6 right-6 text-xs"
               >
                 Connect wallet <Wallet />
               </Button>

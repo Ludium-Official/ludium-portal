@@ -1,5 +1,6 @@
 const ArbitrumIcon = ({ size = 24, className = '' }) => {
   return (
+    // biome-ignore lint/a11y/noSvgWithoutTitle: <explanation>
     <svg
       width={size}
       height={size}

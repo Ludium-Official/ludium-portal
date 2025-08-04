@@ -17,7 +17,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from '@/components/ui/command';
 
 /**
@@ -48,12 +47,21 @@ const multiSelectVariants = cva(
  */
 interface MultiSelectProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof multiSelectVariants> {
+  VariantProps<typeof multiSelectVariants> {
   /**
    * An array of option objects to be displayed in the multi-select component.
    * Each option object has a label, value, and an optional icon.
    */
   options: {
+    /** The text to display for the option. */
+    label: string;
+    /** The unique value associated with the option. */
+    value: string;
+    /** Optional icon component to display alongside the option. */
+    icon?: React.ComponentType<{ className?: string }>;
+  }[];
+
+  defaultItems?: {
     /** The text to display for the option. */
     label: string;
     /** The unique value associated with the option. */
@@ -107,6 +115,25 @@ interface MultiSelectProps
    * Optional, can be used to add custom styles.
    */
   className?: string;
+  selectedItems?: {
+    label: string;
+    value: string;
+  }[];
+  setSelectedItems?: React.Dispatch<
+    React.SetStateAction<
+      {
+        label: string;
+        value: string;
+      }[]
+    >
+  >;
+
+  inputValue?: string;
+  setInputValue?: React.Dispatch<React.SetStateAction<string | undefined>>;
+  loading?: boolean;
+  emptyText?: string;
+
+  singleSelect?: boolean;
 }
 
 export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
@@ -116,6 +143,7 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
       onValueChange,
       variant,
       defaultValue = [],
+      defaultItems = [],
       placeholder = 'Select options',
       animation = 0,
       maxCount = 3,
@@ -123,10 +151,18 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
       asChild = false,
       className,
       value,
+      inputValue,
+      setInputValue,
+      loading,
+      emptyText = 'No result found.',
+      selectedItems,
+      setSelectedItems,
+      singleSelect = false,
       ...props
     },
     ref,
   ) => {
+    // const [selectedItems, setSelectedItems] = React.useState<{ label: string, value: string }[]>(defaultItems)
     const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
 
@@ -134,27 +170,31 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
       setSelectedValues(value as string[]);
     }, [value]);
 
-    const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === 'Enter') {
-        setIsPopoverOpen(true);
-      } else if (event.key === 'Backspace' && !event.currentTarget.value) {
-        const newSelectedValues = [...selectedValues];
-        newSelectedValues.pop();
+    const toggleOption = (value: string, label: string) => {
+      if (singleSelect) {
+        const newSelectedValues = selectedValues?.includes(value)
+          ? selectedValues.filter((val) => val !== value)
+          : [value];
         setSelectedValues(newSelectedValues);
+        setSelectedItems?.(newSelectedValues.map((val) => ({ value: val, label })));
         onValueChange(newSelectedValues);
+        return;
       }
-    };
+      const newSelectedValues = selectedValues?.includes(value)
+        ? selectedValues.filter((val) => val !== value)
+        : [...selectedValues, value];
 
-    const toggleOption = (option: string) => {
-      const newSelectedValues = selectedValues.includes(option)
-        ? selectedValues.filter((value) => value !== option)
-        : [...selectedValues, option];
+      const newSelectedItems = selectedValues?.includes(value)
+        ? selectedItems?.filter((val) => val.value !== value)
+        : [...(selectedItems ?? []), { value, label }];
       setSelectedValues(newSelectedValues);
+      setSelectedItems?.(newSelectedItems ?? []);
       onValueChange(newSelectedValues);
     };
 
     const handleClear = () => {
       setSelectedValues([]);
+      setSelectedItems?.([]);
       onValueChange([]);
     };
 
@@ -163,11 +203,12 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
     };
 
     const toggleAll = () => {
-      if (selectedValues.length === options.length) {
+      if (selectedValues?.length === options?.length) {
         handleClear();
       } else {
         const allValues = options.map((option) => option.value);
         setSelectedValues(allValues);
+        setSelectedItems?.(options);
         onValueChange(allValues);
       }
     };
@@ -180,28 +221,33 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
             {...props}
             onClick={handleTogglePopover}
             className={cn(
-              'flex w-full p-1 rounded-md border min-h-10 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto',
+              'flex w-full p-1 rounded-md border min-h-10 h-auto items-center justify-between bg-white hover:bg-inherit [&_svg]:pointer-events-auto',
               className,
             )}
           >
-            {selectedValues.length > 0 ? (
+            {(selectedItems?.length ?? selectedValues.length) > 0 ? (
               <div className="flex justify-between items-center w-full">
                 <div className="flex flex-wrap items-center">
-                  {selectedValues.slice(0, maxCount).map((value) => {
-                    const option = options.find((o) => o.value === value);
-                    const IconComponent = option?.icon;
+                  {(selectedItems ?? selectedValues)?.slice(0, maxCount).map((item) => {
+                    const option = !selectedItems?.length
+                      ? options.find((o) => o.value === item)
+                      : (item as {
+                        label: string;
+                        value: string;
+                      });
+                    // const IconComponent = option?.icon;
                     return (
                       <Badge
-                        key={value}
+                        key={option?.value}
                         className={cn(multiSelectVariants({ variant }))}
                         style={{ animationDuration: `${animation}s` }}
                       >
-                        {IconComponent && <IconComponent className="h-4 w-4 mr-2" />}
+                        {/* {IconComponent && <IconComponent className="h-4 w-4 mr-2" />} */}
                         {option?.label}
                       </Badge>
                     );
                   })}
-                  {selectedValues.length > maxCount && (
+                  {(selectedItems?.length ?? 0) > maxCount && (
                     <Badge
                       className={cn(
                         'bg-transparent text-foreground border-foreground/1 hover:bg-transparent',
@@ -209,7 +255,7 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                       )}
                       style={{ animationDuration: `${animation}s` }}
                     >
-                      {`+ ${selectedValues.length - maxCount} more`}
+                      {`+ ${selectedValues?.length - maxCount} more`}
                     </Badge>
                   )}
                 </div>
@@ -238,71 +284,95 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
           align="start"
           onEscapeKeyDown={() => setIsPopoverOpen(false)}
         >
-          <Command>
-            <CommandInput placeholder="Search..." onKeyDown={handleInputKeyDown} />
+          <Command
+            filter={(value, search) => {
+              if (!search) return 1;
+              if (selectedValues.includes(value)) return 1;
+              const label = options.find((option) => option.value === value)?.label;
+              return label?.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
+            }}
+          >
+            <CommandInput
+              value={inputValue}
+              onValueChange={setInputValue}
+              placeholder="Search..."
+            />
+            <CommandEmpty className="px-3 py-6 text-sm text-center">
+              {loading ? 'Loading...' : emptyText}
+            </CommandEmpty>
             <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
               <CommandGroup>
-                <CommandItem key="all" onSelect={toggleAll} className="cursor-pointer">
-                  <div
-                    className={cn(
-                      'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                      selectedValues.length === options.length
-                        ? 'bg-primary text-primary-foreground'
-                        : 'opacity-50 [&_svg]:invisible',
-                    )}
-                  >
-                    <CheckIcon className="h-4 w-4" />
-                  </div>
-                  <span>(Select All)</span>
-                </CommandItem>
-                {options.map((option) => {
-                  const isSelected = selectedValues.includes(option.value);
+                {options?.length > 0 && !inputValue && (
+                  <CommandItem key="all" onSelect={toggleAll} className="cursor-pointer">
+                    <div
+                      className={cn(
+                        'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
+                        selectedValues?.length === options?.length
+                          ? 'bg-gray-dark text-primary-foreground'
+                          : 'opacity-50 [&_svg]:invisible',
+                      )}
+                    >
+                      <CheckIcon className="h-4 w-4" />
+                    </div>
+                    <span>(Select All)</span>
+                  </CommandItem>
+                )}
+
+                {selectedItems?.map((option) => {
+                  // const option = options.find(o => o.value === opt)
+                  // const isSelected = selectedValues?.includes(option.value);
                   return (
                     <CommandItem
-                      key={option.value}
-                      onSelect={() => toggleOption(option.value)}
+                      value={option?.value}
+                      key={option?.value}
+                      onSelect={() => toggleOption(option?.value ?? '', option?.label ?? '')}
                       className="cursor-pointer"
                     >
                       <div
                         className={cn(
-                          'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
-                          isSelected
-                            ? 'bg-primary text-primary-foreground'
-                            : 'opacity-50 [&_svg]:invisible',
+                          'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
+                          // isSelected
+                          //   ?
+                          'bg-gray-dark text-primary-foreground',
+                          // :
+                          // 'opacity-50 [&_svg]:invisible',
                         )}
                       >
                         <CheckIcon className="h-4 w-4" />
                       </div>
-                      {option.icon && (
-                        <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
-                      )}
-                      <span>{option.label}</span>
+                      <span>{option?.label}</span>
                     </CommandItem>
                   );
                 })}
-              </CommandGroup>
-              <CommandSeparator />
-              <CommandGroup>
-                <div className="flex items-center justify-between">
-                  {selectedValues.length > 0 && (
-                    <>
+                {options
+                  .filter((o) => !selectedValues.includes(o.value))
+                  .map((option) => {
+                    // const isSelected = selectedValues?.includes(option.value);
+                    return (
                       <CommandItem
-                        onSelect={handleClear}
-                        className="flex-1 justify-center cursor-pointer"
+                        value={option.value}
+                        key={option.value}
+                        onSelect={() => toggleOption(option.value, option.label)}
+                        className="cursor-pointer"
                       >
-                        Clear
+                        <div
+                          className={cn(
+                            'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
+                            // isSelected
+                            // ? 'bg-gray-dark text-primary-foreground'
+                            // :
+                            'opacity-50 [&_svg]:invisible',
+                          )}
+                        >
+                          <CheckIcon className="h-4 w-4" />
+                        </div>
+                        {option.icon && (
+                          <option.icon className="mr-2 h-4 w-4 text-muted-foreground" />
+                        )}
+                        <span>{option.label}</span>
                       </CommandItem>
-                      <Separator orientation="vertical" className="flex min-h-6 h-full" />
-                    </>
-                  )}
-                  <CommandItem
-                    onSelect={() => setIsPopoverOpen(false)}
-                    className="flex-1 justify-center cursor-pointer max-w-full"
-                  >
-                    Close
-                  </CommandItem>
-                </div>
+                    );
+                  })}
               </CommandGroup>
             </CommandList>
           </Command>

@@ -1,4 +1,8 @@
+import AdminOutlet from '@/components/layout/admin-outlet';
 import Layout from '@/components/layout/layout';
+import { CustomDynamicTabsExample } from '@/components/ui/dynamic-tab-example';
+// import { DynamicTabsExample } from '@/components/ui/dynamic-tab-example';
+import AdminPage from '@/pages/admin';
 import CommunityPage from '@/pages/community';
 import CreateCommunityPage from '@/pages/community/create';
 import CommunityDetailsPage from '@/pages/community/details';
@@ -14,13 +18,15 @@ import ProgramDetailsPage from '@/pages/programs/details';
 import ApplicationDetailsPage from '@/pages/programs/details/application-details';
 import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
-import { Route, Routes } from 'react-router';
+import { Navigate, Route, Routes } from 'react-router';
+import UserOverviewTab from '@/pages/community/users/_components/overview-tab';
 
 function App() {
   return (
     <ScrollWrapper>
       <Routes>
         <Route path="/" element={<Layout />}>
+          <Route path="test" element={<CustomDynamicTabsExample />} />
           <Route index element={<MainPage />} />
           <Route path="profile">
             <Route index element={<ProfilePage />} />
@@ -44,7 +50,14 @@ function App() {
 
           <Route path="users">
             <Route index element={<UsersPage />} />
-            <Route path=":id" element={<UserDetailsPage />} />
+            <Route path=":id" element={<UserDetailsPage />}>
+              <Route index element={<Navigate to="overview" />} />
+              <Route path="overview" element={<UserOverviewTab />} />
+            </Route>
+          </Route>
+
+          <Route path="admin" element={<AdminOutlet />}>
+            <Route index element={<AdminPage />} />
           </Route>
         </Route>
       </Routes>

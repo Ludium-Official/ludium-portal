@@ -18,6 +18,7 @@ export default function TransactionWrapper({
 }: {
   handleSuccess: (response: TransactionResponse) => Promise<void>;
   functionName: string;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   args: any;
   buttonText?: string;
 }) {
@@ -43,7 +44,7 @@ export default function TransactionWrapper({
         onSuccess={handleSuccess}
       >
         <TransactionButton
-          className="bg-[#B331FF] hover:bg-[#B331FF]/90 mt-0 mr-auto ml-auto max-w-full text-white"
+          className="bg-primary hover:bg-primary/90 mt-0 mr-auto ml-auto max-w-full text-white"
           text={buttonText || 'Execute'}
         />
         <TransactionStatus>
