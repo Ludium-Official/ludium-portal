@@ -12,6 +12,7 @@ function ScrollArea({
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
       className={cn("relative", className)}
+      id={id ? `${id}-root` : undefined}
       {...props}
     >
       <ScrollAreaPrimitive.Viewport

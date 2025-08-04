@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import notify from '@/lib/notify';
 import { mainnetDefaultNetwork } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { CarouselItemType, type LinkInput } from '@/types/types.generated';
@@ -35,7 +36,7 @@ export type OnSubmitProgramFunc = (data: {
   deadline?: string;
   keywords: string[];
   // validatorId: string;
-  links: LinkInput[];
+  links?: LinkInput[];
   // isPublish?: boolean;
   network: string;
   validators: string[];
@@ -47,9 +48,10 @@ export type OnSubmitProgramFunc = (data: {
 export interface ProgramFormProps {
   isEdit: boolean;
   onSubmitProgram: OnSubmitProgramFunc;
+  createLoading?: boolean;
 }
 
-function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
+function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProps) {
   const { id } = useParams();
 
   const { data } = useProgramQuery({
@@ -180,7 +182,6 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     price: string;
     summary: string;
   }) => {
-    console.log('IM HERE!!!!!!!!!!!!!');
     if (
       imageError ||
       extraErrors.deadline ||
@@ -190,8 +191,13 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       extraErrors.invalidLink ||
       !content.length ||
       !selectedImage
-    )
+    ) {
+      notify(
+        'Please fill in all required fields.',
+        'error'
+      );
       return;
+    }
 
     onSubmitProgram({
       id: data?.program?.id ?? id,
@@ -208,7 +214,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       validators: selectedValidators ?? '',
       links: (() => {
         const { shouldSend } = validateLinks(links);
-        return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : [];
+        return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
       })(),
       network:
         isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
@@ -219,6 +225,9 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
   };
 
   const extraValidation = () => {
+    if (!watch('programName') || !watch('price') || !watch('summary')) {
+      notify('Please fill in all required fields.', 'error');
+    }
     dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
     if (!selectedImage) setImageError('Picture is required.');
     if (!selectedKeywords?.length)
@@ -645,6 +654,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
           <Button
             className="bg-primary hover:bg-primary/90 min-w-[177px]"
             type="submit"
+            disabled={createLoading}
             onClick={() => {
               extraValidation();
             }}
@@ -654,36 +664,52 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
         </div>
       ) : (
         <div className="py-3 flex justify-end gap-4">
-          <Button type="button" size="lg" onClick={() => {
-            onSubmitProgram({
-              id: data?.program?.id ?? id,
-              programName: watch('programName'),
-              price: isEdit && data?.program?.status !== 'draft' ? undefined : watch('price'),
-              description: content,
-              summary: watch('summary'),
-              currency:
-                isEdit && data?.program?.status !== 'draft'
-                  ? (data?.program?.currency as string)
-                  : currency,
-              deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
-              keywords: selectedKeywords,
-              validators: selectedValidators ?? '',
-              links: (() => {
-                const { shouldSend } = validateLinks(links);
-                return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : [];
-              })(),
-              network:
-                isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
-              image: selectedImage,
-              visibility: visibility,
-              builders: selectedBuilders,
+          <Button
+            type="button"
+            size="lg"
+            disabled={createLoading}
+            onClick={() => {
+              if (!watch('programName') || !watch('price')) {
+                notify('At least Program Title and Price are required to save draft', 'error');
+                return;
+              }
+              onSubmitProgram({
+                id: data?.program?.id ?? id,
+                programName: watch('programName'),
+                price: isEdit && data?.program?.status !== 'draft' ? undefined : watch('price'),
+                description: content,
+                summary: watch('summary'),
+                currency:
+                  isEdit && data?.program?.status !== 'draft'
+                    ? (data?.program?.currency as string)
+                    : currency,
+                deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
+                keywords: selectedKeywords,
+                validators: selectedValidators ?? '',
+                links: (() => {
+                  const { shouldSend } = validateLinks(links);
+                  return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
+                })(),
+                network:
+                  isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
+                image: selectedImage,
+                visibility: visibility,
+                builders: selectedBuilders,
 
-            });
-          }}>Save</Button>
+              });
+            }}
+          >
+            Save
+          </Button>
 
           {selectedTab === 'details' && <Popover>
             <PopoverTrigger>
-              <Button type="button" className="min-w-[97px] bg-primary hover:bg-primary/90" size="lg">
+              <Button
+                type="button"
+                className="min-w-[97px] bg-primary hover:bg-primary/90"
+                size="lg"
+                disabled={createLoading}
+              >
                 Save and Upload
               </Button>
             </PopoverTrigger>
@@ -750,6 +776,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 }}
                 type="submit"
                 className="w-full bg-primary hover:bg-primary/90"
+                disabled={createLoading}
               >
                 Save
               </Button>

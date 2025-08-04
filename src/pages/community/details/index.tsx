@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 
 const CommunityDetailsPage: React.FC = () => {
-  const { userId, isAdmin, isLoggedIn } = useAuth();
+  const { userId, isAdmin, isAuthed } = useAuth();
 
   const { id } = useParams();
   const [post, setPost] = useState<Post | null>(null);
@@ -54,6 +54,9 @@ const CommunityDetailsPage: React.FC = () => {
     skip: !postId,
     fetchPolicy: 'cache-and-network',
     onCompleted: (data) => {
+      if (data?.post?.id) {
+        incrementPostView({ variables: { postId: data?.post?.id ?? postId } });
+      }
       if (data?.post?.author?.id) {
         setAuthorId(data.post.author.id);
       }
@@ -62,11 +65,11 @@ const CommunityDetailsPage: React.FC = () => {
 
   const [incrementPostView] = useIncrementPostViewMutation();
 
-  useEffect(() => {
-    if (postId) {
-      incrementPostView({ variables: { postId } });
-    }
-  }, [postId]);
+  // useEffect(() => {
+  //   if (postId) {
+  //     incrementPostView({ variables: { postId } });
+  //   }
+  // }, []);
 
   const { data: comments, refetch: refetchComments } = useCommentsByCommentableQuery({
     variables: {
@@ -132,7 +135,7 @@ const CommunityDetailsPage: React.FC = () => {
                 {(data?.post?.author?.id === userId || isAdmin) && (
                   <Link
                     to={`/community/posts/${data?.post?.id}/edit`}
-                    className="h-10 px-4 bg-zinc-100 flex items-center justify-center gap-2 rounded-md"
+                    className="h-10 px-4 hover:bg-accent hover:text-accent-foreground flex items-center justify-center gap-2 rounded-md"
                   >
                     <p className="font-medium text-sm">Edit</p>
                     <Settings className="w-4 h-4" />
@@ -185,7 +188,7 @@ const CommunityDetailsPage: React.FC = () => {
             <CommentSection
               postId={postId}
               comments={comments?.commentsByCommentable ?? []}
-              isLoggedIn={isLoggedIn ?? false}
+              isLoggedIn={isAuthed ?? false}
               onSubmitComment={async (content) =>
                 await createComment({
                   variables: {

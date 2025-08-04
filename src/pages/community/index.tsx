@@ -13,9 +13,9 @@ import PostCard from './_components/post-card';
 
 const CommunityPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('all');
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const { isAuthed, isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -24,7 +24,7 @@ const CommunityPage: React.FC = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchParams.get('search') ?? '');
-    }, 300); // Adjust the debounce delay as needed
+    }, 300);
 
     return () => {
       clearTimeout(handler);
@@ -42,7 +42,7 @@ const CommunityPage: React.FC = () => {
     variables: {
       pagination: {
         limit: PageSize,
-        offset: (page - 1) * PageSize,
+        offset: 0,
         filter: filter,
         sort: selectedTab === 'by-oldest' ? SortEnum.Asc : SortEnum.Desc,
       },
@@ -50,70 +50,95 @@ const CommunityPage: React.FC = () => {
   });
 
   const loadMore = async () => {
-    const nextPage = page + 1;
+    if (isLoading || !hasMore) return;
 
-    const { data: moreData } = await fetchMore({
-      variables: {
-        pagination: {
-          limit: PageSize,
-          offset: (nextPage - 1) * PageSize,
-          filter,
-          sort: selectedTab === 'by-oldest' ? SortEnum.Asc : SortEnum.Desc,
+    setIsLoading(true);
+
+    try {
+      const { data: moreData } = await fetchMore({
+        variables: {
+          pagination: {
+            limit: PageSize,
+            offset: posts.length,
+            filter,
+            sort: selectedTab === 'by-oldest' ? SortEnum.Asc : SortEnum.Desc,
+          },
         },
-      },
-    });
+      });
 
-    const newPosts = moreData?.posts?.data;
+      const newPosts = moreData?.posts?.data;
 
-    if (Array.isArray(newPosts) && newPosts.length > 0) {
-      setPosts((prev) => [...prev, ...newPosts]);
-      setPage(nextPage);
-      setHasMore(newPosts.length === PageSize);
-    } else {
-      setHasMore(false);
+      if (Array.isArray(newPosts) && newPosts.length > 0) {
+        setPosts((prev) => [...prev, ...newPosts]);
+        setHasMore(newPosts.length === PageSize);
+      } else {
+        setHasMore(false);
+      }
+    } catch (error) {
+      console.error('Error loading more posts:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    setPage(1);
-    setHasMore(true);
     setPosts([]);
+    setHasMore(true);
+    setIsLoading(false);
   }, [debouncedSearch, selectedTab]);
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      const viewportHeight = window.innerHeight;
-      const fullHeight = document.documentElement.scrollHeight;
+      const scrollArea = document.getElementById('scroll-area-main-viewport');
+      if (!scrollArea) return;
+
+      const scrollTop = scrollArea.scrollTop;
+      const viewportHeight = scrollArea.clientHeight;
+      const fullHeight = scrollArea.scrollHeight;
       const distanceFromBottom = fullHeight - (scrollTop + viewportHeight);
 
-      if (distanceFromBottom < 310 && hasMore) {
+      if (distanceFromBottom < 310 && hasMore && !isLoading) {
         loadMore();
       }
     };
 
+    const scrollArea = document.getElementById('scroll-area-main-viewport');
+    if (scrollArea) {
+      scrollArea.addEventListener('scroll', handleScroll);
+      return () => scrollArea.removeEventListener('scroll', handleScroll);
+    }
+
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMore, page, debouncedSearch, selectedTab]);
+  }, [hasMore, isLoading, posts.length, debouncedSearch, selectedTab]);
 
   useEffect(() => {
-    if (data?.posts?.data && page === 1) {
+    if (data?.posts?.data) {
       setPosts(data.posts.data);
       setHasMore(data.posts.data.length === PageSize);
     }
-  }, [data, page]);
+  }, [data]);
 
+  // Split posts into first 5 and remaining
+  const firstFivePosts = posts.slice(0, 5);
+  const remainingPosts = posts.slice(5);
+
+  // Split first 5 posts into columns
   const numberOfColumns = 2;
   let firstColumn: Post[] = [];
   let secondColumn: Post[] = [];
 
-  if (posts.length < 5) {
-    firstColumn = posts.filter((_, index) => index % numberOfColumns === 0);
-    secondColumn = posts.filter((_, index) => index % numberOfColumns === 1);
+  if (firstFivePosts.length < 5) {
+    firstColumn = firstFivePosts.filter((_, index) => index % numberOfColumns === 0);
+    secondColumn = firstFivePosts.filter((_, index) => index % numberOfColumns === 1);
   } else {
-    firstColumn = posts.filter((_, index) => index % numberOfColumns === 1);
-    secondColumn = posts.filter((_, index) => index % numberOfColumns === 0);
+    firstColumn = firstFivePosts.filter((_, index) => index % numberOfColumns === 1);
+    secondColumn = firstFivePosts.filter((_, index) => index % numberOfColumns === 0);
   }
+
+  // Split remaining posts into columns
+  const remainingFirstColumn = remainingPosts.filter((_, index) => index % numberOfColumns === 0);
+  const remainingSecondColumn = remainingPosts.filter((_, index) => index % numberOfColumns === 1);
 
   return (
     <div className="bg-white rounded-2xl pb-[60px] px-10" id="scrollableDiv">
@@ -171,8 +196,10 @@ const CommunityPage: React.FC = () => {
             )}
           </div>
         </div>
+
         <div className="grid grid-cols-2 gap-5 pt-[26px]">
           <div className="flex flex-col gap-5">
+            {/* First 5 posts */}
             {firstColumn.map((post, index) => (
               <PostCard
                 key={post.id}
@@ -181,16 +208,46 @@ const CommunityPage: React.FC = () => {
                 maxComments={index === 0 ? 3 : 1}
               />
             ))}
+
+            {/* Remaining posts with variant='small' */}
+            {remainingFirstColumn.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                variant="small"
+                maxComments={1}
+              />
+            ))}
           </div>
+
           <div className="flex flex-col gap-5">
+            {/* First 5 posts */}
             {secondColumn.map((post) => (
               <PostCard key={post.id} post={post} />
             ))}
+
+            {/* Remaining posts with variant='small' */}
+            {remainingSecondColumn.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                variant="small"
+                maxComments={1}
+              />
+            ))}
           </div>
         </div>
+
+        {/* Loading indicator */}
+        {isLoading && (
+          <div className="flex justify-center py-4">
+            <div className="text-gray-500">Loading more posts...</div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default CommunityPage;
+

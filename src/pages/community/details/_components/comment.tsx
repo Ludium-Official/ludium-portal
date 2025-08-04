@@ -18,7 +18,7 @@ function PostComment({
   postId?: string;
   refetchComments: () => void;
 }) {
-  const { isLoggedIn } = useAuth();
+  const { isAuthed } = useAuth();
 
   const [showReplies, setShowReplies] = useState(false);
   const [replyValue, setReplyValue] = useState<string>();
@@ -105,7 +105,7 @@ function PostComment({
       {showReplies && (
         <div>
           {/* Reply input field for replies to comments */}
-          {isLoggedIn && (
+          {isAuthed && (
             <div className="mt-4 ml-14">
               <textarea
                 placeholder={`Reply to ${authorName}...`}

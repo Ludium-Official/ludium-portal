@@ -1,22 +1,29 @@
-import { useProgramQuery } from '@/apollo/queries/program.generated';
+import client from '@/apollo/client';
+import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
+import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
+import { ProgramDocument, useProgramQuery } from '@/apollo/queries/program.generated';
 import { MarkdownPreviewer } from '@/components/markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ShareButton } from '@/components/ui/share-button';
 import { Tabs } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
-import { getCurrency, getInitials, getUserName } from '@/lib/utils';
+import { cn, getCurrency, getInitials, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
 import ApplicationCard from '@/pages/programs/details/_components/application-card';
 import CreateApplicationForm from '@/pages/programs/details/_components/create-application-form';
+import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 // import MainSection from '@/pages/programs/details/_components/main-section';
-import { ApplicationStatus } from '@/types/types.generated';
+import { ApplicationStatus, ProgramStatus, type User } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
-import { Settings, } from 'lucide-react';
+import { CircleAlert, Settings, TriangleAlert } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
@@ -64,6 +71,54 @@ const DetailsPage: React.FC = () => {
     }
   }, []);
 
+
+  const programActionOptions = {
+    variables: { id: program?.id ?? id ?? '' },
+    onCompleted: () => {
+      client.refetchQueries({ include: [ProgramDocument] });
+    },
+  };
+
+  const [acceptProgram] = useAcceptProgramMutation(programActionOptions);
+  const [publishProgram] = useSubmitProgramMutation();
+
+  const contract = useContract(program?.network || mainnetDefaultNetwork);
+
+  const callTx = async () => {
+    try {
+      if (program) {
+        const network = program.network as keyof typeof tokenAddresses;
+        const tokens = tokenAddresses[network] || [];
+        const targetToken = tokens.find((token) => token.name === program.currency);
+
+        const result = await contract.createProgram({
+          name: program.name as string | undefined,
+          price: program.price as string | undefined,
+          deadline: program.deadline,
+          validatorAddress: program?.validators?.[0] as User | undefined,
+          token: targetToken ?? { name: program.currency as string },
+          ownerAddress: program?.validators?.[0]?.walletAddress || '',
+        });
+
+        if (result) {
+          await publishProgram({
+            variables: {
+              id: program?.id ?? '',
+              educhainProgramId: result.programId,
+              txHash: result.txHash,
+            },
+          });
+
+          notify('Program published successfully', 'success');
+        } else {
+          notify('Program published failed', 'error');
+        }
+      }
+    } catch (error) {
+      notify((error as Error).message, 'error');
+    }
+  };
+
   return (
     <div className="bg-[#F7F7F7]">
       <section className="bg-white rounded-2xl">
@@ -78,7 +133,7 @@ const DetailsPage: React.FC = () => {
             <div className='flex gap-2'>
               {(program?.creator?.id === userId || isAdmin) && (
                 <Link to={`/programs/${program?.id}/edit`}>
-                  <Button variant='ghost' className='flex gap-2 items-center bg-secondary'>
+                  <Button variant='ghost' className='flex gap-2 items-center'>
                     Edit
                     <Settings className="w-4 h-4" />
                   </Button>
@@ -164,6 +219,59 @@ const DetailsPage: React.FC = () => {
                 </DialogContent>
               </Dialog>
 
+              {program?.validators?.some(v => v.id === userId) && program.status === 'draft' && (
+                <div className="flex justify-end gap-2 w-full">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="h-11 flex-1">
+                        Reject
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="min-w-[800px] p-0 max-h-screen overflow-y-auto">
+                      <RejectProgramForm programId={program.id} refetch={refetch} />
+                    </DialogContent>
+                  </Dialog>
+                  {/* <Button onClick={() => rejectProgram()} variant="outline" className="h-11 w-[118px]">
+                    Reject
+                  </Button> */}
+                  <Button
+                    onClick={async () => {
+                      await acceptProgram();
+                      notify('Program accepted', 'success');
+                    }}
+                    className="h-11 flex-1"
+                  >
+                    Confirm
+                  </Button>
+                </div>
+              )}
+
+              {program?.creator?.id === userId && program.status === 'payment_required' && (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px] w-full h-11">
+                      Pay
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="w-[400px] p-6 max-h-screen overflow-y-auto">
+                    <DialogClose id="pay-dialog-close" />
+                    <div className="text-center">
+                      <span className="text-red-600 w-[42px] h-[42px] rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                        <TriangleAlert />
+                      </span>
+                      <DialogTitle className="font-semibold text-lg text-[#18181B] mb-2">
+                        Are you sure to pay the settlement for the program?
+                      </DialogTitle>
+                      <DialogDescription className="text-muted-foreground text-sm mb-4">
+                        The amount will be securely stored until you will confirm the completion of the
+                        project.
+                      </DialogDescription>
+                      <Button onClick={callTx}>Yes, Pay now</Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
+
 
               <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">KEYWORDS</p>
@@ -201,7 +309,14 @@ const DetailsPage: React.FC = () => {
               <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM HOST</p>
                 <div className="border rounded-xl w-full p-4 mb-6">
-                  <ProgramStatusBadge program={program} className='inline-flex mb-3' />
+
+                  <span className='items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex mb-3'>
+                    <span className={cn("bg-gray-400 w-[14px] h-[14px] rounded-full block", {
+                      "bg-green-400": program?.status === ProgramStatus.Published || program?.status === ProgramStatus.Completed,
+                    })} />
+                    {program?.status === ProgramStatus.Published || program?.status === ProgramStatus.Completed ? 'Paid' : 'Not paid'}
+                  </span>
+
                   <Link
                     to={`/users/${program?.creator?.id}`}
                     className="flex gap-2 items-center text-lg font-bold mb-5"
@@ -257,7 +372,38 @@ const DetailsPage: React.FC = () => {
                   {program.validators.map((validator) => (
                     <div className="border rounded-xl w-full p-6 mb-6" key={validator.id}>
 
-                      <ProgramStatusBadge program={program} className='inline-flex mb-3' />
+                      {/* <ProgramStatusBadge program={program} className='inline-flex mb-3' /> */}
+                      <div className='flex justify-between items-center  mb-3'>
+
+                        <span
+                          className='items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex'
+                        >
+                          <span className={cn("bg-gray-400 w-[14px] h-[14px] rounded-full block", {
+                            "bg-red-400": program.status === ProgramStatus.Draft && program.rejectionReason,
+                            "bg-green-400": program.status !== ProgramStatus.Draft,
+                            "bg-gray-400": program.status === ProgramStatus.Draft && !program.rejectionReason,
+                          })} />
+                          {program.status === ProgramStatus.Draft ? program.rejectionReason ? 'Rejected' : 'Pending' : 'Accepted'}
+                        </span>
+
+                        {program.status === ProgramStatus.Draft && program.rejectionReason && (
+                          <Tooltip>
+                            <TooltipTrigger className='text-destructive flex gap-2 items-center'>
+                              <CircleAlert className='w-4 h-4' /> <p className='text-sm font-medium underline'>View reason</p>
+                            </TooltipTrigger>
+                            <TooltipContent className='text-destructive flex gap-2 items-start bg-white border shadow-[0px_4px_6px_-1px_#0000001A]'>
+                              <div className='mt-1.5'>
+                                <CircleAlert className='w-4 h-4' />
+                              </div>
+                              <div>
+                                <p className='font-medium text-base mb-1'>Reason for rejection</p>
+                                <p className='text-sm'>{program.rejectionReason}</p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+
+                      </div>
                       <Link
                         to={`/users/${program?.creator?.id}`}
                         className="flex gap-2 items-center text-lg font-bold"
