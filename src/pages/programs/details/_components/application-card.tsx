@@ -1,4 +1,3 @@
-
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
@@ -31,9 +30,17 @@ function ApplicationCard({
       {/* Status Badge */}
       <div className="flex justify-between items-start mb-3">
         <span
-          className={cn('flex items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm')}
+          className={cn(
+            'flex items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm',
+          )}
         >
-          {application?.status === ApplicationStatus.Accepted ? <span className="bg-cyan-400 w-[14px] h-[14px] rounded-full block" /> : application?.status === ApplicationStatus.Rejected ? <span className="bg-red-400 w-[14px] h-[14px] rounded-full block" /> : <span className="bg-gray-400 w-[14px] h-[14px] rounded-full block" />}
+          {application?.status === ApplicationStatus.Accepted ? (
+            <span className="bg-cyan-400 w-[14px] h-[14px] rounded-full block" />
+          ) : application?.status === ApplicationStatus.Rejected ? (
+            <span className="bg-red-400 w-[14px] h-[14px] rounded-full block" />
+          ) : (
+            <span className="bg-gray-400 w-[14px] h-[14px] rounded-full block" />
+          )}
           {application?.status
             ? application.status.charAt(0).toUpperCase() + application.status.slice(1)
             : 'Not confirmed'}

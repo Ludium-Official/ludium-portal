@@ -42,19 +42,19 @@ const ProgramsPage: React.FC = () => {
   const filter = [
     ...(selectedTab === 'my-programs'
       ? [
-        {
-          field: 'userId',
-          value: userId,
-        },
-      ]
+          {
+            field: 'userId',
+            value: userId,
+          },
+        ]
       : []),
     ...(selectedTab === 'published'
       ? [
-        {
-          field: 'status',
-          value: 'published',
-        },
-      ]
+          {
+            field: 'status',
+            value: 'published',
+          },
+        ]
       : []),
     {
       field: 'name',
@@ -81,10 +81,7 @@ const ProgramsPage: React.FC = () => {
         <div className="flex justify-between items-center pb-4">
           <h1 className="text-3xl font-bold">Recruitment</h1>
         </div>
-        <Tabs
-          value={selectedTab}
-          onValueChange={setSelectedTab}
-        >
+        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <section className="flex justify-between items-center py-[14px]">
             <TabsList className="">
               <TabsTrigger value="newest">Newest</TabsTrigger>

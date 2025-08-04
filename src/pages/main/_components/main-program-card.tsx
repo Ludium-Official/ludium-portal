@@ -51,9 +51,7 @@ function MainProgramCard({ program }: MainProgramCardProps) {
         </div>
 
         <div className="flex-1 flex flex-col">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 uppercase">
-            {program?.name}
-          </h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-4 uppercase">{program?.name}</h3>
 
           <div className="space-y-3 flex-1">
             <div>
@@ -70,7 +68,11 @@ function MainProgramCard({ program }: MainProgramCardProps) {
               <div>
                 <span className="text-xs text-gray-500 block">DATE</span>
                 <span className="text-sm text-gray-900">
-                  {format(deadline, 'dd . MMM . yyyy')} – {format(new Date(deadline.getTime() + 90 * 24 * 60 * 60 * 1000), 'dd . MMM . yyyy')}
+                  {format(deadline, 'dd . MMM . yyyy')} –{' '}
+                  {format(
+                    new Date(deadline.getTime() + 90 * 24 * 60 * 60 * 1000),
+                    'dd . MMM . yyyy',
+                  )}
                 </span>
               </div>
               <Badge className="bg-gray-800 text-white text-xs px-2 py-1">
@@ -78,9 +80,7 @@ function MainProgramCard({ program }: MainProgramCardProps) {
               </Badge>
             </div>
 
-            <p className="text-sm text-gray-700 line-clamp-2 flex-1">
-              {program?.summary}
-            </p>
+            <p className="text-sm text-gray-700 line-clamp-2 flex-1">{program?.summary}</p>
 
             <div className="flex items-center justify-between mt-auto">
               <span className="text-sm text-gray-900">Project Management</span>
@@ -96,4 +96,4 @@ function MainProgramCard({ program }: MainProgramCardProps) {
   );
 }
 
-export default MainProgramCard; 
+export default MainProgramCard;

@@ -32,7 +32,10 @@ function ProgramStatusBadge({
 
   return (
     <span
-      className={cn('flex items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm', className)}
+      className={cn(
+        'flex items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm',
+        className,
+      )}
     >
       {statusColor}
       {formatProgramStatus(program)}

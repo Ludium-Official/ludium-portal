@@ -1,14 +1,14 @@
-import { useCreateCarouselItemMutation } from "@/apollo/mutation/create-carousel-item.generated";
-import { useCarouselItemsQuery } from "@/apollo/queries/carousel-items.generated";
-import { usePostQuery } from "@/apollo/queries/post.generated";
-import { MarkdownEditor } from "@/components/markdown";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { CarouselItemType } from "@/types/types.generated";
-import { Image as ImageIcon, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { useParams } from "react-router";
+import { useCreateCarouselItemMutation } from '@/apollo/mutation/create-carousel-item.generated';
+import { useCarouselItemsQuery } from '@/apollo/queries/carousel-items.generated';
+import { usePostQuery } from '@/apollo/queries/post.generated';
+import { MarkdownEditor } from '@/components/markdown';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { CarouselItemType } from '@/types/types.generated';
+import { Image as ImageIcon, Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useParams } from 'react-router';
 
 export type OnSubmitPostFunc = (data: {
   id?: string;
@@ -33,12 +33,12 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
 
   const { data } = usePostQuery({
     variables: {
-      id: id ?? "",
+      id: id ?? '',
     },
     skip: !isEdit,
   });
 
-  const [content, setContent] = useState<string>("");
+  const [content, setContent] = useState<string>('');
   const [selectedImage, setSelectedImage] = useState<File>();
   const [imageError, setImageError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -55,7 +55,7 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
     formState: { errors },
   } = useForm({
     values: {
-      title: data?.post?.title ?? "",
+      title: data?.post?.title ?? '',
     },
   });
 
@@ -66,8 +66,8 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
     if (!file) return;
 
     // Validate type
-    if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
-      setImageError("Only PNG, JPG, or JPEG files are allowed.");
+    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+      setImageError('Only PNG, JPG, or JPEG files are allowed.');
       setSelectedImage(undefined);
       setImagePreview(null);
       return;
@@ -75,7 +75,7 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
 
     // Validate size (4MB for community posts)
     if (file.size > 4 * 1024 * 1024) {
-      setImageError("Image must be under 4MB.");
+      setImageError('Image must be under 4MB.');
       setSelectedImage(undefined);
       setImagePreview(null);
       return;
@@ -89,7 +89,7 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
       const tolerance = 0.1; // Allow some tolerance
 
       if (Math.abs(aspectRatio - targetRatio) > tolerance) {
-        setImageError("Image must be 16:9 aspect ratio.");
+        setImageError('Image must be 16:9 aspect ratio.');
         setSelectedImage(undefined);
         setImagePreview(null);
       } else {
@@ -98,7 +98,7 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
       }
     };
     img.onerror = () => {
-      setImageError("Invalid image file.");
+      setImageError('Invalid image file.');
       setSelectedImage(undefined);
       setImagePreview(null);
     };
@@ -117,13 +117,8 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="max-w-[820px] w-full mx-auto"
-    >
-      <h1 className="font-medium text-xl mb-6">
-        {isEdit ? "Edit Community" : "Create Community"}
-      </h1>
+    <form onSubmit={handleSubmit(onSubmit)} className="max-w-[820px] w-full mx-auto">
+      <h1 className="font-medium text-xl mb-6">{isEdit ? 'Edit Community' : 'Create Community'}</h1>
 
       <section className="bg-white py-8 px-10 rounded-lg mb-2">
         <label htmlFor="title" className="space-y-2 block mb-10">
@@ -135,12 +130,10 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
             type="text"
             placeholder="Placeholder"
             className="h-10"
-            {...register("title", { required: true })}
+            {...register('title', { required: true })}
           />
           {errors.title && (
-            <span className="text-destructive text-sm block">
-              Title is required
-            </span>
+            <span className="text-destructive text-sm block">Title is required</span>
           )}
         </label>
 
@@ -156,11 +149,7 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
                 onChange={handleImageChange}
               />
               {imagePreview ? (
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="object-cover w-full h-full"
-                />
+                <img src={imagePreview} alt="Preview" className="object-cover w-full h-full" />
               ) : (
                 <div className="flex flex-col items-center justify-center w-full h-full">
                   <ImageIcon className="w-10 h-10 text-[#666666] mb-2" />
@@ -176,15 +165,12 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
                 Cover image <span className="text-primary">*</span>
               </p>
               <p className="text-sm text-muted-foreground">
-                Cover image must be 16:9, under 4MB, and in PNG, JPG, or JPEG
-                format.
+                Cover image must be 16:9, under 4MB, and in PNG, JPG, or JPEG format.
                 <br />
                 This image is used in the community list
               </p>
               {imageError && (
-                <span className="text-destructive text-sm block mt-2">
-                  {imageError}
-                </span>
+                <span className="text-destructive text-sm block mt-2">{imageError}</span>
               )}
             </div>
           </div>
@@ -198,9 +184,7 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
           </p>
           <MarkdownEditor onChange={setContent} content={content} />
           {!content.length && (
-            <span className="text-destructive text-sm block">
-              Description is required
-            </span>
+            <span className="text-destructive text-sm block">Description is required</span>
           )}
         </label>
       </section>
@@ -212,7 +196,7 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
             createCarouselItem({
               variables: {
                 input: {
-                  itemId: data?.post?.id ?? "",
+                  itemId: data?.post?.id ?? '',
                   itemType: CarouselItemType.Post,
                   isActive: true,
                 },
@@ -221,15 +205,12 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
           }}
           disabled={carouselItems?.carouselItems?.some(
             (item) =>
-              item.itemId === data?.post?.id ||
-              (carouselItems?.carouselItems?.length ?? 0) >= 5
+              item.itemId === data?.post?.id || (carouselItems?.carouselItems?.length ?? 0) >= 5,
           )}
         >
-          {carouselItems?.carouselItems?.some(
-            (item) => item.itemId === data?.post?.id
-          )
-            ? "Already in Carousel"
-            : "Add to Main Carousel"}
+          {carouselItems?.carouselItems?.some((item) => item.itemId === data?.post?.id)
+            ? 'Already in Carousel'
+            : 'Add to Main Carousel'}
         </Button>
       )}
 

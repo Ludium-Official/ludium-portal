@@ -47,7 +47,7 @@ const multiSelectVariants = cva(
  */
 interface MultiSelectProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-  VariantProps<typeof multiSelectVariants> {
+    VariantProps<typeof multiSelectVariants> {
   /**
    * An array of option objects to be displayed in the multi-select component.
    * Each option object has a label, value, and an optional icon.
@@ -232,9 +232,9 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                     const option = !selectedItems?.length
                       ? options.find((o) => o.value === item)
                       : (item as {
-                        label: string;
-                        value: string;
-                      });
+                          label: string;
+                          value: string;
+                        });
                     // const IconComponent = option?.icon;
                     return (
                       <Badge

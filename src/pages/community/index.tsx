@@ -211,12 +211,7 @@ const CommunityPage: React.FC = () => {
 
             {/* Remaining posts with variant='small' */}
             {remainingFirstColumn.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                variant="small"
-                maxComments={1}
-              />
+              <PostCard key={post.id} post={post} variant="small" maxComments={1} />
             ))}
           </div>
 
@@ -228,12 +223,7 @@ const CommunityPage: React.FC = () => {
 
             {/* Remaining posts with variant='small' */}
             {remainingSecondColumn.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                variant="small"
-                maxComments={1}
-              />
+              <PostCard key={post.id} post={post} variant="small" maxComments={1} />
             ))}
           </div>
         </div>
@@ -250,4 +240,3 @@ const CommunityPage: React.FC = () => {
 };
 
 export default CommunityPage;
-

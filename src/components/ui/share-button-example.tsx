@@ -18,9 +18,7 @@ export function ShareButtonExample() {
 
         <div>
           <h3 className="text-lg font-semibold mb-2">Custom Text</h3>
-          <ShareButton onShare={handleShare}>
-            Share this content
-          </ShareButton>
+          <ShareButton onShare={handleShare}>Share this content</ShareButton>
         </div>
 
         <div>
@@ -40,4 +38,4 @@ export function ShareButtonExample() {
       </div>
     </div>
   );
-} 
+}

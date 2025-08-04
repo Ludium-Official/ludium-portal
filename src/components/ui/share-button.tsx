@@ -4,11 +4,7 @@ import { Share2Icon } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from './button';
 import { Label } from './label';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from './popover';
+import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { RadioGroup, RadioGroupItem } from './radio-group';
 
 interface ShareButtonProps {
@@ -38,20 +34,14 @@ export function ShareButton({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          variant={variant}
-          size={size}
-          className={cn('flex gap-2 items-center', className)}
-        >
+        <Button variant={variant} size={size} className={cn('flex gap-2 items-center', className)}>
           {children || 'Share'}
           <Share2Icon className="size-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-6 min-w-[400px]" align='end'>
+      <PopoverContent className="p-6 min-w-[400px]" align="end">
         <div className="space-y-4">
-          <div className="text-center font-semibold text-lg">
-            Share
-          </div>
+          <div className="text-center font-semibold text-lg">Share</div>
 
           <RadioGroup
             value={shareType}
@@ -60,7 +50,10 @@ export function ShareButton({
           >
             <div className="flex items-start gap-2">
               <RadioGroupItem value="link" id="link" />
-              <Label htmlFor="link" className="flex-1 cursor-pointer flex flex-col items-start gap-1.5">
+              <Label
+                htmlFor="link"
+                className="flex-1 cursor-pointer flex flex-col items-start gap-1.5"
+              >
                 <div className="font-medium">Share with link</div>
                 <p className="text-sm text-muted-foreground truncate max-w-[342px]">
                   {window.location.href}
@@ -88,4 +81,4 @@ export function ShareButton({
       </PopoverContent>
     </Popover>
   );
-} 
+}

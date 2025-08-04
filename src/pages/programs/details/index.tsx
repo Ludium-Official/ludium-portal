@@ -6,7 +6,14 @@ import { MarkdownPreviewer } from '@/components/markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { ShareButton } from '@/components/ui/share-button';
 import { Tabs } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -71,7 +78,6 @@ const DetailsPage: React.FC = () => {
     }
   }, []);
 
-
   const programActionOptions = {
     variables: { id: program?.id ?? id ?? '' },
     onCompleted: () => {
@@ -125,15 +131,14 @@ const DetailsPage: React.FC = () => {
         <div className="max-w-1440 mx-auto p-10">
           <div className="flex justify-between items-center mb-2">
             <ProgramStatusBadge program={program} />
-
           </div>
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-xl font-bold">{program?.name}</h1>
 
-            <div className='flex gap-2'>
+            <div className="flex gap-2">
               {(program?.creator?.id === userId || isAdmin) && (
                 <Link to={`/programs/${program?.id}/edit`}>
-                  <Button variant='ghost' className='flex gap-2 items-center'>
+                  <Button variant="ghost" className="flex gap-2 items-center">
                     Edit
                     <Settings className="w-4 h-4" />
                   </Button>
@@ -157,7 +162,11 @@ const DetailsPage: React.FC = () => {
               {/* Temporary image placeholder until the actual image is added */}
               {/* <div className='bg-[#eaeaea] w-full rounded-xl aspect-square mb-6' /> */}
               {program?.image ? (
-                <img src={program?.image} alt="program" className='w-full aspect-square rounded-xl' />
+                <img
+                  src={program?.image}
+                  alt="program"
+                  className="w-full aspect-square rounded-xl"
+                />
               ) : (
                 <div className="bg-[#eaeaea] w-full rounded-xl aspect-square mb-6" />
               )}
@@ -199,7 +208,12 @@ const DetailsPage: React.FC = () => {
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
-                    disabled={!isLoggedIn || program?.status !== 'published' || program.creator?.id === userId || program?.validators?.some((validator) => validator.id === userId)}
+                    disabled={
+                      !isLoggedIn ||
+                      program?.status !== 'published' ||
+                      program.creator?.id === userId ||
+                      program?.validators?.some((validator) => validator.id === userId)
+                    }
                     onClick={(e) => {
                       if (!isAuthed) {
                         notify('Please add your email', 'success');
@@ -219,7 +233,7 @@ const DetailsPage: React.FC = () => {
                 </DialogContent>
               </Dialog>
 
-              {program?.validators?.some(v => v.id === userId) && program.status === 'draft' && (
+              {program?.validators?.some((v) => v.id === userId) && program.status === 'draft' && (
                 <div className="flex justify-end gap-2 w-full">
                   <Dialog>
                     <DialogTrigger asChild>
@@ -263,15 +277,14 @@ const DetailsPage: React.FC = () => {
                         Are you sure to pay the settlement for the program?
                       </DialogTitle>
                       <DialogDescription className="text-muted-foreground text-sm mb-4">
-                        The amount will be securely stored until you will confirm the completion of the
-                        project.
+                        The amount will be securely stored until you will confirm the completion of
+                        the project.
                       </DialogDescription>
                       <Button onClick={callTx}>Yes, Pay now</Button>
                     </div>
                   </DialogContent>
                 </Dialog>
               )}
-
 
               <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">KEYWORDS</p>
@@ -309,12 +322,18 @@ const DetailsPage: React.FC = () => {
               <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM HOST</p>
                 <div className="border rounded-xl w-full p-4 mb-6">
-
-                  <span className='items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex mb-3'>
-                    <span className={cn("bg-gray-400 w-[14px] h-[14px] rounded-full block", {
-                      "bg-green-400": program?.status === ProgramStatus.Published || program?.status === ProgramStatus.Completed,
-                    })} />
-                    {program?.status === ProgramStatus.Published || program?.status === ProgramStatus.Completed ? 'Paid' : 'Not paid'}
+                  <span className="items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex mb-3">
+                    <span
+                      className={cn('bg-gray-400 w-[14px] h-[14px] rounded-full block', {
+                        'bg-green-400':
+                          program?.status === ProgramStatus.Published ||
+                          program?.status === ProgramStatus.Completed,
+                      })}
+                    />
+                    {program?.status === ProgramStatus.Published ||
+                    program?.status === ProgramStatus.Completed
+                      ? 'Paid'
+                      : 'Not paid'}
                   </span>
 
                   <Link
@@ -322,8 +341,6 @@ const DetailsPage: React.FC = () => {
                     className="flex gap-2 items-center text-lg font-bold mb-5"
                   >
                     {/* <div className="w-10 h-10 bg-gray-200 rounded-full" /> */}
-
-
 
                     <Avatar className="w-10 h-10">
                       <AvatarImage
@@ -336,14 +353,14 @@ const DetailsPage: React.FC = () => {
                         )}
                       </AvatarFallback>
                     </Avatar>
-                    <p className='text-sm font-bold'>
-                      {getUserName(program?.creator)}
-                    </p>
+                    <p className="text-sm font-bold">{getUserName(program?.creator)}</p>
                   </Link>
 
                   <div className="flex gap-3 mb-4">
                     <p className="text-xs font-bold w-[57px]">Summary</p>
-                    <p className="text-xs text-slate-500 line-clamp-2">{program?.creator?.summary}</p>
+                    <p className="text-xs text-slate-500 line-clamp-2">
+                      {program?.creator?.summary}
+                    </p>
                   </div>
 
                   <div className="flex gap-3 mb-4">
@@ -351,14 +368,14 @@ const DetailsPage: React.FC = () => {
                     <p className="text-xs">{program?.creator?.email}</p>
                   </div>
 
-                  <div className='flex gap-2 flex-wrap'>
-                    <Badge variant='secondary' className='text-xs font-semibold'>
+                  <div className="flex gap-2 flex-wrap">
+                    <Badge variant="secondary" className="text-xs font-semibold">
                       DB
                     </Badge>
-                    <Badge variant='secondary' className='text-xs font-semibold'>
+                    <Badge variant="secondary" className="text-xs font-semibold">
                       Developer
                     </Badge>
-                    <Badge variant='secondary' className='text-xs font-semibold'>
+                    <Badge variant="secondary" className="text-xs font-semibold">
                       Solidity
                     </Badge>
                   </div>
@@ -371,38 +388,42 @@ const DetailsPage: React.FC = () => {
 
                   {program.validators.map((validator) => (
                     <div className="border rounded-xl w-full p-6 mb-6" key={validator.id}>
-
                       {/* <ProgramStatusBadge program={program} className='inline-flex mb-3' /> */}
-                      <div className='flex justify-between items-center  mb-3'>
-
-                        <span
-                          className='items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex'
-                        >
-                          <span className={cn("bg-gray-400 w-[14px] h-[14px] rounded-full block", {
-                            "bg-red-400": program.status === ProgramStatus.Draft && program.rejectionReason,
-                            "bg-green-400": program.status !== ProgramStatus.Draft,
-                            "bg-gray-400": program.status === ProgramStatus.Draft && !program.rejectionReason,
-                          })} />
-                          {program.status === ProgramStatus.Draft ? program.rejectionReason ? 'Rejected' : 'Pending' : 'Accepted'}
+                      <div className="flex justify-between items-center  mb-3">
+                        <span className="items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex">
+                          <span
+                            className={cn('bg-gray-400 w-[14px] h-[14px] rounded-full block', {
+                              'bg-red-400':
+                                program.status === ProgramStatus.Draft && program.rejectionReason,
+                              'bg-green-400': program.status !== ProgramStatus.Draft,
+                              'bg-gray-400':
+                                program.status === ProgramStatus.Draft && !program.rejectionReason,
+                            })}
+                          />
+                          {program.status === ProgramStatus.Draft
+                            ? program.rejectionReason
+                              ? 'Rejected'
+                              : 'Pending'
+                            : 'Accepted'}
                         </span>
 
                         {program.status === ProgramStatus.Draft && program.rejectionReason && (
                           <Tooltip>
-                            <TooltipTrigger className='text-destructive flex gap-2 items-center'>
-                              <CircleAlert className='w-4 h-4' /> <p className='text-sm font-medium underline'>View reason</p>
+                            <TooltipTrigger className="text-destructive flex gap-2 items-center">
+                              <CircleAlert className="w-4 h-4" />{' '}
+                              <p className="text-sm font-medium underline">View reason</p>
                             </TooltipTrigger>
-                            <TooltipContent className='text-destructive flex gap-2 items-start bg-white border shadow-[0px_4px_6px_-1px_#0000001A]'>
-                              <div className='mt-1.5'>
-                                <CircleAlert className='w-4 h-4' />
+                            <TooltipContent className="text-destructive flex gap-2 items-start bg-white border shadow-[0px_4px_6px_-1px_#0000001A]">
+                              <div className="mt-1.5">
+                                <CircleAlert className="w-4 h-4" />
                               </div>
                               <div>
-                                <p className='font-medium text-base mb-1'>Reason for rejection</p>
-                                <p className='text-sm'>{program.rejectionReason}</p>
+                                <p className="font-medium text-base mb-1">Reason for rejection</p>
+                                <p className="text-sm">{program.rejectionReason}</p>
                               </div>
                             </TooltipContent>
                           </Tooltip>
                         )}
-
                       </div>
                       <Link
                         to={`/users/${program?.creator?.id}`}
@@ -422,18 +443,16 @@ const DetailsPage: React.FC = () => {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className='text-sm mb-2'>
-                            {getUserName(validator)}
-                          </p>
+                          <p className="text-sm mb-2">{getUserName(validator)}</p>
 
-                          <div className='flex gap-2 flex-wrap'>
-                            <Badge variant='secondary' className='text-xs font-semibold'>
+                          <div className="flex gap-2 flex-wrap">
+                            <Badge variant="secondary" className="text-xs font-semibold">
                               DB
                             </Badge>
-                            <Badge variant='secondary' className='text-xs font-semibold'>
+                            <Badge variant="secondary" className="text-xs font-semibold">
                               Developer
                             </Badge>
-                            <Badge variant='secondary' className='text-xs font-semibold'>
+                            <Badge variant="secondary" className="text-xs font-semibold">
                               Solidity
                             </Badge>
                           </div>

@@ -192,10 +192,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
       !content.length ||
       !selectedImage
     ) {
-      notify(
-        'Please fill in all required fields.',
-        'error'
-      );
+      notify('Please fill in all required fields.', 'error');
       return;
     }
 
@@ -313,7 +310,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
   };
 
   const removeKeyword = (keywordToRemove: string) => {
-    setSelectedKeywords(selectedKeywords.filter(keyword => keyword !== keywordToRemove));
+    setSelectedKeywords(selectedKeywords.filter((keyword) => keyword !== keywordToRemove));
   };
 
   return (
@@ -547,7 +544,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
                 <div key={idx} className="flex items-center gap-2">
                   <Input
                     className="h-10"
-                    placeholder='https://example.com/ludium'
+                    placeholder="https://example.com/ludium"
                     value={l}
                     onChange={(e) => {
                       setLinks((prev) => {
@@ -598,7 +595,9 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
         <TabsContent value="details">
           <div className="bg-white px-10 py-6 rounded-lg mb-3">
             <label htmlFor="summary" className="space-y-2 block">
-              <p className="text-sm font-medium">Summary <span className="text-primary">*</span></p>
+              <p className="text-sm font-medium">
+                Summary <span className="text-primary">*</span>
+              </p>
               <Textarea
                 id="summary"
                 placeholder="Type summary"
@@ -613,7 +612,9 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
 
           <div className="px-10 py-6 bg-white rounded-lg">
             <label htmlFor="description" className="space-y-2 block">
-              <p className="text-sm font-medium">Description <span className="text-primary">*</span></p>
+              <p className="text-sm font-medium">
+                Description <span className="text-primary">*</span>
+              </p>
 
               <MarkdownEditor onChange={setContent} content={content} />
               {!content.length && (
@@ -688,100 +689,107 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
                 validators: selectedValidators ?? '',
                 links: (() => {
                   const { shouldSend } = validateLinks(links);
-                  return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
+                  return shouldSend
+                    ? filterEmptyLinks(links).map((l) => ({ title: l, url: l }))
+                    : undefined;
                 })(),
                 network:
-                  isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
+                  isEdit && data?.program?.status !== 'draft'
+                    ? (data?.program?.network as string)
+                    : network,
                 image: selectedImage,
                 visibility: visibility,
                 builders: selectedBuilders,
-
               });
             }}
           >
             Save
           </Button>
 
-          {selectedTab === 'details' && <Popover>
-            <PopoverTrigger>
-              <Button
-                type="button"
-                className="min-w-[97px] bg-primary hover:bg-primary/90"
-                size="lg"
-                disabled={createLoading}
-              >
-                Save and Upload
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="min-w-[440px]">
-              <h2 className="text-foreground font-semibold text-center text-lg">Visibility</h2>
-              <p className="text-center text-muted-foreground text-sm mb-4">
-                Choose when to publish and who can see your program.
-              </p>
+          {selectedTab === 'details' && (
+            <Popover>
+              <PopoverTrigger>
+                <Button
+                  type="button"
+                  className="min-w-[97px] bg-primary hover:bg-primary/90"
+                  size="lg"
+                  disabled={createLoading}
+                >
+                  Save and Upload
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="min-w-[440px]">
+                <h2 className="text-foreground font-semibold text-center text-lg">Visibility</h2>
+                <p className="text-center text-muted-foreground text-sm mb-4">
+                  Choose when to publish and who can see your program.
+                </p>
 
-              <RadioGroup
-                defaultValue="public"
-                className="space-y-2 mb-8"
-                value={visibility}
-                onValueChange={(v) => setVisibility(v as 'public' | 'private' | 'restricted')}
-              >
-                <div className="flex items-start gap-3">
-                  <RadioGroupItem value="private" id="r1" className="border-foreground" />
-                  <div className="flex-1">
-                    <Label htmlFor="r1" className="font-medium mb-[6px]">
-                      Private
-                    </Label>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Only invited users can view this program.
-                    </p>
-                    {visibility === 'private' && (
-                      <MultiSelect
-                        options={builderOptions ?? []}
-                        value={selectedBuilders}
-                        onValueChange={setSelectedBuilders}
-                        placeholder="Search Builder"
-                        animation={2}
-                        maxCount={20}
-                        inputValue={builderInput}
-                        setInputValue={setBuilderInput}
-                        selectedItems={selectedBuilderItems}
-                        setSelectedItems={setSelectedBuilderItems}
-                        emptyText="Enter builder email or organization name"
-                        loading={buildersLoading}
-                        className="mt-2"
-                      />
-                    )}
+                <RadioGroup
+                  defaultValue="public"
+                  className="space-y-2 mb-8"
+                  value={visibility}
+                  onValueChange={(v) => setVisibility(v as 'public' | 'private' | 'restricted')}
+                >
+                  <div className="flex items-start gap-3">
+                    <RadioGroupItem value="private" id="r1" className="border-foreground" />
+                    <div className="flex-1">
+                      <Label htmlFor="r1" className="font-medium mb-[6px]">
+                        Private
+                      </Label>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Only invited users can view this program.
+                      </p>
+                      {visibility === 'private' && (
+                        <MultiSelect
+                          options={builderOptions ?? []}
+                          value={selectedBuilders}
+                          onValueChange={setSelectedBuilders}
+                          placeholder="Search Builder"
+                          animation={2}
+                          maxCount={20}
+                          inputValue={builderInput}
+                          setInputValue={setBuilderInput}
+                          selectedItems={selectedBuilderItems}
+                          setSelectedItems={setSelectedBuilderItems}
+                          emptyText="Enter builder email or organization name"
+                          loading={buildersLoading}
+                          className="mt-2"
+                        />
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <RadioGroupItem value="restricted" id="r2" className="border-foreground" />
-                  <div>
-                    <Label htmlFor="r2">Restricted</Label>
-                    <p className="text-sm text-muted-foreground">Only users with links can view.</p>
+                  <div className="flex items-start gap-3">
+                    <RadioGroupItem value="restricted" id="r2" className="border-foreground" />
+                    <div>
+                      <Label htmlFor="r2">Restricted</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Only users with links can view.
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <RadioGroupItem value="public" id="r3" className="border-foreground" />
-                  <div>
-                    <Label htmlFor="r3">Public</Label>
-                    <p className="text-sm text-muted-foreground">Anyone can view this program.</p>
+                  <div className="flex items-start gap-3">
+                    <RadioGroupItem value="public" id="r3" className="border-foreground" />
+                    <div>
+                      <Label htmlFor="r3">Public</Label>
+                      <p className="text-sm text-muted-foreground">Anyone can view this program.</p>
+                    </div>
                   </div>
-                </div>
-              </RadioGroup>
+                </RadioGroup>
 
-              <Button
-                onClick={() => {
-                  console.log('onCLICK!!!!');
-                  extraValidation();
-                }}
-                type="submit"
-                className="w-full bg-primary hover:bg-primary/90"
-                disabled={createLoading}
-              >
-                Save
-              </Button>
-            </PopoverContent>
-          </Popover>}
+                <Button
+                  onClick={() => {
+                    console.log('onCLICK!!!!');
+                    extraValidation();
+                  }}
+                  type="submit"
+                  className="w-full bg-primary hover:bg-primary/90"
+                  disabled={createLoading}
+                >
+                  Save
+                </Button>
+              </PopoverContent>
+            </Popover>
+          )}
 
           {selectedTab === 'overview' && (
             <Button

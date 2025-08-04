@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import MainCommunityCard from '@/pages/main/_components/main-community-card';
 import MainProgramCard from '@/pages/main/_components/main-program-card';
 import MainUserCard from '@/pages/main/_components/main-user-card';
-import type { Post, Program, } from '@/types/types.generated';
+import type { Post, Program } from '@/types/types.generated';
 import Autoplay from 'embla-carousel-autoplay';
 import { ArrowRight } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -40,7 +40,6 @@ function MainPage() {
       api.off('select', onSelect);
     };
   }, [api, onSelect]);
-
 
   const { data: programsData, loading: programsLoading } = useProgramsQuery({
     variables: {
@@ -157,8 +156,9 @@ function MainPage() {
               key={i}
               onClick={() => api?.scrollTo(i)}
               size="icon"
-              className={`w-2 h-2 rounded-full hover:bg-primary-light ${current === i ? 'bg-primary' : 'bg-gray-300'
-                }`}
+              className={`w-2 h-2 rounded-full hover:bg-primary-light ${
+                current === i ? 'bg-primary' : 'bg-gray-300'
+              }`}
             />
           ))}
         </div>

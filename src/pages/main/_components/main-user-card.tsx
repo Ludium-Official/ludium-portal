@@ -29,7 +29,8 @@ function MainUserCard({ user }: MainUserCardProps) {
                 />
               ) : (
                 <span className="text-white font-bold text-lg">
-                  {user?.firstName?.[0]}{user?.lastName?.[0] || 'VA'}
+                  {user?.firstName?.[0]}
+                  {user?.lastName?.[0] || 'VA'}
                 </span>
               )}
             </div>
@@ -44,7 +45,7 @@ function MainUserCard({ user }: MainUserCardProps) {
               <div className="flex flex-col gap-2">
                 {/* Organization */}
                 <div className="flex items-center gap-2">
-                  <Building2 className='w-4 h-4 text-muted-foreground' />
+                  <Building2 className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm text-gray-500 leading-5">
                     {user?.organizationName || 'Validator Organization'}
                   </span>
@@ -52,7 +53,7 @@ function MainUserCard({ user }: MainUserCardProps) {
 
                 {/* Role badges */}
                 <div className="flex items-center gap-2">
-                  <BriefcaseBusiness className='w-4 h-4 text-muted-foreground' />
+                  <BriefcaseBusiness className="w-4 h-4 text-muted-foreground" />
                   <div className="flex gap-1.5">
                     {['Developer', 'BD', 'Protocol Developer'].map((skill) => (
                       <Badge
@@ -69,9 +70,7 @@ function MainUserCard({ user }: MainUserCardProps) {
             </div>
           </div>
 
-
-          <div className='flex gap-4 mt-3'>
-
+          <div className="flex gap-4 mt-3">
             {/* Description */}
             <p className="text-sm text-gray-600 leading-5 line-clamp-1">
               {user?.summary || 'Lorem ipsum dolor sit amet, consectet'}
@@ -121,7 +120,6 @@ function MainUserCard({ user }: MainUserCardProps) {
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Bottom badges */}
@@ -140,4 +138,4 @@ function MainUserCard({ user }: MainUserCardProps) {
   );
 }
 
-export default MainUserCard; 
+export default MainUserCard;

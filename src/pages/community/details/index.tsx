@@ -45,7 +45,7 @@ const CommunityDetailsPage: React.FC = () => {
     skip: !authorId,
     fetchPolicy: 'cache-and-network',
   });
-  console.log("🚀 ~ CommunityDetailsPage ~ postsData:", postsData)
+  console.log('🚀 ~ CommunityDetailsPage ~ postsData:', postsData);
 
   const { data, loading, error } = usePostQuery({
     variables: {
@@ -163,7 +163,9 @@ const CommunityDetailsPage: React.FC = () => {
                     <span>•</span>
                     <span>Views {post.viewCount}</span>
                     <span>•</span>
-                    <span className='text-secondary-foreground font-bold'>Comments {comments?.commentsByCommentable?.length}</span>
+                    <span className="text-secondary-foreground font-bold">
+                      Comments {comments?.commentsByCommentable?.length}
+                    </span>
                   </div>
                 )}
               </div>
@@ -180,7 +182,6 @@ const CommunityDetailsPage: React.FC = () => {
                   )}
                 </div>
               </div>
-
 
               <MarkdownPreviewer value={post?.content ?? ''} />
             </div>
@@ -206,10 +207,11 @@ const CommunityDetailsPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <Link
                 to={prevPost ? `/community/posts/${prevPost.id}` : '#'}
-                className={`flex gap-1 w-[104px] h-10 items-center justify-center ${prevPost
-                  ? 'hover:text-muted-foreground'
-                  : 'text-muted-foreground pointer-events-none cursor-default'
-                  }`}
+                className={`flex gap-1 w-[104px] h-10 items-center justify-center ${
+                  prevPost
+                    ? 'hover:text-muted-foreground'
+                    : 'text-muted-foreground pointer-events-none cursor-default'
+                }`}
               >
                 <ChevronLeft width={16} height={16} />
                 <p className="font-medium text-sm">Previous</p>
@@ -217,10 +219,11 @@ const CommunityDetailsPage: React.FC = () => {
 
               <Link
                 to={nextPost ? `/community/posts/${nextPost.id}` : '#'}
-                className={`flex gap-1 w-[104px] h-10 items-center justify-center ${nextPost
-                  ? 'hover:text-muted-foreground'
-                  : 'text-muted-foreground pointer-events-none cursor-default'
-                  }`}
+                className={`flex gap-1 w-[104px] h-10 items-center justify-center ${
+                  nextPost
+                    ? 'hover:text-muted-foreground'
+                    : 'text-muted-foreground pointer-events-none cursor-default'
+                }`}
               >
                 <p className="font-medium text-sm">Next</p>
                 <ChevronRight width={16} height={16} />

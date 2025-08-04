@@ -54,16 +54,17 @@ function ProgramCard({ program }: { program: Program }) {
             <span className="font-medium text-muted-foreground">
               {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
             </span>
-            {program?.deadline && (() => {
-              const deadlineDate = new Date(program.deadline);
-              const today = new Date();
-              // Zero out the time for both dates to get full days difference
-              deadlineDate.setHours(0, 0, 0, 0);
-              today.setHours(0, 0, 0, 0);
-              const diffTime = deadlineDate.getTime() - today.getTime();
-              const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-              return <Badge className='ml-2'>D{daysRemaining}</Badge>;
-            })()}
+            {program?.deadline &&
+              (() => {
+                const deadlineDate = new Date(program.deadline);
+                const today = new Date();
+                // Zero out the time for both dates to get full days difference
+                deadlineDate.setHours(0, 0, 0, 0);
+                today.setHours(0, 0, 0, 0);
+                const diffTime = deadlineDate.getTime() - today.getTime();
+                const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return <Badge className="ml-2">D{daysRemaining}</Badge>;
+              })()}
           </div>
         </div>
       </Link>
