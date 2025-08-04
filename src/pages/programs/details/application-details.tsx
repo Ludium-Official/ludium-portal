@@ -121,7 +121,6 @@ function ApplicationDetails() {
     }
   };
 
-
   const acceptedPrice = useMemo(
     () =>
       program?.applications
@@ -146,12 +145,15 @@ function ApplicationDetails() {
   return (
     <div className="bg-[#F7F7F7]">
       <section className="bg-white p-10 pb-0 rounded-b-2xl">
-        <ProgramStatusBadge program={program} className='inline-flex mb-4' />
+        <ProgramStatusBadge program={program} className="inline-flex mb-4" />
         <div className="flex justify-between mb-5">
-
           <Link to={`/programs/${id}`} className="flex items-center gap-4 mb-4">
             {program?.image ? (
-              <img src={program?.image} alt="program" className='w-[60px] aspect-square rounded-xl' />
+              <img
+                src={program?.image}
+                alt="program"
+                className="w-[60px] aspect-square rounded-xl"
+              />
             ) : (
               <div className="bg-slate-200 w-[60px] rounded-md aspect-square" />
             )}
@@ -178,58 +180,50 @@ function ApplicationDetails() {
           </button>
         </div>
 
-        <div className='bg-secondary flex justify-between p-4 gap-6'>
-
-          <div className='flex-1/2'>
-            <div className='flex justify-between items-center border-b pb-2'>
-              <h4 className='text-muted-foreground text-sm font-bold'>PRICE</h4>
-              <div className='flex items-center gap-2'>
+        <div className="bg-secondary flex justify-between p-4 gap-6">
+          <div className="flex-1/2">
+            <div className="flex justify-between items-center border-b pb-2">
+              <h4 className="text-muted-foreground text-sm font-bold">PRICE</h4>
+              <div className="flex items-center gap-2">
                 <span>{getCurrency(program?.network)?.icon}</span>
-                <p className='text-muted-foreground text-sm font-bold'>
+                <p className="text-muted-foreground text-sm font-bold">
                   <span className="text-sm text-foreground">{acceptedPrice}</span>{' '}
                   <span className="text-muted-foreground text-xs mr-1.5">
                     {acceptedPrice && ' / '}
                     {program?.price}
                   </span>
-                  <span className='text-sm text-foreground'>
-                    {program?.currency}
-                  </span>
-
+                  <span className="text-sm text-foreground">{program?.currency}</span>
                 </p>
-                <div className='border-r self-stretch' />
+                <div className="border-r self-stretch" />
 
-                <span className='text-sm font-bold text-muted-foreground'>{getCurrency(program?.network)?.display}</span>
+                <span className="text-sm font-bold text-muted-foreground">
+                  {getCurrency(program?.network)?.display}
+                </span>
               </div>
             </div>
 
-            <div className='flex justify-between items-center border-b py-2'>
-              <h4 className='text-muted-foreground text-sm font-bold'>DEADLINE</h4>
-              <div className='text-sm text-foreground font-bold'>
+            <div className="flex justify-between items-center border-b py-2">
+              <h4 className="text-muted-foreground text-sm font-bold">DEADLINE</h4>
+              <div className="text-sm text-foreground font-bold">
                 {format(new Date(program?.deadline ?? new Date()), 'dd.MMM.yyyy').toUpperCase()}
               </div>
             </div>
 
-
-            <div className='flex justify-between items-center border-b py-2.5'>
-              <h4 className='text-muted-foreground text-sm font-bold'>KEYWORDS</h4>
+            <div className="flex justify-between items-center border-b py-2.5">
+              <h4 className="text-muted-foreground text-sm font-bold">KEYWORDS</h4>
               <div className="flex gap-2 mb-1 flex-wrap max-w-[70%]">
                 {keywords?.map((k) => (
-                  <Badge
-                    key={k.id}
-                  >
-                    {k.name}
-                  </Badge>
+                  <Badge key={k.id}>{k.name}</Badge>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className='flex-1/2'>
-            <h2 className='text-sm text-muted-foreground font-bold mb-3'>SUMMARY</h2>
+          <div className="flex-1/2">
+            <h2 className="text-sm text-muted-foreground font-bold mb-3">SUMMARY</h2>
 
-            <p className='text-slate-600 text-sm line-clamp-3'>{program?.summary}</p>
+            <p className="text-slate-600 text-sm line-clamp-3">{program?.summary}</p>
           </div>
-
         </div>
 
         {/* <div className="mb-4">
@@ -253,28 +247,30 @@ function ApplicationDetails() {
       </section>
 
       <section className="flex bg-white rounded-b-2xl">
-
         <div className="p-10 flex-[66.6%]">
           <h3 className="flex items-end mb-3">
             <span className="p-2 border-b border-b-primary font-medium text-sm">Overview</span>
             <span className="block border-b w-full" />
           </h3>
           <div className="flex justify-between mb-5 pt-6">
-            <div className='flex gap-4'>
+            <div className="flex gap-4">
               <ApplicationStatusBadge application={data?.application} />
-              {data?.application?.status === ApplicationStatus.Rejected &&
+              {data?.application?.status === ApplicationStatus.Rejected && (
                 <Tooltip>
-                  <TooltipTrigger className='text-destructive flex gap-2 items-center'><CircleAlert className='w-5 h-5' /> View reason</TooltipTrigger>
-                  <TooltipContent className='text-destructive flex gap-2 items-start bg-white border shadow-[0px_4px_6px_-1px_#0000001A]'>
-                    <div className='mt-1.5'>
-                      <CircleAlert className='w-4 h-4' />
+                  <TooltipTrigger className="text-destructive flex gap-2 items-center">
+                    <CircleAlert className="w-5 h-5" /> View reason
+                  </TooltipTrigger>
+                  <TooltipContent className="text-destructive flex gap-2 items-start bg-white border shadow-[0px_4px_6px_-1px_#0000001A]">
+                    <div className="mt-1.5">
+                      <CircleAlert className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className='font-medium text-base mb-1'>Reason for rejection</p>
-                      <p className='text-sm'>{data?.application?.rejectionReason}</p>
+                      <p className="font-medium text-base mb-1">Reason for rejection</p>
+                      <p className="text-sm">{data?.application?.rejectionReason}</p>
                     </div>
                   </TooltipContent>
-                </Tooltip>}
+                </Tooltip>
+              )}
             </div>
             {/* <div className="flex gap-2 mb-1">
               <Badge variant="default">{data?.application?.status}</Badge>
@@ -311,19 +307,22 @@ function ApplicationDetails() {
           </div>
           <div className="mb-4 bg-[#0000000A] inline-block p-2 rounded-md">
             {/* <p className="font-sans font-bold bg-primary-light text-primary leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]"> */}
-            <div className='inline-flex justify-between items-center'>
-              <h4 className='text-neutral-400 text-sm font-bold'>PRICE</h4>
-              <div className='flex items-center gap-2'>
-                <p className='text-muted-foreground text-sm font-bold'>
-                  <span className="text-sm ml-3">{data?.application?.milestones
-                    ?.reduce((prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)), BigNumber(0, 10))
-                    .toFixed()}</span>
+            <div className="inline-flex justify-between items-center">
+              <h4 className="text-neutral-400 text-sm font-bold">PRICE</h4>
+              <div className="flex items-center gap-2">
+                <p className="text-muted-foreground text-sm font-bold">
+                  <span className="text-sm ml-3">
+                    {data?.application?.milestones
+                      ?.reduce(
+                        (prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)),
+                        BigNumber(0, 10),
+                      )
+                      .toFixed()}
+                  </span>
                 </p>
-                <span className='text-muted-foreground'>{getCurrency(program?.network)?.icon}</span>
+                <span className="text-muted-foreground">{getCurrency(program?.network)?.icon}</span>
 
-                <span className='text-sm text-muted-foreground'>
-                  {program?.currency}
-                </span>
+                <span className="text-sm text-muted-foreground">{program?.currency}</span>
               </div>
             </div>
 
@@ -343,17 +342,10 @@ function ApplicationDetails() {
 
           <div className="mb-6 flex items-start gap-3">
             <h2 className="font-bold text-muted-foreground text-sm mb-3">LINKS</h2>
-            <div className=''>
-
-              <p className="text-slate-600 text-sm">
-                https://link.com
-              </p>
-              <p className="text-slate-600 text-sm">
-                https://link.com
-              </p>
-              <p className="text-slate-600 text-sm">
-                https://link.com
-              </p>
+            <div className="">
+              <p className="text-slate-600 text-sm">https://link.com</p>
+              <p className="text-slate-600 text-sm">https://link.com</p>
+              <p className="text-slate-600 text-sm">https://link.com</p>
               {data?.application?.links?.map((l) => (
                 <p className="text-slate-600 text-sm" key={l.url}>
                   {l.url}
@@ -445,7 +437,7 @@ function ApplicationDetails() {
             {data?.application?.milestones?.map((m, idx) => (
               <AccordionItem key={m.id} value={`${m.id}${idx}`}>
                 <AccordionTrigger>
-                  <div className='flex w-full justify-between'>
+                  <div className="flex w-full justify-between">
                     <p>{m.title}</p> <MilestoneStatusBadge milestone={m} />
                   </div>
                 </AccordionTrigger>
@@ -455,18 +447,22 @@ function ApplicationDetails() {
                       {m.status}
                     </Badge>
 
-                    {m.rejectionReason && m.status === MilestoneStatus.Pending && <Tooltip>
-                      <TooltipTrigger><CircleAlert className='text-destructive w-5 h-5' /></TooltipTrigger>
-                      <TooltipContent className='text-destructive flex gap-2 items-start bg-white border shadow-[0px_4px_6px_-1px_#0000001A]'>
-                        <div className='mt-1.5'>
-                          <CircleAlert className='w-4 h-4' />
-                        </div>
-                        <div>
-                          <p className='font-medium text-base mb-1'>Reason for rejection</p>
-                          <p className='text-sm'>{m.rejectionReason}</p>
-                        </div>
-                      </TooltipContent>
-                    </Tooltip>}
+                    {m.rejectionReason && m.status === MilestoneStatus.Pending && (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <CircleAlert className="text-destructive w-5 h-5" />
+                        </TooltipTrigger>
+                        <TooltipContent className="text-destructive flex gap-2 items-start bg-white border shadow-[0px_4px_6px_-1px_#0000001A]">
+                          <div className="mt-1.5">
+                            <CircleAlert className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-base mb-1">Reason for rejection</p>
+                            <p className="text-sm">{m.rejectionReason}</p>
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
 
                     {m.status === MilestoneStatus.Pending &&
                       data?.application?.applicant?.id === userId && (
@@ -482,20 +478,24 @@ function ApplicationDetails() {
                   </div>
                   <h2 className="text-lg font-bold mb-2">Milestone #{idx + 1}</h2>
 
-                  <div className='mb-2'>
-                    <div className='text-muted-foreground inline-flex items-center gap-4 bg-[#0000000A] rounded-md p-1 px-2'>
-                      <p className='font-medium text-sm text-neutral-400'>PRICE</p>
-                      <p><span className='text-primary font-bold text-xl'>{m.percentage}</span> <span>%</span></p>
+                  <div className="mb-2">
+                    <div className="text-muted-foreground inline-flex items-center gap-4 bg-[#0000000A] rounded-md p-1 px-2">
+                      <p className="font-medium text-sm text-neutral-400">PRICE</p>
+                      <p>
+                        <span className="text-primary font-bold text-xl">{m.percentage}</span>{' '}
+                        <span>%</span>
+                      </p>
                     </div>
-
                   </div>
 
-                  <div className='text-muted-foreground inline-flex items-center gap-4 bg-[#0000000A] rounded-md p-2 mb-4'>
-                    <p className='font-medium text-sm text-neutral-400'>DEADLINE</p>
-                    <p className='text-muted-foreground'>{format(
-                      new Date(program?.deadline ?? new Date()),
-                      'dd . MMM . yyyy',
-                    ).toUpperCase()}</p>
+                  <div className="text-muted-foreground inline-flex items-center gap-4 bg-[#0000000A] rounded-md p-2 mb-4">
+                    <p className="font-medium text-sm text-neutral-400">DEADLINE</p>
+                    <p className="text-muted-foreground">
+                      {format(
+                        new Date(program?.deadline ?? new Date()),
+                        'dd . MMM . yyyy',
+                      ).toUpperCase()}
+                    </p>
                   </div>
                   {/* <div className="mb-6">
                     <p className="font-sans font-bold bg-primary-light text-primary leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
@@ -599,7 +599,7 @@ function ApplicationDetails() {
                           disabled={
                             idx !== 0 &&
                             data?.application?.milestones?.[idx - 1]?.status !==
-                            MilestoneStatus.Completed
+                              MilestoneStatus.Completed
                           }
                         >
                           <Button className="h-10 block ml-auto">Submit Milestone</Button>
