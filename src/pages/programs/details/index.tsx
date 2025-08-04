@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { ShareButton } from '@/components/ui/share-button';
 import { Tabs } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
@@ -15,7 +16,7 @@ import CreateApplicationForm from '@/pages/programs/details/_components/create-a
 import { ApplicationStatus } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
-import { Settings, Share2 } from 'lucide-react';
+import { Settings, } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
@@ -83,9 +84,10 @@ const DetailsPage: React.FC = () => {
                   </Button>
                 </Link>
               )}
-              <Button variant="ghost" className="flex gap-2 items-center">
+              <ShareButton />
+              {/* <Button variant="ghost" className="flex gap-2 items-center">
                 Share <Share2 />
-              </Button>
+              </Button> */}
             </div>
           </div>
 

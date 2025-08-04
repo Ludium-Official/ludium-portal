@@ -17,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { mainnetDefaultNetwork } from '@/lib/utils';
+import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { CarouselItemType, type LinkInput } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
@@ -205,7 +206,10 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
       deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
       keywords: selectedKeywords,
       validators: selectedValidators ?? '',
-      links: links.map((l) => ({ title: l, url: l })),
+      links: (() => {
+        const { shouldSend } = validateLinks(links);
+        return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : [];
+      })(),
       network:
         isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
       image: selectedImage,
@@ -222,8 +226,9 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     if (!selectedValidators?.length)
       dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
     if (!deadline) dispatchErrors({ type: ExtraErrorActionKind.SET_DEADLINE_ERROR });
-    if (!links?.[0]) dispatchErrors({ type: ExtraErrorActionKind.SET_LINKS_ERROR });
-    if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
+
+    const { isValid } = validateLinks(links);
+    if (!isValid) {
       dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
     }
 
@@ -486,7 +491,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
 
             <label htmlFor="validator" className="space-y-2 block">
               <p className="text-sm font-medium">
-                Validators <span className="text-primary">*</span>
+                Validator <span className="text-primary">*</span>
               </p>
               {/* <SearchSelect
                 options={validatorOptions ?? []}
@@ -501,7 +506,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 options={validatorOptions ?? []}
                 value={selectedValidators}
                 onValueChange={setSelectedValidators}
-                placeholder="Select validators"
+                placeholder="Select validator"
                 animation={2}
                 maxCount={20}
                 inputValue={validatorInput}
@@ -510,13 +515,14 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
                 setSelectedItems={setSelectedValidatorItems}
                 emptyText="Enter validator email or organization name"
                 loading={loading}
+                singleSelect={true} // TODO: remove this when multi validator flow is implemented
               />
               {extraErrors.validator && (
                 <span className="text-destructive text-sm block">Validator is required</span>
               )}
-              <span className="block text-muted-foreground text-sm">
+              {/* <span className="block text-muted-foreground text-sm">
                 You can invite up to 5 validators.
-              </span>
+              </span> */}
             </label>
           </div>
 
@@ -662,7 +668,10 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
               deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
               keywords: selectedKeywords,
               validators: selectedValidators ?? '',
-              links: links.map((l) => ({ title: l, url: l })),
+              links: (() => {
+                const { shouldSend } = validateLinks(links);
+                return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : [];
+              })(),
               network:
                 isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
               image: selectedImage,

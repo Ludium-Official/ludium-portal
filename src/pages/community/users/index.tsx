@@ -69,6 +69,9 @@ function UsersPage() {
                 <TabsTrigger value="all" className="rounded-xs px-4">
                   All
                 </TabsTrigger>
+                <TabsTrigger value="by-newest" className="rounded-xs px-4">
+                  By Newest
+                </TabsTrigger>
                 <TabsTrigger value="by-projects" className="rounded-xs px-4">
                   By number of projects
                 </TabsTrigger>

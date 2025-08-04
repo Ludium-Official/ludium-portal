@@ -1,9 +1,8 @@
 import { useUserQuery } from '@/apollo/queries/user.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { ShareButton } from '@/components/ui/share-button';
 import { Separator } from '@radix-ui/react-dropdown-menu';
-import { Share2Icon } from 'lucide-react';
 import { Outlet, useParams } from 'react-router';
 import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
 import { platformIcons } from '../agent-utils';
@@ -47,10 +46,11 @@ function UserDetailsPage() {
                   {userData?.user?.summary}
                 </p>
               </div>
-              <Button variant={'outline'} className="h-11">
+              <ShareButton variant='outline' className='h-11' />
+              {/* <Button variant={'outline'} className="h-11">
                 <p className="font-medium text-sm text-gray-dark">Share</p>
                 <Share2Icon />
-              </Button>
+              </Button> */}
             </div>
             <Separator />
             <div className="flex flex-col gap-2 px-6">

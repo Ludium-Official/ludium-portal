@@ -6,6 +6,7 @@ import { usePostsQuery } from '@/apollo/queries/posts.generated';
 import { CommentSection } from '@/components/comment-section';
 import { MarkdownPreviewer } from '@/components/markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ShareButton } from '@/components/ui/share-button';
 
 import { useAuth } from '@/lib/hooks/use-auth';
 import { getInitials, getUserName } from '@/lib/utils';
@@ -137,6 +138,7 @@ const CommunityDetailsPage: React.FC = () => {
                     <Settings className="w-4 h-4" />
                   </Link>
                 )}
+                <ShareButton />
               </div>
 
               <div className="flex justify-between items-center">
