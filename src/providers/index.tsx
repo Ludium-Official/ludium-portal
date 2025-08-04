@@ -1,17 +1,19 @@
-import client from '@/apollo/client';
-import { AuthProvider } from '@/providers/auth-provider';
-import { ApolloProvider } from '@apollo/client';
-import { PrivyProvider } from '@privy-io/react-auth';
-import { SmartWalletsProvider } from '@privy-io/react-auth/smart-wallets';
-import { BrowserRouter } from 'react-router';
+import client from "@/apollo/client";
+import { coreDaoTestnet } from "@/constant/token-address";
+import { AuthProvider } from "@/providers/auth-provider";
+import { ApolloProvider } from "@apollo/client";
+import { PrivyProvider } from "@privy-io/react-auth";
+import { SmartWalletsProvider } from "@privy-io/react-auth/smart-wallets";
+import { BrowserRouter } from "react-router";
 import {
   arbitrum,
   arbitrumSepolia,
   base,
   baseSepolia,
+  coreDao,
   eduChain,
   eduChainTestnet,
-} from 'viem/chains';
+} from "viem/chains";
 
 function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -29,16 +31,18 @@ function Providers({ children }: { children: React.ReactNode }) {
                 eduChainTestnet,
                 arbitrum,
                 arbitrumSepolia,
+                coreDao,
+                coreDaoTestnet,
               ],
               embeddedWallets: {
-                createOnLogin: 'users-without-wallets',
+                createOnLogin: "users-without-wallets",
               },
-              loginMethods: ['farcaster', 'google', 'wallet'],
+              loginMethods: ["farcaster", "google", "wallet"],
               externalWallets: {
                 walletConnect: { enabled: true },
               },
               appearance: {
-                walletList: ['metamask', 'coinbase_wallet'],
+                walletList: ["metamask", "coinbase_wallet"],
               },
             }}
           >

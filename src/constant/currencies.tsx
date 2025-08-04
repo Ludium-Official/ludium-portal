@@ -1,37 +1,50 @@
-import ArbitrumIcon from '@/assets/icons/crypto/arbitrum';
-import BaseIcon from '@/assets/icons/crypto/base';
-import EduIcon from '@/assets/icons/crypto/edu';
+import ArbitrumIcon from "@/assets/icons/crypto/arbitrum";
+import BaseIcon from "@/assets/icons/crypto/base";
+import CoreIcon from "@/assets/icons/crypto/core";
+import EduIcon from "@/assets/icons/crypto/edu";
 
 export const currencies = [
   {
-    code: 'educhain',
+    code: "educhain",
     icon: <EduIcon />,
-    display: 'EDUChain',
+    display: "EDUChain",
     isTestnet: false,
   },
   {
-    code: 'educhain-testnet',
+    code: "educhain-testnet",
     icon: <EduIcon />,
-    display: 'EDUChain Testnet',
+    display: "EDUChain Testnet",
     isTestnet: true,
   },
-  { code: 'base', icon: <BaseIcon />, display: 'Base', isTestnet: false },
+  { code: "base", icon: <BaseIcon />, display: "Base", isTestnet: false },
   {
-    code: 'base-sepolia',
+    code: "base-sepolia",
     icon: <BaseIcon />,
-    display: 'Base Sepolia',
+    display: "Base Sepolia",
     isTestnet: true,
   },
   {
-    code: 'arbitrum',
+    code: "arbitrum",
     icon: <ArbitrumIcon />,
-    display: 'Arbitrum',
+    display: "Arbitrum",
     isTestnet: false,
   },
   {
-    code: 'arbitrum-sepolia',
+    code: "arbitrum-sepolia",
     icon: <ArbitrumIcon />,
-    display: 'Arbitrum Sepolia',
+    display: "Arbitrum Sepolia",
+    isTestnet: true,
+  },
+  {
+    code: "coredao",
+    icon: <CoreIcon />,
+    display: "CoreDAO",
+    isTestnet: false,
+  },
+  {
+    code: "coredao-testnet",
+    icon: <CoreIcon />,
+    display: "CoreDAO Testnet",
     isTestnet: true,
   },
 ];

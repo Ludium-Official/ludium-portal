@@ -1,32 +1,37 @@
-import EduIcon from '@/assets/icons/crypto/edu';
-import EthIcon from '@/assets/icons/crypto/eth';
-import UsdcIcon from '@/assets/icons/crypto/usdc';
-import UsdtIcon from '@/assets/icons/crypto/usdt';
-import { Button } from '@/components/ui/button';
+import CoreIcon from "@/assets/icons/crypto/core";
+import EduIcon from "@/assets/icons/crypto/edu";
+import EthIcon from "@/assets/icons/crypto/eth";
+import UsdcIcon from "@/assets/icons/crypto/usdc";
+import UsdtIcon from "@/assets/icons/crypto/usdt";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useEffect, useMemo, useState } from 'react';
+} from "@/components/ui/dropdown-menu";
+import { useEffect, useMemo, useState } from "react";
 
 export const eduCurrencies = [
-  { code: 'EDU', icon: <EduIcon /> },
-  { code: 'USDT', icon: <UsdtIcon /> },
-  { code: 'USDC', icon: <UsdcIcon /> },
+  { code: "EDU", icon: <EduIcon /> },
+  { code: "USDT", icon: <UsdtIcon /> },
+  { code: "USDC", icon: <UsdcIcon /> },
 ];
 
 export const baseCurrencies = [
-  { code: 'ETH', icon: <EthIcon /> },
-  { code: 'USDT', icon: <UsdtIcon /> },
-  { code: 'USDC', icon: <UsdcIcon /> },
+  { code: "ETH", icon: <EthIcon /> },
+  { code: "USDT", icon: <UsdtIcon /> },
+  { code: "USDC", icon: <UsdcIcon /> },
 ];
 
 export const arbitrumCurrencies = [
-  { code: 'ETH', icon: <EthIcon /> },
-  { code: 'USDT', icon: <UsdtIcon /> },
-  { code: 'USDC', icon: <UsdcIcon /> },
+  { code: "ETH", icon: <EthIcon /> },
+  { code: "USDT", icon: <UsdtIcon /> },
+  { code: "USDC", icon: <UsdcIcon /> },
+];
+export const coredaoCurrencies = [{ code: "CORE", icon: <CoreIcon /> }];
+export const coredaoTestnetCurrencies = [
+  { code: "tCORE2", icon: <CoreIcon /> },
 ];
 
 function CurrencySelector({
@@ -42,13 +47,17 @@ function CurrencySelector({
   network: string;
   disabled?: boolean;
 }) {
-  const [selectedCurrency, setSelectedCurrency] = useState(value ?? '');
+  const [selectedCurrency, setSelectedCurrency] = useState(value ?? "");
 
   const displayCurrencies = useMemo(() => {
-    if (network === 'base' || network === 'base-sepolia') {
+    if (network === "base" || network === "base-sepolia") {
       return baseCurrencies;
-    } else if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
+    } else if (network === "arbitrum" || network === "arbitrum-sepolia") {
       return arbitrumCurrencies;
+    } else if (network === "coredao") {
+      return coredaoCurrencies;
+    } else if (network === "coredao-testnet") {
+      return coredaoTestnetCurrencies;
     }
 
     return eduCurrencies;
@@ -62,7 +71,9 @@ function CurrencySelector({
     setSelectedCurrency(displayCurrencies[0].code);
   }, [displayCurrencies]);
 
-  const currWithIcon = displayCurrencies.find((c) => c.code === selectedCurrency);
+  const currWithIcon = displayCurrencies.find(
+    (c) => c.code === selectedCurrency
+  );
 
   return (
     <DropdownMenu>
@@ -73,7 +84,10 @@ function CurrencySelector({
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         {displayCurrencies.map((c) => (
-          <DropdownMenuItem onClick={() => setSelectedCurrency(c.code)} key={c.code}>
+          <DropdownMenuItem
+            onClick={() => setSelectedCurrency(c.code)}
+            key={c.code}
+          >
             {c.icon} {c.code}
           </DropdownMenuItem>
         ))}

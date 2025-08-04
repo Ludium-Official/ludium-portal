@@ -1,16 +1,22 @@
-import { type ConnectedWallet, usePrivy, useWallets } from '@privy-io/react-auth';
-import { ethers } from 'ethers';
-import type { Chain, PublicClient } from 'viem';
-import { http, createPublicClient } from 'viem';
+import { coreDaoTestnet } from "@/constant/token-address";
+import {
+  type ConnectedWallet,
+  usePrivy,
+  useWallets,
+} from "@privy-io/react-auth";
+import { ethers } from "ethers";
+import type { Chain, PublicClient } from "viem";
+import { createPublicClient, http } from "viem";
 import {
   arbitrum,
   arbitrumSepolia,
   base,
   baseSepolia,
+  coreDao,
   eduChain,
   eduChainTestnet,
-} from 'viem/chains';
-import ChainContract from '../contract';
+} from "viem/chains";
+import ChainContract from "../contract";
 
 async function getSigner(checkNetwork: Chain, currentWallet: ConnectedWallet) {
   const eip1193Provider = await currentWallet.getEthereumProvider();
@@ -24,12 +30,12 @@ async function getSigner(checkNetwork: Chain, currentWallet: ConnectedWallet) {
     nativeCurrency: checkNetwork.nativeCurrency,
   };
   const currentChainId = await eip1193Provider.request({
-    method: 'eth_chainId',
+    method: "eth_chainId",
   });
 
   if (currentChainId !== targetNetwork.chainId) {
     await eip1193Provider.request({
-      method: 'wallet_addEthereumChain',
+      method: "wallet_addEthereumChain",
       params: [targetNetwork],
     });
   }
@@ -41,26 +47,28 @@ export function useContract(network: string) {
   const { user, sendTransaction } = usePrivy();
 
   const { wallets } = useWallets();
-  const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
+  const currentWallet = wallets.find(
+    (wallet) => wallet.address === user?.wallet?.address
+  );
 
-  const injectedWallet = user?.wallet?.connectorType !== 'embedded';
+  const injectedWallet = user?.wallet?.connectorType !== "embedded";
   let sendTx = sendTransaction;
 
   const checkNetwork: Chain = (() => {
-    if (network === 'base') {
+    if (network === "base") {
       return base;
-    }
-    if (network === 'base-sepolia') {
+    } else if (network === "base-sepolia") {
       return baseSepolia;
-    }
-    if (network === 'educhain-testnet') {
+    } else if (network === "educhain-testnet") {
       return eduChainTestnet;
-    }
-    if (network === 'arbitrum') {
+    } else if (network === "arbitrum") {
       return arbitrum;
-    }
-    if (network === 'arbitrum-sepolia') {
+    } else if (network === "arbitrum-sepolia") {
       return arbitrumSepolia;
+    } else if (network === "coredao") {
+      return coreDao;
+    } else if (network === "coredao-testnet") {
+      return coreDaoTestnet;
     }
 
     return eduChain;
@@ -75,11 +83,12 @@ export function useContract(network: string) {
   }
 
   const checkContract = (() => {
-    if (network === 'base' || network === 'base-sepolia') {
+    if (network === "base" || network === "base-sepolia") {
       return import.meta.env.VITE_BASE_CONTRACT_ADDRESS;
-    }
-    if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
+    } else if (network === "arbitrum" || network === "arbitrum-sepolia") {
       return import.meta.env.VITE_ARBITRUM_CONTRACT_ADDRESS;
+    } else if (network === "coredao" || network === "coredao-testnet") {
+      return import.meta.env.VITE_COREDAO_CONTRACT_ADDRESS;
     }
 
     return import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS;
@@ -91,7 +100,12 @@ export function useContract(network: string) {
     transport: http(checkNetwork.rpcUrls.default.http[0]),
   });
 
-  const callContract = new ChainContract(checkContract, checkNetwork.id, sendTx, client);
+  const callContract = new ChainContract(
+    checkContract,
+    checkNetwork.id,
+    sendTx,
+    client
+  );
 
   return callContract;
 }
