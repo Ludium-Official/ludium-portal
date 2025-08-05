@@ -1,26 +1,22 @@
 import { useCreateCarouselItemMutation } from '@/apollo/mutation/create-carousel-item.generated';
 import { useCarouselItemsQuery } from '@/apollo/queries/carousel-items.generated';
-import { useKeywordsQuery } from '@/apollo/queries/keywords.generated';
 import { usePostQuery } from '@/apollo/queries/post.generated';
 import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
-// import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { MultiSelect } from '@/components/ui/multi-select';
 import { CarouselItemType } from '@/types/types.generated';
-import { useEffect, useReducer, useState } from 'react';
+import { Image as ImageIcon, Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
 
 export type OnSubmitPostFunc = (data: {
   id?: string;
   title: string;
-  summary: string;
+  summary?: string;
   content: string;
-  keywords: string[];
+  keywords?: string[];
   image: File | undefined;
-  isBanner?: boolean;
 }) => void;
 
 export interface PostFormProps {
@@ -30,8 +26,6 @@ export interface PostFormProps {
 
 function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
   const { id } = useParams();
-
-  // const [isBanner, setIsBanner] = useState<boolean>();
 
   const { data: carouselItems, refetch } = useCarouselItemsQuery();
 
@@ -45,29 +39,14 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
   });
 
   const [content, setContent] = useState<string>('');
+  const [selectedImage, setSelectedImage] = useState<File>();
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (data?.post?.content) {
       setContent(data?.post?.content);
     }
-  }, [data]);
-
-  const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
-  const [selectedImage, setSelectedImage] = useState<File>();
-
-  const { data: keywords } = useKeywordsQuery();
-  const [extraErrors, dispatchErrors] = useReducer(extraErrorReducer, {
-    keyword: false,
-  });
-
-  const keywordOptions = keywords?.keywords?.map((k) => ({
-    value: k.id ?? '',
-    label: k.name ?? '',
-  }));
-
-  useEffect(() => {
-    if (data?.post?.keywords)
-      setSelectedKeywords(data?.post?.keywords?.map((k) => k.id ?? '') ?? []);
   }, [data]);
 
   const {
@@ -77,105 +56,138 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
   } = useForm({
     values: {
       title: data?.post?.title ?? '',
-      summary: data?.post?.summary ?? '',
     },
   });
 
-  const onSubmit = (submitData: {
-    title: string;
-    summary: string;
-  }) => {
-    if (extraErrors.keyword) return;
+  // Image validation handler
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImageError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate type
+    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+      setImageError('Only PNG, JPG, or JPEG files are allowed.');
+      setSelectedImage(undefined);
+      setImagePreview(null);
+      return;
+    }
+
+    // Validate size (4MB for community posts)
+    if (file.size > 4 * 1024 * 1024) {
+      setImageError('Image must be under 4MB.');
+      setSelectedImage(undefined);
+      setImagePreview(null);
+      return;
+    }
+
+    // Validate aspect ratio (16:9)
+    const img = new window.Image();
+    img.onload = () => {
+      const aspectRatio = img.width / img.height;
+      const targetRatio = 16 / 9;
+      const tolerance = 0.1; // Allow some tolerance
+
+      if (Math.abs(aspectRatio - targetRatio) > tolerance) {
+        setImageError('Image must be 16:9 aspect ratio.');
+        setSelectedImage(undefined);
+        setImagePreview(null);
+      } else {
+        setSelectedImage(file);
+        setImagePreview(URL.createObjectURL(file));
+      }
+    };
+    img.onerror = () => {
+      setImageError('Invalid image file.');
+      setSelectedImage(undefined);
+      setImagePreview(null);
+    };
+    img.src = URL.createObjectURL(file);
+  };
+
+  const onSubmit = (submitData: { title: string }) => {
     if (!content.length) return;
 
     onSubmitPost({
       id: data?.post?.id ?? id,
       title: submitData.title,
-      summary: submitData.summary,
       content,
-      keywords: selectedKeywords,
       image: selectedImage,
-      // isBanner,
     });
   };
 
-  const extraValidation = () => {
-    dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
-    if (!selectedKeywords?.length)
-      dispatchErrors({ type: ExtraErrorActionKind.SET_KEYWORDS_ERROR });
-  };
-
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <h1 className="font-medium text-xl mb-6">{isEdit ? 'Edit Post' : 'Create Post'}</h1>
+    <form onSubmit={handleSubmit(onSubmit)} className="max-w-[820px] w-full mx-auto">
+      <h1 className="font-medium text-xl mb-6">{isEdit ? 'Edit Community' : 'Create Community'}</h1>
 
-      <label htmlFor="title" className="space-y-2 block mb-10">
-        <p className="text-sm font-medium">Post title</p>
-        <Input
-          id="title"
-          type="text"
-          placeholder="Type title"
-          className="h-10"
-          {...register('title', { required: true })}
-        />
-        {errors.title && <span className="text-red-400 text-sm block">Title is required</span>}
-      </label>
-
-      <label htmlFor="keyword" className="space-y-2 block mb-10">
-        <p className="text-sm font-medium">Keywords</p>
-        <MultiSelect
-          options={keywordOptions ?? []}
-          value={selectedKeywords}
-          onValueChange={setSelectedKeywords}
-          placeholder="Select keywords"
-          animation={2}
-          maxCount={3}
-        />
-        {extraErrors.keyword && (
-          <span className="text-red-400 text-sm block">Keywords is required</span>
-        )}
-      </label>
-
-      <label htmlFor="summary" className="space-y-2 block mb-10">
-        <p className="text-sm font-medium">Summary</p>
-        <Input
-          id="summary"
-          type="text"
-          placeholder="Type title"
-          className="h-10"
-          {...register('summary', { required: true })}
-        />
-        {errors.title && <span className="text-red-400 text-sm block">Summary is required</span>}
-      </label>
-
-      <label htmlFor="content" className="space-y-2 block mb-10">
-        <p className="text-sm font-medium">Content</p>
-
-        <MarkdownEditor onChange={setContent} content={content} />
-
-        {!content.length && <span className="text-red-400 text-sm block">Content is required</span>}
-      </label>
-
-      <label htmlFor="image" className="space-y-2 block mb-10">
-        <div className="grid w-full max-w-sm items-center gap-1.5">
-          <Label htmlFor="picture">Picture</Label>
-          <Input id="picture" type="file" onChange={(e) => setSelectedImage(e.target.files?.[0])} />
-        </div>
-      </label>
-
-      {/* <div className="flex items-center space-x-2">
-        <Checkbox
-          id="isBanner"
-          checked={isBanner}
-          onCheckedChange={(value) => setIsBanner(value === 'indeterminate' ? undefined : value)}
-        />
-        <label
-          htmlFor="isBanner"
-          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-        >
-          Set post as main banner
+      <section className="bg-white py-8 px-10 rounded-lg mb-2">
+        <label htmlFor="title" className="space-y-2 block mb-10">
+          <p className="text-sm font-medium">
+            Title <span className="text-primary">*</span>
+          </p>
+          <Input
+            id="title"
+            type="text"
+            placeholder="Placeholder"
+            className="h-10"
+            {...register('title', { required: true })}
+          />
+          {errors.title && (
+            <span className="text-destructive text-sm block">Title is required</span>
+          )}
         </label>
-      </div> */}
+
+        <label htmlFor="image" className="space-y-2 block">
+          <div className="flex items-start gap-6">
+            {/* Image input with preview/placeholder */}
+            <div className="relative w-[320px] h-[180px] flex items-center justify-center bg-[#eaeaea] rounded-lg overflow-hidden group">
+              <input
+                id="picture"
+                type="file"
+                accept="image/png, image/jpeg, image/jpg"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                onChange={handleImageChange}
+              />
+              {imagePreview ? (
+                <img src={imagePreview} alt="Preview" className="object-cover w-full h-full" />
+              ) : (
+                <div className="flex flex-col items-center justify-center w-full h-full">
+                  <ImageIcon className="w-10 h-10 text-[#666666] mb-2" />
+                </div>
+              )}
+              <div className="absolute bottom-0 right-0 bg-black/80 rounded-md w-10 h-10 flex justify-center items-center">
+                <Plus className="w-5 h-5 text-white" />
+              </div>
+            </div>
+            {/* Text info */}
+            <div className="flex-1">
+              <p className="font-medium text-base">
+                Cover image <span className="text-primary">*</span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Cover image must be 16:9, under 4MB, and in PNG, JPG, or JPEG format.
+                <br />
+                This image is used in the community list
+              </p>
+              {imageError && (
+                <span className="text-destructive text-sm block mt-2">{imageError}</span>
+              )}
+            </div>
+          </div>
+        </label>
+      </section>
+
+      <section className="bg-white py-8 px-10 rounded-lg">
+        <label htmlFor="content" className="space-y-2 block mb-10">
+          <p className="text-sm font-medium">
+            Description <span className="text-primary">*</span>
+          </p>
+          <MarkdownEditor onChange={setContent} content={content} />
+          {!content.length && (
+            <span className="text-destructive text-sm block">Description is required</span>
+          )}
+        </label>
+      </section>
 
       {isEdit && (
         <Button
@@ -204,25 +216,13 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
 
       {isEdit ? (
         <div className="px-[32px] py-3 flex justify-end gap-4">
-          <Button
-            variant="purple"
-            className="min-w-[177px]"
-            type="submit"
-            onClick={() => {
-              extraValidation();
-            }}
-          >
+          <Button variant="purple" className="min-w-[177px]" type="submit">
             Edit Post
           </Button>
         </div>
       ) : (
         <div className="py-3 flex justify-end gap-4">
-          <Button
-            className="min-w-[97px]"
-            onClick={() => {
-              extraValidation();
-            }}
-          >
+          <Button className="min-w-[97px]" type="submit">
             Save
           </Button>
         </div>
@@ -232,34 +232,3 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
 }
 
 export default PostForm;
-
-enum ExtraErrorActionKind {
-  SET_KEYWORDS_ERROR = 'SET_KEYWORDS_ERROR',
-  CLEAR_ERRORS = 'CLEAR_ERRORS',
-}
-
-interface ExtraErrorAction {
-  type: ExtraErrorActionKind;
-}
-
-interface ExtraErrorState {
-  keyword: boolean;
-}
-
-function extraErrorReducer(state: ExtraErrorState, action: ExtraErrorAction) {
-  const { type } = action;
-  switch (type) {
-    case ExtraErrorActionKind.SET_KEYWORDS_ERROR:
-      return {
-        ...state,
-        keyword: true,
-      };
-    case ExtraErrorActionKind.CLEAR_ERRORS:
-      return {
-        ...state,
-        keyword: false,
-      };
-    default:
-      return state;
-  }
-}

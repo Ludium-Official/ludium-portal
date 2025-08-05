@@ -34,10 +34,15 @@ function Layout() {
           ) : (
             <>
               <Sidebar />
-              <ScrollArea className="bg-gray-light h-[calc(100dvh-24px)] rounded-2xl m-3 ml-[240px] flex flex-col gap-3">
-                <div>
+              <ScrollArea
+                id="scroll-area-main"
+                className="bg-gray-light h-[calc(100dvh-24px)] rounded-2xl m-3 ml-[240px] flex flex-col gap-3 relative"
+              >
+                <div className="relative">
                   <Header />
-                  <Outlet />
+                  <div className="pt-20 pb-3 rounded-2xl overflow-hidden">
+                    <Outlet />
+                  </div>
                 </div>
 
                 {/* <main className="bg-white h-[calc(100dvh-24px)] overflow-y-auto rounded-2xl m-3 ml-[240px]">

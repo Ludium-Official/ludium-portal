@@ -13,7 +13,7 @@ function ProgramCard({ program }: { program: Program }) {
   // const badgeVariants = ['teal', 'orange', 'pink'];
 
   return (
-    <div className="block w-full border border-gray-border rounded-[20px] px-10 pt-8 pb-6">
+    <div className="block w-full border border-gray-border rounded-lg p-5">
       <div className="flex justify-between mb-2">
         <div className="flex gap-2 mb-1">
           {keywords?.slice(0, 3)?.map((k) => (
@@ -27,9 +27,6 @@ function ProgramCard({ program }: { program: Program }) {
           )}
         </div>
         <div className="font-medium flex gap-2 items-center text-sm">
-          {/* <span className='block px-2.5 py-0.5'>
-            {formatProgramStatus(program)}
-          </span> */}
           <ProgramStatusBadge program={program} />
           {isSponsor && (
             <Link to={`/programs/${program?.id}/edit`}>
@@ -46,7 +43,7 @@ function ProgramCard({ program }: { program: Program }) {
           <div className="w-[104px] h-[104px] bg-slate-200 rounded-md " />
         )}
         <div className="flex flex-col justify-between">
-          <h2 className="text-lg font-bold">{name}</h2>
+          <h2 className="text-lg font-bold text-[#18181B]">{name}</h2>
           <div className="inline-flex self-start text-sm bg-secondary py-1 px-2 items-center rounded-md">
             <span className="text-neutral-400 mr-3">PRICE</span>{' '}
             <span className="flex items-center text-muted-foreground gap-1 font-medium">
@@ -61,12 +58,23 @@ function ProgramCard({ program }: { program: Program }) {
             <span className="font-medium text-muted-foreground">
               {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
             </span>
+            {program?.deadline &&
+              (() => {
+                const deadlineDate = new Date(program.deadline);
+                const today = new Date();
+                // Zero out the time for both dates to get full days difference
+                deadlineDate.setHours(0, 0, 0, 0);
+                today.setHours(0, 0, 0, 0);
+                const diffTime = deadlineDate.getTime() - today.getTime();
+                const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                return <Badge className="ml-2">D{daysRemaining}</Badge>;
+              })()}
           </div>
         </div>
       </Link>
 
       <div className="mb-6">
-        <p className="text-foreground text-sm font-normal leading-5 line-clamp-2">{summary}</p>
+        <p className="text-slate-500 text-sm font-normal leading-5 line-clamp-2">{summary}</p>
       </div>
 
       <div className="flex justify-between">

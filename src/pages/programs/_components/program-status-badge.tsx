@@ -26,14 +26,14 @@ function ProgramStatusBadge({
       statusColor = <span className="bg-blue-400 w-[14px] h-[14px] rounded-full block" />;
       break;
     case ProgramStatus.Published:
-      statusColor = <span className="bg-teal-400 w-[14px] h-[14px] rounded-full block" />;
+      statusColor = <span className="bg-cyan-400 w-[14px] h-[14px] rounded-full block" />;
       break;
   }
 
   return (
     <span
       className={cn(
-        'flex items-center gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm',
+        'flex items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm',
         className,
       )}
     >

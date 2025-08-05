@@ -5,6 +5,7 @@ query post($id: ID!) {
     content
     image
     summary
+    viewCount
     keywords {
       id
       name

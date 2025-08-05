@@ -13,7 +13,7 @@ import { useNavigate } from 'react-router';
 
 const CreateProgram: React.FC = () => {
   const navigate = useNavigate();
-  const [createProgram] = useCreateProgramMutation();
+  const [createProgram, { loading }] = useCreateProgramMutation();
 
   const [assignValidatorToProgram] = useAssignValidatorToProgramMutation();
   const [inviteUserToProgram] = useInviteUserToProgramMutation();
@@ -88,7 +88,7 @@ const CreateProgram: React.FC = () => {
 
   return (
     <div className="w-full bg-[#f7f7f7] p-10 pr-[55px]" defaultValue="edit">
-      <ProgramForm isEdit={false} onSubmitProgram={onSubmit} />
+      <ProgramForm isEdit={false} onSubmitProgram={onSubmit} createLoading={loading} />
     </div>
   );
 };

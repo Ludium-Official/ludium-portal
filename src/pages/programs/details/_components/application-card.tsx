@@ -1,113 +1,119 @@
-import { useAcceptApplicationMutation } from '@/apollo/mutation/accept-application.generated';
-// import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
-import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { getUserName } from '@/lib/utils';
+import { cn, getCurrency, getUserName } from '@/lib/utils';
 import RejectApplicationForm from '@/pages/programs/details/_components/reject-application-form';
-import type { Application } from '@/types/types.generated';
+import { type Application, ApplicationStatus, type Program } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
-import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
 
 function ApplicationCard({
   application,
+  program,
   refetch,
-  hideSeeDetails,
   hideControls,
 }: {
   application?: Application | null;
+  program?: Program | null;
   refetch?: () => void;
-  hideSeeDetails?: boolean | null;
   hideControls?: boolean | null;
 }) {
-  const [approveApplication] = useAcceptApplicationMutation();
-  // const [denyApplication] = useRejectApplicationMutation();
+  const totalPrice = application?.milestones
+    ?.reduce((prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)), BigNumber(0, 10))
+    .toFixed();
+
+  const currency = application?.milestones?.[0]?.currency || program?.currency || 'USDT';
+  const network = program?.network || 'Arbitrum';
 
   return (
-    <div className="border rounded-xl p-6">
-      <header className="flex justify-between mb-4">
-        <Badge>{application?.status}</Badge>
-        {!hideSeeDetails && (
-          <Link to={`./application/${application?.id}`} className="flex items-center gap-2 text-sm">
+    <Link to={`./application/${application?.id}`} className="border rounded-lg p-5 bg-white">
+      {/* Status Badge */}
+      <div className="flex justify-between items-start mb-3">
+        <span
+          className={cn(
+            'flex items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm',
+          )}
+        >
+          {application?.status === ApplicationStatus.Accepted ? (
+            <span className="bg-cyan-400 w-[14px] h-[14px] rounded-full block" />
+          ) : application?.status === ApplicationStatus.Rejected ? (
+            <span className="bg-red-400 w-[14px] h-[14px] rounded-full block" />
+          ) : (
+            <span className="bg-gray-400 w-[14px] h-[14px] rounded-full block" />
+          )}
+          {application?.status
+            ? application.status.charAt(0).toUpperCase() + application.status.slice(1)
+            : 'Not confirmed'}
+        </span>
+        {/* {!hideSeeDetails && (
+          <Link to={`./application/${application?.id}`} className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800">
             See details <ArrowRight className="w-4 h-4" />
           </Link>
-        )}
-      </header>
-      <div className="flex gap-4 items-center mb-2">
-        <div className="w-10 h-10 bg-slate-400 rounded-full" />
-        <Link
-          className="text-lg font-bold hover:underline"
-          to={`/users/${application?.applicant?.id}`}
-        >
-          {application?.applicant?.organizationName ?? getUserName(application?.applicant)}
-        </Link>
+        )} */}
       </div>
-      <div className="mb-6">
-        <span className="text-xs text-muted-foreground">
-          {application?.milestones
-            ?.reduce((prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)), BigNumber(0, 10))
-            .toFixed()}{' '}
-          {application?.milestones?.[0]?.currency}
-        </span>
-      </div>
-      <div className="flex justify-between">
-        <div>
-          <h4 className="text-sm font-bold mb-1">Application</h4>
-          <p className="truncate max-w-[600px] text-sm">{application?.name}</p>
+
+      {/* Builder Info and Price */}
+      <div className="flex flex-col gap-3 mb-4">
+        {/* Builder Info */}
+        <div className="flex items-center gap-2">
+          <Avatar className="w-8 h-8">
+            <AvatarImage
+              src={application?.applicant?.image || ''}
+              alt={getUserName(application?.applicant)}
+            />
+            <AvatarFallback className="text-xs font-medium text-slate-600">
+              {getUserName(application?.applicant)?.charAt(0).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          <Link
+            className="text-sm font-bold text-slate-900 hover:underline"
+            to={`/users/${application?.applicant?.id}`}
+          >
+            {application?.applicant?.organizationName ?? getUserName(application?.applicant)}
+          </Link>
         </div>
-        {!hideControls && (
-          <div className="gap-3 flex">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button onClick={(e) => e.stopPropagation()} className="h-10" variant="outline">
-                  Reject
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
-                <RejectApplicationForm
-                  applicationId={application?.id}
-                  refetch={() => {
-                    refetch?.();
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
-            {/* <Button
-              className="h-10"
-              variant="outline"
-              onClick={() => {
-                denyApplication({
-                  variables: {
-                    id: application?.id ?? '',
-                  },
-                  onCompleted: () => {
-                    refetch?.();
-                  },
-                });
-              }}
-            >
-              Deny
-            </Button> */}
-            <Button
-              className="h-10"
-              onClick={() => {
-                approveApplication({
-                  variables: {
-                    id: application?.id ?? '',
-                  },
-                  onCompleted: () => {
-                    refetch?.();
-                  },
-                });
-              }}
-            >
-              Select
-            </Button>
+
+        {/* Price Tag */}
+        <div className="bg-[#0000000A] rounded-md px-2 py-1 inline-flex items-center gap-3 w-fit">
+          <span className="text-xs text-neutral-400 font-semibold">PRICE</span>
+          <div className="flex items-center gap-1">
+            <span className="text-sm font-bold text-muted-foreground">{totalPrice}</span>
+            {getCurrency(program?.network)?.icon}
+            <span className="text-sm font-medium text-muted-foreground">{currency}</span>
           </div>
-        )}
+          <div className="w-px h-5 bg-slate-200" />
+          <span className="text-sm font-medium text-muted-foreground">{network}</span>
+        </div>
       </div>
-    </div>
+
+      {/* Description */}
+      <div className="">
+        <p className="text-sm text-slate-900 leading-relaxed line-clamp-2">
+          {application?.name || 'No description available'}
+        </p>
+      </div>
+
+      {/* Controls */}
+      {!hideControls && (
+        <div className="flex justify-end gap-3">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button onClick={(e) => e.stopPropagation()} className="h-10" variant="outline">
+                Reject
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
+              <RejectApplicationForm
+                applicationId={application?.id}
+                refetch={() => {
+                  refetch?.();
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
+    </Link>
   );
 }
 

@@ -164,7 +164,7 @@ export type CreateProgramInput = {
   fundingEndDate?: InputMaybe<Scalars['Date']['input']>;
   fundingStartDate?: InputMaybe<Scalars['Date']['input']>;
   image?: InputMaybe<Scalars['Upload']['input']>;
-  keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
+  keywords?: InputMaybe<Array<Scalars['String']['input']>>;
   links?: InputMaybe<Array<LinkInput>>;
   maxFundingAmount?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
@@ -285,6 +285,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   acceptApplication?: Maybe<Application>;
   acceptProgram?: Maybe<Program>;
+  addProgramKeyword?: Maybe<Keyword>;
   assignUserTier?: Maybe<UserTierAssignment>;
   assignValidatorToProgram?: Maybe<Program>;
   checkMilestone?: Maybe<Milestone>;
@@ -298,6 +299,8 @@ export type Mutation = {
   deleteCarouselItem?: Maybe<CarouselItem>;
   deleteProgram?: Maybe<Scalars['Boolean']['output']>;
   deleteUser?: Maybe<User>;
+  /** Increment view count for a post and return the new count */
+  incrementPostView?: Maybe<Scalars['Int']['output']>;
   inviteUserToProgram?: Maybe<Program>;
   login?: Maybe<Scalars['String']['output']>;
   markAllNotificationsAsRead?: Maybe<Scalars['Boolean']['output']>;
@@ -306,6 +309,7 @@ export type Mutation = {
   reclaimInvestment?: Maybe<Investment>;
   rejectApplication?: Maybe<Application>;
   rejectProgram?: Maybe<Program>;
+  removeProgramKeyword?: Maybe<Scalars['Boolean']['output']>;
   removeUserTier?: Maybe<Scalars['Boolean']['output']>;
   removeValidatorFromProgram?: Maybe<Program>;
   reorderCarouselItems?: Maybe<Array<CarouselItem>>;
@@ -329,6 +333,12 @@ export type MutationAcceptApplicationArgs = {
 
 export type MutationAcceptProgramArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationAddProgramKeywordArgs = {
+  keyword: Scalars['String']['input'];
+  programId: Scalars['ID']['input'];
 };
 
 
@@ -398,6 +408,11 @@ export type MutationDeleteUserArgs = {
 };
 
 
+export type MutationIncrementPostViewArgs = {
+  postId: Scalars['ID']['input'];
+};
+
+
 export type MutationInviteUserToProgramArgs = {
   programId: Scalars['ID']['input'];
   userId: Scalars['ID']['input'];
@@ -435,6 +450,12 @@ export type MutationRejectApplicationArgs = {
 export type MutationRejectProgramArgs = {
   id: Scalars['ID']['input'];
   rejectionReason?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationRemoveProgramKeywordArgs = {
+  keyword: Scalars['String']['input'];
+  programId: Scalars['ID']['input'];
 };
 
 
@@ -609,6 +630,7 @@ export type Post = {
   keywords?: Maybe<Array<Keyword>>;
   summary?: Maybe<Scalars['String']['output']>;
   title?: Maybe<Scalars['String']['output']>;
+  viewCount?: Maybe<Scalars['Int']['output']>;
 };
 
 export type ProcessPayoutsInput = {
@@ -924,7 +946,7 @@ export type UpdateProgramInput = {
   fundingStartDate?: InputMaybe<Scalars['Date']['input']>;
   id: Scalars['ID']['input'];
   image?: InputMaybe<Scalars['Upload']['input']>;
-  keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
+  keywords?: InputMaybe<Array<Scalars['String']['input']>>;
   links?: InputMaybe<Array<LinkInput>>;
   maxFundingAmount?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;

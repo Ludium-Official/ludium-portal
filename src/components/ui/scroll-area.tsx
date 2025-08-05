@@ -5,22 +5,25 @@ import { cn } from '@/lib/utils';
 function ScrollArea({
   className,
   children,
+  id,
   ...props
 }: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
       className={cn('relative', className)}
+      id={id ? `${id}-root` : undefined}
       {...props}
     >
       <ScrollAreaPrimitive.Viewport
+        id={id ? `${id}-viewport` : undefined}
         data-slot="scroll-area-viewport"
         className="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
-      <ScrollBar />
-      <ScrollAreaPrimitive.Corner />
+      <ScrollBar className="z-10" />
+      <ScrollAreaPrimitive.Corner className="z-10" />
     </ScrollAreaPrimitive.Root>
   );
 }

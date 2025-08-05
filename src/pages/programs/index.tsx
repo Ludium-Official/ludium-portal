@@ -7,14 +7,14 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import ProgramCard from '@/pages/programs/_components/program-card';
 import { ProgramType, SortEnum } from '@/types/types.generated';
-import { CirclePlus, ListFilter, Search } from 'lucide-react';
+import { CirclePlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 
 const PageSize = 12;
 
 const ProgramsPage: React.FC = () => {
-  const [selectedTab, setSelectedTab] = useState('all');
+  const [selectedTab, setSelectedTab] = useState('newest');
 
   const { isLoggedIn, isAuthed, userId } = useAuth();
 
@@ -79,30 +79,22 @@ const ProgramsPage: React.FC = () => {
   const totalCount = data?.programs?.count ?? 0;
 
   return (
-    <div>
-      {/* Header */}
-      <div className="bg-white">
-        <div className="w-full mx-auto px-10 py-9">
-          <h1 className="text-3xl font-bold text-gray-900">Recruitment</h1>
+    <div className="bg-white rounded-2xl p-10 pr-[55px]">
+      <div className="max-w-1440 mx-auto">
+        <div className="flex justify-between items-center pb-4">
+          <h1 className="text-3xl font-bold">Recruitment</h1>
         </div>
-      </div>
-
-      <Tabs
-        className="p-10 pt-0 pr-[55px] bg-white rounded-b-2xl"
-        value={selectedTab}
-        onValueChange={setSelectedTab}
-      >
-        <section className="flex justify-between items-center mb-3">
-          <TabsList className="">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="my-programs">My programs</TabsTrigger>
-            <TabsTrigger value="published">Published</TabsTrigger>
-          </TabsList>
-          <div className="h-10 flex items-center gap-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+          <section className="flex justify-between items-center py-[14px]">
+            <TabsList className="">
+              <TabsTrigger value="newest">Newest</TabsTrigger>
+              <TabsTrigger value="imminent">Imminent</TabsTrigger>
+              <TabsTrigger value="my-programs">My programs</TabsTrigger>
+              <TabsTrigger value="completed">Completed</TabsTrigger>
+            </TabsList>
+            <div className="h-10 flex items-center gap-3">
               <Input
-                className="pl-10 w-90 h-10 bg-gray-50 border-gray-200 focus:border-gray-300"
+                className="h-full w-[432px]"
                 placeholder="Search..."
                 value={searchParams.get('search') ?? ''}
                 onChange={(e) => {
@@ -113,38 +105,35 @@ const ProgramsPage: React.FC = () => {
                   setSearchParams(newSP);
                 }}
               />
+
+              {isLoggedIn && (
+                <Button
+                  className="rounded-[6px] gap-2 px-3"
+                  onClick={() => {
+                    if (!isAuthed) {
+                      notify('Please add your email', 'success');
+                      navigate('/profile/edit');
+                      return;
+                    }
+
+                    navigate('create');
+                  }}
+                >
+                  <CirclePlus /> Create Program
+                </Button>
+              )}
             </div>
+          </section>
 
-            <Button variant="outline" className="h-full rounded-[6px] ">
-              <ListFilter /> Filter
-            </Button>
-            {isLoggedIn && (
-              <Button
-                className="h-[32px] rounded-[6px] gap-2"
-                onClick={() => {
-                  if (!isAuthed) {
-                    notify('Please add your email', 'success');
-                    navigate('/profile/edit');
-                    return;
-                  }
+          <section className="w-full space-y-4 my-5 grid grid-cols-2 gap-5">
+            {data?.programs?.data?.map((program) => (
+              <ProgramCard key={program.id} program={program} />
+            ))}
+          </section>
 
-                  navigate('create');
-                }}
-              >
-                <CirclePlus /> Create Program
-              </Button>
-            )}
-          </div>
-        </section>
-
-        <section className="w-full space-y-4 mb-5 grid grid-cols-2 gap-5">
-          {data?.programs?.data?.map((program) => (
-            <ProgramCard key={program.id} program={program} />
-          ))}
-        </section>
-
-        <Pagination totalCount={totalCount} pageSize={PageSize} />
-      </Tabs>
+          <Pagination totalCount={totalCount} pageSize={PageSize} />
+        </Tabs>
+      </div>
     </div>
   );
 };

@@ -8,7 +8,7 @@ export type UsersQueryVariables = Types.Exact<{
 }>;
 
 
-export type UsersQuery = { __typename?: 'Query', users?: { __typename?: 'PaginatedUsers', count?: number | null, data?: Array<{ __typename?: 'User', about?: string | null, summary?: string | null, avatar?: any | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, walletAddress?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null }> | null } | null };
+export type UsersQuery = { __typename?: 'Query', users?: { __typename?: 'PaginatedUsers', count?: number | null, data?: Array<{ __typename?: 'User', about?: string | null, summary?: string | null, avatar?: any | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, walletAddress?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, programStatistics?: { __typename?: 'UserProgramStatistics', asBuilder?: { __typename?: 'ProgramStatsByStatus', completed?: number | null, confirmed?: number | null, notConfirmed?: number | null, paymentRequired?: number | null, published?: number | null, refund?: number | null } | null, asSponsor?: { __typename?: 'ProgramStatsByStatus', completed?: number | null, confirmed?: number | null, notConfirmed?: number | null, paymentRequired?: number | null, published?: number | null, refund?: number | null } | null, asValidator?: { __typename?: 'ProgramStatsByStatus', completed?: number | null, confirmed?: number | null, notConfirmed?: number | null, paymentRequired?: number | null, published?: number | null, refund?: number | null } | null } | null }> | null } | null };
 
 
 export const UsersDocument = gql`
@@ -30,6 +30,32 @@ export const UsersDocument = gql`
       }
       organizationName
       walletAddress
+      programStatistics {
+        asBuilder {
+          completed
+          confirmed
+          notConfirmed
+          paymentRequired
+          published
+          refund
+        }
+        asSponsor {
+          completed
+          confirmed
+          notConfirmed
+          paymentRequired
+          published
+          refund
+        }
+        asValidator {
+          completed
+          confirmed
+          notConfirmed
+          paymentRequired
+          published
+          refund
+        }
+      }
     }
   }
 }

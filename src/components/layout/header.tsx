@@ -9,7 +9,7 @@ import notify from '@/lib/notify';
 import { commaNumber, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
 import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import NetworkSelector from '../network-selector';
 import { Button } from '../ui/button';
@@ -36,10 +36,60 @@ function Header() {
     { name: string; amount: bigint | null; decimal: number }[]
   >([]);
 
+  // Scroll state management
+  const [isVisible, setIsVisible] = useState(true);
+  const [scrollY, setScrollY] = useState(0);
+  const lastScrollY = useRef(0);
+
   const contract = useContract(network);
 
   const walletInfo = user?.wallet;
   const injectedWallet = user?.wallet?.connectorType !== 'embedded';
+
+  // Scroll handler
+  useEffect(() => {
+    const handleScroll = (e: Event) => {
+      const target = e.target as Element;
+      const currentScrollY = target.scrollTop || window.scrollY;
+
+      // Show header when scrolling up, hide when scrolling down
+      if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+
+      setScrollY(currentScrollY);
+      lastScrollY.current = currentScrollY;
+    };
+
+    // Listen to scroll on the ScrollArea viewport element
+    const scrollAreaViewport = document.getElementById('scroll-area-main-viewport');
+
+    if (scrollAreaViewport) {
+      scrollAreaViewport.addEventListener('scroll', handleScroll, { passive: true });
+      return () => scrollAreaViewport.removeEventListener('scroll', handleScroll);
+    }
+
+    // Fallback to window scroll
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Calculate opacity and blur based on scroll position
+  const getHeaderStyles = () => {
+    const maxScroll = 200;
+    const opacity = Math.min(scrollY / maxScroll, 1);
+    const blur = Math.min(scrollY / maxScroll, 1) * 20; // max blur of 12px
+
+    return {
+      backgroundColor: `rgba(255, 255, 255, ${1 - opacity * 0.9})`, // Начинаем с белого, становимся прозрачным
+      backdropFilter: `blur(${blur}px)`,
+      transform: isVisible ? 'translateY(0)' : 'translateY(-120%)',
+      transition:
+        'transform 0.3s ease-in-out, background-color 0.3s ease-in-out, backdrop-filter 0.3s ease-in-out',
+    };
+  };
 
   const login = async () => {
     try {
@@ -136,7 +186,10 @@ function Header() {
   }, [authenticated, walletInfo, network]);
 
   return (
-    <header className="bg-white rounded-t-2xl flex justify-between items-center px-10 py-[14px] backdrop-blur-2xl">
+    <header
+      className="fixed top-0 left-0 right-0 z-[1] bg-white rounded-2xl flex justify-between items-center px-10 py-[14px] ml-[240px] mr-4 mt-3"
+      style={getHeaderStyles()}
+    >
       <div />
 
       <div className="flex gap-2">
@@ -178,8 +231,8 @@ function Header() {
                               {balance.name}:{' '}
                               {balance.amount !== null
                                 ? commaNumber(
-                                    ethers.utils.formatUnits(balance.amount, balance.decimal),
-                                  )
+                                  ethers.utils.formatUnits(balance.amount, balance.decimal),
+                                )
                                 : 'Fetching...'}
                             </div>
                           );

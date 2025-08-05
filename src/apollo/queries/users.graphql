@@ -16,6 +16,33 @@ query users($input: PaginationInput) {
       }
       organizationName
       walletAddress
+
+      programStatistics {
+        asBuilder {
+          completed
+          confirmed
+          notConfirmed
+          paymentRequired
+          published
+          refund
+        }
+        asSponsor {
+          completed
+          confirmed
+          notConfirmed
+          paymentRequired
+          published
+          refund
+        }
+        asValidator {
+          completed
+          confirmed
+          notConfirmed
+          paymentRequired
+          published
+          refund
+        }
+      }
     }
   }
 }

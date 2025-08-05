@@ -132,6 +132,8 @@ interface MultiSelectProps
   setInputValue?: React.Dispatch<React.SetStateAction<string | undefined>>;
   loading?: boolean;
   emptyText?: string;
+
+  singleSelect?: boolean;
 }
 
 export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
@@ -155,6 +157,7 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
       emptyText = 'No result found.',
       selectedItems,
       setSelectedItems,
+      singleSelect = false,
       ...props
     },
     ref,
@@ -168,6 +171,15 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
     }, [value]);
 
     const toggleOption = (value: string, label: string) => {
+      if (singleSelect) {
+        const newSelectedValues = selectedValues?.includes(value)
+          ? selectedValues.filter((val) => val !== value)
+          : [value];
+        setSelectedValues(newSelectedValues);
+        setSelectedItems?.(newSelectedValues.map((val) => ({ value: val, label })));
+        onValueChange(newSelectedValues);
+        return;
+      }
       const newSelectedValues = selectedValues?.includes(value)
         ? selectedValues.filter((val) => val !== value)
         : [...selectedValues, value];

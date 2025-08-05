@@ -68,7 +68,7 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
                     <div className="flex gap-[6px] text-xs text-gray-500">
                       <span>{format(new Date(post.createdAt), 'dd.MM.yyyy')}</span>
                       <span>•</span>
-                      <span>Views {12}</span>
+                      <span>Views {post.viewCount}</span>
                     </div>
                   ) : (
                     ''
@@ -162,7 +162,7 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
               <div className="flex gap-[6px] text-xs text-muted-foreground">
                 <span>{format(new Date(post.createdAt), 'dd.MM.yyyy')}</span>
                 <span>•</span>
-                <span>Views {12}</span>
+                <span>Views {post.viewCount}</span>
               </div>
             )}
           </div>
