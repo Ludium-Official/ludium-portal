@@ -42,7 +42,7 @@ async function getSigner(checkNetwork: Chain, currentWallet: ConnectedWallet) {
 
 // Contract addresses for different networks
 const CONTRACT_ADDRESSES: Record<string, InvestmentContractAddresses> = {
-  'sepolia': {
+  sepolia: {
     core: import.meta.env.VITE_SEPOLIA_INVESTMENT_CORE_ADDRESS || '',
     funding: import.meta.env.VITE_SEPOLIA_INVESTMENT_FUNDING_ADDRESS || '',
     milestone: import.meta.env.VITE_SEPOLIA_INVESTMENT_MILESTONE_ADDRESS || '',
@@ -125,7 +125,8 @@ export function useInvestmentContract(network: string | null = null) {
     };
   }
 
-  const contractAddresses = CONTRACT_ADDRESSES[network || 'educhain-testnet'] || CONTRACT_ADDRESSES['educhain-testnet'];
+  const contractAddresses =
+    CONTRACT_ADDRESSES[network || 'educhain-testnet'] || CONTRACT_ADDRESSES['educhain-testnet'];
 
   // @ts-ignore
   const client: PublicClient = createPublicClient({
@@ -149,8 +150,9 @@ export function getInvestmentContract(
   sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'],
   client: PublicClient,
 ) {
-  const contractAddresses = CONTRACT_ADDRESSES[network || 'educhain-testnet'] || CONTRACT_ADDRESSES['educhain-testnet'];
-  
+  const contractAddresses =
+    CONTRACT_ADDRESSES[network || 'educhain-testnet'] || CONTRACT_ADDRESSES['educhain-testnet'];
+
   return new InvestmentContract(
     contractAddresses,
     getChainIdForNetwork(network),
@@ -161,14 +163,14 @@ export function getInvestmentContract(
 
 function getChainIdForNetwork(network: string): number {
   const chainMap: Record<string, number> = {
-    'sepolia': 11155111,
-    'base': 8453,
+    sepolia: 11155111,
+    base: 8453,
     'base-sepolia': 84532,
     'educhain-testnet': 656476,
-    'educhain': 41923,
-    'arbitrum': 42161,
+    educhain: 41923,
+    arbitrum: 42161,
     'arbitrum-sepolia': 421614,
   };
-  
+
   return chainMap[network] || 656476; // Default to EduChain testnet
 }

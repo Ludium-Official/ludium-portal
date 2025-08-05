@@ -28,7 +28,7 @@ function Header() {
   const navigate = useNavigate();
   const { data: profileData } = useProfileQuery({
     fetchPolicy: 'cache-first',
-    skip: !authenticated
+    skip: !authenticated,
   });
 
   const [network, setNetwork] = useState(mainnetDefaultNetwork);
