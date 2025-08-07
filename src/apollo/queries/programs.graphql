@@ -57,6 +57,7 @@ query programs($pagination: PaginationInput) {
       currency
       deadline
       description
+      image
       id
       keywords {
         id

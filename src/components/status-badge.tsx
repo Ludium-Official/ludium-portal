@@ -24,10 +24,10 @@ function ProgramStatusBadge({
 
   switch (program.status) {
     case ProgramStatus.Cancelled:
-      statusColor = <span className="bg-red-400 w-[14px] h-[14px] rounded-full block" />;
+      statusColor = <span className="bg-red-200 w-[14px] h-[14px] rounded-full block" />;
       break;
     case ProgramStatus.Closed:
-      statusColor = <span className="bg-red-400 w-[14px] h-[14px] rounded-full block" />;
+      statusColor = <span className="bg-red-200 w-[14px] h-[14px] rounded-full block" />;
       break;
     case ProgramStatus.Completed:
       statusColor = <span className="bg-purple-500 w-[14px] h-[14px] rounded-full block" />;
@@ -75,7 +75,7 @@ function ApplicationStatusBadge({
       statusColor = <span className="bg-gray-400 w-[14px] h-[14px] rounded-full block" />;
       break;
     case ApplicationStatus.Rejected:
-      statusColor = <span className="bg-red-400 w-[14px] h-[14px] rounded-full block" />;
+      statusColor = <span className="bg-red-200 w-[14px] h-[14px] rounded-full block" />;
       break;
     case ApplicationStatus.Draft:
       statusColor = <span className="bg-gray-400 w-[14px] h-[14px] rounded-full block" />;
@@ -114,7 +114,7 @@ function MilestoneStatusBadge({
       statusColor = <span className="bg-gray-400 w-[14px] h-[14px] rounded-full block" />;
       break;
     case MilestoneStatus.Rejected:
-      statusColor = <span className="bg-red-400 w-[14px] h-[14px] rounded-full block" />;
+      statusColor = <span className="bg-red-200 w-[14px] h-[14px] rounded-full block" />;
       break;
     case MilestoneStatus.Draft:
       statusColor = <span className="bg-gray-400 w-[14px] h-[14px] rounded-full block" />;

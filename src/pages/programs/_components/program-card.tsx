@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { getCurrency } from '@/lib/utils';
+import { getCurrency, getCurrencyIcon } from '@/lib/utils';
 import { ApplicationStatus, type Program } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { Settings } from 'lucide-react';
@@ -37,13 +37,24 @@ function ProgramCard({ program }: { program: Program }) {
       </div>
 
       <Link to={`/programs/${id}`} className="flex items-stretch gap-4 mb-4">
-        <div className="w-[104px] h-[104px] bg-slate-200 rounded-md " />
+        {/* <div className="w-[104px] h-[104px] bg-slate-200 rounded-md " /> */}
+
+        {program?.image ? (
+          <img
+            src={program.image}
+            alt={program?.name || 'Program image'}
+            className="w-[104px] h-[104px] object-cover rounded-lg"
+          />
+        ) : (
+          <div className="w-[104px] h-[104px] bg-gray-200 rounded-lg" />
+        )}
+
         <div className="flex flex-col justify-between">
           <h2 className="text-lg font-bold text-[#18181B]">{name}</h2>
           <div className="inline-flex self-start text-sm bg-secondary py-1 px-2 items-center rounded-md">
             <span className="text-neutral-400 mr-3">PRICE</span>{' '}
             <span className="flex items-center text-muted-foreground gap-1 font-medium">
-              {getCurrency(program?.network)?.icon} {program?.price} {program?.currency}
+              {getCurrencyIcon(program?.currency)} {program?.price} {program?.currency}
             </span>
             <span className="block ml-2 border-l pl-2 text-muted-foreground font-medium">
               {getCurrency(program?.network)?.display}
@@ -62,8 +73,8 @@ function ProgramCard({ program }: { program: Program }) {
                 deadlineDate.setHours(0, 0, 0, 0);
                 today.setHours(0, 0, 0, 0);
                 const diffTime = deadlineDate.getTime() - today.getTime();
-                const daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                return <Badge className="ml-2">D{daysRemaining}</Badge>;
+                const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+                return <Badge className="ml-2">D-{daysRemaining}</Badge>;
               })()}
           </div>
         </div>
@@ -87,7 +98,7 @@ function ProgramCard({ program }: { program: Program }) {
         >
           Approved Application{' '}
           <span className="text-green-600">
-            {program.applications?.filter((a) => a.status === ApplicationStatus.Accepted).length ??
+            {program.applications?.filter((a) => a.status === ApplicationStatus.Accepted || a.status === ApplicationStatus.Completed).length ??
               0}
           </span>
         </Link>

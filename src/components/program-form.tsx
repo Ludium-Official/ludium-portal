@@ -1,5 +1,4 @@
-import { useCreateCarouselItemMutation } from '@/apollo/mutation/create-carousel-item.generated';
-import { useCarouselItemsQuery } from '@/apollo/queries/carousel-items.generated';
+
 
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
@@ -19,7 +18,8 @@ import { Textarea } from '@/components/ui/textarea';
 import notify from '@/lib/notify';
 import { mainnetDefaultNetwork } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
-import { CarouselItemType, type LinkInput } from '@/types/types.generated';
+import type { LinkInput } from '@/types/types.generated';
+// import { type LinkInput } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';
@@ -60,6 +60,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
     },
     skip: !isEdit,
   });
+  console.log("🚀 ~ ProgramForm ~ data:", data)
 
   const [selectedTab, setSelectedTab] = useState<string>('overview');
 
@@ -127,13 +128,27 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
   useEffect(() => {
     if (data?.program?.keywords)
       setSelectedKeywords(data?.program?.keywords?.map((k) => k.name ?? '') ?? []);
-    if (data?.program?.validators)
+    if (data?.program?.validators?.length) {
       setSelectedValidators(data?.program.validators?.map((k) => k.id ?? '') ?? '');
+      setSelectedValidatorItems(data?.program.validators?.map((k) => ({
+        value: k.id ?? '',
+        label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
+      })) ?? []);
+    }
+    if (data?.program?.invitedBuilders?.length) {
+      setSelectedBuilders(data?.program.invitedBuilders?.map((k) => k.id ?? '') ?? '');
+      setSelectedBuilderItems(data?.program.invitedBuilders?.map((k) => ({
+        value: k.id ?? '',
+        label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
+      })) ?? []);
+    }
     if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
     if (data?.program?.links) setLinks(data?.program?.links.map((l) => l.url ?? ''));
     if (data?.program?.description) setContent(data?.program.description);
     if (data?.program?.network) setNetwork(data?.program?.network);
     if (data?.program?.currency) setCurrency(data?.program?.currency);
+    if (data?.program?.image) setImagePreview(data?.program?.image);
+    if (data?.program?.visibility) setVisibility(data?.program?.visibility);
   }, [data]);
 
   useEffect(() => {
@@ -190,7 +205,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
       extraErrors.validator ||
       extraErrors.invalidLink ||
       !content.length ||
-      !selectedImage
+      (!selectedImage && !isEdit)
     ) {
       notify('Please fill in all required fields.', 'error');
       return;
@@ -226,7 +241,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
       notify('Please fill in all required fields.', 'error');
     }
     dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
-    if (!selectedImage) setImageError('Picture is required.');
+    if (!selectedImage && !isEdit) setImageError('Picture is required.');
     if (!selectedKeywords?.length)
       dispatchErrors({ type: ExtraErrorActionKind.SET_KEYWORDS_ERROR });
     if (!selectedValidators?.length)
@@ -241,9 +256,9 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
     formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
   };
 
-  const { data: carouselItems, refetch } = useCarouselItemsQuery();
+  // const { data: carouselItems, refetch } = useCarouselItemsQuery();
 
-  const [createCarouselItem] = useCreateCarouselItemMutation();
+  // const [createCarouselItem] = useCreateCarouselItemMutation();
 
   // Removed selectedKeywordItems as it's no longer needed with the new input approach
   const [selectedValidatorItems, setSelectedValidatorItems] = useState<
@@ -349,7 +364,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
                 <Input
                   id="keyword"
                   type="text"
-                  placeholder="직접입력"
+                  placeholder="Enter directly"
                   value={keywordInput}
                   onChange={handleKeywordInputChange}
                   onKeyDown={handleKeywordInputKeyDown}
@@ -625,7 +640,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
         </TabsContent>
       </Tabs>
 
-      {isEdit && (
+      {/* {isEdit && (
         <Button
           type="button"
           onClick={() => {
@@ -648,20 +663,243 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
             ? 'Already in Carousel'
             : 'Add to Main Carousel'}
         </Button>
-      )}
+      )} */}
 
-      {isEdit ? (
-        <div className="py-3 flex justify-end gap-4">
+      <div className="py-3 flex justify-end gap-4">
+        {!isEdit && <Button
+          type="button"
+          size="lg"
+          disabled={createLoading}
+          onClick={() => {
+            if (!watch('programName') || !watch('price')) {
+              notify('At least Program Title and Price are required to save draft', 'error');
+              return;
+            }
+            onSubmitProgram({
+              id: data?.program?.id ?? id,
+              programName: watch('programName'),
+              price: isEdit && data?.program?.status !== 'draft' ? undefined : watch('price'),
+              description: content,
+              summary: watch('summary'),
+              currency:
+                isEdit && data?.program?.status !== 'draft'
+                  ? (data?.program?.currency as string)
+                  : currency,
+              deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
+              keywords: selectedKeywords,
+              validators: selectedValidators ?? '',
+              links: (() => {
+                const { shouldSend } = validateLinks(links);
+                return shouldSend
+                  ? filterEmptyLinks(links).map((l) => ({ title: l, url: l }))
+                  : undefined;
+              })(),
+              network:
+                isEdit && data?.program?.status !== 'draft'
+                  ? (data?.program?.network as string)
+                  : network,
+              image: selectedImage,
+              visibility: visibility,
+              builders: selectedBuilders,
+            });
+          }}
+        >
+          Save
+        </Button>}
+
+        {selectedTab === 'details' && (
+          <Popover>
+            <PopoverTrigger>
+              <Button
+                type="button"
+                className="min-w-[97px] bg-primary hover:bg-primary/90"
+                size="lg"
+                disabled={createLoading}
+              >
+                Save and Upload
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="min-w-[440px]">
+              <h2 className="text-foreground font-semibold text-center text-lg">Visibility</h2>
+              <p className="text-center text-muted-foreground text-sm mb-4">
+                Choose when to publish and who can see your program.
+              </p>
+
+              <RadioGroup
+                defaultValue="public"
+                className="space-y-2 mb-8"
+                value={visibility}
+                onValueChange={(v) => setVisibility(v as 'public' | 'private' | 'restricted')}
+              >
+                <div className="flex items-start gap-3">
+                  <RadioGroupItem value="private" id="r1" className="border-foreground" />
+                  <div className="flex-1">
+                    <Label htmlFor="r1" className="font-medium mb-[6px]">
+                      Private
+                    </Label>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Only invited users can view this program.
+                    </p>
+                    {visibility === 'private' && (
+                      <MultiSelect
+                        options={builderOptions ?? []}
+                        value={selectedBuilders}
+                        onValueChange={setSelectedBuilders}
+                        placeholder="Search Builder"
+                        animation={2}
+                        maxCount={20}
+                        inputValue={builderInput}
+                        setInputValue={setBuilderInput}
+                        selectedItems={selectedBuilderItems}
+                        setSelectedItems={setSelectedBuilderItems}
+                        emptyText="Enter builder email or organization name"
+                        loading={buildersLoading}
+                        className="mt-2"
+                      />
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <RadioGroupItem value="restricted" id="r2" className="border-foreground" />
+                  <div>
+                    <Label htmlFor="r2">Restricted</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Only users with links can view.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <RadioGroupItem value="public" id="r3" className="border-foreground" />
+                  <div>
+                    <Label htmlFor="r3">Public</Label>
+                    <p className="text-sm text-muted-foreground">Anyone can view this program.</p>
+                  </div>
+                </div>
+              </RadioGroup>
+
+              <Button
+                onClick={() => {
+                  console.log('onCLICK!!!!');
+                  extraValidation();
+                }}
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90"
+                disabled={createLoading}
+              >
+                Save
+              </Button>
+            </PopoverContent>
+          </Popover>
+        )}
+
+        {selectedTab === 'overview' && (
           <Button
-            className="bg-primary hover:bg-primary/90 min-w-[177px]"
-            type="submit"
-            disabled={createLoading}
-            onClick={() => {
-              extraValidation();
-            }}
+            type="button"
+            size="lg"
+            variant="outline"
+            onClick={() => setSelectedTab('details')}
           >
-            Edit Program
+            Next to Details <ChevronRight />
           </Button>
+        )}
+      </div>
+
+      {/* {isEdit ? (
+        <div className="py-3 flex justify-end gap-4">
+          <Popover>
+            <PopoverTrigger>
+              <Button
+                type="button"
+                className="min-w-[97px] bg-primary hover:bg-primary/90"
+                size="lg"
+                disabled={createLoading}
+              >
+                Save and Upload
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="min-w-[440px]">
+              <h2 className="text-foreground font-semibold text-center text-lg">Visibility</h2>
+              <p className="text-center text-muted-foreground text-sm mb-4">
+                Choose when to publish and who can see your program.
+              </p>
+
+              <RadioGroup
+                defaultValue="public"
+                className="space-y-2 mb-8"
+                value={visibility}
+                onValueChange={(v) => setVisibility(v as 'public' | 'private' | 'restricted')}
+              >
+                <div className="flex items-start gap-3">
+                  <RadioGroupItem value="private" id="r1" className="border-foreground" />
+                  <div className="flex-1">
+                    <Label htmlFor="r1" className="font-medium mb-[6px]">
+                      Private
+                    </Label>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Only invited users can view this program.
+                    </p>
+                    {visibility === 'private' && (
+                      <MultiSelect
+                        options={builderOptions ?? []}
+                        value={selectedBuilders}
+                        onValueChange={setSelectedBuilders}
+                        placeholder="Search Builder"
+                        animation={2}
+                        maxCount={20}
+                        inputValue={builderInput}
+                        setInputValue={setBuilderInput}
+                        selectedItems={selectedBuilderItems}
+                        setSelectedItems={setSelectedBuilderItems}
+                        emptyText="Enter builder email or organization name"
+                        loading={buildersLoading}
+                        className="mt-2"
+                      />
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <RadioGroupItem value="restricted" id="r2" className="border-foreground" />
+                  <div>
+                    <Label htmlFor="r2">Restricted</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Only users with links can view.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <RadioGroupItem value="public" id="r3" className="border-foreground" />
+                  <div>
+                    <Label htmlFor="r3">Public</Label>
+                    <p className="text-sm text-muted-foreground">Anyone can view this program.</p>
+                  </div>
+                </div>
+              </RadioGroup>
+
+              <Button
+                onClick={() => {
+                  console.log('onCLICK!!!!');
+                  extraValidation();
+                }}
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90"
+                disabled={createLoading}
+              >
+                Save
+              </Button>
+            </PopoverContent>
+          </Popover>
+
+
+          {selectedTab === 'overview' && (
+            <Button
+              type="button"
+              size="lg"
+              variant="outline"
+              onClick={() => setSelectedTab('details')}
+            >
+              Next to Details <ChevronRight />
+            </Button>
+          )}
         </div>
       ) : (
         <div className="py-3 flex justify-end gap-4">
@@ -802,7 +1040,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
             </Button>
           )}
         </div>
-      )}
+      )} */}
     </form>
   );
 }

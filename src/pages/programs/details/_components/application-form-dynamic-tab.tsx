@@ -44,7 +44,7 @@ export function ApplicationDynamicTabs({
       className={cn('flex flex-col', className)}
     >
       <div className="flex items-center w-full border-b border-gray-200 mb-6">
-        <TabsPrimitive.List className="flex items-center gap-2 min-w-0">
+        <TabsPrimitive.List className="flex items-center gap-2 min-w-0 max-w-[750px]">
           {tabs.map((tab, idx) => (
             <TabsPrimitive.Trigger
               key={tab.id}
@@ -65,7 +65,7 @@ export function ApplicationDynamicTabs({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onRemoveMilestone(idx - 3);
+                    onRemoveMilestone(idx - 2);
                   }}
                   className="ml-1 p-0 bg-transparent border-none focus:outline-none"
                   tabIndex={-1}

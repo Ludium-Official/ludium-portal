@@ -1,4 +1,4 @@
-import { currencies } from '@/constant/currencies';
+import { currencies, currencyIcons } from '@/constant/currencies';
 import type { Application, Milestone, Program, User } from '@/types/types.generated';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -54,4 +54,8 @@ export const mainnetDefaultNetwork =
 
 export const getCurrency = (network?: string | null) => {
   return currencies.find((c) => c.code === network);
+};
+
+export const getCurrencyIcon = (currency?: string | null) => {
+  return currency ? currencyIcons[currency as keyof typeof currencyIcons] : null;
 };

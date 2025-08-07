@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { useUpdateProfileMutation } from '@/apollo/mutation/updateProfile.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
 import { MarkdownEditor } from '@/components/markdown';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import { usePrivy } from '@privy-io/react-auth';
@@ -43,13 +44,14 @@ function EditProfilePage() {
 
   const [updateProfile] = useUpdateProfileMutation();
 
-  const { register, handleSubmit, watch } = useForm<{
+  const { register, handleSubmit, watch, setValue, getValues } = useForm<{
     // description: string;
     email: string;
     summary: string;
     name: string;
     firstName: string;
     lastName: string;
+    keywords: string[];
   }>({
     values: {
       // description: profileData?.profile?.about ?? '',
@@ -58,6 +60,7 @@ function EditProfilePage() {
       name: profileData?.profile?.organizationName ?? '',
       firstName: profileData?.profile?.firstName ?? '',
       lastName: profileData?.profile?.lastName ?? '',
+      keywords: profileData?.profile?.keywords?.map(k => k.name || '') || [],
     },
   });
 
@@ -70,6 +73,7 @@ function EditProfilePage() {
     email: string;
     firstName: string;
     lastName: string;
+    keywords: string[];
   }) => {
     if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
       setLinksError(true);
@@ -87,6 +91,7 @@ function EditProfilePage() {
           firstName: data?.firstName,
           lastName: data?.lastName,
           about: content,
+          keywords: data.keywords,
           links: links?.filter((l) => l)?.length
             ? links?.filter((l) => l).map((l) => ({ title: l, url: l }))
             : undefined,
@@ -114,7 +119,8 @@ function EditProfilePage() {
     profileData?.profile?.organizationName === watch('name') &&
     profileData?.profile?.email === watch('email') &&
     profileData?.profile?.about === content &&
-    JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links);
+    JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links) &&
+    JSON.stringify(profileData.profile.keywords?.map(k => k.name || '') || []) === JSON.stringify(watch('keywords') || []);
 
   const walletInfo = user?.wallet;
 
@@ -147,6 +153,29 @@ function EditProfilePage() {
       notify('Failed to login', 'error');
       console.error('Failed to login:', error);
     }
+  };
+
+  const [keywordInput, setKeywordInput] = useState<string>('');
+
+  const handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setKeywordInput(e.target.value);
+  };
+
+  const handleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ((e.key === ' ' || e.key === 'Enter') && keywordInput.trim()) {
+      e.preventDefault();
+      const newKeyword = keywordInput.trim();
+      const currentKeywords = getValues('keywords') || [];
+      if (newKeyword && !currentKeywords.includes(newKeyword)) {
+        setValue('keywords', [...currentKeywords, newKeyword]);
+      }
+      setKeywordInput('');
+    }
+  };
+
+  const removeKeyword = (keywordToRemove: string) => {
+    const currentKeywords = getValues('keywords') || [];
+    setValue('keywords', currentKeywords.filter((keyword) => keyword !== keywordToRemove));
   };
 
   return (
@@ -226,6 +255,62 @@ function EditProfilePage() {
               placeholder="Input text"
               className="mb-5 h-10"
             />
+
+            <label htmlFor="keyword" className="space-y-2 block mb-5">
+              <p className="text-sm font-medium">
+                Roles <span className="text-primary">*</span>
+              </p>
+              <div className="space-y-3">
+                <Input
+                  id="keyword"
+                  type="text"
+                  placeholder="Enter directly"
+                  value={keywordInput}
+                  onChange={handleKeywordInputChange}
+                  onKeyDown={handleKeywordInputKeyDown}
+                  className="h-10"
+                />
+                {watch('keywords')?.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {watch('keywords')?.map((keyword: string) => (
+                      <Badge
+                        key={keyword}
+                        // variant="secondary"
+                        className=" text-white border-0 px-2.5 py-0.5 text-xs font-semibold"
+                      >
+                        {keyword}
+                        <button
+                          type="button"
+                          onClick={() => removeKeyword(keyword)}
+                          className="ml-1 hover:bg-gray-500 rounded-full p-0.5 transition-colors"
+                        >
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-label="Remove keyword"
+                          >
+                            <title>Remove keyword</title>
+                            <path
+                              d="M9 3L3 9M3 3L9 9"
+                              stroke="currentColor"
+                              strokeWidth="1.4"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {/* {extraErrors.keyword && (
+                <span className="text-destructive text-sm block">Keywords is required</span>
+              )} */}
+            </label>
 
             <label htmlFor="email" className="block text-foreground font-medium mb-2 text-sm">
               Email
