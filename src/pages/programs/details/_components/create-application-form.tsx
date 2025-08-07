@@ -153,8 +153,9 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
               // price: m.price,
               title: m.title,
               description: m.description,
+              summary: m.summary,
               currency: program?.currency ?? 'EDU',
-              deadline: m.deadline,
+              deadline: m.deadline || new Date().toISOString().slice(0, 10),
             })),
             price: formData.overview.price,
             // price: formData.milestones

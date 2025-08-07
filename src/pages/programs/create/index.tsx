@@ -7,7 +7,7 @@ import type { OnSubmitProgramFunc } from '@/components/program-form';
 import ProgramForm from '@/components/program-form';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
-import type { ProgramVisibility } from '@/types/types.generated';
+import type { ProgramStatus, ProgramVisibility } from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -49,6 +49,7 @@ const CreateProgram: React.FC = () => {
           image: args.image,
 
           visibility: args.visibility as ProgramVisibility,
+          status: args.status as ProgramStatus,
         },
       },
       onCompleted: async (data) => {

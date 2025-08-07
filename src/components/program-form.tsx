@@ -18,7 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import notify from '@/lib/notify';
 import { mainnetDefaultNetwork } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
-import type { LinkInput } from '@/types/types.generated';
+import { type LinkInput, ProgramStatus } from '@/types/types.generated';
 // import { type LinkInput } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
@@ -43,6 +43,7 @@ export type OnSubmitProgramFunc = (data: {
   image?: File;
   visibility: 'public' | 'restricted' | 'private';
   builders?: string[];
+  status: ProgramStatus;
 }) => void;
 
 export interface ProgramFormProps {
@@ -233,6 +234,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
       image: selectedImage,
       visibility: visibility,
       builders: selectedBuilders,
+      status: ProgramStatus.Pending,
     });
   };
 
@@ -701,6 +703,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
               image: selectedImage,
               visibility: visibility,
               builders: selectedBuilders,
+              status: ProgramStatus.Draft,
             });
           }}
         >

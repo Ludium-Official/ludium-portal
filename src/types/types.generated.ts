@@ -90,10 +90,10 @@ export enum CommentableTypeEnum {
 }
 
 export type CreateApplicationInput = {
-  content: Scalars['String']['input'];
+  content?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   metadata?: InputMaybe<Scalars['JSON']['input']>;
-  milestones: Array<CreateMilestoneInput>;
+  milestones?: InputMaybe<Array<CreateMilestoneInput>>;
   name: Scalars['String']['input'];
   price: Scalars['String']['input'];
   programId: Scalars['String']['input'];
@@ -115,12 +115,13 @@ export type CreateCommentInput = {
 };
 
 export type CreateMilestoneInput = {
-  currency?: Scalars['String']['input'];
-  deadline: Scalars['Date']['input'];
+  currency?: InputMaybe<Scalars['String']['input']>;
+  deadline?: InputMaybe<Scalars['Date']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
-  percentage: Scalars['String']['input'];
-  title: Scalars['String']['input'];
+  percentage?: InputMaybe<Scalars['String']['input']>;
+  summary?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreatePostInput = {
@@ -141,6 +142,7 @@ export type CreateProgramInput = {
   name: Scalars['String']['input'];
   network?: InputMaybe<Scalars['String']['input']>;
   price: Scalars['String']['input'];
+  status?: InputMaybe<ProgramStatus>;
   summary?: InputMaybe<Scalars['String']['input']>;
   visibility?: InputMaybe<ProgramVisibility>;
 };
@@ -190,6 +192,7 @@ export type Milestone = {
   price?: Maybe<Scalars['String']['output']>;
   rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<MilestoneStatus>;
+  summary?: Maybe<Scalars['String']['output']>;
   title?: Maybe<Scalars['String']['output']>;
 };
 
@@ -718,6 +721,7 @@ export type UpdateMilestoneInput = {
   links?: InputMaybe<Array<LinkInput>>;
   percentage?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<MilestoneStatus>;
+  summary?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
 };
 

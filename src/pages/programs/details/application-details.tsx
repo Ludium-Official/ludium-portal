@@ -281,14 +281,15 @@ function ApplicationDetails() {
               <Badge variant="default">{data?.application?.status}</Badge>
             </div> */}
 
-              {(data?.application?.status === ApplicationStatus.Pending ||
+              {(data?.application?.status === ApplicationStatus.Draft ||
+                data?.application?.status === ApplicationStatus.Pending ||
                 data?.application?.status === ApplicationStatus.Rejected) &&
                 data?.application?.applicant?.id === userId && (
                   <Dialog>
                     <DialogTrigger asChild>
                       <Settings className="w-4 h-4 cursor-pointer" />
                     </DialogTrigger>
-                    <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
+                    <DialogContent className="min-w-[800px] p-6 max-h-screen overflow-y-auto">
                       <EditApplicationForm
                         application={data?.application}
                         refetch={() => {
@@ -480,36 +481,40 @@ function ApplicationDetails() {
                   <AccordionContent>
                     <div className="flex justify-between">
 
-                      {m.rejectionReason && m.status === MilestoneStatus.Pending && (
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <CircleAlert className="text-destructive w-5 h-5" />
-                          </TooltipTrigger>
-                          <TooltipContent className="text-destructive flex gap-2 items-start bg-white border shadow-[0px_4px_6px_-1px_#0000001A]">
-                            <div className="mt-1.5">
-                              <CircleAlert className="w-4 h-4" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-base mb-1">Reason for rejection</p>
-                              <p className="text-sm">{m.rejectionReason}</p>
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
+                      <h2 className="text-lg font-bold mb-2">Milestone #{idx + 1}</h2>
 
-                      {m.status === MilestoneStatus.Pending &&
-                        data?.application?.applicant?.id === userId && (
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Settings className="w-4 h-4 cursor-pointer" />
-                            </DialogTrigger>
-                            <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
-                              <EditMilestoneForm milestone={m} refetch={refetch} />
-                            </DialogContent>
-                          </Dialog>
-                        )}
+                      <div className='flex items-center gap-2'>
+
+                        {m.rejectionReason && m.status === MilestoneStatus.Pending ? (
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <CircleAlert className="text-destructive w-5 h-5" />
+                            </TooltipTrigger>
+                            <TooltipContent className="text-destructive flex gap-2 items-start bg-white border shadow-[0px_4px_6px_-1px_#0000001A]">
+                              <div className="mt-1.5">
+                                <CircleAlert className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-base mb-1">Reason for rejection</p>
+                                <p className="text-sm">{m.rejectionReason}</p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : <div />}
+
+                        {m.status === MilestoneStatus.Pending &&
+                          data?.application?.applicant?.id === userId && (
+                            <Dialog>
+                              <DialogTrigger asChild>
+                                <Settings className="w-4 h-4 cursor-pointer" />
+                              </DialogTrigger>
+                              <DialogContent className="min-w-[800px] p-6 max-h-screen overflow-y-auto">
+                                <EditMilestoneForm milestone={m} refetch={refetch} />
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                      </div>
                     </div>
-                    <h2 className="text-lg font-bold mb-2">Milestone #{idx + 1}</h2>
 
                     <div className="mb-2">
                       <div className="text-muted-foreground inline-flex items-center gap-4 bg-[#0000000A] rounded-md p-1 px-2">
@@ -548,11 +553,11 @@ function ApplicationDetails() {
 
                     <div className="mb-6">
                       <h2 className="font-bold text-gray-dark text-sm mb-3">SUMMARY</h2>
-                      <p className="text-slate-600 text-xs">{m.description}</p>
+                      <p className="text-slate-600 text-xs">{m.summary}</p>
                     </div>
 
                     <div className="mb-6">
-                      <h2 className="font-bold text-gray-dark text-sm mb-3">SUMMARY</h2>
+                      <h2 className="font-bold text-gray-dark text-sm mb-3">DESCRIPTION</h2>
                       <p className="text-slate-600 text-xs">{m.description}</p>
                     </div>
 

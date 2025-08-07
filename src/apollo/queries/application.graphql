@@ -26,6 +26,7 @@ query application($id: ID!) {
     metadata
     milestones {
       currency
+      summary
       description
       rejectionReason
       percentage

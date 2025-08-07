@@ -11,11 +11,13 @@ function ProgramStatusBadge({
 
   switch (program.status) {
     case ProgramStatus.Cancelled:
-      statusColor = <span className="bg-red-400 w-[14px] h-[14px] rounded-full block" />;
-      break;
     case ProgramStatus.Closed:
-      statusColor = <span className="bg-red-400 w-[14px] h-[14px] rounded-full block" />;
+    case ProgramStatus.Rejected:
+      statusColor = <span className="bg-red-200 w-[14px] h-[14px] rounded-full block" />;
       break;
+    // case ProgramStatus.Closed:
+    //   statusColor = <span className="bg-red-400 w-[14px] h-[14px] rounded-full block" />;
+    //   break;
     case ProgramStatus.Completed:
       statusColor = <span className="bg-purple-500 w-[14px] h-[14px] rounded-full block" />;
       break;

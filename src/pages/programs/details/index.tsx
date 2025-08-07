@@ -251,7 +251,7 @@ const DetailsPage: React.FC = () => {
                 </DialogContent>
               </Dialog>
 
-              {program?.validators?.some((v) => v.id === userId) && program.status === 'draft' && (
+              {program?.validators?.some((v) => v.id === userId) && program.status === ProgramStatus.Pending && (
                 <div className="flex justify-end gap-2 w-full">
                   <Dialog>
                     <DialogTrigger asChild>
@@ -278,7 +278,7 @@ const DetailsPage: React.FC = () => {
                 </div>
               )}
 
-              {program?.creator?.id === userId && program.status === 'payment_required' && (
+              {program?.creator?.id === userId && program.status === ProgramStatus.PaymentRequired && (
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button className="text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px] w-full h-11">
@@ -302,6 +302,23 @@ const DetailsPage: React.FC = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
+              )}
+
+              {program?.status === ProgramStatus.Rejected && program.creator?.id === userId && (
+                <div className="flex justify-end gap-2 w-full">
+                  <Button disabled className="h-11 flex-1">
+                    Rejected
+                  </Button>
+                </div>
+              )}
+
+
+              {program?.status === ProgramStatus.Rejected && program.validators?.some((v) => v.id === userId) && (
+                <div className="flex justify-end gap-2 w-full">
+                  <Button disabled variant='outline' className="h-11 flex-1">
+                    Rejection Reason Submitted
+                  </Button>
+                </div>
               )}
 
               <div className="mt-6">
@@ -407,21 +424,21 @@ const DetailsPage: React.FC = () => {
                         <span className="items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex">
                           <span
                             className={cn('bg-gray-400 w-[14px] h-[14px] rounded-full block', {
-                              'bg-red-400':
-                                program.status === ProgramStatus.Draft && program.rejectionReason,
-                              'bg-green-400': program.status !== ProgramStatus.Draft,
+                              'bg-red-200':
+                                program.status === ProgramStatus.Rejected && program.rejectionReason,
+                              'bg-green-400': program.status !== ProgramStatus.Draft && program.status !== ProgramStatus.Pending && program.status !== ProgramStatus.Rejected,
                               'bg-gray-400':
-                                program.status === ProgramStatus.Draft && !program.rejectionReason,
+                                program.status === (ProgramStatus.Draft || ProgramStatus.Pending) && !program.rejectionReason,
                             })}
                           />
-                          {program.status === ProgramStatus.Draft
-                            ? program.rejectionReason
-                              ? 'Rejected'
-                              : 'Pending'
-                            : 'Accepted'}
+                          {program.status === ProgramStatus.Rejected
+                            ? 'Rejected'
+                            : program.status === ProgramStatus.Pending || program.status === ProgramStatus.Draft
+                              ? 'Not confirmed'
+                              : 'Accepted'}
                         </span>
 
-                        {program.status === ProgramStatus.Draft && program.rejectionReason && (
+                        {program.status === ProgramStatus.Rejected && program.rejectionReason && (
                           <Tooltip>
                             <TooltipTrigger className="text-destructive flex gap-2 items-center">
                               <CircleAlert className="w-4 h-4" />{' '}

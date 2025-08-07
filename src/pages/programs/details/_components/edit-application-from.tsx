@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { DialogClose, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import notify from '@/lib/notify';
+import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { type Application, ApplicationStatus } from '@/types/types.generated';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -29,17 +30,19 @@ function EditApplicationForm({
   }, [application]);
 
   const onSubmit = async (resubmit?: boolean) => {
-    if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
+    const { shouldSend, isValid } = validateLinks(links);
+    if (!isValid) {
       setLinksError(true);
       return;
     }
+    setLinksError(false);
 
     updateApplcation({
       variables: {
         input: {
           id: application?.id ?? '',
           content,
-          links: links.map((l) => ({ title: l, url: l })),
+          links: shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined,
           summary,
           status: resubmit ? ApplicationStatus.Pending : undefined,
           name,
