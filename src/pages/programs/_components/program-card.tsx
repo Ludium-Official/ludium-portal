@@ -1,3 +1,4 @@
+import { ProgramStatusBadge } from '@/components/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { getCurrency, getCurrencyIcon } from '@/lib/utils';
@@ -5,7 +6,6 @@ import { ApplicationStatus, type Program } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { Settings } from 'lucide-react';
 import { Link } from 'react-router';
-import ProgramStatusBadge from './program-status-badge';
 
 function ProgramCard({ program }: { program: Program }) {
   const { isSponsor } = useAuth();

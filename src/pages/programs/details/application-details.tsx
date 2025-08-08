@@ -5,7 +5,7 @@ import { useApplicationQuery } from '@/apollo/queries/application.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { CommentSection } from '@/components/comments/comment-section';
 import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
-import { ApplicationStatusBadge, MilestoneStatusBadge } from '@/components/status-badge';
+import { ApplicationStatusBadge, MilestoneStatusBadge, ProgramStatusBadge } from '@/components/status-badge';
 import {
   Accordion,
   AccordionContent,
@@ -28,13 +28,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ShareButton } from '@/components/ui/share-button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import { getCurrency, getCurrencyIcon, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
-import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
 import EditMilestoneForm from '@/pages/programs/details/_components/edit-milestone-form';
 import RejectApplicationForm from '@/pages/programs/details/_components/reject-application-form';
@@ -201,7 +201,7 @@ function ApplicationDetails() {
             </button>
           </div>
 
-          <div className="bg-secondary flex justify-between p-4 gap-6">
+          <div className="bg-secondary flex justify-between p-4 gap-6 rounded-lg">
             <div className="flex-1/2">
               <div className="flex justify-between items-center border-b pb-2">
                 <h4 className="text-muted-foreground text-sm font-bold">PRICE</h4>
@@ -230,7 +230,7 @@ function ApplicationDetails() {
                 </div>
               </div>
 
-              <div className="flex justify-between items-center border-b py-2.5">
+              <div className="flex justify-between items-center pt-2.5">
                 <h4 className="text-muted-foreground text-sm font-bold">KEYWORDS</h4>
                 <div className="flex gap-2 mb-1 flex-wrap max-w-[70%]">
                   {keywords?.map((k) => (
@@ -259,7 +259,7 @@ function ApplicationDetails() {
             </h3>
             <div className="flex justify-between mb-5 pt-6">
               <div className="flex gap-4">
-                <ApplicationStatusBadge application={data?.application} />
+                <ApplicationStatusBadge application={data?.application} className='self-center' />
                 {data?.application?.status === ApplicationStatus.Rejected && (
                   <Tooltip>
                     <TooltipTrigger className="text-destructive flex gap-2 items-center">
@@ -281,25 +281,32 @@ function ApplicationDetails() {
               <Badge variant="default">{data?.application?.status}</Badge>
             </div> */}
 
-              {(data?.application?.status === ApplicationStatus.Draft ||
-                data?.application?.status === ApplicationStatus.Pending ||
-                data?.application?.status === ApplicationStatus.Rejected) &&
-                data?.application?.applicant?.id === userId && (
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Settings className="w-4 h-4 cursor-pointer" />
-                    </DialogTrigger>
-                    <DialogContent className="min-w-[800px] p-6 max-h-screen overflow-y-auto">
-                      <EditApplicationForm
-                        application={data?.application}
-                        refetch={() => {
-                          refetch();
-                          remountKey();
-                        }}
-                      />
-                    </DialogContent>
-                  </Dialog>
-                )}
+              <div className='flex items-center gap-2'>
+                {(data?.application?.status === ApplicationStatus.Pending ||
+                  data?.application?.status === ApplicationStatus.Rejected) &&
+                  data?.application?.applicant?.id === userId && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" className="flex items-center gap-2">
+                          Edit
+                          <Settings className="w-4 h-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="min-w-[800px] p-6 max-h-screen overflow-y-auto">
+                        <EditApplicationForm
+                          application={data?.application}
+                          refetch={() => {
+                            refetch();
+                            remountKey();
+                          }}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  )}
+
+                <ShareButton />
+
+              </div>
             </div>
 
             <div className="flex items-center gap-4 mb-4">
@@ -506,7 +513,9 @@ function ApplicationDetails() {
                           data?.application?.applicant?.id === userId && (
                             <Dialog>
                               <DialogTrigger asChild>
-                                <Settings className="w-4 h-4 cursor-pointer" />
+                                <Button variant="ghost" className="h-10 w-10">
+                                  <Settings className="w-4 h-4 cursor-pointer" />
+                                </Button>
                               </DialogTrigger>
                               <DialogContent className="min-w-[800px] p-6 max-h-screen overflow-y-auto">
                                 <EditMilestoneForm milestone={m} refetch={refetch} />

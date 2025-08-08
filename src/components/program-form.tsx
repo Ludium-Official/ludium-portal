@@ -15,6 +15,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useProgramDraft } from '@/lib/hooks/use-program-draft';
 import notify from '@/lib/notify';
 import { mainnetDefaultNetwork } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
@@ -185,6 +187,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
     handleSubmit,
     formState: { errors },
     watch,
+    setValue,
   } = useForm({
     values: {
       programName: data?.program?.name ?? '',
@@ -215,11 +218,11 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
     onSubmitProgram({
       id: data?.program?.id ?? id,
       programName: submitData.programName,
-      price: isEdit && data?.program?.status !== 'draft' ? undefined : submitData.price,
+      price: isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.price,
       description: content,
       summary: submitData.summary,
       currency:
-        isEdit && data?.program?.status !== 'draft'
+        isEdit && data?.program?.status !== ProgramStatus.Pending
           ? (data?.program?.currency as string)
           : currency,
       deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
@@ -230,7 +233,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
         return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
       })(),
       network:
-        isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
+        isEdit && data?.program?.status !== ProgramStatus.Pending ? (data?.program?.network as string) : network,
       image: selectedImage,
       visibility: visibility,
       builders: selectedBuilders,
@@ -271,6 +274,28 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
   >([]);
 
   const formRef = useRef<HTMLFormElement>(null);
+  const { saveDraft: saveProgramDraft, loadDraft: loadProgramDraft } = useProgramDraft();
+
+  // Prefill from draft on mount when creating (not editing)
+  useEffect(() => {
+    if (isEdit) return;
+    const draft = loadProgramDraft();
+    if (!draft) return;
+    setValue('programName', draft.programName ?? '');
+    setValue('price', draft.price ?? '');
+    setValue('summary', draft.summary ?? '');
+    setContent(draft.description ?? '');
+    setDeadline(draft.deadline ? new Date(draft.deadline) : undefined);
+    setSelectedKeywords(draft.keywords ?? []);
+    setSelectedValidators(draft.validators ?? []);
+    setLinks(draft.links?.length ? draft.links : ['']);
+    setNetwork(draft.network ?? mainnetDefaultNetwork);
+    setCurrency(draft.currency ?? '');
+    setVisibility(draft.visibility ?? 'public');
+    setSelectedBuilders(draft.builders ?? []);
+    if (draft.selectedValidatorItems) setSelectedValidatorItems(draft.selectedValidatorItems);
+    if (draft.selectedBuilderItems) setSelectedBuilderItems(draft.selectedBuilderItems);
+  }, [isEdit]);
 
   // image input handler
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -462,7 +487,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
                     Network <span className="text-primary">*</span>
                   </p>
                   <NetworkSelector
-                    disabled={isEdit && data?.program?.status !== 'draft'}
+                    disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
                     value={network}
                     onValueChange={setNetwork}
                     className="min-w-[120px] h-10 w-full flex justify-between bg-white text-gray-dark border border-input hover:bg-white"
@@ -473,7 +498,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
                     Price <span className="text-primary">*</span>
                   </p>
                   <Input
-                    disabled={isEdit && data?.program?.status !== 'draft'}
+                    disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
                     step={0.000000000000000001}
                     id="price"
                     type="number"
@@ -484,7 +509,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
                   />
                 </div>
                 <CurrencySelector
-                  disabled={isEdit && data?.program?.status !== 'draft'}
+                  disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
                   value={currency}
                   onValueChange={setCurrency}
                   network={network}
@@ -495,7 +520,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
               {errors.price && (
                 <span className="text-destructive text-sm block">Price is required</span>
               )}
-              {isEdit && data?.program?.status !== 'draft' && (
+              {isEdit && data?.program?.status !== ProgramStatus.Pending && (
                 <span className="text-destructive text-sm block">
                   Price can't be updated after publishing.
                 </span>
@@ -516,15 +541,6 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
               <p className="text-sm font-medium">
                 Validator <span className="text-primary">*</span>
               </p>
-              {/* <SearchSelect
-                options={validatorOptions ?? []}
-                value={selectedValidator}
-                setValue={setSelectedValidator}
-                inputValue={validatorInput}
-                setInputValue={setValidatorInput}
-                emptyText="Enter validator email or organization name"
-                loading={loading}
-              /> */}
               <MultiSelect
                 options={validatorOptions ?? []}
                 value={selectedValidators}
@@ -642,73 +658,46 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
         </TabsContent>
       </Tabs>
 
-      {/* {isEdit && (
-        <Button
-          type="button"
-          onClick={() => {
-            createCarouselItem({
-              variables: {
-                input: {
-                  itemId: data?.program?.id ?? '',
-                  itemType: CarouselItemType.Program,
-                  isActive: true,
-                },
-              },
-            }).then(() => refetch());
-          }}
-          disabled={carouselItems?.carouselItems?.some(
-            (item) =>
-              item.itemId === data?.program?.id || (carouselItems?.carouselItems?.length ?? 0) >= 5,
-          )}
-        >
-          {carouselItems?.carouselItems?.some((item) => item.itemId === data?.program?.id)
-            ? 'Already in Carousel'
-            : 'Add to Main Carousel'}
-        </Button>
-      )} */}
 
       <div className="py-3 flex justify-end gap-4">
-        {!isEdit && <Button
-          type="button"
-          size="lg"
-          disabled={createLoading}
-          onClick={() => {
-            if (!watch('programName') || !watch('price')) {
-              notify('At least Program Title and Price are required to save draft', 'error');
-              return;
-            }
-            onSubmitProgram({
-              id: data?.program?.id ?? id,
-              programName: watch('programName'),
-              price: isEdit && data?.program?.status !== 'draft' ? undefined : watch('price'),
-              description: content,
-              summary: watch('summary'),
-              currency:
-                isEdit && data?.program?.status !== 'draft'
-                  ? (data?.program?.currency as string)
-                  : currency,
-              deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
-              keywords: selectedKeywords,
-              validators: selectedValidators ?? '',
-              links: (() => {
-                const { shouldSend } = validateLinks(links);
-                return shouldSend
-                  ? filterEmptyLinks(links).map((l) => ({ title: l, url: l }))
-                  : undefined;
-              })(),
-              network:
-                isEdit && data?.program?.status !== 'draft'
-                  ? (data?.program?.network as string)
-                  : network,
-              image: selectedImage,
-              visibility: visibility,
-              builders: selectedBuilders,
-              status: ProgramStatus.Draft,
-            });
-          }}
-        >
-          Save
-        </Button>}
+        {!isEdit && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                size="lg"
+                disabled={createLoading}
+                aria-label="Save draft"
+                onClick={() => {
+                  // Save all fields except the image into localStorage draft
+                  const draft = {
+                    programName: watch('programName') ?? '',
+                    price: watch('price') ?? '',
+                    description: content ?? '',
+                    summary: watch('summary') ?? '',
+                    currency,
+                    deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
+                    keywords: selectedKeywords,
+                    validators: selectedValidators,
+                    selectedValidatorItems,
+                    links,
+                    network,
+                    visibility,
+                    builders: selectedBuilders,
+                    selectedBuilderItems,
+                  };
+                  saveProgramDraft(draft);
+                  notify('Draft saved (image is not included).');
+                }}
+              >
+                Save
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-white text-foreground border shadow-[0px_4px_6px_-1px_#0000001A]" sideOffset={8}>
+              Image file will not be saved in the draft.
+            </TooltipContent>
+          </Tooltip>
+        )}
 
         {selectedTab === 'details' && (
           <Popover>
@@ -782,7 +771,6 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
 
               <Button
                 onClick={() => {
-                  console.log('onCLICK!!!!');
                   extraValidation();
                 }}
                 type="submit"
@@ -807,243 +795,6 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
         )}
       </div>
 
-      {/* {isEdit ? (
-        <div className="py-3 flex justify-end gap-4">
-          <Popover>
-            <PopoverTrigger>
-              <Button
-                type="button"
-                className="min-w-[97px] bg-primary hover:bg-primary/90"
-                size="lg"
-                disabled={createLoading}
-              >
-                Save and Upload
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="min-w-[440px]">
-              <h2 className="text-foreground font-semibold text-center text-lg">Visibility</h2>
-              <p className="text-center text-muted-foreground text-sm mb-4">
-                Choose when to publish and who can see your program.
-              </p>
-
-              <RadioGroup
-                defaultValue="public"
-                className="space-y-2 mb-8"
-                value={visibility}
-                onValueChange={(v) => setVisibility(v as 'public' | 'private' | 'restricted')}
-              >
-                <div className="flex items-start gap-3">
-                  <RadioGroupItem value="private" id="r1" className="border-foreground" />
-                  <div className="flex-1">
-                    <Label htmlFor="r1" className="font-medium mb-[6px]">
-                      Private
-                    </Label>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Only invited users can view this program.
-                    </p>
-                    {visibility === 'private' && (
-                      <MultiSelect
-                        options={builderOptions ?? []}
-                        value={selectedBuilders}
-                        onValueChange={setSelectedBuilders}
-                        placeholder="Search Builder"
-                        animation={2}
-                        maxCount={20}
-                        inputValue={builderInput}
-                        setInputValue={setBuilderInput}
-                        selectedItems={selectedBuilderItems}
-                        setSelectedItems={setSelectedBuilderItems}
-                        emptyText="Enter builder email or organization name"
-                        loading={buildersLoading}
-                        className="mt-2"
-                      />
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <RadioGroupItem value="restricted" id="r2" className="border-foreground" />
-                  <div>
-                    <Label htmlFor="r2">Restricted</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Only users with links can view.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <RadioGroupItem value="public" id="r3" className="border-foreground" />
-                  <div>
-                    <Label htmlFor="r3">Public</Label>
-                    <p className="text-sm text-muted-foreground">Anyone can view this program.</p>
-                  </div>
-                </div>
-              </RadioGroup>
-
-              <Button
-                onClick={() => {
-                  console.log('onCLICK!!!!');
-                  extraValidation();
-                }}
-                type="submit"
-                className="w-full bg-primary hover:bg-primary/90"
-                disabled={createLoading}
-              >
-                Save
-              </Button>
-            </PopoverContent>
-          </Popover>
-
-
-          {selectedTab === 'overview' && (
-            <Button
-              type="button"
-              size="lg"
-              variant="outline"
-              onClick={() => setSelectedTab('details')}
-            >
-              Next to Details <ChevronRight />
-            </Button>
-          )}
-        </div>
-      ) : (
-        <div className="py-3 flex justify-end gap-4">
-          <Button
-            type="button"
-            size="lg"
-            disabled={createLoading}
-            onClick={() => {
-              if (!watch('programName') || !watch('price')) {
-                notify('At least Program Title and Price are required to save draft', 'error');
-                return;
-              }
-              onSubmitProgram({
-                id: data?.program?.id ?? id,
-                programName: watch('programName'),
-                price: isEdit && data?.program?.status !== 'draft' ? undefined : watch('price'),
-                description: content,
-                summary: watch('summary'),
-                currency:
-                  isEdit && data?.program?.status !== 'draft'
-                    ? (data?.program?.currency as string)
-                    : currency,
-                deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
-                keywords: selectedKeywords,
-                validators: selectedValidators ?? '',
-                links: (() => {
-                  const { shouldSend } = validateLinks(links);
-                  return shouldSend
-                    ? filterEmptyLinks(links).map((l) => ({ title: l, url: l }))
-                    : undefined;
-                })(),
-                network:
-                  isEdit && data?.program?.status !== 'draft'
-                    ? (data?.program?.network as string)
-                    : network,
-                image: selectedImage,
-                visibility: visibility,
-                builders: selectedBuilders,
-              });
-            }}
-          >
-            Save
-          </Button>
-
-          {selectedTab === 'details' && (
-            <Popover>
-              <PopoverTrigger>
-                <Button
-                  type="button"
-                  className="min-w-[97px] bg-primary hover:bg-primary/90"
-                  size="lg"
-                  disabled={createLoading}
-                >
-                  Save and Upload
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="min-w-[440px]">
-                <h2 className="text-foreground font-semibold text-center text-lg">Visibility</h2>
-                <p className="text-center text-muted-foreground text-sm mb-4">
-                  Choose when to publish and who can see your program.
-                </p>
-
-                <RadioGroup
-                  defaultValue="public"
-                  className="space-y-2 mb-8"
-                  value={visibility}
-                  onValueChange={(v) => setVisibility(v as 'public' | 'private' | 'restricted')}
-                >
-                  <div className="flex items-start gap-3">
-                    <RadioGroupItem value="private" id="r1" className="border-foreground" />
-                    <div className="flex-1">
-                      <Label htmlFor="r1" className="font-medium mb-[6px]">
-                        Private
-                      </Label>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Only invited users can view this program.
-                      </p>
-                      {visibility === 'private' && (
-                        <MultiSelect
-                          options={builderOptions ?? []}
-                          value={selectedBuilders}
-                          onValueChange={setSelectedBuilders}
-                          placeholder="Search Builder"
-                          animation={2}
-                          maxCount={20}
-                          inputValue={builderInput}
-                          setInputValue={setBuilderInput}
-                          selectedItems={selectedBuilderItems}
-                          setSelectedItems={setSelectedBuilderItems}
-                          emptyText="Enter builder email or organization name"
-                          loading={buildersLoading}
-                          className="mt-2"
-                        />
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <RadioGroupItem value="restricted" id="r2" className="border-foreground" />
-                    <div>
-                      <Label htmlFor="r2">Restricted</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Only users with links can view.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <RadioGroupItem value="public" id="r3" className="border-foreground" />
-                    <div>
-                      <Label htmlFor="r3">Public</Label>
-                      <p className="text-sm text-muted-foreground">Anyone can view this program.</p>
-                    </div>
-                  </div>
-                </RadioGroup>
-
-                <Button
-                  onClick={() => {
-                    console.log('onCLICK!!!!');
-                    extraValidation();
-                  }}
-                  type="submit"
-                  className="w-full bg-primary hover:bg-primary/90"
-                  disabled={createLoading}
-                >
-                  Save
-                </Button>
-              </PopoverContent>
-            </Popover>
-          )}
-
-          {selectedTab === 'overview' && (
-            <Button
-              type="button"
-              size="lg"
-              variant="outline"
-              onClick={() => setSelectedTab('details')}
-            >
-              Next to Details <ChevronRight />
-            </Button>
-          )}
-        </div>
-      )} */}
     </form>
   );
 }

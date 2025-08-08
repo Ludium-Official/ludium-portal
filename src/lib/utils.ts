@@ -1,5 +1,11 @@
 import { currencies, currencyIcons } from '@/constant/currencies';
-import type { Application, Milestone, Program, User } from '@/types/types.generated';
+import {
+  type Application,
+  type Milestone,
+  type Program,
+  ProgramStatus,
+  type User,
+} from '@/types/types.generated';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -9,6 +15,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatProgramStatus(program?: Program | null) {
   if (!program?.status) return '';
+  if (program.status === ProgramStatus.Pending) return 'Not confirmed';
   return `${program?.status?.[0].toUpperCase()}${program?.status?.slice(1)}`.replace('_', ' ');
 }
 

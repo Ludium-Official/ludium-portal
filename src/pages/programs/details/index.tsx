@@ -3,6 +3,7 @@ import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.gener
 import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
 import { ProgramDocument, useProgramQuery } from '@/apollo/queries/program.generated';
 import { MarkdownPreviewer } from '@/components/markdown';
+import { ProgramStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,6 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import { cn, getCurrency, getCurrencyIcon, getInitials, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
-import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
 import ApplicationCard from '@/pages/programs/details/_components/application-card';
 import CreateApplicationForm from '@/pages/programs/details/_components/create-application-form';
 import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
@@ -425,15 +425,15 @@ const DetailsPage: React.FC = () => {
                           <span
                             className={cn('bg-gray-400 w-[14px] h-[14px] rounded-full block', {
                               'bg-red-200':
-                                program.status === ProgramStatus.Rejected && program.rejectionReason,
-                              'bg-green-400': program.status !== ProgramStatus.Draft && program.status !== ProgramStatus.Pending && program.status !== ProgramStatus.Rejected,
+                                program.status === ProgramStatus.Rejected,
+                              'bg-green-400': program.status !== ProgramStatus.Pending && program.status !== ProgramStatus.Rejected,
                               'bg-gray-400':
-                                program.status === (ProgramStatus.Draft || ProgramStatus.Pending) && !program.rejectionReason,
+                                program.status === ProgramStatus.Pending,
                             })}
                           />
                           {program.status === ProgramStatus.Rejected
                             ? 'Rejected'
-                            : program.status === ProgramStatus.Pending || program.status === ProgramStatus.Draft
+                            : program.status === ProgramStatus.Pending
                               ? 'Not confirmed'
                               : 'Accepted'}
                         </span>

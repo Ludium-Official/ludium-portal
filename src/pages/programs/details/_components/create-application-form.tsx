@@ -7,13 +7,15 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { DialogClose, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { } from '@/components/ui/tooltip';
+import { useApplicationDraft } from '@/lib/hooks/use-application-draft';
 import notify from '@/lib/notify';
 import { getCurrencyIcon } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { ApplicationDynamicTabs } from '@/pages/programs/details/_components/application-form-dynamic-tab';
 import { ApplicationStatus, type Program } from '@/types/types.generated';
 import { X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // Types for the form
 export type MilestoneType = {
@@ -48,6 +50,26 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   });
   const [linksError, setLinksError] = useState(false);
   const [createApplication, { loading }] = useCreateApplicationMutation();
+  const { saveDraft: saveApplicationDraft, loadDraft: loadApplicationDraft, clearDraft: clearApplicationDraft } = useApplicationDraft(program?.id ?? '');
+
+  // Prefill from draft on mount (scoped by program id)
+  useEffect(() => {
+    const draft = loadApplicationDraft();
+    if (!draft) return;
+    setFormData({
+      overview: {
+        name: draft.overview?.name ?? '',
+        links: draft.overview?.links?.length ? draft.overview.links : [''],
+        price: draft.overview?.price ?? '0',
+      },
+      description: {
+        summary: draft.description?.summary ?? '',
+        content: draft.description?.content ?? '',
+      },
+      milestones: draft.milestones?.length ? draft.milestones : [{ ...emptyMilestone }],
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [program?.id]);
 
   // Add new milestone
   const handleAddMilestone = () => {
@@ -131,7 +153,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   };
 
   // Submit
-  const onSubmit = async (isDraft?: boolean) => {
+  const onSubmit = async () => {
     console.log('submit start');
     // Validation for links
     if (formData.overview.links.some((l) => l && !/^https?:\/\/[\w.-]+/.test(l))) {
@@ -144,7 +166,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         variables: {
           input: {
             programId: program?.id ?? '',
-            status: isDraft ? ApplicationStatus.Draft : ApplicationStatus.Pending,
+            status: ApplicationStatus.Pending,
             content: formData.description.content,
             name: formData.overview.name,
             summary: formData.description.summary,
@@ -173,6 +195,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           client.refetchQueries({ include: [ProgramDocument] });
           notify('Application successfully created');
           document.getElementById('proposal-dialog-close')?.click();
+          clearApplicationDraft();
         },
         onError: (e) => {
           notify(`Failed to create application: ${e.message}`, 'error');
@@ -442,7 +465,15 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         onRemoveMilestone={handleRemoveMilestone}
       />
       <div className="flex gap-2 justify-end absolute bottom-6 right-6">
-        <Button type="button" variant="outline" onClick={() => onSubmit(true)}>
+        <Button
+          type="button"
+          variant="outline"
+          aria-label="Save application draft"
+          onClick={() => {
+            saveApplicationDraft(formData);
+            notify('Draft saved.');
+          }}
+        >
           Save draft
         </Button>
         <Button

@@ -37,7 +37,6 @@ export type Application = {
 export enum ApplicationStatus {
   Accepted = 'accepted',
   Completed = 'completed',
-  Draft = 'draft',
   Pending = 'pending',
   Rejected = 'rejected',
   Submitted = 'submitted'
@@ -90,15 +89,15 @@ export enum CommentableTypeEnum {
 }
 
 export type CreateApplicationInput = {
-  content?: InputMaybe<Scalars['String']['input']>;
+  content: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
   metadata?: InputMaybe<Scalars['JSON']['input']>;
-  milestones?: InputMaybe<Array<CreateMilestoneInput>>;
+  milestones: Array<CreateMilestoneInput>;
   name: Scalars['String']['input'];
   price: Scalars['String']['input'];
   programId: Scalars['String']['input'];
   status: ApplicationStatus;
-  summary?: InputMaybe<Scalars['String']['input']>;
+  summary: Scalars['String']['input'];
 };
 
 export type CreateCarouselItemInput = {
@@ -115,13 +114,13 @@ export type CreateCommentInput = {
 };
 
 export type CreateMilestoneInput = {
-  currency?: InputMaybe<Scalars['String']['input']>;
-  deadline?: InputMaybe<Scalars['Date']['input']>;
-  description?: InputMaybe<Scalars['String']['input']>;
+  currency?: Scalars['String']['input'];
+  deadline: Scalars['Date']['input'];
+  description: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
-  percentage?: InputMaybe<Scalars['String']['input']>;
-  summary?: InputMaybe<Scalars['String']['input']>;
-  title?: InputMaybe<Scalars['String']['input']>;
+  percentage: Scalars['String']['input'];
+  summary: Scalars['String']['input'];
+  title: Scalars['String']['input'];
 };
 
 export type CreatePostInput = {
@@ -134,13 +133,13 @@ export type CreatePostInput = {
 
 export type CreateProgramInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
-  deadline?: InputMaybe<Scalars['String']['input']>;
+  deadline: Scalars['String']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
-  image?: InputMaybe<Scalars['Upload']['input']>;
-  keywords?: InputMaybe<Array<Scalars['String']['input']>>;
+  image: Scalars['Upload']['input'];
+  keywords: Array<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   name: Scalars['String']['input'];
-  network?: InputMaybe<Scalars['String']['input']>;
+  network: Scalars['String']['input'];
   price: Scalars['String']['input'];
   status?: InputMaybe<ProgramStatus>;
   summary?: InputMaybe<Scalars['String']['input']>;
@@ -558,7 +557,6 @@ export enum ProgramStatus {
   Cancelled = 'cancelled',
   Closed = 'closed',
   Completed = 'completed',
-  Draft = 'draft',
   PaymentRequired = 'payment_required',
   Pending = 'pending',
   Published = 'published',
