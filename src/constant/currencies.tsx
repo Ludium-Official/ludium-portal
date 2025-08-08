@@ -1,11 +1,11 @@
 import ArbitrumIcon from "@/assets/icons/crypto/arbitrum";
 import BaseIcon from "@/assets/icons/crypto/base";
-import CoreIcon from "@/assets/icons/crypto/core";
+import CoreDaoIcon from "@/assets/icons/crypto/coredao";
 import EduIcon from "@/assets/icons/crypto/edu";
 
-import EthIcon from '@/assets/icons/crypto/eth';
-import UsdcIcon from '@/assets/icons/crypto/usdc';
-import UsdtIcon from '@/assets/icons/crypto/usdt';
+import EthIcon from "@/assets/icons/crypto/eth";
+import UsdcIcon from "@/assets/icons/crypto/usdc";
+import UsdtIcon from "@/assets/icons/crypto/usdt";
 
 export const currencies = [
   {
@@ -41,22 +41,21 @@ export const currencies = [
   },
   {
     code: "coredao",
-    icon: <CoreIcon />,
+    icon: <CoreDaoIcon />,
     display: "CoreDAO",
     isTestnet: false,
   },
   {
     code: "coredao-testnet",
-    icon: <CoreIcon />,
+    icon: <CoreDaoIcon />,
     display: "CoreDAO Testnet",
     isTestnet: true,
   },
 ];
 
-
 export const currencyIcons = {
-  'EDU': <EduIcon />,
-  'USDT': <UsdtIcon />,
-  'USDC': <UsdcIcon />,
-  'ETH': <EthIcon />,
-}
+  EDU: <EduIcon />,
+  USDT: <UsdtIcon />,
+  USDC: <UsdcIcon />,
+  ETH: <EthIcon />,
+};
