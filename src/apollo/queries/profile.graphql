@@ -15,5 +15,9 @@ query profile {
     }
     organizationName
     walletAddress
+    keywords {
+      id
+      name
+    }
   }
 }

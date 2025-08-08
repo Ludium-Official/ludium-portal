@@ -42,19 +42,52 @@ const ProgramsPage: React.FC = () => {
   const filter = [
     ...(selectedTab === 'my-programs'
       ? [
-          {
-            field: 'userId',
-            value: userId,
-          },
-        ]
+        {
+          field: 'userId',
+          value: userId,
+        },
+      ]
       : []),
-    ...(selectedTab === 'published'
+    ...(selectedTab === 'newest'
       ? [
-          {
-            field: 'status',
-            value: 'published',
-          },
-        ]
+        {
+          field: 'status',
+          value: 'published',
+        },
+        {
+          field: 'visibility',
+          value: 'public',
+        },
+      ]
+      : []),
+    ...(selectedTab === 'imminent'
+      ? [
+        {
+          field: 'status',
+          value: 'published',
+        },
+        {
+          field: 'visibility',
+          value: 'public',
+        },
+
+        {
+          field: 'imminent',
+          value: "true",
+        },
+      ]
+      : []),
+    ...(selectedTab === 'completed'
+      ? [
+        {
+          field: 'status',
+          value: 'completed',
+        },
+        {
+          field: 'visibility',
+          value: 'public',
+        },
+      ]
       : []),
     {
       field: 'name',

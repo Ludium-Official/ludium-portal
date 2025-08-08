@@ -12,7 +12,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import PostCard from './_components/post-card';
 
 const CommunityPage: React.FC = () => {
-  const [selectedTab, setSelectedTab] = useState('all');
+  const [selectedTab, setSelectedTab] = useState('newest');
   const [posts, setPosts] = useState<Post[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -150,8 +150,8 @@ const CommunityPage: React.FC = () => {
         <div className="flex justify-between items-center py-[14px]">
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
             <TabsList className="rounded-md">
-              <TabsTrigger value="all" className="rounded-xs px-4">
-                All
+              <TabsTrigger value="newest" className="rounded-xs px-4">
+                Newest
               </TabsTrigger>
               <TabsTrigger value="by-oldest" className="rounded-xs px-4">
                 By oldest

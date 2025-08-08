@@ -6,8 +6,9 @@ import { ProgramsDocument } from '@/apollo/queries/programs.generated';
 import type { OnSubmitProgramFunc } from '@/components/program-form';
 import ProgramForm from '@/components/program-form';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useProgramDraft } from '@/lib/hooks/use-program-draft';
 import notify from '@/lib/notify';
-import type { ProgramVisibility } from '@/types/types.generated';
+import type { ProgramStatus, ProgramVisibility } from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -19,6 +20,7 @@ const CreateProgram: React.FC = () => {
   const [inviteUserToProgram] = useInviteUserToProgramMutation();
 
   const { isLoggedIn, isAuthed } = useAuth();
+  const { clearDraft: clearProgramDraft } = useProgramDraft();
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -49,6 +51,7 @@ const CreateProgram: React.FC = () => {
           image: args.image,
 
           visibility: args.visibility as ProgramVisibility,
+          status: args.status as ProgramStatus,
         },
       },
       onCompleted: async (data) => {
@@ -82,6 +85,8 @@ const CreateProgram: React.FC = () => {
         }
         navigate('/programs');
         client.refetchQueries({ include: [ProgramsDocument] });
+        // Clear local program draft after successful creation
+        clearProgramDraft();
       },
     });
   };

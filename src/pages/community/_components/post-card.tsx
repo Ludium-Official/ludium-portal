@@ -113,8 +113,8 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
                       )}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-1 w-full">
+                    <div className="flex items-center justify-between w-full">
                       <h4 className="font-semibold text-sm">{getUserName(comment.author)}</h4>
                       <span className="text-xs text-muted-foreground">
                         {comment.createdAt
