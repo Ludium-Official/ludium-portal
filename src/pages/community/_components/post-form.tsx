@@ -1,10 +1,7 @@
-import { useCreateCarouselItemMutation } from "@/apollo/mutation/create-carousel-item.generated";
-import { useCarouselItemsQuery } from "@/apollo/queries/carousel-items.generated";
 import { usePostQuery } from "@/apollo/queries/post.generated";
 import { MarkdownEditor } from "@/components/markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CarouselItemType } from "@/types/types.generated";
 import { Image as ImageIcon, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -27,9 +24,9 @@ export interface PostFormProps {
 function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
   const { id } = useParams();
 
-  const { data: carouselItems, refetch } = useCarouselItemsQuery();
+  // const { data: carouselItems, refetch } = useCarouselItemsQuery();
 
-  const [createCarouselItem] = useCreateCarouselItemMutation();
+  // const [createCarouselItem] = useCreateCarouselItemMutation();
 
   const { data } = usePostQuery({
     variables: {
@@ -205,7 +202,7 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
         </label>
       </section>
 
-      {isEdit && (
+      {/* {isEdit && (
         <Button
           type="button"
           onClick={() => {
@@ -231,7 +228,7 @@ function PostForm({ onSubmitPost, isEdit }: PostFormProps) {
             ? "Already in Carousel"
             : "Add to Main Carousel"}
         </Button>
-      )}
+      )} */}
 
       {isEdit ? (
         <div className="px-[32px] py-3 flex justify-end gap-4">

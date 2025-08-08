@@ -44,11 +44,11 @@ function UsersPage() {
           },
           ...(selectedTab === 'by-projects'
             ? [
-              {
-                field: 'byNumberOfProjects',
-                value: 'asc',
-              },
-            ]
+                {
+                  field: 'byNumberOfProjects',
+                  value: 'asc',
+                },
+              ]
             : []),
         ],
       },

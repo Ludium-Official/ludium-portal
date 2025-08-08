@@ -3,6 +3,10 @@ import BaseIcon from "@/assets/icons/crypto/base";
 import CoreIcon from "@/assets/icons/crypto/core";
 import EduIcon from "@/assets/icons/crypto/edu";
 
+import EthIcon from '@/assets/icons/crypto/eth';
+import UsdcIcon from '@/assets/icons/crypto/usdc';
+import UsdtIcon from '@/assets/icons/crypto/usdt';
+
 export const currencies = [
   {
     code: "educhain",
@@ -48,3 +52,11 @@ export const currencies = [
     isTestnet: true,
   },
 ];
+
+
+export const currencyIcons = {
+  'EDU': <EduIcon />,
+  'USDT': <UsdtIcon />,
+  'USDC': <UsdcIcon />,
+  'ETH': <EthIcon />,
+}

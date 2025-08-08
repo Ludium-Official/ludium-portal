@@ -1,23 +1,16 @@
-
+import { ApplicationStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { cn, getCurrency, getUserName } from '@/lib/utils';
-import RejectApplicationForm from '@/pages/programs/details/_components/reject-application-form';
-import { type Application, ApplicationStatus, type Program } from '@/types/types.generated';
+import { getCurrency, getUserName } from '@/lib/utils';
+import type { Application, Program } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { Link } from 'react-router';
 
 function ApplicationCard({
   application,
   program,
-  refetch,
-  hideControls,
 }: {
   application?: Application | null;
   program?: Program | null;
-  refetch?: () => void;
-  hideControls?: boolean | null;
 }) {
   const totalPrice = application?.milestones
     ?.reduce((prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)), BigNumber(0, 10))
@@ -30,14 +23,23 @@ function ApplicationCard({
     <Link to={`./application/${application?.id}`} className="border rounded-lg p-5 bg-white">
       {/* Status Badge */}
       <div className="flex justify-between items-start mb-3">
-        <span
-          className={cn('flex items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm')}
+        <ApplicationStatusBadge application={application} />
+        {/* <span
+          className={cn(
+            'flex items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm',
+          )}
         >
-          {application?.status === ApplicationStatus.Accepted ? <span className="bg-cyan-400 w-[14px] h-[14px] rounded-full block" /> : application?.status === ApplicationStatus.Rejected ? <span className="bg-red-400 w-[14px] h-[14px] rounded-full block" /> : <span className="bg-gray-400 w-[14px] h-[14px] rounded-full block" />}
+          {application?.status === ApplicationStatus.Accepted ? (
+            <span className="bg-cyan-400 w-[14px] h-[14px] rounded-full block" />
+          ) : application?.status === ApplicationStatus.Rejected ? (
+            <span className="bg-red-200 w-[14px] h-[14px] rounded-full block" />
+          ) : (
+            <span className="bg-gray-400 w-[14px] h-[14px] rounded-full block" />
+          )}
           {application?.status
             ? application.status.charAt(0).toUpperCase() + application.status.slice(1)
             : 'Not confirmed'}
-        </span>
+        </span> */}
         {/* {!hideSeeDetails && (
           <Link to={`./application/${application?.id}`} className="flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800">
             See details <ArrowRight className="w-4 h-4" />
@@ -58,12 +60,14 @@ function ApplicationCard({
               {getUserName(application?.applicant)?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <Link
+          {/* <Link
             className="text-sm font-bold text-slate-900 hover:underline"
             to={`/users/${application?.applicant?.id}`}
-          >
-            {application?.applicant?.organizationName ?? getUserName(application?.applicant)}
-          </Link>
+          > */}
+          <div className="text-sm font-bold text-slate-900 hover:underline">
+            {getUserName(application?.applicant) ?? application?.applicant?.organizationName}
+          </div>
+          {/* </Link> */}
         </div>
 
         {/* Price Tag */}
@@ -86,26 +90,6 @@ function ApplicationCard({
         </p>
       </div>
 
-      {/* Controls */}
-      {!hideControls && (
-        <div className="flex justify-end gap-3">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button onClick={(e) => e.stopPropagation()} className="h-10" variant="outline">
-                Reject
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="min-w-[600px] p-6 max-h-screen overflow-y-auto">
-              <RejectApplicationForm
-                applicationId={application?.id}
-                refetch={() => {
-                  refetch?.();
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      )}
     </Link>
   );
 }

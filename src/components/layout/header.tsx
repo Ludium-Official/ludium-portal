@@ -86,7 +86,8 @@ function Header() {
       backgroundColor: `rgba(255, 255, 255, ${1 - opacity * 0.9})`, // Начинаем с белого, становимся прозрачным
       backdropFilter: `blur(${blur}px)`,
       transform: isVisible ? 'translateY(0)' : 'translateY(-120%)',
-      transition: 'transform 0.3s ease-in-out, background-color 0.3s ease-in-out, backdrop-filter 0.3s ease-in-out',
+      transition:
+        'transform 0.3s ease-in-out, background-color 0.3s ease-in-out, backdrop-filter 0.3s ease-in-out',
     };
   };
 

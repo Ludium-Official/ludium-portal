@@ -1,9 +1,9 @@
-import { useCreateCommentMutation } from '@/apollo/mutation/create-comment.generated';
+
 import { useIncrementPostViewMutation } from '@/apollo/mutation/incerement-post-view.generated';
 import { useCommentsByCommentableQuery } from '@/apollo/queries/comments-by-commentable.generated';
 import { usePostQuery } from '@/apollo/queries/post.generated';
 import { usePostsQuery } from '@/apollo/queries/posts.generated';
-import { CommentSection } from '@/components/comment-section';
+import { CommentSection } from '@/components/comments/comment-section';
 import { MarkdownPreviewer } from '@/components/markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ShareButton } from '@/components/ui/share-button';
@@ -45,7 +45,7 @@ const CommunityDetailsPage: React.FC = () => {
     skip: !authorId,
     fetchPolicy: 'cache-and-network',
   });
-  console.log("🚀 ~ CommunityDetailsPage ~ postsData:", postsData)
+  console.log('🚀 ~ CommunityDetailsPage ~ postsData:', postsData);
 
   const { data, loading, error } = usePostQuery({
     variables: {
@@ -71,7 +71,7 @@ const CommunityDetailsPage: React.FC = () => {
   //   }
   // }, []);
 
-  const { data: comments, refetch: refetchComments } = useCommentsByCommentableQuery({
+  const { data: comments } = useCommentsByCommentableQuery({
     variables: {
       commentableId: postId,
       commentableType: CommentableTypeEnum.Post,
@@ -80,7 +80,7 @@ const CommunityDetailsPage: React.FC = () => {
     fetchPolicy: 'cache-and-network',
   });
 
-  const [createComment] = useCreateCommentMutation();
+  // const [createComment] = useCreateCommentMutation();
 
   useEffect(() => {
     const hash = window.location.hash.slice(1);
@@ -132,16 +132,19 @@ const CommunityDetailsPage: React.FC = () => {
             <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <h1 className="text-xl font-bold">{post?.title}</h1>
-                {(data?.post?.author?.id === userId || isAdmin) && (
-                  <Link
-                    to={`/community/posts/${data?.post?.id}/edit`}
-                    className="h-10 px-4 hover:bg-accent hover:text-accent-foreground flex items-center justify-center gap-2 rounded-md"
-                  >
-                    <p className="font-medium text-sm">Edit</p>
-                    <Settings className="w-4 h-4" />
-                  </Link>
-                )}
-                <ShareButton />
+                <div className='flex items-center gap-2'>
+
+                  {(data?.post?.author?.id === userId || isAdmin) && (
+                    <Link
+                      to={`/community/posts/${data?.post?.id}/edit`}
+                      className="h-10 px-4 hover:bg-accent hover:text-accent-foreground flex items-center justify-center gap-2 rounded-md"
+                    >
+                      <p className="font-medium text-sm">Edit</p>
+                      <Settings className="w-4 h-4" />
+                    </Link>
+                  )}
+                  <ShareButton />
+                </div>
               </div>
 
               <div className="flex justify-between items-center">
@@ -163,7 +166,9 @@ const CommunityDetailsPage: React.FC = () => {
                     <span>•</span>
                     <span>Views {post.viewCount}</span>
                     <span>•</span>
-                    <span className='text-secondary-foreground font-bold'>Comments {comments?.commentsByCommentable?.length}</span>
+                    <span className="text-secondary-foreground font-bold">
+                      Comments {comments?.commentsByCommentable?.length}
+                    </span>
                   </div>
                 )}
               </div>
@@ -181,26 +186,26 @@ const CommunityDetailsPage: React.FC = () => {
                 </div>
               </div>
 
-
-              <MarkdownPreviewer value={post?.content ?? ''} />
+              {post?.content && <MarkdownPreviewer value={post?.content ?? ''} />}
             </div>
             {/* Comment Section */}
             <CommentSection
-              postId={postId}
-              comments={comments?.commentsByCommentable ?? []}
+              commentableId={postId}
+              commentableType={CommentableTypeEnum.Post}
+              // comments={comments?.commentsByCommentable ?? []}
               isLoggedIn={isAuthed ?? false}
-              onSubmitComment={async (content) =>
-                await createComment({
-                  variables: {
-                    input: {
-                      content,
-                      commentableId: postId,
-                      commentableType: CommentableTypeEnum.Post,
-                    },
-                  },
-                })
-              }
-              refetchComments={refetchComments}
+            // onSubmitComment={async (content) =>
+            //   await createComment({
+            //     variables: {
+            //       input: {
+            //         content,
+            //         commentableId: postId,
+            //         commentableType: CommentableTypeEnum.Post,
+            //       },
+            //     },
+            //   })
+            // }
+            // refetchComments={refetchComments}
             />
 
             <div className="flex items-center justify-between">

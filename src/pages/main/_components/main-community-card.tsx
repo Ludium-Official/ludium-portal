@@ -59,7 +59,8 @@ function MainCommunityCard({ post }: MainCommunityCardProps) {
 
           {/* Detail */}
           <p className="text-sm text-gray-600 leading-5 flex-1 line-clamp-4 overflow-hidden break-words">
-            {post?.summary || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc convallis nisl non euismod fringilla. Aliquam cursus, ante ut malesuada ultrices, diam eros condimentum enim, in mattis sapien eros eget nunc. Vivamus erat massa, pharetra eget nibh et, imperdiet convallis mi. Vestibulum dapibus, odio at sodales'}
+            {post?.summary ||
+              'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc convallis nisl non euismod fringilla. Aliquam cursus, ante ut malesuada ultrices, diam eros condimentum enim, in mattis sapien eros eget nunc. Vivamus erat massa, pharetra eget nibh et, imperdiet convallis mi. Vestibulum dapibus, odio at sodales'}
           </p>
         </div>
       </div>
@@ -99,7 +100,8 @@ function MainCommunityCard({ post }: MainCommunityCardProps) {
                 </span>
               </div>
               <p className="text-xs font-medium text-gray-900 leading-4 line-clamp-2 overflow-hidden break-words w-full">
-                {post?.summary || 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc convallis nisl non euismod fringilla. Aliquam cursus, ante ut malesuada ultrices, diam eros condimentum enim, in mattis sapien eros eget nunc. Vivamus erat massa, pharetra eget nibh et, imperdiet convallis mi. Vestibulum dapibus, odio at sodales'}
+                {post?.summary ||
+                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc convallis nisl non euismod fringilla. Aliquam cursus, ante ut malesuada ultrices, diam eros condimentum enim, in mattis sapien eros eget nunc. Vivamus erat massa, pharetra eget nibh et, imperdiet convallis mi. Vestibulum dapibus, odio at sodales'}
               </p>
             </div>
           </div>
@@ -109,4 +111,4 @@ function MainCommunityCard({ post }: MainCommunityCardProps) {
   );
 }
 
-export default MainCommunityCard; 
+export default MainCommunityCard;

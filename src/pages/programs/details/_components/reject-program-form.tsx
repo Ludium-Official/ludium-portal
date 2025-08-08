@@ -16,11 +16,13 @@ function RejectProgramForm({
 
   return (
     <form>
-      <DialogTitle className="text-2xl font-semibold px-6 pt-6">Submit Rejection of Program</DialogTitle>
+      <DialogTitle className="text-2xl font-semibold px-6 pt-6">
+        Submit Rejection of Program
+      </DialogTitle>
 
       <DialogDescription className="hidden" />
 
-      <DialogClose className='hidden' id='reject-program-form-close' />
+      <DialogClose className="hidden" id="reject-program-form-close" />
 
       <label htmlFor="reason" className="block mb-4 py-6 px-10">
         <p className="text-sm font-medium mb-2">Reason</p>

@@ -1,7 +1,7 @@
 import { useCarouselItemsQuery } from '@/apollo/queries/carousel-items.generated';
 import { usePostsQuery } from '@/apollo/queries/posts.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
-import { useUsersQuery } from '@/apollo/queries/users.generated';
+// import { useUsersQuery } from '@/apollo/queries/users.generated';
 import thumbnail from '@/assets/thumbnail.jpg';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,8 +14,8 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import MainCommunityCard from '@/pages/main/_components/main-community-card';
 import MainProgramCard from '@/pages/main/_components/main-program-card';
-import MainUserCard from '@/pages/main/_components/main-user-card';
-import type { Post, Program, } from '@/types/types.generated';
+// import MainUserCard from '@/pages/main/_components/main-user-card';
+import type { Post, Program } from '@/types/types.generated';
 import Autoplay from 'embla-carousel-autoplay';
 import { ArrowRight } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -41,7 +41,6 @@ function MainPage() {
     };
   }, [api, onSelect]);
 
-
   const { data: programsData, loading: programsLoading } = useProgramsQuery({
     variables: {
       pagination: {
@@ -64,14 +63,14 @@ function MainPage() {
     },
   });
 
-  const { data: usersData, loading: usersLoading } = useUsersQuery({
-    variables: {
-      input: {
-        limit: 3,
-        offset: 0,
-      },
-    },
-  });
+  // const { data: usersData, loading: usersLoading } = useUsersQuery({
+  //   variables: {
+  //     input: {
+  //       limit: 3,
+  //       offset: 0,
+  //     },
+  //   },
+  // });
 
   const { data: carouselItemsData, loading: carouselLoading } = useCarouselItemsQuery();
 
@@ -218,7 +217,7 @@ function MainPage() {
         )}
 
         {/* Users Section */}
-        {usersLoading ? (
+        {/* {usersLoading ? (
           <section className="mb-12">
             <Skeleton className="w-[108px] h-[32px] mb-3" />
             <div className="flex gap-3">
@@ -242,7 +241,7 @@ function MainPage() {
               ))}
             </div>
           </section>
-        )}
+        )} */}
       </div>
     </div>
   );

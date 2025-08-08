@@ -48,11 +48,44 @@ const ProgramsPage: React.FC = () => {
         },
       ]
       : []),
-    ...(selectedTab === 'published'
+    ...(selectedTab === 'newest'
       ? [
         {
           field: 'status',
           value: 'published',
+        },
+        {
+          field: 'visibility',
+          value: 'public',
+        },
+      ]
+      : []),
+    ...(selectedTab === 'imminent'
+      ? [
+        {
+          field: 'status',
+          value: 'published',
+        },
+        {
+          field: 'visibility',
+          value: 'public',
+        },
+
+        {
+          field: 'imminent',
+          value: "true",
+        },
+      ]
+      : []),
+    ...(selectedTab === 'completed'
+      ? [
+        {
+          field: 'status',
+          value: 'completed',
+        },
+        {
+          field: 'visibility',
+          value: 'public',
         },
       ]
       : []),
@@ -81,10 +114,7 @@ const ProgramsPage: React.FC = () => {
         <div className="flex justify-between items-center pb-4">
           <h1 className="text-3xl font-bold">Recruitment</h1>
         </div>
-        <Tabs
-          value={selectedTab}
-          onValueChange={setSelectedTab}
-        >
+        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <section className="flex justify-between items-center py-[14px]">
             <TabsList className="">
               <TabsTrigger value="newest">Newest</TabsTrigger>

@@ -3,19 +3,26 @@ import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.gener
 import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
 import { ProgramDocument, useProgramQuery } from '@/apollo/queries/program.generated';
 import { MarkdownPreviewer } from '@/components/markdown';
+import { ProgramStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { ShareButton } from '@/components/ui/share-button';
-import { Tabs } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
-import { cn, getCurrency, getInitials, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
-import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
+import { cn, getCurrency, getCurrencyIcon, getInitials, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import ApplicationCard from '@/pages/programs/details/_components/application-card';
 import CreateApplicationForm from '@/pages/programs/details/_components/create-application-form';
 import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
@@ -24,21 +31,31 @@ import { ApplicationStatus, ProgramStatus, type User } from '@/types/types.gener
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
 import { CircleAlert, Settings, TriangleAlert } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
 const DetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const { userId, isAdmin, isLoggedIn, isAuthed } = useAuth();
   const { id } = useParams();
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
-  const { data, refetch } = useProgramQuery({
+  const { data, refetch, error: programError } = useProgramQuery({
     variables: {
       id: id ?? '',
     },
   });
 
   const program = data?.program;
+
+  const filteredApplications = useMemo(() => {
+    if (selectedStatus === 'all') {
+      return data?.program?.applications || [];
+    }
+    return data?.program?.applications?.filter((application) =>
+      application.status === selectedStatus
+    ) || [];
+  }, [data?.program?.applications, selectedStatus]);
 
   const acceptedPrice = useMemo(
     () =>
@@ -70,7 +87,6 @@ const DetailsPage: React.FC = () => {
       }
     }
   }, []);
-
 
   const programActionOptions = {
     variables: { id: program?.id ?? id ?? '' },
@@ -119,30 +135,37 @@ const DetailsPage: React.FC = () => {
     }
   };
 
+  if (programError?.message === 'You do not have access to this program') {
+    return (
+      <div className="text-center bg-white rounded-2xl p-10">
+        <p className="text-lg font-bold mb-10">You do not have access to this program</p>
+        <Link to="/programs" className="text-primary hover:underline font-semibold">
+          Go back to programs
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-[#F7F7F7]">
       <section className="bg-white rounded-2xl">
         <div className="max-w-1440 mx-auto p-10">
           <div className="flex justify-between items-center mb-2">
             <ProgramStatusBadge program={program} />
-
           </div>
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-xl font-bold">{program?.name}</h1>
 
-            <div className='flex gap-2'>
+            <div className="flex gap-2">
               {(program?.creator?.id === userId || isAdmin) && (
                 <Link to={`/programs/${program?.id}/edit`}>
-                  <Button variant='ghost' className='flex gap-2 items-center'>
+                  <Button variant="ghost" className="flex gap-2 items-center">
                     Edit
                     <Settings className="w-4 h-4" />
                   </Button>
                 </Link>
               )}
-              <ShareButton />
-              {/* <Button variant="ghost" className="flex gap-2 items-center">
-                Share <Share2 />
-              </Button> */}
+              <ShareButton program={program ?? undefined} />
             </div>
           </div>
 
@@ -157,7 +180,11 @@ const DetailsPage: React.FC = () => {
               {/* Temporary image placeholder until the actual image is added */}
               {/* <div className='bg-[#eaeaea] w-full rounded-xl aspect-square mb-6' /> */}
               {program?.image ? (
-                <img src={program?.image} alt="program" className='w-full aspect-square rounded-xl' />
+                <img
+                  src={program?.image}
+                  alt="program"
+                  className="w-full aspect-square rounded-xl mb-6"
+                />
               ) : (
                 <div className="bg-[#eaeaea] w-full rounded-xl aspect-square mb-6" />
               )}
@@ -169,7 +196,7 @@ const DetailsPage: React.FC = () => {
                 <p className="text-muted-foreground text-sm">PRICE</p>
 
                 <div className="flex gap-2 items-center">
-                  <span>{getCurrency(program?.network)?.icon}</span>
+                  <span>{getCurrencyIcon(program?.currency)}</span>
                   <p>
                     <span className="text-xl">{acceptedPrice}</span>{' '}
                     <span className="text-muted-foreground text-xs mr-1.5">
@@ -199,7 +226,12 @@ const DetailsPage: React.FC = () => {
               <Dialog>
                 <DialogTrigger asChild>
                   <Button
-                    disabled={!isLoggedIn || program?.status !== 'published' || program.creator?.id === userId || program?.validators?.some((validator) => validator.id === userId)}
+                    disabled={
+                      !isLoggedIn ||
+                      program?.status !== 'published' ||
+                      program.creator?.id === userId ||
+                      program?.validators?.some((validator) => validator.id === userId)
+                    }
                     onClick={(e) => {
                       if (!isAuthed) {
                         notify('Please add your email', 'success');
@@ -219,7 +251,7 @@ const DetailsPage: React.FC = () => {
                 </DialogContent>
               </Dialog>
 
-              {program?.validators?.some(v => v.id === userId) && program.status === 'draft' && (
+              {program?.validators?.some((v) => v.id === userId) && program.status === ProgramStatus.Pending && (
                 <div className="flex justify-end gap-2 w-full">
                   <Dialog>
                     <DialogTrigger asChild>
@@ -246,7 +278,7 @@ const DetailsPage: React.FC = () => {
                 </div>
               )}
 
-              {program?.creator?.id === userId && program.status === 'payment_required' && (
+              {program?.creator?.id === userId && program.status === ProgramStatus.PaymentRequired && (
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button className="text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px] w-full h-11">
@@ -263,8 +295,8 @@ const DetailsPage: React.FC = () => {
                         Are you sure to pay the settlement for the program?
                       </DialogTitle>
                       <DialogDescription className="text-muted-foreground text-sm mb-4">
-                        The amount will be securely stored until you will confirm the completion of the
-                        project.
+                        The amount will be securely stored until you will confirm the completion of
+                        the project.
                       </DialogDescription>
                       <Button onClick={callTx}>Yes, Pay now</Button>
                     </div>
@@ -272,6 +304,22 @@ const DetailsPage: React.FC = () => {
                 </Dialog>
               )}
 
+              {program?.status === ProgramStatus.Rejected && program.creator?.id === userId && (
+                <div className="flex justify-end gap-2 w-full">
+                  <Button disabled className="h-11 flex-1">
+                    Rejected
+                  </Button>
+                </div>
+              )}
+
+
+              {program?.status === ProgramStatus.Rejected && program.validators?.some((v) => v.id === userId) && (
+                <div className="flex justify-end gap-2 w-full">
+                  <Button disabled variant='outline' className="h-11 flex-1">
+                    Rejection Reason Submitted
+                  </Button>
+                </div>
+              )}
 
               <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">KEYWORDS</p>
@@ -291,7 +339,7 @@ const DetailsPage: React.FC = () => {
                 <p className="text-slate-600 text-sm whitespace-pre-wrap">{program?.summary}</p>
               </div>
 
-              <div className="mt-6">
+              {!!program?.links?.length && <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM LINKS</p>
                 {program?.links?.map((l) => (
                   <a
@@ -304,17 +352,23 @@ const DetailsPage: React.FC = () => {
                     {l?.url}
                   </a>
                 ))}
-              </div>
+              </div>}
 
               <div className="mt-6">
-                <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM HOST</p>
+                <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM SPONSOR</p>
                 <div className="border rounded-xl w-full p-4 mb-6">
-
-                  <span className='items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex mb-3'>
-                    <span className={cn("bg-gray-400 w-[14px] h-[14px] rounded-full block", {
-                      "bg-green-400": program?.status === ProgramStatus.Published || program?.status === ProgramStatus.Completed,
-                    })} />
-                    {program?.status === ProgramStatus.Published || program?.status === ProgramStatus.Completed ? 'Paid' : 'Not paid'}
+                  <span className="items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex mb-3">
+                    <span
+                      className={cn('bg-gray-400 w-[14px] h-[14px] rounded-full block', {
+                        'bg-green-400':
+                          program?.status === ProgramStatus.Published ||
+                          program?.status === ProgramStatus.Completed,
+                      })}
+                    />
+                    {program?.status === ProgramStatus.Published ||
+                      program?.status === ProgramStatus.Completed
+                      ? 'Paid'
+                      : 'Not paid'}
                   </span>
 
                   <Link
@@ -322,8 +376,6 @@ const DetailsPage: React.FC = () => {
                     className="flex gap-2 items-center text-lg font-bold mb-5"
                   >
                     {/* <div className="w-10 h-10 bg-gray-200 rounded-full" /> */}
-
-
 
                     <Avatar className="w-10 h-10">
                       <AvatarImage
@@ -336,14 +388,14 @@ const DetailsPage: React.FC = () => {
                         )}
                       </AvatarFallback>
                     </Avatar>
-                    <p className='text-sm font-bold'>
-                      {getUserName(program?.creator)}
-                    </p>
+                    <p className="text-sm font-bold">{getUserName(program?.creator)}</p>
                   </Link>
 
                   <div className="flex gap-3 mb-4">
                     <p className="text-xs font-bold w-[57px]">Summary</p>
-                    <p className="text-xs text-slate-500 line-clamp-2">{program?.creator?.summary}</p>
+                    <p className="text-xs text-slate-500 line-clamp-2">
+                      {program?.creator?.summary}
+                    </p>
                   </div>
 
                   <div className="flex gap-3 mb-4">
@@ -351,16 +403,12 @@ const DetailsPage: React.FC = () => {
                     <p className="text-xs">{program?.creator?.email}</p>
                   </div>
 
-                  <div className='flex gap-2 flex-wrap'>
-                    <Badge variant='secondary' className='text-xs font-semibold'>
-                      DB
-                    </Badge>
-                    <Badge variant='secondary' className='text-xs font-semibold'>
-                      Developer
-                    </Badge>
-                    <Badge variant='secondary' className='text-xs font-semibold'>
-                      Solidity
-                    </Badge>
+                  <div className="flex gap-2 flex-wrap">
+                    {program?.creator?.keywords?.map((k) => (
+                      <Badge key={k.id} variant="secondary" className="text-xs font-semibold">
+                        {k.name}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -371,38 +419,42 @@ const DetailsPage: React.FC = () => {
 
                   {program.validators.map((validator) => (
                     <div className="border rounded-xl w-full p-6 mb-6" key={validator.id}>
-
                       {/* <ProgramStatusBadge program={program} className='inline-flex mb-3' /> */}
-                      <div className='flex justify-between items-center  mb-3'>
-
-                        <span
-                          className='items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex'
-                        >
-                          <span className={cn("bg-gray-400 w-[14px] h-[14px] rounded-full block", {
-                            "bg-red-400": program.status === ProgramStatus.Draft && program.rejectionReason,
-                            "bg-green-400": program.status !== ProgramStatus.Draft,
-                            "bg-gray-400": program.status === ProgramStatus.Draft && !program.rejectionReason,
-                          })} />
-                          {program.status === ProgramStatus.Draft ? program.rejectionReason ? 'Rejected' : 'Pending' : 'Accepted'}
+                      <div className="flex justify-between items-center  mb-3">
+                        <span className="items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex">
+                          <span
+                            className={cn('bg-gray-400 w-[14px] h-[14px] rounded-full block', {
+                              'bg-red-200':
+                                program.status === ProgramStatus.Rejected,
+                              'bg-green-400': program.status !== ProgramStatus.Pending && program.status !== ProgramStatus.Rejected,
+                              'bg-gray-400':
+                                program.status === ProgramStatus.Pending,
+                            })}
+                          />
+                          {program.status === ProgramStatus.Rejected
+                            ? 'Rejected'
+                            : program.status === ProgramStatus.Pending
+                              ? 'Not confirmed'
+                              : 'Accepted'}
                         </span>
 
-                        {program.status === ProgramStatus.Draft && program.rejectionReason && (
+                        {program.status === ProgramStatus.Rejected && program.rejectionReason && (
                           <Tooltip>
-                            <TooltipTrigger className='text-destructive flex gap-2 items-center'>
-                              <CircleAlert className='w-4 h-4' /> <p className='text-sm font-medium underline'>View reason</p>
+                            <TooltipTrigger className="text-destructive flex gap-2 items-center">
+                              <CircleAlert className="w-4 h-4" />{' '}
+                              <p className="text-sm font-medium underline">View reason</p>
                             </TooltipTrigger>
-                            <TooltipContent className='text-destructive flex gap-2 items-start bg-white border shadow-[0px_4px_6px_-1px_#0000001A]'>
-                              <div className='mt-1.5'>
-                                <CircleAlert className='w-4 h-4' />
+                            <TooltipContent className="text-destructive flex gap-2 items-start bg-white border shadow-[0px_4px_6px_-1px_#0000001A]">
+                              <div className="mt-1.5">
+                                <CircleAlert className="w-4 h-4" />
                               </div>
                               <div>
-                                <p className='font-medium text-base mb-1'>Reason for rejection</p>
-                                <p className='text-sm'>{program.rejectionReason}</p>
+                                <p className="font-medium text-base mb-1">Reason for rejection</p>
+                                <p className="text-sm">{program.rejectionReason}</p>
                               </div>
                             </TooltipContent>
                           </Tooltip>
                         )}
-
                       </div>
                       <Link
                         to={`/users/${program?.creator?.id}`}
@@ -422,20 +474,14 @@ const DetailsPage: React.FC = () => {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className='text-sm mb-2'>
-                            {getUserName(validator)}
-                          </p>
+                          <p className="text-sm mb-2">{getUserName(validator)}</p>
 
-                          <div className='flex gap-2 flex-wrap'>
-                            <Badge variant='secondary' className='text-xs font-semibold'>
-                              DB
-                            </Badge>
-                            <Badge variant='secondary' className='text-xs font-semibold'>
-                              Developer
-                            </Badge>
-                            <Badge variant='secondary' className='text-xs font-semibold'>
-                              Solidity
-                            </Badge>
+                          <div className="flex gap-2 flex-wrap">
+                            {validator?.keywords?.map((k) => (
+                              <Badge key={k.id} variant="secondary" className="text-xs font-semibold">
+                                {k.name}
+                              </Badge>
+                            ))}
                           </div>
                         </div>
                       </Link>
@@ -464,24 +510,37 @@ const DetailsPage: React.FC = () => {
 
       <section className="bg-white rounded-2xl mt-3">
         <div className="max-w-1440 mx-auto p-10">
-          <Tabs id="applications">
+          <Tabs id="applications" value={selectedStatus} onValueChange={(value) => setSelectedStatus(value)}>
             <h2 className="text-xl font-bold mb-4">Applications</h2>
-            <section className="" />
+            <section className="">
+              <TabsList className="mb-3.5">
+                <TabsTrigger value="all">All</TabsTrigger>
+                {Object.values(ApplicationStatus).map((status) => (
+                  <TabsTrigger key={status} value={status}>
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </TabsTrigger>
+                ))}
+                {/* <TabsTrigger value="newest">Newest</TabsTrigger>
+                <TabsTrigger value="imminent">Imminent</TabsTrigger>
+                <TabsTrigger value="my-programs">My programs</TabsTrigger>
+                <TabsTrigger value="completed">Completed</TabsTrigger> */}
+              </TabsList>
+            </section>
 
             <section className="grid grid-cols-3 gap-5">
-              {!data?.program?.applications?.length && (
-                <div className="text-slate-600 text-sm">No applications yet.</div>
+              {!filteredApplications.length && (
+                <div className="text-slate-600 text-sm">
+                  {selectedStatus === 'all'
+                    ? 'No applications yet.'
+                    : `No ${selectedStatus.toLowerCase()} applications yet.`
+                  }
+                </div>
               )}
-              {data?.program?.applications?.map((a) => (
+              {filteredApplications.map((a) => (
                 <ApplicationCard
                   key={a.id}
                   application={a}
-                  program={data.program}
-                  refetch={refetch}
-                  hideControls={
-                    a.status !== ApplicationStatus.Pending ||
-                    program?.validators?.every((validator) => validator.id !== userId)
-                  }
+                  program={data?.program}
                 />
               ))}
             </section>

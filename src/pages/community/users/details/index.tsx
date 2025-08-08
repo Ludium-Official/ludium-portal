@@ -37,7 +37,9 @@ function UserDetailsPage() {
                     </p>
                     <p className="text-sm text-muted-foreground">{userData?.user?.email}</p>
                   </div>
-                  <p className="text-sm text-muted-foreground">{userData?.user?.organizationName}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {userData?.user?.organizationName}
+                  </p>
                 </div>
               </div>
               <div className="space-y-2">
@@ -46,7 +48,7 @@ function UserDetailsPage() {
                   {userData?.user?.summary}
                 </p>
               </div>
-              <ShareButton variant='outline' className='h-11' />
+              <ShareButton variant="outline" className="h-11" />
               {/* <Button variant={'outline'} className="h-11">
                 <p className="font-medium text-sm text-gray-dark">Share</p>
                 <Share2Icon />
@@ -95,7 +97,9 @@ function UserDetailsPage() {
                     {userData?.user?.links?.length ? (
                       userData.user.links.map((link, index) => {
                         const url = link.url?.toLowerCase() || '';
-                        const matchedKey = Object.keys(platformIcons).find((key) => url.includes(key));
+                        const matchedKey = Object.keys(platformIcons).find((key) =>
+                          url.includes(key),
+                        );
                         const platform = matchedKey ? platformIcons[matchedKey] : null;
 
                         return (
@@ -103,7 +107,12 @@ function UserDetailsPage() {
                           <div key={index} className="flex items-center gap-2">
                             {platform && (
                               <div className="flex items-center justify-center h-10 w-10 rounded-md bg-secondary">
-                                <img src={platform.icon} width={16} height={16} alt={platform.alt} />
+                                <img
+                                  src={platform.icon}
+                                  width={16}
+                                  height={16}
+                                  alt={platform.alt}
+                                />
                               </div>
                             )}
                             <a

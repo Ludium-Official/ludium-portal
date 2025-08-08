@@ -7,12 +7,15 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { DialogClose, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { } from '@/components/ui/tooltip';
+import { useApplicationDraft } from '@/lib/hooks/use-application-draft';
 import notify from '@/lib/notify';
-import { getCurrency } from '@/lib/utils';
+import { getCurrencyIcon } from '@/lib/utils';
+import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { ApplicationDynamicTabs } from '@/pages/programs/details/_components/application-form-dynamic-tab';
 import { ApplicationStatus, type Program } from '@/types/types.generated';
 import { X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // Types for the form
 export type MilestoneType = {
@@ -47,6 +50,26 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   });
   const [linksError, setLinksError] = useState(false);
   const [createApplication, { loading }] = useCreateApplicationMutation();
+  const { saveDraft: saveApplicationDraft, loadDraft: loadApplicationDraft, clearDraft: clearApplicationDraft } = useApplicationDraft(program?.id ?? '');
+
+  // Prefill from draft on mount (scoped by program id)
+  useEffect(() => {
+    const draft = loadApplicationDraft();
+    if (!draft) return;
+    setFormData({
+      overview: {
+        name: draft.overview?.name ?? '',
+        links: draft.overview?.links?.length ? draft.overview.links : [''],
+        price: draft.overview?.price ?? '0',
+      },
+      description: {
+        summary: draft.description?.summary ?? '',
+        content: draft.description?.content ?? '',
+      },
+      milestones: draft.milestones?.length ? draft.milestones : [{ ...emptyMilestone }],
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [program?.id]);
 
   // Add new milestone
   const handleAddMilestone = () => {
@@ -130,7 +153,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   };
 
   // Submit
-  const onSubmit = async (isDraft?: boolean) => {
+  const onSubmit = async () => {
     console.log('submit start');
     // Validation for links
     if (formData.overview.links.some((l) => l && !/^https?:\/\/[\w.-]+/.test(l))) {
@@ -143,7 +166,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         variables: {
           input: {
             programId: program?.id ?? '',
-            status: isDraft ? ApplicationStatus.Draft : ApplicationStatus.Pending,
+            status: ApplicationStatus.Pending,
             content: formData.description.content,
             name: formData.overview.name,
             summary: formData.description.summary,
@@ -152,20 +175,27 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
               // price: m.price,
               title: m.title,
               description: m.description,
+              summary: m.summary,
               currency: program?.currency ?? 'EDU',
-              deadline: m.deadline,
+              deadline: m.deadline || new Date().toISOString().slice(0, 10),
             })),
             price: formData.overview.price,
             // price: formData.milestones
             //   .reduce((prev, curr) => BigNumber(curr?.price ?? '0').plus(prev), BigNumber(0))
             //   .toFixed(18),
-            links: formData.overview.links.filter(Boolean).map((l) => ({ title: l, url: l })),
+            links:
+              (() => {
+                const { shouldSend } = validateLinks(formData.overview.links);
+                return shouldSend ? filterEmptyLinks(formData.overview.links).map((l) => ({ title: l, url: l })) : undefined;
+              })()
+            // formData.overview.links.filter(Boolean).map((l) => ({ title: l, url: l })),
           },
         },
         onCompleted: async () => {
           client.refetchQueries({ include: [ProgramDocument] });
           notify('Application successfully created');
           document.getElementById('proposal-dialog-close')?.click();
+          clearApplicationDraft();
         },
         onError: (e) => {
           notify(`Failed to create application: ${e.message}`, 'error');
@@ -209,8 +239,8 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                 onChange={(e) => handleOverviewChange('price', e.target.value)}
               />
               <Button type="button">
-                {getCurrency(program?.network)?.icon}
-                {getCurrency(program?.network)?.display}
+                {getCurrencyIcon(program?.currency)}
+                {program?.currency}
               </Button>
             </div>
           </label>
@@ -258,7 +288,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       content: (
         <div className="space-y-6">
           <label htmlFor="summary" className="w-full block">
-            <p className="text-sm font-medium mb-2">Summary</p>
+            <p className="text-sm font-medium mb-2">Summary <span className="text-primary">*</span></p>
             <Textarea
               id="summary"
               className="h-10 w-full mb-2"
@@ -267,7 +297,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             />
           </label>
           <label htmlFor="description" className="w-full block">
-            <p className="text-sm font-medium mb-2">Description</p>
+            <p className="text-sm font-medium mb-2">Description <span className="text-primary">*</span></p>
             <MarkdownEditor
               onChange={(val) => handleDescriptionChange('content', val as string)}
               content={formData.description.content}
@@ -284,7 +314,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       content: (
         <div className="space-y-4">
           <label htmlFor="title0" className="w-full block">
-            <p className="text-sm font-medium mb-2">Milestone 1</p>
+            <p className="text-sm font-medium mb-2">Milestone 1 <span className="text-primary">*</span></p>
             <Input
               id="title0"
               className="h-10 w-full"
@@ -294,7 +324,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           </label>
           <div className="flex gap-4">
             <label htmlFor="price0" className="w-full block">
-              <p className="text-sm font-medium mb-2">Milestone Payout (% of Funding)</p>
+              <p className="text-sm font-medium mb-2">Milestone Payout (% of Funding) <span className="text-primary">*</span></p>
               <Input
                 type="number"
                 id="price0"
@@ -307,7 +337,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
               />
             </label>
             <label htmlFor="deadline0" className="w-full block">
-              <p className="text-sm font-medium mb-2">Deadline</p>
+              <p className="text-sm font-medium mb-2">Deadline <span className="text-primary">*</span></p>
               <DatePicker
                 date={
                   formData.milestones[0]?.deadline
@@ -325,7 +355,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             </label>
           </div>
           <label htmlFor="summary0" className="w-full block">
-            <p className="text-sm font-medium mb-2">Summary</p>
+            <p className="text-sm font-medium mb-2">Summary <span className="text-primary">*</span></p>
             <Textarea
               id="summary0"
               value={formData.milestones[0]?.summary}
@@ -334,7 +364,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             />
           </label>
           <label htmlFor="desc0" className="w-full block">
-            <p className="text-sm font-medium mb-2">Description</p>
+            <p className="text-sm font-medium mb-2">Description <span className="text-primary">*</span></p>
             <MarkdownEditor
               onChange={(val) => handleMilestoneChange(0, 'description', val as string)}
               content={formData.milestones[0]?.description}
@@ -351,7 +381,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       content: (
         <div className="space-y-4">
           <label htmlFor={`title${idx + 1}`} className="w-full block">
-            <p className="text-sm font-medium mb-2">Milestone {idx + 2}</p>
+            <p className="text-sm font-medium mb-2">Milestone {idx + 2} <span className="text-primary">*</span></p>
             <Input
               id={`title${idx + 1}`}
               className="h-10 w-full"
@@ -361,7 +391,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           </label>
           <div className="flex gap-4">
             <label htmlFor={`price${idx + 1}`} className="w-full block">
-              <p className="text-sm font-medium mb-2">Milestone Payout (% of Funding)</p>
+              <p className="text-sm font-medium mb-2">Milestone Payout (% of Funding) <span className="text-primary">*</span></p>
               <Input
                 type="number"
                 id={`price${idx + 1}`}
@@ -374,7 +404,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
               />
             </label>
             <label htmlFor={`deadline${idx + 1}`} className="w-full block">
-              <p className="text-sm font-medium mb-2">Deadline</p>
+              <p className="text-sm font-medium mb-2">Deadline <span className="text-primary">*</span></p>
               <DatePicker
                 disabled={{ before: new Date() }}
                 date={m.deadline ? new Date(m.deadline) : undefined}
@@ -389,7 +419,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             </label>
           </div>
           <label htmlFor={`summary${idx + 1}`} className="w-full block">
-            <p className="text-sm font-medium mb-2">Summary</p>
+            <p className="text-sm font-medium mb-2">Summary <span className="text-primary">*</span></p>
             <Textarea
               id={`summary${idx + 1}`}
               value={m.summary}
@@ -398,7 +428,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             />
           </label>
           <label htmlFor={`desc${idx + 1}`} className="w-full block">
-            <p className="text-sm font-medium mb-2">Description</p>
+            <p className="text-sm font-medium mb-2">Description <span className="text-primary">*</span></p>
             <MarkdownEditor
               onChange={(val) => handleMilestoneChange(idx + 1, 'description', val as string)}
               content={m.description}
@@ -410,7 +440,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   ];
 
   // Validation for submit
-  const milestoneValid = formData.milestones.every((m) => !!m.title && !!m.price);
+  const milestoneValid = formData.milestones.every((m) => !!m.title && !!m.price && !!m.summary && !!m.description && !!m.deadline);
   const allValid =
     formData.overview.name &&
     formData.overview.price &&
@@ -435,7 +465,15 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         onRemoveMilestone={handleRemoveMilestone}
       />
       <div className="flex gap-2 justify-end absolute bottom-6 right-6">
-        <Button type="button" variant="outline" onClick={() => onSubmit(true)}>
+        <Button
+          type="button"
+          variant="outline"
+          aria-label="Save application draft"
+          onClick={() => {
+            saveApplicationDraft(formData);
+            notify('Draft saved.');
+          }}
+        >
           Save draft
         </Button>
         <Button
