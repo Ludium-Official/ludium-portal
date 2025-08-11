@@ -47,7 +47,8 @@ function CurrencySelector({
   const displayCurrencies = useMemo(() => {
     if (network === 'base' || network === 'base-sepolia') {
       return baseCurrencies;
-    } else if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
+    }
+    if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
       return arbitrumCurrencies;
     }
 
@@ -59,7 +60,7 @@ function CurrencySelector({
   }, [selectedCurrency]);
 
   useEffect(() => {
-    setSelectedCurrency(displayCurrencies[0].code);
+    setSelectedCurrency(displayCurrencies.some((c) => c.code === selectedCurrency) ? selectedCurrency : displayCurrencies[0].code);
   }, [displayCurrencies]);
 
   const currWithIcon = displayCurrencies.find((c) => c.code === selectedCurrency);

@@ -5,7 +5,6 @@ import { ChevronRight, CircleX } from 'lucide-react';
 import { Link } from 'react-router';
 
 function NotificationCard({ notification }: { notification: Notification }) {
-  console.log('🚀 ~ NotificationCard ~ notification:', notification);
   const { type, action } = notification;
 
   const [markAsRead] = useMarkNotificationAsReadMutation();

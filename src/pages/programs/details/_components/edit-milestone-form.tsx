@@ -12,7 +12,6 @@ import { X } from 'lucide-react';
 import { useState } from 'react';
 
 function EditMilestoneForm({ milestone, refetch }: { milestone: Milestone; refetch: () => void }) {
-  console.log('🚀 ~ EditMilestoneForm ~ milestone:', milestone);
   const [title, setTitle] = useState(milestone.title);
   const [price, setPrice] = useState(milestone.price);
   const [summary, setSummary] = useState(milestone.summary);

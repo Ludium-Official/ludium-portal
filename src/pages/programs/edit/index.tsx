@@ -1,6 +1,7 @@
 import client from '@/apollo/client';
 import { useAssignValidatorToProgramMutation } from '@/apollo/mutation/assign-validator-to-program.generated';
 import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
+import { useRemoveValidatorFromProgramMutation } from '@/apollo/mutation/remove-validator-from-program.generated';
 import { useUpdateProgramMutation } from '@/apollo/mutation/update-program.generated';
 import { ProgramDocument } from '@/apollo/queries/program.generated';
 import { ProgramsDocument } from '@/apollo/queries/programs.generated';
@@ -19,6 +20,7 @@ const EditProgram: React.FC = () => {
 
   const [updateProgram] = useUpdateProgramMutation();
   const [assignValidatorToProgram] = useAssignValidatorToProgramMutation();
+  const [removeValidatorFromProgram] = useRemoveValidatorFromProgramMutation();
   const [inviteUserToProgram] = useInviteUserToProgramMutation();
   const { isLoggedIn, isAuthed } = useAuth();
 
@@ -58,8 +60,22 @@ const EditProgram: React.FC = () => {
         },
       },
       onCompleted: async (data) => {
+        const validatorsToAssign = args.validators.filter((validatorId) => !data.updateProgram?.validators?.some((v) => v.id === validatorId));
+        const validatorsToUnassign = data.updateProgram?.validators?.map((v) => v.id) ?? [];
+
+        const unassignResults = await Promise.allSettled(
+          validatorsToUnassign.map((validatorId) =>
+            removeValidatorFromProgram({
+              variables: { programId: data.updateProgram?.id ?? '', validatorId: validatorId ?? '' },
+            }),
+          ),
+        );
+        if (unassignResults.some((r) => r.status === 'rejected')) {
+          notify('Failed to unassign validators from the program due to an unexpected error.', 'error');
+        }
+
         const results = await Promise.allSettled(
-          args.validators.map((validatorId) =>
+          validatorsToAssign.map((validatorId) =>
             assignValidatorToProgram({
               variables: { validatorId, programId: data.updateProgram?.id ?? '' },
             }),

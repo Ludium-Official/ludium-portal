@@ -30,7 +30,7 @@ function ProgramStatusBadge({
       statusColor = <span className="bg-red-200 w-[14px] h-[14px] rounded-full block" />;
       break;
     case ProgramStatus.Completed:
-      statusColor = <span className="bg-purple-500 w-[14px] h-[14px] rounded-full block" />;
+      statusColor = <span className="bg-primary w-[14px] h-[14px] rounded-full block" />;
       break;
     case ProgramStatus.PaymentRequired:
       statusColor = <span className="bg-blue-400 w-[14px] h-[14px] rounded-full block" />;
@@ -66,7 +66,7 @@ function ApplicationStatusBadge({
       statusColor = <span className="bg-teal-400 w-[14px] h-[14px] rounded-full block" />;
       break;
     case ApplicationStatus.Completed:
-      statusColor = <span className="bg-teal-400 w-[14px] h-[14px] rounded-full block" />;
+      statusColor = <span className="bg-primary w-[14px] h-[14px] rounded-full block" />;
       break;
     case ApplicationStatus.Pending:
       statusColor = <span className="bg-gray-400 w-[14px] h-[14px] rounded-full block" />;
@@ -75,7 +75,7 @@ function ApplicationStatusBadge({
       statusColor = <span className="bg-red-200 w-[14px] h-[14px] rounded-full block" />;
       break;
     case ApplicationStatus.Submitted:
-      statusColor = <span className="bg-purple-500 w-[14px] h-[14px] rounded-full block" />;
+      statusColor = <span className="bg-primary w-[14px] h-[14px] rounded-full block" />;
       break;
   }
 
@@ -102,7 +102,7 @@ function MilestoneStatusBadge({
 
   switch (milestone.status) {
     case MilestoneStatus.Completed:
-      statusColor = <span className="bg-teal-400 w-[14px] h-[14px] rounded-full block" />;
+      statusColor = <span className="bg-primary w-[14px] h-[14px] rounded-full block" />;
       break;
     case MilestoneStatus.Pending:
       statusColor = <span className="bg-gray-400 w-[14px] h-[14px] rounded-full block" />;
@@ -114,7 +114,7 @@ function MilestoneStatusBadge({
       statusColor = <span className="bg-gray-400 w-[14px] h-[14px] rounded-full block" />;
       break;
     case MilestoneStatus.Submitted:
-      statusColor = <span className="bg-purple-500 w-[14px] h-[14px] rounded-full block" />;
+      statusColor = <span className="bg-teal-500 w-[14px] h-[14px] rounded-full block" />;
       break;
   }
 

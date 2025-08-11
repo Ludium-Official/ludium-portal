@@ -39,6 +39,7 @@ const CommunityPage: React.FC = () => {
   ];
 
   const { data, fetchMore } = usePostsQuery({
+    fetchPolicy: 'network-only',
     variables: {
       pagination: {
         limit: PageSize,
@@ -66,7 +67,7 @@ const CommunityPage: React.FC = () => {
         },
       });
 
-      const newPosts = moreData?.posts?.data;
+      const newPosts = moreData?.posts?.data?.filter((post) => !posts.some((p) => p.id === post?.id));
 
       if (Array.isArray(newPosts) && newPosts.length > 0) {
         setPosts((prev) => [...prev, ...newPosts]);
@@ -115,7 +116,7 @@ const CommunityPage: React.FC = () => {
   useEffect(() => {
     if (data?.posts?.data) {
       setPosts(data.posts.data);
-      setHasMore(data.posts.data.length === PageSize);
+      // setHasMore(posts.length >= (data.posts.count ?? 0));
     }
   }, [data]);
 
@@ -128,13 +129,29 @@ const CommunityPage: React.FC = () => {
   let firstColumn: Post[] = [];
   let secondColumn: Post[] = [];
 
-  if (firstFivePosts.length < 5) {
-    firstColumn = firstFivePosts.filter((_, index) => index % numberOfColumns === 0);
-    secondColumn = firstFivePosts.filter((_, index) => index % numberOfColumns === 1);
-  } else {
-    firstColumn = firstFivePosts.filter((_, index) => index % numberOfColumns === 1);
-    secondColumn = firstFivePosts.filter((_, index) => index % numberOfColumns === 0);
-  }
+  // Split the firstFivePosts so that:
+  // - index 0 and index 3 go to firstColumn
+  // - all other indices (1, 2, 4) go to secondColumn
+  // - handle cases where firstFivePosts has less than 5 elements
+  firstColumn = [];
+  secondColumn = [];
+  firstFivePosts.forEach((post, idx) => {
+    if (idx === 0 || idx === 3) {
+      firstColumn.push(post);
+    } else {
+      secondColumn.push(post);
+    }
+  });
+  // firstColumn = firstFivePosts.slice(0, 2);
+  // secondColumn = firstFivePosts.slice(2, 5);
+
+  // if (firstFivePosts.length < 5) {
+  //   firstColumn = firstFivePosts.filter((_, index) => index % numberOfColumns === 0);
+  //   secondColumn = firstFivePosts.filter((_, index) => index % numberOfColumns === 1);
+  // } else {
+  //   firstColumn = firstFivePosts.filter((_, index) => index % numberOfColumns === 1);
+  //   secondColumn = firstFivePosts.filter((_, index) => index % numberOfColumns === 0);
+  // }
 
   // Split remaining posts into columns
   const remainingFirstColumn = remainingPosts.filter((_, index) => index % numberOfColumns === 0);
