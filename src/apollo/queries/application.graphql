@@ -27,6 +27,7 @@ query application($id: ID!) {
     milestones {
       currency
       summary
+      deadline
       description
       rejectionReason
       percentage

@@ -386,7 +386,7 @@ function ApplicationDetails() {
             )}
 
             <div className="mb-6">
-              <h2 className="font-bold text-gray-dark text-lg mb-3">APPLICATION</h2>
+              <h2 className="font-bold text-gray-dark text-lg mb-3">TITLE</h2>
               <p className="text-slate-600 text-sm">{data?.application?.name}</p>
             </div>
 
@@ -492,7 +492,7 @@ function ApplicationDetails() {
 
                       <div className='flex items-center gap-2'>
 
-                        {m.rejectionReason && m.status === MilestoneStatus.Pending ? (
+                        {m.rejectionReason && m.status === MilestoneStatus.Rejected ? (
                           <Tooltip>
                             <TooltipTrigger>
                               <CircleAlert className="text-destructive w-5 h-5" />
@@ -509,7 +509,7 @@ function ApplicationDetails() {
                           </Tooltip>
                         ) : <div />}
 
-                        {m.status === MilestoneStatus.Pending &&
+                        {(m.status === MilestoneStatus.Pending || m.status === MilestoneStatus.Rejected) &&
                           data?.application?.applicant?.id === userId && (
                             <Dialog>
                               <DialogTrigger asChild>
@@ -537,11 +537,22 @@ function ApplicationDetails() {
 
                     <div className="text-muted-foreground inline-flex items-center gap-4 bg-[#0000000A] rounded-md p-2 mb-4">
                       <p className="font-medium text-sm text-neutral-400">DEADLINE</p>
-                      <p className="text-muted-foreground">
+                      <p className="text-muted-foreground flex items-center gap-2">
                         {format(
-                          new Date(program?.deadline ?? new Date()),
+                          new Date(m?.deadline ?? new Date()),
                           'dd . MMM . yyyy',
                         ).toUpperCase()}
+                        {m?.deadline &&
+                          (() => {
+                            const deadlineDate = new Date(m.deadline);
+                            const today = new Date();
+                            // Zero out the time for both dates to get full days difference
+                            deadlineDate.setHours(0, 0, 0, 0);
+                            today.setHours(0, 0, 0, 0);
+                            const diffTime = deadlineDate.getTime() - today.getTime();
+                            const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+                            return <Badge className="ml-2">D-{daysRemaining}</Badge>;
+                          })()}
                       </p>
                     </div>
                     {/* <div className="mb-6">
@@ -642,7 +653,7 @@ function ApplicationDetails() {
                         </div>
                       )}
 
-                    {m.status === MilestoneStatus.Pending &&
+                    {(m.status === MilestoneStatus.Pending || m.status === MilestoneStatus.Rejected) &&
                       data?.application?.status === ApplicationStatus.Accepted &&
                       data?.application?.applicant?.id === userId && (
                         <Dialog>

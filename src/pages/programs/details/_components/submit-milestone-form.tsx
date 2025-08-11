@@ -82,7 +82,7 @@ function SubmitMilestoneForm({
       variables: {
         input: {
           id: milestoneId,
-          links: links.map((l) => ({ title: l, url: l })),
+          links: links?.length ? links?.map((l) => ({ title: l, url: l })) : undefined,
           status: SubmitMilestoneStatus.Submitted,
           description,
           file, // Uncomment this when backend schema is updated

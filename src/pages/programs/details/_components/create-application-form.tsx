@@ -14,7 +14,8 @@ import { getCurrencyIcon } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { ApplicationDynamicTabs } from '@/pages/programs/details/_components/application-form-dynamic-tab';
 import { ApplicationStatus, type Program } from '@/types/types.generated';
-import { X } from 'lucide-react';
+import { format } from 'date-fns';
+import { ChevronRight, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 // Types for the form
@@ -154,7 +155,6 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
 
   // Submit
   const onSubmit = async () => {
-    console.log('submit start');
     // Validation for links
     if (formData.overview.links.some((l) => l && !/^https?:\/\/[\w.-]+/.test(l))) {
       setLinksError(true);
@@ -348,7 +348,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                   handleMilestoneChange(
                     0,
                     'deadline',
-                    date ? (date as Date).toISOString().slice(0, 10) : '',
+                    date ? format(date as Date, 'yyyy-MM-dd') : '',
                   )
                 }
               />
@@ -408,12 +408,13 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
               <DatePicker
                 disabled={{ before: new Date() }}
                 date={m.deadline ? new Date(m.deadline) : undefined}
-                setDate={(date) =>
+                setDate={(date) => {
                   handleMilestoneChange(
                     idx + 1,
                     'deadline',
-                    date ? (date as Date).toISOString().slice(0, 10) : '',
+                    date ? format(date as Date, 'yyyy-MM-dd') : '',
                   )
+                }
                 }
               />
             </label>
@@ -448,6 +449,35 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
     formData.description.summary &&
     milestoneValid;
 
+  // Controlled active tab for navigation and per-tab validation
+  const [activeTab, setActiveTab] = useState<string>('overview');
+  const activeIndex = tabs.findIndex((t) => t.id === activeTab);
+  const isLastTab = activeIndex === tabs.length - 1;
+
+  const isTabValid = (tabId: string): boolean => {
+    if (tabId === 'overview') {
+      return !!formData.overview.name && !!formData.overview.price;
+    }
+    if (tabId === 'description') {
+      return !!formData.description.summary && !!formData.description.content;
+    }
+    if (tabId.startsWith('milestone-')) {
+      const parts = tabId.split('-');
+      const idxStr = parts[1];
+      const idx = Number(idxStr);
+      const m = formData.milestones[idx];
+      if (!m) return false;
+      return !!m.title && !!m.price && !!m.summary && !!m.description && !!m.deadline;
+    }
+    return true;
+  };
+
+  const handleContinue = () => {
+    if (isLastTab) return;
+    const next = tabs[activeIndex + 1];
+    if (next) setActiveTab(next.id);
+  };
+
   return (
     <form
       onSubmit={(e) => {
@@ -463,6 +493,8 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         defaultActiveTab="overview"
         onAddMilestone={handleAddMilestone}
         onRemoveMilestone={handleRemoveMilestone}
+        activeTab={activeTab}
+        onActiveTabChange={setActiveTab}
       />
       <div className="flex gap-2 justify-end absolute bottom-6 right-6">
         <Button
@@ -476,13 +508,26 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         >
           Save draft
         </Button>
-        <Button
-          disabled={loading || !allValid}
-          type="submit"
-          className="bg-primary hover:bg-primary/90 h-10 min-w-[161px] ml-2"
-        >
-          {loading ? 'Submitting...' : 'Submit application'}
-        </Button>
+        {isLastTab ? (
+          <Button
+            disabled={loading || !allValid}
+            type="submit"
+            className="bg-primary hover:bg-primary/90 h-10 min-w-[161px] ml-2"
+          >
+            {loading ? 'Submitting...' : 'Submit application'}
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            className="h-10 min-w-[161px] ml-2"
+            variant="default"
+            disabled={!isTabValid(activeTab)}
+            onClick={handleContinue}
+            aria-label="Continue writing"
+          >
+            Continue writing <ChevronRight className="ml-1" />
+          </Button>
+        )}
       </div>
     </form>
   );

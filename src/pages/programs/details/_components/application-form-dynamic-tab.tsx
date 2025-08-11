@@ -16,6 +16,8 @@ export interface ApplicationDynamicTabsProps {
   className?: string;
   onAddMilestone: () => void;
   onRemoveMilestone: (idx: number) => void;
+  activeTab?: string;
+  onActiveTabChange?: (tabId: string) => void;
 }
 
 export function ApplicationDynamicTabs({
@@ -24,17 +26,25 @@ export function ApplicationDynamicTabs({
   className,
   onAddMilestone,
   onRemoveMilestone,
+  activeTab: controlledActiveTab,
+  onActiveTabChange,
 }: ApplicationDynamicTabsProps) {
-  const [activeTab, setActiveTab] = React.useState(defaultActiveTab || tabs[0]?.id || '');
+  const isControlled = controlledActiveTab !== undefined;
+  const [uncontrolledActive, setUncontrolledActive] = React.useState(
+    defaultActiveTab || tabs[0]?.id || '',
+  );
+  const activeTab = isControlled ? (controlledActiveTab as string) : uncontrolledActive;
 
   React.useEffect(() => {
     if (!tabs.find((tab) => tab.id === activeTab)) {
-      setActiveTab(tabs[0]?.id || '');
+      if (!isControlled) setUncontrolledActive(tabs[0]?.id || '');
+      onActiveTabChange?.(tabs[0]?.id || '');
     }
   }, [tabs, activeTab]);
 
   const handleTabChange = (value: string) => {
-    setActiveTab(value);
+    if (!isControlled) setUncontrolledActive(value);
+    onActiveTabChange?.(value);
   };
 
   return (

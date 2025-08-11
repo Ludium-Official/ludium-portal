@@ -63,7 +63,6 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
     },
     skip: !isEdit,
   });
-  console.log("🚀 ~ ProgramForm ~ data:", data)
 
   const [selectedTab, setSelectedTab] = useState<string>('overview');
 
@@ -73,7 +72,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
   const [keywordInput, setKeywordInput] = useState<string>('');
   const [selectedValidators, setSelectedValidators] = useState<string[]>([]);
   const [links, setLinks] = useState<string[]>(['']);
-  const [network, setNetwork] = useState(mainnetDefaultNetwork);
+  const [network, setNetwork] = useState(isEdit ? undefined : mainnetDefaultNetwork);
   const [currency, setCurrency] = useState('');
   const [selectedImage, setSelectedImage] = useState<File>();
   const [visibility, setVisibility] = useState<'public' | 'restricted' | 'private'>('public');
@@ -233,11 +232,11 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
         return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
       })(),
       network:
-        isEdit && data?.program?.status !== ProgramStatus.Pending ? (data?.program?.network as string) : network,
+        isEdit && data?.program?.status !== ProgramStatus.Pending ? (data?.program?.network as string) : network ?? mainnetDefaultNetwork,
       image: selectedImage,
       visibility: visibility,
       builders: selectedBuilders,
-      status: ProgramStatus.Pending,
+      status: isEdit && data?.program?.status !== ProgramStatus.Pending ? data?.program?.status ?? ProgramStatus.Pending : ProgramStatus.Pending,
     });
   };
 
@@ -508,13 +507,13 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
                     {...register('price', { required: true })}
                   />
                 </div>
-                <CurrencySelector
+                {!!network && <CurrencySelector
                   disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
                   value={currency}
                   onValueChange={setCurrency}
-                  network={network}
+                  network={network ?? mainnetDefaultNetwork}
                   className="w-[108px] h-10"
-                />
+                />}
               </div>
 
               {errors.price && (

@@ -45,7 +45,6 @@ const CommunityDetailsPage: React.FC = () => {
     skip: !authorId,
     fetchPolicy: 'cache-and-network',
   });
-  console.log('🚀 ~ CommunityDetailsPage ~ postsData:', postsData);
 
   const { data, loading, error } = usePostQuery({
     variables: {

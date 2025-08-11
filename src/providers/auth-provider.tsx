@@ -35,13 +35,12 @@ export const AuthContext = createContext<AuthValues>({
   isLoggedIn: false,
   isAuthed: false,
   isAdmin: false,
-  login: async () => {},
-  logout: async () => {},
+  login: async () => { },
+  logout: async () => { },
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>();
-  console.log('🚀 ~ AuthProvider ~ token:', token);
   const [email, setEmail] = useState<string | null>();
   const [userId, setUserId] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState<boolean | null>();
@@ -58,7 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUserId(profileData?.profile?.id ?? '');
     setIsAdmin(
       profileData?.profile?.role === UserRole.Admin ||
-        profileData?.profile?.role === UserRole.Superadmin,
+      profileData?.profile?.role === UserRole.Superadmin,
     );
   }, [profileData]);
 
@@ -83,7 +82,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         loginType,
       },
       onCompleted: (data) => {
-        console.log('🚀 ~ AuthProvider ~ data:', data);
         setToken(data.login);
         setEmail(email);
         localStorage.setItem('token', data.login ?? '');
