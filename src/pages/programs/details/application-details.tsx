@@ -54,7 +54,7 @@ function ApplicationDetails() {
   const { userId, isAdmin, isAuthed } = useAuth();
   const { id, applicationId } = useParams();
 
-  const { data, refetch } = useApplicationQuery({
+  const { data, refetch, error: appError } = useApplicationQuery({
     variables: {
       id: applicationId ?? '',
     },
@@ -160,6 +160,19 @@ function ApplicationDetails() {
         .toFixed() || '0',
     [program],
   );
+
+
+
+  if (appError?.message === 'You do not have access to this application') {
+    return (
+      <div className="text-center bg-white rounded-2xl p-10">
+        <p className="text-lg font-bold mb-10">You do not have access to this application</p>
+        <Link to="/programs" className="text-primary hover:underline font-semibold">
+          Go back to programs
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#F7F7F7]">
