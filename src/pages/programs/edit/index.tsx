@@ -60,30 +60,133 @@ const EditProgram: React.FC = () => {
         },
       },
       onCompleted: async (data) => {
-        const validatorsToAssign = args.validators.filter((validatorId) => !data.updateProgram?.validators?.some((v) => v.id === validatorId));
-        const validatorsToUnassign = data.updateProgram?.validators?.map((v) => v.id) ?? [];
+        const programId = data.updateProgram?.id ?? '';
+        const currentValidators = data.updateProgram?.validators?.map((v) => v.id) ?? [];
+        const targetValidators = args.validators ?? [];
 
-        const unassignResults = await Promise.allSettled(
-          validatorsToUnassign.map((validatorId) =>
-            removeValidatorFromProgram({
-              variables: { programId: data.updateProgram?.id ?? '', validatorId: validatorId ?? '' },
-            }),
-          ),
-        );
-        if (unassignResults.some((r) => r.status === 'rejected')) {
-          notify('Failed to unassign validators from the program due to an unexpected error.', 'error');
+        // Edge case: Validate inputs
+        if (!programId) {
+          notify('Program ID is missing. Cannot update validators.', 'error');
+          return;
         }
 
-        const results = await Promise.allSettled(
-          validatorsToAssign.map((validatorId) =>
-            assignValidatorToProgram({
-              variables: { validatorId, programId: data.updateProgram?.id ?? '' },
-            }),
-          ),
+        // Filter out invalid validator IDs
+        const validTargetValidators = targetValidators.filter(id => id && typeof id === 'string');
+        const validCurrentValidators = currentValidators.filter(id => id && typeof id === 'string');
+
+        if (validTargetValidators.length !== targetValidators.length) {
+          notify('Some validator IDs are invalid and will be skipped.', 'error');
+        }
+
+        // Calculate validators to assign and unassign
+        const validatorsToAssign = validTargetValidators.filter(
+          (validatorId) => validatorId && !validCurrentValidators.includes(validatorId)
         );
 
-        if (results.some((r) => r.status === 'rejected')) {
-          notify('Failed to assign validators to the program due to an unexpected error.', 'error');
+        const validatorsToUnassign = validCurrentValidators.filter(
+          (validatorId) => validatorId && !validTargetValidators.includes(validatorId)
+        );
+
+        // Edge case: Check for duplicates within the same operation
+        const duplicateAssigns = validatorsToAssign.filter((id, index) => validatorsToAssign.indexOf(id) !== index);
+        const duplicateUnassigns = validatorsToUnassign.filter((id, index) => validatorsToUnassign.indexOf(id) !== index);
+
+        if (duplicateAssigns.length > 0) {
+          notify(`Duplicate validators found in assign list: ${duplicateAssigns.join(', ')}. Duplicates will be skipped.`, 'error');
+        }
+
+        if (duplicateUnassigns.length > 0) {
+          notify(`Duplicate validators found in unassign list: ${duplicateUnassigns.join(', ')}. Duplicates will be skipped.`, 'error');
+        }
+
+        // Remove duplicates
+        const uniqueValidatorsToAssign = [...new Set(validatorsToAssign)];
+        const uniqueValidatorsToUnassign = [...new Set(validatorsToUnassign)];
+
+        // Edge case: Check for validators that appear in both arrays (shouldn't happen with current logic, but good to check)
+        const conflictingValidators = uniqueValidatorsToAssign.filter(id => uniqueValidatorsToUnassign.includes(id));
+        if (conflictingValidators.length > 0) {
+          notify(`Validators found in both assign and unassign lists: ${conflictingValidators.join(', ')}. These will be skipped.`, 'error');
+          // Remove conflicting validators from both arrays
+          const finalValidatorsToAssign = uniqueValidatorsToAssign.filter(id => !conflictingValidators.includes(id ?? ''));
+          const finalValidatorsToUnassign = uniqueValidatorsToUnassign.filter(id => !conflictingValidators.includes(id ?? ''));
+
+          // Process unassignments first
+          if (finalValidatorsToUnassign.length > 0) {
+            const unassignResults = await Promise.allSettled(
+              finalValidatorsToUnassign.map((validatorId) =>
+                removeValidatorFromProgram({
+                  variables: { programId, validatorId: validatorId ?? '' },
+                }),
+              ),
+            );
+
+            const failedUnassigns = unassignResults
+              .map((result, index) => result.status === 'rejected' ? finalValidatorsToUnassign[index] : null)
+              .filter((id): id is string => id !== null && id !== undefined);
+
+            if (failedUnassigns.length > 0) {
+              notify(`Failed to unassign validators: ${failedUnassigns.join(', ')}`, 'error');
+            }
+          }
+
+          // Process assignments
+          if (finalValidatorsToAssign.length > 0) {
+            const assignResults = await Promise.allSettled(
+              finalValidatorsToAssign.map((validatorId) =>
+                assignValidatorToProgram({
+                  variables: { validatorId, programId },
+                }),
+              ),
+            );
+
+            const failedAssigns = assignResults
+              .map((result, index) => result.status === 'rejected' ? finalValidatorsToAssign[index] : null)
+              .filter((id): id is string => id !== null && id !== undefined);
+
+            if (failedAssigns.length > 0) {
+              notify(`Failed to assign validators: ${failedAssigns.join(', ')}`, 'error');
+            }
+          }
+        } else {
+          // No conflicts, proceed with normal flow
+          // Process unassignments first
+          if (uniqueValidatorsToUnassign.length > 0) {
+            const unassignResults = await Promise.allSettled(
+              uniqueValidatorsToUnassign.map((validatorId) =>
+                removeValidatorFromProgram({
+                  variables: { programId, validatorId: validatorId ?? '' },
+                }),
+              ),
+            );
+
+            const failedUnassigns = unassignResults
+              .map((result, index) => result.status === 'rejected' ? uniqueValidatorsToUnassign[index] : null)
+              .filter((id): id is string => id !== null && id !== undefined);
+
+            if (failedUnassigns.length > 0) {
+              notify(`Failed to unassign validators: ${failedUnassigns.join(', ')}`, 'error');
+            }
+          }
+
+          // Process assignments
+          if (uniqueValidatorsToAssign.length > 0) {
+            const assignResults = await Promise.allSettled(
+              uniqueValidatorsToAssign.map((validatorId) =>
+                assignValidatorToProgram({
+                  variables: { validatorId, programId },
+                }),
+              ),
+            );
+
+            const failedAssigns = assignResults
+              .map((result, index) => result.status === 'rejected' ? uniqueValidatorsToAssign[index] : null)
+              .filter((id): id is string => id !== null && id !== undefined);
+
+            if (failedAssigns.length > 0) {
+              notify(`Failed to assign validators: ${failedAssigns.join(', ')}`, 'error');
+            }
+          }
         }
         // Invite builders if private
         if (

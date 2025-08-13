@@ -21,8 +21,6 @@ import notify from '@/lib/notify';
 import { mainnetDefaultNetwork } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { type LinkInput, ProgramStatus } from '@/types/types.generated';
-// import { type LinkInput } from '@/types/types.generated';
-import { format } from 'date-fns';
 import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -224,7 +222,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
         isEdit && data?.program?.status !== ProgramStatus.Pending
           ? (data?.program?.currency as string)
           : currency,
-      deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
+      deadline: deadline?.toISOString(),
       keywords: selectedKeywords,
       validators: selectedValidators ?? '',
       links: (() => {
@@ -675,7 +673,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
                     description: content ?? '',
                     summary: watch('summary') ?? '',
                     currency,
-                    deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
+                    deadline: deadline?.toISOString(),
                     keywords: selectedKeywords,
                     validators: selectedValidators,
                     selectedValidatorItems,

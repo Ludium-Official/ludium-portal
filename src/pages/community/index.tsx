@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import { type Post, SortEnum } from '@/types/types.generated';
 import { CirclePlus, SearchIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import PostCard from './_components/post-card';
 
@@ -16,10 +16,22 @@ const CommunityPage: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [isThrottled, setIsThrottled] = useState(false);
   const { isAuthed, isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+
+  // useEffect(() => {
+  //   if (searchParams.get('new-created') === 'true') {
+  //     console.log("NEW CREATED")
+  //     setPosts([])
+  //     // Clear the 'new-created' search param from the URL when it is present
+  //     const newParams = new URLSearchParams(searchParams);
+  //     newParams.delete('new-created');
+  //     setSearchParams(newParams, { replace: true });
+  //   }
+  // }, [searchParams.get('new-created')])
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -50,7 +62,7 @@ const CommunityPage: React.FC = () => {
     },
   });
 
-  const loadMore = async () => {
+  const loadMore = useCallback(async () => {
     if (isLoading || !hasMore) return;
 
     setIsLoading(true);
@@ -70,7 +82,14 @@ const CommunityPage: React.FC = () => {
       const newPosts = moreData?.posts?.data?.filter((post) => !posts.some((p) => p.id === post?.id));
 
       if (Array.isArray(newPosts) && newPosts.length > 0) {
-        setPosts((prev) => [...prev, ...newPosts]);
+        setPosts((prev) => {
+          // Remove duplicates by ID before setting posts
+          const allPosts = [...prev, ...newPosts];
+          const uniquePosts = allPosts.filter((post, index, self) =>
+            index === self.findIndex(p => p.id === post.id)
+          );
+          return uniquePosts;
+        });
         setHasMore(newPosts.length === PageSize);
       } else {
         setHasMore(false);
@@ -80,7 +99,20 @@ const CommunityPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isLoading, hasMore, fetchMore, posts.length, filter, selectedTab]);
+
+  // Throttled version of loadMore to prevent race conditions
+  const throttledLoadMore = useCallback(async () => {
+    if (isThrottled || isLoading || !hasMore) return;
+
+    setIsThrottled(true);
+    await loadMore();
+
+    // Throttle for 500ms
+    setTimeout(() => {
+      setIsThrottled(false);
+    }, 500);
+  }, [isThrottled, isLoading, hasMore, loadMore]);
 
   useEffect(() => {
     setPosts([]);
@@ -99,7 +131,7 @@ const CommunityPage: React.FC = () => {
       const distanceFromBottom = fullHeight - (scrollTop + viewportHeight);
 
       if (distanceFromBottom < 310 && hasMore && !isLoading) {
-        loadMore();
+        throttledLoadMore();
       }
     };
 
@@ -111,11 +143,15 @@ const CommunityPage: React.FC = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [hasMore, isLoading, posts.length, debouncedSearch, selectedTab]);
+  }, [hasMore, isLoading, debouncedSearch, selectedTab, throttledLoadMore]);
 
   useEffect(() => {
     if (data?.posts?.data) {
-      setPosts(data.posts.data);
+      // Remove duplicates by ID before setting posts
+      const uniquePosts = data.posts.data.filter((post, index, self) =>
+        index === self.findIndex(p => p.id === post.id)
+      );
+      setPosts(uniquePosts);
       // setHasMore(posts.length >= (data.posts.count ?? 0));
     }
   }, [data]);
