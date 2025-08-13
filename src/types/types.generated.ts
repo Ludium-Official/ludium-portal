@@ -115,7 +115,7 @@ export type CreateCommentInput = {
 
 export type CreateMilestoneInput = {
   currency?: Scalars['String']['input'];
-  deadline: Scalars['Date']['input'];
+  deadline: Scalars['DateTime']['input'];
   description: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
   percentage: Scalars['String']['input'];
@@ -133,7 +133,7 @@ export type CreatePostInput = {
 
 export type CreateProgramInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
-  deadline: Scalars['String']['input'];
+  deadline: Scalars['DateTime']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   image: Scalars['Upload']['input'];
   keywords: Array<Scalars['String']['input']>;
@@ -182,7 +182,7 @@ export type Milestone = {
   __typename?: 'Milestone';
   comments?: Maybe<Array<Comment>>;
   currency?: Maybe<Scalars['String']['output']>;
-  deadline?: Maybe<Scalars['Date']['output']>;
+  deadline?: Maybe<Scalars['DateTime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   file?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
@@ -524,7 +524,7 @@ export type Program = {
   comments?: Maybe<Array<Comment>>;
   creator?: Maybe<User>;
   currency?: Maybe<Scalars['String']['output']>;
-  deadline?: Maybe<Scalars['Date']['output']>;
+  deadline?: Maybe<Scalars['DateTime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   educhainProgramId?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
@@ -713,7 +713,7 @@ export type UpdateCommentInput = {
 
 export type UpdateMilestoneInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
-  deadline?: InputMaybe<Scalars['Date']['input']>;
+  deadline?: InputMaybe<Scalars['DateTime']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
@@ -734,7 +734,7 @@ export type UpdatePostInput = {
 
 export type UpdateProgramInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
-  deadline?: InputMaybe<Scalars['String']['input']>;
+  deadline?: InputMaybe<Scalars['DateTime']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   image?: InputMaybe<Scalars['Upload']['input']>;

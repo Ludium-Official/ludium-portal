@@ -1,6 +1,6 @@
 import { ApplicationStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getCurrency, getUserName } from '@/lib/utils';
+import { getCurrencyIcon, getUserName } from '@/lib/utils';
 import type { Application, Program } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { Link } from 'react-router';
@@ -75,7 +75,7 @@ function ApplicationCard({
           <span className="text-xs text-neutral-400 font-semibold">PRICE</span>
           <div className="flex items-center gap-1">
             <span className="text-sm font-bold text-muted-foreground">{totalPrice}</span>
-            {getCurrency(program?.network)?.icon}
+            {getCurrencyIcon(program?.currency)}
             <span className="text-sm font-medium text-muted-foreground">{currency}</span>
           </div>
           <div className="w-px h-5 bg-slate-200" />

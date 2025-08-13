@@ -13,7 +13,7 @@ function ProgramCard({ program }: { program: Program }) {
   // const badgeVariants = ['teal', 'orange', 'pink'];
 
   return (
-    <div className="block w-full border border-gray-border rounded-lg p-5">
+    <div className="block w-full border border-gray-border rounded-lg p-5 max-h-[292px]">
       <div className="flex justify-between mb-2">
         <div className="flex gap-2 mb-1">
           {keywords?.slice(0, 3)?.map((k) => (
@@ -81,7 +81,7 @@ function ProgramCard({ program }: { program: Program }) {
       </Link>
 
       <div className="mb-6">
-        <p className="text-slate-500 text-sm font-normal leading-5 line-clamp-2">{summary}</p>
+        <p className="text-slate-500 text-sm font-normal leading-5 line-clamp-2 h-10">{summary}</p>
       </div>
 
       <div className="flex justify-between">

@@ -159,6 +159,14 @@ const ProgramsPage: React.FC = () => {
             {data?.programs?.data?.map((program) => (
               <ProgramCard key={program.id} program={program} />
             ))}
+            {/* {data?.programs?.data?.map((program) => (
+              <ProgramCard key={program.id} program={program} />
+            ))}
+
+            {Array.isArray(data?.programs?.data) &&
+              [...data.programs.data].reverse().map((program) => (
+                <ProgramCard key={`${program.id}-reverse`} program={program} />
+              ))} */}
           </section>
 
           <Pagination totalCount={totalCount} pageSize={PageSize} />

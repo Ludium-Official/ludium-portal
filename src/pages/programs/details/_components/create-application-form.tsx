@@ -14,7 +14,6 @@ import { getCurrencyIcon } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { ApplicationDynamicTabs } from '@/pages/programs/details/_components/application-form-dynamic-tab';
 import { ApplicationStatus, type Program } from '@/types/types.generated';
-import { format } from 'date-fns';
 import { ChevronRight, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -177,7 +176,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
               description: m.description,
               summary: m.summary,
               currency: program?.currency ?? 'EDU',
-              deadline: m.deadline || new Date().toISOString().slice(0, 10),
+              deadline: m.deadline || new Date().toISOString(),
             })),
             price: formData.overview.price,
             // price: formData.milestones
@@ -339,6 +338,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             <label htmlFor="deadline0" className="w-full block">
               <p className="text-sm font-medium mb-2">Deadline <span className="text-primary">*</span></p>
               <DatePicker
+                disabled={{ before: new Date() }}
                 date={
                   formData.milestones[0]?.deadline
                     ? new Date(formData.milestones[0]?.deadline)
@@ -348,7 +348,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                   handleMilestoneChange(
                     0,
                     'deadline',
-                    date ? format(date as Date, 'yyyy-MM-dd') : '',
+                    date ? (date as Date)?.toISOString() : '',
                   )
                 }
               />
@@ -412,7 +412,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                   handleMilestoneChange(
                     idx + 1,
                     'deadline',
-                    date ? format(date as Date, 'yyyy-MM-dd') : '',
+                    date ? (date as Date)?.toISOString() : '',
                   )
                 }
                 }
