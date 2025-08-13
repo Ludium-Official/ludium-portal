@@ -31,7 +31,7 @@ const EditCommunityPage: React.FC = () => {
   };
 
   return (
-    <div className="p-10 pr-[55px] w-[681px]" defaultValue="edit">
+    <div className="p-10 pr-[55px]" defaultValue="edit">
       <PostForm isEdit={true} onSubmitPost={onSubmit} />
     </div>
   );

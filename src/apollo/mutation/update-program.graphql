@@ -8,5 +8,17 @@ mutation updateProgram($input: UpdateProgramInput!) {
     price
     status
     summary
+
+    validators {
+      about
+      email
+      firstName
+      id
+      loginType
+      organizationName
+      role
+      summary
+      walletAddress
+    }
   }
 }

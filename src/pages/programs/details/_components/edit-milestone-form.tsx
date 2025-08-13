@@ -1,19 +1,21 @@
 import { useUpdateMilestoneMutation } from '@/apollo/mutation/update-milestone.generated';
 import { baseCurrencies, eduCurrencies } from '@/components/currency-selector';
+import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import notify from '@/lib/notify';
+import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import type { Milestone } from '@/types/types.generated';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 
 function EditMilestoneForm({ milestone, refetch }: { milestone: Milestone; refetch: () => void }) {
-  console.log('🚀 ~ EditMilestoneForm ~ milestone:', milestone);
   const [title, setTitle] = useState(milestone.title);
   const [price, setPrice] = useState(milestone.price);
-  const [description, setDescription] = useState(milestone.description);
+  const [summary, setSummary] = useState(milestone.summary);
+  const [description, setDescription] = useState(milestone.description ?? '');
   const [links, setLinks] = useState<string[]>(milestone?.links?.map((l) => l?.url ?? '') ?? []);
   const [linksError, setLinksError] = useState(false);
 
@@ -29,10 +31,13 @@ function EditMilestoneForm({ milestone, refetch }: { milestone: Milestone; refet
   );
 
   const onSubmit = () => {
-    if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
+    const { shouldSend, isValid } = validateLinks(links);
+    if (!isValid) {
       setLinksError(true);
       return;
     }
+    setLinksError(false);
+
     updateMilestone({
       variables: {
         input: {
@@ -40,7 +45,7 @@ function EditMilestoneForm({ milestone, refetch }: { milestone: Milestone; refet
           description,
           title,
           // price,
-          links: links.map((l) => ({ title: l, url: l })),
+          links: shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined,
         },
       },
       onCompleted: () => {
@@ -91,13 +96,25 @@ function EditMilestoneForm({ milestone, refetch }: { milestone: Milestone; refet
           </Button>
         </div>
       </div>
-      <Textarea
-        value={description ?? ''}
-        onChange={(e) => {
-          setDescription(e.target.value);
-        }}
-        className="mb-3"
-      />
+      <label htmlFor="title" className="w-full">
+        <p className="text-sm font-medium mb-2">SUMMARY</p>
+        <Textarea
+          value={summary ?? ''}
+          onChange={(e) => {
+            setSummary(e.target.value);
+          }}
+          className="mb-3"
+        />
+      </label>
+
+      <label htmlFor="description" className="w-full">
+        <p className="text-sm font-medium mb-2">DESCRIPTION</p>
+        <MarkdownEditor
+          content={description ?? ''}
+          onChange={setDescription}
+        />
+      </label>
+
 
       <label htmlFor="links" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Links</p>
@@ -150,7 +167,7 @@ function EditMilestoneForm({ milestone, refetch }: { milestone: Milestone; refet
       </label>
 
       <Button
-        disabled={!title || !price || !description || noChanges || !links?.length}
+        disabled={!title || !price || !description || noChanges}
         type="button"
         className="bg-primary hover:bg-primary/90 h-10 ml-auto block min-w-[161px]"
         onClick={onSubmit}

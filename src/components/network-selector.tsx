@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { currencies } from '@/constant/currencies';
-import { getCurrency, mainnetDefaultNetwork } from '@/lib/utils';
+import { getCurrency } from '@/lib/utils';
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -21,10 +21,12 @@ function NetworkSelector({
   onValueChange?: (value: string) => void;
   disabled?: boolean;
 }) {
-  const [selectedCurrency, setSelectedCurrency] = useState(value || mainnetDefaultNetwork);
+  const [selectedCurrency, setSelectedCurrency] = useState(value);
 
   useEffect(() => {
-    onValueChange?.(selectedCurrency);
+    if (selectedCurrency) {
+      onValueChange?.(selectedCurrency);
+    }
   }, [selectedCurrency]);
 
   useEffect(() => {

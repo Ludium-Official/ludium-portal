@@ -48,11 +48,44 @@ const ProgramsPage: React.FC = () => {
         },
       ]
       : []),
-    ...(selectedTab === 'published'
+    ...(selectedTab === 'newest'
       ? [
         {
           field: 'status',
           value: 'published',
+        },
+        {
+          field: 'visibility',
+          value: 'public',
+        },
+      ]
+      : []),
+    ...(selectedTab === 'imminent'
+      ? [
+        {
+          field: 'status',
+          value: 'published',
+        },
+        {
+          field: 'visibility',
+          value: 'public',
+        },
+
+        {
+          field: 'imminent',
+          value: "true",
+        },
+      ]
+      : []),
+    ...(selectedTab === 'completed'
+      ? [
+        {
+          field: 'status',
+          value: 'completed',
+        },
+        {
+          field: 'visibility',
+          value: 'public',
         },
       ]
       : []),

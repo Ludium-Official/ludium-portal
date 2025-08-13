@@ -41,6 +41,11 @@ query program($id: ID!) {
         title
         url
       }
+
+      keywords {
+        id
+        name
+      }
     }
     currency
     deadline
@@ -92,6 +97,10 @@ query program($id: ID!) {
       links {
         title
         url
+      }
+      keywords {
+        id
+        name
       }
       walletAddress
     }

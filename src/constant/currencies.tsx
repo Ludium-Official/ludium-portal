@@ -2,9 +2,14 @@ import ArbitrumIcon from '@/assets/icons/crypto/arbitrum';
 import BaseIcon from '@/assets/icons/crypto/base';
 import EduIcon from '@/assets/icons/crypto/edu';
 
+import EthIcon from '@/assets/icons/crypto/eth';
+import UsdcIcon from '@/assets/icons/crypto/usdc';
+import UsdtIcon from '@/assets/icons/crypto/usdt';
+
 // Simple Ethereum icon component for Sepolia
 const EthereumIcon = () => (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <title>Ethereum</title>
     <path d="M8 0L2 8L8 10.8L14 8L8 0Z" fill="#627EEA" />
     <path d="M8 10.8L2 8L8 16L14 8L8 10.8Z" fill="#627EEA" opacity="0.6" />
   </svg>
@@ -49,3 +54,11 @@ export const currencies = [
     isTestnet: true,
   },
 ];
+
+
+export const currencyIcons = {
+  'EDU': <EduIcon />,
+  'USDT': <UsdtIcon />,
+  'USDC': <UsdcIcon />,
+  'ETH': <EthIcon />,
+}

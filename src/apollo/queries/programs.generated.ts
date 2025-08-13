@@ -70,6 +70,7 @@ export const ProgramsDocument = gql`
       currency
       deadline
       description
+      image
       id
       keywords {
         id

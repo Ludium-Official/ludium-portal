@@ -21,6 +21,7 @@ export type Scalars = {
 export type Application = {
   __typename?: 'Application';
   applicant?: Maybe<User>;
+  comments?: Maybe<Array<Comment>>;
   content?: Maybe<Scalars['String']['output']>;
   currentFunding?: Maybe<Scalars['String']['output']>;
   fundingSuccessful?: Maybe<Scalars['Boolean']['output']>;
@@ -42,7 +43,6 @@ export type Application = {
 export enum ApplicationStatus {
   Accepted = 'accepted',
   Completed = 'completed',
-  Draft = 'draft',
   Pending = 'pending',
   Rejected = 'rejected',
   Submitted = 'submitted'
@@ -79,7 +79,7 @@ export type CheckMilestoneInput = {
 
 export enum CheckMilestoneStatus {
   Completed = 'completed',
-  Pending = 'pending'
+  Rejected = 'rejected'
 }
 
 export type Comment = {
@@ -88,13 +88,14 @@ export type Comment = {
   commentableId?: Maybe<Scalars['String']['output']>;
   commentableType?: Maybe<Scalars['String']['output']>;
   content?: Maybe<Scalars['String']['output']>;
-  createdAt?: Maybe<Scalars['Date']['output']>;
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   parent?: Maybe<Comment>;
   replies?: Maybe<Array<Comment>>;
 };
 
 export enum CommentableTypeEnum {
+  Application = 'application',
   Milestone = 'milestone',
   Post = 'post',
   Program = 'program'
@@ -137,9 +138,10 @@ export type CreateInvestmentInput = {
 export type CreateMilestoneInput = {
   currency?: Scalars['String']['input'];
   deadline: Scalars['Date']['input'];
-  description?: InputMaybe<Scalars['String']['input']>;
+  description: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
   percentage: Scalars['String']['input'];
+  summary: Scalars['String']['input'];
   title: Scalars['String']['input'];
 };
 
@@ -168,8 +170,9 @@ export type CreateProgramInput = {
   links?: InputMaybe<Array<LinkInput>>;
   maxFundingAmount?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
-  network?: InputMaybe<Scalars['String']['input']>;
+  network: Scalars['String']['input'];
   price: Scalars['String']['input'];
+  status?: InputMaybe<ProgramStatus>;
   summary?: InputMaybe<Scalars['String']['input']>;
   terms?: InputMaybe<Scalars['String']['input']>;
   tierSettings?: InputMaybe<TierSettingsInput>;
@@ -256,6 +259,7 @@ export type Milestone = {
   price?: Maybe<Scalars['String']['output']>;
   rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<MilestoneStatus>;
+  summary?: Maybe<Scalars['String']['output']>;
   title?: Maybe<Scalars['String']['output']>;
 };
 
@@ -287,6 +291,7 @@ export type Mutation = {
   acceptProgram?: Maybe<Program>;
   addProgramKeyword?: Maybe<Keyword>;
   assignUserTier?: Maybe<UserTierAssignment>;
+  addUserKeyword?: Maybe<Keyword>;
   assignValidatorToProgram?: Maybe<Program>;
   checkMilestone?: Maybe<Milestone>;
   createApplication?: Maybe<Application>;
@@ -299,7 +304,6 @@ export type Mutation = {
   deleteCarouselItem?: Maybe<CarouselItem>;
   deleteProgram?: Maybe<Scalars['Boolean']['output']>;
   deleteUser?: Maybe<User>;
-  /** Increment view count for a post and return the new count */
   incrementPostView?: Maybe<Scalars['Int']['output']>;
   inviteUserToProgram?: Maybe<Program>;
   login?: Maybe<Scalars['String']['output']>;
@@ -311,6 +315,7 @@ export type Mutation = {
   rejectProgram?: Maybe<Program>;
   removeProgramKeyword?: Maybe<Scalars['Boolean']['output']>;
   removeUserTier?: Maybe<Scalars['Boolean']['output']>;
+  removeUserKeyword?: Maybe<Scalars['Boolean']['output']>;
   removeValidatorFromProgram?: Maybe<Program>;
   reorderCarouselItems?: Maybe<Array<CarouselItem>>;
   submitMilestone?: Maybe<Milestone>;
@@ -344,6 +349,12 @@ export type MutationAddProgramKeywordArgs = {
 
 export type MutationAssignUserTierArgs = {
   input: AssignUserTierInput;
+};
+
+
+export type MutationAddUserKeywordArgs = {
+  keyword: Scalars['String']['input'];
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -461,6 +472,12 @@ export type MutationRemoveProgramKeywordArgs = {
 
 export type MutationRemoveUserTierArgs = {
   programId: Scalars['ID']['input'];
+  userId: Scalars['ID']['input'];
+};
+
+
+export type MutationRemoveUserKeywordArgs = {
+  keyword: Scalars['String']['input'];
   userId: Scalars['ID']['input'];
 };
 
@@ -690,7 +707,6 @@ export enum ProgramStatus {
   Cancelled = 'cancelled',
   Closed = 'closed',
   Completed = 'completed',
-  Draft = 'draft',
   PaymentRequired = 'payment_required',
   Published = 'published'
 }
@@ -920,6 +936,7 @@ export type UpdateMilestoneInput = {
   links?: InputMaybe<Array<LinkInput>>;
   percentage?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<MilestoneStatus>;
+  summary?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -968,6 +985,7 @@ export type User = {
   firstName?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   image?: Maybe<Scalars['String']['output']>;
+  keywords?: Maybe<Array<Keyword>>;
   lastName?: Maybe<Scalars['String']['output']>;
   links?: Maybe<Array<Link>>;
   loginType?: Maybe<Scalars['String']['output']>;
@@ -983,6 +1001,7 @@ export type UserInput = {
   email: Scalars['String']['input'];
   firstName?: InputMaybe<Scalars['String']['input']>;
   image?: InputMaybe<Scalars['Upload']['input']>;
+  keywords?: InputMaybe<Array<Scalars['String']['input']>>;
   lastName?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   loginType?: InputMaybe<Scalars['String']['input']>;
@@ -1023,6 +1042,7 @@ export type UserUpdateInput = {
   firstName?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   image?: InputMaybe<Scalars['Upload']['input']>;
+  keywords?: InputMaybe<Array<Scalars['String']['input']>>;
   lastName?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   loginType?: InputMaybe<Scalars['String']['input']>;

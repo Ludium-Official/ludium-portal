@@ -16,6 +16,8 @@ export interface ApplicationDynamicTabsProps {
   className?: string;
   onAddMilestone: () => void;
   onRemoveMilestone: (idx: number) => void;
+  activeTab?: string;
+  onActiveTabChange?: (tabId: string) => void;
 }
 
 export function ApplicationDynamicTabs({
@@ -24,17 +26,25 @@ export function ApplicationDynamicTabs({
   className,
   onAddMilestone,
   onRemoveMilestone,
+  activeTab: controlledActiveTab,
+  onActiveTabChange,
 }: ApplicationDynamicTabsProps) {
-  const [activeTab, setActiveTab] = React.useState(defaultActiveTab || tabs[0]?.id || '');
+  const isControlled = controlledActiveTab !== undefined;
+  const [uncontrolledActive, setUncontrolledActive] = React.useState(
+    defaultActiveTab || tabs[0]?.id || '',
+  );
+  const activeTab = isControlled ? (controlledActiveTab as string) : uncontrolledActive;
 
   React.useEffect(() => {
     if (!tabs.find((tab) => tab.id === activeTab)) {
-      setActiveTab(tabs[0]?.id || '');
+      if (!isControlled) setUncontrolledActive(tabs[0]?.id || '');
+      onActiveTabChange?.(tabs[0]?.id || '');
     }
   }, [tabs, activeTab]);
 
   const handleTabChange = (value: string) => {
-    setActiveTab(value);
+    if (!isControlled) setUncontrolledActive(value);
+    onActiveTabChange?.(value);
   };
 
   return (
@@ -44,7 +54,7 @@ export function ApplicationDynamicTabs({
       className={cn('flex flex-col', className)}
     >
       <div className="flex items-center w-full border-b border-gray-200 mb-6">
-        <TabsPrimitive.List className="flex items-center gap-2 min-w-0">
+        <TabsPrimitive.List className="flex items-center gap-2 min-w-0 max-w-[750px]">
           {tabs.map((tab, idx) => (
             <TabsPrimitive.Trigger
               key={tab.id}
@@ -65,7 +75,7 @@ export function ApplicationDynamicTabs({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onRemoveMilestone(idx - 3);
+                    onRemoveMilestone(idx - 2);
                   }}
                   className="ml-1 p-0 bg-transparent border-none focus:outline-none"
                   tabIndex={-1}

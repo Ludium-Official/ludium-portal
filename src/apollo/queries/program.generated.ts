@@ -55,6 +55,10 @@ export const ProgramDocument = gql`
         title
         url
       }
+      keywords {
+        id
+        name
+      }
     }
     currency
     deadline
@@ -106,6 +110,10 @@ export const ProgramDocument = gql`
       links {
         title
         url
+      }
+      keywords {
+        id
+        name
       }
       walletAddress
     }

@@ -1,5 +1,6 @@
 import notify from '@/lib/notify';
 import { cn } from '@/lib/utils';
+import type { Program } from '@/types/types.generated';
 import { Share2Icon } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from './button';
@@ -13,6 +14,7 @@ interface ShareButtonProps {
   size?: 'default' | 'sm' | 'lg' | 'icon';
   children?: React.ReactNode;
   onShare?: (type: 'link' | 'farcaster') => void;
+  program?: Program;
 }
 
 export function ShareButton({
@@ -21,14 +23,25 @@ export function ShareButton({
   size = 'default',
   children,
   onShare,
+  program,
 }: ShareButtonProps) {
   const [shareType, setShareType] = useState<'link' | 'farcaster'>('link');
 
   const handleShare = () => {
     onShare?.(shareType);
-
-    window.navigator.clipboard.writeText(window.location.href);
-    notify('Link copied to clipboard', 'success');
+    if (shareType === 'link') {
+      window.navigator.clipboard.writeText(window.location.href);
+      notify('Link copied to clipboard', 'success');
+    }
+    if (shareType === 'farcaster') {
+      navigator.clipboard.writeText(
+        `https://ludium-farcaster.vercel.app/api/programs/${program?.name
+        }/${program?.id}/${Math.floor(
+          new Date(program?.deadline).getTime() / 1000,
+        )}/${program?.price}/${program?.currency}`,
+      );
+      notify('Copied program frame!', 'success');
+    }
   };
 
   return (
@@ -61,12 +74,15 @@ export function ShareButton({
               </Label>
             </div>
 
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="farcaster" id="farcaster" />
-              <Label htmlFor="farcaster" className="flex-1 cursor-pointer">
-                <div className="font-medium">Farcaster</div>
-              </Label>
-            </div>
+            {program &&
+              (program.network === 'base' || program.network === 'base-sepolia') && (
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="farcaster" id="farcaster" />
+                  <Label htmlFor="farcaster" className="flex-1 cursor-pointer">
+                    <div className="font-medium">Farcaster</div>
+                  </Label>
+                </div>
+              )}
           </RadioGroup>
 
           <div className="flex justify-center">

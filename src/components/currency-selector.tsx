@@ -60,7 +60,7 @@ function CurrencySelector({
   }, [selectedCurrency]);
 
   useEffect(() => {
-    setSelectedCurrency(displayCurrencies[0].code);
+    setSelectedCurrency(displayCurrencies.some((c) => c.code === selectedCurrency) ? selectedCurrency : displayCurrencies[0].code);
   }, [displayCurrencies]);
 
   const currWithIcon = displayCurrencies.find((c) => c.code === selectedCurrency);
