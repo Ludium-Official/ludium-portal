@@ -5,7 +5,6 @@ import { ChevronRight, CircleX } from 'lucide-react';
 import { Link } from 'react-router';
 
 function NotificationCard({ notification }: { notification: Notification }) {
-  console.log('🚀 ~ NotificationCard ~ notification:', notification);
   const { type, action } = notification;
 
   const [markAsRead] = useMarkNotificationAsReadMutation();
@@ -33,7 +32,7 @@ function NotificationCard({ notification }: { notification: Notification }) {
   return (
     <div className="border rounded-md py-4 px-3">
       <div className="flex justify-between items-center mb-2">
-        <h3 className="font-medium text-[#861CC4]">
+        <h3 className="font-medium text-primary">
           {typeUpperFirst} {actionUpperFirst}
         </h3>
 

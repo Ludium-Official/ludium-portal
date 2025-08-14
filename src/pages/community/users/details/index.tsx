@@ -1,41 +1,14 @@
-import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { useUserQuery } from '@/apollo/queries/user.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
-import MarkdownPreviewer from '@/components/markdown-previewer';
 import { Badge } from '@/components/ui/badge';
-import { PageSize, Pagination } from '@/components/ui/pagination';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowRight } from 'lucide-react';
-import { useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router';
+import { ShareButton } from '@/components/ui/share-button';
+import { Separator } from '@radix-ui/react-dropdown-menu';
+import { Outlet, useParams } from 'react-router';
+import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
+import { platformIcons } from '../agent-utils';
 
 function UserDetailsPage() {
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
-  const currentPage = Number(searchParams.get('page')) || 1;
-
-  const [selectedTab, setSelectedTab] = useState('sponsor');
-  const filterBasedOnRole = {
-    sponsor: 'creatorId',
-    validator: 'validatorId',
-    builder: 'applicantId',
-  };
-
-  const { data } = useProgramsQuery({
-    variables: {
-      pagination: {
-        limit: PageSize,
-        offset: (currentPage - 1) * PageSize,
-        filter: [
-          {
-            value: id ?? '',
-            field: filterBasedOnRole[selectedTab as 'sponsor' | 'validator' | 'builder'],
-          },
-        ],
-      },
-    },
-    skip: !id,
-  });
 
   const { data: userData } = useUserQuery({
     variables: {
@@ -44,88 +17,127 @@ function UserDetailsPage() {
   });
 
   return (
-    <div className="bg-[#F7F7F7]">
-      <div className="flex px-10 py-5 justify-between bg-white rounded-b-2xl mb-3">
-        <section className="">
-          <h1 className="text-xl font-bold mb-6">Profile</h1>
-
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Profile image</h3>
-
-          <div className="px-6 py-2 mb-9">
-            <img
-              src={userData?.user?.image ?? avatarPlaceholder}
-              alt="avatar"
-              className="w-[121px] h-[121px] rounded-full object-cover"
-            />
-          </div>
-
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Organization / Person name</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">
-            {userData?.user?.organizationName} / {userData?.user?.firstName}{' '}
-            {userData?.user?.lastName}
-          </p>
-
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Email</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">{userData?.user?.email}</p>
-
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Summary</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">{userData?.user?.summary}</p>
-
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Description</h3>
-          {userData?.user?.about && <MarkdownPreviewer value={userData?.user?.about ?? ''} />}
-
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2 mt-3">Links</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">
-            {userData?.user?.links?.map((l) => (
-              <a
-                href={l?.url ?? ''}
-                key={l.url}
-                className="block hover:underline text-slate-600 text-sm"
-                target="_blank"
-                rel="noreferrer"
-              >
-                {l?.url}
-              </a>
-            ))}
-            {userData?.user?.links?.length === 0 && <span>No links provided</span>}
-          </p>
-        </section>
-      </div>
-
-      <div className="bg-white p-5 rounded-t-2xl">
-        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="w-full">
-            <TabsTrigger value={'sponsor'}>Programs as sponsor</TabsTrigger>
-            <TabsTrigger value={'validator'}>Programs as validator</TabsTrigger>
-            <TabsTrigger value={'builder'}>Programs as builder</TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        <h2 className="text-xl font-bold mt-10 mb-6">Programs as {selectedTab}</h2>
-
-        {!data?.programs?.data?.length && (
-          <p className="text-sm text-muted-foreground">No programs found</p>
-        )}
-
-        {data?.programs?.data?.map((p) => (
-          <div key={p.id} className="border rounded-xl p-6 mb-6">
-            <div className="flex justify-between mb-4">
-              <Badge>{p.status}</Badge>
-              <Link to={`/programs/${p.id}`} className="flex gap-2 text-sm items-center">
-                See more <ArrowRight className="w-4 h-4" />
-              </Link>
+    <div className="bg-white rounded-2xl">
+      <div className="max-w-1440 mx-auto p-10">
+        <div className="flex gap-6">
+          <section className="max-w-[360px] flex flex-col gap-5">
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center gap-[22px]">
+                <div className="p-[7.5px]">
+                  <img
+                    src={userData?.user?.image ?? avatarPlaceholder}
+                    alt="avatar"
+                    className="w-[121px] h-[121px] rounded-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-xl text-gray-dark">
+                      {userData?.user?.firstName} {userData?.user?.lastName}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{userData?.user?.email}</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {userData?.user?.organizationName}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="font-bold text-sm text-muted-foreground">SUMMARY</p>
+                <p className="text-sm text-slate-600 line-clamp-4 font-inter">
+                  {userData?.user?.summary}
+                </p>
+              </div>
+              <ShareButton variant="outline" className="h-11" />
+              {/* <Button variant={'outline'} className="h-11">
+                <p className="font-medium text-sm text-gray-dark">Share</p>
+                <Share2Icon />
+              </Button> */}
             </div>
+            <Separator />
+            <div className="flex flex-col gap-2 px-6">
+              {sidebarLinks.map((item) => (
+                <SidebarLinks key={item.label} item={item} />
+              ))}
+            </div>
+            <Separator />
+            <div className="flex flex-col gap-6">
+              <div className="space-y-2">
+                <p className="font-bold text-sm text-muted-foreground">ROLES</p>
+                <div className="flex gap-[6px]">
+                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
+                    Crypto
+                  </Badge>
+                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
+                    BD
+                  </Badge>
+                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
+                    Develope
+                  </Badge>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="font-bold text-sm text-muted-foreground">SKILLS</p>
+                <div className="flex gap-[6px]">
+                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
+                    Crypto
+                  </Badge>
+                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
+                    BD
+                  </Badge>
+                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
+                    Develope
+                  </Badge>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <p className="font-bold text-sm text-muted-foreground">CONTACT</p>
+                <div className="space-y-2">
+                  <div className="space-y-2">
+                    {userData?.user?.links?.length ? (
+                      userData.user.links.map((link, index) => {
+                        const url = link.url?.toLowerCase() || '';
+                        const matchedKey = Object.keys(platformIcons).find((key) =>
+                          url.includes(key),
+                        );
+                        const platform = matchedKey ? platformIcons[matchedKey] : null;
 
-            <h2 className="text-lg font-semibold mb-[6px]">{p.name}</h2>
-            <span className="inline-block py-1 px-2 mb-4 rounded-[6px] text-xs font-bold text-[#B331FF] bg-[#F8ECFF]">
-              {p.price} {p.currency}
-            </span>
-
-            <p className="text-sm font-medium">{p.summary}</p>
-          </div>
-        ))}
-
-        <Pagination totalCount={0} />
+                        return (
+                          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                          <div key={index} className="flex items-center gap-2">
+                            {platform && (
+                              <div className="flex items-center justify-center h-10 w-10 rounded-md bg-secondary">
+                                <img
+                                  src={platform.icon}
+                                  width={16}
+                                  height={16}
+                                  alt={platform.alt}
+                                />
+                              </div>
+                            )}
+                            <a
+                              target="_blank"
+                              href={link.url || '#'}
+                              className="text-sm text-slate-600 break-all"
+                              rel="noreferrer"
+                            >
+                              {link.url || 'No link'}
+                            </a>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No links available</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section className="flex-1 space-y-1">
+            <Outlet />
+          </section>
+        </div>
       </div>
     </div>
   );

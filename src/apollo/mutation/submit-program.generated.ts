@@ -10,7 +10,7 @@ export type SubmitProgramMutationVariables = Types.Exact<{
 }>;
 
 
-export type SubmitProgramMutation = { __typename?: 'Mutation', submitProgram?: { __typename?: 'Program', currency?: string | null, deadline?: any | null, description?: string | null, id?: string | null, name?: string | null, price?: string | null, status?: Types.ProgramStatus | null, summary?: string | null, creator?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null } | null, validator?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null } | null } | null };
+export type SubmitProgramMutation = { __typename?: 'Mutation', submitProgram?: { __typename?: 'Program', currency?: string | null, deadline?: any | null, description?: string | null, id?: string | null, name?: string | null, price?: string | null, status?: Types.ProgramStatus | null, summary?: string | null, creator?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null } | null, validators?: Array<{ __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null }> | null } | null };
 
 
 export const SubmitProgramDocument = gql`
@@ -33,7 +33,7 @@ export const SubmitProgramDocument = gql`
     price
     status
     summary
-    validator {
+    validators {
       about
       email
       firstName

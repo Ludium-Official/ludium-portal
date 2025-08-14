@@ -1,9 +1,10 @@
 import { useUpdateApplicationMutation } from '@/apollo/mutation/update-application.generated';
-import MarkdownEditor from '@/components/markdown-editor';
+import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import notify from '@/lib/notify';
+import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { type Application, ApplicationStatus } from '@/types/types.generated';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -29,17 +30,19 @@ function EditApplicationForm({
   }, [application]);
 
   const onSubmit = async (resubmit?: boolean) => {
-    if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
+    const { shouldSend, isValid } = validateLinks(links);
+    if (!isValid) {
       setLinksError(true);
       return;
     }
+    setLinksError(false);
 
     updateApplcation({
       variables: {
         input: {
           id: application?.id ?? '',
           content,
-          links: links.map((l) => ({ title: l, url: l })),
+          links: shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined,
           summary,
           status: resubmit ? ApplicationStatus.Pending : undefined,
           name,
@@ -96,7 +99,7 @@ function EditApplicationForm({
 
       <label htmlFor="links" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Links</p>
-        <span className="block text-[#71717A] text-sm">
+        <span className="block text-gray-text text-sm">
           Add links to your website, blog, or social media profiles.
         </span>
 
@@ -148,7 +151,7 @@ function EditApplicationForm({
         <Button
           disabled={!name || !content || !summary || noChanges}
           type="button"
-          className="bg-[#861CC4] h-10 block hover:bg-[#861CC4]/90 min-w-[161px]"
+          className="bg-primary hover:bg-primary/90 h-10 block min-w-[161px]"
           onClick={() => onSubmit()}
         >
           {'EDIT APPLICATION'}
@@ -158,7 +161,7 @@ function EditApplicationForm({
           <Button
             disabled={!name || !content || !summary}
             type="button"
-            className="bg-[#861CC4] h-10 block hover:bg-[#861CC4]/90 min-w-[161px]"
+            className="bg-primary hover:bg-primary/90 h-10 block min-w-[161px]"
             onClick={() => onSubmit(true)}
           >
             EDIT AND RESUBMIT

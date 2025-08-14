@@ -8,7 +8,7 @@ export type UpdateProgramMutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateProgramMutation = { __typename?: 'Mutation', updateProgram?: { __typename?: 'Program', currency?: string | null, deadline?: any | null, description?: string | null, id?: string | null, name?: string | null, price?: string | null, status?: Types.ProgramStatus | null, summary?: string | null } | null };
+export type UpdateProgramMutation = { __typename?: 'Mutation', updateProgram?: { __typename?: 'Program', currency?: string | null, deadline?: any | null, description?: string | null, id?: string | null, name?: string | null, price?: string | null, status?: Types.ProgramStatus | null, summary?: string | null, validators?: Array<{ __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, loginType?: string | null, organizationName?: string | null, role?: Types.UserRole | null, summary?: string | null, walletAddress?: string | null }> | null } | null };
 
 
 export const UpdateProgramDocument = gql`
@@ -22,6 +22,17 @@ export const UpdateProgramDocument = gql`
     price
     status
     summary
+    validators {
+      about
+      email
+      firstName
+      id
+      loginType
+      organizationName
+      role
+      summary
+      walletAddress
+    }
   }
 }
     `;

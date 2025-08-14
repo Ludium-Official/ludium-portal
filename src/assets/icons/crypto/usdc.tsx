@@ -14,6 +14,7 @@ const UsdcIcon: React.FC<SvgIconProps> = ({
   secondaryFill = 'white',
 }) => {
   return (
+    // biome-ignore lint/a11y/noSvgWithoutTitle: <explanation>
     <svg
       width={width}
       height={height}

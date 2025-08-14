@@ -5,6 +5,7 @@ query post($id: ID!) {
     content
     image
     summary
+    viewCount
     keywords {
       id
       name
@@ -16,6 +17,10 @@ query post($id: ID!) {
       image
       email
       organizationName
+      links {
+        title
+        url
+      }
     }
     createdAt
   }

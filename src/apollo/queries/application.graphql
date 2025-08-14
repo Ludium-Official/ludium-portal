@@ -26,11 +26,15 @@ query application($id: ID!) {
     metadata
     milestones {
       currency
+      summary
+      deadline
       description
       rejectionReason
+      percentage
       id
       price
       status
+      file
       title
       links {
         title

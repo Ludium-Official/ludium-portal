@@ -1,7 +1,7 @@
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
-import MarkdownPreviewer from '@/components/markdown-previewer';
+import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -81,12 +81,12 @@ function ProfilePage() {
   };
 
   return (
-    <div className="bg-[#F7F7F7]">
-      <div className="flex px-10 py-5 justify-between bg-white rounded-b-2xl mb-3">
+    <div className="bg-gray-light">
+      <div className="flex px-10 py-5 justify-between bg-white rounded-2xl mb-3">
         <section className="">
           <h1 className="text-xl font-bold mb-6">Profile</h1>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Profile image</h3>
+          <h3 className="text-gray-text text-xs font-medium mb-2">Profile image</h3>
 
           <div className="px-6 py-2 mb-9">
             <img
@@ -96,41 +96,41 @@ function ProfilePage() {
             />
           </div>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Organization / Person name</h3>
-          <div className="text-[#18181B] text-sm font-medium mb-10">
+          <h3 className="text-gray-text text-xs font-medium mb-2">Organization / Person name</h3>
+          <div className="text-gray-dark text-sm font-medium mb-10">
             {profileData?.profile?.organizationName} / {profileData?.profile?.firstName}{' '}
             {profileData?.profile?.lastName}
           </div>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Email</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">{profileData?.profile?.email}</p>
+          <h3 className="text-gray-text text-xs font-medium mb-2">Email</h3>
+          <p className="text-gray-dark text-sm font-medium mb-10">{profileData?.profile?.email}</p>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Summary</h3>
-          <p className="text-[#18181B] text-sm font-medium mb-10">
+          <h3 className="text-gray-text text-xs font-medium mb-2">Summary</h3>
+          <p className="text-gray-dark text-sm font-medium mb-10">
             {profileData?.profile?.summary}
           </p>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Description</h3>
+          <h3 className="text-gray-text text-xs font-medium mb-2">Description</h3>
           {profileData?.profile?.about && (
             <MarkdownPreviewer value={profileData?.profile?.about ?? ''} />
           )}
           {/* <p className="text-[#18181B] text-sm font-medium mb-10">{profileData?.profile?.about}</p> */}
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Wallet</h3>
+          <h3 className="text-gray-text text-xs font-medium mb-2">Wallet</h3>
           <div className="p-6 mb-10 border min-w-[282px] bg-muted rounded-lg shadow-sm relative">
             <label htmlFor="description" className="block text-foreground font-medium mb-2 text-sm">
               My Wallet
             </label>
             <span
               className={cn(
-                'block text-sm text-[#71717A] mb-5',
+                'block text-gray-text text-sm mb-5',
                 !!profileData?.profile?.walletAddress && 'mb-2',
               )}
             >
               {user ? 'Your wallet is connected' : 'Connect your wallet'}
             </span>
             {profileData?.profile?.walletAddress && (
-              <div className="text-xs text-[#71717A] mb-5">
+              <div className="text-xs text-gray-text mb-5">
                 {profileData?.profile?.walletAddress}
               </div>
             )}
@@ -138,14 +138,14 @@ function ProfilePage() {
             <Button
               onClick={login}
               disabled={user !== null}
-              className="bg-[#B331FF] hover:bg-[#B331FF]/90 h-9 w-[133px] ml-auto flex text-xs"
+              className="bg-primary hover:bg-primary/90 h-9 w-[133px] ml-auto flex text-xs"
             >
               {user ? 'Connected' : 'Connect wallet'} <Wallet />
             </Button>
           </div>
 
-          <h3 className="text-[#A3A3A3] text-xs font-medium mb-2">Links</h3>
-          <div className="text-[#18181B] text-sm font-medium mb-10">
+          <h3 className="text-gray-text text-xs font-medium mb-2">Links</h3>
+          <div className="text-gray-dark text-sm font-medium mb-10">
             {profileData?.profile?.links?.map((l) => (
               <a
                 href={l?.url ?? ''}
@@ -158,6 +158,14 @@ function ProfilePage() {
               </a>
             ))}
           </div>
+
+
+          <h3 className="text-gray-text text-xs font-medium mb-2">Roles</h3>
+          <div className="text-gray-dark text-sm font-medium mb-10 flex gap-1 flex-wrap">
+            {profileData?.profile?.keywords?.map((k) => (
+              <Badge key={k.id}>{k.name}</Badge>
+            ))}
+          </div>
         </section>
 
         <section>
@@ -167,7 +175,7 @@ function ProfilePage() {
         </section>
       </div>
 
-      <div className="bg-white p-5 rounded-t-2xl">
+      <div className="bg-white p-5 rounded-2xl">
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="w-full">
             <TabsTrigger value={'sponsor'}>Programs as sponsor</TabsTrigger>
@@ -192,7 +200,7 @@ function ProfilePage() {
             </div>
 
             <h2 className="text-lg font-semibold mb-[6px]">{p.name}</h2>
-            <span className="inline-block py-1 px-2 mb-4 rounded-[6px] text-xs font-bold text-[#B331FF] bg-[#F8ECFF]">
+            <span className="inline-block py-1 px-2 mb-4 rounded-[6px] text-xs font-bold text-primary bg-primary-light">
               {p.price} {p.currency}
             </span>
 

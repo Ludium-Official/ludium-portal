@@ -36,10 +36,15 @@ query program($id: ID!) {
       image
       lastName
       organizationName
-
+      summary
       links {
         title
         url
+      }
+
+      keywords {
+        id
+        name
       }
     }
     currency
@@ -56,21 +61,46 @@ query program($id: ID!) {
     }
     id
     name
+    image
     price
     status
     summary
     rejectionReason
-    validator {
+    visibility
+    invitedBuilders {
       about
+      avatar
       email
       firstName
       id
       image
       lastName
+      links {
+        title
+        url
+      }
+      loginType
+      organizationName
+      role
+      summary
+      walletAddress
+    }
+    validators {
+      about
+      email
+      firstName
+      id
+      image
+      summary
+      lastName
       organizationName
       links {
         title
         url
+      }
+      keywords {
+        id
+        name
       }
       walletAddress
     }

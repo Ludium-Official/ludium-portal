@@ -14,23 +14,24 @@ const CreateCommunityPage: React.FC = () => {
       variables: {
         input: {
           title: args.title,
-          summary: args.summary,
+          summary: '',
           content: args.content,
-          keywords: args.keywords,
+          keywords: [],
           image: args.image,
-          isBanner: args.isBanner,
         },
       },
       onCompleted: () => {
+        client.refetchQueries({ include: [PostsDocument] });
         navigate('/community');
 
-        client.refetchQueries({ include: [PostsDocument] });
+
+        window.location.reload();
       },
     });
   };
 
   return (
-    <div className="p-10 pr-[55px] w-[681px]" defaultValue="edit">
+    <div className="p-10 pr-[55px]" defaultValue="edit">
       <PostForm isEdit={false} onSubmitPost={onSubmit} />
     </div>
   );

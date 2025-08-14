@@ -1,6 +1,6 @@
 import contractJson from '@/lib/contract/contract.json';
-import { User } from '@/types/types.generated';
-import { usePrivy } from '@privy-io/react-auth';
+import type { User } from '@/types/types.generated';
+import type { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 import type { PublicClient } from 'viem';

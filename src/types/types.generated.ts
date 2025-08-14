@@ -21,6 +21,7 @@ export type Scalars = {
 export type Application = {
   __typename?: 'Application';
   applicant?: Maybe<User>;
+  comments?: Maybe<Array<Comment>>;
   content?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   links?: Maybe<Array<Link>>;
@@ -41,6 +42,22 @@ export enum ApplicationStatus {
   Submitted = 'submitted'
 }
 
+export type CarouselItem = {
+  __typename?: 'CarouselItem';
+  displayOrder?: Maybe<Scalars['Int']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  isActive?: Maybe<Scalars['Boolean']['output']>;
+  itemId?: Maybe<Scalars['String']['output']>;
+  itemType?: Maybe<CarouselItemType>;
+};
+
+export type CarouselItemData = Post | Program;
+
+export enum CarouselItemType {
+  Post = 'post',
+  Program = 'program'
+}
+
 export type CheckMilestoneInput = {
   id: Scalars['String']['input'];
   rejectionReason?: InputMaybe<Scalars['String']['input']>;
@@ -49,19 +66,27 @@ export type CheckMilestoneInput = {
 
 export enum CheckMilestoneStatus {
   Completed = 'completed',
-  Pending = 'pending'
+  Rejected = 'rejected'
 }
 
 export type Comment = {
   __typename?: 'Comment';
   author?: Maybe<User>;
+  commentableId?: Maybe<Scalars['String']['output']>;
+  commentableType?: Maybe<Scalars['String']['output']>;
   content?: Maybe<Scalars['String']['output']>;
-  createdAt?: Maybe<Scalars['Date']['output']>;
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   parent?: Maybe<Comment>;
-  post?: Maybe<Post>;
   replies?: Maybe<Array<Comment>>;
 };
+
+export enum CommentableTypeEnum {
+  Application = 'application',
+  Milestone = 'milestone',
+  Post = 'post',
+  Program = 'program'
+}
 
 export type CreateApplicationInput = {
   content: Scalars['String']['input'];
@@ -71,27 +96,36 @@ export type CreateApplicationInput = {
   name: Scalars['String']['input'];
   price: Scalars['String']['input'];
   programId: Scalars['String']['input'];
-  summary?: InputMaybe<Scalars['String']['input']>;
+  status: ApplicationStatus;
+  summary: Scalars['String']['input'];
+};
+
+export type CreateCarouselItemInput = {
+  isActive: Scalars['Boolean']['input'];
+  itemId: Scalars['String']['input'];
+  itemType: CarouselItemType;
 };
 
 export type CreateCommentInput = {
+  commentableId: Scalars['ID']['input'];
+  commentableType: CommentableTypeEnum;
   content: Scalars['String']['input'];
   parentId?: InputMaybe<Scalars['ID']['input']>;
-  postId: Scalars['ID']['input'];
 };
 
 export type CreateMilestoneInput = {
   currency?: Scalars['String']['input'];
-  description?: InputMaybe<Scalars['String']['input']>;
+  deadline: Scalars['DateTime']['input'];
+  description: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
-  price: Scalars['String']['input'];
+  percentage: Scalars['String']['input'];
+  summary: Scalars['String']['input'];
   title: Scalars['String']['input'];
 };
 
 export type CreatePostInput = {
   content: Scalars['String']['input'];
   image?: InputMaybe<Scalars['Upload']['input']>;
-  isBanner?: InputMaybe<Scalars['Boolean']['input']>;
   keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
   summary: Scalars['String']['input'];
   title: Scalars['String']['input'];
@@ -99,15 +133,27 @@ export type CreatePostInput = {
 
 export type CreateProgramInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
-  deadline: Scalars['String']['input'];
+  deadline: Scalars['DateTime']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
-  keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
+  image: Scalars['Upload']['input'];
+  keywords: Array<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   name: Scalars['String']['input'];
-  network?: InputMaybe<Scalars['String']['input']>;
+  network: Scalars['String']['input'];
   price: Scalars['String']['input'];
+  status?: InputMaybe<ProgramStatus>;
   summary?: InputMaybe<Scalars['String']['input']>;
-  validatorId: Scalars['ID']['input'];
+  visibility?: InputMaybe<ProgramVisibility>;
+};
+
+export type EnrichedCarouselItem = {
+  __typename?: 'EnrichedCarouselItem';
+  data?: Maybe<CarouselItemData>;
+  displayOrder?: Maybe<Scalars['Int']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  isActive?: Maybe<Scalars['Boolean']['output']>;
+  itemId?: Maybe<Scalars['String']['output']>;
+  itemType?: Maybe<CarouselItemType>;
 };
 
 export type FilterInput = {
@@ -134,18 +180,24 @@ export type LinkInput = {
 
 export type Milestone = {
   __typename?: 'Milestone';
+  comments?: Maybe<Array<Comment>>;
   currency?: Maybe<Scalars['String']['output']>;
+  deadline?: Maybe<Scalars['DateTime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
+  file?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   links?: Maybe<Array<Link>>;
+  percentage?: Maybe<Scalars['String']['output']>;
   price?: Maybe<Scalars['String']['output']>;
   rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<MilestoneStatus>;
+  summary?: Maybe<Scalars['String']['output']>;
   title?: Maybe<Scalars['String']['output']>;
 };
 
 export enum MilestoneStatus {
   Completed = 'completed',
+  Draft = 'draft',
   Pending = 'pending',
   Rejected = 'rejected',
   Submitted = 'submitted'
@@ -155,22 +207,34 @@ export type Mutation = {
   __typename?: 'Mutation';
   acceptApplication?: Maybe<Application>;
   acceptProgram?: Maybe<Program>;
+  addProgramKeyword?: Maybe<Keyword>;
+  addUserKeyword?: Maybe<Keyword>;
+  assignValidatorToProgram?: Maybe<Program>;
   checkMilestone?: Maybe<Milestone>;
   createApplication?: Maybe<Application>;
+  createCarouselItem?: Maybe<CarouselItem>;
   createComment?: Maybe<Comment>;
   createPost?: Maybe<Post>;
   createProgram?: Maybe<Program>;
   createUser?: Maybe<User>;
+  deleteCarouselItem?: Maybe<CarouselItem>;
   deleteProgram?: Maybe<Scalars['Boolean']['output']>;
   deleteUser?: Maybe<User>;
+  incrementPostView?: Maybe<Scalars['Int']['output']>;
+  inviteUserToProgram?: Maybe<Program>;
   login?: Maybe<Scalars['String']['output']>;
   markAllNotificationsAsRead?: Maybe<Scalars['Boolean']['output']>;
   markNotificationAsRead?: Maybe<Scalars['Boolean']['output']>;
   rejectApplication?: Maybe<Application>;
   rejectProgram?: Maybe<Program>;
+  removeProgramKeyword?: Maybe<Scalars['Boolean']['output']>;
+  removeUserKeyword?: Maybe<Scalars['Boolean']['output']>;
+  removeValidatorFromProgram?: Maybe<Program>;
+  reorderCarouselItems?: Maybe<Array<CarouselItem>>;
   submitMilestone?: Maybe<Milestone>;
   submitProgram?: Maybe<Program>;
   updateApplication?: Maybe<Application>;
+  updateCarouselItem?: Maybe<CarouselItem>;
   updateComment?: Maybe<Comment>;
   updateMilestone?: Maybe<Milestone>;
   updatePost?: Maybe<Post>;
@@ -190,6 +254,24 @@ export type MutationAcceptProgramArgs = {
 };
 
 
+export type MutationAddProgramKeywordArgs = {
+  keyword: Scalars['String']['input'];
+  programId: Scalars['ID']['input'];
+};
+
+
+export type MutationAddUserKeywordArgs = {
+  keyword: Scalars['String']['input'];
+  userId: Scalars['ID']['input'];
+};
+
+
+export type MutationAssignValidatorToProgramArgs = {
+  programId: Scalars['ID']['input'];
+  validatorId: Scalars['ID']['input'];
+};
+
+
 export type MutationCheckMilestoneArgs = {
   input: CheckMilestoneInput;
 };
@@ -197,6 +279,11 @@ export type MutationCheckMilestoneArgs = {
 
 export type MutationCreateApplicationArgs = {
   input: CreateApplicationInput;
+};
+
+
+export type MutationCreateCarouselItemArgs = {
+  input: CreateCarouselItemInput;
 };
 
 
@@ -220,6 +307,11 @@ export type MutationCreateUserArgs = {
 };
 
 
+export type MutationDeleteCarouselItemArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationDeleteProgramArgs = {
   id: Scalars['ID']['input'];
 };
@@ -227,6 +319,17 @@ export type MutationDeleteProgramArgs = {
 
 export type MutationDeleteUserArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationIncrementPostViewArgs = {
+  postId: Scalars['ID']['input'];
+};
+
+
+export type MutationInviteUserToProgramArgs = {
+  programId: Scalars['ID']['input'];
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -254,6 +357,29 @@ export type MutationRejectProgramArgs = {
 };
 
 
+export type MutationRemoveProgramKeywordArgs = {
+  keyword: Scalars['String']['input'];
+  programId: Scalars['ID']['input'];
+};
+
+
+export type MutationRemoveUserKeywordArgs = {
+  keyword: Scalars['String']['input'];
+  userId: Scalars['ID']['input'];
+};
+
+
+export type MutationRemoveValidatorFromProgramArgs = {
+  programId: Scalars['ID']['input'];
+  validatorId: Scalars['ID']['input'];
+};
+
+
+export type MutationReorderCarouselItemsArgs = {
+  items: Array<ReorderCarouselItemInput>;
+};
+
+
 export type MutationSubmitMilestoneArgs = {
   input: SubmitMilestoneInput;
 };
@@ -268,6 +394,11 @@ export type MutationSubmitProgramArgs = {
 
 export type MutationUpdateApplicationArgs = {
   input: UpdateApplicationInput;
+};
+
+
+export type MutationUpdateCarouselItemArgs = {
+  input: UpdateCarouselItemInput;
 };
 
 
@@ -317,6 +448,7 @@ export enum NotificationAction {
   Broadcast = 'broadcast',
   Completed = 'completed',
   Created = 'created',
+  Invited = 'invited',
   Rejected = 'rejected',
   Submitted = 'submitted'
 }
@@ -375,6 +507,7 @@ export type PaginationInput = {
 export type Post = {
   __typename?: 'Post';
   author?: Maybe<User>;
+  comments?: Maybe<Array<Comment>>;
   content?: Maybe<Scalars['String']['output']>;
   createdAt?: Maybe<Scalars['Date']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
@@ -382,17 +515,21 @@ export type Post = {
   keywords?: Maybe<Array<Keyword>>;
   summary?: Maybe<Scalars['String']['output']>;
   title?: Maybe<Scalars['String']['output']>;
+  viewCount?: Maybe<Scalars['Int']['output']>;
 };
 
 export type Program = {
   __typename?: 'Program';
   applications?: Maybe<Array<Application>>;
+  comments?: Maybe<Array<Comment>>;
   creator?: Maybe<User>;
   currency?: Maybe<Scalars['String']['output']>;
-  deadline?: Maybe<Scalars['Date']['output']>;
+  deadline?: Maybe<Scalars['DateTime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   educhainProgramId?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
+  image?: Maybe<Scalars['String']['output']>;
+  invitedBuilders?: Maybe<Array<User>>;
   keywords?: Maybe<Array<Keyword>>;
   links?: Maybe<Array<Link>>;
   name?: Maybe<Scalars['String']['output']>;
@@ -402,26 +539,44 @@ export type Program = {
   status?: Maybe<ProgramStatus>;
   summary?: Maybe<Scalars['String']['output']>;
   txHash?: Maybe<Scalars['String']['output']>;
-  validator?: Maybe<User>;
+  validators?: Maybe<Array<User>>;
+  visibility?: Maybe<ProgramVisibility>;
+};
+
+export type ProgramStatsByStatus = {
+  __typename?: 'ProgramStatsByStatus';
+  completed?: Maybe<Scalars['Int']['output']>;
+  confirmed?: Maybe<Scalars['Int']['output']>;
+  notConfirmed?: Maybe<Scalars['Int']['output']>;
+  paymentRequired?: Maybe<Scalars['Int']['output']>;
+  published?: Maybe<Scalars['Int']['output']>;
+  refund?: Maybe<Scalars['Int']['output']>;
 };
 
 export enum ProgramStatus {
   Cancelled = 'cancelled',
   Closed = 'closed',
   Completed = 'completed',
-  Draft = 'draft',
   PaymentRequired = 'payment_required',
-  Published = 'published'
+  Pending = 'pending',
+  Published = 'published',
+  Rejected = 'rejected'
+}
+
+export enum ProgramVisibility {
+  Private = 'private',
+  Public = 'public',
+  Restricted = 'restricted'
 }
 
 export type Query = {
   __typename?: 'Query';
   application?: Maybe<Application>;
   applications?: Maybe<PaginatedApplications>;
-  banner?: Maybe<Post>;
+  carouselItems?: Maybe<Array<EnrichedCarouselItem>>;
   comment?: Maybe<Comment>;
   comments?: Maybe<PaginatedComments>;
-  commentsByPost?: Maybe<Array<Comment>>;
+  commentsByCommentable?: Maybe<Array<Comment>>;
   countNotifications?: Maybe<Scalars['Int']['output']>;
   keywords?: Maybe<Array<Keyword>>;
   milestone?: Maybe<Milestone>;
@@ -458,8 +613,9 @@ export type QueryCommentsArgs = {
 };
 
 
-export type QueryCommentsByPostArgs = {
-  postId: Scalars['ID']['input'];
+export type QueryCommentsByCommentableArgs = {
+  commentableId: Scalars['ID']['input'];
+  commentableType: CommentableTypeEnum;
 };
 
 
@@ -503,6 +659,11 @@ export type QueryUsersArgs = {
   pagination?: InputMaybe<PaginationInput>;
 };
 
+export type ReorderCarouselItemInput = {
+  displayOrder: Scalars['Int']['input'];
+  id: Scalars['String']['input'];
+};
+
 export enum SortEnum {
   Asc = 'asc',
   Desc = 'desc'
@@ -510,9 +671,16 @@ export enum SortEnum {
 
 export type SubmitMilestoneInput = {
   description?: InputMaybe<Scalars['String']['input']>;
+  file?: InputMaybe<Scalars['Upload']['input']>;
   id: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
+  status: SubmitMilestoneStatus;
 };
+
+export enum SubmitMilestoneStatus {
+  Draft = 'draft',
+  Submitted = 'submitted'
+}
 
 export type Subscription = {
   __typename?: 'Subscription';
@@ -530,6 +698,14 @@ export type UpdateApplicationInput = {
   summary?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateCarouselItemInput = {
+  displayOrder?: InputMaybe<Scalars['Int']['input']>;
+  id: Scalars['String']['input'];
+  isActive?: InputMaybe<Scalars['Boolean']['input']>;
+  itemId?: InputMaybe<Scalars['String']['input']>;
+  itemType?: InputMaybe<CarouselItemType>;
+};
+
 export type UpdateCommentInput = {
   content?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
@@ -537,11 +713,13 @@ export type UpdateCommentInput = {
 
 export type UpdateMilestoneInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
+  deadline?: InputMaybe<Scalars['DateTime']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
-  price?: InputMaybe<Scalars['String']['input']>;
+  percentage?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<MilestoneStatus>;
+  summary?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -549,7 +727,6 @@ export type UpdatePostInput = {
   content?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   image?: InputMaybe<Scalars['Upload']['input']>;
-  isBanner?: InputMaybe<Scalars['Boolean']['input']>;
   keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
   summary?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
@@ -557,17 +734,18 @@ export type UpdatePostInput = {
 
 export type UpdateProgramInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
-  deadline?: InputMaybe<Scalars['String']['input']>;
+  deadline?: InputMaybe<Scalars['DateTime']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
-  keywords?: InputMaybe<Array<Scalars['ID']['input']>>;
+  image?: InputMaybe<Scalars['Upload']['input']>;
+  keywords?: InputMaybe<Array<Scalars['String']['input']>>;
   links?: InputMaybe<Array<LinkInput>>;
   name?: InputMaybe<Scalars['String']['input']>;
   network?: InputMaybe<Scalars['String']['input']>;
   price?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<ProgramStatus>;
   summary?: InputMaybe<Scalars['String']['input']>;
-  validatorId?: InputMaybe<Scalars['ID']['input']>;
+  visibility?: InputMaybe<ProgramVisibility>;
 };
 
 export type User = {
@@ -578,11 +756,13 @@ export type User = {
   firstName?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   image?: Maybe<Scalars['String']['output']>;
-  isAdmin?: Maybe<Scalars['Boolean']['output']>;
+  keywords?: Maybe<Array<Keyword>>;
   lastName?: Maybe<Scalars['String']['output']>;
   links?: Maybe<Array<Link>>;
   loginType?: Maybe<Scalars['String']['output']>;
   organizationName?: Maybe<Scalars['String']['output']>;
+  programStatistics?: Maybe<UserProgramStatistics>;
+  role?: Maybe<UserRole>;
   summary?: Maybe<Scalars['String']['output']>;
   walletAddress?: Maybe<Scalars['String']['output']>;
 };
@@ -592,6 +772,7 @@ export type UserInput = {
   email: Scalars['String']['input'];
   firstName?: InputMaybe<Scalars['String']['input']>;
   image?: InputMaybe<Scalars['Upload']['input']>;
+  keywords?: InputMaybe<Array<Scalars['String']['input']>>;
   lastName?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   loginType?: InputMaybe<Scalars['String']['input']>;
@@ -601,12 +782,26 @@ export type UserInput = {
   walletAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UserProgramStatistics = {
+  __typename?: 'UserProgramStatistics';
+  asBuilder?: Maybe<ProgramStatsByStatus>;
+  asSponsor?: Maybe<ProgramStatsByStatus>;
+  asValidator?: Maybe<ProgramStatsByStatus>;
+};
+
+export enum UserRole {
+  Admin = 'admin',
+  Superadmin = 'superadmin',
+  User = 'user'
+}
+
 export type UserUpdateInput = {
   about?: InputMaybe<Scalars['String']['input']>;
   email?: InputMaybe<Scalars['String']['input']>;
   firstName?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
   image?: InputMaybe<Scalars['Upload']['input']>;
+  keywords?: InputMaybe<Array<Scalars['String']['input']>>;
   lastName?: InputMaybe<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   loginType?: InputMaybe<Scalars['String']['input']>;

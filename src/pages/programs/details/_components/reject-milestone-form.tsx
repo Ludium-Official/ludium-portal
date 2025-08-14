@@ -35,7 +35,7 @@ function RejectMilestoneForm({
                 input: {
                   id: milestoneId ?? '',
                   rejectionReason: reason,
-                  status: CheckMilestoneStatus.Pending,
+                  status: CheckMilestoneStatus.Rejected,
                 },
               },
               onCompleted: () => {

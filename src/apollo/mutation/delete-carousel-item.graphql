@@ -1,0 +1,9 @@
+mutation DeleteCarouselItem($id: ID!) {
+  deleteCarouselItem(id: $id) {
+    displayOrder
+    id
+    isActive
+    itemId
+    itemType
+  }
+}

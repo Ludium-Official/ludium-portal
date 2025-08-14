@@ -1,19 +1,28 @@
-import { useKeywordsQuery } from '@/apollo/queries/keywords.generated';
+
+
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
 import CurrencySelector from '@/components/currency-selector';
-import MarkdownEditor from '@/components/markdown-editor';
+import { MarkdownEditor } from '@/components/markdown';
 import NetworkSelector from '@/components/network-selector';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
-import { SearchSelect } from '@/components/ui/search-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useProgramDraft } from '@/lib/hooks/use-program-draft';
+import notify from '@/lib/notify';
 import { mainnetDefaultNetwork } from '@/lib/utils';
-import type { LinkInput } from '@/types/types.generated';
-import { format } from 'date-fns';
-import { X } from 'lucide-react';
-import { useEffect, useReducer, useState } from 'react';
+import { filterEmptyLinks, validateLinks } from '@/lib/validation';
+import { type LinkInput, ProgramStatus } from '@/types/types.generated';
+import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
 
@@ -26,18 +35,24 @@ export type OnSubmitProgramFunc = (data: {
   currency: string;
   deadline?: string;
   keywords: string[];
-  validatorId: string;
-  links: LinkInput[];
+  // validatorId: string;
+  links?: LinkInput[];
   // isPublish?: boolean;
   network: string;
+  validators: string[];
+  image?: File;
+  visibility: 'public' | 'restricted' | 'private';
+  builders?: string[];
+  status: ProgramStatus;
 }) => void;
 
 export interface ProgramFormProps {
   isEdit: boolean;
   onSubmitProgram: OnSubmitProgramFunc;
+  createLoading?: boolean;
 }
 
-function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
+function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProps) {
   const { id } = useParams();
 
   const { data } = useProgramQuery({
@@ -47,15 +62,28 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     skip: !isEdit,
   });
 
+  const [selectedTab, setSelectedTab] = useState<string>('overview');
+
   const [content, setContent] = useState<string>('');
   const [deadline, setDeadline] = useState<Date>();
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
-  const [selectedValidator, setSelectedValidator] = useState<string>();
+  const [keywordInput, setKeywordInput] = useState<string>('');
+  const [selectedValidators, setSelectedValidators] = useState<string[]>([]);
   const [links, setLinks] = useState<string[]>(['']);
-  const [network, setNetwork] = useState(mainnetDefaultNetwork);
+  const [network, setNetwork] = useState(isEdit ? undefined : mainnetDefaultNetwork);
   const [currency, setCurrency] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File>();
+  const [visibility, setVisibility] = useState<'public' | 'restricted' | 'private'>('public');
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedBuilders, setSelectedBuilders] = useState<string[]>([]);
+  const [selectedBuilderItems, setSelectedBuilderItems] = useState<
+    { label: string; value: string }[]
+  >([]);
+  const [builderInput, setBuilderInput] = useState<string>();
+  const [debouncedBuilderInput, setDebouncedBuilderInput] = useState<string>();
 
-  const { data: keywords } = useKeywordsQuery();
+  // Removed keywords query as it's no longer needed with the new input approach
 
   const [validatorInput, setValidatorInput] = useState<string>();
   const [debouncedValidatorInput, setDebouncedValidatorInput] = useState<string>();
@@ -91,10 +119,7 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     invalidLink: false,
   });
 
-  const keywordOptions = keywords?.keywords?.map((k) => ({
-    value: k.id ?? '',
-    label: k.name ?? '',
-  }));
+  // Removed keywordOptions as it's no longer needed with the new input approach
   const validatorOptions = validators?.users?.data?.map((v) => ({
     value: v.id ?? '',
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
@@ -102,19 +127,64 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
 
   useEffect(() => {
     if (data?.program?.keywords)
-      setSelectedKeywords(data?.program?.keywords?.map((k) => k.id ?? '') ?? []);
-    if (data?.program?.validator) setSelectedValidator(data?.program.validator.id ?? '');
+      setSelectedKeywords(data?.program?.keywords?.map((k) => k.name ?? '') ?? []);
+    if (data?.program?.validators?.length) {
+      setSelectedValidators(data?.program.validators?.map((k) => k.id ?? '') ?? '');
+      setSelectedValidatorItems(data?.program.validators?.map((k) => ({
+        value: k.id ?? '',
+        label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
+      })) ?? []);
+    }
+    if (data?.program?.invitedBuilders?.length) {
+      setSelectedBuilders(data?.program.invitedBuilders?.map((k) => k.id ?? '') ?? '');
+      setSelectedBuilderItems(data?.program.invitedBuilders?.map((k) => ({
+        value: k.id ?? '',
+        label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
+      })) ?? []);
+    }
     if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
     if (data?.program?.links) setLinks(data?.program?.links.map((l) => l.url ?? ''));
     if (data?.program?.description) setContent(data?.program.description);
     if (data?.program?.network) setNetwork(data?.program?.network);
     if (data?.program?.currency) setCurrency(data?.program?.currency);
+    if (data?.program?.image) setImagePreview(data?.program?.image);
+    if (data?.program?.visibility) setVisibility(data?.program?.visibility);
   }, [data]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedBuilderInput(builderInput);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [builderInput]);
+
+  const { data: buildersData, loading: buildersLoading } = useUsersQuery({
+    variables: {
+      input: {
+        limit: 5,
+        offset: 0,
+        filter: [
+          {
+            field: 'search',
+            value: debouncedBuilderInput ?? '',
+          },
+        ],
+      },
+    },
+    skip: !builderInput,
+  });
+
+  const builderOptions = buildersData?.users?.data?.map((v) => ({
+    value: v.id ?? '',
+    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
+  }));
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
+    setValue,
   } = useForm({
     values: {
       programName: data?.program?.name ?? '',
@@ -129,235 +199,599 @@ function ProgramForm({ onSubmitProgram, isEdit }: ProgramFormProps) {
     summary: string;
   }) => {
     if (
+      imageError ||
       extraErrors.deadline ||
       extraErrors.keyword ||
       extraErrors.links ||
       extraErrors.validator ||
       extraErrors.invalidLink ||
-      !content.length
-    )
+      !content.length ||
+      (!selectedImage && !isEdit)
+    ) {
+      notify('Please fill in all required fields.', 'error');
       return;
+    }
 
     onSubmitProgram({
       id: data?.program?.id ?? id,
       programName: submitData.programName,
-      price: isEdit && data?.program?.status !== 'draft' ? undefined : submitData.price,
+      price: isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.price,
       description: content,
       summary: submitData.summary,
       currency:
-        isEdit && data?.program?.status !== 'draft'
+        isEdit && data?.program?.status !== ProgramStatus.Pending
           ? (data?.program?.currency as string)
           : currency,
-      deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
+      deadline: deadline?.toISOString(),
       keywords: selectedKeywords,
-      validatorId: selectedValidator ?? '',
-      links: links.map((l) => ({ title: l, url: l })),
+      validators: selectedValidators ?? '',
+      links: (() => {
+        const { shouldSend } = validateLinks(links);
+        return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
+      })(),
       network:
-        isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
+        isEdit && data?.program?.status !== ProgramStatus.Pending ? (data?.program?.network as string) : network ?? mainnetDefaultNetwork,
+      image: selectedImage,
+      visibility: visibility,
+      builders: selectedBuilders,
+      status: isEdit && data?.program?.status !== ProgramStatus.Pending ? data?.program?.status ?? ProgramStatus.Pending : ProgramStatus.Pending,
     });
   };
 
   const extraValidation = () => {
+    if (!watch('programName') || !watch('price') || !watch('summary')) {
+      notify('Please fill in all required fields.', 'error');
+    }
     dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
+    if (!selectedImage && !isEdit) setImageError('Picture is required.');
     if (!selectedKeywords?.length)
       dispatchErrors({ type: ExtraErrorActionKind.SET_KEYWORDS_ERROR });
-    if (!selectedValidator) dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
+    if (!selectedValidators?.length)
+      dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
     if (!deadline) dispatchErrors({ type: ExtraErrorActionKind.SET_DEADLINE_ERROR });
-    if (!links?.[0]) dispatchErrors({ type: ExtraErrorActionKind.SET_LINKS_ERROR });
-    if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
+
+    const { isValid } = validateLinks(links);
+    if (!isValid) {
       dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
+    }
+
+    formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+  };
+
+  // const { data: carouselItems, refetch } = useCarouselItemsQuery();
+
+  // const [createCarouselItem] = useCreateCarouselItemMutation();
+
+  // Removed selectedKeywordItems as it's no longer needed with the new input approach
+  const [selectedValidatorItems, setSelectedValidatorItems] = useState<
+    {
+      label: string;
+      value: string;
+    }[]
+  >([]);
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const { saveDraft: saveProgramDraft, loadDraft: loadProgramDraft } = useProgramDraft();
+
+  // Prefill from draft on mount when creating (not editing)
+  useEffect(() => {
+    if (isEdit) return;
+    const draft = loadProgramDraft();
+    if (!draft) return;
+    setValue('programName', draft.programName ?? '');
+    setValue('price', draft.price ?? '');
+    setValue('summary', draft.summary ?? '');
+    setContent(draft.description ?? '');
+    setDeadline(draft.deadline ? new Date(draft.deadline) : undefined);
+    setSelectedKeywords(draft.keywords ?? []);
+    setSelectedValidators(draft.validators ?? []);
+    setLinks(draft.links?.length ? draft.links : ['']);
+    setNetwork(draft.network ?? mainnetDefaultNetwork);
+    setCurrency(draft.currency ?? '');
+    setVisibility(draft.visibility ?? 'public');
+    setSelectedBuilders(draft.builders ?? []);
+    if (draft.selectedValidatorItems) setSelectedValidatorItems(draft.selectedValidatorItems);
+    if (draft.selectedBuilderItems) setSelectedBuilderItems(draft.selectedBuilderItems);
+  }, [isEdit]);
+
+  // image input handler
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImageError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Validate type
+    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+      setImageError('Only PNG, JPG, or JPEG files are allowed.');
+      setSelectedImage(undefined);
+      setImagePreview(null);
+      return;
+    }
+    // Validate size
+    if (file.size > 2 * 1024 * 1024) {
+      setImageError('Image must be under 2MB.');
+      setSelectedImage(undefined);
+      setImagePreview(null);
+      return;
+    }
+    // Validate square
+    const img = new window.Image();
+    img.onload = () => {
+      if (img.width !== img.height) {
+        setImageError('Image must be square (1:1).');
+        setSelectedImage(undefined);
+        setImagePreview(null);
+      } else {
+        setSelectedImage(file);
+        setImagePreview(URL.createObjectURL(file));
+      }
+    };
+    img.onerror = () => {
+      setImageError('Invalid image file.');
+      setSelectedImage(undefined);
+      setImagePreview(null);
+    };
+    img.src = URL.createObjectURL(file);
+  };
+
+  const handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setKeywordInput(e.target.value);
+  };
+
+  const handleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ((e.key === ' ' || e.key === 'Enter') && keywordInput.trim()) {
+      e.preventDefault();
+      const newKeyword = keywordInput.trim();
+      if (newKeyword && !selectedKeywords.includes(newKeyword)) {
+        setSelectedKeywords([...selectedKeywords, newKeyword]);
+      }
+      setKeywordInput('');
     }
   };
 
+  const removeKeyword = (keywordToRemove: string) => {
+    setSelectedKeywords(selectedKeywords.filter((keyword) => keyword !== keywordToRemove));
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="max-w-[820px] w-full mx-auto">
+      {/* <h1 className="font-medium text-xl mb-6">Program</h1> */}
       <h1 className="font-medium text-xl mb-6">{isEdit ? 'Edit Program' : 'Create Program'}</h1>
 
-      <label htmlFor="programName" className="space-y-2 block mb-10">
-        <p className="text-sm font-medium">Program name</p>
-        <Input
-          id="programName"
-          type="text"
-          placeholder="Type name"
-          className="h-10"
-          {...register('programName', { required: true })}
-        />
-        {errors.programName && (
-          <span className="text-red-400 text-sm block">Program name is required</span>
-        )}
-      </label>
-
-      <label htmlFor="keyword" className="space-y-2 block mb-10">
-        <p className="text-sm font-medium">Keywords</p>
-        <MultiSelect
-          options={keywordOptions ?? []}
-          value={selectedKeywords}
-          onValueChange={setSelectedKeywords}
-          placeholder="Select keywords"
-          animation={2}
-          maxCount={3}
-        />
-        {extraErrors.keyword && (
-          <span className="text-red-400 text-sm block">Keywords is required</span>
-        )}
-      </label>
-
-      <label htmlFor="price" className="space-y-2 block mb-10">
-        <p className="text-sm font-medium">Price</p>
-        <div className="flex gap-2">
-          <Input
-            disabled={isEdit && data?.program?.status !== 'draft'}
-            step={0.000000000000000001}
-            id="price"
-            type="number"
-            min={0}
-            placeholder="Enter price"
-            className="h-10"
-            {...register('price', { required: true })}
-          />
-          <NetworkSelector
-            disabled={isEdit && data?.program?.status !== 'draft'}
-            value={network}
-            onValueChange={setNetwork}
-            className="min-w-[120px] h-10"
-          />
-          <CurrencySelector
-            disabled={isEdit && data?.program?.status !== 'draft'}
-            value={currency}
-            onValueChange={setCurrency}
-            network={network}
-            className="w-[84px] h-10"
-          />
-        </div>
-
-        {errors.price && <span className="text-red-400 text-sm block">Price is required</span>}
-        {isEdit && data?.program?.status !== 'draft' && (
-          <span className="text-red-400 text-sm block">
-            Price can't be updated after publishing.
-          </span>
-        )}
-      </label>
-
-      <label htmlFor="deadline" className="space-y-2 block mb-10">
-        <p className="text-sm font-medium">Deadline</p>
-        <DatePicker date={deadline} setDate={setDeadline} disabled={{ before: new Date() }} />
-        {extraErrors.deadline && (
-          <span className="text-red-400 text-sm block">Deadline is required</span>
-        )}
-      </label>
-
-      <label htmlFor="summary" className="space-y-2 block mb-10">
-        <p className="text-sm font-medium">Summary</p>
-        <Input
-          id="summary"
-          type="text"
-          placeholder="Type summary"
-          className="h-10"
-          {...register('summary', { required: true })}
-        />
-        {errors.summary && <span className="text-red-400 text-sm block">Summary is required</span>}
-      </label>
-
-      <label htmlFor="description" className="space-y-2 block mb-10">
-        <p className="text-sm font-medium">Description</p>
-
-        <MarkdownEditor onChange={setContent} content={content} />
-        {!content.length && (
-          <span className="text-red-400 text-sm block">Description is required</span>
-        )}
-      </label>
-
-      <label htmlFor="validator" className="space-y-2 block mb-10">
-        <p className="text-sm font-medium">Validators</p>
-        <SearchSelect
-          options={validatorOptions ?? []}
-          value={selectedValidator}
-          setValue={setSelectedValidator}
-          inputValue={validatorInput}
-          setInputValue={setValidatorInput}
-          emptyText="Enter validator email or organization name"
-          loading={loading}
-        />
-        {extraErrors.validator && (
-          <span className="text-red-400 text-sm block">Validator is required</span>
-        )}
-      </label>
-
-      <label htmlFor="links" className="space-y-2 block mb-10">
-        <p className="text-sm font-medium">Links</p>
-        <span className="block text-[#71717A] text-sm">
-          Add links to your website, blog, or social media profiles.
-        </span>
-
-        {links.map((l, idx) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-          <div key={idx} className="flex items-center gap-2">
-            <Input
-              className="h-10 max-w-[555px]"
-              value={l}
-              onChange={(e) => {
-                setLinks((prev) => {
-                  const newLinks = [...prev];
-                  newLinks[idx] = e.target.value;
-                  return newLinks;
-                });
-              }}
-            />
-            {idx !== 0 && (
-              <X
-                onClick={() =>
-                  setLinks((prev) => {
-                    const newLinks = [...[...prev].slice(0, idx), ...[...prev].slice(idx + 1)];
-
-                    return newLinks;
-                  })
-                }
+      <Tabs defaultValue="overview" value={selectedTab} onValueChange={setSelectedTab}>
+        <TabsList className="w-full px-0 mb-3">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="details">Details</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview">
+          <div className="bg-white py-6 px-10 rounded-lg mb-3">
+            <label htmlFor="programName" className="space-y-2 block mb-10">
+              <p className="text-sm font-medium">
+                Program title <span className="text-primary">*</span>
+              </p>
+              <Input
+                id="programName"
+                type="text"
+                placeholder="Type name"
+                className="h-10"
+                {...register('programName', { required: true })}
               />
-            )}
-          </div>
-        ))}
-        <Button
-          onClick={() => setLinks((prev) => [...prev, ''])}
-          type="button"
-          variant="outline"
-          size="sm"
-          className="rounded-[6px]"
-        >
-          Add URL
-        </Button>
-        {extraErrors.links && <span className="text-red-400 text-sm block">Links is required</span>}
-        {extraErrors.invalidLink && (
-          <span className="text-red-400 text-sm block">
-            The provided link is not valid. All links must begin with{' '}
-            <span className="font-bold">https://</span>.
-          </span>
-        )}
-      </label>
+              {errors.programName && (
+                <span className="text-destructive text-sm block">Program name is required</span>
+              )}
+            </label>
 
-      {isEdit ? (
-        <div className="px-[32px] py-3 flex justify-end gap-4">
+            <label htmlFor="keyword" className="space-y-2 block">
+              <p className="text-sm font-medium">
+                Keywords <span className="text-primary">*</span>
+              </p>
+              <div className="space-y-3">
+                <Input
+                  id="keyword"
+                  type="text"
+                  placeholder="Enter directly"
+                  value={keywordInput}
+                  onChange={handleKeywordInputChange}
+                  onKeyDown={handleKeywordInputKeyDown}
+                  className="h-10"
+                />
+                {selectedKeywords.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedKeywords.map((keyword) => (
+                      <Badge
+                        key={keyword}
+                        variant="secondary"
+                        className="bg-[#F4F4F5] text-[#18181B] border-0 px-2.5 py-0.5 text-xs font-semibold"
+                      >
+                        {keyword}
+                        <button
+                          type="button"
+                          onClick={() => removeKeyword(keyword)}
+                          className="ml-1 hover:bg-gray-200 rounded-full p-0.5 transition-colors"
+                        >
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-label="Remove keyword"
+                          >
+                            <title>Remove keyword</title>
+                            <path
+                              d="M9 3L3 9M3 3L9 9"
+                              stroke="currentColor"
+                              strokeWidth="1.4"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {extraErrors.keyword && (
+                <span className="text-destructive text-sm block">Keywords is required</span>
+              )}
+            </label>
+
+            <label htmlFor="image" className="space-y-2 block mt-10">
+              <div className="flex items-start gap-6">
+                {/* Image input with preview/placeholder */}
+                <div className="relative w-[200px] h-[200px] flex items-center justify-center bg-[#eaeaea] rounded-lg overflow-hidden group">
+                  <input
+                    id="picture"
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    onChange={handleImageChange}
+                  />
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Preview" className="object-cover w-full h-full" />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center w-full h-full">
+                      <ImageIcon className="w-10 h-10 text-[#666666] mb-2" />
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 right-0 bg-black/80 rounded-md w-10 h-10 flex justify-center items-center">
+                    <Plus className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+                {/* Text info */}
+                <div className="flex-1">
+                  <p className="font-medium text-base">
+                    Cover image <span className="text-primary">*</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Logo image must be square, under 2MB, and in PNG, JPG, or JPEG format.
+                    <br />
+                    This image is used in the program list
+                  </p>
+                  {imageError && (
+                    <span className="text-destructive text-sm block mt-28">{imageError}</span>
+                  )}
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div className="bg-white px-10 pt-6 pb-[32px] rounded-lg mb-3">
+            <label htmlFor="price" className="space-y-2 block mb-10">
+              <div className="flex gap-2 items-end">
+                <div className="w-1/2">
+                  <p className="text-sm font-medium mb-2">
+                    Network <span className="text-primary">*</span>
+                  </p>
+                  <NetworkSelector
+                    disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
+                    value={network}
+                    onValueChange={setNetwork}
+                    className="min-w-[120px] h-10 w-full flex justify-between bg-white text-gray-dark border border-input hover:bg-white"
+                  />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium mb-2">
+                    Price <span className="text-primary">*</span>
+                  </p>
+                  <Input
+                    disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
+                    step={0.000000000000000001}
+                    id="price"
+                    type="number"
+                    min={0}
+                    placeholder="Enter price"
+                    className="h-10 w-full"
+                    {...register('price', { required: true })}
+                  />
+                </div>
+                {!!network && <CurrencySelector
+                  disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
+                  value={currency}
+                  onValueChange={setCurrency}
+                  network={network ?? mainnetDefaultNetwork}
+                  className="w-[108px] h-10"
+                />}
+              </div>
+
+              {errors.price && (
+                <span className="text-destructive text-sm block">Price is required</span>
+              )}
+              {isEdit && data?.program?.status !== ProgramStatus.Pending && (
+                <span className="text-destructive text-sm block">
+                  Price can't be updated after publishing.
+                </span>
+              )}
+            </label>
+
+            <label htmlFor="deadline" className="space-y-2 block mb-10">
+              <p className="text-sm font-medium">
+                Deadline <span className="text-primary">*</span>
+              </p>
+              <DatePicker date={deadline} setDate={setDeadline} disabled={{ before: new Date() }} />
+              {extraErrors.deadline && (
+                <span className="text-destructive text-sm block">Deadline is required</span>
+              )}
+            </label>
+
+            <label htmlFor="validator" className="space-y-2 block">
+              <p className="text-sm font-medium">
+                Validator <span className="text-primary">*</span>
+              </p>
+              <MultiSelect
+                options={validatorOptions ?? []}
+                value={selectedValidators}
+                onValueChange={setSelectedValidators}
+                placeholder="Select validator"
+                animation={2}
+                maxCount={20}
+                inputValue={validatorInput}
+                setInputValue={setValidatorInput}
+                selectedItems={selectedValidatorItems}
+                setSelectedItems={setSelectedValidatorItems}
+                emptyText="Enter validator email or organization name"
+                loading={loading}
+                singleSelect={true} // TODO: remove this when multi validator flow is implemented
+              />
+              {extraErrors.validator && (
+                <span className="text-destructive text-sm block">Validator is required</span>
+              )}
+              {/* <span className="block text-muted-foreground text-sm">
+                You can invite up to 5 validators.
+              </span> */}
+            </label>
+          </div>
+
+          <div className="px-10 pt-6 pb-[32px] bg-white rounded-lg">
+            <label htmlFor="links" className="space-y-2 block">
+              <p className="text-sm font-medium">Links</p>
+              <span className="block text-gray-text text-sm">
+                Add links to your website, blog, or social media profiles.
+              </span>
+
+              {links.map((l, idx) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                <div key={idx} className="flex items-center gap-2">
+                  <Input
+                    className="h-10"
+                    placeholder="https://example.com/ludium"
+                    value={l}
+                    onChange={(e) => {
+                      setLinks((prev) => {
+                        const newLinks = [...prev];
+                        newLinks[idx] = e.target.value;
+                        return newLinks;
+                      });
+                    }}
+                  />
+                  {idx !== 0 && (
+                    <X
+                      onClick={() =>
+                        setLinks((prev) => {
+                          const newLinks = [
+                            ...[...prev].slice(0, idx),
+                            ...[...prev].slice(idx + 1),
+                          ];
+
+                          return newLinks;
+                        })
+                      }
+                    />
+                  )}
+                </div>
+              ))}
+              <Button
+                onClick={() => setLinks((prev) => [...prev, ''])}
+                type="button"
+                variant="outline"
+                size="sm"
+                className="rounded-[6px]"
+              >
+                Add URL
+              </Button>
+              {extraErrors.links && (
+                <span className="text-destructive text-sm block">Links is required</span>
+              )}
+              {extraErrors.invalidLink && (
+                <span className="text-destructive text-sm block">
+                  The provided link is not valid. All links must begin with{' '}
+                  <span className="font-bold">https://</span>.
+                </span>
+              )}
+            </label>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="details">
+          <div className="bg-white px-10 py-6 rounded-lg mb-3">
+            <label htmlFor="summary" className="space-y-2 block">
+              <p className="text-sm font-medium">
+                Summary <span className="text-primary">*</span>
+              </p>
+              <Textarea
+                id="summary"
+                placeholder="Type summary"
+                className="h-10"
+                {...register('summary', { required: true })}
+              />
+              {errors.summary && (
+                <span className="text-destructive text-sm block">Summary is required</span>
+              )}
+            </label>
+          </div>
+
+          <div className="px-10 py-6 bg-white rounded-lg">
+            <label htmlFor="description" className="space-y-2 block">
+              <p className="text-sm font-medium">
+                Description <span className="text-primary">*</span>
+              </p>
+
+              <MarkdownEditor onChange={setContent} content={content} />
+              {!content.length && (
+                <span className="text-destructive text-sm block">Description is required</span>
+              )}
+            </label>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+
+      <div className="py-3 flex justify-end gap-4">
+        {!isEdit && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                size="lg"
+                disabled={createLoading}
+                aria-label="Save draft"
+                onClick={() => {
+                  // Save all fields except the image into localStorage draft
+                  const draft = {
+                    programName: watch('programName') ?? '',
+                    price: watch('price') ?? '',
+                    description: content ?? '',
+                    summary: watch('summary') ?? '',
+                    currency,
+                    deadline: deadline?.toISOString(),
+                    keywords: selectedKeywords,
+                    validators: selectedValidators,
+                    selectedValidatorItems,
+                    links,
+                    network,
+                    visibility,
+                    builders: selectedBuilders,
+                    selectedBuilderItems,
+                  };
+                  saveProgramDraft(draft);
+                  notify('Draft saved (image is not included).');
+                }}
+              >
+                Save
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-white text-foreground border shadow-[0px_4px_6px_-1px_#0000001A]" sideOffset={8}>
+              Image file will not be saved in the draft.
+            </TooltipContent>
+          </Tooltip>
+        )}
+
+        {selectedTab === 'details' && (
+          <Popover>
+            <PopoverTrigger>
+              <Button
+                type="button"
+                className="min-w-[97px] bg-primary hover:bg-primary/90"
+                size="lg"
+                disabled={createLoading}
+              >
+                Save and Upload
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="min-w-[440px]">
+              <h2 className="text-foreground font-semibold text-center text-lg">Visibility</h2>
+              <p className="text-center text-muted-foreground text-sm mb-4">
+                Choose when to publish and who can see your program.
+              </p>
+
+              <RadioGroup
+                defaultValue="public"
+                className="space-y-2 mb-8"
+                value={visibility}
+                onValueChange={(v) => setVisibility(v as 'public' | 'private' | 'restricted')}
+              >
+                <div className="flex items-start gap-3">
+                  <RadioGroupItem value="private" id="r1" className="border-foreground" />
+                  <div className="flex-1">
+                    <Label htmlFor="r1" className="font-medium mb-[6px]">
+                      Private
+                    </Label>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Only invited users can view this program.
+                    </p>
+                    {visibility === 'private' && (
+                      <MultiSelect
+                        options={builderOptions ?? []}
+                        value={selectedBuilders}
+                        onValueChange={setSelectedBuilders}
+                        placeholder="Search Builder"
+                        animation={2}
+                        maxCount={20}
+                        inputValue={builderInput}
+                        setInputValue={setBuilderInput}
+                        selectedItems={selectedBuilderItems}
+                        setSelectedItems={setSelectedBuilderItems}
+                        emptyText="Enter builder email or organization name"
+                        loading={buildersLoading}
+                        className="mt-2"
+                      />
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <RadioGroupItem value="restricted" id="r2" className="border-foreground" />
+                  <div>
+                    <Label htmlFor="r2">Restricted</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Only users with links can view.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <RadioGroupItem value="public" id="r3" className="border-foreground" />
+                  <div>
+                    <Label htmlFor="r3">Public</Label>
+                    <p className="text-sm text-muted-foreground">Anyone can view this program.</p>
+                  </div>
+                </div>
+              </RadioGroup>
+
+              <Button
+                onClick={() => {
+                  extraValidation();
+                }}
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90"
+                disabled={createLoading}
+              >
+                Save
+              </Button>
+            </PopoverContent>
+          </Popover>
+        )}
+
+        {selectedTab === 'overview' && (
           <Button
-            className="bg-[#B331FF] hover:bg-[#B331FF]/90 min-w-[177px]"
-            type="submit"
-            onClick={() => {
-              extraValidation();
-            }}
+            type="button"
+            size="lg"
+            variant="outline"
+            onClick={() => setSelectedTab('details')}
           >
-            Edit Program
+            Next to Details <ChevronRight />
           </Button>
-        </div>
-      ) : (
-        <div className="px-[32px] py-3 flex justify-end gap-4">
-          <Button
-            className="min-w-[97px]"
-            onClick={() => {
-              extraValidation();
-            }}
-          >
-            Save
-          </Button>
-        </div>
-      )}
+        )}
+      </div>
+
     </form>
   );
 }
