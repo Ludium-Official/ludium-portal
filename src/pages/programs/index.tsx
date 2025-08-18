@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import ProgramCard from '@/pages/programs/_components/program-card';
-import { SortEnum } from '@/types/types.generated';
+import { ProgramStatus, SortEnum } from '@/types/types.generated';
 import { CirclePlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
@@ -52,7 +52,7 @@ const ProgramsPage: React.FC = () => {
       ? [
         {
           field: 'status',
-          value: 'published',
+          values: [ProgramStatus.Published, ProgramStatus.Completed, ProgramStatus.Pending, ProgramStatus.PaymentRequired, ProgramStatus.Cancelled, ProgramStatus.Closed, ProgramStatus.Rejected],
         },
         {
           field: 'visibility',

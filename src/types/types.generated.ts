@@ -158,7 +158,8 @@ export type EnrichedCarouselItem = {
 
 export type FilterInput = {
   field: Scalars['String']['input'];
-  value: Scalars['String']['input'];
+  value?: InputMaybe<Scalars['String']['input']>;
+  values?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type Keyword = {
