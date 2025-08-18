@@ -4,7 +4,7 @@ import { useCheckMilestoneMutation } from '@/apollo/mutation/check-milestone.gen
 import { useApplicationQuery } from '@/apollo/queries/application.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
-import { ApplicationStatusBadge, MilestoneStatusBadge } from '@/components/status-badge';
+import { ApplicationStatusBadge, MilestoneStatusBadge, ProgramStatusBadge } from '@/components/status-badge';
 import {
   Accordion,
   AccordionContent,
@@ -29,7 +29,7 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import { getCurrency, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
-import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
+// import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
 import EditMilestoneForm from '@/pages/programs/details/_components/edit-milestone-form';
 import RejectApplicationForm from '@/pages/programs/details/_components/reject-application-form';
@@ -457,22 +457,20 @@ function ProjectDetailsPage() {
               <button
                 onClick={() => setActiveTab('terms')}
                 type="button"
-                className={`p-2 font-medium text-sm transition-colors ${
-                  activeTab === 'terms'
+                className={`p-2 font-medium text-sm transition-colors ${activeTab === 'terms'
                     ? 'border-b border-b-primary text-primary'
                     : 'text-muted-foreground hover:text-foreground border-b'
-                }`}
+                  }`}
               >
                 Terms
               </button>
               <button
                 onClick={() => setActiveTab('milestones')}
                 type="button"
-                className={`p-2 font-medium text-sm transition-colors ${
-                  activeTab === 'milestones'
+                className={`p-2 font-medium text-sm transition-colors ${activeTab === 'milestones'
                     ? 'border-b border-b-primary text-primary'
                     : 'text-muted-foreground hover:text-foreground border-b'
-                }`}
+                  }`}
               >
                 Milestones
               </button>
@@ -749,7 +747,7 @@ function ProjectDetailsPage() {
                                 disabled={
                                   idx !== 0 &&
                                   data?.application?.milestones?.[idx - 1]?.status !==
-                                    MilestoneStatus.Completed
+                                  MilestoneStatus.Completed
                                 }
                               >
                                 <Button className="h-10 block ml-auto">Submit Milestone</Button>

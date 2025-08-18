@@ -1,5 +1,6 @@
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { MarkdownPreviewer } from '@/components/markdown';
+import { ProgramStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { Tabs } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { getInitials, getUserName } from '@/lib/utils';
 import ProjectCard from '@/pages/investments/details/_components/application-card';
-import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
+// import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
 import { ApplicationStatus } from '@/types/types.generated';
 import { Settings, Share2 } from 'lucide-react';
 import { useEffect } from 'react';

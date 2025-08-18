@@ -28,8 +28,9 @@ const CreateProjectPage: React.FC = () => {
         input: {
           name: args.name,
           content: args.description,
+          summary: args.summary,
           milestones: args.milestones?.map((m) => ({
-            deadline: m.endDate,
+            deadline: m.endDate ?? new Date().toISOString(),
             title: m.title,
             percentage: m.payoutPercentage,
             summary: m.summary,

@@ -16,8 +16,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { cn, mainnetDefaultNetwork } from '@/lib/utils';
-import { CarouselItemType, type LinkInput } from '@/types/types.generated';
-import { format } from 'date-fns';
+import { CarouselItemType, type LinkInput, ProgramStatus } from '@/types/types.generated';
 import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -264,31 +263,31 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     const tierSettingsObject =
       conditionType === 'tier'
         ? {
-            bronze: tiers.find((t) => t.name === 'Bronze')?.enabled
-              ? {
-                  enabled: true,
-                  maxAmount: tiers.find((t) => t.name === 'Bronze')?.maxAmount || '0',
-                }
-              : undefined,
-            silver: tiers.find((t) => t.name === 'Silver')?.enabled
-              ? {
-                  enabled: true,
-                  maxAmount: tiers.find((t) => t.name === 'Silver')?.maxAmount || '0',
-                }
-              : undefined,
-            gold: tiers.find((t) => t.name === 'Gold')?.enabled
-              ? {
-                  enabled: true,
-                  maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '0',
-                }
-              : undefined,
-            platinum: tiers.find((t) => t.name === 'Platinum')?.enabled
-              ? {
-                  enabled: true,
-                  maxAmount: tiers.find((t) => t.name === 'Platinum')?.maxAmount || '0',
-                }
-              : undefined,
-          }
+          bronze: tiers.find((t) => t.name === 'Bronze')?.enabled
+            ? {
+              enabled: true,
+              maxAmount: tiers.find((t) => t.name === 'Bronze')?.maxAmount || '0',
+            }
+            : undefined,
+          silver: tiers.find((t) => t.name === 'Silver')?.enabled
+            ? {
+              enabled: true,
+              maxAmount: tiers.find((t) => t.name === 'Silver')?.maxAmount || '0',
+            }
+            : undefined,
+          gold: tiers.find((t) => t.name === 'Gold')?.enabled
+            ? {
+              enabled: true,
+              maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '0',
+            }
+            : undefined,
+          platinum: tiers.find((t) => t.name === 'Platinum')?.enabled
+            ? {
+              enabled: true,
+              maxAmount: tiers.find((t) => t.name === 'Platinum')?.maxAmount || '0',
+            }
+            : undefined,
+        }
         : undefined;
 
     // Calculate fee percentage in basis points (3% = 300)
@@ -299,28 +298,28 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     onSubmitInvestment({
       id: data?.program?.id ?? id,
       programName: submitData.programName,
-      price: isEdit && data?.program?.status !== 'draft' ? undefined : submitData.price,
+      price: isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.price,
       description: content,
       summary: submitData.summary,
       currency:
-        isEdit && data?.program?.status !== 'draft'
+        isEdit && data?.program?.status !== ProgramStatus.Pending
           ? (data?.program?.currency as string)
           : currency,
-      deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
+      deadline: deadline ? deadline.toISOString() : undefined,
       keywords: selectedKeywords,
       validators: selectedValidators ?? [],
       links: links.map((l) => ({ title: l, url: l })),
       network:
-        isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
+        isEdit && data?.program?.status !== ProgramStatus.Pending ? (data?.program?.network as string) : network,
       image: selectedImage,
       visibility: visibility,
       builders: selectedBuilders,
       applicationStartDate: applicationStartDate
-        ? format(applicationStartDate, 'yyyy-MM-dd')
+        ? applicationStartDate.toISOString()
         : undefined,
-      applicationEndDate: applicationDueDate ? format(applicationDueDate, 'yyyy-MM-dd') : undefined,
-      fundingStartDate: fundingStartDate ? format(fundingStartDate, 'yyyy-MM-dd') : undefined,
-      fundingEndDate: fundingDueDate ? format(fundingDueDate, 'yyyy-MM-dd') : undefined,
+      applicationEndDate: applicationDueDate ? applicationDueDate.toISOString() : undefined,
+      fundingStartDate: fundingStartDate ? fundingStartDate.toISOString() : undefined,
+      fundingEndDate: fundingDueDate ? fundingDueDate.toISOString() : undefined,
       fundingCondition: conditionType,
       tierSettings: tierSettingsObject,
       feePercentage: calculatedFeePercentage,
@@ -590,6 +589,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 setSelectedItems={setSelectedValidatorItems}
                 emptyText="Enter validator email or organization name"
                 loading={loading}
+                singleSelect={true}
               />
               {extraErrors.validator && (
                 <span className="text-destructive text-sm block">Validator is required</span>
@@ -696,7 +696,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     Network <span className="text-primary">*</span>
                   </p>
                   <NetworkSelector
-                    disabled={isEdit && data?.program?.status !== 'draft'}
+                    disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
                     value={network}
                     onValueChange={setNetwork}
                     className="min-w-[120px] h-10 w-full flex justify-between bg-white text-gray-dark border border-input shadow-sm hover:bg-white"
@@ -707,7 +707,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     Terms <span className="text-primary">*</span>
                   </p>
                   <Input
-                    disabled={isEdit && data?.program?.status !== 'draft'}
+                    disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
                     step={0.000000000000000001}
                     id="price"
                     type="number"
@@ -718,7 +718,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                   />
                 </div>
                 <CurrencySelector
-                  disabled={isEdit && data?.program?.status !== 'draft'}
+                  disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
                   value={currency}
                   onValueChange={setCurrency}
                   network={network}
@@ -729,7 +729,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
               {errors.price && (
                 <span className="text-destructive text-sm block">Price is required</span>
               )}
-              {isEdit && data?.program?.status !== 'draft' && (
+              {isEdit && data?.program?.status !== ProgramStatus.Pending && (
                 <span className="text-destructive text-sm block">
                   Price can't be updated after publishing.
                 </span>

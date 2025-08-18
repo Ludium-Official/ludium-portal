@@ -23,12 +23,7 @@ export type Application = {
   applicant?: Maybe<User>;
   comments?: Maybe<Array<Comment>>;
   content?: Maybe<Scalars['String']['output']>;
-  currentFunding?: Maybe<Scalars['String']['output']>;
-  fundingSuccessful?: Maybe<Scalars['Boolean']['output']>;
-  fundingTarget?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
-  investmentTerms?: Maybe<Scalars['JSON']['output']>;
-  investments?: Maybe<Array<Investment>>;
   links?: Maybe<Array<Link>>;
   metadata?: Maybe<Scalars['JSON']['output']>;
   milestones?: Maybe<Array<Milestone>>;
@@ -37,7 +32,6 @@ export type Application = {
   rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<ApplicationStatus>;
   summary?: Maybe<Scalars['String']['output']>;
-  walletAddress?: Maybe<Scalars['String']['output']>;
 };
 
 export enum ApplicationStatus {
@@ -47,13 +41,6 @@ export enum ApplicationStatus {
   Rejected = 'rejected',
   Submitted = 'submitted'
 }
-
-export type AssignUserTierInput = {
-  maxInvestmentAmount: Scalars['String']['input'];
-  programId: Scalars['ID']['input'];
-  tier: InvestmentTier;
-  userId: Scalars['ID']['input'];
-};
 
 export type CarouselItem = {
   __typename?: 'CarouselItem';
@@ -103,8 +90,6 @@ export enum CommentableTypeEnum {
 
 export type CreateApplicationInput = {
   content: Scalars['String']['input'];
-  fundingTarget?: InputMaybe<Scalars['String']['input']>;
-  investmentTerms?: InputMaybe<Scalars['JSON']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   metadata?: InputMaybe<Scalars['JSON']['input']>;
   milestones: Array<CreateMilestoneInput>;
@@ -112,8 +97,7 @@ export type CreateApplicationInput = {
   price: Scalars['String']['input'];
   programId: Scalars['String']['input'];
   status: ApplicationStatus;
-  summary?: InputMaybe<Scalars['String']['input']>;
-  walletAddress?: InputMaybe<Scalars['String']['input']>;
+  summary: Scalars['String']['input'];
 };
 
 export type CreateCarouselItemInput = {
@@ -137,7 +121,7 @@ export type CreateInvestmentInput = {
 
 export type CreateMilestoneInput = {
   currency?: Scalars['String']['input'];
-  deadline: Scalars['Date']['input'];
+  deadline: Scalars['DateTime']['input'];
   description: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
   percentage: Scalars['String']['input'];
@@ -154,30 +138,26 @@ export type CreatePostInput = {
 };
 
 export type CreateProgramInput = {
-  applicationEndDate?: InputMaybe<Scalars['Date']['input']>;
-  applicationStartDate?: InputMaybe<Scalars['Date']['input']>;
-  contractAddress?: InputMaybe<Scalars['String']['input']>;
+  applicationEndDate?: InputMaybe<Scalars['DateTime']['input']>;
+  applicationStartDate?: InputMaybe<Scalars['DateTime']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
   customFeePercentage?: InputMaybe<Scalars['Int']['input']>;
-  deadline: Scalars['String']['input'];
+  deadline: Scalars['DateTime']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   feePercentage?: InputMaybe<Scalars['Int']['input']>;
   fundingCondition?: InputMaybe<FundingCondition>;
-  fundingEndDate?: InputMaybe<Scalars['Date']['input']>;
-  fundingStartDate?: InputMaybe<Scalars['Date']['input']>;
-  image?: InputMaybe<Scalars['Upload']['input']>;
-  keywords?: InputMaybe<Array<Scalars['String']['input']>>;
+  fundingEndDate?: InputMaybe<Scalars['DateTime']['input']>;
+  fundingStartDate?: InputMaybe<Scalars['DateTime']['input']>;
+  image: Scalars['Upload']['input'];
+  keywords: Array<Scalars['String']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
-  maxFundingAmount?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   network: Scalars['String']['input'];
   price: Scalars['String']['input'];
   status?: InputMaybe<ProgramStatus>;
   summary?: InputMaybe<Scalars['String']['input']>;
-  terms?: InputMaybe<Scalars['String']['input']>;
-  tierSettings?: InputMaybe<TierSettingsInput>;
+  tierSettings?: InputMaybe<Scalars['JSON']['input']>;
   type?: InputMaybe<ProgramType>;
-  validatorIds?: InputMaybe<Array<Scalars['ID']['input']>>;
   visibility?: InputMaybe<ProgramVisibility>;
 };
 
@@ -222,13 +202,6 @@ export enum InvestmentStatus {
   Refunded = 'refunded'
 }
 
-export enum InvestmentTier {
-  Bronze = 'bronze',
-  Gold = 'gold',
-  Platinum = 'platinum',
-  Silver = 'silver'
-}
-
 export type Keyword = {
   __typename?: 'Keyword';
   id?: Maybe<Scalars['ID']['output']>;
@@ -250,7 +223,7 @@ export type Milestone = {
   __typename?: 'Milestone';
   comments?: Maybe<Array<Comment>>;
   currency?: Maybe<Scalars['String']['output']>;
-  deadline?: Maybe<Scalars['Date']['output']>;
+  deadline?: Maybe<Scalars['DateTime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   file?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
@@ -290,7 +263,6 @@ export type Mutation = {
   acceptApplication?: Maybe<Application>;
   acceptProgram?: Maybe<Program>;
   addProgramKeyword?: Maybe<Keyword>;
-  assignUserTier?: Maybe<UserTierAssignment>;
   addUserKeyword?: Maybe<Keyword>;
   assignValidatorToProgram?: Maybe<Program>;
   checkMilestone?: Maybe<Milestone>;
@@ -314,7 +286,6 @@ export type Mutation = {
   rejectApplication?: Maybe<Application>;
   rejectProgram?: Maybe<Program>;
   removeProgramKeyword?: Maybe<Scalars['Boolean']['output']>;
-  removeUserTier?: Maybe<Scalars['Boolean']['output']>;
   removeUserKeyword?: Maybe<Scalars['Boolean']['output']>;
   removeValidatorFromProgram?: Maybe<Program>;
   reorderCarouselItems?: Maybe<Array<CarouselItem>>;
@@ -344,11 +315,6 @@ export type MutationAcceptProgramArgs = {
 export type MutationAddProgramKeywordArgs = {
   keyword: Scalars['String']['input'];
   programId: Scalars['ID']['input'];
-};
-
-
-export type MutationAssignUserTierArgs = {
-  input: AssignUserTierInput;
 };
 
 
@@ -467,12 +433,6 @@ export type MutationRejectProgramArgs = {
 export type MutationRemoveProgramKeywordArgs = {
   keyword: Scalars['String']['input'];
   programId: Scalars['ID']['input'];
-};
-
-
-export type MutationRemoveUserTierArgs = {
-  programId: Scalars['ID']['input'];
-  userId: Scalars['ID']['input'];
 };
 
 
@@ -657,36 +617,32 @@ export type ProcessPayoutsInput = {
 
 export type Program = {
   __typename?: 'Program';
-  applicationEndDate?: Maybe<Scalars['Date']['output']>;
-  applicationStartDate?: Maybe<Scalars['Date']['output']>;
+  applicationEndDate?: Maybe<Scalars['DateTime']['output']>;
+  applicationStartDate?: Maybe<Scalars['DateTime']['output']>;
   applications?: Maybe<Array<Application>>;
   comments?: Maybe<Array<Comment>>;
-  contractAddress?: Maybe<Scalars['String']['output']>;
   creator?: Maybe<User>;
   currency?: Maybe<Scalars['String']['output']>;
   customFeePercentage?: Maybe<Scalars['Int']['output']>;
-  deadline?: Maybe<Scalars['Date']['output']>;
+  deadline?: Maybe<Scalars['DateTime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   educhainProgramId?: Maybe<Scalars['Int']['output']>;
   feePercentage?: Maybe<Scalars['Int']['output']>;
   fundingCondition?: Maybe<FundingCondition>;
-  fundingEndDate?: Maybe<Scalars['Date']['output']>;
-  fundingStartDate?: Maybe<Scalars['Date']['output']>;
+  fundingEndDate?: Maybe<Scalars['DateTime']['output']>;
+  fundingStartDate?: Maybe<Scalars['DateTime']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   image?: Maybe<Scalars['String']['output']>;
   invitedBuilders?: Maybe<Array<User>>;
   keywords?: Maybe<Array<Keyword>>;
   links?: Maybe<Array<Link>>;
-  maxFundingAmount?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
   network?: Maybe<Scalars['String']['output']>;
   price?: Maybe<Scalars['String']['output']>;
   rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<ProgramStatus>;
   summary?: Maybe<Scalars['String']['output']>;
-  terms?: Maybe<Scalars['String']['output']>;
-  tierAssignments?: Maybe<Array<UserTierAssignment>>;
-  tierSettings?: Maybe<TierSettings>;
+  tierSettings?: Maybe<Scalars['JSON']['output']>;
   txHash?: Maybe<Scalars['String']['output']>;
   type?: Maybe<ProgramType>;
   validators?: Maybe<Array<User>>;
@@ -708,7 +664,9 @@ export enum ProgramStatus {
   Closed = 'closed',
   Completed = 'completed',
   PaymentRequired = 'payment_required',
-  Published = 'published'
+  Pending = 'pending',
+  Published = 'published',
+  Rejected = 'rejected'
 }
 
 export enum ProgramType {
@@ -875,44 +833,14 @@ export type Subscription = {
   notifications?: Maybe<Array<Notification>>;
 };
 
-export type TierConfig = {
-  __typename?: 'TierConfig';
-  enabled?: Maybe<Scalars['Boolean']['output']>;
-  maxAmount?: Maybe<Scalars['String']['output']>;
-};
-
-export type TierConfigInput = {
-  enabled: Scalars['Boolean']['input'];
-  maxAmount: Scalars['String']['input'];
-};
-
-export type TierSettings = {
-  __typename?: 'TierSettings';
-  bronze?: Maybe<TierConfig>;
-  gold?: Maybe<TierConfig>;
-  platinum?: Maybe<TierConfig>;
-  silver?: Maybe<TierConfig>;
-};
-
-export type TierSettingsInput = {
-  bronze?: InputMaybe<TierConfigInput>;
-  gold?: InputMaybe<TierConfigInput>;
-  platinum?: InputMaybe<TierConfigInput>;
-  silver?: InputMaybe<TierConfigInput>;
-};
-
 export type UpdateApplicationInput = {
   content?: InputMaybe<Scalars['String']['input']>;
-  fundingSuccessful?: InputMaybe<Scalars['Boolean']['input']>;
-  fundingTarget?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
-  investmentTerms?: InputMaybe<Scalars['JSON']['input']>;
   links?: InputMaybe<Array<LinkInput>>;
   metadata?: InputMaybe<Scalars['JSON']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<ApplicationStatus>;
   summary?: InputMaybe<Scalars['String']['input']>;
-  walletAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateCarouselItemInput = {
@@ -930,7 +858,7 @@ export type UpdateCommentInput = {
 
 export type UpdateMilestoneInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
-  deadline?: InputMaybe<Scalars['Date']['input']>;
+  deadline?: InputMaybe<Scalars['DateTime']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
   links?: InputMaybe<Array<LinkInput>>;
@@ -950,29 +878,26 @@ export type UpdatePostInput = {
 };
 
 export type UpdateProgramInput = {
-  applicationEndDate?: InputMaybe<Scalars['Date']['input']>;
-  applicationStartDate?: InputMaybe<Scalars['Date']['input']>;
-  contractAddress?: InputMaybe<Scalars['String']['input']>;
+  applicationEndDate?: InputMaybe<Scalars['DateTime']['input']>;
+  applicationStartDate?: InputMaybe<Scalars['DateTime']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
   customFeePercentage?: InputMaybe<Scalars['Int']['input']>;
-  deadline?: InputMaybe<Scalars['String']['input']>;
+  deadline?: InputMaybe<Scalars['DateTime']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   feePercentage?: InputMaybe<Scalars['Int']['input']>;
   fundingCondition?: InputMaybe<FundingCondition>;
-  fundingEndDate?: InputMaybe<Scalars['Date']['input']>;
-  fundingStartDate?: InputMaybe<Scalars['Date']['input']>;
+  fundingEndDate?: InputMaybe<Scalars['DateTime']['input']>;
+  fundingStartDate?: InputMaybe<Scalars['DateTime']['input']>;
   id: Scalars['ID']['input'];
   image?: InputMaybe<Scalars['Upload']['input']>;
   keywords?: InputMaybe<Array<Scalars['String']['input']>>;
   links?: InputMaybe<Array<LinkInput>>;
-  maxFundingAmount?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   network?: InputMaybe<Scalars['String']['input']>;
   price?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<ProgramStatus>;
   summary?: InputMaybe<Scalars['String']['input']>;
-  terms?: InputMaybe<Scalars['String']['input']>;
-  tierSettings?: InputMaybe<TierSettingsInput>;
+  tierSettings?: InputMaybe<Scalars['JSON']['input']>;
   type?: InputMaybe<ProgramType>;
   visibility?: InputMaybe<ProgramVisibility>;
 };
@@ -1023,18 +948,6 @@ export enum UserRole {
   Superadmin = 'superadmin',
   User = 'user'
 }
-
-export type UserTierAssignment = {
-  __typename?: 'UserTierAssignment';
-  createdAt?: Maybe<Scalars['Date']['output']>;
-  id?: Maybe<Scalars['ID']['output']>;
-  maxInvestmentAmount?: Maybe<Scalars['String']['output']>;
-  program?: Maybe<Program>;
-  programId?: Maybe<Scalars['String']['output']>;
-  tier?: Maybe<InvestmentTier>;
-  user?: Maybe<User>;
-  userId?: Maybe<Scalars['String']['output']>;
-};
 
 export type UserUpdateInput = {
   about?: InputMaybe<Scalars['String']['input']>;

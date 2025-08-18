@@ -78,24 +78,7 @@ query programs($pagination: PaginationInput) {
       fundingStartDate
       fundingEndDate
       fundingCondition
-      tierSettings {
-        bronze {
-          enabled
-          maxAmount
-        }
-        silver {
-          enabled
-          maxAmount
-        }
-        gold {
-          enabled
-          maxAmount
-        }
-        platinum {
-          enabled
-          maxAmount
-        }
-      }
+      tierSettings
       feePercentage
       customFeePercentage
       image

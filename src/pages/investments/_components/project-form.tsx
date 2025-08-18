@@ -1,5 +1,4 @@
-import { useCreateCarouselItemMutation } from '@/apollo/mutation/create-carousel-item.generated';
-import { useCarouselItemsQuery } from '@/apollo/queries/carousel-items.generated';
+
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
 import { MarkdownEditor } from '@/components/markdown';
@@ -13,13 +12,20 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { getCurrency, mainnetDefaultNetwork } from '@/lib/utils';
-import { CarouselItemType, type LinkInput } from '@/types/types.generated';
-import { format } from 'date-fns';
-import { ChevronRight, X } from 'lucide-react';
+import { cn, getCurrency, mainnetDefaultNetwork } from '@/lib/utils';
+import { type LinkInput, ProgramStatus } from '@/types/types.generated';
+import { Check, ChevronRight, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
+
+// Tier colors configuration
+const tierColors = {
+  bronze: 'bg-[#EED5C1] text-[#9F6636]',
+  silver: 'bg-[#E2E8F0] text-[#64748B]',
+  gold: 'bg-[#FFDEA1] text-[#CA8A04]',
+  platinum: 'bg-[#CAF0E3] text-[#0D9488]'
+} as const;
 
 // Milestones state
 interface Milestone {
@@ -38,7 +44,6 @@ export type OnSubmitProjectFunc = (data: {
   description: string;
   summary: string;
   currency: string;
-  deadline?: string;
   links: LinkInput[];
   // isPublish?: boolean;
   network: string;
@@ -92,6 +97,8 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
   }
 
   const [nextTermId, setNextTermId] = useState<number>(2); // Start from 2 since Term 1 has id 1
+  const [selectedTier, setSelectedTier] = useState<string>('');
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const [terms, setTerms] = useState<Term[]>([
     {
@@ -123,13 +130,13 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     invalidLink: false,
   });
 
-  useEffect(() => {
-    if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
-    if (data?.program?.links) setLinks(data?.program?.links.map((l) => l.url ?? ''));
-    if (data?.program?.description) setContent(data?.program.description);
-    if (data?.program?.network) setNetwork(data?.program?.network);
-    if (data?.program?.currency) setCurrency(data?.program?.currency);
-  }, [data]);
+  // useEffect(() => {
+  //   if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
+  //   if (data?.program?.links) setLinks(data?.program?.links.map((l) => l.url ?? ''));
+  //   if (data?.program?.description) setContent(data?.program.description);
+  //   if (data?.program?.network) setNetwork(data?.program?.network);
+  //   if (data?.program?.currency) setCurrency(data?.program?.currency);
+  // }, [data]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -165,9 +172,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     formState: { errors },
   } = useForm({
     values: {
-      name: data?.program?.name ?? '',
+      name: '',
       fundingToBeRaised: data?.program?.price ?? '',
-      summary: data?.program?.summary ?? '',
+      summary: '',
     },
   });
 
@@ -189,17 +196,16 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
       id: data?.program?.id ?? id,
       name: submitData.name,
       fundingToBeRaised:
-        isEdit && data?.program?.status !== 'draft' ? undefined : submitData.fundingToBeRaised,
+        isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.fundingToBeRaised,
       description: content,
       summary: submitData.summary,
       currency:
-        isEdit && data?.program?.status !== 'draft'
+        isEdit && data?.program?.status !== ProgramStatus.Pending
           ? (data?.program?.currency as string)
           : currency,
-      deadline: deadline ? format(deadline, 'yyyy-MM-dd') : undefined,
       links: links.map((l) => ({ title: l, url: l })),
       network:
-        isEdit && data?.program?.status !== 'draft' ? (data?.program?.network as string) : network,
+        isEdit && data?.program?.status !== ProgramStatus.Pending ? (data?.program?.network as string) : network,
       visibility: visibility,
       builders: selectedBuilders,
     });
@@ -215,10 +221,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
     formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
   };
-
-  const { data: carouselItems, refetch } = useCarouselItemsQuery();
-
-  const [createCarouselItem] = useCreateCarouselItemMutation();
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -348,19 +350,35 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
               {/* Program Tier Condition Box */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center justify-between border-b pb-2 mb-2">
+                <div className={cn("flex items-center justify-between border-b pb-2 mb-2", !data?.program?.tierSettings && "border-none pb-0 mb-0")}>
                   <p className="text-sm font-medium text-gray-700">Program Tier Condition</p>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-[#FFDEA1] text-[#CA8A04] px-2 py-0.5 rounded-full text-sm font-semibold">
-                      Gold
-                    </span>
-                    <span className="font-bold text-black">or higher</span>
-                  </div>
+                  {data?.program?.tierSettings ? <div className="flex items-center gap-2">
+                    {data?.program?.tierSettings && Object.entries(data.program.tierSettings).map(([key, value]) => {
+                      if (!(value as { enabled: boolean })?.enabled) return null;
+
+                      return (
+                        <span
+                          key={key}
+                          className={`${tierColors[key as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}
+                        >
+                          {key.charAt(0).toUpperCase() + key.slice(1)}
+                        </span>
+                      );
+                    })}
+                  </div> : <p className="text-sm text-foreground font-bold">Open</p>}
                 </div>
-                <div className="flex flex-col items-end space-y-1">
-                  <div className="text-sm text-gray-600">Gold 10,000</div>
-                  <div className="text-sm text-gray-600">Platinum 20,000</div>
-                </div>
+                {!!data?.program?.tierSettings && <div className="flex flex-col items-end space-y-1">
+                  {Object.entries(data?.program?.tierSettings).map(([key, value]) => (
+                    (value as { enabled: boolean })?.enabled && (
+                      <div className="text-sm text-gray-600">
+                        {key.charAt(0).toUpperCase() + key.slice(1)} {(value as { maxAmount: string })?.maxAmount}
+                      </div>
+                    )
+                  ))}
+
+                  {/* <div className="text-sm text-gray-600">Gold 10,000</div>
+                  <div className="text-sm text-gray-600">Platinum 20,000</div> */}
+                </div>}
               </div>
 
               {/* Confirmed Checkbox */}
@@ -498,20 +516,71 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                     />
                   </div>
 
-                  {/* Prize and Purchase Limit */}
+                  {/* Prize/Tier Selection and Purchase Limit */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor={`prize-${index}`} className="text-sm font-medium">
-                        Prize <span className="text-primary">*</span>
+                        {data?.program?.tierSettings ? 'Tier' : 'Prize'} <span className="text-primary">*</span>
                       </Label>
-                      <Input
-                        id={`prize-${index}`}
-                        type="number"
-                        placeholder="Input number"
-                        value={term.prize}
-                        onChange={(e) => updateTerm(index, 'prize', e.target.value)}
-                        className="mt-2 h-10"
-                      />
+                      {data?.program?.tierSettings ? (
+                        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="mt-2 h-10 w-full justify-between bg-white"
+                            >
+                              {selectedTier ? (
+                                <span className="flex items-center gap-2">
+                                  <span className={`${tierColors[selectedTier as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}>
+                                    {selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)}
+                                  </span>
+                                </span>
+                              ) : (
+                                'Select tier'
+                              )}
+                              <ChevronRight className="h-4 w-4 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-2" align="start">
+                            <div className="">
+                              {Object.entries(data.program.tierSettings).map(([key, value]) => {
+                                if (!(value as { enabled: boolean })?.enabled) return null;
+
+                                return (
+                                  <Button
+                                    key={key}
+                                    variant="ghost"
+                                    className="w-full justify-start pl-1"
+                                    onClick={() => {
+                                      setSelectedTier(key);
+                                      updateTerm(index, 'prize', key);
+                                      setIsPopoverOpen(false);
+                                    }}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      {selectedTier === key ? (
+                                        <Check className="h-4 w-4 text-foreground" />
+                                      ) : <div className="w-4 h-4" />}
+                                      <span className={`${tierColors[key as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}>
+                                        {key.charAt(0).toUpperCase() + key.slice(1)}
+                                      </span>
+                                    </div>
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      ) : (
+                        <Input
+                          id={`prize-${index}`}
+                          type="number"
+                          placeholder="Input number"
+                          value={term.prize}
+                          onChange={(e) => updateTerm(index, 'prize', e.target.value)}
+                          className="mt-2 h-10"
+                        />
+                      )}
                     </div>
                     <div>
                       <Label htmlFor={`purchaseLimit-${index}`} className="text-sm font-medium">
@@ -688,31 +757,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
         </TabsContent>
       </Tabs>
 
-      {isEdit && (
-        <Button
-          type="button"
-          onClick={() => {
-            createCarouselItem({
-              variables: {
-                input: {
-                  itemId: data?.program?.id ?? '',
-                  itemType: CarouselItemType.Program,
-                  isActive: true,
-                },
-              },
-            }).then(() => refetch());
-          }}
-          disabled={carouselItems?.carouselItems?.some(
-            (item) =>
-              item.itemId === data?.program?.id || (carouselItems?.carouselItems?.length ?? 0) >= 5,
-          )}
-        >
-          {carouselItems?.carouselItems?.some((item) => item.itemId === data?.program?.id)
-            ? 'Already in Carousel'
-            : 'Add to Main Carousel'}
-        </Button>
-      )}
-
       {isEdit ? (
         <div className="py-3 flex justify-end gap-4">
           <Button
@@ -722,7 +766,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
               extraValidation();
             }}
           >
-            Edit Program
+            Edit Project
           </Button>
         </div>
       ) : (

@@ -118,7 +118,7 @@ const CreateInvestment: React.FC = () => {
             price: args.price ?? '0',
             description: args.description,
             summary: args.summary,
-            deadline: args.deadline ?? '',
+            deadline: args.deadline ?? new Date().toISOString(),
             keywords: args.keywords,
             links: args.links,
             network: args.network,
@@ -138,7 +138,7 @@ const CreateInvestment: React.FC = () => {
             tierSettings: args.tierSettings,
             feePercentage: args.feePercentage,
             customFeePercentage: args.customFeePercentage,
-            contractAddress: '', //txHash, // Store tx hash in contractAddress field temporarily
+            // contractAddress: '', //txHash, // Store tx hash in contractAddress field temporarily
           },
         },
         onCompleted: async (data) => {
