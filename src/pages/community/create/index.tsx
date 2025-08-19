@@ -21,9 +21,11 @@ const CreateCommunityPage: React.FC = () => {
         },
       },
       onCompleted: () => {
+        client.refetchQueries({ include: [PostsDocument] });
         navigate('/community');
 
-        client.refetchQueries({ include: [PostsDocument] });
+
+        window.location.reload();
       },
     });
   };
