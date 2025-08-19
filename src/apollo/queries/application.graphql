@@ -41,6 +41,16 @@ query application($id: ID!) {
         url
       }
     }
+    investmentTerms {
+      applicationId
+      createdAt
+      description
+      id
+      price
+      purchaseLimit
+      title
+      updatedAt
+    }
     status
   }
 }

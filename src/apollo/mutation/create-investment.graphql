@@ -1,0 +1,35 @@
+mutation createInvestment($input: CreateInvestmentInput!) {
+  createInvestment(input: $input) {
+    amount
+    id
+    project {
+      content
+      fundingSuccessful
+      fundingTarget
+      id
+      name
+      price
+      rejectionReason
+      status
+      summary
+      walletAddress
+    }
+    reclaimTxHash
+    reclaimed
+    reclaimedAt
+    status
+    supporter {
+      about
+      avatar
+      email
+      firstName
+      id
+      image
+      role
+      summary
+      walletAddress
+    }
+    tier
+    txHash
+  }
+}

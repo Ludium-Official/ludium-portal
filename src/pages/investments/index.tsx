@@ -32,11 +32,11 @@ export default function InvestmentsPage() {
           },
           ...(searchQuery
             ? [
-                {
-                  field: 'name',
-                  value: searchQuery,
-                },
-              ]
+              {
+                field: 'name',
+                value: searchQuery,
+              },
+            ]
             : []),
         ],
       },
@@ -71,139 +71,142 @@ export default function InvestmentsPage() {
   // };
 
   return (
-    <div className="">
-      {/* Header */}
-      <div className="bg-white">
-        <div className="w-full mx-auto px-10 py-9">
-          <h1 className="text-3xl font-bold text-gray-900">Investment</h1>
+    <div className="bg-white rounded-2xl">
+
+      <div className="max-w-[1440px] mx-auto">
+        {/* Header */}
+        <div className="bg-white">
+          <div className="w-full mx-auto px-10 py-9">
+            <h1 className="text-3xl font-bold text-gray-900">Investment</h1>
+          </div>
         </div>
-      </div>
 
-      {/* Navigation and Search */}
-      <div className="bg-white">
-        <div className="w-full  mx-auto px-10">
-          <div className="flex items-center justify-between gap-20">
-            {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-auto">
-              <TabsList className="w-auto bg-gray-100 p-1">
-                <TabsTrigger
-                  value="newest"
-                  className={cn(
-                    'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
-                    'text-gray-500 px-4 py-1.5 text-sm font-medium',
-                  )}
-                >
-                  Newest
-                </TabsTrigger>
-                <TabsTrigger
-                  value="imminent"
-                  className={cn(
-                    'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
-                    'text-gray-500 px-4 py-1.5 text-sm font-medium',
-                  )}
-                >
-                  Imminent
-                </TabsTrigger>
-                <TabsTrigger
-                  value="my-program"
-                  className={cn(
-                    'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
-                    'text-gray-500 px-4 py-1.5 text-sm font-medium',
-                  )}
-                >
-                  My program
-                </TabsTrigger>
-                <TabsTrigger
-                  value="completed"
-                  className={cn(
-                    'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
-                    'text-gray-500 px-4 py-1.5 text-sm font-medium',
-                  )}
-                >
-                  Completed
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+        {/* Navigation and Search */}
+        <div className="bg-white">
+          <div className="w-full  mx-auto px-10">
+            <div className="flex items-center justify-between gap-20">
+              {/* Tabs */}
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-auto">
+                <TabsList className="w-auto bg-gray-100 p-1">
+                  <TabsTrigger
+                    value="newest"
+                    className={cn(
+                      'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
+                      'text-gray-500 px-4 py-1.5 text-sm font-medium',
+                    )}
+                  >
+                    Newest
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="imminent"
+                    className={cn(
+                      'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
+                      'text-gray-500 px-4 py-1.5 text-sm font-medium',
+                    )}
+                  >
+                    Imminent
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="my-program"
+                    className={cn(
+                      'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
+                      'text-gray-500 px-4 py-1.5 text-sm font-medium',
+                    )}
+                  >
+                    My program
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="completed"
+                    className={cn(
+                      'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
+                      'text-gray-500 px-4 py-1.5 text-sm font-medium',
+                    )}
+                  >
+                    Completed
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
 
-            {/* Search and Create */}
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  className="pl-10 w-90 h-10 bg-gray-50 border-gray-200 focus:border-gray-300"
-                />
+              {/* Search and Create */}
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    type="text"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    className="pl-10 w-90 h-10 bg-gray-50 border-gray-200 focus:border-gray-300"
+                  />
+                </div>
+                <Button
+                  className="bg-gray-900 text-white hover:bg-gray-800 px-3 py-2 text-sm"
+                  onClick={() => navigate('/investments/create')}
+                >
+                  <CirclePlus />
+                  Create Investment
+                </Button>
               </div>
-              <Button
-                className="bg-gray-900 text-white hover:bg-gray-800 px-3 py-2 text-sm"
-                onClick={() => navigate('/investments/create')}
-              >
-                <CirclePlus />
-                Create Investment
-              </Button>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="w-full mx-auto px-10 py-5 bg-white">
-        <div className="space-y-6">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <Card
-                  key={`investment-skeleton-${
-                    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                    i
-                  }`}
-                  className="w-full border border-gray-200 rounded-lg"
-                >
-                  <CardContent className="p-5">
-                    <div className="animate-pulse">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="space-y-2">
-                          <div className="h-4 bg-gray-200 rounded w-24" />
-                          <div className="h-4 bg-gray-200 rounded w-32" />
+        {/* Content */}
+        <div className="w-full mx-auto px-10 py-5 bg-white">
+          <div className="space-y-6">
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <Card
+                    key={`investment-skeleton-${
+                      // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                      i
+                      }`}
+                    className="w-full border border-gray-200 rounded-lg"
+                  >
+                    <CardContent className="p-5">
+                      <div className="animate-pulse">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="space-y-2">
+                            <div className="h-4 bg-gray-200 rounded w-24" />
+                            <div className="h-4 bg-gray-200 rounded w-32" />
+                          </div>
+                          <div className="h-6 bg-gray-200 rounded-full w-20" />
                         </div>
-                        <div className="h-6 bg-gray-200 rounded-full w-20" />
+                        <div className="h-20 bg-gray-200 rounded mb-4" />
+                        <div className="space-y-2">
+                          <div className="h-3 bg-gray-200 rounded" />
+                          <div className="h-3 bg-gray-200 rounded w-5/6" />
+                        </div>
                       </div>
-                      <div className="h-20 bg-gray-200 rounded mb-4" />
-                      <div className="space-y-2">
-                        <div className="h-3 bg-gray-200 rounded" />
-                        <div className="h-3 bg-gray-200 rounded w-5/6" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">Error loading programs</p>
-            </div>
-          ) : filteredPrograms.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500">No programs found</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredPrograms.map((program) => (
-                <InvestmentCard key={program.id} program={program} />
-              ))}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">Error loading programs</p>
+              </div>
+            ) : filteredPrograms.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No programs found</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredPrograms.map((program) => (
+                  <InvestmentCard key={program.id} program={program} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-8">
+              <Pagination totalCount={totalCount} pageSize={itemsPerPage} />
             </div>
           )}
         </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-8">
-            <Pagination totalCount={totalCount} pageSize={itemsPerPage} />
-          </div>
-        )}
       </div>
     </div>
   );
@@ -219,8 +222,8 @@ function InvestmentCard({ program }: InvestmentCardProps) {
 
   const daysUntilDeadline = program.deadline
     ? Math.ceil(
-        (new Date(program.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
-      )
+      (new Date(program.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
+    )
     : null;
 
   return (

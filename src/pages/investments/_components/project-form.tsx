@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { cn, getCurrency, mainnetDefaultNetwork } from '@/lib/utils';
+import { cn, getCurrency, } from '@/lib/utils';
 import { type LinkInput, ProgramStatus } from '@/types/types.generated';
 import { Check, ChevronRight, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';
@@ -27,6 +27,14 @@ const tierColors = {
   platinum: 'bg-[#CAF0E3] text-[#0D9488]'
 } as const;
 
+// Terms state
+interface Term {
+  id: number;
+  title: string;
+  prize: string;
+  purchaseLimit: string;
+  description: string;
+}
 // Milestones state
 interface Milestone {
   id: number;
@@ -43,14 +51,13 @@ export type OnSubmitProjectFunc = (data: {
   fundingToBeRaised?: string;
   description: string;
   summary: string;
-  currency: string;
   links: LinkInput[];
   // isPublish?: boolean;
-  network: string;
   image?: File;
   visibility: 'public' | 'restricted' | 'private';
   builders?: string[];
   milestones?: Milestone[];
+  investmentTerms?: Term[];
   programId?: string;
 }) => void;
 
@@ -72,10 +79,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
   const [selectedTab, setSelectedTab] = useState<string>('overview');
 
   const [content, setContent] = useState<string>('');
-  const [deadline, setDeadline] = useState<Date>();
   const [links, setLinks] = useState<string[]>(['']);
-  const [network, setNetwork] = useState(mainnetDefaultNetwork);
-  const [currency, setCurrency] = useState('');
   const [visibility, setVisibility] = useState<'public' | 'restricted' | 'private'>('public');
   const [selectedBuilders, setSelectedBuilders] = useState<string[]>([]);
   const [selectedBuilderItems, setSelectedBuilderItems] = useState<
@@ -87,18 +91,10 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
   // Supporter tier state
   const [supporterTierConfirmed, setSupporterTierConfirmed] = useState<boolean>(false);
 
-  // Terms state
-  interface Term {
-    id: number;
-    title: string;
-    prize: string;
-    purchaseLimit: string;
-    description: string;
-  }
 
   const [nextTermId, setNextTermId] = useState<number>(2); // Start from 2 since Term 1 has id 1
-  const [selectedTier, setSelectedTier] = useState<string>('');
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [selectedTiers, setSelectedTiers] = useState<string[]>(['']);
+  const [popoverStates, setPopoverStates] = useState<boolean[]>([false]);
 
   const [terms, setTerms] = useState<Term[]>([
     {
@@ -199,21 +195,17 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
         isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.fundingToBeRaised,
       description: content,
       summary: submitData.summary,
-      currency:
-        isEdit && data?.program?.status !== ProgramStatus.Pending
-          ? (data?.program?.currency as string)
-          : currency,
       links: links.map((l) => ({ title: l, url: l })),
-      network:
-        isEdit && data?.program?.status !== ProgramStatus.Pending ? (data?.program?.network as string) : network,
       visibility: visibility,
       builders: selectedBuilders,
+      milestones: milestones,
+      investmentTerms: terms,
     });
   };
 
   const extraValidation = () => {
     dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
-    if (!deadline) dispatchErrors({ type: ExtraErrorActionKind.SET_DEADLINE_ERROR });
+    // if (!deadline) dispatchErrors({ type: ExtraErrorActionKind.SET_DEADLINE_ERROR });
     if (!links?.[0]) dispatchErrors({ type: ExtraErrorActionKind.SET_LINKS_ERROR });
     if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
       dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
@@ -236,12 +228,16 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
         description: '',
       },
     ]);
+    setSelectedTiers((prev) => [...prev, '']);
+    setPopoverStates((prev) => [...prev, false]);
     setNextTermId((prev) => prev + 1);
   };
 
   const removeTerm = (index: number) => {
     if (index === 0) return; // Term 1 cannot be deleted
     setTerms((prevTerms) => prevTerms.filter((_, i) => i !== index));
+    setSelectedTiers((prev) => prev.filter((_, i) => i !== index));
+    setPopoverStates((prev) => prev.filter((_, i) => i !== index));
   };
 
   const updateTerm = (index: number, field: keyof Term, value: string) => {
@@ -523,16 +519,18 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         {data?.program?.tierSettings ? 'Tier' : 'Prize'} <span className="text-primary">*</span>
                       </Label>
                       {data?.program?.tierSettings ? (
-                        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                        <Popover open={popoverStates[index]} onOpenChange={(open) => {
+                          setPopoverStates((prev) => prev.map((state, i) => i === index ? open : state));
+                        }}>
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
                               className="mt-2 h-10 w-full justify-between bg-white"
                             >
-                              {selectedTier ? (
+                              {selectedTiers[index] ? (
                                 <span className="flex items-center gap-2">
-                                  <span className={`${tierColors[selectedTier as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}>
-                                    {selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)}
+                                  <span className={`${tierColors[selectedTiers[index] as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}>
+                                    {selectedTiers[index].charAt(0).toUpperCase() + selectedTiers[index].slice(1)}
                                   </span>
                                 </span>
                               ) : (
@@ -552,13 +550,13 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                                     variant="ghost"
                                     className="w-full justify-start pl-1"
                                     onClick={() => {
-                                      setSelectedTier(key);
+                                      setSelectedTiers((prev) => prev.map((tier, i) => i === index ? key : tier));
                                       updateTerm(index, 'prize', key);
-                                      setIsPopoverOpen(false);
+                                      setPopoverStates((prev) => prev.map((state, i) => i === index ? false : state));
                                     }}
                                   >
                                     <div className="flex items-center gap-2">
-                                      {selectedTier === key ? (
+                                      {selectedTiers[index] === key ? (
                                         <Check className="h-4 w-4 text-foreground" />
                                       ) : <div className="w-4 h-4" />}
                                       <span className={`${tierColors[key as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}>

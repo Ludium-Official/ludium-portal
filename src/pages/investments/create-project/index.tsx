@@ -2,10 +2,12 @@
 import { useCreateApplicationMutation } from '@/apollo/mutation/create-application.generated';
 import ProjectForm, { type OnSubmitProjectFunc } from '@/pages/investments/_components/project-form';
 import { ApplicationStatus, } from '@/types/types.generated';
+import { useParams } from 'react-router';
 
 const CreateProjectPage: React.FC = () => {
   const [createApplication] = useCreateApplicationMutation();
 
+  const { id } = useParams()
 
   // const { isLoggedIn, isAuthed } = useAuth();
 
@@ -41,8 +43,15 @@ const CreateProjectPage: React.FC = () => {
             // summary: m.summary,
             // description: m.description,
           })) ?? [],
+          investmentTerms: args.investmentTerms?.map((t) => ({
+            title: t.title ?? '',
+            price: t.prize ?? '',
+            purchaseLimit: Number(t.purchaseLimit) ?? 0,
+            description: t.description ?? '',
+
+          })) ?? [],
           price: args.fundingToBeRaised ?? '0',
-          programId: args?.programId ?? '',
+          programId: id ?? args?.programId ?? '',
           status: ApplicationStatus.Pending,
           // currency: args.currency,
           // price: args.price ?? '0',
