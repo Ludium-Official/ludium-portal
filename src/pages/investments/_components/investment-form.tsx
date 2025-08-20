@@ -1,11 +1,11 @@
 import { useCreateCarouselItemMutation } from '@/apollo/mutation/create-carousel-item.generated';
 import { useCarouselItemsQuery } from '@/apollo/queries/carousel-items.generated';
-import { useKeywordsQuery } from '@/apollo/queries/keywords.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
 import CurrencySelector from '@/components/currency-selector';
 import { MarkdownEditor } from '@/components/markdown';
 import NetworkSelector from '@/components/network-selector';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
@@ -15,7 +15,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useInvestmentDraft } from '@/lib/hooks/use-investment-draft';
+import notify from '@/lib/notify';
 import { cn, mainnetDefaultNetwork } from '@/lib/utils';
+import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { CarouselItemType, type LinkInput, ProgramStatus } from '@/types/types.generated';
 import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';
@@ -31,7 +35,7 @@ export type OnSubmitInvestmentFunc = (data: {
   currency: string;
   deadline?: string;
   keywords: string[];
-  links: LinkInput[];
+  links?: LinkInput[];
   network: string;
   validators: string[];
   image?: File;
@@ -76,9 +80,10 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   const [fundingStartDate, setFundingStartDate] = useState<Date>();
   const [fundingDueDate, setFundingDueDate] = useState<Date>();
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
+  const [keywordInput, setKeywordInput] = useState<string>('');
   const [selectedValidators, setSelectedValidators] = useState<string[]>([]);
   const [links, setLinks] = useState<string[]>(['']);
-  const [network, setNetwork] = useState(mainnetDefaultNetwork);
+  const [network, setNetwork] = useState(isEdit ? undefined : mainnetDefaultNetwork);
   const [currency, setCurrency] = useState('');
   const [selectedImage, setSelectedImage] = useState<File>();
   const [visibility, setVisibility] = useState<'public' | 'restricted' | 'private'>('public');
@@ -101,8 +106,6 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   ]);
   const [feeType, setFeeType] = useState<'default' | 'custom'>('default');
   const [customFee, setCustomFee] = useState<string>('0');
-
-  const { data: keywords } = useKeywordsQuery();
 
   const [validatorInput, setValidatorInput] = useState<string>();
   const [debouncedValidatorInput, setDebouncedValidatorInput] = useState<string>();
@@ -139,10 +142,6 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     dates: false,
   });
 
-  const keywordOptions = keywords?.keywords?.map((k) => ({
-    value: k.id ?? '',
-    label: k.name ?? '',
-  }));
   const validatorOptions = validators?.users?.data?.map((v) => ({
     value: v.id ?? '',
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
@@ -150,14 +149,28 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
   useEffect(() => {
     if (data?.program?.keywords)
-      setSelectedKeywords(data?.program?.keywords?.map((k) => k.id ?? '') ?? []);
-    if (data?.program?.validators)
+      setSelectedKeywords(data?.program?.keywords?.map((k) => k.name ?? '') ?? []);
+    if (data?.program?.validators?.length) {
       setSelectedValidators(data?.program.validators?.map((k) => k.id ?? '') ?? '');
+      setSelectedValidatorItems(data?.program.validators?.map((k) => ({
+        value: k.id ?? '',
+        label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
+      })) ?? []);
+    }
+    if (data?.program?.invitedBuilders?.length) {
+      setSelectedBuilders(data?.program.invitedBuilders?.map((k) => k.id ?? '') ?? '');
+      setSelectedBuilderItems(data?.program.invitedBuilders?.map((k) => ({
+        value: k.id ?? '',
+        label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
+      })) ?? []);
+    }
     if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
     if (data?.program?.links) setLinks(data?.program?.links.map((l) => l.url ?? ''));
     if (data?.program?.description) setContent(data?.program.description);
     if (data?.program?.network) setNetwork(data?.program?.network);
     if (data?.program?.currency) setCurrency(data?.program?.currency);
+    if (data?.program?.image) setImagePreview(data?.program?.image);
+    if (data?.program?.visibility) setVisibility(data?.program?.visibility);
   }, [data]);
 
   useEffect(() => {
@@ -192,6 +205,8 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
+    setValue,
   } = useForm({
     values: {
       programName: data?.program?.name ?? '',
@@ -205,63 +220,51 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     price: string;
     summary: string;
   }) => {
-    console.log('Form submitted with data:', submitData);
-    console.log('Validation state:', {
-      imageError,
-      contentLength: content.length,
-      dates: {
-        applicationStartDate,
-        applicationDueDate,
-        fundingStartDate,
-        fundingDueDate,
-      },
-      selectedKeywords,
-      selectedValidators,
-      deadline,
-      links,
-    });
-
-    // Validate required fields
-    let hasErrors = false;
-    dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
-
-    if (!selectedKeywords?.length) {
-      dispatchErrors({ type: ExtraErrorActionKind.SET_KEYWORDS_ERROR });
-      hasErrors = true;
-    }
-    if (!selectedValidators?.length) {
-      dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
-      hasErrors = true;
-    }
-    // Deadline is optional for investment programs
-    // if (!deadline) {
-    //   dispatchErrors({ type: ExtraErrorActionKind.SET_DEADLINE_ERROR });
-    //   hasErrors = true;
-    // }
-    if (!links?.[0]) {
-      dispatchErrors({ type: ExtraErrorActionKind.SET_LINKS_ERROR });
-      hasErrors = true;
-    }
-    if (links?.some((l) => l && !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
-      dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
-      hasErrors = true;
-    }
-    if (!applicationStartDate || !applicationDueDate || !fundingStartDate || !fundingDueDate) {
-      dispatchErrors({ type: ExtraErrorActionKind.SET_DATE_ERROR });
-      hasErrors = true;
-    }
-    if (!content.length) {
-      hasErrors = true;
-    }
-
-    if (hasErrors || imageError) {
-      console.log('Form validation failed');
+    if (
+      imageError ||
+      extraErrors.deadline ||
+      extraErrors.keyword ||
+      extraErrors.links ||
+      extraErrors.validator ||
+      extraErrors.invalidLink ||
+      extraErrors.dates ||
+      !content.length ||
+      (!selectedImage && !isEdit)
+    ) {
+      notify('Please fill in all required fields.', 'error');
       return;
     }
 
-    // Transform tier settings from array to object format
-    const tierSettingsObject =
-      conditionType === 'tier'
+    onSubmitInvestment({
+      id: data?.program?.id ?? id,
+      programName: submitData.programName,
+      price: isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.price,
+      description: content,
+      summary: submitData.summary,
+      currency:
+        isEdit && data?.program?.status !== ProgramStatus.Pending
+          ? (data?.program?.currency as string)
+          : currency,
+      deadline: deadline ? deadline.toISOString() : undefined,
+      keywords: selectedKeywords,
+      validators: selectedValidators ?? [],
+      links: (() => {
+        const { shouldSend } = validateLinks(links);
+        return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
+      })(),
+      network:
+        isEdit && data?.program?.status !== ProgramStatus.Pending ? (data?.program?.network as string) : network ?? mainnetDefaultNetwork,
+      image: selectedImage,
+      visibility: visibility,
+      builders: selectedBuilders,
+      applicationStartDate: applicationStartDate
+        ? applicationStartDate.toISOString()
+        : undefined,
+      applicationEndDate: applicationDueDate ? applicationDueDate.toISOString() : undefined,
+      fundingStartDate: fundingStartDate ? fundingStartDate.toISOString() : undefined,
+      fundingEndDate: fundingDueDate ? fundingDueDate.toISOString() : undefined,
+      fundingCondition: conditionType,
+      tierSettings: conditionType === 'tier'
         ? {
           bronze: tiers.find((t) => t.name === 'Bronze')?.enabled
             ? {
@@ -288,55 +291,38 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
             }
             : undefined,
         }
-        : undefined;
-
-    // Calculate fee percentage in basis points (3% = 300)
-    const calculatedFeePercentage = feeType === 'default' ? 300 : undefined;
-    const calculatedCustomFeePercentage =
-      feeType === 'custom' ? Math.round(Number.parseFloat(customFee) * 100) : undefined;
-
-    onSubmitInvestment({
-      id: data?.program?.id ?? id,
-      programName: submitData.programName,
-      price: isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.price,
-      description: content,
-      summary: submitData.summary,
-      currency:
-        isEdit && data?.program?.status !== ProgramStatus.Pending
-          ? (data?.program?.currency as string)
-          : currency,
-      deadline: deadline ? deadline.toISOString() : undefined,
-      keywords: selectedKeywords,
-      validators: selectedValidators ?? [],
-      links: links.map((l) => ({ title: l, url: l })),
-      network:
-        isEdit && data?.program?.status !== ProgramStatus.Pending ? (data?.program?.network as string) : network,
-      image: selectedImage,
-      visibility: visibility,
-      builders: selectedBuilders,
-      applicationStartDate: applicationStartDate
-        ? applicationStartDate.toISOString()
         : undefined,
-      applicationEndDate: applicationDueDate ? applicationDueDate.toISOString() : undefined,
-      fundingStartDate: fundingStartDate ? fundingStartDate.toISOString() : undefined,
-      fundingEndDate: fundingDueDate ? fundingDueDate.toISOString() : undefined,
-      fundingCondition: conditionType,
-      tierSettings: tierSettingsObject,
-      feePercentage: calculatedFeePercentage,
-      customFeePercentage: calculatedCustomFeePercentage,
+      feePercentage: feeType === 'default' ? 300 : undefined,
+      customFeePercentage:
+        feeType === 'custom' ? Math.round(Number.parseFloat(customFee) * 100) : undefined,
     });
+  };
+
+  const extraValidation = () => {
+    if (!watch('programName') || !watch('price') || !watch('summary')) {
+      notify('Please fill in all required fields.', 'error');
+    }
+    dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
+    if (!selectedImage && !isEdit) setImageError('Picture is required.');
+    if (!selectedKeywords?.length)
+      dispatchErrors({ type: ExtraErrorActionKind.SET_KEYWORDS_ERROR });
+    if (!selectedValidators?.length)
+      dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
+    if (!applicationStartDate || !applicationDueDate || !fundingStartDate || !fundingDueDate)
+      dispatchErrors({ type: ExtraErrorActionKind.SET_DATE_ERROR });
+
+    const { isValid } = validateLinks(links);
+    if (!isValid) {
+      dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
+    }
+
+    formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
   };
 
   const { data: carouselItems, refetch } = useCarouselItemsQuery();
 
   const [createCarouselItem] = useCreateCarouselItemMutation();
 
-  const [selectedKeywordItems, setSelectedKeywordItems] = useState<
-    {
-      label: string;
-      value: string;
-    }[]
-  >([]);
   const [selectedValidatorItems, setSelectedValidatorItems] = useState<
     {
       label: string;
@@ -345,6 +331,43 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   >([]);
 
   const formRef = useRef<HTMLFormElement>(null);
+  const { saveDraft: saveInvestmentDraft, loadDraft: loadInvestmentDraft } = useInvestmentDraft();
+
+  // Prefill from draft on mount when creating (not editing)
+  useEffect(() => {
+    if (isEdit) return;
+    const draft = loadInvestmentDraft();
+    if (!draft) return;
+    setValue('programName', draft.programName ?? '');
+    setValue('price', draft.price ?? '');
+    setValue('summary', draft.summary ?? '');
+    setContent(draft.description ?? '');
+    setDeadline(draft.deadline ? new Date(draft.deadline) : undefined);
+    setSelectedKeywords(draft.keywords ?? []);
+    setSelectedValidators(draft.validators ?? []);
+    setLinks(draft.links?.length ? draft.links : ['']);
+    setNetwork(draft.network ?? mainnetDefaultNetwork);
+    setCurrency(draft.currency ?? '');
+    setVisibility(draft.visibility ?? 'public');
+    setSelectedBuilders(draft.builders ?? []);
+    setApplicationStartDate(draft.applicationStartDate ? new Date(draft.applicationStartDate) : undefined);
+    setApplicationDueDate(draft.applicationEndDate ? new Date(draft.applicationEndDate) : undefined);
+    setFundingStartDate(draft.fundingStartDate ? new Date(draft.fundingStartDate) : undefined);
+    setFundingDueDate(draft.fundingEndDate ? new Date(draft.fundingEndDate) : undefined);
+    setConditionType(draft.fundingCondition ?? 'open');
+    setFeeType(draft.feeType ?? 'default');
+    setCustomFee(draft.customFee ?? '0');
+    if (draft.selectedValidatorItems) setSelectedValidatorItems(draft.selectedValidatorItems);
+    if (draft.selectedBuilderItems) setSelectedBuilderItems(draft.selectedBuilderItems);
+    if (draft.tierSettings) {
+      setTiers([
+        { name: 'Bronze', enabled: draft.tierSettings.bronze?.enabled ?? false, maxAmount: draft.tierSettings.bronze?.maxAmount ?? '0' },
+        { name: 'Silver', enabled: draft.tierSettings.silver?.enabled ?? false, maxAmount: draft.tierSettings.silver?.maxAmount ?? '0' },
+        { name: 'Gold', enabled: draft.tierSettings.gold?.enabled ?? false, maxAmount: draft.tierSettings.gold?.maxAmount ?? '0' },
+        { name: 'Platinum', enabled: draft.tierSettings.platinum?.enabled ?? false, maxAmount: draft.tierSettings.platinum?.maxAmount ?? '0' },
+      ]);
+    }
+  }, [isEdit]);
 
   // Tier handlers
   const handleTierChange = (tierName: string, enabled: boolean) => {
@@ -355,6 +378,25 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     setTiers((prev) =>
       prev.map((tier) => (tier.name === tierName ? { ...tier, maxAmount: amount } : tier)),
     );
+  };
+
+  const handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setKeywordInput(e.target.value);
+  };
+
+  const handleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ((e.key === ' ' || e.key === 'Enter') && keywordInput.trim()) {
+      e.preventDefault();
+      const newKeyword = keywordInput.trim();
+      if (newKeyword && !selectedKeywords.includes(newKeyword)) {
+        setSelectedKeywords([...selectedKeywords, newKeyword]);
+      }
+      setKeywordInput('');
+    }
+  };
+
+  const removeKeyword = (keywordToRemove: string) => {
+    setSelectedKeywords(selectedKeywords.filter((keyword) => keyword !== keywordToRemove));
   };
 
   // image input handler
@@ -399,13 +441,10 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   return (
     <form
       ref={formRef}
-      onSubmit={(e) => {
-        console.log('Form submit event triggered');
-        handleSubmit(onSubmit)(e);
-      }}
+      onSubmit={handleSubmit(onSubmit)}
       className="max-w-[820px] w-full mx-auto"
     >
-      <h1 className="font-medium text-xl mb-6">Program</h1>
+      <h1 className="font-medium text-xl mb-6">Investment</h1>
       {/* <h1 className="font-medium text-xl mb-6">{isEdit ? 'Edit Program' : 'Create Program'}</h1> */}
 
       <Tabs defaultValue="overview" value={selectedTab} onValueChange={setSelectedTab}>
@@ -436,16 +475,53 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
               <p className="text-sm font-medium">
                 Keywords <span className="text-primary">*</span>
               </p>
-              <MultiSelect
-                options={keywordOptions ?? []}
-                value={selectedKeywords}
-                onValueChange={setSelectedKeywords}
-                placeholder="Select keywords"
-                animation={2}
-                selectedItems={selectedKeywordItems}
-                setSelectedItems={setSelectedKeywordItems}
-                maxCount={20}
-              />
+              <div className="space-y-3">
+                <Input
+                  id="keyword"
+                  type="text"
+                  placeholder="Enter directly"
+                  value={keywordInput}
+                  onChange={handleKeywordInputChange}
+                  onKeyDown={handleKeywordInputKeyDown}
+                  className="h-10"
+                />
+                {selectedKeywords.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedKeywords.map((keyword) => (
+                      <Badge
+                        key={keyword}
+                        variant="secondary"
+                        className="bg-[#F4F4F5] text-[#18181B] border-0 px-2.5 py-0.5 text-xs font-semibold"
+                      >
+                        {keyword}
+                        <button
+                          type="button"
+                          onClick={() => removeKeyword(keyword)}
+                          className="ml-1 hover:bg-gray-200 rounded-full p-0.5 transition-colors"
+                        >
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                            aria-label="Remove keyword"
+                          >
+                            <title>Remove keyword</title>
+                            <path
+                              d="M9 3L3 9M3 3L9 9"
+                              stroke="currentColor"
+                              strokeWidth="1.4"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
               {extraErrors.keyword && (
                 <span className="text-destructive text-sm block">Keywords is required</span>
               )}
@@ -697,7 +773,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                   </p>
                   <NetworkSelector
                     disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
-                    value={network}
+                    value={network ?? mainnetDefaultNetwork}
                     onValueChange={setNetwork}
                     className="min-w-[120px] h-10 w-full flex justify-between bg-white text-gray-dark border border-input shadow-sm hover:bg-white"
                   />
@@ -721,7 +797,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                   disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
                   value={currency}
                   onValueChange={setCurrency}
-                  network={network}
+                  network={network ?? mainnetDefaultNetwork}
                   className="w-[108px] h-10"
                 />
               </div>
@@ -883,18 +959,89 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         </Button>
       )}
 
-      {isEdit ? (
-        <div className="py-3 flex justify-end gap-4">
-          <Button className="bg-primary hover:bg-primary/90 min-w-[177px]" type="submit">
-            Edit Program
-          </Button>
-        </div>
-      ) : (
-        <div className="py-3 flex justify-end gap-4">
+      <div className="py-3 flex justify-end gap-4">
+        {!isEdit && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                size="lg"
+                aria-label="Save draft"
+                onClick={() => {
+                  // Save all fields except the image into localStorage draft
+                  const draft = {
+                    programName: watch('programName') ?? '',
+                    price: watch('price') ?? '',
+                    description: content ?? '',
+                    summary: watch('summary') ?? '',
+                    currency,
+                    deadline: deadline?.toISOString(),
+                    keywords: selectedKeywords,
+                    validators: selectedValidators,
+                    selectedValidatorItems,
+                    links,
+                    network,
+                    visibility,
+                    builders: selectedBuilders,
+                    selectedBuilderItems,
+                    applicationStartDate: applicationStartDate?.toISOString(),
+                    applicationEndDate: applicationDueDate?.toISOString(),
+                    fundingStartDate: fundingStartDate?.toISOString(),
+                    fundingEndDate: fundingDueDate?.toISOString(),
+                    fundingCondition: conditionType,
+                    tierSettings: conditionType === 'tier'
+                      ? {
+                        bronze: tiers.find((t) => t.name === 'Bronze')?.enabled
+                          ? {
+                            enabled: true,
+                            maxAmount: tiers.find((t) => t.name === 'Bronze')?.maxAmount || '0',
+                          }
+                          : undefined,
+                        silver: tiers.find((t) => t.name === 'Silver')?.enabled
+                          ? {
+                            enabled: true,
+                            maxAmount: tiers.find((t) => t.name === 'Silver')?.maxAmount || '0',
+                          }
+                          : undefined,
+                        gold: tiers.find((t) => t.name === 'Gold')?.enabled
+                          ? {
+                            enabled: true,
+                            maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '0',
+                          }
+                          : undefined,
+                        platinum: tiers.find((t) => t.name === 'Platinum')?.enabled
+                          ? {
+                            enabled: true,
+                            maxAmount: tiers.find((t) => t.name === 'Platinum')?.maxAmount || '0',
+                          }
+                          : undefined,
+                      }
+                      : undefined,
+                    feeType,
+                    customFee,
+                  };
+                  saveInvestmentDraft(draft);
+                  notify('Draft saved (image is not included).');
+                }}
+              >
+                Save
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-white text-foreground border shadow-[0px_4px_6px_-1px_#0000001A]" sideOffset={8}>
+              Image file will not be saved in the draft.
+            </TooltipContent>
+          </Tooltip>
+        )}
+
+        {selectedTab === 'condition' && (
           <Popover>
             <PopoverTrigger>
-              <Button type="button" className="min-w-[97px]" size="lg">
-                Save
+              <Button
+                type="button"
+                className="min-w-[97px] bg-primary hover:bg-primary/90"
+                size="lg"
+              >
+                Save and Upload
               </Button>
             </PopoverTrigger>
             <PopoverContent className="min-w-[440px]">
@@ -954,29 +1101,40 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
               </RadioGroup>
 
               <Button
-                type="button"
-                className="w-full bg-primary hover:bg-primary/90"
                 onClick={() => {
-                  handleSubmit(onSubmit)();
+                  extraValidation();
                 }}
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90"
               >
                 Save
               </Button>
             </PopoverContent>
           </Popover>
+        )}
 
-          {selectedTab === 'overview' && (
-            <Button
-              type="button"
-              size="lg"
-              variant="outline"
-              onClick={() => setSelectedTab('details')}
-            >
-              Next to Details <ChevronRight />
-            </Button>
-          )}
-        </div>
-      )}
+        {selectedTab === 'overview' && (
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            onClick={() => setSelectedTab('details')}
+          >
+            Next to Details <ChevronRight />
+          </Button>
+        )}
+
+        {selectedTab === 'details' && (
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            onClick={() => setSelectedTab('condition')}
+          >
+            Next to Condition <ChevronRight />
+          </Button>
+        )}
+      </div>
     </form>
   );
 }

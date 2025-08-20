@@ -12,7 +12,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { cn, getCurrency, } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useProjectDraft } from '@/lib/hooks/use-project-draft';
+import notify from '@/lib/notify';
+import { cn, getCurrency } from '@/lib/utils';
+import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { type LinkInput, ProgramStatus } from '@/types/types.generated';
 import { Check, ChevronRight, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';
@@ -51,7 +55,7 @@ export type OnSubmitProjectFunc = (data: {
   fundingToBeRaised?: string;
   description: string;
   summary: string;
-  links: LinkInput[];
+  links?: LinkInput[];
   // isPublish?: boolean;
   image?: File;
   visibility: 'public' | 'restricted' | 'private';
@@ -121,9 +125,12 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
   ]);
 
   const [extraErrors, dispatchErrors] = useReducer(extraErrorReducer, {
-    deadline: false,
     links: false,
     invalidLink: false,
+    supporterTier: false,
+    description: false,
+    terms: [] as boolean[],
+    milestones: [] as boolean[],
   });
 
   // useEffect(() => {
@@ -166,6 +173,8 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     register,
     handleSubmit,
     formState: { errors },
+    watch,
+    setValue,
   } = useForm({
     values: {
       name: '',
@@ -180,13 +189,14 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     summary: string;
   }) => {
     if (
-      extraErrors.deadline ||
       extraErrors.links ||
       extraErrors.invalidLink ||
       !content.length ||
       !supporterTierConfirmed
-    )
+    ) {
+      notify('Please fill in all required fields.', 'error');
       return;
+    }
 
     onSubmitProject({
       id: data?.program?.id ?? id,
@@ -195,7 +205,10 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
         isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.fundingToBeRaised,
       description: content,
       summary: submitData.summary,
-      links: links.map((l) => ({ title: l, url: l })),
+      links: (() => {
+        const { shouldSend } = validateLinks(links);
+        return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
+      })(),
       visibility: visibility,
       builders: selectedBuilders,
       milestones: milestones,
@@ -204,17 +217,104 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
   };
 
   const extraValidation = () => {
-    dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
-    // if (!deadline) dispatchErrors({ type: ExtraErrorActionKind.SET_DEADLINE_ERROR });
-    if (!links?.[0]) dispatchErrors({ type: ExtraErrorActionKind.SET_LINKS_ERROR });
-    if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
-      dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
+    let hasErrors = false;
+
+    if (!watch('name') || !watch('fundingToBeRaised') || !watch('summary')) {
+      notify('Please fill in all required fields.', 'error');
+      hasErrors = true;
     }
 
-    formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
+
+    if (!content.length) {
+      dispatchErrors({ type: ExtraErrorActionKind.SET_DESCRIPTION_ERROR });
+      hasErrors = true;
+    }
+
+    if (!supporterTierConfirmed) {
+      dispatchErrors({ type: ExtraErrorActionKind.SET_SUPPORTER_TIER_ERROR });
+      hasErrors = true;
+    }
+
+    // Validate terms
+    const termsErrors = terms.map((term) => {
+      const hasError = !term.title || !term.prize || !term.purchaseLimit || !term.description;
+      if (hasError) {
+        const purchaseLimit = Number.parseInt(term.purchaseLimit, 10);
+        if (Number.isNaN(purchaseLimit) || purchaseLimit <= 0) {
+          return true;
+        }
+      }
+      return hasError;
+    });
+
+    if (termsErrors.some(error => error)) {
+      dispatchErrors({ type: ExtraErrorActionKind.SET_TERMS_ERROR, payload: termsErrors });
+      hasErrors = true;
+    }
+
+    // Validate milestones
+    const milestonesErrors = milestones.map((milestone) => {
+      return !milestone.title || !milestone.payoutPercentage || !milestone.endDate || !milestone.summary || !milestone.description;
+    });
+
+    if (milestonesErrors.some(error => error)) {
+      dispatchErrors({ type: ExtraErrorActionKind.SET_MILESTONES_ERROR, payload: milestonesErrors });
+      hasErrors = true;
+    }
+
+    let totalPayout = 0;
+    for (const milestone of milestones) {
+      const payout = Number.parseFloat(milestone.payoutPercentage);
+      if (!Number.isNaN(payout) && payout >= 0) {
+        totalPayout += payout;
+      }
+    }
+
+    if (totalPayout > 100) {
+      notify('Total milestone payout cannot exceed 100%.', 'error');
+      hasErrors = true;
+    }
+
+    // Validate funding amount
+    const maxFunding = Number.parseFloat(data?.program?.price ?? '0');
+    const requestedFunding = Number.parseFloat(watch('fundingToBeRaised') ?? '0');
+    if (requestedFunding > maxFunding) {
+      notify('Funding to be raised cannot exceed maximum funding amount.', 'error');
+      hasErrors = true;
+    }
+
+    const { isValid } = validateLinks(links);
+    if (!isValid) {
+      dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
+      hasErrors = true;
+    }
+
+    if (!hasErrors) {
+      formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    }
   };
 
   const formRef = useRef<HTMLFormElement>(null);
+  const { saveDraft: saveProjectDraft, loadDraft: loadProjectDraft } = useProjectDraft();
+
+  // Prefill from draft on mount when creating (not editing)
+  useEffect(() => {
+    if (isEdit) return;
+    const draft = loadProjectDraft();
+    if (!draft) return;
+    setValue('name', draft.name ?? '');
+    setValue('fundingToBeRaised', draft.fundingToBeRaised ?? '');
+    setValue('summary', draft.summary ?? '');
+    setContent(draft.description ?? '');
+    setLinks(draft.links?.length ? draft.links : ['']);
+    setVisibility(draft.visibility ?? 'public');
+    setSelectedBuilders(draft.builders ?? []);
+    setSupporterTierConfirmed(draft.supporterTierConfirmed ?? false);
+    if (draft.selectedBuilderItems) setSelectedBuilderItems(draft.selectedBuilderItems);
+    if (draft.terms) setTerms(draft.terms);
+    if (draft.milestones) setMilestones(draft.milestones);
+  }, [isEdit]);
 
   // Terms handlers
   const addTerm = () => {
@@ -388,6 +488,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                   Confirmed
                 </Label>
               </div>
+              {extraErrors.supporterTier && (
+                <span className="text-destructive text-sm block mt-2">Please confirm the supporter tier</span>
+              )}
             </label>
           </div>
 
@@ -471,7 +574,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
               <p className="text-sm font-medium">Description</p>
 
               <MarkdownEditor onChange={setContent} content={content} />
-              {!content.length && (
+              {extraErrors.description && (
                 <span className="text-destructive text-sm block">Description is required</span>
               )}
             </label>
@@ -510,6 +613,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       onChange={(e) => updateTerm(index, 'title', e.target.value)}
                       className="mt-2 h-10"
                     />
+                    {extraErrors.terms[index] && !term.title && (
+                      <span className="text-destructive text-sm block mt-1">Title is required</span>
+                    )}
                   </div>
 
                   {/* Prize/Tier Selection and Purchase Limit */}
@@ -579,6 +685,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                           className="mt-2 h-10"
                         />
                       )}
+                      {extraErrors.terms[index] && !term.prize && (
+                        <span className="text-destructive text-sm block mt-1">Prize/Tier is required</span>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor={`purchaseLimit-${index}`} className="text-sm font-medium">
@@ -592,6 +701,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         onChange={(e) => updateTerm(index, 'purchaseLimit', e.target.value)}
                         className="mt-2 h-10"
                       />
+                      {extraErrors.terms[index] && (!term.purchaseLimit || Number.parseInt(term.purchaseLimit, 10) <= 0) && (
+                        <span className="text-destructive text-sm block mt-1">Purchase limit must be a positive integer</span>
+                      )}
                     </div>
                   </div>
 
@@ -612,6 +724,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                           }
                         }}
                       />
+                      {extraErrors.terms[index] && !term.description && (
+                        <span className="text-destructive text-sm block mt-1">Description is required</span>
+                      )}
                     </div>
                   </div>
 
@@ -665,6 +780,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       onChange={(e) => updateMilestone(index, 'title', e.target.value)}
                       className="mt-2 h-10"
                     />
+                    {extraErrors.milestones[index] && !milestone.title && (
+                      <span className="text-destructive text-sm block mt-1">Title is required</span>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -681,6 +799,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         onChange={(e) => updateMilestone(index, 'payoutPercentage', e.target.value)}
                         className="mt-2 h-10"
                       />
+                      {extraErrors.milestones[index] && (!milestone.payoutPercentage || Number.parseFloat(milestone.payoutPercentage) < 0) && (
+                        <span className="text-destructive text-sm block mt-1">Payout percentage must be a positive number</span>
+                      )}
                     </div>
 
                     {/* End Date */}
@@ -695,6 +816,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                           disabled={{ before: new Date() }}
                         />
                       </div>
+                      {extraErrors.milestones[index] && !milestone.endDate && (
+                        <span className="text-destructive text-sm block mt-1">End date is required</span>
+                      )}
                     </div>
                   </div>
 
@@ -710,7 +834,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       onChange={(e) => updateMilestone(index, 'summary', e.target.value)}
                       className="mt-2"
                     />
-                    <p className="text-xs text-gray-500 mt-1">This is a textarea description.</p>
+                    {extraErrors.milestones[index] && !milestone.summary && (
+                      <span className="text-destructive text-sm block mt-1">Summary is required</span>
+                    )}
                   </div>
 
                   {/* Description */}
@@ -733,6 +859,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                           }
                         }}
                       />
+                      {extraErrors.milestones[index] && !milestone.description && (
+                        <span className="text-destructive text-sm block mt-1">Description is required</span>
+                      )}
                     </div>
                   </div>
 
@@ -755,30 +884,57 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
         </TabsContent>
       </Tabs>
 
-      {isEdit ? (
-        <div className="py-3 flex justify-end gap-4">
-          <Button
-            className="bg-primary hover:bg-primary/90 min-w-[177px]"
-            type="submit"
-            onClick={() => {
-              extraValidation();
-            }}
-          >
-            Edit Project
-          </Button>
-        </div>
-      ) : (
-        <div className="py-3 flex justify-end gap-4">
+      <div className="py-3 flex justify-end gap-4">
+        {!isEdit && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                size="lg"
+                aria-label="Save draft"
+                onClick={() => {
+                  // Save all fields except the image into localStorage draft
+                  const draft = {
+                    name: watch('name') ?? '',
+                    fundingToBeRaised: watch('fundingToBeRaised') ?? '',
+                    description: content ?? '',
+                    summary: watch('summary') ?? '',
+                    links,
+                    visibility,
+                    builders: selectedBuilders,
+                    selectedBuilderItems,
+                    supporterTierConfirmed,
+                    terms,
+                    milestones,
+                  };
+                  saveProjectDraft(draft);
+                  notify('Draft saved.');
+                }}
+              >
+                Save
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-white text-foreground border shadow-[0px_4px_6px_-1px_#0000001A]" sideOffset={8}>
+              Save your progress as a draft.
+            </TooltipContent>
+          </Tooltip>
+        )}
+
+        {selectedTab === 'milestone' && (
           <Popover>
             <PopoverTrigger>
-              <Button type="button" className="min-w-[97px]" size="lg">
-                Save
+              <Button
+                type="button"
+                className="min-w-[97px] bg-primary hover:bg-primary/90"
+                size="lg"
+              >
+                Save and Upload
               </Button>
             </PopoverTrigger>
             <PopoverContent className="min-w-[440px]">
               <h2 className="text-foreground font-semibold text-center text-lg">Visibility</h2>
               <p className="text-center text-muted-foreground text-sm mb-4">
-                Choose when to publish and who can see your program.
+                Choose when to publish and who can see your project.
               </p>
 
               <RadioGroup
@@ -794,7 +950,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       Private
                     </Label>
                     <p className="text-sm text-muted-foreground mb-2">
-                      Only invited users can view this program.
+                      Only invited users can view this project.
                     </p>
                     {visibility === 'private' && (
                       <MultiSelect
@@ -826,14 +982,13 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                   <RadioGroupItem value="public" id="r3" className="border-foreground" />
                   <div>
                     <Label htmlFor="r3">Public</Label>
-                    <p className="text-sm text-muted-foreground">Anyone can view this program.</p>
+                    <p className="text-sm text-muted-foreground">Anyone can view this project.</p>
                   </div>
                 </div>
               </RadioGroup>
 
               <Button
                 onClick={() => {
-                  console.log('onCLICK!!!!');
                   extraValidation();
                 }}
                 type="submit"
@@ -843,19 +998,41 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
               </Button>
             </PopoverContent>
           </Popover>
+        )}
 
-          {selectedTab === 'overview' && (
-            <Button
-              type="button"
-              size="lg"
-              variant="outline"
-              onClick={() => setSelectedTab('details')}
-            >
-              Next to Details <ChevronRight />
-            </Button>
-          )}
-        </div>
-      )}
+        {selectedTab === 'overview' && (
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            onClick={() => setSelectedTab('details')}
+          >
+            Next to Details <ChevronRight />
+          </Button>
+        )}
+
+        {selectedTab === 'details' && (
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            onClick={() => setSelectedTab('terms')}
+          >
+            Next to Terms <ChevronRight />
+          </Button>
+        )}
+
+        {selectedTab === 'terms' && (
+          <Button
+            type="button"
+            size="lg"
+            variant="outline"
+            onClick={() => setSelectedTab('milestone')}
+          >
+            Next to Milestones <ChevronRight />
+          </Button>
+        )}
+      </div>
     </form>
   );
 }
@@ -863,30 +1040,32 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 export default ProjectForm;
 
 enum ExtraErrorActionKind {
-  SET_DEADLINE_ERROR = 'SET_DEADLINE_ERROR',
   SET_LINKS_ERROR = 'SET_LINKS_ERROR',
   CLEAR_ERRORS = 'CLEAR_ERRORS',
   SET_INVALID_LINK_ERROR = 'SET_INVALID_LINK_ERROR',
+  SET_SUPPORTER_TIER_ERROR = 'SET_SUPPORTER_TIER_ERROR',
+  SET_DESCRIPTION_ERROR = 'SET_DESCRIPTION_ERROR',
+  SET_TERMS_ERROR = 'SET_TERMS_ERROR',
+  SET_MILESTONES_ERROR = 'SET_MILESTONES_ERROR',
 }
 
 interface ExtraErrorAction {
   type: ExtraErrorActionKind;
+  payload?: boolean[];
 }
 
 interface ExtraErrorState {
-  deadline: boolean;
   links: boolean;
   invalidLink: boolean;
+  supporterTier: boolean;
+  description: boolean;
+  terms: boolean[];
+  milestones: boolean[];
 }
 
 function extraErrorReducer(state: ExtraErrorState, action: ExtraErrorAction) {
   const { type } = action;
   switch (type) {
-    case ExtraErrorActionKind.SET_DEADLINE_ERROR:
-      return {
-        ...state,
-        deadline: true,
-      };
     case ExtraErrorActionKind.SET_LINKS_ERROR:
       return {
         ...state,
@@ -897,11 +1076,34 @@ function extraErrorReducer(state: ExtraErrorState, action: ExtraErrorAction) {
         ...state,
         invalidLink: true,
       };
+    case ExtraErrorActionKind.SET_SUPPORTER_TIER_ERROR:
+      return {
+        ...state,
+        supporterTier: true,
+      };
+    case ExtraErrorActionKind.SET_DESCRIPTION_ERROR:
+      return {
+        ...state,
+        description: true,
+      };
+    case ExtraErrorActionKind.SET_TERMS_ERROR:
+      return {
+        ...state,
+        terms: action.payload || [],
+      };
+    case ExtraErrorActionKind.SET_MILESTONES_ERROR:
+      return {
+        ...state,
+        milestones: action.payload || [],
+      };
     case ExtraErrorActionKind.CLEAR_ERRORS:
       return {
-        deadline: false,
         links: false,
         invalidLink: false,
+        supporterTier: false,
+        description: false,
+        terms: [],
+        milestones: [],
       };
     default:
       return state;

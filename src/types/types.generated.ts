@@ -23,10 +23,14 @@ export type Application = {
   applicant?: Maybe<User>;
   comments?: Maybe<Array<Comment>>;
   content?: Maybe<Scalars['String']['output']>;
+  currentFundingAmount?: Maybe<Scalars['String']['output']>;
+  fundingProgress?: Maybe<Scalars['Float']['output']>;
   fundingSuccessful?: Maybe<Scalars['Boolean']['output']>;
   fundingTarget?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
+  investmentCount?: Maybe<Scalars['Int']['output']>;
   investmentTerms?: Maybe<Array<InvestmentTerm>>;
+  investors?: Maybe<Array<Investor>>;
   links?: Maybe<Array<Link>>;
   metadata?: Maybe<Scalars['JSON']['output']>;
   milestones?: Maybe<Array<Milestone>>;
@@ -227,6 +231,26 @@ export type InvestmentTerm = {
   purchaseLimit?: Maybe<Scalars['Int']['output']>;
   title?: Maybe<Scalars['String']['output']>;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export enum InvestmentTier {
+  Bronze = 'bronze',
+  Gold = 'gold',
+  Platinum = 'platinum',
+  Silver = 'silver'
+}
+
+export type Investor = {
+  __typename?: 'Investor';
+  amount?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['String']['output']>;
+  email?: Maybe<Scalars['String']['output']>;
+  firstName?: Maybe<Scalars['String']['output']>;
+  investmentStatus?: Maybe<Scalars['String']['output']>;
+  lastName?: Maybe<Scalars['String']['output']>;
+  maxInvestmentAmount?: Maybe<Scalars['String']['output']>;
+  tier?: Maybe<Scalars['String']['output']>;
+  userId?: Maybe<Scalars['ID']['output']>;
 };
 
 export type Keyword = {
@@ -432,7 +456,9 @@ export type MutationIncrementPostViewArgs = {
 
 
 export type MutationInviteUserToProgramArgs = {
+  maxInvestmentAmount?: InputMaybe<Scalars['String']['input']>;
   programId: Scalars['ID']['input'];
+  tier?: InputMaybe<InvestmentTier>;
   userId: Scalars['ID']['input'];
 };
 
@@ -688,6 +714,7 @@ export type Program = {
   rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<ProgramStatus>;
   summary?: Maybe<Scalars['String']['output']>;
+  supporters?: Maybe<Array<Supporter>>;
   tierSettings?: Maybe<Scalars['JSON']['output']>;
   txHash?: Maybe<Scalars['String']['output']>;
   type?: Maybe<ProgramType>;
@@ -889,6 +916,16 @@ export type Subscription = {
   __typename?: 'Subscription';
   countNotifications?: Maybe<Scalars['Int']['output']>;
   notifications?: Maybe<Array<Notification>>;
+};
+
+export type Supporter = {
+  __typename?: 'Supporter';
+  email?: Maybe<Scalars['String']['output']>;
+  firstName?: Maybe<Scalars['String']['output']>;
+  lastName?: Maybe<Scalars['String']['output']>;
+  maxInvestmentAmount?: Maybe<Scalars['String']['output']>;
+  tier?: Maybe<Scalars['String']['output']>;
+  userId?: Maybe<Scalars['ID']['output']>;
 };
 
 export type UpdateApplicationInput = {

@@ -1,12 +1,16 @@
 
+import client from '@/apollo/client';
 import { useCreateApplicationMutation } from '@/apollo/mutation/create-application.generated';
+import { ProgramDocument } from '@/apollo/queries/program.generated';
+import notify from '@/lib/notify';
 import ProjectForm, { type OnSubmitProjectFunc } from '@/pages/investments/_components/project-form';
 import { ApplicationStatus, } from '@/types/types.generated';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 const CreateProjectPage: React.FC = () => {
   const [createApplication] = useCreateApplicationMutation();
 
+  const navigate = useNavigate();
   const { id } = useParams()
 
   // const { isLoggedIn, isAuthed } = useAuth();
@@ -77,10 +81,12 @@ const CreateProjectPage: React.FC = () => {
         },
       },
       onCompleted: async (data) => {
-        console.log(data);
+        navigate(`/investments/${id}/project/${data.createApplication?.id}`);
+        notify('Project created successfully', 'success');
+        client.refetchQueries({ include: [ProgramDocument] });
       },
       onError: (error) => {
-        console.log(error);
+        notify(error.message, 'error');
       },
     });
   };

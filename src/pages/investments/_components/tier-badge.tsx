@@ -4,7 +4,7 @@ import type { FC } from 'react';
 export type TierType = 'bronze' | 'silver' | 'gold' | 'platinum';
 
 interface TierBadgeProps {
-  tier: TierType;
+  tier?: TierType;
   className?: string;
 }
 
@@ -28,6 +28,7 @@ const tierStyles: Record<TierType, { bg: string; text: string }> = {
 };
 
 export const TierBadge: FC<TierBadgeProps> = ({ tier, className }) => {
+  if (!tier) return null;
   const { bg, text } = tierStyles[tier] ?? { bg: 'bg-gray-200', text: 'text-gray-600' };
 
   return (

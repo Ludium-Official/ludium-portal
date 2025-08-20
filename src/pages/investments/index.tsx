@@ -6,11 +6,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
-import { ApplicationStatus, type Program, ProgramType, SortEnum } from '@/types/types.generated';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { ApplicationStatus, type Program, ProgramStatus, ProgramType, SortEnum } from '@/types/types.generated';
 import { CirclePlus, Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 
 export default function InvestmentsPage() {
   const navigate = useNavigate();
@@ -18,6 +18,83 @@ export default function InvestmentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+  const { userId } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchParams.get('search') ?? '');
+    }, 300); // Adjust the debounce delay as needed
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchParams.get('search')]);
+
+  useEffect(() => {
+    setSearchParams(new URLSearchParams());
+  }, [activeTab]);
+
+  const filter = [
+    ...(activeTab === 'my-programs'
+      ? [
+        {
+          field: 'userId',
+          value: userId,
+        },
+      ]
+      : []),
+    ...(activeTab === 'newest'
+      ? [
+        {
+          field: 'status',
+          values: [ProgramStatus.Published, ProgramStatus.Completed, ProgramStatus.Pending, ProgramStatus.PaymentRequired, ProgramStatus.Cancelled, ProgramStatus.Closed, ProgramStatus.Rejected],
+        },
+        {
+          field: 'visibility',
+          value: 'public',
+        },
+      ]
+      : []),
+    ...(activeTab === 'imminent'
+      ? [
+        {
+          field: 'status',
+          value: 'published',
+        },
+        {
+          field: 'visibility',
+          value: 'public',
+        },
+
+        {
+          field: 'imminent',
+          value: "true",
+        },
+      ]
+      : []),
+    ...(activeTab === 'completed'
+      ? [
+        {
+          field: 'status',
+          value: 'completed',
+        },
+        {
+          field: 'visibility',
+          value: 'public',
+        },
+      ]
+      : []),
+    {
+      field: 'name',
+      value: debouncedSearch,
+    }, {
+      field: 'type',
+      value: ProgramType.Funding,
+    },
+  ];
 
   const { data, loading, error } = useProgramsQuery({
     variables: {
@@ -25,20 +102,7 @@ export default function InvestmentsPage() {
         limit: itemsPerPage,
         offset: (currentPage - 1) * itemsPerPage,
         sort: SortEnum.Desc,
-        filter: [
-          {
-            field: 'type',
-            value: ProgramType.Funding,
-          },
-          ...(searchQuery
-            ? [
-              {
-                field: 'name',
-                value: searchQuery,
-              },
-            ]
-            : []),
-        ],
+        filter: filter,
       },
     },
   });
@@ -88,42 +152,10 @@ export default function InvestmentsPage() {
               {/* Tabs */}
               <Tabs value={activeTab} onValueChange={handleTabChange} className="w-auto">
                 <TabsList className="w-auto bg-gray-100 p-1">
-                  <TabsTrigger
-                    value="newest"
-                    className={cn(
-                      'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
-                      'text-gray-500 px-4 py-1.5 text-sm font-medium',
-                    )}
-                  >
-                    Newest
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="imminent"
-                    className={cn(
-                      'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
-                      'text-gray-500 px-4 py-1.5 text-sm font-medium',
-                    )}
-                  >
-                    Imminent
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="my-program"
-                    className={cn(
-                      'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
-                      'text-gray-500 px-4 py-1.5 text-sm font-medium',
-                    )}
-                  >
-                    My program
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="completed"
-                    className={cn(
-                      'data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
-                      'text-gray-500 px-4 py-1.5 text-sm font-medium',
-                    )}
-                  >
-                    Completed
-                  </TabsTrigger>
+                  <TabsTrigger value="newest">Newest</TabsTrigger>
+                  <TabsTrigger value="imminent">Imminent</TabsTrigger>
+                  <TabsTrigger value="my-programs">My programs</TabsTrigger>
+                  <TabsTrigger value="completed">Completed</TabsTrigger>
                 </TabsList>
               </Tabs>
 
@@ -219,16 +251,23 @@ interface InvestmentCardProps {
 function InvestmentCard({ program }: InvestmentCardProps) {
   // const currency = getCurrency(program.currency);
   // const status = formatProgramStatus(program);
+  const deadlineDate = new Date(program.deadline);
+  const today = new Date();
+  // Zero out the time for both dates to get full days difference
+  deadlineDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  const diffTime = deadlineDate.getTime() - today.getTime();
+  const daysUntilDeadline = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
-  const daysUntilDeadline = program.deadline
-    ? Math.ceil(
-      (new Date(program.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
-    )
-    : null;
+  // const daysUntilDeadline = program.deadline
+  //   ? Math.ceil(
+  //     (new Date(program.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
+  //   )
+  //   : null;
 
   return (
     <Card className="w-full border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
-      <CardContent className="p-5">
+      <CardContent className="">
         {/* Header with badges and status */}
         <div className="flex justify-between items-start mb-4">
           <div className="flex flex-wrap gap-1.5">
@@ -272,12 +311,12 @@ function InvestmentCard({ program }: InvestmentCardProps) {
 
             {/* Deadline and amount */}
             <div className="space-y-3">
-              <div className="bg-[#0000000A] rounded-md p-2 flex items-center">
-                <div className="text-sm font-semibold text-gray-500">DATE</div>
+              <div className="bg-[#0000000A] rounded-md py-1 px-2 gap-2 inline-flex items-center">
+                <div className="text-sm font-semibold text-neutral-400">DATE</div>
                 <div className="flex items-center gap-2">
                   {program.applicationStartDate && program.applicationEndDate ? (
                     <>
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground font-medium">
                         {new Date(program.applicationStartDate)
                           .toLocaleDateString('en-US', {
                             day: '2-digit',
@@ -288,8 +327,8 @@ function InvestmentCard({ program }: InvestmentCardProps) {
                           .split(' ')
                           .join(' . ')}
                       </div>
-                      <div className="w-px h-4 bg-gray-300" />
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <div className="w-2 h-px bg-muted-foreground" />
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground font-medium">
                         {new Date(program.applicationEndDate)
                           .toLocaleDateString('en-US', {
                             day: '2-digit',
@@ -308,7 +347,7 @@ function InvestmentCard({ program }: InvestmentCardProps) {
                   )}
                 </div>
                 <Badge className="bg-gray-900 text-white text-xs font-semibold">
-                  D-{daysUntilDeadline || 7}
+                  D-{daysUntilDeadline || 0}
                 </Badge>
               </div>
 
@@ -322,19 +361,19 @@ function InvestmentCard({ program }: InvestmentCardProps) {
         </Link>
 
         {/* Footer buttons */}
-        <div className="flex justify-between">
+        <div className="flex justify-between mt-6">
           <Link
             to={`/investments/${program?.id}#applications`}
             className="text-xs font-semibold bg-gray-light rounded-md px-3 py-2 leading-4"
           >
-            Submitted Application{' '}
+            Submitted Project{' '}
             <span className="text-primary">{program.applications?.length ?? 0}</span>
           </Link>
           <Link
             to={`/investments/${program?.id}#applications`}
             className="text-xs font-semibold bg-gray-light rounded-md px-3 py-2 leading-4"
           >
-            Approved Application{' '}
+            Approved Project{' '}
             <span className="text-green-600">
               {program.applications?.filter((a) => a.status === ApplicationStatus.Accepted)
                 .length ?? 0}

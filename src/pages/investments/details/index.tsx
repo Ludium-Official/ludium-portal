@@ -16,9 +16,11 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
+import notify from '@/lib/notify';
 import { cn, getCurrencyIcon, getInitials, getUserName } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
 import ProjectCard from '@/pages/investments/details/_components/project-card';
+import type { InvestmentTier } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronDown, Settings, Share2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -144,14 +146,16 @@ const InvestmentDetailsPage: React.FC = () => {
           variables: {
             programId: id,
             userId: supporter.id,
+            tier: supporter.tier as InvestmentTier,
+            maxInvestmentAmount: program?.tierSettings?.[supporter.tier as keyof typeof program.tierSettings]?.maxAmount,
           },
           onError: (error) => {
-            console.error(`Failed to invite ${supporter.name}:`, error.message);
+            notify(`Failed to invite ${supporter.name}: ${error.message}`, 'error');
           }
         });
       }
 
-      console.log('All invitations sent successfully');
+      notify('All invitations sent successfully', 'success');
       setStoredSupporters([]);
       refetch();
     } catch (error) {
@@ -450,21 +454,21 @@ const InvestmentDetailsPage: React.FC = () => {
                     </div> */}
                     {/* Supporters Tab */}
                     {supportersTab === 'supporters' && (
-                      <div className="space-y-4">
+                      <div className="">
                         {/* <h3 className="text-sm font-semibold">Current Supporters</h3> */}
                         <div className="grid grid-cols-3 gap-4 p-3 border-b text-sm font-medium">
                           <div className='text-muted-foreground'>Tier</div>
                           <div className='text-muted-foreground'>User name</div>
                           <div />
                         </div>
-                        {program?.invitedBuilders && program.invitedBuilders.length > 0 ? (
-                          <div className="space-y-3">
-                            {program.invitedBuilders.map((supporter) => (
-                              <div key={supporter.id} className="grid grid-cols-3 gap-4 p-3 border-b last:border-b-0 items-center hover:bg-muted">
+                        {program?.supporters && program.supporters.length > 0 ? (
+                          <div className="">
+                            {program.supporters.map((supporter) => (
+                              <div key={supporter.userId} className="grid grid-cols-3 gap-4 p-3 min-h-[64px] border-b last:border-b-0 items-center hover:bg-muted">
                                 <div>
-                                  <TierBadge tier={'gold' as TierType} />
+                                  <TierBadge tier={supporter.tier as TierType} />
                                 </div>
-                                <div className="text-sm">{supporter.firstName} {supporter.lastName}</div>
+                                <div className="text-sm">{supporter.firstName} {supporter.lastName} {supporter.email}</div>
                                 <div className="flex justify-end">
                                   {/* <Button
                                   size="sm"
@@ -855,6 +859,7 @@ const InvestmentDetailsPage: React.FC = () => {
               <ProjectCard
                 key={a.id}
                 application={a}
+                program={data?.program}
               />
             ))}
           </section>

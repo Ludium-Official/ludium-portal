@@ -173,7 +173,7 @@ const CreateInvestment: React.FC = () => {
               notify('Failed to invite some builders to the program.', 'error');
             }
           }
-          navigate('/programs');
+          navigate('/investments');
           client.refetchQueries({ include: [ProgramsDocument] });
           notify('Investment program created successfully!', 'success');
         },

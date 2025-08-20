@@ -51,6 +51,19 @@ query application($id: ID!) {
       title
       updatedAt
     }
+    investors {
+      amount
+      createdAt
+      email
+      firstName
+      investmentStatus
+      lastName
+      maxInvestmentAmount
+      tier
+      userId
+    }
+    currentFundingAmount
+    fundingProgress
     status
   }
 }

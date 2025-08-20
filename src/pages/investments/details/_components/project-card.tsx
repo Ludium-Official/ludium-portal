@@ -1,6 +1,7 @@
 import { ApplicationStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getCurrency, getUserName } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
+import { getCurrencyIcon, getUserName } from '@/lib/utils';
 import type { Application, Program } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { Link } from 'react-router';
@@ -20,7 +21,7 @@ function ProjectCard({
   const network = program?.network || 'Arbitrum';
 
   return (
-    <Link to={`./application/${application?.id}`} className="border rounded-lg p-5 bg-white">
+    <Link to={`./project/${application?.id}`} className="border rounded-lg p-5 bg-white">
       {/* Status Badge */}
       <div className="flex justify-between items-start mb-3">
         <ApplicationStatusBadge application={application} />
@@ -71,16 +72,32 @@ function ProjectCard({
         </div>
 
         {/* Price Tag */}
-        <div className="bg-[#0000000A] rounded-md px-2 py-1 inline-flex items-center gap-3 w-fit">
-          <span className="text-xs text-neutral-400 font-semibold">PRICE</span>
-          <div className="flex items-center gap-1">
-            <span className="text-sm font-bold text-muted-foreground">{totalPrice}</span>
-            {getCurrency(program?.network)?.icon}
-            <span className="text-sm font-medium text-muted-foreground">{currency}</span>
+        <div className="bg-[#0000000A] rounded-md px-2 py-1">
+          <div className='flex items-center gap-3 justify-between'>
+            <span className="text-xs text-neutral-400 font-semibold">PRIZE</span>
+            <div className='flex items-center gap-2'>
+
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-bold text-muted-foreground">{totalPrice}</span>
+                {getCurrencyIcon(program?.currency)}
+                <span className="text-sm font-medium text-muted-foreground">{currency}</span>
+              </div>
+              <div className="w-px h-5 bg-slate-200" />
+              <span className="text-sm font-medium text-muted-foreground">{network}</span>
+            </div>
           </div>
-          <div className="w-px h-5 bg-slate-200" />
-          <span className="text-sm font-medium text-muted-foreground">{network}</span>
+
+          <div className="flex items-center gap-[20px] justify-between w-full">
+            <h4 className="text-neutral-400 text-sm font-bold">STATUS</h4>
+
+            <Progress value={application?.fundingProgress ?? 0} rootClassName="w-full" indicatorClassName="bg-primary" />
+
+            <p className="text-xl text-primary font-bold flex items-center">
+              {application?.fundingProgress ?? 0}<span className="text-sm text-muted-foreground">%</span>
+            </p>
+          </div>
         </div>
+
       </div>
 
       {/* Description */}

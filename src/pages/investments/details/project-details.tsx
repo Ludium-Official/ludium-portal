@@ -1,9 +1,10 @@
+import client from '@/apollo/client';
 import { useAcceptApplicationMutation } from '@/apollo/mutation/accept-application.generated';
 import { useCheckMilestoneMutation } from '@/apollo/mutation/check-milestone.generated';
 import { useCreateInvestmentMutation } from '@/apollo/mutation/create-investment.generated';
 // import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
-import { useApplicationQuery } from '@/apollo/queries/application.generated';
-import { useProgramQuery } from '@/apollo/queries/program.generated';
+import { ApplicationDocument, useApplicationQuery } from '@/apollo/queries/application.generated';
+import { ProgramDocument, useProgramQuery } from '@/apollo/queries/program.generated';
 import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { ApplicationStatusBadge, MilestoneStatusBadge, ProgramStatusBadge } from '@/components/status-badge';
 import {
@@ -22,6 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -29,7 +31,7 @@ import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
-import { getCurrency, getCurrencyIcon, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
+import { cn, getCurrency, getCurrencyIcon, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
 // import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
@@ -40,7 +42,7 @@ import SubmitMilestoneForm from '@/pages/programs/details/_components/submit-mil
 import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
-import { ArrowUpRight, Check, CircleAlert, Coins, Settings, TrendingUp } from 'lucide-react';
+import { ArrowUpRight, Check, ChevronDown, CircleAlert, Coins, Settings, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
@@ -118,6 +120,8 @@ function ProjectDetailsPage() {
         onCompleted: () => {
           notify('Investment created successfully', 'success');
           setIsInvestDialogOpen(false);
+          setSelectedTier('')
+          client.refetchQueries({ include: [ApplicationDocument, ProgramDocument] })
           refetch();
         },
         onError: (error) => {
@@ -200,7 +204,7 @@ function ProjectDetailsPage() {
 
             <button
               type="button"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate(`/investments/${id}`)}
               className="font-medium flex gap-2 items-center text-sm cursor-pointer"
             >
               Back to Program detail <ArrowUpRight className="w-4 h-4" />
@@ -411,28 +415,49 @@ function ProjectDetailsPage() {
               <div className="flex items-center gap-[20px] justify-between w-full mt-4">
                 <h4 className="text-neutral-400 text-sm font-bold">STATUS</h4>
 
-                <Progress value={25} rootClassName="w-full" indicatorClassName="bg-primary" />
+                <Progress value={data?.application?.fundingProgress ?? 0} rootClassName="w-full" indicatorClassName="bg-primary" />
 
                 <p className="text-xl text-primary font-bold flex items-center">
-                  25<span className="text-sm text-muted-foreground">%</span>
+                  {data?.application?.fundingProgress ?? 0}<span className="text-sm text-muted-foreground">%</span>
                 </p>
               </div>
             </div>
 
             <div className="flex justify-between items-center mb-6">
-              <div className="flex items-start gap-3">
-                <h2 className="font-bold text-muted-foreground text-sm mb-3">LINKS</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="font-bold text-muted-foreground text-sm">LINKS</h2>
                 <div className="">
-                  {data?.application?.links?.map((l) => (
-                    <p className="text-slate-600 text-sm" key={l.url}>
-                      {l.url}
-                    </p>
-                  ))}
+                  {data?.application?.links?.length === 1 ? (
+                    <a href={data.application.links[0].url ?? ''} target="_blank" rel="noreferrer" className="text-slate-600 text-sm">
+                      {data.application.links[0].url}
+                    </a>
+                  ) : (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="p-0 h-auto text-slate-600 text-sm hover:bg-transparent">
+                          {data?.application?.links?.[0]?.url}
+                          <ChevronDown className="ml-1 h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-64">
+                        {data?.application?.links?.map((link) => (
+                          <DropdownMenuItem key={link.url} className="cursor-pointer">
+                            <a href={link.url ?? ''} target="_blank" rel="noreferrer" className="flex items-center gap-2">
+                              <Check className="h-4 w-4" />
+                              {link.url}
+                            </a>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Badge className="font-semibold text-[#CA8A04] bg-[#FFDEA1]">Gold</Badge>
-                <p className="text-sm text-muted-foreground">or higher only</p>
+                {program?.tierSettings &&
+                  Object.keys(program.tierSettings).map((tierKey) => (
+                    <TierBadge key={tierKey} tier={tierKey as TierType} />
+                  ))}
               </div>
             </div>
 
@@ -546,9 +571,18 @@ function ProjectDetailsPage() {
 
                   {data?.application?.investmentTerms?.map((t) => (
                     <button
+                      disabled={
+                        !program?.supporters?.some(
+                          (s) => s.userId === userId && s.tier === t.price
+                        ) ||
+                        (typeof t.purchaseLimit === 'number' &&
+                          t.purchaseLimit - (data?.application?.investors?.filter((i) => i.tier === t.price).length ?? 0) <= 0)
+                      }
                       type="button"
-                      className={`block w-full text-left border rounded-lg p-4 shadow-sm cursor-pointer transition-all ${selectedTier === t.price ? 'bg-[#F4F4F5]' : 'bg-white'
-                        }`}
+                      className={cn(
+                        "group block w-full text-left border rounded-lg p-4 shadow-sm cursor-pointer transition-all disabled:opacity-60",
+                        selectedTier === t.price ? "bg-[#F4F4F5]" : "bg-white"
+                      )}
                       key={t.id}
                       onClick={() => setSelectedTier(t.price || '')}
                       aria-label={`Select ${t.price} tier`}
@@ -564,8 +598,8 @@ function ProjectDetailsPage() {
                               <Check className="w-3 h-3 text-primary" />
                             </div>
                           )}
-                          <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                            {t.purchaseLimit} left
+                          <Badge variant="secondary" className="bg-primary text-white group-disabled:bg-gray-200 group-disabled:text-gray-600">
+                            {t.purchaseLimit ? t.purchaseLimit - (data?.application?.investors?.filter(i => i.tier === t.price).length ?? 0) : 0} left
                           </Badge>
                         </div>
                       </div>
@@ -755,22 +789,13 @@ function ProjectDetailsPage() {
 
                           <div className="mb-6">
                             <h2 className="font-bold text-gray-dark text-sm mb-3">SUMMARY</h2>
-                            <p className="text-slate-600 text-xs">{m.description}</p>
+                            <p className="text-slate-600 text-xs">{m.summary}</p>
                           </div>
 
                           <div className="mb-6">
                             <h2 className="font-bold text-gray-dark text-sm mb-3">DESCRIPTION</h2>
                             <p className="text-slate-600 text-xs">
-                              Ludium's zkTLS Builder Escrow Payment Service introduces a trustless,
-                              decentralized payment solution for global builders and sponsors. By
-                              integrating zkTLS technology, it ensures secure and private verification
-                              of work completion without exposing sensitive data. Smart contracts
-                              serve as Escrow Treasuries, automating fund releases once tasks are
-                              validated. The platform simplifies grant allocations, hackathon payouts,
-                              and marketing incentives by streamlining payments through blockchain
-                              technology. With open-source development, Ludium fosters a collaborative
-                              ecosystem that enhances transparency, efficiency, and scalability for
-                              builder payments.
+                              {m.description}
                             </p>
                           </div>
 
@@ -891,7 +916,7 @@ function ProjectDetailsPage() {
                     <DialogTitle className='text-center font-semibold text-lg'>
                       Are you sure to pay the settlement for the project?
                     </DialogTitle>
-                    {selectedTier && (
+                    {/* {selectedTier && (
                       <div className="text-center mb-4">
                         <p className="text-sm text-muted-foreground mb-2">Selected Tier:</p>
                         <div className="inline-flex items-center gap-2">
@@ -907,7 +932,7 @@ function ProjectDetailsPage() {
                           Amount: {program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount || selectedTier} {program?.currency}
                         </p>
                       </div>
-                    )}
+                    )} */}
                     <DialogDescription className="text-sm text-muted-foreground text-center">
                       The amount will be securely stored until you will confirm the completion of
                       the project.
