@@ -3,111 +3,115 @@ import { useAssignValidatorToProgramMutation } from '@/apollo/mutation/assign-va
 import { useCreateProgramMutation } from '@/apollo/mutation/create-program.generated';
 import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
 import { ProgramsDocument } from '@/apollo/queries/programs.generated';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { getInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
 import type { OnSubmitInvestmentFunc } from '@/pages/investments/_components/investment-form';
 import InvestmentForm from '@/pages/investments/_components/investment-form';
 import { FundingCondition, ProgramType, type ProgramVisibility } from '@/types/types.generated';
-// import { usePrivy } from '@privy-io/react-auth';
-import { useState } from 'react';
+import { usePrivy } from '@privy-io/react-auth';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { http, createPublicClient } from 'viem';
+import type { PublicClient } from 'viem';
 
 // Helper functions
-// function getRpcUrlForNetwork(network: string): string {
-//   const rpcMap: Record<string, string> = {
-//     'sepolia': 'https://rpc.sepolia.org',
-//     'base': 'https://mainnet.base.org',
-//     'base-sepolia': 'https://sepolia.base.org',
-//     'educhain-testnet': 'https://open-campus-codex-sepolia.drpc.org',
-//     'educhain': 'https://rpc.open-campus-codex.gelato.digital',
-//     'arbitrum': 'https://arb1.arbitrum.io/rpc',
-//     'arbitrum-sepolia': 'https://sepolia-rollup.arbitrum.io/rpc',
-//   };
+function getRpcUrlForNetwork(network: string): string {
+  const rpcMap: Record<string, string> = {
+    'sepolia': 'https://rpc.sepolia.org',
+    'base': 'https://mainnet.base.org',
+    'base-sepolia': 'https://sepolia.base.org',
+    'educhain-testnet': 'https://open-campus-codex-sepolia.drpc.org',
+    'educhain': 'https://rpc.open-campus-codex.gelato.digital',
+    'arbitrum': 'https://arb1.arbitrum.io/rpc',
+    'arbitrum-sepolia': 'https://sepolia-rollup.arbitrum.io/rpc',
+  };
 
-//   return rpcMap[network] || rpcMap['educhain-testnet'];
-// }
+  return rpcMap[network] || rpcMap['educhain-testnet'];
+}
 
 const CreateInvestment: React.FC = () => {
   const navigate = useNavigate();
-  // const { sendTransaction } = usePrivy();
+  const { sendTransaction } = usePrivy();
   const [createProgram] = useCreateProgramMutation();
   const [isDeploying, setIsDeploying] = useState(false);
 
   const [assignValidatorToProgram] = useAssignValidatorToProgramMutation();
   const [inviteUserToProgram] = useInviteUserToProgramMutation();
 
-  // const { isLoggedIn, isAuthed } = useAuth();
+  const { isLoggedIn, isAuthed } = useAuth();
 
   // Temporarily disabled for testing
-  // useEffect(() => {
-  //   if (!isLoggedIn) {
-  //     navigate('/');
-  //     notify('Please login first', 'success');
-  //     return;
-  //   }
-  //   if (!isAuthed) {
-  //     navigate('/profile/edit');
-  //     notify('Please add your email', 'success');
-  //     return;
-  //   }
-  // }, [isLoggedIn, isAuthed]);
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/');
+      notify('Please login first', 'success');
+      return;
+    }
+    if (!isAuthed) {
+      navigate('/profile/edit');
+      notify('Please add your email', 'success');
+      return;
+    }
+  }, [isLoggedIn, isAuthed]);
 
   const onSubmit: OnSubmitInvestmentFunc = async (args) => {
     try {
       setIsDeploying(true);
 
       // Step 1: Deploy to blockchain if user wants blockchain integration
-      // let txHash: string | null = null;
+      let txHash: string | null = null;
 
-      // if (args.network !== 'off-chain') {
-      //   notify('Deploying to blockchain...');
+      if (args.network !== 'off-chain') {
+        notify('Deploying to blockchain...');
 
-      //   // Create public client for the network
-      //   const rpcUrl = getRpcUrlForNetwork(args.network);
-      //   const publicClient = createPublicClient({
-      //     transport: http(rpcUrl),
-      //   }) as PublicClient;
+        // Create public client for the network
+        const rpcUrl = getRpcUrlForNetwork(args.network);
+        const publicClient = createPublicClient({
+          transport: http(rpcUrl),
+        }) as PublicClient;
 
-      //   // Get the investment contract for the selected network
-      //   const investmentContract = getInvestmentContract(args.network, sendTransaction, publicClient);
+        // Get the investment contract for the selected network
+        const investmentContract = getInvestmentContract(args.network, sendTransaction, publicClient);
 
-      //   // Get validator wallet addresses
-      //   // For now, we'll need to fetch validator data separately
-      //   // In a production app, you'd want to pass this data from the form
-      //   // or fetch it here using the validator IDs
-      //   const validatorAddresses = args.validators.map((validatorId) => {
-      //     // TODO: Implement proper validator data fetching
-      //     // This requires either:
-      //     // 1. Passing validator data from the form component
-      //     // 2. Creating a batch query to fetch validators by IDs
-      //     // For now, use placeholder addresses
-      //     console.warn(`Need to fetch wallet address for validator: ${validatorId}`);
-      //     return '0x0000000000000000000000000000000000000000';
-      //   });
+        // Get validator wallet addresses
+        // For now, we'll need to fetch validator data separately
+        // In a production app, you'd want to pass this data from the form
+        // or fetch it here using the validator IDs
+        const validatorAddresses = args.validators.map((validatorId) => {
+          // TODO: Implement proper validator data fetching
+          // This requires either:
+          // 1. Passing validator data from the form component
+          // 2. Creating a batch query to fetch validators by IDs
+          // For now, use placeholder addresses
+          console.warn(`Need to fetch wallet address for validator: ${validatorId}`);
+          return '0x0000000000000000000000000000000000000000';
+        });
 
-      //   const contractResult = await investmentContract.createInvestmentProgram({
-      //     name: args.programName,
-      //     description: args.description,
-      //     fundingGoal: args.price || '0',
-      //     fundingToken: '0x0000000000000000000000000000000000000000', // Native token for now
-      //     applicationStartDate: args.applicationStartDate || '',
-      //     applicationEndDate: args.applicationEndDate || '',
-      //     fundingStartDate: args.fundingStartDate || '',
-      //     fundingEndDate: args.fundingEndDate || '',
-      //     feePercentage: args.feePercentage || 300, // 3% default
-      //     validators: validatorAddresses,
-      //     tierSettings: args.tierSettings,
-      //   });
+        const contractResult = await investmentContract.createInvestmentProgram({
+          name: args.programName,
+          description: args.description,
+          fundingGoal: args.price || '0',
+          fundingToken: '0x0000000000000000000000000000000000000000', // Native token for now
+          applicationStartDate: args.applicationStartDate || '',
+          applicationEndDate: args.applicationEndDate || '',
+          fundingStartDate: args.fundingStartDate || '',
+          fundingEndDate: args.fundingEndDate || '',
+          feePercentage: args.feePercentage || 300, // 3% default
+          validators: validatorAddresses,
+          tierSettings: args.tierSettings,
+        });
 
-      //   // Store the program ID if needed for future use
-      //   const blockchainProgramId = contractResult.programId;
-      //   txHash = contractResult.txHash;
+        // Store the program ID if needed for future use
+        const blockchainProgramId = contractResult.programId;
+        txHash = contractResult.txHash;
 
-      //   if (blockchainProgramId) {
-      //     console.log('Blockchain program ID:', blockchainProgramId);
-      //   }
+        if (blockchainProgramId) {
+          console.log('Blockchain program ID:', blockchainProgramId);
+        }
 
-      //   notify('Blockchain deployment successful!', 'success');
-      // }
+        notify('Blockchain deployment successful!', 'success');
+      }
 
       // Step 2: Create program in backend
       await createProgram({
@@ -138,7 +142,7 @@ const CreateInvestment: React.FC = () => {
             tierSettings: args.tierSettings,
             feePercentage: args.feePercentage,
             customFeePercentage: args.customFeePercentage,
-            // contractAddress: '', //txHash, // Store tx hash in contractAddress field temporarily
+            contractAddress: txHash ?? '', // Store tx hash in contractAddress field temporarily
           },
         },
         onCompleted: async (data) => {

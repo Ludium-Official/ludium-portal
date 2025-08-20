@@ -158,6 +158,7 @@ export type CreatePostInput = {
 export type CreateProgramInput = {
   applicationEndDate?: InputMaybe<Scalars['DateTime']['input']>;
   applicationStartDate?: InputMaybe<Scalars['DateTime']['input']>;
+  contractAddress?: InputMaybe<Scalars['String']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
   customFeePercentage?: InputMaybe<Scalars['Int']['input']>;
   deadline: Scalars['DateTime']['input'];
@@ -693,6 +694,7 @@ export type Program = {
   applicationStartDate?: Maybe<Scalars['DateTime']['output']>;
   applications?: Maybe<Array<Application>>;
   comments?: Maybe<Array<Comment>>;
+  contractAddress?: Maybe<Scalars['String']['output']>;
   creator?: Maybe<User>;
   currency?: Maybe<Scalars['String']['output']>;
   customFeePercentage?: Maybe<Scalars['Int']['output']>;
