@@ -6,13 +6,13 @@ import { encodeFunctionData } from 'viem';
 // Import contract ABIs
 import LdInvestmentCoreArtifact from './abi/LdInvestmentCore.json';
 import LdFundingArtifact from './abi/LdFunding.json';
-// import LdMilestoneManagerArtifact from './abi/LdMilestoneManager.json';
+import LdMilestoneManagerArtifact from './abi/LdMilestoneManager.json';
 // import LdTimeLockArtifact from './abi/LdTimeLock.json';
 
 // Extract ABIs from artifacts
 const INVESTMENT_CORE_ABI = LdInvestmentCoreArtifact.abi;
 const FUNDING_MODULE_ABI = LdFundingArtifact.abi;
-// const MILESTONE_MANAGER_ABI = LdMilestoneManagerArtifact.abi;
+const MILESTONE_MANAGER_ABI = LdMilestoneManagerArtifact.abi;
 // const TIMELOCK_ABI = LdTimeLockArtifact.abi;
 
 export interface InvestmentContractAddresses {
@@ -60,16 +60,16 @@ export class InvestmentContract {
   }) {
     try {
       console.log('Contract createInvestmentProgram called with:', params);
-      
+
       // Validate inputs
       if (!params.name || params.name.trim() === '') {
         throw new Error('Program name is required');
       }
-      
+
       if (!params.validators || params.validators.length === 0) {
         throw new Error('At least one validator is required');
       }
-      
+
       const fundingGoalWei = ethers.utils.parseEther(params.fundingGoal);
 
       // Convert dates to timestamps
@@ -83,7 +83,7 @@ export class InvestmentContract {
       // Log the contract address
       console.log('Using contract address:', this.addresses.core);
       console.log('Chain ID:', this.chainId);
-      
+
       // Encode the transaction data
       // Function signature: createInvestmentProgram(string,address[],uint256,uint256,uint256,uint256,uint256,uint256,uint8,uint256,address)
       const args = [
@@ -99,10 +99,10 @@ export class InvestmentContract {
         params.feePercentage, // _feePercentage
         params.fundingToken as `0x${string}`, // _token
       ];
-      
+
       console.log('Function args:', args);
       console.log('Number of args:', args.length);
-      
+
       const data = encodeFunctionData({
         abi: INVESTMENT_CORE_ABI,
         functionName: 'createInvestmentProgram',
@@ -153,7 +153,7 @@ export class InvestmentContract {
     }
   }
 
-  async invest(programId: number, projectId: number, amount: string, tokenAddress: string) {
+  async invest(projectId: number, amount: string, tokenAddress: string) {
     try {
       const isNative = tokenAddress === '0x0000000000000000000000000000000000000000';
       const amountWei = ethers.utils.parseEther(amount);
@@ -220,6 +220,42 @@ export class InvestmentContract {
         reason: 'Failed to check eligibility',
         reclaimAmount: 0,
       };
+    }
+  }
+
+  async approveMilestone(projectId: number, milestoneIndex: number) {
+    try {
+      const data = encodeFunctionData({
+        abi: MILESTONE_MANAGER_ABI,
+        functionName: 'approveMilestone',
+        args: [projectId, milestoneIndex],
+      });
+
+      const tx = await this.sendTransaction(
+        {
+          to: this.addresses.milestone as `0x${string}`,
+          data,
+          chainId: this.chainId,
+        },
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            description: 'Approving milestone and releasing funds from investment pool',
+            buttonText: 'Approve Milestone',
+            transactionInfo: {
+              title: 'Milestone Approval',
+              action: 'Approve',
+            },
+            successHeader: 'Milestone Approved!',
+            successDescription: 'Funds have been released from the investment pool to the project owner.',
+          },
+        },
+      );
+
+      return { txHash: tx.hash };
+    } catch (error) {
+      console.error('Failed to approve milestone:', error);
+      throw error;
     }
   }
 
@@ -321,9 +357,9 @@ export class InvestmentContract {
   }) {
     try {
       console.log('Validating project on blockchain:', params);
-      
+
       const targetFundingWei = ethers.utils.parseEther(params.targetFunding);
-      
+
       // Convert milestones to contract format
       const milestonesForContract = params.milestones.map(m => ({
         title: m.title,
@@ -375,7 +411,7 @@ export class InvestmentContract {
       const eventSignature = ethers.utils.id('ProjectValidated(uint256,uint256,address,string,uint256)');
       const event = receipt.logs.find((log) => log.topics[0] === eventSignature);
 
-      if (event && event.topics[2]) {
+      if (event?.topics[2]) {
         const projectId = ethers.BigNumber.from(event.topics[2]).toNumber();
         return { txHash: tx.hash, projectId };
       }

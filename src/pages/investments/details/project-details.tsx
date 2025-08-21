@@ -156,9 +156,9 @@ function ProjectDetailsPage() {
       const amount = program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount || selectedTerm.price;
       
       // Validate investment amount against tier limits
-      if (userTierAssignment && userTierAssignment.remainingCapacity) {
-        const remainingCapacity = parseFloat(userTierAssignment.remainingCapacity);
-        const investmentAmount = parseFloat(amount);
+      if (userTierAssignment?.remainingCapacity) {
+        const remainingCapacity = Number.parseFloat(userTierAssignment.remainingCapacity);
+        const investmentAmount = Number.parseFloat(amount);
         
         if (investmentAmount > remainingCapacity) {
           notify(`Investment exceeds your remaining capacity of ${remainingCapacity} ${program?.currency}`, 'error');
@@ -169,7 +169,7 @@ function ProjectDetailsPage() {
       let txHash: string | undefined;
 
       // If program has a contract address, execute blockchain transaction first
-      if (program?.contractAddress && program?.educhainProgramId) {
+      if (program?.educhainProgramId) {
         // Get the on-chain project ID from the application
         const onChainProjectId = data?.application?.onChainProjectId;
         
@@ -182,7 +182,6 @@ function ProjectDetailsPage() {
             
             // Call the blockchain investment function with the actual on-chain project ID
             const tx = await investmentContract.invest(
-              Number(program.educhainProgramId), // programId on blockchain
               Number(onChainProjectId), // Use the actual on-chain project ID
               amount, // investment amount
               '0x0000000000000000000000000000000000000000' // Native token for now
@@ -228,37 +227,62 @@ function ProjectDetailsPage() {
     }
   };
 
-  const callTx = async (price?: string | null, applicationId?: string | null) => {
+  const callTx = async (price?: string | null, milestoneId?: string | null, milestoneIndex?: number) => {
     try {
       if (program) {
-        const network = program.network as keyof typeof tokenAddresses;
-        const tokens = tokenAddresses[network] || [];
-        const targetToken = tokens.find((token) => token.name === program.currency);
-
-        const tx = await contract.acceptMilestone(
-          Number(program?.educhainProgramId),
-          data?.application?.applicant?.walletAddress ?? '',
-          price ?? '',
-          targetToken ?? { name: program.currency as string },
-        );
-
-        if (tx) {
-          await checkMilestone({
-            variables: {
-              input: {
-                id: applicationId ?? '',
-                status: CheckMilestoneStatus.Completed,
+        // For investment programs, use the investment contract to approve milestones
+        if (program.type === 'funding' && program.educhainProgramId && data?.application?.onChainProjectId) {
+          // This releases funds from the investment pool, not from validator's wallet
+          const tx = await investmentContract.approveMilestone(
+            Number(data.application.onChainProjectId),
+            milestoneIndex ?? 0 // The index of the milestone being approved
+          );
+          
+          if (tx) {
+            await checkMilestone({
+              variables: {
+                input: {
+                  id: milestoneId ?? '',
+                  status: CheckMilestoneStatus.Completed,
+                },
               },
-            },
-            onCompleted: () => {
-              refetch();
-              programRefetch();
-            },
-          });
-
-          notify('Milestone accept successfully', 'success');
+              onCompleted: () => {
+                refetch();
+                programRefetch();
+                notify('Milestone approved! Funds released from investment pool.', 'success');
+              },
+            });
+          }
         } else {
-          notify("Can't found acceptMilestone event", 'error');
+          // For regular programs, use the old flow (validator pays)
+          const network = program.network as keyof typeof tokenAddresses;
+          const tokens = tokenAddresses[network] || [];
+          const targetToken = tokens.find((token) => token.name === program.currency);
+
+          const tx = await contract.acceptMilestone(
+            Number(program?.educhainProgramId),
+            data?.application?.applicant?.walletAddress ?? '',
+            price ?? '',
+            targetToken ?? { name: program.currency as string },
+          );
+
+          if (tx) {
+            await checkMilestone({
+              variables: {
+                input: {
+                  id: milestoneId ?? '',
+                  status: CheckMilestoneStatus.Completed,
+                },
+              },
+              onCompleted: () => {
+                refetch();
+                programRefetch();
+                notify('Milestone accepted successfully', 'success');
+              },
+            });
+          } else {
+            notify("Can't find acceptMilestone event", 'error');
+          }
         }
       }
     } catch (error) {
@@ -1016,7 +1040,7 @@ function ProjectDetailsPage() {
                                     />
                                   </DialogContent>
                                 </Dialog>
-                                <Button className="h-10" onClick={() => callTx(m.price, m.id)}>
+                                <Button className="h-10" onClick={() => callTx(m.price, m.id, idx)}>
                                   Accept Milestone
                                 </Button>
                               </div>

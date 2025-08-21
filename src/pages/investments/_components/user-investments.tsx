@@ -17,15 +17,13 @@ import { useInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
 import { format } from 'date-fns';
 import { AlertCircle, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
-import { getCurrency } from '@/lib/utils';
 import { usePrivy } from '@privy-io/react-auth';
 
 interface UserInvestmentsProps {
   projectId?: string;
-  programId?: string;
 }
 
-export default function UserInvestments({ projectId, programId }: UserInvestmentsProps) {
+export default function UserInvestments({ projectId }: UserInvestmentsProps) {
   const { userId } = useAuth();
   const { user } = usePrivy();
   const [selectedInvestment, setSelectedInvestment] = useState<any>(null);
