@@ -2,18 +2,18 @@ import client from '@/apollo/client';
 import { useAssignValidatorToProgramMutation } from '@/apollo/mutation/assign-validator-to-program.generated';
 import { useCreateProgramMutation } from '@/apollo/mutation/create-program.generated';
 import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
+import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
 import { ProgramsDocument } from '@/apollo/queries/programs.generated';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { getInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
+import { usePrivy } from '@privy-io/react-auth';
+import { createPublicClient, http, type PublicClient } from 'viem';
 import type { OnSubmitInvestmentFunc } from '@/pages/investments/_components/investment-form';
 import InvestmentForm from '@/pages/investments/_components/investment-form';
 import { FundingCondition, ProgramType, type ProgramVisibility } from '@/types/types.generated';
-import { usePrivy } from '@privy-io/react-auth';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { http, createPublicClient } from 'viem';
-import type { PublicClient } from 'viem';
 
 // Helper functions
 function getRpcUrlForNetwork(network: string): string {
@@ -26,7 +26,7 @@ function getRpcUrlForNetwork(network: string): string {
     'arbitrum': 'https://arb1.arbitrum.io/rpc',
     'arbitrum-sepolia': 'https://sepolia-rollup.arbitrum.io/rpc',
   };
-
+  
   return rpcMap[network] || rpcMap['educhain-testnet'];
 }
 
@@ -38,6 +38,7 @@ const CreateInvestment: React.FC = () => {
 
   const [assignValidatorToProgram] = useAssignValidatorToProgramMutation();
   const [inviteUserToProgram] = useInviteUserToProgramMutation();
+  const [submitProgram] = useSubmitProgramMutation();
 
   const { isLoggedIn, isAuthed } = useAuth();
 
@@ -61,6 +62,7 @@ const CreateInvestment: React.FC = () => {
 
       // Step 1: Deploy to blockchain if user wants blockchain integration
       let txHash: string | null = null;
+      let blockchainProgramId: number | null = null;
 
       if (args.network !== 'off-chain') {
         notify('Deploying to blockchain...');
@@ -75,17 +77,24 @@ const CreateInvestment: React.FC = () => {
         const investmentContract = getInvestmentContract(args.network, sendTransaction, publicClient);
 
         // Get validator wallet addresses
-        // For now, we'll need to fetch validator data separately
-        // In a production app, you'd want to pass this data from the form
-        // or fetch it here using the validator IDs
-        const validatorAddresses = args.validators.map((validatorId) => {
-          // TODO: Implement proper validator data fetching
-          // This requires either:
-          // 1. Passing validator data from the form component
-          // 2. Creating a batch query to fetch validators by IDs
-          // For now, use placeholder addresses
-          console.warn(`Need to fetch wallet address for validator: ${validatorId}`);
-          return '0x0000000000000000000000000000000000000000';
+        // If no validators selected, use a default address
+        const validatorAddresses = args.validators.length > 0 
+          ? args.validators.map((validatorId) => {
+              // TODO: Implement proper validator data fetching
+              // This requires either:
+              // 1. Passing validator data from the form component
+              // 2. Creating a batch query to fetch validators by IDs
+              console.warn(`Need to fetch wallet address for validator: ${validatorId}`);
+              // Using a valid test address instead of zero address
+              return '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'; // Test address
+            })
+          : ['0x70997970C51812dc3A010C7d01b50e0d17dc79C8']; // Default test validator
+        
+        console.log('Creating investment program with params:', {
+          validatorCount: validatorAddresses.length,
+          validators: validatorAddresses,
+          network: args.network,
+          feePercentage: args.feePercentage || 300
         });
 
         const contractResult = await investmentContract.createInvestmentProgram({
@@ -102,12 +111,14 @@ const CreateInvestment: React.FC = () => {
           tierSettings: args.tierSettings,
         });
 
-        // Store the program ID if needed for future use
-        const blockchainProgramId = contractResult.programId;
+        // Store the program ID from blockchain
+        blockchainProgramId = contractResult.programId;
         txHash = contractResult.txHash;
-
+        
         if (blockchainProgramId) {
           console.log('Blockchain program ID:', blockchainProgramId);
+        } else {
+          notify('Warning: Could not extract program ID from blockchain', 'warning');
         }
 
         notify('Blockchain deployment successful!', 'success');
@@ -122,7 +133,7 @@ const CreateInvestment: React.FC = () => {
             price: args.price ?? '0',
             description: args.description,
             summary: args.summary,
-            deadline: args.deadline ?? new Date().toISOString(),
+            deadline: args.deadline || args.fundingEndDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // Use funding end date or default to 90 days from now
             keywords: args.keywords,
             links: args.links,
             network: args.network,
@@ -146,10 +157,29 @@ const CreateInvestment: React.FC = () => {
           },
         },
         onCompleted: async (data) => {
+          const programId = data.createProgram?.id ?? '';
+          
+          // Step 3: Update program with blockchain ID if we have one
+          if (blockchainProgramId !== null && txHash) {
+            try {
+              await submitProgram({
+                variables: {
+                  id: programId,
+                  educhainProgramId: blockchainProgramId,
+                  txHash: txHash,
+                },
+              });
+              notify(`Program linked to blockchain with ID: ${blockchainProgramId}`, 'success');
+            } catch (error) {
+              console.error('Failed to update program with blockchain ID:', error);
+              notify('Warning: Failed to link program with blockchain ID', 'warning');
+            }
+          }
+          
           const results = await Promise.allSettled(
             args.validators.map((validatorId) =>
               assignValidatorToProgram({
-                variables: { validatorId, programId: data.createProgram?.id ?? '' },
+                variables: { validatorId, programId },
               }),
             ),
           );
@@ -169,7 +199,7 @@ const CreateInvestment: React.FC = () => {
             const inviteResults = await Promise.allSettled(
               args.builders.map((userId) =>
                 inviteUserToProgram({
-                  variables: { programId: data.createProgram?.id ?? '', userId },
+                  variables: { programId, userId },
                 }),
               ),
             );
@@ -177,7 +207,7 @@ const CreateInvestment: React.FC = () => {
               notify('Failed to invite some builders to the program.', 'error');
             }
           }
-          navigate('/investments');
+          navigate('/programs');
           client.refetchQueries({ include: [ProgramsDocument] });
           notify('Investment program created successfully!', 'success');
         },

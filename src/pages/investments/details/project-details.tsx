@@ -30,9 +30,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
+import { useInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
 import { cn, getCurrency, getCurrencyIcon, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
+import UserInvestments from '@/pages/investments/_components/user-investments';
 // import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
 import EditMilestoneForm from '@/pages/programs/details/_components/edit-milestone-form';
@@ -43,7 +45,7 @@ import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from '@/type
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
 import { ArrowUpRight, Check, ChevronDown, CircleAlert, Coins, Settings, TrendingUp } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
 function ProjectDetailsPage() {
@@ -51,6 +53,11 @@ function ProjectDetailsPage() {
   const [activeTab, setActiveTab] = useState<'terms' | 'milestones'>('terms');
   const [isInvestDialogOpen, setIsInvestDialogOpen] = useState(false);
   const [selectedTier, setSelectedTier] = useState<string>('');
+  const [onChainFundingProgress, setOnChainFundingProgress] = useState<{
+    targetFunding: number;
+    totalInvested: number;
+    fundingProgress: number;
+  } | null>(null);
   const remountKey = () => setMountKey((v) => v + 1);
 
   const { userId, isAdmin } = useAuth();
@@ -74,6 +81,7 @@ function ProjectDetailsPage() {
   const { name, keywords, network } = program ?? {};
 
   const contract = useContract(network || mainnetDefaultNetwork);
+  const investmentContract = useInvestmentContract(network || mainnetDefaultNetwork);
 
   const applicationMutationParams = {
     onCompleted: () => {
@@ -93,11 +101,48 @@ function ProjectDetailsPage() {
 
   const navigate = useNavigate();
 
+  // Fetch on-chain funding progress
+  useEffect(() => {
+    const fetchOnChainProgress = async () => {
+      if (program?.educhainProgramId && data?.application?.onChainProjectId) {
+        try {
+          const progress = await investmentContract.getProjectFundingProgress(
+            Number(program.educhainProgramId),
+            Number(data.application.onChainProjectId)
+          );
+          setOnChainFundingProgress(progress);
+        } catch (error) {
+          console.error('Failed to fetch on-chain funding progress:', error);
+        }
+      }
+    };
+
+    fetchOnChainProgress();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchOnChainProgress, 30000);
+    return () => clearInterval(interval);
+  }, [program?.educhainProgramId, data?.application?.onChainProjectId]);
+
   const handleInvest = async () => {
     try {
       if (!selectedTier || !projectId) {
         notify('Please select a tier first', 'error');
         return;
+      }
+
+      // Check if user has tier assignment for tier-based programs
+      const userTierAssignment = program?.userTierAssignment;
+      if (program?.fundingCondition === 'tier') {
+        if (!userTierAssignment) {
+          notify('You are not assigned to any tier for this program. Please contact the program creator to get tier access.', 'error');
+          return;
+        }
+        
+        // Validate selected tier matches user's assigned tier
+        if (userTierAssignment.tier !== selectedTier) {
+          notify(`You can only invest in your assigned tier: ${userTierAssignment.tier}`, 'error');
+          return;
+        }
       }
 
       // Find the selected term to get the amount
@@ -109,16 +154,66 @@ function ProjectDetailsPage() {
 
       // Get the amount from the program tier settings or term price
       const amount = program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount || selectedTerm.price;
+      
+      // Validate investment amount against tier limits
+      if (userTierAssignment && userTierAssignment.remainingCapacity) {
+        const remainingCapacity = parseFloat(userTierAssignment.remainingCapacity);
+        const investmentAmount = parseFloat(amount);
+        
+        if (investmentAmount > remainingCapacity) {
+          notify(`Investment exceeds your remaining capacity of ${remainingCapacity} ${program?.currency}`, 'error');
+          return;
+        }
+      }
 
+      let txHash: string | undefined;
+
+      // If program has a contract address, execute blockchain transaction first
+      if (program?.contractAddress && program?.educhainProgramId) {
+        // Get the on-chain project ID from the application
+        const onChainProjectId = data?.application?.onChainProjectId;
+        
+        if (!onChainProjectId) {
+          notify('This project needs to be registered on the blockchain before investments can be made. Please contact the program administrator.', 'warning');
+          // For now, continue with off-chain investment only
+        } else {
+          try {
+            notify('Please approve the transaction in your wallet', 'info');
+            
+            // Call the blockchain investment function with the actual on-chain project ID
+            const tx = await investmentContract.invest(
+              Number(program.educhainProgramId), // programId on blockchain
+              Number(onChainProjectId), // Use the actual on-chain project ID
+              amount, // investment amount
+              '0x0000000000000000000000000000000000000000' // Native token for now
+            );
+            
+            txHash = tx.hash;
+            notify('Transaction submitted! Waiting for confirmation...', 'info');
+          } catch (blockchainError) {
+            console.error('Blockchain investment failed:', blockchainError);
+            notify('Blockchain transaction failed. Please try again.', 'error');
+            return;
+          }
+        }
+      }
+
+      // Record investment in database with txHash if available
       await createInvestment({
         variables: {
           input: {
             amount: amount,
             projectId: projectId,
+            ...(txHash && { txHash }) // Include txHash if blockchain transaction was made
           }
         },
         onCompleted: () => {
-          notify('Investment created successfully', 'success');
+          notify(
+            txHash 
+              ? 'Investment successfully recorded on blockchain and database!' 
+              : 'Investment created successfully', 
+            'success'
+          );
           setIsInvestDialogOpen(false);
           setSelectedTier('')
           client.refetchQueries({ include: [ApplicationDocument, ProgramDocument] })
@@ -421,6 +516,32 @@ function ProjectDetailsPage() {
                   {data?.application?.fundingProgress ?? 0}<span className="text-sm text-muted-foreground">%</span>
                 </p>
               </div>
+              
+              {/* On-chain funding progress */}
+              {onChainFundingProgress && data?.application?.onChainProjectId && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-neutral-400 text-sm font-bold">ON-CHAIN STATUS</h4>
+                    <Badge variant="outline" className="text-xs">
+                      <Check className="w-3 h-3 mr-1" />
+                      Blockchain Verified
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-[20px] justify-between w-full">
+                    <div className="text-xs text-muted-foreground">
+                      {onChainFundingProgress.totalInvested.toFixed(2)} / {onChainFundingProgress.targetFunding.toFixed(2)} {program?.currency}
+                    </div>
+                    <Progress 
+                      value={onChainFundingProgress.fundingProgress} 
+                      rootClassName="w-full max-w-[200px]" 
+                      indicatorClassName="bg-green-500" 
+                    />
+                    <p className="text-sm font-bold flex items-center text-green-600">
+                      {onChainFundingProgress.fundingProgress.toFixed(1)}<span className="text-xs text-muted-foreground">%</span>
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-between items-center mb-6">
@@ -568,16 +689,47 @@ function ProjectDetailsPage() {
               {/* Terms Tab Content */}
               {activeTab === 'terms' && (
                 <div className="space-y-6 pb-5">
+                  {/* Display user's tier assignment if available */}
+                  {program?.userTierAssignment && (
+                    <div className="border-2 border-primary/20 rounded-lg p-4 bg-primary/5">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <p className="text-sm font-semibold text-muted-foreground mb-1">YOUR TIER ASSIGNMENT</p>
+                          <TierBadge tier={program.userTierAssignment.tier as TierType} />
+                        </div>
+                        <Badge variant="outline" className="bg-white">
+                          <TrendingUp className="w-3 h-3 mr-1" />
+                          Active
+                        </Badge>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Max Investment:</span>
+                          <span className="font-semibold">{program.userTierAssignment.maxInvestmentAmount} {program?.currency}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Already Invested:</span>
+                          <span className="font-semibold">{program.userTierAssignment.currentInvestment} {program?.currency}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Remaining Capacity:</span>
+                          <span className="font-semibold text-primary">{program.userTierAssignment.remainingCapacity} {program?.currency}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-                  {data?.application?.investmentTerms?.map((t) => (
+                  {data?.application?.investmentTerms?.map((t) => {
+                    // Check if user can select this tier
+                    const isTierBased = program?.fundingCondition === 'tier';
+                    const userTierAssignment = program?.userTierAssignment;
+                    const canSelectTier = !isTierBased || (userTierAssignment && userTierAssignment.tier === t.price);
+                    const purchaseLimitReached = typeof t.purchaseLimit === 'number' &&
+                      t.purchaseLimit - (data?.application?.investors?.filter((i) => i.tier === t.price).length ?? 0) <= 0;
+                    
+                    return (
                     <button
-                      disabled={
-                        !program?.supporters?.some(
-                          (s) => s.userId === userId && s.tier === t.price
-                        ) ||
-                        (typeof t.purchaseLimit === 'number' &&
-                          t.purchaseLimit - (data?.application?.investors?.filter((i) => i.tier === t.price).length ?? 0) <= 0)
-                      }
+                      disabled={!canSelectTier || purchaseLimitReached}
                       type="button"
                       className={cn(
                         "group block w-full text-left border rounded-lg p-4 shadow-sm cursor-pointer transition-all disabled:opacity-60",
@@ -616,8 +768,14 @@ function ProjectDetailsPage() {
                       <div className="text-sm text-muted-foreground">
                         <p>{t.description}</p>
                       </div>
+                      {isTierBased && !canSelectTier && (
+                        <div className="mt-2 text-xs text-orange-600">
+                          This tier is not available for your assignment
+                        </div>
+                      )}
                     </button>
-                  ))}
+                    );
+                  })}
                   {/* Gold Tier */}
                   {/* <div className="border rounded-lg p-4 bg-white shadow-sm">
                   <div className="flex justify-between items-start mb-3">
@@ -950,6 +1108,13 @@ function ProjectDetailsPage() {
             </ScrollArea>
           </div>
         </section>
+
+        {/* User's Investments Section */}
+        {userId && projectId && (
+          <section className="p-10 bg-white">
+            <UserInvestments projectId={projectId} />
+          </section>
+        )}
       </div>
     </div>
   );

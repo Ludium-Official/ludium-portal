@@ -65,5 +65,9 @@ query application($id: ID!) {
     currentFundingAmount
     fundingProgress
     status
+    onChainProjectId
+    fundingTarget
+    walletAddress
+    price
   }
 }

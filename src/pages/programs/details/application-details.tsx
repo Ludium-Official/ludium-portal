@@ -33,6 +33,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
+import { useInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
 import { getCurrency, getCurrencyIcon, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
@@ -84,6 +85,7 @@ function ApplicationDetails() {
   const { name, keywords, network } = program ?? {};
 
   const contract = useContract(network || mainnetDefaultNetwork);
+  const investmentContract = useInvestmentContract(network || mainnetDefaultNetwork);
 
   const applicationMutationParams = {
     onCompleted: () => {
@@ -101,6 +103,76 @@ function ApplicationDetails() {
   // const [denyApplication] = useRejectApplicationMutation(applicationMutationParams);
 
   const navigate = useNavigate();
+
+  const handleAcceptApplication = async () => {
+    try {
+      let onChainProjectId: number | undefined;
+
+      // If this is a funding program with blockchain deployment, register the project first
+      if (program?.type === 'funding' && program?.contractAddress && program?.educhainProgramId) {
+        const application = data?.application;
+        if (!application) {
+          notify('Application data not found', 'error');
+          return;
+        }
+
+        // Check if application already has an onChainProjectId
+        if ((application as any).onChainProjectId) {
+          notify('This project is already registered on the blockchain', 'warning');
+          onChainProjectId = (application as any).onChainProjectId;
+        } else {
+          notify('Registering project on blockchain...', 'info');
+
+          try {
+            // Prepare milestones for blockchain
+            const milestones = application.milestones?.map(m => ({
+              title: m.title || '',
+              description: m.description || '',
+              percentage: parseFloat(m.percentage || '0'),
+              deadline: m.deadline || new Date().toISOString()
+            })) || [];
+
+            // Call signValidate to register the project on blockchain
+            const result = await investmentContract.signValidateProject({
+              programId: Number(program.educhainProgramId),
+              projectOwner: application.applicant?.walletAddress || '0x0000000000000000000000000000000000000000',
+              projectName: application.name || 'Untitled Project',
+              targetFunding: application.fundingTarget || application.price || '0',
+              milestones
+            });
+
+            if (result.projectId !== null) {
+              onChainProjectId = result.projectId;
+              notify(`Project registered on blockchain with ID: ${onChainProjectId}`, 'success');
+            } else {
+              notify('Project registered but could not extract ID from blockchain', 'warning');
+            }
+          } catch (blockchainError) {
+            console.error('Blockchain registration failed:', blockchainError);
+            notify('Failed to register project on blockchain. Continuing with off-chain approval.', 'warning');
+          }
+        }
+      }
+
+      // Accept the application in the database
+      await approveApplication({
+        variables: {
+          id: applicationId ?? '',
+          ...(onChainProjectId !== undefined && { onChainProjectId })
+        }
+      });
+
+      notify(
+        onChainProjectId 
+          ? 'Application accepted and registered on blockchain!' 
+          : 'Application accepted successfully',
+        'success'
+      );
+    } catch (error) {
+      console.error('Failed to accept application:', error);
+      notify('Failed to accept application', 'error');
+    }
+  };
 
   const callTx = async (price?: string | null, applicationId?: string | null) => {
     try {
@@ -472,9 +544,7 @@ function ApplicationDetails() {
                     </Dialog>
                     <Button
                       className="h-10"
-                      onClick={() => {
-                        approveApplication();
-                      }}
+                      onClick={handleAcceptApplication}
                     >
                       Select
                     </Button>

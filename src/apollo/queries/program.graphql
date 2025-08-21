@@ -113,6 +113,14 @@ query program($id: ID!) {
       tier
       userId
     }
+    userTierAssignment {
+      userId
+      tier
+      maxInvestmentAmount
+      currentInvestment
+      remainingCapacity
+      createdAt
+    }
     network
     type
     applicationStartDate

@@ -35,6 +35,7 @@ export type Application = {
   metadata?: Maybe<Scalars['JSON']['output']>;
   milestones?: Maybe<Array<Milestone>>;
   name?: Maybe<Scalars['String']['output']>;
+  onChainProjectId?: Maybe<Scalars['Int']['output']>;
   price?: Maybe<Scalars['String']['output']>;
   rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<ApplicationStatus>;
@@ -359,6 +360,7 @@ export type Mutation = {
 
 export type MutationAcceptApplicationArgs = {
   id: Scalars['ID']['input'];
+  onChainProjectId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -720,6 +722,7 @@ export type Program = {
   tierSettings?: Maybe<Scalars['JSON']['output']>;
   txHash?: Maybe<Scalars['String']['output']>;
   type?: Maybe<ProgramType>;
+  userTierAssignment?: Maybe<UserTierAssignment>;
   validators?: Maybe<Array<User>>;
   visibility?: Maybe<ProgramVisibility>;
 };
@@ -1053,6 +1056,16 @@ export enum UserRole {
   Superadmin = 'superadmin',
   User = 'user'
 }
+
+export type UserTierAssignment = {
+  __typename?: 'UserTierAssignment';
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  currentInvestment?: Maybe<Scalars['String']['output']>;
+  maxInvestmentAmount?: Maybe<Scalars['String']['output']>;
+  remainingCapacity?: Maybe<Scalars['String']['output']>;
+  tier?: Maybe<Scalars['String']['output']>;
+  userId?: Maybe<Scalars['ID']['output']>;
+};
 
 export type UserUpdateInput = {
   about?: InputMaybe<Scalars['String']['input']>;

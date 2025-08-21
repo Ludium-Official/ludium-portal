@@ -11,6 +11,7 @@ import {
   baseSepolia,
   eduChain,
   eduChainTestnet,
+  sepolia,
 } from 'viem/chains';
 
 function Providers({ children }: { children: React.ReactNode }) {
@@ -29,6 +30,7 @@ function Providers({ children }: { children: React.ReactNode }) {
                 eduChainTestnet,
                 arbitrum,
                 arbitrumSepolia,
+                sepolia,
               ],
               embeddedWallets: {
                 createOnLogin: 'users-without-wallets',
