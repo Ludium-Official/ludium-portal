@@ -117,7 +117,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     {
       id: 1,
       title: '',
-      payoutPercentage: '0',
+      payoutPercentage: '',
       endDate: undefined,
       summary: '',
       description: '',
@@ -178,14 +178,14 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
   } = useForm({
     values: {
       name: '',
-      fundingToBeRaised: data?.program?.price ?? '',
+      fundingToBeRaised: data?.program?.price ?? undefined,
       summary: '',
     },
   });
 
   const onSubmit = (submitData: {
     name: string;
-    fundingToBeRaised: string;
+    fundingToBeRaised: string | undefined;
     summary: string;
   }) => {
     if (
@@ -298,6 +298,40 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const { saveDraft: saveProjectDraft, loadDraft: loadProjectDraft } = useProjectDraft();
 
+  // Validation functions for each tab
+  const isOverviewTabValid = () => {
+    const name = watch('name');
+    const fundingToBeRaised = watch('fundingToBeRaised');
+    // const summary = watch('summary');
+    // const hasDescription = content.length > 0;
+    const hasSupporterTierConfirmed = supporterTierConfirmed;
+
+    return name && fundingToBeRaised && hasSupporterTierConfirmed;
+  };
+
+  const isDetailsTabValid = () => {
+
+    const summary = watch('summary');
+    const hasDescription = content.length > 0;
+
+    return summary && hasDescription;
+  };
+
+  const isTermsTabValid = () => {
+    return terms.every((term) => {
+      const hasError = !term.title || !term.prize || !term.purchaseLimit || !term.description;
+      if (hasError) {
+        const purchaseLimit = Number.parseInt(term.purchaseLimit, 10);
+        if (Number.isNaN(purchaseLimit) || purchaseLimit <= 0) {
+          return false;
+        }
+      }
+      return !hasError;
+    });
+  };
+
+
+
   // Prefill from draft on mount when creating (not editing)
   useEffect(() => {
     if (isEdit) return;
@@ -353,7 +387,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
       {
         id: nextMilestoneId,
         title: '',
-        payoutPercentage: '0',
+        payoutPercentage: '',
         endDate: undefined,
         summary: '',
         description: '',
@@ -430,7 +464,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
               <Input
                 id="fundingToBeRaised"
                 type="number"
-                placeholder="Enter price"
+                placeholder="0"
                 className="h-10"
                 {...register('fundingToBeRaised', { required: true })}
               />
@@ -495,7 +529,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
           </div>
 
           <div className="px-10 py-6 bg-white rounded-lg">
-            <label htmlFor="links" className="space-y-2 block mb-10">
+            <label htmlFor="links" className="space-y-2 block">
               <p className="text-sm font-medium">Links</p>
               <span className="block text-gray-text text-sm">
                 Add links to your website, blog, or social media profiles.
@@ -555,8 +589,8 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
         <TabsContent value="details">
           <div className="bg-white px-10 py-6 rounded-lg mb-3">
-            <label htmlFor="summary" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium">Summary</p>
+            <label htmlFor="summary" className="space-y-2 block">
+              <p className="text-sm font-medium">Summary <span className="text-primary">*</span></p>
               <Textarea
                 id="summary"
                 placeholder="Type summary"
@@ -570,8 +604,8 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
           </div>
 
           <div className="px-10 py-6 bg-white rounded-lg">
-            <label htmlFor="description" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium">Description</p>
+            <label htmlFor="description" className="space-y-2 block">
+              <p className="text-sm font-medium">Description <span className="text-primary">*</span></p>
 
               <MarkdownEditor onChange={setContent} content={content} />
               {extraErrors.description && (
@@ -679,7 +713,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         <Input
                           id={`prize-${index}`}
                           type="number"
-                          placeholder="Input number"
+                          placeholder="0"
                           value={term.prize}
                           onChange={(e) => updateTerm(index, 'prize', e.target.value)}
                           className="mt-2 h-10"
@@ -696,7 +730,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       <Input
                         id={`purchaseLimit-${index}`}
                         type="number"
-                        placeholder="Input number"
+                        placeholder="0"
                         value={term.purchaseLimit}
                         onChange={(e) => updateTerm(index, 'purchaseLimit', e.target.value)}
                         className="mt-2 h-10"
@@ -736,7 +770,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       type="button"
                       variant="outline"
                       onClick={addTerm}
-                      className="bg-white border border-gray-300 text-gray-700 mt-6"
+                      className="bg-white border border-gray-300 text-gray-700 mt-2"
                     >
                       <X className="w-4 h-4 mr-2 rotate-45" />
                       Add more terms
@@ -871,7 +905,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       type="button"
                       variant="outline"
                       onClick={addMilestone}
-                      className="bg-white border border-gray-300 text-gray-700 mt-6"
+                      className="bg-white border border-gray-300 text-gray-700 mt-2"
                     >
                       <X className="w-4 h-4 mr-2 rotate-45" />
                       Add more milestones
@@ -1006,6 +1040,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
             size="lg"
             variant="outline"
             onClick={() => setSelectedTab('details')}
+            disabled={!isOverviewTabValid()}
           >
             Next to Details <ChevronRight />
           </Button>
@@ -1017,6 +1052,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
             size="lg"
             variant="outline"
             onClick={() => setSelectedTab('terms')}
+            disabled={!isDetailsTabValid()}
           >
             Next to Terms <ChevronRight />
           </Button>
@@ -1028,6 +1064,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
             size="lg"
             variant="outline"
             onClick={() => setSelectedTab('milestone')}
+            disabled={!isTermsTabValid()}
           >
             Next to Milestones <ChevronRight />
           </Button>

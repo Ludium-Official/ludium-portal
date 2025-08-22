@@ -1,5 +1,3 @@
-import { useCreateCarouselItemMutation } from '@/apollo/mutation/create-carousel-item.generated';
-import { useCarouselItemsQuery } from '@/apollo/queries/carousel-items.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
 import CurrencySelector from '@/components/currency-selector';
@@ -20,7 +18,7 @@ import { useInvestmentDraft } from '@/lib/hooks/use-investment-draft';
 import notify from '@/lib/notify';
 import { cn, mainnetDefaultNetwork } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
-import { CarouselItemType, type LinkInput, ProgramStatus } from '@/types/types.generated';
+import { type LinkInput, ProgramStatus } from '@/types/types.generated';
 import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -99,13 +97,13 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   // Condition tab state
   const [conditionType, setConditionType] = useState<'open' | 'tier'>('open');
   const [tiers, setTiers] = useState([
-    { name: 'Bronze', enabled: false, maxAmount: '0' },
-    { name: 'Silver', enabled: false, maxAmount: '0' },
-    { name: 'Gold', enabled: false, maxAmount: '0' },
-    { name: 'Platinum', enabled: false, maxAmount: '0' },
+    { name: 'Bronze', enabled: false, maxAmount: undefined as string | undefined },
+    { name: 'Silver', enabled: false, maxAmount: undefined as string | undefined },
+    { name: 'Gold', enabled: false, maxAmount: undefined as string | undefined },
+    { name: 'Platinum', enabled: false, maxAmount: undefined as string | undefined },
   ]);
   const [feeType, setFeeType] = useState<'default' | 'custom'>('default');
-  const [customFee, setCustomFee] = useState<string>('0');
+  const [customFee, setCustomFee] = useState<string | undefined>(undefined);
 
   const [validatorInput, setValidatorInput] = useState<string>();
   const [debouncedValidatorInput, setDebouncedValidatorInput] = useState<string>();
@@ -171,6 +169,52 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     if (data?.program?.currency) setCurrency(data?.program?.currency);
     if (data?.program?.image) setImagePreview(data?.program?.image);
     if (data?.program?.visibility) setVisibility(data?.program?.visibility);
+
+    // Prefill application dates
+    if (data?.program?.applicationStartDate) setApplicationStartDate(new Date(data?.program?.applicationStartDate));
+    if (data?.program?.applicationEndDate) setApplicationDueDate(new Date(data?.program?.applicationEndDate));
+
+    // Prefill funding dates
+    if (data?.program?.fundingStartDate) setFundingStartDate(new Date(data?.program?.fundingStartDate));
+    if (data?.program?.fundingEndDate) setFundingDueDate(new Date(data?.program?.fundingEndDate));
+
+    // Prefill funding condition
+    if (data?.program?.fundingCondition) setConditionType(data?.program?.fundingCondition);
+
+    // Prefill tier settings
+    if (data?.program?.tierSettings) {
+      setTiers([
+        {
+          name: 'Bronze',
+          enabled: data?.program?.tierSettings.bronze?.enabled ?? false,
+          maxAmount: data?.program?.tierSettings.bronze?.maxAmount?.toString() ?? undefined
+        },
+        {
+          name: 'Silver',
+          enabled: data?.program?.tierSettings.silver?.enabled ?? false,
+          maxAmount: data?.program?.tierSettings.silver?.maxAmount?.toString() ?? undefined
+        },
+        {
+          name: 'Gold',
+          enabled: data?.program?.tierSettings.gold?.enabled ?? false,
+          maxAmount: data?.program?.tierSettings.gold?.maxAmount?.toString() ?? undefined
+        },
+        {
+          name: 'Platinum',
+          enabled: data?.program?.tierSettings.platinum?.enabled ?? false,
+          maxAmount: data?.program?.tierSettings.platinum?.maxAmount?.toString() ?? undefined
+        },
+      ]);
+    }
+
+    // Prefill fee settings
+    if (data?.program?.customFeePercentage) {
+      setFeeType('custom');
+      setCustomFee((data?.program?.customFeePercentage / 100).toString());
+    } else if (data?.program?.feePercentage) {
+      setFeeType('default');
+      setCustomFee(undefined);
+    }
   }, [data]);
 
   useEffect(() => {
@@ -220,6 +264,35 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     price: string;
     summary: string;
   }) => {
+    // Validate number fields
+    const price = submitData.price;
+    if (!price || price === '0' || price === '0.0' || price === '0.00' || Number(price) <= 0) {
+      notify('Please enter a valid price greater than 0.', 'error');
+      return;
+    }
+
+    // Validate custom fee if custom fee type is selected
+    if (feeType === 'custom' && (!customFee || customFee === '0' || customFee === '0.0' || Number(customFee) <= 0)) {
+      notify('Please enter a valid custom fee percentage greater than 0.', 'error');
+      return;
+    }
+
+    // Validate tier amounts if tier condition is selected
+    if (conditionType === 'tier') {
+      const enabledTiers = tiers.filter(tier => tier.enabled);
+      if (enabledTiers.length === 0) {
+        notify('Please enable at least one tier.', 'error');
+        return;
+      }
+
+      for (const tier of enabledTiers) {
+        if (!tier.maxAmount || tier.maxAmount === '0' || tier.maxAmount === '0.0' || Number(tier.maxAmount) <= 0) {
+          notify(`Please enter a valid maximum amount for ${tier.name} tier.`, 'error');
+          return;
+        }
+      }
+    }
+
     if (
       imageError ||
       extraErrors.deadline ||
@@ -266,35 +339,35 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
       fundingCondition: conditionType,
       tierSettings: conditionType === 'tier'
         ? {
-          bronze: tiers.find((t) => t.name === 'Bronze')?.enabled
+          bronze: (tiers.find((t) => t.name === 'Bronze')?.enabled ?? false)
             ? {
               enabled: true,
-              maxAmount: tiers.find((t) => t.name === 'Bronze')?.maxAmount || '0',
+              maxAmount: tiers.find((t) => t.name === 'Bronze')?.maxAmount || '',
             }
             : undefined,
-          silver: tiers.find((t) => t.name === 'Silver')?.enabled
+          silver: (tiers.find((t) => t.name === 'Silver')?.enabled ?? false)
             ? {
               enabled: true,
-              maxAmount: tiers.find((t) => t.name === 'Silver')?.maxAmount || '0',
+              maxAmount: tiers.find((t) => t.name === 'Silver')?.maxAmount || '',
             }
             : undefined,
-          gold: tiers.find((t) => t.name === 'Gold')?.enabled
+          gold: (tiers.find((t) => t.name === 'Gold')?.enabled ?? false)
             ? {
               enabled: true,
-              maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '0',
+              maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '',
             }
             : undefined,
-          platinum: tiers.find((t) => t.name === 'Platinum')?.enabled
+          platinum: (tiers.find((t) => t.name === 'Platinum')?.enabled ?? false)
             ? {
               enabled: true,
-              maxAmount: tiers.find((t) => t.name === 'Platinum')?.maxAmount || '0',
+              maxAmount: tiers.find((t) => t.name === 'Platinum')?.maxAmount || '',
             }
             : undefined,
         }
         : undefined,
       feePercentage: feeType === 'default' ? 300 : undefined,
       customFeePercentage:
-        feeType === 'custom' ? Math.round(Number.parseFloat(customFee) * 100) : undefined,
+        feeType === 'custom' ? Math.round(Number.parseFloat(customFee ?? '0') * 100) : undefined,
     });
   };
 
@@ -318,10 +391,6 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
     formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
   };
-
-  const { data: carouselItems, refetch } = useCarouselItemsQuery();
-
-  const [createCarouselItem] = useCreateCarouselItemMutation();
 
   const [selectedValidatorItems, setSelectedValidatorItems] = useState<
     {
@@ -376,7 +445,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
   const handleTierAmountChange = (tierName: string, amount: string) => {
     setTiers((prev) =>
-      prev.map((tier) => (tier.name === tierName ? { ...tier, maxAmount: amount } : tier)),
+      prev.map((tier) => (tier.name === tierName ? { ...tier, maxAmount: amount || undefined } : tier)),
     );
   };
 
@@ -397,6 +466,25 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
   const removeKeyword = (keywordToRemove: string) => {
     setSelectedKeywords(selectedKeywords.filter((keyword) => keyword !== keywordToRemove));
+  };
+
+  // Validation functions for each tab
+  const isOverviewTabValid = () => {
+    const programName = watch('programName');
+    const hasKeywords = selectedKeywords.length > 0;
+    const hasImage = selectedImage || (isEdit && imagePreview);
+    const hasApplicationDates = applicationStartDate && applicationDueDate;
+    const hasFundingDates = fundingStartDate && fundingDueDate;
+    const hasValidators = selectedValidators.length > 0;
+
+    return programName && hasKeywords && hasImage && hasApplicationDates && hasFundingDates && hasValidators;
+  };
+
+  const isDetailsTabValid = () => {
+    const summary = watch('summary');
+    const hasDescription = content.length > 0;
+
+    return summary && hasDescription;
   };
 
   // image input handler
@@ -551,7 +639,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 </div>
                 {/* Text info */}
                 <div className="flex-1">
-                  <p className="font-medium text-base">Cover image</p>
+                  <p className="font-medium text-base">Cover image <span className="text-primary">*</span></p>
                   <p className="text-sm text-muted-foreground">
                     Logo image must be square, under 2MB, and in PNG, JPG, or JPEG format.
                     <br />
@@ -639,7 +727,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
               </div>
             </label>
 
-            <label htmlFor="validator" className="space-y-2 block mb-10">
+            <label htmlFor="validator" className="space-y-2 block">
               <p className="text-sm font-medium">
                 Validators <span className="text-primary">*</span>
               </p>
@@ -674,7 +762,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
           </div>
 
           <div className="px-10 py-6 bg-white rounded-lg">
-            <label htmlFor="links" className="space-y-2 block mb-10">
+            <label htmlFor="links" className="space-y-2 block">
               <p className="text-sm font-medium">Links</p>
               <span className="block text-gray-text text-sm">
                 Add links to your website, blog, or social media profiles.
@@ -734,8 +822,8 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
         <TabsContent value="details">
           <div className="bg-white px-10 py-6 rounded-lg mb-3">
-            <label htmlFor="summary" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium">Summary</p>
+            <label htmlFor="summary" className="space-y-2 block">
+              <p className="text-sm font-medium">Summary <span className="text-primary">*</span></p>
               <Textarea
                 id="summary"
                 placeholder="Type summary"
@@ -749,8 +837,8 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
           </div>
 
           <div className="px-10 py-6 bg-white rounded-lg">
-            <label htmlFor="description" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium">Description</p>
+            <label htmlFor="description" className="space-y-2 block">
+              <p className="text-sm font-medium">Description <span className="text-primary">*</span></p>
 
               <MarkdownEditor onChange={setContent} content={content} />
               {!content.length && (
@@ -881,7 +969,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                           type="number"
                           min={0}
                           placeholder="0"
-                          value={tier.maxAmount}
+                          value={tier.maxAmount || ''}
                           onChange={(e) => handleTierAmountChange(tier.name, e.target.value)}
                           disabled={conditionType !== 'tier' || !tier.enabled}
                           className="w-[296px] h-8"
@@ -920,7 +1008,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                   max={100}
                   step={0.01}
                   placeholder="0"
-                  value={customFee}
+                  value={customFee || ''}
                   onChange={(e) => setCustomFee(e.target.value)}
                   disabled={feeType !== 'custom'}
                   className="w-32 h-8"
@@ -933,31 +1021,6 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
           </div>
         </TabsContent>
       </Tabs>
-
-      {isEdit && (
-        <Button
-          type="button"
-          onClick={() => {
-            createCarouselItem({
-              variables: {
-                input: {
-                  itemId: data?.program?.id ?? '',
-                  itemType: CarouselItemType.Program,
-                  isActive: true,
-                },
-              },
-            }).then(() => refetch());
-          }}
-          disabled={carouselItems?.carouselItems?.some(
-            (item) =>
-              item.itemId === data?.program?.id || (carouselItems?.carouselItems?.length ?? 0) >= 5,
-          )}
-        >
-          {carouselItems?.carouselItems?.some((item) => item.itemId === data?.program?.id)
-            ? 'Already in Carousel'
-            : 'Add to Main Carousel'}
-        </Button>
-      )}
 
       <div className="py-3 flex justify-end gap-4">
         {!isEdit && (
@@ -1119,6 +1182,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
             size="lg"
             variant="outline"
             onClick={() => setSelectedTab('details')}
+            disabled={!isOverviewTabValid()}
           >
             Next to Details <ChevronRight />
           </Button>
@@ -1130,6 +1194,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
             size="lg"
             variant="outline"
             onClick={() => setSelectedTab('condition')}
+            disabled={!isDetailsTabValid()}
           >
             Next to Condition <ChevronRight />
           </Button>
