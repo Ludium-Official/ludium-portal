@@ -105,11 +105,17 @@ function ApplicationDetails() {
   const navigate = useNavigate();
 
   const handleAcceptApplication = async () => {
+    console.log('=== handleAcceptApplication called ===');
+    console.log('Program type:', program?.type);
+    console.log('Program educhainProgramId:', program?.educhainProgramId);
+    console.log('Application ID:', applicationId);
+    
     try {
       let onChainProjectId: number | undefined;
 
       // If this is a funding program with blockchain deployment, register the project first
-      if (program?.type === 'funding' && program?.contractAddress && program?.educhainProgramId) {
+      if (program?.type === 'funding' && program?.educhainProgramId !== null && program?.educhainProgramId !== undefined) {
+        console.log('This is a funding program with blockchain integration');
         const application = data?.application;
         if (!application) {
           notify('Application data not found', 'error');
@@ -155,16 +161,19 @@ function ApplicationDetails() {
       }
 
       // Accept the application in the database
-      await approveApplication({
+      console.log('Accepting application with onChainProjectId:', onChainProjectId);
+      const approvalResult = await approveApplication({
         variables: {
           id: applicationId ?? '',
           ...(onChainProjectId !== undefined && { onChainProjectId })
         }
       });
+      
+      console.log('Application approval result:', approvalResult);
 
       notify(
-        onChainProjectId 
-          ? 'Application accepted and registered on blockchain!' 
+        onChainProjectId !== undefined
+          ? `Application accepted and registered on blockchain! Project ID: ${onChainProjectId}` 
           : 'Application accepted successfully',
         'success'
       );
@@ -174,37 +183,85 @@ function ApplicationDetails() {
     }
   };
 
-  const callTx = async (price?: string | null, applicationId?: string | null) => {
+  const callTx = async (price?: string | null, milestoneId?: string | null, milestoneIndex?: number) => {
     try {
       if (program) {
-        const network = program.network as keyof typeof tokenAddresses;
-        const tokens = tokenAddresses[network] || [];
-        const targetToken = tokens.find((token) => token.name === program.currency);
+        console.log('=== Milestone Approval Debug ===');
+        console.log('Program:', {
+          type: program.type,
+          educhainProgramId: program.educhainProgramId,
+          contractAddress: program.contractAddress,
+          id: program.id
+        });
+        console.log('Application:', {
+          id: data?.application?.id,
+          onChainProjectId: data?.application?.onChainProjectId,
+          status: data?.application?.status,
+          applicant: data?.application?.applicant?.walletAddress
+        });
+        console.log('Full application data:', data?.application);
+        
+        // For investment programs, check if we should use the investment contract
+        // Accept educhainProgramId as number or string, including 0
+        if (program.type === 'funding' && (program.educhainProgramId !== null && program.educhainProgramId !== undefined)) {
+          // Check if project is registered on blockchain
+          if (!data?.application?.onChainProjectId && data?.application?.onChainProjectId !== 0) {
+            console.error('No onChainProjectId found! Application needs blockchain registration.');
+            notify('This project needs to be registered on blockchain first. Please ensure the application has been properly accepted.', 'error');
+            return;
+          }
+          
+          // This only records the approval, doesn't transfer funds
+          const result = await investmentContract.approveMilestone(
+            Number(data.application.onChainProjectId),
+            milestoneIndex ?? 0
+          );
 
-        const tx = await contract.acceptMilestone(
-          Number(program?.educhainProgramId),
-          data?.application?.applicant?.walletAddress ?? '',
-          price ?? '',
-          targetToken ?? { name: program.currency as string },
-        );
-
-        if (tx) {
-          await checkMilestone({
-            variables: {
-              input: {
-                id: applicationId ?? '',
-                status: CheckMilestoneStatus.Completed,
+          if (result && result.txHash) {
+            await checkMilestone({
+              variables: {
+                input: {
+                  id: milestoneId ?? '',
+                  status: CheckMilestoneStatus.Completed,
+                },
               },
-            },
-            onCompleted: () => {
-              refetch();
-              programRefetch();
-            },
-          });
-
-          notify('Milestone accept successfully', 'success');
+              onCompleted: () => {
+                refetch();
+                programRefetch();
+                notify('Milestone approved! Funds released from investment pool.', 'success');
+              },
+            });
+          }
         } else {
-          notify("Can't found acceptMilestone event", 'error');
+          // For regular programs, use the old flow (validator pays)
+          const network = program.network as keyof typeof tokenAddresses;
+          const tokens = tokenAddresses[network] || [];
+          const targetToken = tokens.find((token) => token.name === program.currency);
+
+          const tx = await contract.acceptMilestone(
+            Number(program?.educhainProgramId),
+            data?.application?.applicant?.walletAddress ?? '',
+            price ?? '',
+            targetToken ?? { name: program.currency as string },
+          );
+
+          if (tx) {
+            await checkMilestone({
+              variables: {
+                input: {
+                  id: milestoneId ?? '',
+                  status: CheckMilestoneStatus.Completed,
+                },
+              },
+              onCompleted: () => {
+                refetch();
+                programRefetch();
+                notify('Milestone accepted successfully', 'success');
+              },
+            });
+          } else {
+            notify("Can't found acceptMilestone event", 'error');
+          }
         }
       }
     } catch (error) {
@@ -523,8 +580,19 @@ function ApplicationDetails() {
               // comments={comments?.commentsByCommentable ?? []}
               isLoggedIn={isAuthed ?? false}
               // refetchComments={refetchComments}
-              rightSide={program?.validators?.some((v) => v.id === userId) &&
-                data?.application?.status === 'pending' && (
+              rightSide={(() => {
+                const isValidator = program?.validators?.some((v) => v.id === userId);
+                const appStatus = data?.application?.status;
+                console.log('Button visibility check:', {
+                  isValidator,
+                  userId,
+                  validators: program?.validators?.map(v => v.id),
+                  appStatus,
+                  isPending: appStatus === 'pending',
+                  isPendingEnum: appStatus === ApplicationStatus.Pending,
+                });
+                return isValidator && data?.application?.status === ApplicationStatus.Pending;
+              })() && (
                   <div className="flex justify-end gap-3">
                     <Dialog>
                       <DialogTrigger asChild>
@@ -730,7 +798,7 @@ function ApplicationDetails() {
                               />
                             </DialogContent>
                           </Dialog>
-                          <Button className="h-10" onClick={() => callTx(m.price, m.id)}>
+                          <Button className="h-10" onClick={() => callTx(m.price, m.id, idx)}>
                             Accept Milestone
                           </Button>
                         </div>

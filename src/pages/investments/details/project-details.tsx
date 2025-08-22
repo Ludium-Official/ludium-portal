@@ -101,6 +101,93 @@ function ProjectDetailsPage() {
 
   const navigate = useNavigate();
 
+  const handleAcceptApplication = async () => {
+    console.log('=== handleAcceptApplication called (investment project details) ===');
+    console.log('Program type:', program?.type);
+    console.log('Program educhainProgramId:', program?.educhainProgramId);
+    console.log('Application ID:', projectId);
+    
+    try {
+      let onChainProjectId: number | undefined;
+
+      // If this is a funding program with blockchain deployment, register the project first
+      if (program?.type === 'funding' && program?.educhainProgramId !== null && program?.educhainProgramId !== undefined) {
+        console.log('This is a funding program with blockchain integration');
+        const application = data?.application;
+        if (!application) {
+          notify('Application data not found', 'error');
+          return;
+        }
+
+        // Check if application already has an onChainProjectId
+        if ((application as any).onChainProjectId) {
+          notify('This project is already registered on the blockchain', 'warning');
+          onChainProjectId = (application as any).onChainProjectId;
+        } else {
+          notify('Registering project on blockchain...', 'info');
+
+          try {
+            // Prepare milestones for blockchain
+            const milestones = application.milestones?.map(m => ({
+              title: m.title || '',
+              description: m.description || '',
+              percentage: parseFloat(m.percentage || '0'),
+              deadline: m.deadline || new Date().toISOString()
+            })) || [];
+
+            // Log validator info for debugging
+            console.log('Current user ID:', userId);
+            console.log('Program validators:', program.validators);
+            console.log('Is user a validator?', program.validators?.some(v => v.id === userId));
+            console.log('Program creator:', program.creator);
+            console.log('IMPORTANT: Due to a temporary limitation, only the program creator can validate projects on blockchain.');
+            console.log('The smart contract was deployed with the creator\'s wallet address for all validators.');
+            
+            // Call signValidate to register the project on blockchain
+            const result = await investmentContract.signValidateProject({
+              programId: Number(program.educhainProgramId),
+              projectOwner: application.applicant?.walletAddress || '0x0000000000000000000000000000000000000000',
+              projectName: application.name || 'Untitled Project',
+              targetFunding: application.fundingTarget || application.price || '0',
+              milestones
+            });
+
+            if (result.projectId !== null) {
+              onChainProjectId = result.projectId;
+              notify(`Project registered on blockchain with ID: ${onChainProjectId}`, 'success');
+            } else {
+              notify('Project registered but could not extract ID from blockchain', 'warning');
+            }
+          } catch (blockchainError) {
+            console.error('Blockchain registration failed:', blockchainError);
+            notify('Failed to register project on blockchain. Continuing with off-chain approval.', 'warning');
+          }
+        }
+      }
+
+      // Accept the application in the database
+      console.log('Accepting application with onChainProjectId:', onChainProjectId);
+      const approvalResult = await approveApplication({
+        variables: {
+          id: projectId ?? '',
+          ...(onChainProjectId !== undefined && { onChainProjectId })
+        }
+      });
+      
+      console.log('Application approval result:', approvalResult);
+
+      notify(
+        onChainProjectId !== undefined
+          ? `Application accepted and registered on blockchain! Project ID: ${onChainProjectId}` 
+          : 'Application accepted successfully',
+        'success'
+      );
+    } catch (error) {
+      console.error('Failed to accept application:', error);
+      notify('Failed to accept application', 'error');
+    }
+  };
+
   // Fetch on-chain funding progress
   useEffect(() => {
     const fetchOnChainProgress = async () => {
@@ -230,15 +317,40 @@ function ProjectDetailsPage() {
   const callTx = async (price?: string | null, milestoneId?: string | null, milestoneIndex?: number) => {
     try {
       if (program) {
+        console.log('=== Milestone Approval Debug (Investment Page) ===');
+        console.log('Program:', {
+          type: program.type,
+          educhainProgramId: program.educhainProgramId,
+          contractAddress: program.contractAddress,
+          id: program.id
+        });
+        console.log('Application:', {
+          id: data?.application?.id,
+          onChainProjectId: data?.application?.onChainProjectId,
+          status: data?.application?.status,
+          applicant: data?.application?.applicant?.walletAddress
+        });
+        console.log('Milestone:', {
+          id: milestoneId,
+          index: milestoneIndex,
+          price: price
+        });
+        
         // For investment programs, use the investment contract to approve milestones
-        if (program.type === 'funding' && program.educhainProgramId && data?.application?.onChainProjectId) {
+        if (program.type === 'funding' && (program.educhainProgramId !== null && program.educhainProgramId !== undefined)) {
+          if (!data?.application?.onChainProjectId && data?.application?.onChainProjectId !== 0) {
+            console.error('No onChainProjectId found! Application needs blockchain registration.');
+            notify('This project needs to be registered on blockchain first. Please ensure the application has been properly accepted.', 'error');
+            return;
+          }
+          console.log('Using investment contract for milestone approval');
           // This releases funds from the investment pool, not from validator's wallet
-          const tx = await investmentContract.approveMilestone(
+          const result = await investmentContract.approveMilestone(
             Number(data.application.onChainProjectId),
             milestoneIndex ?? 0 // The index of the milestone being approved
           );
 
-          if (tx) {
+          if (result && result.txHash) {
             await checkMilestone({
               variables: {
                 input: {
@@ -647,8 +759,8 @@ function ProjectDetailsPage() {
               <p className="text-sm text-red-400">You can edit and resubmit your application.</p>
             )} */}
 
-            {program?.validators?.some((v) => v.id === userId) &&
-              data?.application?.status === 'pending' && (
+            {(program?.validators?.some((v) => v.id === userId) || program?.creator?.id === userId) &&
+              data?.application?.status === ApplicationStatus.Pending && (
                 <div className="flex justify-end gap-3 absolute bottom-10 right-10">
                   <Dialog>
                     <DialogTrigger asChild>
@@ -668,9 +780,7 @@ function ProjectDetailsPage() {
                   </Dialog>
                   <Button
                     className="h-10"
-                    onClick={() => {
-                      approveApplication();
-                    }}
+                    onClick={handleAcceptApplication}
                   >
                     Select
                   </Button>

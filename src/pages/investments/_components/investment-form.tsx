@@ -36,6 +36,7 @@ export type OnSubmitInvestmentFunc = (data: {
   links?: LinkInput[];
   network: string;
   validators: string[];
+  validatorWalletAddresses?: string[];
   image?: File;
   visibility: 'public' | 'restricted' | 'private';
   builders?: string[];
@@ -308,6 +309,15 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
       return;
     }
 
+    // Get validator wallet addresses
+    const validatorWalletAddresses = selectedValidatorItems
+      .map(item => {
+        // Find the validator in the data
+        const validator = validators?.users?.data?.find(u => u.id === item.value);
+        return validator?.walletAddress || null;
+      })
+      .filter(address => address !== null) as string[];
+
     onSubmitInvestment({
       id: data?.program?.id ?? id,
       programName: submitData.programName,
@@ -321,6 +331,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
       deadline: deadline ? deadline.toISOString() : undefined,
       keywords: selectedKeywords,
       validators: selectedValidators ?? [],
+      validatorWalletAddresses,
       links: (() => {
         const { shouldSend } = validateLinks(links);
         return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
