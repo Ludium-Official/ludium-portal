@@ -1,49 +1,55 @@
-import ArbitrumIcon from '@/assets/icons/crypto/arbitrum';
-import BaseIcon from '@/assets/icons/crypto/base';
-import EduIcon from '@/assets/icons/crypto/edu';
+import ArbitrumIcon from "@/assets/icons/crypto/arbitrum";
+import BaseIcon from "@/assets/icons/crypto/base";
+import CreditCoinIcon from "@/assets/icons/crypto/creditcoin";
+import EduIcon from "@/assets/icons/crypto/edu";
 
-import EthIcon from '@/assets/icons/crypto/eth';
-import UsdcIcon from '@/assets/icons/crypto/usdc';
-import UsdtIcon from '@/assets/icons/crypto/usdt';
+import EthIcon from "@/assets/icons/crypto/eth";
+import UsdcIcon from "@/assets/icons/crypto/usdc";
+import UsdtIcon from "@/assets/icons/crypto/usdt";
 
 export const currencies = [
   {
-    code: 'educhain',
+    code: "educhain",
     icon: <EduIcon />,
-    display: 'EDUChain',
+    display: "EDUChain",
     isTestnet: false,
   },
   {
-    code: 'educhain-testnet',
+    code: "educhain-testnet",
     icon: <EduIcon />,
-    display: 'EDUChain Testnet',
+    display: "EDUChain Testnet",
     isTestnet: true,
   },
-  { code: 'base', icon: <BaseIcon />, display: 'Base', isTestnet: false },
+  { code: "base", icon: <BaseIcon />, display: "Base", isTestnet: false },
   {
-    code: 'base-sepolia',
+    code: "base-sepolia",
     icon: <BaseIcon />,
-    display: 'Base Sepolia',
+    display: "Base Sepolia",
     isTestnet: true,
   },
   {
-    code: 'arbitrum',
+    code: "arbitrum",
     icon: <ArbitrumIcon />,
-    display: 'Arbitrum',
+    display: "Arbitrum",
     isTestnet: false,
   },
   {
-    code: 'arbitrum-sepolia',
+    code: "arbitrum-sepolia",
     icon: <ArbitrumIcon />,
-    display: 'Arbitrum Sepolia',
+    display: "Arbitrum Sepolia",
+    isTestnet: true,
+  },
+  {
+    code: "creditcoin",
+    icon: <CreditCoinIcon />,
+    display: "Creditcoin",
     isTestnet: true,
   },
 ];
 
-
 export const currencyIcons = {
-  'EDU': <EduIcon />,
-  'USDT': <UsdtIcon />,
-  'USDC': <UsdcIcon />,
-  'ETH': <EthIcon />,
-}
+  EDU: <EduIcon />,
+  USDT: <UsdtIcon />,
+  USDC: <UsdcIcon />,
+  ETH: <EthIcon />,
+};

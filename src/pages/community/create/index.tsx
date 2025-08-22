@@ -24,7 +24,6 @@ const CreateCommunityPage: React.FC = () => {
         client.refetchQueries({ include: [PostsDocument] });
         navigate('/community');
 
-
         window.location.reload();
       },
     });

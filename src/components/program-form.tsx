@@ -1,5 +1,3 @@
-
-
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
 import CurrencySelector from '@/components/currency-selector';
@@ -130,17 +128,21 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
       setSelectedKeywords(data?.program?.keywords?.map((k) => k.name ?? '') ?? []);
     if (data?.program?.validators?.length) {
       setSelectedValidators(data?.program.validators?.map((k) => k.id ?? '') ?? '');
-      setSelectedValidatorItems(data?.program.validators?.map((k) => ({
-        value: k.id ?? '',
-        label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
-      })) ?? []);
+      setSelectedValidatorItems(
+        data?.program.validators?.map((k) => ({
+          value: k.id ?? '',
+          label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
+        })) ?? [],
+      );
     }
     if (data?.program?.invitedBuilders?.length) {
       setSelectedBuilders(data?.program.invitedBuilders?.map((k) => k.id ?? '') ?? '');
-      setSelectedBuilderItems(data?.program.invitedBuilders?.map((k) => ({
-        value: k.id ?? '',
-        label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
-      })) ?? []);
+      setSelectedBuilderItems(
+        data?.program.invitedBuilders?.map((k) => ({
+          value: k.id ?? '',
+          label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
+        })) ?? [],
+      );
     }
     if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
     if (data?.program?.links) setLinks(data?.program?.links.map((l) => l.url ?? ''));
@@ -215,7 +217,8 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
     onSubmitProgram({
       id: data?.program?.id ?? id,
       programName: submitData.programName,
-      price: isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.price,
+      price:
+        isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.price,
       description: content,
       summary: submitData.summary,
       currency:
@@ -230,11 +233,16 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
         return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
       })(),
       network:
-        isEdit && data?.program?.status !== ProgramStatus.Pending ? (data?.program?.network as string) : network ?? mainnetDefaultNetwork,
+        isEdit && data?.program?.status !== ProgramStatus.Pending
+          ? (data?.program?.network as string)
+          : (network ?? mainnetDefaultNetwork),
       image: selectedImage,
       visibility: visibility,
       builders: selectedBuilders,
-      status: isEdit && data?.program?.status !== ProgramStatus.Pending ? data?.program?.status ?? ProgramStatus.Pending : ProgramStatus.Pending,
+      status:
+        isEdit && data?.program?.status !== ProgramStatus.Pending
+          ? (data?.program?.status ?? ProgramStatus.Pending)
+          : ProgramStatus.Pending,
     });
   };
 
@@ -505,13 +513,15 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
                     {...register('price', { required: true })}
                   />
                 </div>
-                {!!network && <CurrencySelector
-                  disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
-                  value={currency}
-                  onValueChange={setCurrency}
-                  network={network ?? mainnetDefaultNetwork}
-                  className="w-[108px] h-10"
-                />}
+                {!!network && (
+                  <CurrencySelector
+                    disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
+                    value={currency}
+                    onValueChange={setCurrency}
+                    network={network ?? mainnetDefaultNetwork}
+                    className="w-[108px] h-10"
+                  />
+                )}
               </div>
 
               {errors.price && (
@@ -655,7 +665,6 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
         </TabsContent>
       </Tabs>
 
-
       <div className="py-3 flex justify-end gap-4">
         {!isEdit && (
           <Tooltip>
@@ -690,7 +699,10 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
                 Save
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-white text-foreground border shadow-[0px_4px_6px_-1px_#0000001A]" sideOffset={8}>
+            <TooltipContent
+              className="bg-white text-foreground border shadow-[0px_4px_6px_-1px_#0000001A]"
+              sideOffset={8}
+            >
               Image file will not be saved in the draft.
             </TooltipContent>
           </Tooltip>
@@ -752,9 +764,7 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
                   <RadioGroupItem value="restricted" id="r2" className="border-foreground" />
                   <div>
                     <Label htmlFor="r2">Restricted</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Only users with links can view.
-                    </p>
+                    <p className="text-sm text-muted-foreground">Only users with links can view.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -791,7 +801,6 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
           </Button>
         )}
       </div>
-
     </form>
   );
 }

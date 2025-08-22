@@ -42,7 +42,9 @@ function EditApplicationForm({
         input: {
           id: application?.id ?? '',
           content,
-          links: shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined,
+          links: shouldSend
+            ? filterEmptyLinks(links).map((l) => ({ title: l, url: l }))
+            : undefined,
           summary,
           status: resubmit ? ApplicationStatus.Pending : undefined,
           name,

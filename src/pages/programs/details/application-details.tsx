@@ -5,7 +5,11 @@ import { useApplicationQuery } from '@/apollo/queries/application.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { CommentSection } from '@/components/comments/comment-section';
 import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
-import { ApplicationStatusBadge, MilestoneStatusBadge, ProgramStatusBadge } from '@/components/status-badge';
+import {
+  ApplicationStatusBadge,
+  MilestoneStatusBadge,
+  ProgramStatusBadge,
+} from '@/components/status-badge';
 import {
   Accordion,
   AccordionContent,
@@ -40,7 +44,12 @@ import EditMilestoneForm from '@/pages/programs/details/_components/edit-milesto
 import RejectApplicationForm from '@/pages/programs/details/_components/reject-application-form';
 import RejectMilestoneForm from '@/pages/programs/details/_components/reject-milestone-form';
 import SubmitMilestoneForm from '@/pages/programs/details/_components/submit-milestone-form';
-import { ApplicationStatus, CheckMilestoneStatus, CommentableTypeEnum, MilestoneStatus } from '@/types/types.generated';
+import {
+  ApplicationStatus,
+  CheckMilestoneStatus,
+  CommentableTypeEnum,
+  MilestoneStatus,
+} from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
 import { ArrowUpRight, Check, ChevronDown, CircleAlert, Settings } from 'lucide-react';
@@ -54,7 +63,11 @@ function ApplicationDetails() {
   const { userId, isAdmin, isAuthed } = useAuth();
   const { id, applicationId } = useParams();
 
-  const { data, refetch, error: appError } = useApplicationQuery({
+  const {
+    data,
+    refetch,
+    error: appError,
+  } = useApplicationQuery({
     variables: {
       id: applicationId ?? '',
     },
@@ -66,7 +79,6 @@ function ApplicationDetails() {
       id: id ?? '',
     },
   });
-
 
   // const { data: comments } = useCommentsByCommentableQuery({
   //   variables: {
@@ -161,8 +173,6 @@ function ApplicationDetails() {
     [program],
   );
 
-
-
   if (appError?.message === 'You do not have access to this application') {
     return (
       <div className="text-center bg-white rounded-2xl p-10">
@@ -177,8 +187,7 @@ function ApplicationDetails() {
   return (
     <div className="bg-[#F7F7F7]">
       <section className="bg-white p-10 pb-0 rounded-b-2xl">
-        <div className='max-w-1440 mx-auto'>
-
+        <div className="max-w-1440 mx-auto">
           <ProgramStatusBadge program={program} className="inline-flex mb-4" />
           <div className="flex justify-between mb-5">
             <Link to={`/programs/${id}`} className="flex items-center gap-4 mb-4">
@@ -263,8 +272,7 @@ function ApplicationDetails() {
       </section>
 
       <section className="bg-white rounded-b-2xl">
-        <div className='max-w-[1520px] mx-auto flex'>
-
+        <div className="max-w-[1520px] mx-auto flex">
           <div className="p-10 flex-[66.6%]">
             <h3 className="flex items-end mb-3">
               <span className="p-2 border-b border-b-primary font-medium text-sm">Overview</span>
@@ -272,7 +280,7 @@ function ApplicationDetails() {
             </h3>
             <div className="flex justify-between mb-5 pt-6">
               <div className="flex gap-4">
-                <ApplicationStatusBadge application={data?.application} className='self-center' />
+                <ApplicationStatusBadge application={data?.application} className="self-center" />
                 {data?.application?.status === ApplicationStatus.Rejected && (
                   <Tooltip>
                     <TooltipTrigger className="text-destructive flex gap-2 items-center">
@@ -294,7 +302,7 @@ function ApplicationDetails() {
               <Badge variant="default">{data?.application?.status}</Badge>
             </div> */}
 
-              <div className='flex items-center gap-2'>
+              <div className="flex items-center gap-2">
                 {(data?.application?.status === ApplicationStatus.Pending ||
                   data?.application?.status === ApplicationStatus.Rejected) &&
                   data?.application?.applicant?.id === userId && (
@@ -318,7 +326,6 @@ function ApplicationDetails() {
                   )}
 
                 <ShareButton />
-
               </div>
             </div>
 
@@ -346,7 +353,9 @@ function ApplicationDetails() {
                         .toFixed()}
                     </span>
                   </p>
-                  <span className="text-muted-foreground">{getCurrencyIcon(program?.currency)}</span>
+                  <span className="text-muted-foreground">
+                    {getCurrencyIcon(program?.currency)}
+                  </span>
 
                   <span className="text-sm text-muted-foreground">{program?.currency}</span>
                 </div>
@@ -371,13 +380,21 @@ function ApplicationDetails() {
                 <h2 className="font-bold text-muted-foreground text-sm">LINKS</h2>
                 <div className="">
                   {data?.application?.links?.length === 1 ? (
-                    <a href={data.application.links[0].url ?? ''} target="_blank" rel="noreferrer" className="text-slate-600 text-sm">
+                    <a
+                      href={data.application.links[0].url ?? ''}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-slate-600 text-sm"
+                    >
                       {data.application.links[0].url}
                     </a>
                   ) : (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="p-0 h-auto text-slate-600 text-sm hover:bg-transparent">
+                        <Button
+                          variant="ghost"
+                          className="p-0 h-auto text-slate-600 text-sm hover:bg-transparent"
+                        >
                           {data?.application?.links?.[0]?.url}
                           <ChevronDown className="ml-1 h-4 w-4" />
                         </Button>
@@ -385,7 +402,12 @@ function ApplicationDetails() {
                       <DropdownMenuContent align="start" className="w-64">
                         {data?.application?.links?.map((link) => (
                           <DropdownMenuItem key={link.url} className="cursor-pointer">
-                            <a href={link.url ?? ''} target="_blank" rel="noreferrer" className="flex items-center gap-2">
+                            <a
+                              href={link.url ?? ''}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center gap-2"
+                            >
                               <Check className="h-4 w-4" />
                               {link.url}
                             </a>
@@ -439,24 +461,23 @@ function ApplicationDetails() {
               <p className="text-sm text-red-400">You can edit and resubmit your application.</p>
             )} */}
 
-
-
-
-
-
-
             <CommentSection
               commentableId={applicationId ?? ''}
               commentableType={CommentableTypeEnum.Application}
               // comments={comments?.commentsByCommentable ?? []}
               isLoggedIn={isAuthed ?? false}
               // refetchComments={refetchComments}
-              rightSide={program?.validators?.some((v) => v.id === userId) &&
+              rightSide={
+                program?.validators?.some((v) => v.id === userId) &&
                 data?.application?.status === 'pending' && (
                   <div className="flex justify-end gap-3">
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button onClick={(e) => e.stopPropagation()} className="h-10" variant="outline">
+                        <Button
+                          onClick={(e) => e.stopPropagation()}
+                          className="h-10"
+                          variant="outline"
+                        >
                           Reject
                         </Button>
                       </DialogTrigger>
@@ -479,7 +500,8 @@ function ApplicationDetails() {
                       Select
                     </Button>
                   </div>
-                )}
+                )
+              }
             />
           </div>
 
@@ -500,11 +522,9 @@ function ApplicationDetails() {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="flex justify-between">
-
                       <h2 className="text-lg font-bold mb-2">Milestone #{idx + 1}</h2>
 
-                      <div className='flex items-center gap-2'>
-
+                      <div className="flex items-center gap-2">
                         {m.rejectionReason && m.status === MilestoneStatus.Rejected ? (
                           <Tooltip>
                             <TooltipTrigger>
@@ -520,9 +540,12 @@ function ApplicationDetails() {
                               </div>
                             </TooltipContent>
                           </Tooltip>
-                        ) : <div />}
+                        ) : (
+                          <div />
+                        )}
 
-                        {(m.status === MilestoneStatus.Pending || m.status === MilestoneStatus.Rejected) &&
+                        {(m.status === MilestoneStatus.Pending ||
+                          m.status === MilestoneStatus.Rejected) &&
                           data?.application?.applicant?.id === userId && (
                             <Dialog>
                               <DialogTrigger asChild>
@@ -563,7 +586,10 @@ function ApplicationDetails() {
                             deadlineDate.setHours(0, 0, 0, 0);
                             today.setHours(0, 0, 0, 0);
                             const diffTime = deadlineDate.getTime() - today.getTime();
-                            const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+                            const daysRemaining = Math.max(
+                              0,
+                              Math.ceil(diffTime / (1000 * 60 * 60 * 24)),
+                            );
                             return <Badge className="ml-2">D-{daysRemaining}</Badge>;
                           })()}
                       </p>
@@ -666,7 +692,8 @@ function ApplicationDetails() {
                         </div>
                       )}
 
-                    {(m.status === MilestoneStatus.Pending || m.status === MilestoneStatus.Rejected) &&
+                    {(m.status === MilestoneStatus.Pending ||
+                      m.status === MilestoneStatus.Rejected) &&
                       data?.application?.status === ApplicationStatus.Accepted &&
                       data?.application?.applicant?.id === userId && (
                         <Dialog>
@@ -675,7 +702,7 @@ function ApplicationDetails() {
                             disabled={
                               idx !== 0 &&
                               data?.application?.milestones?.[idx - 1]?.status !==
-                              MilestoneStatus.Completed
+                                MilestoneStatus.Completed
                             }
                           >
                             <Button className="h-10 block ml-auto">Submit Milestone</Button>
@@ -694,18 +721,18 @@ function ApplicationDetails() {
                       commentableType={CommentableTypeEnum.Milestone}
                       // comments={comments?.commentsByCommentable ?? []}
                       isLoggedIn={isAuthed ?? false}
-                    // onSubmitComment={async (content) =>
-                    //   await createComment({
-                    //     variables: {
-                    //       input: {
-                    //         content,
-                    //         commentableId: postId,
-                    //         commentableType: CommentableTypeEnum.Post,
-                    //       },
-                    //     },
-                    //   })
-                    // }
-                    // refetchComments={refetchComments}
+                      // onSubmitComment={async (content) =>
+                      //   await createComment({
+                      //     variables: {
+                      //       input: {
+                      //         content,
+                      //         commentableId: postId,
+                      //         commentableType: CommentableTypeEnum.Post,
+                      //       },
+                      //     },
+                      //   })
+                      // }
+                      // refetchComments={refetchComments}
                     />
                   </AccordionContent>
                 </AccordionItem>
@@ -713,7 +740,6 @@ function ApplicationDetails() {
             </Accordion>
           </div>
         </div>
-
       </section>
     </div>
   );

@@ -24,12 +24,9 @@ export const CommentSection = ({
   // refetchComments,
   rightSide,
 }: CommentSectionProps) => {
-
-
   const [comment, setComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
-
 
   const { data: commentsData, refetch: refetchComments } = useCommentsByCommentableQuery({
     variables: {
@@ -41,7 +38,6 @@ export const CommentSection = ({
   });
 
   const comments = commentsData?.commentsByCommentable ?? [];
-
 
   const [createComment] = useCreateCommentMutation();
 
@@ -57,7 +53,7 @@ export const CommentSection = ({
             commentableType: commentableType,
           },
         },
-      })
+      });
       setComment('');
       refetchComments();
     } catch (e) {
@@ -69,7 +65,7 @@ export const CommentSection = ({
 
   return (
     <div>
-      <div className='flex justify-between items-center mb-2'>
+      <div className="flex justify-between items-center mb-2">
         <button
           type="button"
           onClick={() => setCommentsOpen((prev) => !prev)}

@@ -159,7 +159,6 @@ function ProfilePage() {
             ))}
           </div>
 
-
           <h3 className="text-gray-text text-xs font-medium mb-2">Roles</h3>
           <div className="text-gray-dark text-sm font-medium mb-10 flex gap-1 flex-wrap">
             {profileData?.profile?.keywords?.map((k) => (

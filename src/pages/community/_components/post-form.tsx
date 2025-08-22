@@ -1,4 +1,3 @@
-
 import { usePostQuery } from '@/apollo/queries/post.generated';
 import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
