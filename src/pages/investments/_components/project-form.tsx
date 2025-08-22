@@ -1,4 +1,3 @@
-
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
 import { MarkdownEditor } from '@/components/markdown';
@@ -28,7 +27,7 @@ const tierColors = {
   bronze: 'bg-[#EED5C1] text-[#9F6636]',
   silver: 'bg-[#E2E8F0] text-[#64748B]',
   gold: 'bg-[#FFDEA1] text-[#CA8A04]',
-  platinum: 'bg-[#CAF0E3] text-[#0D9488]'
+  platinum: 'bg-[#CAF0E3] text-[#0D9488]',
 } as const;
 
 // Terms state
@@ -95,7 +94,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
   // Supporter tier state
   const [supporterTierConfirmed, setSupporterTierConfirmed] = useState<boolean>(false);
 
-
   const [nextTermId, setNextTermId] = useState<number>(2); // Start from 2 since Term 1 has id 1
   const [selectedTiers, setSelectedTiers] = useState<string[]>(['']);
   const [popoverStates, setPopoverStates] = useState<boolean[]>([false]);
@@ -109,7 +107,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
       description: '',
     },
   ]);
-
 
   const [nextMilestoneId, setNextMilestoneId] = useState<number>(2); // Start from 2 since Milestone 1 has id 1
 
@@ -202,7 +199,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
       id: data?.program?.id ?? id,
       name: submitData.name,
       fundingToBeRaised:
-        isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.fundingToBeRaised,
+        isEdit && data?.program?.status !== ProgramStatus.Pending
+          ? undefined
+          : submitData.fundingToBeRaised,
       description: content,
       summary: submitData.summary,
       links: (() => {
@@ -248,18 +247,27 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
       return hasError;
     });
 
-    if (termsErrors.some(error => error)) {
+    if (termsErrors.some((error) => error)) {
       dispatchErrors({ type: ExtraErrorActionKind.SET_TERMS_ERROR, payload: termsErrors });
       hasErrors = true;
     }
 
     // Validate milestones
     const milestonesErrors = milestones.map((milestone) => {
-      return !milestone.title || !milestone.payoutPercentage || !milestone.endDate || !milestone.summary || !milestone.description;
+      return (
+        !milestone.title ||
+        !milestone.payoutPercentage ||
+        !milestone.endDate ||
+        !milestone.summary ||
+        !milestone.description
+      );
     });
 
-    if (milestonesErrors.some(error => error)) {
-      dispatchErrors({ type: ExtraErrorActionKind.SET_MILESTONES_ERROR, payload: milestonesErrors });
+    if (milestonesErrors.some((error) => error)) {
+      dispatchErrors({
+        type: ExtraErrorActionKind.SET_MILESTONES_ERROR,
+        payload: milestonesErrors,
+      });
       hasErrors = true;
     }
 
@@ -310,7 +318,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
   };
 
   const isDetailsTabValid = () => {
-
     const summary = watch('summary');
     const hasDescription = content.length > 0;
 
@@ -329,8 +336,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
       return !hasError;
     });
   };
-
-
 
   // Prefill from draft on mount when creating (not editing)
   useEffect(() => {
@@ -480,35 +485,49 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
               {/* Program Tier Condition Box */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <div className={cn("flex items-center justify-between border-b pb-2 mb-2", !data?.program?.tierSettings && "border-none pb-0 mb-0")}>
+                <div
+                  className={cn(
+                    'flex items-center justify-between border-b pb-2 mb-2',
+                    !data?.program?.tierSettings && 'border-none pb-0 mb-0',
+                  )}
+                >
                   <p className="text-sm font-medium text-gray-700">Program Tier Condition</p>
-                  {data?.program?.tierSettings ? <div className="flex items-center gap-2">
-                    {data?.program?.tierSettings && Object.entries(data.program.tierSettings).map(([key, value]) => {
-                      if (!(value as { enabled: boolean })?.enabled) return null;
+                  {data?.program?.tierSettings ? (
+                    <div className="flex items-center gap-2">
+                      {data?.program?.tierSettings &&
+                        Object.entries(data.program.tierSettings).map(([key, value]) => {
+                          if (!(value as { enabled: boolean })?.enabled) return null;
 
-                      return (
-                        <span
-                          key={key}
-                          className={`${tierColors[key as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}
-                        >
-                          {key.charAt(0).toUpperCase() + key.slice(1)}
-                        </span>
-                      );
-                    })}
-                  </div> : <p className="text-sm text-foreground font-bold">Open</p>}
+                          return (
+                            <span
+                              key={key}
+                              className={`${tierColors[key as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}
+                            >
+                              {key.charAt(0).toUpperCase() + key.slice(1)}
+                            </span>
+                          );
+                        })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-foreground font-bold">Open</p>
+                  )}
                 </div>
-                {!!data?.program?.tierSettings && <div className="flex flex-col items-end space-y-1">
-                  {Object.entries(data?.program?.tierSettings).map(([key, value]) => (
-                    (value as { enabled: boolean })?.enabled && (
-                      <div className="text-sm text-gray-600">
-                        {key.charAt(0).toUpperCase() + key.slice(1)} {(value as { maxAmount: string })?.maxAmount}
-                      </div>
-                    )
-                  ))}
+                {!!data?.program?.tierSettings && (
+                  <div className="flex flex-col items-end space-y-1">
+                    {Object.entries(data?.program?.tierSettings).map(
+                      ([key, value]) =>
+                        (value as { enabled: boolean })?.enabled && (
+                          <div className="text-sm text-gray-600">
+                            {key.charAt(0).toUpperCase() + key.slice(1)}{' '}
+                            {(value as { maxAmount: string })?.maxAmount}
+                          </div>
+                        ),
+                    )}
 
-                  {/* <div className="text-sm text-gray-600">Gold 10,000</div>
+                    {/* <div className="text-sm text-gray-600">Gold 10,000</div>
                   <div className="text-sm text-gray-600">Platinum 20,000</div> */}
-                </div>}
+                  </div>
+                )}
               </div>
 
               {/* Confirmed Checkbox */}
@@ -523,7 +542,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                 </Label>
               </div>
               {extraErrors.supporterTier && (
-                <span className="text-destructive text-sm block mt-2">Please confirm the supporter tier</span>
+                <span className="text-destructive text-sm block mt-2">
+                  Please confirm the supporter tier
+                </span>
               )}
             </label>
           </div>
@@ -590,7 +611,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
         <TabsContent value="details">
           <div className="bg-white px-10 py-6 rounded-lg mb-3">
             <label htmlFor="summary" className="space-y-2 block">
-              <p className="text-sm font-medium">Summary <span className="text-primary">*</span></p>
+              <p className="text-sm font-medium">
+                Summary <span className="text-primary">*</span>
+              </p>
               <Textarea
                 id="summary"
                 placeholder="Type summary"
@@ -605,7 +628,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
           <div className="px-10 py-6 bg-white rounded-lg">
             <label htmlFor="description" className="space-y-2 block">
-              <p className="text-sm font-medium">Description <span className="text-primary">*</span></p>
+              <p className="text-sm font-medium">
+                Description <span className="text-primary">*</span>
+              </p>
 
               <MarkdownEditor onChange={setContent} content={content} />
               {extraErrors.description && (
@@ -656,12 +681,18 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor={`prize-${index}`} className="text-sm font-medium">
-                        {data?.program?.tierSettings ? 'Tier' : 'Prize'} <span className="text-primary">*</span>
+                        {data?.program?.tierSettings ? 'Tier' : 'Prize'}{' '}
+                        <span className="text-primary">*</span>
                       </Label>
                       {data?.program?.tierSettings ? (
-                        <Popover open={popoverStates[index]} onOpenChange={(open) => {
-                          setPopoverStates((prev) => prev.map((state, i) => i === index ? open : state));
-                        }}>
+                        <Popover
+                          open={popoverStates[index]}
+                          onOpenChange={(open) => {
+                            setPopoverStates((prev) =>
+                              prev.map((state, i) => (i === index ? open : state)),
+                            );
+                          }}
+                        >
                           <PopoverTrigger asChild>
                             <Button
                               variant="outline"
@@ -669,8 +700,11 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                             >
                               {selectedTiers[index] ? (
                                 <span className="flex items-center gap-2">
-                                  <span className={`${tierColors[selectedTiers[index] as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}>
-                                    {selectedTiers[index].charAt(0).toUpperCase() + selectedTiers[index].slice(1)}
+                                  <span
+                                    className={`${tierColors[selectedTiers[index] as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}
+                                  >
+                                    {selectedTiers[index].charAt(0).toUpperCase() +
+                                      selectedTiers[index].slice(1)}
                                   </span>
                                 </span>
                               ) : (
@@ -690,16 +724,24 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                                     variant="ghost"
                                     className="w-full justify-start pl-1"
                                     onClick={() => {
-                                      setSelectedTiers((prev) => prev.map((tier, i) => i === index ? key : tier));
+                                      setSelectedTiers((prev) =>
+                                        prev.map((tier, i) => (i === index ? key : tier)),
+                                      );
                                       updateTerm(index, 'prize', key);
-                                      setPopoverStates((prev) => prev.map((state, i) => i === index ? false : state));
+                                      setPopoverStates((prev) =>
+                                        prev.map((state, i) => (i === index ? false : state)),
+                                      );
                                     }}
                                   >
                                     <div className="flex items-center gap-2">
                                       {selectedTiers[index] === key ? (
                                         <Check className="h-4 w-4 text-foreground" />
-                                      ) : <div className="w-4 h-4" />}
-                                      <span className={`${tierColors[key as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}>
+                                      ) : (
+                                        <div className="w-4 h-4" />
+                                      )}
+                                      <span
+                                        className={`${tierColors[key as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}
+                                      >
                                         {key.charAt(0).toUpperCase() + key.slice(1)}
                                       </span>
                                     </div>
@@ -720,7 +762,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         />
                       )}
                       {extraErrors.terms[index] && !term.prize && (
-                        <span className="text-destructive text-sm block mt-1">Prize/Tier is required</span>
+                        <span className="text-destructive text-sm block mt-1">
+                          Prize/Tier is required
+                        </span>
                       )}
                     </div>
                     <div>
@@ -735,9 +779,12 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         onChange={(e) => updateTerm(index, 'purchaseLimit', e.target.value)}
                         className="mt-2 h-10"
                       />
-                      {extraErrors.terms[index] && (!term.purchaseLimit || Number.parseInt(term.purchaseLimit, 10) <= 0) && (
-                        <span className="text-destructive text-sm block mt-1">Purchase limit must be a positive integer</span>
-                      )}
+                      {extraErrors.terms[index] &&
+                        (!term.purchaseLimit || Number.parseInt(term.purchaseLimit, 10) <= 0) && (
+                          <span className="text-destructive text-sm block mt-1">
+                            Purchase limit must be a positive integer
+                          </span>
+                        )}
                     </div>
                   </div>
 
@@ -759,7 +806,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         }}
                       />
                       {extraErrors.terms[index] && !term.description && (
-                        <span className="text-destructive text-sm block mt-1">Description is required</span>
+                        <span className="text-destructive text-sm block mt-1">
+                          Description is required
+                        </span>
                       )}
                     </div>
                   </div>
@@ -833,9 +882,13 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         onChange={(e) => updateMilestone(index, 'payoutPercentage', e.target.value)}
                         className="mt-2 h-10"
                       />
-                      {extraErrors.milestones[index] && (!milestone.payoutPercentage || Number.parseFloat(milestone.payoutPercentage) < 0) && (
-                        <span className="text-destructive text-sm block mt-1">Payout percentage must be a positive number</span>
-                      )}
+                      {extraErrors.milestones[index] &&
+                        (!milestone.payoutPercentage ||
+                          Number.parseFloat(milestone.payoutPercentage) < 0) && (
+                          <span className="text-destructive text-sm block mt-1">
+                            Payout percentage must be a positive number
+                          </span>
+                        )}
                     </div>
 
                     {/* End Date */}
@@ -851,7 +904,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         />
                       </div>
                       {extraErrors.milestones[index] && !milestone.endDate && (
-                        <span className="text-destructive text-sm block mt-1">End date is required</span>
+                        <span className="text-destructive text-sm block mt-1">
+                          End date is required
+                        </span>
                       )}
                     </div>
                   </div>
@@ -869,7 +924,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       className="mt-2"
                     />
                     {extraErrors.milestones[index] && !milestone.summary && (
-                      <span className="text-destructive text-sm block mt-1">Summary is required</span>
+                      <span className="text-destructive text-sm block mt-1">
+                        Summary is required
+                      </span>
                     )}
                   </div>
 
@@ -894,7 +951,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         }}
                       />
                       {extraErrors.milestones[index] && !milestone.description && (
-                        <span className="text-destructive text-sm block mt-1">Description is required</span>
+                        <span className="text-destructive text-sm block mt-1">
+                          Description is required
+                        </span>
                       )}
                     </div>
                   </div>
@@ -948,7 +1007,10 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                 Save
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-white text-foreground border shadow-[0px_4px_6px_-1px_#0000001A]" sideOffset={8}>
+            <TooltipContent
+              className="bg-white text-foreground border shadow-[0px_4px_6px_-1px_#0000001A]"
+              sideOffset={8}
+            >
               Save your progress as a draft.
             </TooltipContent>
           </Tooltip>

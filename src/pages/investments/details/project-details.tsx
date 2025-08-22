@@ -6,7 +6,11 @@ import { useCreateInvestmentMutation } from '@/apollo/mutation/create-investment
 import { ApplicationDocument, useApplicationQuery } from '@/apollo/queries/application.generated';
 import { ProgramDocument, useProgramQuery } from '@/apollo/queries/program.generated';
 import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
-import { ApplicationStatusBadge, MilestoneStatusBadge, ProgramStatusBadge } from '@/components/status-badge';
+import {
+  ApplicationStatusBadge,
+  MilestoneStatusBadge,
+  ProgramStatusBadge,
+} from '@/components/status-badge';
 import {
   Accordion,
   AccordionContent,
@@ -23,7 +27,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -44,7 +53,15 @@ import SubmitMilestoneForm from '@/pages/programs/details/_components/submit-mil
 import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
-import { ArrowUpRight, Check, ChevronDown, CircleAlert, Coins, Settings, TrendingUp } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Check,
+  ChevronDown,
+  CircleAlert,
+  Coins,
+  Settings,
+  TrendingUp,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
@@ -102,17 +119,15 @@ function ProjectDetailsPage() {
   const navigate = useNavigate();
 
   const handleAcceptApplication = async () => {
-    console.log('=== handleAcceptApplication called (investment project details) ===');
-    console.log('Program type:', program?.type);
-    console.log('Program educhainProgramId:', program?.educhainProgramId);
-    console.log('Application ID:', projectId);
-
     try {
       let onChainProjectId: number | undefined;
 
       // If this is a funding program with blockchain deployment, register the project first
-      if (program?.type === 'funding' && program?.educhainProgramId !== null && program?.educhainProgramId !== undefined) {
-        console.log('This is a funding program with blockchain integration');
+      if (
+        program?.type === 'funding' &&
+        program?.educhainProgramId !== null &&
+        program?.educhainProgramId !== undefined
+      ) {
         const application = data?.application;
         if (!application) {
           notify('Application data not found', 'error');
@@ -130,28 +145,23 @@ function ProjectDetailsPage() {
 
           try {
             // Prepare milestones for blockchain
-            const milestones = application.milestones?.map(m => ({
-              title: m.title || '',
-              description: m.description || '',
-              percentage: Number.parseFloat(m.percentage || '0'),
-              deadline: m.deadline || new Date().toISOString()
-            })) || [];
-
-            // Log validator info for debugging
-            console.log('Current user ID:', userId);
-            console.log('Program validators:', program.validators);
-            console.log('Is user a validator?', program.validators?.some(v => v.id === userId));
-            console.log('Program creator:', program.creator);
-            console.log('IMPORTANT: Due to a temporary limitation, only the program creator can validate projects on blockchain.');
-            console.log('The smart contract was deployed with the creator\'s wallet address for all validators.');
+            const milestones =
+              application.milestones?.map((m) => ({
+                title: m.title || '',
+                description: m.description || '',
+                percentage: Number.parseFloat(m.percentage || '0'),
+                deadline: m.deadline || new Date().toISOString(),
+              })) || [];
 
             // Call signValidate to register the project on blockchain
             const result = await investmentContract.signValidateProject({
               programId: Number(program.educhainProgramId),
-              projectOwner: application.applicant?.walletAddress || '0x0000000000000000000000000000000000000000',
+              projectOwner:
+                application.applicant?.walletAddress ||
+                '0x0000000000000000000000000000000000000000',
               projectName: application.name || 'Untitled Project',
               targetFunding: application.fundingTarget || application.price || '0',
-              milestones
+              milestones,
             });
 
             if (result.projectId !== null) {
@@ -160,32 +170,34 @@ function ProjectDetailsPage() {
             } else {
               notify('Project registered but could not extract ID from blockchain', 'error');
             }
-          } catch (blockchainError) {
-            console.error('Blockchain registration failed:', blockchainError);
-            notify('Failed to register project on blockchain. Continuing with off-chain approval.', 'error');
+          } catch (_blockchainError) {
+            notify(
+              'Failed to register project on blockchain. Continuing with off-chain approval.',
+              'error',
+            );
           }
         }
       }
 
       // Accept the application in the database
-      console.log('Accepting application with onChainProjectId:', onChainProjectId);
-      const approvalResult = await approveApplication({
+      await approveApplication({
         variables: {
           id: projectId ?? '',
-          ...(onChainProjectId !== undefined && { onChainProjectId })
-        }
+          ...(onChainProjectId !== undefined && { onChainProjectId }),
+        },
       });
 
-      console.log('Application approval result:', approvalResult);
+      // Refetch the application data to get the updated onChainProjectId
+      await refetch();
+      await programRefetch();
 
       notify(
         onChainProjectId !== undefined
           ? `Application accepted and registered on blockchain! Project ID: ${onChainProjectId}`
           : 'Application accepted successfully',
-        'success'
+        'success',
       );
-    } catch (error) {
-      console.error('Failed to accept application:', error);
+    } catch (_error) {
       notify('Failed to accept application', 'error');
     }
   };
@@ -197,11 +209,11 @@ function ProjectDetailsPage() {
         try {
           const progress = await investmentContract.getProjectFundingProgress(
             Number(program.educhainProgramId),
-            Number(data.application.onChainProjectId)
+            Number(data.application.onChainProjectId),
           );
           setOnChainFundingProgress(progress);
-        } catch (error) {
-          console.error('Failed to fetch on-chain funding progress:', error);
+        } catch (_error) {
+          // Silently fail - funding progress is not critical
         }
       }
     };
@@ -223,7 +235,10 @@ function ProjectDetailsPage() {
       const userTierAssignment = program?.userTierAssignment;
       if (program?.fundingCondition === 'tier') {
         if (!userTierAssignment) {
-          notify('You are not assigned to any tier for this program. Please contact the program creator to get tier access.', 'error');
+          notify(
+            'You are not assigned to any tier for this program. Please contact the program creator to get tier access.',
+            'error',
+          );
           return;
         }
 
@@ -235,14 +250,18 @@ function ProjectDetailsPage() {
       }
 
       // Find the selected term to get the amount
-      const selectedTerm = data?.application?.investmentTerms?.find(term => term.price === selectedTier);
+      const selectedTerm = data?.application?.investmentTerms?.find(
+        (term) => term.price === selectedTier,
+      );
       if (!selectedTerm) {
         notify('Selected tier not found', 'error');
         return;
       }
 
       // Get the amount from the program tier settings or term price
-      const amount = program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount || selectedTerm.price;
+      const amount =
+        program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount ||
+        selectedTerm.price;
 
       // Validate investment amount against tier limits
       if (userTierAssignment?.remainingCapacity) {
@@ -250,7 +269,10 @@ function ProjectDetailsPage() {
         const investmentAmount = Number.parseFloat(amount);
 
         if (investmentAmount > remainingCapacity) {
-          notify(`Investment exceeds your remaining capacity of ${remainingCapacity} ${program?.currency}`, 'error');
+          notify(
+            `Investment exceeds your remaining capacity of ${remainingCapacity} ${program?.currency}`,
+            'error',
+          );
           return;
         }
       }
@@ -258,31 +280,35 @@ function ProjectDetailsPage() {
       let txHash: string | undefined;
 
       // If program has a contract address, execute blockchain transaction first
-      if (program?.educhainProgramId) {
+      if (program?.educhainProgramId !== null && program?.educhainProgramId !== undefined) {
         // Get the on-chain project ID from the application
         const onChainProjectId = data?.application?.onChainProjectId;
 
-        if (!onChainProjectId) {
-          notify('This project needs to be registered on the blockchain before investments can be made. Please contact the program administrator.', 'error');
-          // For now, continue with off-chain investment only
-        } else {
-          try {
-            notify('Please approve the transaction in your wallet', 'loading');
+        // Check if project is registered (0 is a valid project ID)
+        if (onChainProjectId === null || onChainProjectId === undefined) {
+          notify(
+            'This project needs to be registered on the blockchain before investments can be made. Please contact the program administrator.',
+            'error',
+          );
+          notify('Project not registered on blockchain', 'error');
+          return; // Don't continue with investment
+        }
 
-            // Call the blockchain investment function with the actual on-chain project ID
-            const tx = await investmentContract.invest(
-              Number(onChainProjectId), // Use the actual on-chain project ID
-              amount, // investment amount
-              '0x0000000000000000000000000000000000000000' // Native token for now
-            );
+        try {
+          notify('Please approve the transaction in your wallet', 'loading');
 
-            txHash = tx.hash;
-            notify('Transaction submitted! Waiting for confirmation...', 'loading');
-          } catch (blockchainError) {
-            console.error('Blockchain investment failed:', blockchainError);
-            notify('Blockchain transaction failed. Please try again.', 'error');
-            return;
-          }
+          // Call the blockchain investment function with the actual on-chain project ID
+          const tx = await investmentContract.invest(
+            Number(onChainProjectId), // Use the actual on-chain project ID
+            amount, // investment amount
+            '0x0000000000000000000000000000000000000000', // Native token for now
+          );
+
+          txHash = tx.hash;
+          notify('Transaction submitted! Waiting for confirmation...', 'loading');
+        } catch (_blockchainError) {
+          notify('Blockchain transaction failed. Please try again.', 'error');
+          return;
         }
       }
 
@@ -292,64 +318,54 @@ function ProjectDetailsPage() {
           input: {
             amount: amount,
             projectId: projectId,
-            ...(txHash && { txHash }) // Include txHash if blockchain transaction was made
-          }
+            ...(txHash && { txHash }), // Include txHash if blockchain transaction was made
+          },
         },
         onCompleted: () => {
           notify(
             txHash
               ? 'Investment successfully recorded on blockchain and database!'
               : 'Investment created successfully',
-            'success'
+            'success',
           );
           setIsInvestDialogOpen(false);
-          setSelectedTier('')
-          client.refetchQueries({ include: [ApplicationDocument, ProgramDocument] })
+          setSelectedTier('');
+          client.refetchQueries({ include: [ApplicationDocument, ProgramDocument] });
           refetch();
         },
         onError: (error) => {
           notify(error.message, 'error');
-        }
+        },
       });
     } catch (error) {
       notify((error as Error).message, 'error');
     }
   };
 
-  const callTx = async (price?: string | null, milestoneId?: string | null, milestoneIndex?: number) => {
+  const callTx = async (
+    price?: string | null,
+    milestoneId?: string | null,
+    milestoneIndex?: number,
+  ) => {
     try {
       if (program) {
-        console.log('=== Milestone Approval Debug (Investment Page) ===');
-        console.log('Program:', {
-          type: program.type,
-          educhainProgramId: program.educhainProgramId,
-          contractAddress: program.contractAddress,
-          id: program.id
-        });
-        console.log('Application:', {
-          id: data?.application?.id,
-          onChainProjectId: data?.application?.onChainProjectId,
-          status: data?.application?.status,
-          applicant: data?.application?.applicant?.walletAddress
-        });
-        console.log('Milestone:', {
-          id: milestoneId,
-          index: milestoneIndex,
-          price: price
-        });
-
         // For investment programs, use the investment contract to approve milestones
-        if (program.type === 'funding' && (program.educhainProgramId !== null && program.educhainProgramId !== undefined)) {
+        if (
+          program.type === 'funding' &&
+          program.educhainProgramId !== null &&
+          program.educhainProgramId !== undefined
+        ) {
           if (!data?.application?.onChainProjectId && data?.application?.onChainProjectId !== 0) {
-            console.error('No onChainProjectId found! Application needs blockchain registration.');
-            notify('This project needs to be registered on blockchain first. Please ensure the application has been properly accepted.', 'error');
+            notify(
+              'This project needs to be registered on blockchain first. Please ensure the application has been properly accepted.',
+              'error',
+            );
             return;
           }
-          console.log('Using investment contract for milestone approval');
           // This releases funds from the investment pool, not from validator's wallet
           const result = await investmentContract.approveMilestone(
             Number(data.application.onChainProjectId),
-            milestoneIndex ?? 0 // The index of the milestone being approved
+            milestoneIndex ?? 0, // The index of the milestone being approved
           );
 
           if (result?.txHash) {
@@ -427,10 +443,7 @@ function ProjectDetailsPage() {
 
   return (
     <div className="bg-white  rounded-2xl">
-
       <div className="max-w-[1440px] mx-auto bg-white">
-
-
         <section className="bg-white p-10 pb-0 rounded-2xl">
           <div className="flex justify-between items-center mb-4">
             <ProgramStatusBadge program={program} className="inline-flex mb-4" />
@@ -463,7 +476,10 @@ function ProjectDetailsPage() {
                     <div className="flex items-center gap-2">
                       {program?.fundingStartDate && (
                         <p className="text-sm text-foreground font-bold">
-                          {format(new Date(program.fundingStartDate), 'dd . MMM . yyyy').toUpperCase()}
+                          {format(
+                            new Date(program.fundingStartDate),
+                            'dd . MMM . yyyy',
+                          ).toUpperCase()}
                         </p>
                       )}
                       {program?.fundingStartDate && program?.fundingEndDate && (
@@ -471,7 +487,10 @@ function ProjectDetailsPage() {
                       )}
                       {program?.fundingEndDate && (
                         <p className="text-sm text-foreground font-bold">
-                          {format(new Date(program.fundingEndDate), 'dd . MMM . yyyy').toUpperCase()}
+                          {format(
+                            new Date(program.fundingEndDate),
+                            'dd . MMM . yyyy',
+                          ).toUpperCase()}
                         </p>
                       )}
                       {!program?.fundingStartDate && !program?.fundingEndDate && (
@@ -639,7 +658,9 @@ function ProjectDetailsPage() {
                         .toFixed()}
                     </span>
                   </p>
-                  <span className="text-muted-foreground">{getCurrency(program?.network)?.icon}</span>
+                  <span className="text-muted-foreground">
+                    {getCurrency(program?.network)?.icon}
+                  </span>
 
                   <span className="text-sm text-muted-foreground">{program?.currency}</span>
                 </div>
@@ -648,10 +669,15 @@ function ProjectDetailsPage() {
               <div className="flex items-center gap-[20px] justify-between w-full mt-4">
                 <h4 className="text-neutral-400 text-sm font-bold">STATUS</h4>
 
-                <Progress value={data?.application?.fundingProgress ?? 0} rootClassName="w-full" indicatorClassName="bg-primary" />
+                <Progress
+                  value={data?.application?.fundingProgress ?? 0}
+                  rootClassName="w-full"
+                  indicatorClassName="bg-primary"
+                />
 
                 <p className="text-xl text-primary font-bold flex items-center">
-                  {data?.application?.fundingProgress ?? 0}<span className="text-sm text-muted-foreground">%</span>
+                  {data?.application?.fundingProgress ?? 0}
+                  <span className="text-sm text-muted-foreground">%</span>
                 </p>
               </div>
 
@@ -667,7 +693,8 @@ function ProjectDetailsPage() {
                   </div>
                   <div className="flex items-center gap-[20px] justify-between w-full">
                     <div className="text-xs text-muted-foreground">
-                      {onChainFundingProgress.totalInvested.toFixed(2)} / {onChainFundingProgress.targetFunding.toFixed(2)} {program?.currency}
+                      {onChainFundingProgress.totalInvested.toFixed(2)} /{' '}
+                      {onChainFundingProgress.targetFunding.toFixed(2)} {program?.currency}
                     </div>
                     <Progress
                       value={onChainFundingProgress.fundingProgress}
@@ -675,7 +702,8 @@ function ProjectDetailsPage() {
                       indicatorClassName="bg-green-500"
                     />
                     <p className="text-sm font-bold flex items-center text-green-600">
-                      {onChainFundingProgress.fundingProgress.toFixed(1)}<span className="text-xs text-muted-foreground">%</span>
+                      {onChainFundingProgress.fundingProgress.toFixed(1)}
+                      <span className="text-xs text-muted-foreground">%</span>
                     </p>
                   </div>
                 </div>
@@ -687,13 +715,21 @@ function ProjectDetailsPage() {
                 <h2 className="font-bold text-muted-foreground text-sm">LINKS</h2>
                 <div className="">
                   {data?.application?.links?.length === 1 ? (
-                    <a href={data.application.links[0].url ?? ''} target="_blank" rel="noreferrer" className="text-slate-600 text-sm">
+                    <a
+                      href={data.application.links[0].url ?? ''}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-slate-600 text-sm"
+                    >
                       {data.application.links[0].url}
                     </a>
                   ) : (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="p-0 h-auto text-slate-600 text-sm hover:bg-transparent">
+                        <Button
+                          variant="ghost"
+                          className="p-0 h-auto text-slate-600 text-sm hover:bg-transparent"
+                        >
                           {data?.application?.links?.[0]?.url}
                           <ChevronDown className="ml-1 h-4 w-4" />
                         </Button>
@@ -701,7 +737,12 @@ function ProjectDetailsPage() {
                       <DropdownMenuContent align="start" className="w-64">
                         {data?.application?.links?.map((link) => (
                           <DropdownMenuItem key={link.url} className="cursor-pointer">
-                            <a href={link.url ?? ''} target="_blank" rel="noreferrer" className="flex items-center gap-2">
+                            <a
+                              href={link.url ?? ''}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="flex items-center gap-2"
+                            >
                               <Check className="h-4 w-4" />
                               {link.url}
                             </a>
@@ -761,12 +802,17 @@ function ProjectDetailsPage() {
               <p className="text-sm text-red-400">You can edit and resubmit your application.</p>
             )} */}
 
-            {(program?.validators?.some((v) => v.id === userId) || program?.creator?.id === userId) &&
+            {(program?.validators?.some((v) => v.id === userId) ||
+              program?.creator?.id === userId) &&
               data?.application?.status === ApplicationStatus.Pending && (
                 <div className="flex justify-end gap-3 absolute bottom-10 right-10">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button onClick={(e) => e.stopPropagation()} className="h-10" variant="outline">
+                      <Button
+                        onClick={(e) => e.stopPropagation()}
+                        className="h-10"
+                        variant="outline"
+                      >
                         Reject
                       </Button>
                     </DialogTrigger>
@@ -780,10 +826,7 @@ function ProjectDetailsPage() {
                       />
                     </DialogContent>
                   </Dialog>
-                  <Button
-                    className="h-10"
-                    onClick={handleAcceptApplication}
-                  >
+                  <Button className="h-10" onClick={handleAcceptApplication}>
                     Select
                   </Button>
                 </div>
@@ -799,20 +842,22 @@ function ProjectDetailsPage() {
                 <button
                   onClick={() => setActiveTab('terms')}
                   type="button"
-                  className={`p-2 font-medium text-sm transition-colors ${activeTab === 'terms'
-                    ? 'border-b border-b-primary text-primary'
-                    : 'text-muted-foreground hover:text-foreground border-b'
-                    }`}
+                  className={`p-2 font-medium text-sm transition-colors ${
+                    activeTab === 'terms'
+                      ? 'border-b border-b-primary text-primary'
+                      : 'text-muted-foreground hover:text-foreground border-b'
+                  }`}
                 >
                   Terms
                 </button>
                 <button
                   onClick={() => setActiveTab('milestones')}
                   type="button"
-                  className={`p-2 font-medium text-sm transition-colors ${activeTab === 'milestones'
-                    ? 'border-b border-b-primary text-primary'
-                    : 'text-muted-foreground hover:text-foreground border-b'
-                    }`}
+                  className={`p-2 font-medium text-sm transition-colors ${
+                    activeTab === 'milestones'
+                      ? 'border-b border-b-primary text-primary'
+                      : 'text-muted-foreground hover:text-foreground border-b'
+                  }`}
                 >
                   Milestones
                 </button>
@@ -830,7 +875,9 @@ function ProjectDetailsPage() {
                     <div className="border-2 border-primary/20 rounded-lg p-4 bg-primary/5">
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <p className="text-sm font-semibold text-muted-foreground mb-1">YOUR TIER ASSIGNMENT</p>
+                          <p className="text-sm font-semibold text-muted-foreground mb-1">
+                            YOUR TIER ASSIGNMENT
+                          </p>
                           <TierBadge tier={program.userTierAssignment.tier as TierType} />
                         </div>
                         <Badge variant="outline" className="bg-white">
@@ -841,15 +888,21 @@ function ProjectDetailsPage() {
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Max Investment:</span>
-                          <span className="font-semibold">{program.userTierAssignment.maxInvestmentAmount} {program?.currency}</span>
+                          <span className="font-semibold">
+                            {program.userTierAssignment.maxInvestmentAmount} {program?.currency}
+                          </span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Already Invested:</span>
-                          <span className="font-semibold">{program.userTierAssignment.currentInvestment} {program?.currency}</span>
+                          <span className="font-semibold">
+                            {program.userTierAssignment.currentInvestment} {program?.currency}
+                          </span>
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Remaining Capacity:</span>
-                          <span className="font-semibold text-primary">{program.userTierAssignment.remainingCapacity} {program?.currency}</span>
+                          <span className="font-semibold text-primary">
+                            {program.userTierAssignment.remainingCapacity} {program?.currency}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -859,9 +912,14 @@ function ProjectDetailsPage() {
                     // Check if user can select this tier
                     const isTierBased = program?.fundingCondition === 'tier';
                     const userTierAssignment = program?.userTierAssignment;
-                    const canSelectTier = !isTierBased || (userTierAssignment && userTierAssignment.tier === t.price);
-                    const purchaseLimitReached = typeof t.purchaseLimit === 'number' &&
-                      t.purchaseLimit - (data?.application?.investors?.filter((i) => i.tier === t.price).length ?? 0) <= 0;
+                    const canSelectTier =
+                      !isTierBased || (userTierAssignment && userTierAssignment.tier === t.price);
+                    const purchaseLimitReached =
+                      typeof t.purchaseLimit === 'number' &&
+                      t.purchaseLimit -
+                        (data?.application?.investors?.filter((i) => i.tier === t.price).length ??
+                          0) <=
+                        0;
 
                     return (
                       <button
@@ -869,22 +927,27 @@ function ProjectDetailsPage() {
                           !canSelectTier ||
                           purchaseLimitReached ||
                           data?.application?.status !== ApplicationStatus.Accepted ||
-                          (program?.fundingStartDate && new Date() < new Date(program.fundingStartDate)) ||
+                          (program?.fundingStartDate &&
+                            new Date() < new Date(program.fundingStartDate)) ||
                           (program?.fundingEndDate && new Date() > new Date(program.fundingEndDate))
                         }
                         type="button"
                         className={cn(
-                          "group block w-full text-left border rounded-lg p-4 shadow-sm cursor-pointer transition-all disabled:opacity-60",
-                          selectedTier === t.price ? "bg-[#F4F4F5]" : "bg-white"
+                          'group block w-full text-left border rounded-lg p-4 shadow-sm cursor-pointer transition-all disabled:opacity-60',
+                          selectedTier === t.price ? 'bg-[#F4F4F5]' : 'bg-white',
                         )}
                         key={t.id}
                         onClick={() => setSelectedTier(t.price || '')}
                         aria-label={`Select ${t.price} tier`}
                       >
                         <div className="flex justify-between items-start mb-3">
-                          {programData?.program?.tierSettings ? <TierBadge tier={t.price as TierType} /> : <Badge variant="secondary" className="bg-gray-200 text-gray-600">
-                            Open
-                          </Badge>}
+                          {programData?.program?.tierSettings ? (
+                            <TierBadge tier={t.price as TierType} />
+                          ) : (
+                            <Badge variant="secondary" className="bg-gray-200 text-gray-600">
+                              Open
+                            </Badge>
+                          )}
 
                           <div className="flex items-center gap-2">
                             {selectedTier === t.price && (
@@ -892,8 +955,16 @@ function ProjectDetailsPage() {
                                 <Check className="w-3 h-3 text-primary" />
                               </div>
                             )}
-                            <Badge variant="secondary" className="bg-primary text-white group-disabled:bg-gray-200 group-disabled:text-gray-600">
-                              {t.purchaseLimit ? t.purchaseLimit - (data?.application?.investors?.filter(i => i.tier === t.price).length ?? 0) : 0} left
+                            <Badge
+                              variant="secondary"
+                              className="bg-primary text-white group-disabled:bg-gray-200 group-disabled:text-gray-600"
+                            >
+                              {t.purchaseLimit
+                                ? t.purchaseLimit -
+                                  (data?.application?.investors?.filter((i) => i.tier === t.price)
+                                    .length ?? 0)
+                                : 0}{' '}
+                              left
                             </Badge>
                           </div>
                         </div>
@@ -901,7 +972,11 @@ function ProjectDetailsPage() {
                         <div className="mb-4">
                           <p className="text-sm text-muted-foreground mb-1">PRICE</p>
                           <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold">{program?.tierSettings ? program?.tierSettings[t.price as TierType]?.maxAmount : t.price}</span>
+                            <span className="text-2xl font-bold">
+                              {program?.tierSettings
+                                ? program?.tierSettings[t.price as TierType]?.maxAmount
+                                : t.price}
+                            </span>
                             {getCurrencyIcon(program?.currency)}
                             <span className="text-lg font-semibold">{program?.currency}</span>
                           </div>
@@ -915,20 +990,21 @@ function ProjectDetailsPage() {
                             This tier is not available for your assignment
                           </div>
                         )}
-                        {program?.fundingStartDate && new Date() < new Date(program.fundingStartDate) && (
-                          <div className="mt-2 text-xs text-orange-600">
-                            Funding period has not started yet
-                          </div>
-                        )}
-                        {program?.fundingEndDate && new Date() > new Date(program.fundingEndDate) && (
-                          <div className="mt-2 text-xs text-orange-600">
-                            Funding period has ended
-                          </div>
-                        )}
+                        {program?.fundingStartDate &&
+                          new Date() < new Date(program.fundingStartDate) && (
+                            <div className="mt-2 text-xs text-orange-600">
+                              Funding period has not started yet
+                            </div>
+                          )}
+                        {program?.fundingEndDate &&
+                          new Date() > new Date(program.fundingEndDate) && (
+                            <div className="mt-2 text-xs text-orange-600">
+                              Funding period has ended
+                            </div>
+                          )}
                       </button>
                     );
                   })}
-
                 </div>
               )}
 
@@ -940,7 +1016,11 @@ function ProjectDetailsPage() {
                       <AccordionItem key={m.id} value={`${m.id}${idx}`}>
                         <AccordionTrigger>
                           <div className="flex w-full justify-between">
-                            <p>{m.title}</p> <MilestoneStatusBadge milestone={m} className='inline-flex self-center' />
+                            <p>{m.title}</p>{' '}
+                            <MilestoneStatusBadge
+                              milestone={m}
+                              className="inline-flex self-center"
+                            />
                           </div>
                         </AccordionTrigger>
                         <AccordionContent>
@@ -959,7 +1039,9 @@ function ProjectDetailsPage() {
                                     <CircleAlert className="w-4 h-4" />
                                   </div>
                                   <div>
-                                    <p className="font-medium text-base mb-1">Reason for rejection</p>
+                                    <p className="font-medium text-base mb-1">
+                                      Reason for rejection
+                                    </p>
                                     <p className="text-sm">{m.rejectionReason}</p>
                                   </div>
                                 </TooltipContent>
@@ -984,7 +1066,9 @@ function ProjectDetailsPage() {
                             <div className="text-muted-foreground inline-flex items-center gap-4 bg-[#0000000A] rounded-md p-1 px-2">
                               <p className="font-medium text-sm text-neutral-400">PRICE</p>
                               <p>
-                                <span className="text-primary font-bold text-xl">{m.percentage}</span>{' '}
+                                <span className="text-primary font-bold text-xl">
+                                  {m.percentage}
+                                </span>{' '}
                                 <span>%</span>
                               </p>
                             </div>
@@ -1007,9 +1091,7 @@ function ProjectDetailsPage() {
 
                           <div className="mb-6">
                             <h2 className="font-bold text-gray-dark text-sm mb-3">DESCRIPTION</h2>
-                            <p className="text-slate-600 text-xs">
-                              {m.description}
-                            </p>
+                            <p className="text-slate-600 text-xs">{m.description}</p>
                           </div>
 
                           {m.links && m.links.length > 0 && (
@@ -1086,7 +1168,7 @@ function ProjectDetailsPage() {
                                   disabled={
                                     idx !== 0 &&
                                     data?.application?.milestones?.[idx - 1]?.status !==
-                                    MilestoneStatus.Completed
+                                      MilestoneStatus.Completed
                                   }
                                 >
                                   <Button className="h-10 block ml-auto">Submit Milestone</Button>
@@ -1114,7 +1196,8 @@ function ProjectDetailsPage() {
                       disabled={
                         !selectedTier ||
                         data?.application?.status !== ApplicationStatus.Accepted ||
-                        (program?.fundingStartDate && new Date() < new Date(program.fundingStartDate)) ||
+                        (program?.fundingStartDate &&
+                          new Date() < new Date(program.fundingStartDate)) ||
                         (program?.fundingEndDate && new Date() > new Date(program.fundingEndDate))
                       }
                       className="w-full h-10 bg-primary hover:bg-primary/90 text-white font-medium flex items-center justify-center gap-2"
@@ -1123,11 +1206,17 @@ function ProjectDetailsPage() {
                           notify('Please select a tier first', 'error');
                           return;
                         }
-                        if (program?.fundingStartDate && new Date() < new Date(program.fundingStartDate)) {
+                        if (
+                          program?.fundingStartDate &&
+                          new Date() < new Date(program.fundingStartDate)
+                        ) {
                           notify('Funding period has not started yet', 'error');
                           return;
                         }
-                        if (program?.fundingEndDate && new Date() > new Date(program.fundingEndDate)) {
+                        if (
+                          program?.fundingEndDate &&
+                          new Date() > new Date(program.fundingEndDate)
+                        ) {
                           notify('Funding period has ended', 'error');
                           return;
                         }
@@ -1138,8 +1227,12 @@ function ProjectDetailsPage() {
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[400px]">
-                    <div className="text-lg font-semibold flex items-center justify-center"><span className='flex justify-center items-center w-[42px] h-[42px] rounded-full bg-[#B331FF1A]'><Coins className='text-primary' /></span></div>
-                    <DialogTitle className='text-center font-semibold text-lg'>
+                    <div className="text-lg font-semibold flex items-center justify-center">
+                      <span className="flex justify-center items-center w-[42px] h-[42px] rounded-full bg-[#B331FF1A]">
+                        <Coins className="text-primary" />
+                      </span>
+                    </div>
+                    <DialogTitle className="text-center font-semibold text-lg">
                       Are you sure to pay the settlement for the project?
                     </DialogTitle>
                     {/* {selectedTier && (
@@ -1164,10 +1257,7 @@ function ProjectDetailsPage() {
                       the project.
                     </DialogDescription>
 
-                    <Button
-                      onClick={handleInvest}
-                      className="bg-foreground text-white"
-                    >
+                    <Button onClick={handleInvest} className="bg-foreground text-white">
                       Yes, Pay now
                     </Button>
                   </DialogContent>

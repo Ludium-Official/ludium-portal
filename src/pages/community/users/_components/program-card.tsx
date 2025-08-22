@@ -1,7 +1,7 @@
-import { ProgramStatusBadge } from '@/components/status-badge';
-import { ChevronRightIcon, ImageIcon } from 'lucide-react';
 import cryptoIcon from '@/assets/icons/crypto.svg';
+import { ProgramStatusBadge } from '@/components/status-badge';
 import type { Program } from '@/types/types.generated';
+import { ChevronRightIcon, ImageIcon } from 'lucide-react';
 
 type Props = {
   program: Program;

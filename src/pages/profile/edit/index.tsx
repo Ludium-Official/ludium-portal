@@ -60,7 +60,7 @@ function EditProfilePage() {
       name: profileData?.profile?.organizationName ?? '',
       firstName: profileData?.profile?.firstName ?? '',
       lastName: profileData?.profile?.lastName ?? '',
-      keywords: profileData?.profile?.keywords?.map(k => k.name || '') || [],
+      keywords: profileData?.profile?.keywords?.map((k) => k.name || '') || [],
     },
   });
 
@@ -120,7 +120,8 @@ function EditProfilePage() {
     profileData?.profile?.email === watch('email') &&
     profileData?.profile?.about === content &&
     JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links) &&
-    JSON.stringify(profileData.profile.keywords?.map(k => k.name || '') || []) === JSON.stringify(watch('keywords') || []);
+    JSON.stringify(profileData.profile.keywords?.map((k) => k.name || '') || []) ===
+      JSON.stringify(watch('keywords') || []);
 
   const walletInfo = user?.wallet;
 
@@ -175,7 +176,10 @@ function EditProfilePage() {
 
   const removeKeyword = (keywordToRemove: string) => {
     const currentKeywords = getValues('keywords') || [];
-    setValue('keywords', currentKeywords.filter((keyword) => keyword !== keywordToRemove));
+    setValue(
+      'keywords',
+      currentKeywords.filter((keyword) => keyword !== keywordToRemove),
+    );
   };
 
   return (

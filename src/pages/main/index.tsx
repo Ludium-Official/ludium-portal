@@ -156,8 +156,9 @@ function MainPage() {
               key={i}
               onClick={() => api?.scrollTo(i)}
               size="icon"
-              className={`w-2 h-2 rounded-full hover:bg-primary-light ${current === i ? 'bg-primary' : 'bg-gray-300'
-                }`}
+              className={`w-2 h-2 rounded-full hover:bg-primary-light ${
+                current === i ? 'bg-primary' : 'bg-gray-300'
+              }`}
             />
           ))}
         </div>

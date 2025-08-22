@@ -55,10 +55,9 @@ export const currencies = [
   },
 ];
 
-
 export const currencyIcons = {
-  'EDU': <EduIcon />,
-  'USDT': <UsdtIcon />,
-  'USDC': <UsdcIcon />,
-  'ETH': <EthIcon />,
-}
+  EDU: <EduIcon />,
+  USDT: <UsdtIcon />,
+  USDC: <UsdcIcon />,
+  ETH: <EthIcon />,
+};

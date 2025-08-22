@@ -45,7 +45,9 @@ function EditMilestoneForm({ milestone, refetch }: { milestone: Milestone; refet
           description,
           title,
           // price,
-          links: shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined,
+          links: shouldSend
+            ? filterEmptyLinks(links).map((l) => ({ title: l, url: l }))
+            : undefined,
         },
       },
       onCompleted: () => {
@@ -109,12 +111,8 @@ function EditMilestoneForm({ milestone, refetch }: { milestone: Milestone; refet
 
       <label htmlFor="description" className="w-full">
         <p className="text-sm font-medium mb-2">DESCRIPTION</p>
-        <MarkdownEditor
-          content={description ?? ''}
-          onChange={setDescription}
-        />
+        <MarkdownEditor content={description ?? ''} onChange={setDescription} />
       </label>
-
 
       <label htmlFor="links" className="space-y-2 block mb-10">
         <p className="text-sm font-medium">Links</p>

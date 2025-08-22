@@ -13,7 +13,6 @@ import { FundingCondition, ProgramType, type ProgramVisibility } from '@/types/t
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
-
 const EditInvestmentPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -49,7 +48,10 @@ const EditInvestmentPage: React.FC = () => {
           // price: args.price ?? '0',
           description: args.description,
           summary: args.summary,
-          deadline: args.deadline || args.fundingEndDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // Use funding end date or default to 90 days from now
+          deadline:
+            args.deadline ||
+            args.fundingEndDate ||
+            new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // Use funding end date or default to 90 days from now
           keywords: args.keywords,
           links: args.links,
           network: args.network,
@@ -85,8 +87,10 @@ const EditInvestmentPage: React.FC = () => {
         }
 
         // Filter out invalid validator IDs
-        const validTargetValidators = targetValidators.filter(id => id && typeof id === 'string');
-        const validCurrentValidators = currentValidators.filter(id => id && typeof id === 'string');
+        const validTargetValidators = targetValidators.filter((id) => id && typeof id === 'string');
+        const validCurrentValidators = currentValidators.filter(
+          (id) => id && typeof id === 'string',
+        );
 
         if (validTargetValidators.length !== targetValidators.length) {
           notify('Some validator IDs are invalid and will be skipped.', 'error');
@@ -94,23 +98,33 @@ const EditInvestmentPage: React.FC = () => {
 
         // Calculate validators to assign and unassign
         const validatorsToAssign = validTargetValidators.filter(
-          (validatorId) => validatorId && !validCurrentValidators.includes(validatorId)
+          (validatorId) => validatorId && !validCurrentValidators.includes(validatorId),
         );
 
         const validatorsToUnassign = validCurrentValidators.filter(
-          (validatorId) => validatorId && !validTargetValidators.includes(validatorId)
+          (validatorId) => validatorId && !validTargetValidators.includes(validatorId),
         );
 
         // Edge case: Check for duplicates within the same operation
-        const duplicateAssigns = validatorsToAssign.filter((id, index) => validatorsToAssign.indexOf(id) !== index);
-        const duplicateUnassigns = validatorsToUnassign.filter((id, index) => validatorsToUnassign.indexOf(id) !== index);
+        const duplicateAssigns = validatorsToAssign.filter(
+          (id, index) => validatorsToAssign.indexOf(id) !== index,
+        );
+        const duplicateUnassigns = validatorsToUnassign.filter(
+          (id, index) => validatorsToUnassign.indexOf(id) !== index,
+        );
 
         if (duplicateAssigns.length > 0) {
-          notify(`Duplicate validators found in assign list: ${duplicateAssigns.join(', ')}. Duplicates will be skipped.`, 'error');
+          notify(
+            `Duplicate validators found in assign list: ${duplicateAssigns.join(', ')}. Duplicates will be skipped.`,
+            'error',
+          );
         }
 
         if (duplicateUnassigns.length > 0) {
-          notify(`Duplicate validators found in unassign list: ${duplicateUnassigns.join(', ')}. Duplicates will be skipped.`, 'error');
+          notify(
+            `Duplicate validators found in unassign list: ${duplicateUnassigns.join(', ')}. Duplicates will be skipped.`,
+            'error',
+          );
         }
 
         // Remove duplicates
@@ -118,12 +132,21 @@ const EditInvestmentPage: React.FC = () => {
         const uniqueValidatorsToUnassign = [...new Set(validatorsToUnassign)];
 
         // Edge case: Check for validators that appear in both arrays (shouldn't happen with current logic, but good to check)
-        const conflictingValidators = uniqueValidatorsToAssign.filter(id => uniqueValidatorsToUnassign.includes(id));
+        const conflictingValidators = uniqueValidatorsToAssign.filter((id) =>
+          uniqueValidatorsToUnassign.includes(id),
+        );
         if (conflictingValidators.length > 0) {
-          notify(`Validators found in both assign and unassign lists: ${conflictingValidators.join(', ')}. These will be skipped.`, 'error');
+          notify(
+            `Validators found in both assign and unassign lists: ${conflictingValidators.join(', ')}. These will be skipped.`,
+            'error',
+          );
           // Remove conflicting validators from both arrays
-          const finalValidatorsToAssign = uniqueValidatorsToAssign.filter(id => !conflictingValidators.includes(id ?? ''));
-          const finalValidatorsToUnassign = uniqueValidatorsToUnassign.filter(id => !conflictingValidators.includes(id ?? ''));
+          const finalValidatorsToAssign = uniqueValidatorsToAssign.filter(
+            (id) => !conflictingValidators.includes(id ?? ''),
+          );
+          const finalValidatorsToUnassign = uniqueValidatorsToUnassign.filter(
+            (id) => !conflictingValidators.includes(id ?? ''),
+          );
 
           // Process unassignments first
           if (finalValidatorsToUnassign.length > 0) {
@@ -136,7 +159,9 @@ const EditInvestmentPage: React.FC = () => {
             );
 
             const failedUnassigns = unassignResults
-              .map((result, index) => result.status === 'rejected' ? finalValidatorsToUnassign[index] : null)
+              .map((result, index) =>
+                result.status === 'rejected' ? finalValidatorsToUnassign[index] : null,
+              )
               .filter((id): id is string => id !== null && id !== undefined);
 
             if (failedUnassigns.length > 0) {
@@ -155,7 +180,9 @@ const EditInvestmentPage: React.FC = () => {
             );
 
             const failedAssigns = assignResults
-              .map((result, index) => result.status === 'rejected' ? finalValidatorsToAssign[index] : null)
+              .map((result, index) =>
+                result.status === 'rejected' ? finalValidatorsToAssign[index] : null,
+              )
               .filter((id): id is string => id !== null && id !== undefined);
 
             if (failedAssigns.length > 0) {
@@ -175,7 +202,9 @@ const EditInvestmentPage: React.FC = () => {
             );
 
             const failedUnassigns = unassignResults
-              .map((result, index) => result.status === 'rejected' ? uniqueValidatorsToUnassign[index] : null)
+              .map((result, index) =>
+                result.status === 'rejected' ? uniqueValidatorsToUnassign[index] : null,
+              )
               .filter((id): id is string => id !== null && id !== undefined);
 
             if (failedUnassigns.length > 0) {
@@ -194,7 +223,9 @@ const EditInvestmentPage: React.FC = () => {
             );
 
             const failedAssigns = assignResults
-              .map((result, index) => result.status === 'rejected' ? uniqueValidatorsToAssign[index] : null)
+              .map((result, index) =>
+                result.status === 'rejected' ? uniqueValidatorsToAssign[index] : null,
+              )
               .filter((id): id is string => id !== null && id !== undefined);
 
             if (failedAssigns.length > 0) {
@@ -219,8 +250,6 @@ const EditInvestmentPage: React.FC = () => {
             notify('Failed to invite some builders to the program.', 'error');
           }
         }
-
-
 
         notify('Program successfully updated.');
         client.refetchQueries({ include: [ProgramsDocument, ProgramDocument] });

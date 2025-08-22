@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import { useInvestmentsQuery } from '@/apollo/queries/investments.generated';
-import { useReclaimInvestmentMutation } from '@/apollo/mutation/reclaim-investment.generated';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -11,13 +10,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { useInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
+import type { Investment } from '@/types/types.generated';
 import { format } from 'date-fns';
-import { AlertCircle, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
-import { usePrivy } from '@privy-io/react-auth';
+import { AlertCircle, CheckCircle, RefreshCw, XCircle } from 'lucide-react';
+import { useState } from 'react';
 
 interface UserInvestmentsProps {
   projectId?: string;
@@ -25,16 +23,14 @@ interface UserInvestmentsProps {
 
 export default function UserInvestments({ projectId }: UserInvestmentsProps) {
   const { userId } = useAuth();
-  const { user } = usePrivy();
-  const [selectedInvestment, setSelectedInvestment] = useState<any>(null);
-  const [isReclaiming, setIsReclaiming] = useState(false);
+  const [selectedInvestment, setSelectedInvestment] = useState<Investment | null>(null);
   const [eligibilityStatus, setEligibilityStatus] = useState<{
     canReclaim: boolean;
     reason: string;
     amount: number;
   } | null>(null);
 
-  const { data, loading, refetch } = useInvestmentsQuery({
+  const { data, loading } = useInvestmentsQuery({
     variables: {
       supporterId: userId,
       projectId,
@@ -43,102 +39,65 @@ export default function UserInvestments({ projectId }: UserInvestmentsProps) {
     skip: !userId,
   });
 
-  const [reclaimInvestment] = useReclaimInvestmentMutation();
+  const handleCheckEligibility = async () => {
+    // For now, disable reclaim functionality until backend provides program data
+    setEligibilityStatus({
+      canReclaim: false,
+      reason: 'Reclaim functionality is temporarily unavailable',
+      amount: 0,
+    });
+    return;
 
-  const handleCheckEligibility = async (investment: any) => {
-    const network = investment.project?.program?.network || 'educhain-testnet';
-    const investmentContract = useInvestmentContract(network);
-    
-    if (!investment.project?.onChainProjectId || !investment.project?.program?.educhainProgramId) {
-      setEligibilityStatus({
-        canReclaim: false,
-        reason: 'Project not registered on blockchain',
-        amount: 0,
-      });
-      return;
-    }
-
-    try {
-      const eligibility = await investmentContract.checkReclaimEligibility(
-        Number(investment.project.program.educhainProgramId),
-        Number(investment.project.onChainProjectId),
-        user?.wallet?.address || ''
-      );
-      
-      setEligibilityStatus(eligibility);
-    } catch (error) {
-      console.error('Failed to check eligibility:', error);
-      setEligibilityStatus({
-        canReclaim: false,
-        reason: 'Failed to check eligibility',
-        amount: 0,
-      });
-    }
+    // TODO: Re-enable when backend includes program data in investments query
+    // const network = investment.project?.program?.network || 'educhain-testnet';
+    // const investmentContract = useInvestmentContract(network);
+    // ...
   };
 
   const handleReclaim = async () => {
     if (!selectedInvestment || !eligibilityStatus?.canReclaim) return;
 
-    setIsReclaiming(true);
-    try {
-      const network = selectedInvestment.project?.program?.network || 'educhain-testnet';
-      const investmentContract = useInvestmentContract(network);
+    // Temporarily disabled until backend provides program data
+    notify('Reclaim functionality is temporarily unavailable', 'error');
+    return;
 
-      // Execute blockchain reclaim
-      const { txHash } = await investmentContract.reclaimFunds(
-        Number(selectedInvestment.project.program.educhainProgramId),
-        Number(selectedInvestment.project.onChainProjectId)
-      );
-
-      // Update database
-      await reclaimInvestment({
-        variables: {
-          input: {
-            investmentId: selectedInvestment.id,
-            txHash,
-          },
-        },
-        onCompleted: () => {
-          notify('Investment successfully reclaimed!', 'success');
-          refetch();
-          setSelectedInvestment(null);
-          setEligibilityStatus(null);
-        },
-        onError: (error) => {
-          notify(`Failed to update reclaim status: ${error.message}`, 'error');
-        },
-      });
-    } catch (error) {
-      notify(`Failed to reclaim investment: ${(error as Error).message}`, 'error');
-    } finally {
-      setIsReclaiming(false);
-    }
+    // TODO: Re-enable when backend includes program data in investments query
+    // setIsReclaiming(true);
+    // try { ... }
   };
 
-  const getStatusBadge = (investment: any) => {
+  const getStatusBadge = (investment: Investment) => {
     if (investment.reclaimed) {
-      return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-        <CheckCircle className="w-3 h-3 mr-1" />
-        Refunded
-      </Badge>;
+      return (
+        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Refunded
+        </Badge>
+      );
     }
 
     switch (investment.status) {
       case 'confirmed':
-        return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-          <CheckCircle className="w-3 h-3 mr-1" />
-          Active
-        </Badge>;
+        return (
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Active
+          </Badge>
+        );
       case 'pending':
-        return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-          <AlertCircle className="w-3 h-3 mr-1" />
-          Pending
-        </Badge>;
+        return (
+          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+            <AlertCircle className="w-3 h-3 mr-1" />
+            Pending
+          </Badge>
+        );
       case 'failed':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-          <XCircle className="w-3 h-3 mr-1" />
-          Failed
-        </Badge>;
+        return (
+          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+            <XCircle className="w-3 h-3 mr-1" />
+            Failed
+          </Badge>
+        );
       default:
         return <Badge variant="outline">{investment.status}</Badge>;
     }
@@ -179,24 +138,15 @@ export default function UserInvestments({ projectId }: UserInvestmentsProps) {
                   <div className="flex items-center gap-4 mb-2">
                     <h4 className="font-semibold">{investment.project?.name}</h4>
                     {getStatusBadge(investment)}
-                    {investment.tier && (
-                      <Badge variant="secondary">{investment.tier}</Badge>
-                    )}
+                    {investment.tier && <Badge variant="secondary">{investment.tier}</Badge>}
                   </div>
                   <div className="flex items-center gap-6 text-sm text-muted-foreground">
                     <span>
-                      Amount: <span className="font-semibold text-foreground">
-                        {investment.amount} 
-                        {/* {investment.project?.program?.currency} */}
-                      </span>
+                      Amount:{' '}
+                      <span className="font-semibold text-foreground">{investment.amount} EDU</span>
                     </span>
-                    {/* <span>
-                      Date: {format(new Date(investment.createdAt), 'MMM dd, yyyy')}
-                    </span> */}
                     {investment.txHash && (
-                      <span className="text-xs">
-                        Tx: {investment.txHash.substring(0, 10)}...
-                      </span>
+                      <span className="text-xs">Tx: {investment.txHash.substring(0, 10)}...</span>
                     )}
                   </div>
                 </div>
@@ -209,7 +159,7 @@ export default function UserInvestments({ projectId }: UserInvestmentsProps) {
                         size="sm"
                         onClick={() => {
                           setSelectedInvestment(investment);
-                          handleCheckEligibility(investment);
+                          handleCheckEligibility();
                         }}
                       >
                         Check Reclaim
@@ -228,43 +178,38 @@ export default function UserInvestments({ projectId }: UserInvestmentsProps) {
                           <p className="text-sm font-semibold mb-2">Investment Details</p>
                           <div className="space-y-1 text-sm">
                             <p>Project: {selectedInvestment?.project?.name}</p>
-                            <p>Amount: {selectedInvestment?.amount} {selectedInvestment?.project?.program?.currency}</p>
-                            <p>Date: {selectedInvestment && format(new Date(selectedInvestment.createdAt), 'MMM dd, yyyy')}</p>
+                            <p>Amount: {selectedInvestment?.amount} EDU</p>
+                            {/* Date field temporarily removed until backend provides createdAt */}
                           </div>
                         </div>
 
                         {eligibilityStatus && (
-                          <div className={`p-4 rounded-lg ${
-                            eligibilityStatus.canReclaim ? 'bg-green-50' : 'bg-red-50'
-                          }`}>
-                            <p className={`text-sm font-semibold mb-2 ${
-                              eligibilityStatus.canReclaim ? 'text-green-700' : 'text-red-700'
-                            }`}>
-                              {eligibilityStatus.canReclaim ? 'Eligible for Reclaim' : 'Not Eligible'}
+                          <div
+                            className={`p-4 rounded-lg ${
+                              eligibilityStatus.canReclaim ? 'bg-green-50' : 'bg-red-50'
+                            }`}
+                          >
+                            <p
+                              className={`text-sm font-semibold mb-2 ${
+                                eligibilityStatus.canReclaim ? 'text-green-700' : 'text-red-700'
+                              }`}
+                            >
+                              {eligibilityStatus.canReclaim
+                                ? 'Eligible for Reclaim'
+                                : 'Not Eligible'}
                             </p>
                             <p className="text-sm text-gray-600">{eligibilityStatus.reason}</p>
                             {eligibilityStatus.canReclaim && (
                               <p className="text-sm font-semibold mt-2">
-                                Reclaim Amount: {eligibilityStatus.amount} {selectedInvestment?.project?.program?.currency}
+                                Reclaim Amount: {eligibilityStatus.amount} EDU
                               </p>
                             )}
                           </div>
                         )}
 
                         {eligibilityStatus?.canReclaim && (
-                          <Button
-                            onClick={handleReclaim}
-                            disabled={isReclaiming}
-                            className="w-full"
-                          >
-                            {isReclaiming ? (
-                              <>
-                                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                                Processing...
-                              </>
-                            ) : (
-                              'Reclaim Funds'
-                            )}
+                          <Button onClick={handleReclaim} disabled={false} className="w-full">
+                            Reclaim Funds
                           </Button>
                         )}
                       </div>
@@ -272,7 +217,7 @@ export default function UserInvestments({ projectId }: UserInvestmentsProps) {
                   </Dialog>
                 )}
 
-                {investment.reclaimed && (
+                {investment.reclaimed && investment.reclaimedAt && (
                   <div className="text-sm text-green-600">
                     Refunded on {format(new Date(investment.reclaimedAt), 'MMM dd, yyyy')}
                   </div>

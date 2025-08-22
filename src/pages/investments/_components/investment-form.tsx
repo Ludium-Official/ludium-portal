@@ -151,17 +151,21 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
       setSelectedKeywords(data?.program?.keywords?.map((k) => k.name ?? '') ?? []);
     if (data?.program?.validators?.length) {
       setSelectedValidators(data?.program.validators?.map((k) => k.id ?? '') ?? '');
-      setSelectedValidatorItems(data?.program.validators?.map((k) => ({
-        value: k.id ?? '',
-        label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
-      })) ?? []);
+      setSelectedValidatorItems(
+        data?.program.validators?.map((k) => ({
+          value: k.id ?? '',
+          label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
+        })) ?? [],
+      );
     }
     if (data?.program?.invitedBuilders?.length) {
       setSelectedBuilders(data?.program.invitedBuilders?.map((k) => k.id ?? '') ?? '');
-      setSelectedBuilderItems(data?.program.invitedBuilders?.map((k) => ({
-        value: k.id ?? '',
-        label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
-      })) ?? []);
+      setSelectedBuilderItems(
+        data?.program.invitedBuilders?.map((k) => ({
+          value: k.id ?? '',
+          label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
+        })) ?? [],
+      );
     }
     if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
     if (data?.program?.links) setLinks(data?.program?.links.map((l) => l.url ?? ''));
@@ -172,11 +176,14 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     if (data?.program?.visibility) setVisibility(data?.program?.visibility);
 
     // Prefill application dates
-    if (data?.program?.applicationStartDate) setApplicationStartDate(new Date(data?.program?.applicationStartDate));
-    if (data?.program?.applicationEndDate) setApplicationDueDate(new Date(data?.program?.applicationEndDate));
+    if (data?.program?.applicationStartDate)
+      setApplicationStartDate(new Date(data?.program?.applicationStartDate));
+    if (data?.program?.applicationEndDate)
+      setApplicationDueDate(new Date(data?.program?.applicationEndDate));
 
     // Prefill funding dates
-    if (data?.program?.fundingStartDate) setFundingStartDate(new Date(data?.program?.fundingStartDate));
+    if (data?.program?.fundingStartDate)
+      setFundingStartDate(new Date(data?.program?.fundingStartDate));
     if (data?.program?.fundingEndDate) setFundingDueDate(new Date(data?.program?.fundingEndDate));
 
     // Prefill funding condition
@@ -188,22 +195,22 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         {
           name: 'Bronze',
           enabled: data?.program?.tierSettings.bronze?.enabled ?? false,
-          maxAmount: data?.program?.tierSettings.bronze?.maxAmount?.toString() ?? undefined
+          maxAmount: data?.program?.tierSettings.bronze?.maxAmount?.toString() ?? undefined,
         },
         {
           name: 'Silver',
           enabled: data?.program?.tierSettings.silver?.enabled ?? false,
-          maxAmount: data?.program?.tierSettings.silver?.maxAmount?.toString() ?? undefined
+          maxAmount: data?.program?.tierSettings.silver?.maxAmount?.toString() ?? undefined,
         },
         {
           name: 'Gold',
           enabled: data?.program?.tierSettings.gold?.enabled ?? false,
-          maxAmount: data?.program?.tierSettings.gold?.maxAmount?.toString() ?? undefined
+          maxAmount: data?.program?.tierSettings.gold?.maxAmount?.toString() ?? undefined,
         },
         {
           name: 'Platinum',
           enabled: data?.program?.tierSettings.platinum?.enabled ?? false,
-          maxAmount: data?.program?.tierSettings.platinum?.maxAmount?.toString() ?? undefined
+          maxAmount: data?.program?.tierSettings.platinum?.maxAmount?.toString() ?? undefined,
         },
       ]);
     }
@@ -273,21 +280,29 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     }
 
     // Validate custom fee if custom fee type is selected
-    if (feeType === 'custom' && (!customFee || customFee === '0' || customFee === '0.0' || Number(customFee) <= 0)) {
+    if (
+      feeType === 'custom' &&
+      (!customFee || customFee === '0' || customFee === '0.0' || Number(customFee) <= 0)
+    ) {
       notify('Please enter a valid custom fee percentage greater than 0.', 'error');
       return;
     }
 
     // Validate tier amounts if tier condition is selected
     if (conditionType === 'tier') {
-      const enabledTiers = tiers.filter(tier => tier.enabled);
+      const enabledTiers = tiers.filter((tier) => tier.enabled);
       if (enabledTiers.length === 0) {
         notify('Please enable at least one tier.', 'error');
         return;
       }
 
       for (const tier of enabledTiers) {
-        if (!tier.maxAmount || tier.maxAmount === '0' || tier.maxAmount === '0.0' || Number(tier.maxAmount) <= 0) {
+        if (
+          !tier.maxAmount ||
+          tier.maxAmount === '0' ||
+          tier.maxAmount === '0.0' ||
+          Number(tier.maxAmount) <= 0
+        ) {
           notify(`Please enter a valid maximum amount for ${tier.name} tier.`, 'error');
           return;
         }
@@ -311,17 +326,18 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
     // Get validator wallet addresses
     const validatorWalletAddresses = selectedValidatorItems
-      .map(item => {
+      .map((item) => {
         // Find the validator in the data
-        const validator = validators?.users?.data?.find(u => u.id === item.value);
+        const validator = validators?.users?.data?.find((u) => u.id === item.value);
         return validator?.walletAddress || null;
       })
-      .filter(address => address !== null) as string[];
+      .filter((address) => address !== null) as string[];
 
     onSubmitInvestment({
       id: data?.program?.id ?? id,
       programName: submitData.programName,
-      price: isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.price,
+      price:
+        isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.price,
       description: content,
       summary: submitData.summary,
       currency:
@@ -337,45 +353,50 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
       })(),
       network:
-        isEdit && data?.program?.status !== ProgramStatus.Pending ? (data?.program?.network as string) : network ?? mainnetDefaultNetwork,
+        isEdit && data?.program?.status !== ProgramStatus.Pending
+          ? (data?.program?.network as string)
+          : (network ?? mainnetDefaultNetwork),
       image: selectedImage,
       visibility: visibility,
       builders: selectedBuilders,
-      applicationStartDate: applicationStartDate
-        ? applicationStartDate.toISOString()
-        : undefined,
+      applicationStartDate: applicationStartDate ? applicationStartDate.toISOString() : undefined,
       applicationEndDate: applicationDueDate ? applicationDueDate.toISOString() : undefined,
       fundingStartDate: fundingStartDate ? fundingStartDate.toISOString() : undefined,
       fundingEndDate: fundingDueDate ? fundingDueDate.toISOString() : undefined,
       fundingCondition: conditionType,
-      tierSettings: conditionType === 'tier'
-        ? {
-          bronze: (tiers.find((t) => t.name === 'Bronze')?.enabled ?? false)
-            ? {
-              enabled: true,
-              maxAmount: tiers.find((t) => t.name === 'Bronze')?.maxAmount || '',
+      tierSettings:
+        conditionType === 'tier'
+          ? {
+              bronze:
+                (tiers.find((t) => t.name === 'Bronze')?.enabled ?? false)
+                  ? {
+                      enabled: true,
+                      maxAmount: tiers.find((t) => t.name === 'Bronze')?.maxAmount || '',
+                    }
+                  : undefined,
+              silver:
+                (tiers.find((t) => t.name === 'Silver')?.enabled ?? false)
+                  ? {
+                      enabled: true,
+                      maxAmount: tiers.find((t) => t.name === 'Silver')?.maxAmount || '',
+                    }
+                  : undefined,
+              gold:
+                (tiers.find((t) => t.name === 'Gold')?.enabled ?? false)
+                  ? {
+                      enabled: true,
+                      maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '',
+                    }
+                  : undefined,
+              platinum:
+                (tiers.find((t) => t.name === 'Platinum')?.enabled ?? false)
+                  ? {
+                      enabled: true,
+                      maxAmount: tiers.find((t) => t.name === 'Platinum')?.maxAmount || '',
+                    }
+                  : undefined,
             }
-            : undefined,
-          silver: (tiers.find((t) => t.name === 'Silver')?.enabled ?? false)
-            ? {
-              enabled: true,
-              maxAmount: tiers.find((t) => t.name === 'Silver')?.maxAmount || '',
-            }
-            : undefined,
-          gold: (tiers.find((t) => t.name === 'Gold')?.enabled ?? false)
-            ? {
-              enabled: true,
-              maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '',
-            }
-            : undefined,
-          platinum: (tiers.find((t) => t.name === 'Platinum')?.enabled ?? false)
-            ? {
-              enabled: true,
-              maxAmount: tiers.find((t) => t.name === 'Platinum')?.maxAmount || '',
-            }
-            : undefined,
-        }
-        : undefined,
+          : undefined,
       feePercentage: feeType === 'default' ? 300 : undefined,
       customFeePercentage:
         feeType === 'custom' ? Math.round(Number.parseFloat(customFee ?? '0') * 100) : undefined,
@@ -430,8 +451,12 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     setCurrency(draft.currency ?? '');
     setVisibility(draft.visibility ?? 'public');
     setSelectedBuilders(draft.builders ?? []);
-    setApplicationStartDate(draft.applicationStartDate ? new Date(draft.applicationStartDate) : undefined);
-    setApplicationDueDate(draft.applicationEndDate ? new Date(draft.applicationEndDate) : undefined);
+    setApplicationStartDate(
+      draft.applicationStartDate ? new Date(draft.applicationStartDate) : undefined,
+    );
+    setApplicationDueDate(
+      draft.applicationEndDate ? new Date(draft.applicationEndDate) : undefined,
+    );
     setFundingStartDate(draft.fundingStartDate ? new Date(draft.fundingStartDate) : undefined);
     setFundingDueDate(draft.fundingEndDate ? new Date(draft.fundingEndDate) : undefined);
     setConditionType(draft.fundingCondition ?? 'open');
@@ -441,10 +466,26 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     if (draft.selectedBuilderItems) setSelectedBuilderItems(draft.selectedBuilderItems);
     if (draft.tierSettings) {
       setTiers([
-        { name: 'Bronze', enabled: draft.tierSettings.bronze?.enabled ?? false, maxAmount: draft.tierSettings.bronze?.maxAmount ?? '0' },
-        { name: 'Silver', enabled: draft.tierSettings.silver?.enabled ?? false, maxAmount: draft.tierSettings.silver?.maxAmount ?? '0' },
-        { name: 'Gold', enabled: draft.tierSettings.gold?.enabled ?? false, maxAmount: draft.tierSettings.gold?.maxAmount ?? '0' },
-        { name: 'Platinum', enabled: draft.tierSettings.platinum?.enabled ?? false, maxAmount: draft.tierSettings.platinum?.maxAmount ?? '0' },
+        {
+          name: 'Bronze',
+          enabled: draft.tierSettings.bronze?.enabled ?? false,
+          maxAmount: draft.tierSettings.bronze?.maxAmount ?? '0',
+        },
+        {
+          name: 'Silver',
+          enabled: draft.tierSettings.silver?.enabled ?? false,
+          maxAmount: draft.tierSettings.silver?.maxAmount ?? '0',
+        },
+        {
+          name: 'Gold',
+          enabled: draft.tierSettings.gold?.enabled ?? false,
+          maxAmount: draft.tierSettings.gold?.maxAmount ?? '0',
+        },
+        {
+          name: 'Platinum',
+          enabled: draft.tierSettings.platinum?.enabled ?? false,
+          maxAmount: draft.tierSettings.platinum?.maxAmount ?? '0',
+        },
       ]);
     }
   }, [isEdit]);
@@ -456,7 +497,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
   const handleTierAmountChange = (tierName: string, amount: string) => {
     setTiers((prev) =>
-      prev.map((tier) => (tier.name === tierName ? { ...tier, maxAmount: amount || undefined } : tier)),
+      prev.map((tier) =>
+        tier.name === tierName ? { ...tier, maxAmount: amount || undefined } : tier,
+      ),
     );
   };
 
@@ -488,7 +531,14 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     const hasFundingDates = fundingStartDate && fundingDueDate;
     const hasValidators = selectedValidators.length > 0;
 
-    return programName && hasKeywords && hasImage && hasApplicationDates && hasFundingDates && hasValidators;
+    return (
+      programName &&
+      hasKeywords &&
+      hasImage &&
+      hasApplicationDates &&
+      hasFundingDates &&
+      hasValidators
+    );
   };
 
   const isDetailsTabValid = () => {
@@ -538,11 +588,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   };
 
   return (
-    <form
-      ref={formRef}
-      onSubmit={handleSubmit(onSubmit)}
-      className="max-w-[820px] w-full mx-auto"
-    >
+    <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="max-w-[820px] w-full mx-auto">
       <h1 className="font-medium text-xl mb-6">Investment</h1>
       {/* <h1 className="font-medium text-xl mb-6">{isEdit ? 'Edit Program' : 'Create Program'}</h1> */}
 
@@ -650,7 +696,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 </div>
                 {/* Text info */}
                 <div className="flex-1">
-                  <p className="font-medium text-base">Cover image <span className="text-primary">*</span></p>
+                  <p className="font-medium text-base">
+                    Cover image <span className="text-primary">*</span>
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     Logo image must be square, under 2MB, and in PNG, JPG, or JPEG format.
                     <br />
@@ -834,7 +882,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         <TabsContent value="details">
           <div className="bg-white px-10 py-6 rounded-lg mb-3">
             <label htmlFor="summary" className="space-y-2 block">
-              <p className="text-sm font-medium">Summary <span className="text-primary">*</span></p>
+              <p className="text-sm font-medium">
+                Summary <span className="text-primary">*</span>
+              </p>
               <Textarea
                 id="summary"
                 placeholder="Type summary"
@@ -849,7 +899,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
           <div className="px-10 py-6 bg-white rounded-lg">
             <label htmlFor="description" className="space-y-2 block">
-              <p className="text-sm font-medium">Description <span className="text-primary">*</span></p>
+              <p className="text-sm font-medium">
+                Description <span className="text-primary">*</span>
+              </p>
 
               <MarkdownEditor onChange={setContent} content={content} />
               {!content.length && (
@@ -1063,34 +1115,38 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     fundingStartDate: fundingStartDate?.toISOString(),
                     fundingEndDate: fundingDueDate?.toISOString(),
                     fundingCondition: conditionType,
-                    tierSettings: conditionType === 'tier'
-                      ? {
-                        bronze: tiers.find((t) => t.name === 'Bronze')?.enabled
-                          ? {
-                            enabled: true,
-                            maxAmount: tiers.find((t) => t.name === 'Bronze')?.maxAmount || '0',
+                    tierSettings:
+                      conditionType === 'tier'
+                        ? {
+                            bronze: tiers.find((t) => t.name === 'Bronze')?.enabled
+                              ? {
+                                  enabled: true,
+                                  maxAmount:
+                                    tiers.find((t) => t.name === 'Bronze')?.maxAmount || '0',
+                                }
+                              : undefined,
+                            silver: tiers.find((t) => t.name === 'Silver')?.enabled
+                              ? {
+                                  enabled: true,
+                                  maxAmount:
+                                    tiers.find((t) => t.name === 'Silver')?.maxAmount || '0',
+                                }
+                              : undefined,
+                            gold: tiers.find((t) => t.name === 'Gold')?.enabled
+                              ? {
+                                  enabled: true,
+                                  maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '0',
+                                }
+                              : undefined,
+                            platinum: tiers.find((t) => t.name === 'Platinum')?.enabled
+                              ? {
+                                  enabled: true,
+                                  maxAmount:
+                                    tiers.find((t) => t.name === 'Platinum')?.maxAmount || '0',
+                                }
+                              : undefined,
                           }
-                          : undefined,
-                        silver: tiers.find((t) => t.name === 'Silver')?.enabled
-                          ? {
-                            enabled: true,
-                            maxAmount: tiers.find((t) => t.name === 'Silver')?.maxAmount || '0',
-                          }
-                          : undefined,
-                        gold: tiers.find((t) => t.name === 'Gold')?.enabled
-                          ? {
-                            enabled: true,
-                            maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '0',
-                          }
-                          : undefined,
-                        platinum: tiers.find((t) => t.name === 'Platinum')?.enabled
-                          ? {
-                            enabled: true,
-                            maxAmount: tiers.find((t) => t.name === 'Platinum')?.maxAmount || '0',
-                          }
-                          : undefined,
-                      }
-                      : undefined,
+                        : undefined,
                     feeType,
                     customFee,
                   };
@@ -1101,7 +1157,10 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 Save
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-white text-foreground border shadow-[0px_4px_6px_-1px_#0000001A]" sideOffset={8}>
+            <TooltipContent
+              className="bg-white text-foreground border shadow-[0px_4px_6px_-1px_#0000001A]"
+              sideOffset={8}
+            >
               Image file will not be saved in the draft.
             </TooltipContent>
           </Tooltip>

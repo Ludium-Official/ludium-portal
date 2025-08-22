@@ -22,7 +22,14 @@ import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
-import { cn, getCurrency, getCurrencyIcon, getInitials, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
+import {
+  cn,
+  getCurrency,
+  getCurrencyIcon,
+  getInitials,
+  getUserName,
+  mainnetDefaultNetwork,
+} from '@/lib/utils';
 import ApplicationCard from '@/pages/programs/details/_components/application-card';
 import CreateApplicationForm from '@/pages/programs/details/_components/create-application-form';
 import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
@@ -40,7 +47,11 @@ const DetailsPage: React.FC = () => {
   const { id } = useParams();
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
-  const { data, refetch, error: programError } = useProgramQuery({
+  const {
+    data,
+    refetch,
+    error: programError,
+  } = useProgramQuery({
     variables: {
       id: id ?? '',
     },
@@ -52,9 +63,10 @@ const DetailsPage: React.FC = () => {
     if (selectedStatus === 'all') {
       return data?.program?.applications || [];
     }
-    return data?.program?.applications?.filter((application) =>
-      application.status === selectedStatus
-    ) || [];
+    return (
+      data?.program?.applications?.filter((application) => application.status === selectedStatus) ||
+      []
+    );
   }, [data?.program?.applications, selectedStatus]);
 
   const acceptedPrice = useMemo(
@@ -251,58 +263,60 @@ const DetailsPage: React.FC = () => {
                 </DialogContent>
               </Dialog>
 
-              {program?.validators?.some((v) => v.id === userId) && program.status === ProgramStatus.Pending && (
-                <div className="flex justify-end gap-2 w-full">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="h-11 flex-1">
-                        Reject
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="min-w-[800px] p-0 max-h-screen overflow-y-auto">
-                      <RejectProgramForm programId={program.id} refetch={refetch} />
-                    </DialogContent>
-                  </Dialog>
-                  {/* <Button onClick={() => rejectProgram()} variant="outline" className="h-11 w-[118px]">
+              {program?.validators?.some((v) => v.id === userId) &&
+                program.status === ProgramStatus.Pending && (
+                  <div className="flex justify-end gap-2 w-full">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="h-11 flex-1">
+                          Reject
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="min-w-[800px] p-0 max-h-screen overflow-y-auto">
+                        <RejectProgramForm programId={program.id} refetch={refetch} />
+                      </DialogContent>
+                    </Dialog>
+                    {/* <Button onClick={() => rejectProgram()} variant="outline" className="h-11 w-[118px]">
                     Reject
                   </Button> */}
-                  <Button
-                    onClick={async () => {
-                      await acceptProgram();
-                      notify('Program accepted', 'success');
-                    }}
-                    className="h-11 flex-1"
-                  >
-                    Confirm
-                  </Button>
-                </div>
-              )}
-
-              {program?.creator?.id === userId && program.status === ProgramStatus.PaymentRequired && (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button className="text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px] w-full h-11">
-                      Pay
+                    <Button
+                      onClick={async () => {
+                        await acceptProgram();
+                        notify('Program accepted', 'success');
+                      }}
+                      className="h-11 flex-1"
+                    >
+                      Confirm
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="w-[400px] p-6 max-h-screen overflow-y-auto">
-                    <DialogClose id="pay-dialog-close" />
-                    <div className="text-center">
-                      <span className="text-red-600 w-[42px] h-[42px] rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-                        <TriangleAlert />
-                      </span>
-                      <DialogTitle className="font-semibold text-lg text-[#18181B] mb-2">
-                        Are you sure to pay the settlement for the program?
-                      </DialogTitle>
-                      <DialogDescription className="text-muted-foreground text-sm mb-4">
-                        The amount will be securely stored until you will confirm the completion of
-                        the project.
-                      </DialogDescription>
-                      <Button onClick={callTx}>Yes, Pay now</Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
+                  </div>
+                )}
+
+              {program?.creator?.id === userId &&
+                program.status === ProgramStatus.PaymentRequired && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px] w-full h-11">
+                        Pay
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="w-[400px] p-6 max-h-screen overflow-y-auto">
+                      <DialogClose id="pay-dialog-close" />
+                      <div className="text-center">
+                        <span className="text-red-600 w-[42px] h-[42px] rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                          <TriangleAlert />
+                        </span>
+                        <DialogTitle className="font-semibold text-lg text-[#18181B] mb-2">
+                          Are you sure to pay the settlement for the program?
+                        </DialogTitle>
+                        <DialogDescription className="text-muted-foreground text-sm mb-4">
+                          The amount will be securely stored until you will confirm the completion
+                          of the project.
+                        </DialogDescription>
+                        <Button onClick={callTx}>Yes, Pay now</Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
 
               {program?.status === ProgramStatus.Rejected && program.creator?.id === userId && (
                 <div className="flex justify-end gap-2 w-full">
@@ -312,14 +326,14 @@ const DetailsPage: React.FC = () => {
                 </div>
               )}
 
-
-              {program?.status === ProgramStatus.Rejected && program.validators?.some((v) => v.id === userId) && (
-                <div className="flex justify-end gap-2 w-full">
-                  <Button disabled variant='outline' className="h-11 flex-1">
-                    Rejection Reason Submitted
-                  </Button>
-                </div>
-              )}
+              {program?.status === ProgramStatus.Rejected &&
+                program.validators?.some((v) => v.id === userId) && (
+                  <div className="flex justify-end gap-2 w-full">
+                    <Button disabled variant="outline" className="h-11 flex-1">
+                      Rejection Reason Submitted
+                    </Button>
+                  </div>
+                )}
 
               <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">KEYWORDS</p>
@@ -339,20 +353,22 @@ const DetailsPage: React.FC = () => {
                 <p className="text-slate-600 text-sm whitespace-pre-wrap">{program?.summary}</p>
               </div>
 
-              {!!program?.links?.length && <div className="mt-6">
-                <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM LINKS</p>
-                {program?.links?.map((l) => (
-                  <a
-                    href={l?.url ?? ''}
-                    key={l.url}
-                    className="block hover:underline text-slate-600 text-sm"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {l?.url}
-                  </a>
-                ))}
-              </div>}
+              {!!program?.links?.length && (
+                <div className="mt-6">
+                  <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM LINKS</p>
+                  {program?.links?.map((l) => (
+                    <a
+                      href={l?.url ?? ''}
+                      key={l.url}
+                      className="block hover:underline text-slate-600 text-sm"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {l?.url}
+                    </a>
+                  ))}
+                </div>
+              )}
 
               <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM SPONSOR</p>
@@ -366,7 +382,7 @@ const DetailsPage: React.FC = () => {
                       })}
                     />
                     {program?.status === ProgramStatus.Published ||
-                      program?.status === ProgramStatus.Completed
+                    program?.status === ProgramStatus.Completed
                       ? 'Paid'
                       : 'Not paid'}
                   </span>
@@ -424,11 +440,11 @@ const DetailsPage: React.FC = () => {
                         <span className="items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex">
                           <span
                             className={cn('bg-gray-400 w-[14px] h-[14px] rounded-full block', {
-                              'bg-red-200':
-                                program.status === ProgramStatus.Rejected,
-                              'bg-green-400': program.status !== ProgramStatus.Pending && program.status !== ProgramStatus.Rejected,
-                              'bg-gray-400':
-                                program.status === ProgramStatus.Pending,
+                              'bg-red-200': program.status === ProgramStatus.Rejected,
+                              'bg-green-400':
+                                program.status !== ProgramStatus.Pending &&
+                                program.status !== ProgramStatus.Rejected,
+                              'bg-gray-400': program.status === ProgramStatus.Pending,
                             })}
                           />
                           {program.status === ProgramStatus.Rejected
@@ -478,7 +494,11 @@ const DetailsPage: React.FC = () => {
 
                           <div className="flex gap-2 flex-wrap">
                             {validator?.keywords?.map((k) => (
-                              <Badge key={k.id} variant="secondary" className="text-xs font-semibold">
+                              <Badge
+                                key={k.id}
+                                variant="secondary"
+                                className="text-xs font-semibold"
+                              >
                                 {k.name}
                               </Badge>
                             ))}
@@ -510,7 +530,11 @@ const DetailsPage: React.FC = () => {
 
       <section className="bg-white rounded-2xl mt-3">
         <div className="max-w-1440 mx-auto p-10">
-          <Tabs id="applications" value={selectedStatus} onValueChange={(value) => setSelectedStatus(value)}>
+          <Tabs
+            id="applications"
+            value={selectedStatus}
+            onValueChange={(value) => setSelectedStatus(value)}
+          >
             <h2 className="text-xl font-bold mb-4">Applications</h2>
             <section className="">
               <TabsList className="mb-3.5">
@@ -532,16 +556,11 @@ const DetailsPage: React.FC = () => {
                 <div className="text-slate-600 text-sm">
                   {selectedStatus === 'all'
                     ? 'No applications yet.'
-                    : `No ${selectedStatus.toLowerCase()} applications yet.`
-                  }
+                    : `No ${selectedStatus.toLowerCase()} applications yet.`}
                 </div>
               )}
               {filteredApplications.map((a) => (
-                <ApplicationCard
-                  key={a.id}
-                  application={a}
-                  program={data?.program}
-                />
+                <ApplicationCard key={a.id} application={a} program={data?.program} />
               ))}
             </section>
           </Tabs>

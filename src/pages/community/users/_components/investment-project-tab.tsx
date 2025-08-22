@@ -1,10 +1,10 @@
-import { useParams, useSearchParams } from 'react-router';
-import { AgentBreadcrumbs } from './agent-breadcrumbs';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
+import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { useState } from 'react';
+import { useParams, useSearchParams } from 'react-router';
+import { AgentBreadcrumbs } from './agent-breadcrumbs';
 import ProgramProjectCard from './program-project-card';
 
 const programPageSize = 6;

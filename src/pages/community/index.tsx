@@ -79,14 +79,16 @@ const CommunityPage: React.FC = () => {
         },
       });
 
-      const newPosts = moreData?.posts?.data?.filter((post) => !posts.some((p) => p.id === post?.id));
+      const newPosts = moreData?.posts?.data?.filter(
+        (post) => !posts.some((p) => p.id === post?.id),
+      );
 
       if (Array.isArray(newPosts) && newPosts.length > 0) {
         setPosts((prev) => {
           // Remove duplicates by ID before setting posts
           const allPosts = [...prev, ...newPosts];
-          const uniquePosts = allPosts.filter((post, index, self) =>
-            index === self.findIndex(p => p.id === post.id)
+          const uniquePosts = allPosts.filter(
+            (post, index, self) => index === self.findIndex((p) => p.id === post.id),
           );
           return uniquePosts;
         });
@@ -148,8 +150,8 @@ const CommunityPage: React.FC = () => {
   useEffect(() => {
     if (data?.posts?.data) {
       // Remove duplicates by ID before setting posts
-      const uniquePosts = data.posts.data.filter((post, index, self) =>
-        index === self.findIndex(p => p.id === post.id)
+      const uniquePosts = data.posts.data.filter(
+        (post, index, self) => index === self.findIndex((p) => p.id === post.id),
       );
       setPosts(uniquePosts);
       // setHasMore(posts.length >= (data.posts.count ?? 0));

@@ -1,4 +1,3 @@
-import { useLocation, useParams } from 'react-router';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -7,8 +6,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { type SidebarItemType, sidebarLinks } from './sidebar-links';
 import React from 'react';
+import { useLocation, useParams } from 'react-router';
+import { type SidebarItemType, sidebarLinks } from './sidebar-links';
 
 function findBreadcrumbTrail(
   items: SidebarItemType[],

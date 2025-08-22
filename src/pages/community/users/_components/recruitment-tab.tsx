@@ -1,13 +1,13 @@
+import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { Link, useParams } from 'react-router';
 import { AgentBreadcrumbs } from './agent-breadcrumbs';
-import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 
-import ProgramCard from './program-card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { ArrowRightIcon, ListFilter, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import ProgramCard from './program-card';
 
 const filterBasedOnRole = {
   sponsor: 'sponsorId',

@@ -73,10 +73,9 @@ function ProjectCard({
 
         {/* Price Tag */}
         <div className="bg-[#0000000A] rounded-md px-2 py-1">
-          <div className='flex items-center gap-3 justify-between'>
+          <div className="flex items-center gap-3 justify-between">
             <span className="text-xs text-neutral-400 font-semibold">PRIZE</span>
-            <div className='flex items-center gap-2'>
-
+            <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
                 <span className="text-sm font-bold text-muted-foreground">{totalPrice}</span>
                 {getCurrencyIcon(program?.currency)}
@@ -90,14 +89,18 @@ function ProjectCard({
           <div className="flex items-center gap-[20px] justify-between w-full">
             <h4 className="text-neutral-400 text-sm font-bold">STATUS</h4>
 
-            <Progress value={application?.fundingProgress ?? 0} rootClassName="w-full" indicatorClassName="bg-primary" />
+            <Progress
+              value={application?.fundingProgress ?? 0}
+              rootClassName="w-full"
+              indicatorClassName="bg-primary"
+            />
 
             <p className="text-xl text-primary font-bold flex items-center">
-              {application?.fundingProgress ?? 0}<span className="text-sm text-muted-foreground">%</span>
+              {application?.fundingProgress ?? 0}
+              <span className="text-sm text-muted-foreground">%</span>
             </p>
           </div>
         </div>
-
       </div>
 
       {/* Description */}
@@ -106,7 +109,6 @@ function ProjectCard({
           {application?.name || 'No description available'}
         </p>
       </div>
-
     </Link>
   );
 }

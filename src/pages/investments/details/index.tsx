@@ -7,12 +7,7 @@ import { ProgramStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ShareButton } from '@/components/ui/share-button';
@@ -38,16 +33,20 @@ const InvestmentDetailsPage: React.FC = () => {
   const [supportersTab, setSupportersTab] = useState<'invite' | 'supporters'>('invite');
 
   const [selectedSupporter, setSelectedSupporter] = useState<string[]>([]);
-  const [selectedSupporterItems, setSelectedSupporterItems] = useState<{ label: string; value: string }[]>([]);
+  const [selectedSupporterItems, setSelectedSupporterItems] = useState<
+    { label: string; value: string }[]
+  >([]);
   const [supporterInput, setSupporterInput] = useState<string>();
   const [debouncedSupporterInput, setDebouncedSupporterInput] = useState<string>();
   const [selectedTier, setSelectedTier] = useState<string | undefined>(undefined);
-  const [storedSupporters, setStoredSupporters] = useState<Array<{
-    id: string;
-    name: string;
-    email: string;
-    tier: string;
-  }>>([]);
+  const [storedSupporters, setStoredSupporters] = useState<
+    Array<{
+      id: string;
+      name: string;
+      email: string;
+      tier: string;
+    }>
+  >([]);
 
   const { data, refetch } = useProgramQuery({
     variables: {
@@ -92,8 +91,8 @@ const InvestmentDetailsPage: React.FC = () => {
   // Set initial tier when tierSettings are available
   useEffect(() => {
     if (program?.tierSettings && !selectedTier) {
-      const enabledTiers = Object.entries(program.tierSettings).filter(([_, value]) =>
-        (value as { enabled: boolean })?.enabled
+      const enabledTiers = Object.entries(program.tierSettings).filter(
+        ([_, value]) => (value as { enabled: boolean })?.enabled,
       );
       if (enabledTiers.length > 0) {
         setSelectedTier(enabledTiers[0][0]);
@@ -111,7 +110,7 @@ const InvestmentDetailsPage: React.FC = () => {
     const supporterItem = selectedSupporterItems[0];
 
     // Check if supporter is already in the list
-    const isAlreadyAdded = storedSupporters.some(supporter => supporter.id === supporterId);
+    const isAlreadyAdded = storedSupporters.some((supporter) => supporter.id === supporterId);
     if (isAlreadyAdded) {
       console.error('Supporter is already in the list');
       return;
@@ -125,7 +124,7 @@ const InvestmentDetailsPage: React.FC = () => {
       tier: selectedTier || 'gold',
     };
 
-    setStoredSupporters(prev => [...prev, newSupporter]);
+    setStoredSupporters((prev) => [...prev, newSupporter]);
 
     // Reset selection
     setSelectedSupporter([]);
@@ -134,7 +133,7 @@ const InvestmentDetailsPage: React.FC = () => {
   };
 
   const removeSupporter = (supporterId: string) => {
-    setStoredSupporters(prev => prev.filter(supporter => supporter.id !== supporterId));
+    setStoredSupporters((prev) => prev.filter((supporter) => supporter.id !== supporterId));
   };
 
   const handleSendInvitation = async () => {
@@ -151,11 +150,13 @@ const InvestmentDetailsPage: React.FC = () => {
             programId: id,
             userId: supporter.id,
             tier: supporter.tier as InvestmentTier,
-            maxInvestmentAmount: program?.tierSettings?.[supporter.tier as keyof typeof program.tierSettings]?.maxAmount,
+            maxInvestmentAmount:
+              program?.tierSettings?.[supporter.tier as keyof typeof program.tierSettings]
+                ?.maxAmount,
           },
           onError: (error) => {
             notify(`Failed to invite ${supporter.name}: ${error.message}`, 'error');
-          }
+          },
         });
       }
 
@@ -198,7 +199,6 @@ const InvestmentDetailsPage: React.FC = () => {
     }
   }, []);
 
-
   // const [acceptProgram] = useAcceptProgramMutation({
   //   variables: {
   //     id: program?.id ?? '',
@@ -211,9 +211,8 @@ const InvestmentDetailsPage: React.FC = () => {
   return (
     <div className="bg-[#F7F7F7]">
       <div className="bg-white p-10 rounded-2xl">
-
         <section className="max-w-[1440px] mx-auto">
-          <ProgramStatusBadge program={program} className='inline-flex mb-2' />
+          <ProgramStatusBadge program={program} className="inline-flex mb-2" />
 
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-xl font-bold">{program?.name}</h1>
@@ -233,20 +232,22 @@ const InvestmentDetailsPage: React.FC = () => {
                     <div className="flex border-b mb-6">
                       <button
                         type="button"
-                        className={`px-4 py-2 text-sm font-medium border-b transition-colors ${supportersTab === 'invite'
-                          ? 'border-primary text-primary'
-                          : 'border- text-muted-foreground hover:text-foreground'
-                          }`}
+                        className={`px-4 py-2 text-sm font-medium border-b transition-colors ${
+                          supportersTab === 'invite'
+                            ? 'border-primary text-primary'
+                            : 'border- text-muted-foreground hover:text-foreground'
+                        }`}
                         onClick={() => setSupportersTab('invite')}
                       >
                         Invite supporter
                       </button>
                       <button
                         type="button"
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${supportersTab === 'supporters'
-                          ? 'border-primary text-primary'
-                          : 'border-transparent text-muted-foreground hover:text-foreground'
-                          }`}
+                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                          supportersTab === 'supporters'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-muted-foreground hover:text-foreground'
+                        }`}
                         onClick={() => setSupportersTab('supporters')}
                       >
                         Supporters
@@ -260,15 +261,20 @@ const InvestmentDetailsPage: React.FC = () => {
                         <div>
                           <h3 className="text-sm font-medium mb-3">Supporter Tier Management</h3>
                           <div className="space-y-3 bg-secondary rounded-md p-3">
-                            <div className={cn("flex items-center justify-between", !!program?.tierSettings && "border-b pb-3")}>
-                              <span className="text-sm text-muted-foreground font-bold">Program Tier Condition</span>
+                            <div
+                              className={cn(
+                                'flex items-center justify-between',
+                                !!program?.tierSettings && 'border-b pb-3',
+                              )}
+                            >
+                              <span className="text-sm text-muted-foreground font-bold">
+                                Program Tier Condition
+                              </span>
                               {program?.tierSettings ? (
                                 <div className="flex gap-2">
                                   {Object.entries(program.tierSettings).map(([key, value]) => {
                                     if (!(value as { enabled: boolean })?.enabled) return null;
-                                    return (
-                                      <TierBadge key={key} tier={key as TierType} />
-                                    );
+                                    return <TierBadge key={key} tier={key as TierType} />;
                                   })}
                                 </div>
                               ) : (
@@ -278,24 +284,32 @@ const InvestmentDetailsPage: React.FC = () => {
                               )}
                             </div>
                             <div className="space-y-2">
-                              {program?.tierSettings && Object.entries(program.tierSettings).map(([key, value]) => {
-                                if (!(value as { enabled: boolean })?.enabled) return null;
+                              {program?.tierSettings &&
+                                Object.entries(program.tierSettings).map(([key, value]) => {
+                                  if (!(value as { enabled: boolean })?.enabled) return null;
 
-                                return (
-                                  <div key={key} className="flex items-center justify-end gap-2 text-muted-foreground">
-                                    <span className="text-sm">{key.charAt(0).toUpperCase() + key.slice(1)}</span>
-                                    <span className="text-sm font-bold">
-                                      {(value as { maxAmount?: number })?.maxAmount?.toLocaleString() || 'N/A'}
-                                    </span>
-                                  </div>
-                                );
-                              })}
+                                  return (
+                                    <div
+                                      key={key}
+                                      className="flex items-center justify-end gap-2 text-muted-foreground"
+                                    >
+                                      <span className="text-sm">
+                                        {key.charAt(0).toUpperCase() + key.slice(1)}
+                                      </span>
+                                      <span className="text-sm font-bold">
+                                        {(
+                                          value as { maxAmount?: number }
+                                        )?.maxAmount?.toLocaleString() || 'N/A'}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
                             </div>
                           </div>
                         </div>
 
                         {/* Invite Supporter Input */}
-                        <div className=''>
+                        <div className="">
                           <div className="flex items-center gap-2 mt-2">
                             <MultiSelect
                               options={supporterOptions ?? []}
@@ -323,7 +337,9 @@ const InvestmentDetailsPage: React.FC = () => {
                                     {selectedTier ? (
                                       <TierBadge tier={selectedTier as TierType} />
                                     ) : (
-                                      <span className="text-sm text-muted-foreground">Select tier</span>
+                                      <span className="text-sm text-muted-foreground">
+                                        Select tier
+                                      </span>
                                     )}
                                     <ChevronDown className="h-4 w-4 opacity-50" />
                                   </Button>
@@ -363,22 +379,23 @@ const InvestmentDetailsPage: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className='min-h-[200px]'>
-
+                        <div className="min-h-[200px]">
                           {/* Stored Supporters List */}
                           {storedSupporters.length > 0 && (
                             <div className="mt-6">
                               <h3 className="text-sm font-semibold mb-3">Added Supporters</h3>
                               <div className="">
                                 <div className="grid grid-cols-3 gap-4 p-3 border-b text-sm font-medium">
-                                  <div className='text-muted-foreground'>Tier</div>
-                                  <div className='text-muted-foreground'>User name</div>
+                                  <div className="text-muted-foreground">Tier</div>
+                                  <div className="text-muted-foreground">User name</div>
                                   <div />
                                 </div>
-                                <div className='max-h-[200px] overflow-y-auto'>
-
+                                <div className="max-h-[200px] overflow-y-auto">
                                   {storedSupporters.map((supporter) => (
-                                    <div key={supporter.id} className="grid grid-cols-3 gap-4 p-3 border-b last:border-b-0 items-center hover:bg-muted">
+                                    <div
+                                      key={supporter.id}
+                                      className="grid grid-cols-3 gap-4 p-3 border-b last:border-b-0 items-center hover:bg-muted"
+                                    >
                                       <div>
                                         <TierBadge tier={supporter.tier as TierType} />
                                       </div>
@@ -405,17 +422,24 @@ const InvestmentDetailsPage: React.FC = () => {
                         {storedSupporters.length > 0 && (
                           <div className="mt-6 flex justify-between items-center bg-muted p-4">
                             <div className="text-sm flex items-center gap-8">
-                              <span className="">Total</span> <span className='font-bold text-lg'>{storedSupporters.length}</span>
+                              <span className="">Total</span>{' '}
+                              <span className="font-bold text-lg">{storedSupporters.length}</span>
                             </div>
                             <div className="text-sm font-medium flex items-center gap-2">
-                              <span className='font-bold text-lg'>{storedSupporters.reduce((total, supporter) => {
-                                const tierSettings = program?.tierSettings;
-                                if (!tierSettings) return total;
+                              <span className="font-bold text-lg">
+                                {storedSupporters
+                                  .reduce((total, supporter) => {
+                                    const tierSettings = program?.tierSettings;
+                                    if (!tierSettings) return total;
 
-                                const tierValue = (tierSettings as Record<string, { maxAmount?: number }>)[supporter.tier];
-                                const amount = Number(tierValue?.maxAmount) || 0;
-                                return total + amount;
-                              }, 0).toLocaleString()}</span>
+                                    const tierValue = (
+                                      tierSettings as Record<string, { maxAmount?: number }>
+                                    )[supporter.tier];
+                                    const amount = Number(tierValue?.maxAmount) || 0;
+                                    return total + amount;
+                                  }, 0)
+                                  .toLocaleString()}
+                              </span>
                               <span>{getCurrencyIcon(program?.currency)}</span>
                               <span>{program?.currency}</span>
                             </div>
@@ -471,18 +495,23 @@ const InvestmentDetailsPage: React.FC = () => {
                       <div className="">
                         {/* <h3 className="text-sm font-semibold">Current Supporters</h3> */}
                         <div className="grid grid-cols-3 gap-4 p-3 border-b text-sm font-medium">
-                          <div className='text-muted-foreground'>Tier</div>
-                          <div className='text-muted-foreground'>User name</div>
+                          <div className="text-muted-foreground">Tier</div>
+                          <div className="text-muted-foreground">User name</div>
                           <div />
                         </div>
                         {program?.supporters && program.supporters.length > 0 ? (
                           <div className="">
                             {program.supporters.map((supporter) => (
-                              <div key={supporter.userId} className="grid grid-cols-3 gap-4 p-3 min-h-[64px] border-b last:border-b-0 items-center hover:bg-muted">
+                              <div
+                                key={supporter.userId}
+                                className="grid grid-cols-3 gap-4 p-3 min-h-[64px] border-b last:border-b-0 items-center hover:bg-muted"
+                              >
                                 <div>
                                   <TierBadge tier={supporter.tier as TierType} />
                                 </div>
-                                <div className="text-sm">{supporter.firstName} {supporter.lastName} {supporter.email}</div>
+                                <div className="text-sm">
+                                  {supporter.firstName} {supporter.lastName} {supporter.email}
+                                </div>
                                 <div className="flex justify-end">
                                   {/* <Button
                                   size="sm"
@@ -494,7 +523,6 @@ const InvestmentDetailsPage: React.FC = () => {
                                 </Button> */}
                                 </div>
                               </div>
-
 
                               // <div
                               //   key={supporter.email || index}
@@ -521,18 +549,27 @@ const InvestmentDetailsPage: React.FC = () => {
 
                         <div className="mt-6 flex justify-between items-center bg-muted p-4">
                           <div className="text-sm flex items-center gap-8">
-                            <span className="">Total</span> <span className='font-bold text-lg'>{program?.invitedBuilders?.length}</span>
+                            <span className="">Total</span>{' '}
+                            <span className="font-bold text-lg">
+                              {program?.invitedBuilders?.length}
+                            </span>
                           </div>
                           <div className="text-sm font-medium flex items-center gap-2">
-                            <span className='font-bold text-lg'>{program?.invitedBuilders?.reduce((total) => {
-                              const tierSettings = program?.tierSettings;
-                              if (!tierSettings) return total;
+                            <span className="font-bold text-lg">
+                              {program?.invitedBuilders
+                                ?.reduce((total) => {
+                                  const tierSettings = program?.tierSettings;
+                                  if (!tierSettings) return total;
 
-                              // hardcoded, dont forget to change
-                              const tierValue = (tierSettings as Record<string, { maxAmount?: number }>).gold;
-                              const amount = Number(tierValue?.maxAmount) || 0;
-                              return total + amount;
-                            }, 0).toLocaleString()}</span>
+                                  // hardcoded, dont forget to change
+                                  const tierValue = (
+                                    tierSettings as Record<string, { maxAmount?: number }>
+                                  ).gold;
+                                  const amount = Number(tierValue?.maxAmount) || 0;
+                                  return total + amount;
+                                }, 0)
+                                .toLocaleString()}
+                            </span>
                             <span>{getCurrencyIcon(program?.currency)}</span>
                             <span>{program?.currency}</span>
                           </div>
@@ -542,7 +579,6 @@ const InvestmentDetailsPage: React.FC = () => {
                   </DialogContent>
                 </Dialog>
               )}
-
 
               {(program?.creator?.id === userId || isAdmin) && (
                 <Link to={`/investments/${program?.id}/edit`}>
@@ -567,7 +603,11 @@ const InvestmentDetailsPage: React.FC = () => {
               {/* Temporary image placeholder until the actual image is added */}
               {/* <div className='bg-[#eaeaea] w-full rounded-xl aspect-square mb-6' /> */}
               {program?.image ? (
-                <img src={program?.image} alt="program" className="w-full aspect-square rounded-xl" />
+                <img
+                  src={program?.image}
+                  alt="program"
+                  className="w-full aspect-square rounded-xl"
+                />
               ) : (
                 <div className="bg-[#eaeaea] w-full rounded-xl aspect-square mb-6" />
               )}
@@ -634,26 +674,35 @@ const InvestmentDetailsPage: React.FC = () => {
                 <div className="space-y-3">
                   {/* Application Step */}
                   {(() => {
-                    const isApplicationActive = program?.applicationStartDate &&
+                    const isApplicationActive =
+                      program?.applicationStartDate &&
                       program?.applicationEndDate &&
                       new Date() >= new Date(program.applicationStartDate) &&
                       new Date() <= new Date(program.applicationEndDate);
 
                     return (
                       <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "w-2 h-2 rounded-full flex-shrink-0",
-                          isApplicationActive ? "bg-green-500" : "bg-gray-400"
-                        )} />
+                        <div
+                          className={cn(
+                            'w-2 h-2 rounded-full flex-shrink-0',
+                            isApplicationActive ? 'bg-green-500' : 'bg-gray-400',
+                          )}
+                        />
                         <div className="flex items-center justify-between gap-4 flex-1">
-                          <span className={cn(
-                            "font-bold text-sm",
-                            isApplicationActive ? "text-gray-900" : "text-gray-400"
-                          )}>APPLICATION</span>
-                          <span className={cn(
-                            "font-bold text-sm",
-                            isApplicationActive ? "text-gray-900" : "text-gray-400"
-                          )}>
+                          <span
+                            className={cn(
+                              'font-bold text-sm',
+                              isApplicationActive ? 'text-gray-900' : 'text-gray-400',
+                            )}
+                          >
+                            APPLICATION
+                          </span>
+                          <span
+                            className={cn(
+                              'font-bold text-sm',
+                              isApplicationActive ? 'text-gray-900' : 'text-gray-400',
+                            )}
+                          >
                             {program?.applicationStartDate && program?.applicationEndDate
                               ? `${format(new Date(program.applicationStartDate), 'dd. MMM. yyyy').toUpperCase()} – ${format(new Date(program.applicationEndDate), 'dd. MMM. yyyy').toUpperCase()}`
                               : 'N/A'}
@@ -665,26 +714,35 @@ const InvestmentDetailsPage: React.FC = () => {
 
                   {/* Funding Step */}
                   {(() => {
-                    const isFundingActive = program?.fundingStartDate &&
+                    const isFundingActive =
+                      program?.fundingStartDate &&
                       program?.fundingEndDate &&
                       new Date() >= new Date(program.fundingStartDate) &&
                       new Date() <= new Date(program.fundingEndDate);
 
                     return (
                       <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "w-2 h-2 rounded-full flex-shrink-0",
-                          isFundingActive ? "bg-green-500" : "bg-gray-400"
-                        )} />
+                        <div
+                          className={cn(
+                            'w-2 h-2 rounded-full flex-shrink-0',
+                            isFundingActive ? 'bg-green-500' : 'bg-gray-400',
+                          )}
+                        />
                         <div className="flex items-center justify-between gap-4 flex-1">
-                          <span className={cn(
-                            "font-bold text-sm",
-                            isFundingActive ? "text-gray-900" : "text-gray-400"
-                          )}>FUNDING</span>
-                          <span className={cn(
-                            "font-bold text-sm",
-                            isFundingActive ? "text-gray-900" : "text-gray-400"
-                          )}>
+                          <span
+                            className={cn(
+                              'font-bold text-sm',
+                              isFundingActive ? 'text-gray-900' : 'text-gray-400',
+                            )}
+                          >
+                            FUNDING
+                          </span>
+                          <span
+                            className={cn(
+                              'font-bold text-sm',
+                              isFundingActive ? 'text-gray-900' : 'text-gray-400',
+                            )}
+                          >
                             {program?.fundingStartDate && program?.fundingEndDate
                               ? `${format(new Date(program.fundingStartDate), 'dd. MMM. yyyy').toUpperCase()} – ${format(new Date(program.fundingEndDate), 'dd. MMM. yyyy').toUpperCase()}`
                               : 'N/A'}
@@ -714,20 +772,22 @@ const InvestmentDetailsPage: React.FC = () => {
                 <p className="text-slate-600 text-sm whitespace-pre-wrap">{program?.summary}</p>
               </div>
 
-              {!!program?.links?.length && <div className="mt-6">
-                <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM LINKS</p>
-                {program?.links?.map((l) => (
-                  <a
-                    href={l?.url ?? ''}
-                    key={l.url}
-                    className="block hover:underline text-slate-600 text-sm"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {l?.url}
-                  </a>
-                ))}
-              </div>}
+              {!!program?.links?.length && (
+                <div className="mt-6">
+                  <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM LINKS</p>
+                  {program?.links?.map((l) => (
+                    <a
+                      href={l?.url ?? ''}
+                      key={l.url}
+                      className="block hover:underline text-slate-600 text-sm"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {l?.url}
+                    </a>
+                  ))}
+                </div>
+              )}
 
               <Button
                 size="lg"
@@ -735,7 +795,8 @@ const InvestmentDetailsPage: React.FC = () => {
                 disabled={
                   program?.creator?.id === userId ||
                   program?.validators?.some((validator) => validator.id === userId) ||
-                  (program?.applicationStartDate && new Date() < new Date(program.applicationStartDate)) ||
+                  (program?.applicationStartDate &&
+                    new Date() < new Date(program.applicationStartDate)) ||
                   (program?.applicationEndDate && new Date() > new Date(program.applicationEndDate))
                 }
                 onClick={() => navigate(`/investments/${program?.id}/create-project`)}
@@ -767,7 +828,6 @@ const InvestmentDetailsPage: React.FC = () => {
                 </div>
               )} */}
 
-
               {/* {program?.status === ProgramStatus.Rejected && program.creator?.id === userId && (
                 <div className="flex justify-end gap-2 w-full mt-3">
                   <Button disabled className="h-11 flex-1">
@@ -796,7 +856,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       })}
                     />
                     {program?.status === ProgramStatus.Published ||
-                      program?.status === ProgramStatus.Completed
+                    program?.status === ProgramStatus.Completed
                       ? 'Confirmed'
                       : 'Not confirmed'}
                   </span>
@@ -854,11 +914,11 @@ const InvestmentDetailsPage: React.FC = () => {
                         <span className="items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex">
                           <span
                             className={cn('bg-gray-400 w-[14px] h-[14px] rounded-full block', {
-                              'bg-red-200':
-                                program.status === ProgramStatus.Rejected,
-                              'bg-green-400': program.status !== ProgramStatus.Pending && program.status !== ProgramStatus.Rejected,
-                              'bg-gray-400':
-                                program.status === ProgramStatus.Pending,
+                              'bg-red-200': program.status === ProgramStatus.Rejected,
+                              'bg-green-400':
+                                program.status !== ProgramStatus.Pending &&
+                                program.status !== ProgramStatus.Rejected,
+                              'bg-gray-400': program.status === ProgramStatus.Pending,
                             })}
                           />
                           {program.status === ProgramStatus.Rejected
@@ -908,7 +968,11 @@ const InvestmentDetailsPage: React.FC = () => {
 
                           <div className="flex gap-2 flex-wrap">
                             {validator?.keywords?.map((k) => (
-                              <Badge key={k.id} variant="secondary" className="text-xs font-semibold">
+                              <Badge
+                                key={k.id}
+                                variant="secondary"
+                                className="text-xs font-semibold"
+                              >
                                 {k.name}
                               </Badge>
                             ))}
@@ -1003,8 +1067,7 @@ const InvestmentDetailsPage: React.FC = () => {
 
       {/* <MainSection program={program} refetch={() => refetch} /> */}
 
-      <div className='bg-white rounded-2xl p-10 mt-3'>
-
+      <div className="bg-white rounded-2xl p-10 mt-3">
         <Tabs className="mt-3 max-w-[1440px] mx-auto" id="applications">
           <h2 className="text-xl font-bold mb-4">Projects</h2>
           <section className="" />
@@ -1014,11 +1077,7 @@ const InvestmentDetailsPage: React.FC = () => {
               <div className="text-slate-600 text-sm">No applications yet.</div>
             )}
             {data?.program?.applications?.map((a) => (
-              <ProjectCard
-                key={a.id}
-                application={a}
-                program={data?.program}
-              />
+              <ProjectCard key={a.id} application={a} program={data?.program} />
             ))}
           </section>
         </Tabs>

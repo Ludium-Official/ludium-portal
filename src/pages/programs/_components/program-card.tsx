@@ -91,8 +91,10 @@ function ProgramCard({ program }: { program: Program }) {
         >
           Approved Application{' '}
           <span className="text-green-600">
-            {program.applications?.filter((a) => a.status === ApplicationStatus.Accepted || a.status === ApplicationStatus.Completed).length ??
-              0}
+            {program.applications?.filter(
+              (a) =>
+                a.status === ApplicationStatus.Accepted || a.status === ApplicationStatus.Completed,
+            ).length ?? 0}
           </span>
         </Link>
       </div>

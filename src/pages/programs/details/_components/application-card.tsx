@@ -89,7 +89,6 @@ function ApplicationCard({
           {application?.name || 'No description available'}
         </p>
       </div>
-
     </Link>
   );
 }

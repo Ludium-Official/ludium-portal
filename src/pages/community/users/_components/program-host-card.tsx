@@ -1,7 +1,7 @@
 import { ProgramStatusBadge } from '@/components/status-badge';
-import { ChevronRightIcon, ImageIcon } from 'lucide-react';
-import type { Program } from '@/types/types.generated';
 import { Progress } from '@/components/ui/progress';
+import type { Program } from '@/types/types.generated';
+import { ChevronRightIcon, ImageIcon } from 'lucide-react';
 
 type Props = {
   program: Program;

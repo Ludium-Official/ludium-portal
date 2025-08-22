@@ -1,9 +1,9 @@
-import { ProgramStatusBadge } from '@/components/status-badge';
-import { ImageIcon } from 'lucide-react';
-import type { Program } from '@/types/types.generated';
 import cryptoIcon from '@/assets/icons/crypto.svg';
+import { ProgramStatusBadge } from '@/components/status-badge';
 import { Progress } from '@/components/ui/progress';
+import type { Program } from '@/types/types.generated';
 import { format } from 'date-fns';
+import { ImageIcon } from 'lucide-react';
 
 type Props = {
   program: Program;

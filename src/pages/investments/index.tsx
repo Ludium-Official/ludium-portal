@@ -7,7 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { ApplicationStatus, type Program, ProgramStatus, ProgramType, SortEnum } from '@/types/types.generated';
+import {
+  ApplicationStatus,
+  type Program,
+  ProgramStatus,
+  ProgramType,
+  SortEnum,
+} from '@/types/types.generated';
 import { CirclePlus, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
@@ -40,57 +46,66 @@ export default function InvestmentsPage() {
   const filter = [
     ...(activeTab === 'my-programs'
       ? [
-        {
-          field: 'userId',
-          value: userId,
-        },
-      ]
+          {
+            field: 'userId',
+            value: userId,
+          },
+        ]
       : []),
     ...(activeTab === 'newest'
       ? [
-        {
-          field: 'status',
-          values: [ProgramStatus.Published, ProgramStatus.Completed, ProgramStatus.Pending, ProgramStatus.PaymentRequired, ProgramStatus.Cancelled, ProgramStatus.Closed, ProgramStatus.Rejected],
-        },
-        {
-          field: 'visibility',
-          value: 'public',
-        },
-      ]
+          {
+            field: 'status',
+            values: [
+              ProgramStatus.Published,
+              ProgramStatus.Completed,
+              ProgramStatus.Pending,
+              ProgramStatus.PaymentRequired,
+              ProgramStatus.Cancelled,
+              ProgramStatus.Closed,
+              ProgramStatus.Rejected,
+            ],
+          },
+          {
+            field: 'visibility',
+            value: 'public',
+          },
+        ]
       : []),
     ...(activeTab === 'imminent'
       ? [
-        {
-          field: 'status',
-          value: 'published',
-        },
-        {
-          field: 'visibility',
-          value: 'public',
-        },
+          {
+            field: 'status',
+            value: 'published',
+          },
+          {
+            field: 'visibility',
+            value: 'public',
+          },
 
-        {
-          field: 'imminent',
-          value: "true",
-        },
-      ]
+          {
+            field: 'imminent',
+            value: 'true',
+          },
+        ]
       : []),
     ...(activeTab === 'completed'
       ? [
-        {
-          field: 'status',
-          value: 'completed',
-        },
-        {
-          field: 'visibility',
-          value: 'public',
-        },
-      ]
+          {
+            field: 'status',
+            value: 'completed',
+          },
+          {
+            field: 'visibility',
+            value: 'public',
+          },
+        ]
       : []),
     {
       field: 'name',
       value: debouncedSearch,
-    }, {
+    },
+    {
       field: 'type',
       value: ProgramType.Funding,
     },
@@ -136,7 +151,6 @@ export default function InvestmentsPage() {
 
   return (
     <div className="bg-white rounded-2xl">
-
       <div className="max-w-[1440px] mx-auto">
         {/* Header */}
         <div className="bg-white">
@@ -193,7 +207,7 @@ export default function InvestmentsPage() {
                     key={`investment-skeleton-${
                       // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                       i
-                      }`}
+                    }`}
                     className="w-full border border-gray-200 rounded-lg"
                   >
                     <CardContent className="p-5">

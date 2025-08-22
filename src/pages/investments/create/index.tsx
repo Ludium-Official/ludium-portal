@@ -18,12 +18,12 @@ import { http, type PublicClient, createPublicClient } from 'viem';
 // Helper functions
 function getRpcUrlForNetwork(network: string): string {
   const rpcMap: Record<string, string> = {
-    'sepolia': 'https://rpc.sepolia.org',
-    'base': 'https://mainnet.base.org',
+    sepolia: 'https://rpc.sepolia.org',
+    base: 'https://mainnet.base.org',
     'base-sepolia': 'https://sepolia.base.org',
     'educhain-testnet': 'https://open-campus-codex-sepolia.drpc.org',
-    'educhain': 'https://rpc.open-campus-codex.gelato.digital',
-    'arbitrum': 'https://arb1.arbitrum.io/rpc',
+    educhain: 'https://rpc.open-campus-codex.gelato.digital',
+    arbitrum: 'https://arb1.arbitrum.io/rpc',
     'arbitrum-sepolia': 'https://sepolia-rollup.arbitrum.io/rpc',
   };
 
@@ -74,48 +74,40 @@ const CreateInvestment: React.FC = () => {
         }) as PublicClient;
 
         // Get the investment contract for the selected network
-        const investmentContract = getInvestmentContract(args.network, sendTransaction, publicClient);
+        const investmentContract = getInvestmentContract(
+          args.network,
+          sendTransaction,
+          publicClient,
+        );
 
         // Get validator wallet addresses from the form data
-        const currentUserAddress = user?.wallet?.address || '0x0000000000000000000000000000000000000000';
-        
+        const currentUserAddress =
+          user?.wallet?.address || '0x0000000000000000000000000000000000000000';
+
         let validatorAddresses: string[] = [];
-        
-        if (args.validators.length > 0 && args.validatorWalletAddresses && args.validatorWalletAddresses.length > 0) {
+
+        if (
+          args.validators.length > 0 &&
+          args.validatorWalletAddresses &&
+          args.validatorWalletAddresses.length > 0
+        ) {
           // Use the wallet addresses provided by the form
-          validatorAddresses = args.validatorWalletAddresses.filter(addr => addr && addr !== '');
-          
-          console.log('Validator IDs:', args.validators);
-          console.log('Validator wallet addresses from form:', validatorAddresses);
-          
+          validatorAddresses = args.validatorWalletAddresses.filter((addr) => addr && addr !== '');
+
           // Validate that we have wallet addresses for all validators
           if (validatorAddresses.length !== args.validators.length) {
-            console.warn(`Mismatch: ${args.validators.length} validators but ${validatorAddresses.length} wallet addresses`);
-            
             // Fill missing addresses with current user address
             while (validatorAddresses.length < args.validators.length) {
-              console.warn('Adding current user address as fallback for missing validator wallet');
               validatorAddresses.push(currentUserAddress);
             }
           }
         } else if (args.validators.length > 0) {
           // No wallet addresses provided but validators selected - use current user as fallback
-          console.warn('Validators selected but no wallet addresses provided, using current user address for all');
           validatorAddresses = args.validators.map(() => currentUserAddress);
         } else {
           // No validators specified - use current user as default validator
-          console.log('No validators specified, using current user as default validator');
           validatorAddresses = [currentUserAddress];
         }
-        
-        console.log('Final validator addresses for blockchain:', validatorAddresses);
-
-        console.log('Creating investment program with params:', {
-          validatorCount: validatorAddresses.length,
-          validators: validatorAddresses,
-          network: args.network,
-          feePercentage: args.feePercentage || 300
-        });
 
         const contractResult = await investmentContract.createInvestmentProgram({
           name: args.programName,
@@ -136,10 +128,8 @@ const CreateInvestment: React.FC = () => {
         txHash = contractResult.txHash;
 
         if (blockchainProgramId !== null && blockchainProgramId !== undefined) {
-          console.log('Blockchain program ID:', blockchainProgramId);
           notify(`Blockchain deployment successful! Program ID: ${blockchainProgramId}`, 'success');
         } else {
-          console.log('Using default program ID for testing');
           notify('Blockchain deployment successful!', 'success');
         }
       }
@@ -153,7 +143,10 @@ const CreateInvestment: React.FC = () => {
             price: args.price ?? '0',
             description: args.description,
             summary: args.summary,
-            deadline: args.deadline || args.fundingEndDate || new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // Use funding end date or default to 90 days from now
+            deadline:
+              args.deadline ||
+              args.fundingEndDate ||
+              new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // Use funding end date or default to 90 days from now
             keywords: args.keywords,
             links: args.links,
             network: args.network,
@@ -190,8 +183,7 @@ const CreateInvestment: React.FC = () => {
                 },
               });
               notify(`Program linked to blockchain with ID: ${blockchainProgramId}`, 'success');
-            } catch (error) {
-              console.error('Failed to update program with blockchain ID:', error);
+            } catch (_error) {
               notify('Warning: Failed to link program with blockchain ID', 'error');
             }
           }
@@ -232,12 +224,10 @@ const CreateInvestment: React.FC = () => {
           notify('Investment program created successfully!', 'success');
         },
         onError: (error) => {
-          console.error('Failed to create program:', error);
           notify(`Failed to create program: ${error.message}`, 'error');
         },
       });
     } catch (error) {
-      console.error('Error in investment creation:', error);
       notify(`Error creating investment program: ${(error as Error).message}`, 'error');
     } finally {
       setIsDeploying(false);
