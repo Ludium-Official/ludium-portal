@@ -632,31 +632,67 @@ const InvestmentDetailsPage: React.FC = () => {
 
               <div className="mt-6">
                 <div className="space-y-3">
-                  {/* Application Step - Active */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" />
-                    <div className="flex items-center justify-between gap-4 flex-1">
-                      <span className="font-bold text-gray-900 text-sm">APPLICATION</span>
-                      <span className="font-bold text-gray-900 text-sm">
-                        {program?.applicationStartDate && program?.applicationEndDate
-                          ? `${format(new Date(program.applicationStartDate), 'dd. MMM. yyyy').toUpperCase()} – ${format(new Date(program.applicationEndDate), 'dd. MMM. yyyy').toUpperCase()}`
-                          : 'N/A'}
-                      </span>
-                    </div>
-                  </div>
+                  {/* Application Step */}
+                  {(() => {
+                    const isApplicationActive = program?.applicationStartDate &&
+                      program?.applicationEndDate &&
+                      new Date() >= new Date(program.applicationStartDate) &&
+                      new Date() <= new Date(program.applicationEndDate);
 
-                  {/* Funding Step - Inactive */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full flex-shrink-0" />
-                    <div className="flex items-center  justify-between gap-4 flex-1">
-                      <span className="font-bold text-gray-400 text-sm">FUNDING</span>
-                      <span className="font-bold text-gray-400 text-sm">
-                        {program?.fundingStartDate && program?.fundingEndDate
-                          ? `${format(new Date(program.fundingStartDate), 'dd. MMM. yyyy').toUpperCase()} – ${format(new Date(program.fundingEndDate), 'dd. MMM. yyyy').toUpperCase()}`
-                          : 'N/A'}
-                      </span>
-                    </div>
-                  </div>
+                    return (
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-2 h-2 rounded-full flex-shrink-0",
+                          isApplicationActive ? "bg-green-500" : "bg-gray-400"
+                        )} />
+                        <div className="flex items-center justify-between gap-4 flex-1">
+                          <span className={cn(
+                            "font-bold text-sm",
+                            isApplicationActive ? "text-gray-900" : "text-gray-400"
+                          )}>APPLICATION</span>
+                          <span className={cn(
+                            "font-bold text-sm",
+                            isApplicationActive ? "text-gray-900" : "text-gray-400"
+                          )}>
+                            {program?.applicationStartDate && program?.applicationEndDate
+                              ? `${format(new Date(program.applicationStartDate), 'dd. MMM. yyyy').toUpperCase()} – ${format(new Date(program.applicationEndDate), 'dd. MMM. yyyy').toUpperCase()}`
+                              : 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Funding Step */}
+                  {(() => {
+                    const isFundingActive = program?.fundingStartDate &&
+                      program?.fundingEndDate &&
+                      new Date() >= new Date(program.fundingStartDate) &&
+                      new Date() <= new Date(program.fundingEndDate);
+
+                    return (
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-2 h-2 rounded-full flex-shrink-0",
+                          isFundingActive ? "bg-green-500" : "bg-gray-400"
+                        )} />
+                        <div className="flex items-center justify-between gap-4 flex-1">
+                          <span className={cn(
+                            "font-bold text-sm",
+                            isFundingActive ? "text-gray-900" : "text-gray-400"
+                          )}>FUNDING</span>
+                          <span className={cn(
+                            "font-bold text-sm",
+                            isFundingActive ? "text-gray-900" : "text-gray-400"
+                          )}>
+                            {program?.fundingStartDate && program?.fundingEndDate
+                              ? `${format(new Date(program.fundingStartDate), 'dd. MMM. yyyy').toUpperCase()} – ${format(new Date(program.fundingEndDate), 'dd. MMM. yyyy').toUpperCase()}`
+                              : 'N/A'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -696,7 +732,12 @@ const InvestmentDetailsPage: React.FC = () => {
               <Button
                 size="lg"
                 className="w-full mt-6"
-                disabled={program?.creator?.id === userId || program?.validators?.some((validator) => validator.id === userId)}
+                disabled={
+                  program?.creator?.id === userId ||
+                  program?.validators?.some((validator) => validator.id === userId) ||
+                  (program?.applicationStartDate && new Date() < new Date(program.applicationStartDate)) ||
+                  (program?.applicationEndDate && new Date() > new Date(program.applicationEndDate))
+                }
                 onClick={() => navigate(`/investments/${program?.id}/create-project`)}
               >
                 Submit Project

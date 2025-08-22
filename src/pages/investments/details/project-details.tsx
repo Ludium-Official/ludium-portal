@@ -106,7 +106,7 @@ function ProjectDetailsPage() {
     console.log('Program type:', program?.type);
     console.log('Program educhainProgramId:', program?.educhainProgramId);
     console.log('Application ID:', projectId);
-    
+
     try {
       let onChainProjectId: number | undefined;
 
@@ -120,18 +120,20 @@ function ProjectDetailsPage() {
         }
 
         // Check if application already has an onChainProjectId
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
         if ((application as any).onChainProjectId) {
-          notify('This project is already registered on the blockchain', 'warning');
+          notify('This project is already registered on the blockchain', 'error');
+          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
           onChainProjectId = (application as any).onChainProjectId;
         } else {
-          notify('Registering project on blockchain...', 'info');
+          notify('Registering project on blockchain...', 'loading');
 
           try {
             // Prepare milestones for blockchain
             const milestones = application.milestones?.map(m => ({
               title: m.title || '',
               description: m.description || '',
-              percentage: parseFloat(m.percentage || '0'),
+              percentage: Number.parseFloat(m.percentage || '0'),
               deadline: m.deadline || new Date().toISOString()
             })) || [];
 
@@ -142,7 +144,7 @@ function ProjectDetailsPage() {
             console.log('Program creator:', program.creator);
             console.log('IMPORTANT: Due to a temporary limitation, only the program creator can validate projects on blockchain.');
             console.log('The smart contract was deployed with the creator\'s wallet address for all validators.');
-            
+
             // Call signValidate to register the project on blockchain
             const result = await investmentContract.signValidateProject({
               programId: Number(program.educhainProgramId),
@@ -156,11 +158,11 @@ function ProjectDetailsPage() {
               onChainProjectId = result.projectId;
               notify(`Project registered on blockchain with ID: ${onChainProjectId}`, 'success');
             } else {
-              notify('Project registered but could not extract ID from blockchain', 'warning');
+              notify('Project registered but could not extract ID from blockchain', 'error');
             }
           } catch (blockchainError) {
             console.error('Blockchain registration failed:', blockchainError);
-            notify('Failed to register project on blockchain. Continuing with off-chain approval.', 'warning');
+            notify('Failed to register project on blockchain. Continuing with off-chain approval.', 'error');
           }
         }
       }
@@ -173,12 +175,12 @@ function ProjectDetailsPage() {
           ...(onChainProjectId !== undefined && { onChainProjectId })
         }
       });
-      
+
       console.log('Application approval result:', approvalResult);
 
       notify(
         onChainProjectId !== undefined
-          ? `Application accepted and registered on blockchain! Project ID: ${onChainProjectId}` 
+          ? `Application accepted and registered on blockchain! Project ID: ${onChainProjectId}`
           : 'Application accepted successfully',
         'success'
       );
@@ -335,7 +337,7 @@ function ProjectDetailsPage() {
           index: milestoneIndex,
           price: price
         });
-        
+
         // For investment programs, use the investment contract to approve milestones
         if (program.type === 'funding' && (program.educhainProgramId !== null && program.educhainProgramId !== undefined)) {
           if (!data?.application?.onChainProjectId && data?.application?.onChainProjectId !== 0) {
@@ -350,7 +352,7 @@ function ProjectDetailsPage() {
             milestoneIndex ?? 0 // The index of the milestone being approved
           );
 
-          if (result && result.txHash) {
+          if (result?.txHash) {
             await checkMilestone({
               variables: {
                 input: {
@@ -819,7 +821,7 @@ function ProjectDetailsPage() {
             </div>
 
             {/* Scrollable Content Area */}
-            <ScrollArea className="relative pr-2 h-[calc(100vh-200px)] pb-10">
+            <ScrollArea className="relative pr-2 pb-10">
               {/* Terms Tab Content */}
               {activeTab === 'terms' && (
                 <div className="space-y-6 pb-5">
@@ -863,7 +865,13 @@ function ProjectDetailsPage() {
 
                     return (
                       <button
-                        disabled={!canSelectTier || purchaseLimitReached || data?.application?.status !== ApplicationStatus.Accepted}
+                        disabled={
+                          !canSelectTier ||
+                          purchaseLimitReached ||
+                          data?.application?.status !== ApplicationStatus.Accepted ||
+                          (program?.fundingStartDate && new Date() < new Date(program.fundingStartDate)) ||
+                          (program?.fundingEndDate && new Date() > new Date(program.fundingEndDate))
+                        }
                         type="button"
                         className={cn(
                           "group block w-full text-left border rounded-lg p-4 shadow-sm cursor-pointer transition-all disabled:opacity-60",
@@ -907,107 +915,20 @@ function ProjectDetailsPage() {
                             This tier is not available for your assignment
                           </div>
                         )}
+                        {program?.fundingStartDate && new Date() < new Date(program.fundingStartDate) && (
+                          <div className="mt-2 text-xs text-orange-600">
+                            Funding period has not started yet
+                          </div>
+                        )}
+                        {program?.fundingEndDate && new Date() > new Date(program.fundingEndDate) && (
+                          <div className="mt-2 text-xs text-orange-600">
+                            Funding period has ended
+                          </div>
+                        )}
                       </button>
                     );
                   })}
-                  {/* Gold Tier */}
-                  {/* <div className="border rounded-lg p-4 bg-white shadow-sm">
-                  <div className="flex justify-between items-start mb-3">
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                      Gold
-                    </Badge>
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                      70 left
-                    </Badge>
-                  </div>
-                  <div className="mb-4">
-                    <p className="text-sm text-muted-foreground mb-1">PRICE</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl font-bold">1,000</span>
-                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">T</span>
-                      </div>
-                      <span className="text-lg font-semibold">USDT</span>
-                    </div>
-                  </div>
-                  <div className="space-y-3 text-sm text-muted-foreground">
-                    <p>
-                      Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment
-                      solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) to
-                      ensure secure, private, and verifiable task-based payments.
-                    </p>
-                    <p>
-                      It enables seamless collaboration between sponsors and builders, automating
-                      fund disbursement upon task completion while maintaining privacy and trust.
-                    </p>
-                  </div>
-                </div> */}
 
-                  {/* Platinum Tier */}
-                  {/* <div className="border rounded-lg p-4 bg-white shadow-sm">
-                  <div className="flex justify-between items-start mb-3">
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      Platinum
-                    </Badge>
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                      70 left
-                    </Badge>
-                  </div>
-                  <div className="mb-4">
-                    <p className="text-sm text-muted-foreground mb-1">PRICE</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl font-bold">5,000</span>
-                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">T</span>
-                      </div>
-                      <span className="text-lg font-semibold">USDT</span>
-                    </div>
-                  </div>
-                  <div className="space-y-3 text-sm text-muted-foreground">
-                    <p>
-                      Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment
-                      solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) to
-                      ensure secure, private, and verifiable task-based payments.
-                    </p>
-                    <p>
-                      It enables seamless collaboration between sponsors and builders, automating
-                      fund disbursement upon task completion while maintaining privacy and trust.
-                    </p>
-                  </div>
-                </div> */}
-
-                  {/* Gold Tier (Duplicate) */}
-                  {/* <div className="border rounded-lg p-4 bg-white shadow-sm">
-                  <div className="flex justify-between items-start mb-3">
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                      Gold
-                    </Badge>
-                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                      70 left
-                    </Badge>
-                  </div>
-                  <div className="mb-4">
-                    <p className="text-sm text-muted-foreground mb-1">PRICE</p>
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl font-bold">1,000</span>
-                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">T</span>
-                      </div>
-                      <span className="text-lg font-semibold">USDT</span>
-                    </div>
-                  </div>
-                  <div className="space-y-3 text-sm text-muted-foreground">
-                    <p>
-                      Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment
-                      solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) to
-                      ensure secure, private, and verifiable task-based payments.
-                    </p>
-                    <p>
-                      It enables seamless collaboration between sponsors and builders, automating
-                      fund disbursement upon task completion while maintaining privacy and trust.
-                    </p>
-                  </div>
-                </div> */}
                 </div>
               )}
 
@@ -1019,7 +940,7 @@ function ProjectDetailsPage() {
                       <AccordionItem key={m.id} value={`${m.id}${idx}`}>
                         <AccordionTrigger>
                           <div className="flex w-full justify-between">
-                            <p>{m.title}</p> <MilestoneStatusBadge milestone={m} />
+                            <p>{m.title}</p> <MilestoneStatusBadge milestone={m} className='inline-flex self-center' />
                           </div>
                         </AccordionTrigger>
                         <AccordionContent>
@@ -1190,11 +1111,24 @@ function ProjectDetailsPage() {
                 <Dialog open={isInvestDialogOpen} onOpenChange={setIsInvestDialogOpen}>
                   <DialogTrigger asChild>
                     <Button
-                      disabled={!selectedTier || data?.application?.status !== ApplicationStatus.Accepted}
+                      disabled={
+                        !selectedTier ||
+                        data?.application?.status !== ApplicationStatus.Accepted ||
+                        (program?.fundingStartDate && new Date() < new Date(program.fundingStartDate)) ||
+                        (program?.fundingEndDate && new Date() > new Date(program.fundingEndDate))
+                      }
                       className="w-full h-10 bg-primary hover:bg-primary/90 text-white font-medium flex items-center justify-center gap-2"
                       onClick={() => {
                         if (!selectedTier) {
                           notify('Please select a tier first', 'error');
+                          return;
+                        }
+                        if (program?.fundingStartDate && new Date() < new Date(program.fundingStartDate)) {
+                          notify('Funding period has not started yet', 'error');
+                          return;
+                        }
+                        if (program?.fundingEndDate && new Date() > new Date(program.fundingEndDate)) {
+                          notify('Funding period has ended', 'error');
                           return;
                         }
                       }}
