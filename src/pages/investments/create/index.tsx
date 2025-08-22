@@ -7,13 +7,13 @@ import { ProgramsDocument } from '@/apollo/queries/programs.generated';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { getInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
-import { usePrivy } from '@privy-io/react-auth';
-import { createPublicClient, http, type PublicClient } from 'viem';
 import type { OnSubmitInvestmentFunc } from '@/pages/investments/_components/investment-form';
 import InvestmentForm from '@/pages/investments/_components/investment-form';
 import { FundingCondition, ProgramType, type ProgramVisibility } from '@/types/types.generated';
+import { usePrivy } from '@privy-io/react-auth';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { http, type PublicClient, createPublicClient } from 'viem';
 
 // Helper functions
 function getRpcUrlForNetwork(network: string): string {
@@ -26,7 +26,7 @@ function getRpcUrlForNetwork(network: string): string {
     'arbitrum': 'https://arb1.arbitrum.io/rpc',
     'arbitrum-sepolia': 'https://sepolia-rollup.arbitrum.io/rpc',
   };
-  
+
   return rpcMap[network] || rpcMap['educhain-testnet'];
 }
 
@@ -78,18 +78,18 @@ const CreateInvestment: React.FC = () => {
 
         // Get validator wallet addresses
         // If no validators selected, use a default address
-        const validatorAddresses = args.validators.length > 0 
+        const validatorAddresses = args.validators.length > 0
           ? args.validators.map((validatorId) => {
-              // TODO: Implement proper validator data fetching
-              // This requires either:
-              // 1. Passing validator data from the form component
-              // 2. Creating a batch query to fetch validators by IDs
-              console.warn(`Need to fetch wallet address for validator: ${validatorId}`);
-              // Using a valid test address instead of zero address
-              return '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'; // Test address
-            })
+            // TODO: Implement proper validator data fetching
+            // This requires either:
+            // 1. Passing validator data from the form component
+            // 2. Creating a batch query to fetch validators by IDs
+            console.warn(`Need to fetch wallet address for validator: ${validatorId}`);
+            // Using a valid test address instead of zero address
+            return '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'; // Test address
+          })
           : ['0x70997970C51812dc3A010C7d01b50e0d17dc79C8']; // Default test validator
-        
+
         console.log('Creating investment program with params:', {
           validatorCount: validatorAddresses.length,
           validators: validatorAddresses,
@@ -114,11 +114,11 @@ const CreateInvestment: React.FC = () => {
         // Store the program ID from blockchain
         blockchainProgramId = contractResult.programId;
         txHash = contractResult.txHash;
-        
+
         if (blockchainProgramId) {
           console.log('Blockchain program ID:', blockchainProgramId);
         } else {
-          notify('Warning: Could not extract program ID from blockchain', 'warning');
+          notify('Warning: Could not extract program ID from blockchain', 'error');
         }
 
         notify('Blockchain deployment successful!', 'success');
@@ -158,7 +158,7 @@ const CreateInvestment: React.FC = () => {
         },
         onCompleted: async (data) => {
           const programId = data.createProgram?.id ?? '';
-          
+
           // Step 3: Update program with blockchain ID if we have one
           if (blockchainProgramId !== null && txHash) {
             try {
@@ -172,10 +172,10 @@ const CreateInvestment: React.FC = () => {
               notify(`Program linked to blockchain with ID: ${blockchainProgramId}`, 'success');
             } catch (error) {
               console.error('Failed to update program with blockchain ID:', error);
-              notify('Warning: Failed to link program with blockchain ID', 'warning');
+              notify('Warning: Failed to link program with blockchain ID', 'error');
             }
           }
-          
+
           const results = await Promise.allSettled(
             args.validators.map((validatorId) =>
               assignValidatorToProgram({
@@ -207,7 +207,7 @@ const CreateInvestment: React.FC = () => {
               notify('Failed to invite some builders to the program.', 'error');
             }
           }
-          navigate('/programs');
+          navigate('/investments');
           client.refetchQueries({ include: [ProgramsDocument] });
           notify('Investment program created successfully!', 'success');
         },

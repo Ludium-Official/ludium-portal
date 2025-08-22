@@ -8,13 +8,21 @@ import CreateCommunityPage from '@/pages/community/create';
 import CommunityDetailsPage from '@/pages/community/details';
 import EditCommunityPage from '@/pages/community/edit';
 import UsersPage from '@/pages/community/users';
+import UserCommunityTab from '@/pages/community/users/_components/community-tab';
+import UserDescriptionTab from '@/pages/community/users/_components/description-tab';
+import UserInvestmentHostTab from '@/pages/community/users/_components/investment-host-tab';
+import UserInvestmentProjectTab from '@/pages/community/users/_components/investment-project-tab';
+import UserInvestmentTab from '@/pages/community/users/_components/investment-tab';
 import UserOverviewTab from '@/pages/community/users/_components/overview-tab';
+import UserRecruitmentRoleTab from '@/pages/community/users/_components/recruitment-role-tab';
+import UserRecruitmentTab from '@/pages/community/users/_components/recruitment-tab';
 import UserDetailsPage from '@/pages/community/users/details';
 import InvestmentsPage from '@/pages/investments';
 import CreateInvestmentPage from '@/pages/investments/create';
 import CreateProjectPage from '@/pages/investments/create-project';
 import InvestmentDetailsPage from '@/pages/investments/details';
 import ProjectDetailsPage from '@/pages/investments/details/project-details';
+import EditInvestmentPage from '@/pages/investments/edit';
 import MainPage from '@/pages/main';
 import ProfilePage from '@/pages/profile';
 import EditProfilePage from '@/pages/profile/edit';
@@ -25,13 +33,6 @@ import ApplicationDetailsPage from '@/pages/programs/details/application-details
 import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Navigate, Route, Routes } from 'react-router';
-import UserDescriptionTab from '@/pages/community/users/_components/description-tab';
-import UserRecruitmentTab from '@/pages/community/users/_components/recruitment-tab';
-import UserRecruitmentRoleTab from '@/pages/community/users/_components/recruitment-role-tab';
-import UserInvestmentTab from '@/pages/community/users/_components/investment-tab';
-import UserInvestmentHostTab from '@/pages/community/users/_components/investment-host-tab';
-import UserInvestmentProjectTab from '@/pages/community/users/_components/investment-project-tab';
-import UserCommunityTab from '@/pages/community/users/_components/community-tab';
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function App() {
             <Route index element={<InvestmentsPage />} />
             <Route path="create" element={<CreateInvestmentPage />} />
             <Route path=":id" element={<InvestmentDetailsPage />} />
+            <Route path=":id/edit" element={<EditInvestmentPage />} />
             <Route path=":id/create-project" element={<CreateProjectPage />} />
             <Route path=":id/project/:projectId" element={<ProjectDetailsPage />} />
           </Route>

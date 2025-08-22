@@ -1,3 +1,4 @@
+// import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
 import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
@@ -14,22 +15,25 @@ import {
 } from '@/components/ui/dialog';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ShareButton } from '@/components/ui/share-button';
 import { Tabs } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import { cn, getCurrencyIcon, getInitials, getUserName } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
 import ProjectCard from '@/pages/investments/details/_components/project-card';
-import type { InvestmentTier } from '@/types/types.generated';
+// import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
+import { type InvestmentTier, ProgramStatus } from '@/types/types.generated';
 import { format } from 'date-fns';
-import { ChevronDown, Settings, Share2, X } from 'lucide-react';
+import { ChevronDown, CircleAlert, Settings, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 
 const InvestmentDetailsPage: React.FC = () => {
   const { userId, isAdmin } = useAuth();
   const { id } = useParams();
-
+  const navigate = useNavigate();
   const [isSupportersModalOpen, setIsSupportersModalOpen] = useState(false);
   const [supportersTab, setSupportersTab] = useState<'invite' | 'supporters'>('invite');
 
@@ -193,6 +197,16 @@ const InvestmentDetailsPage: React.FC = () => {
       }
     }
   }, []);
+
+
+  // const [acceptProgram] = useAcceptProgramMutation({
+  //   variables: {
+  //     id: program?.id ?? '',
+  //   },
+  //   onCompleted: () => {
+  //     refetch();
+  //   },
+  // });
 
   return (
     <div className="bg-[#F7F7F7]">
@@ -531,16 +545,14 @@ const InvestmentDetailsPage: React.FC = () => {
 
 
               {(program?.creator?.id === userId || isAdmin) && (
-                <Link to={`/programs/${program?.id}/edit`}>
+                <Link to={`/investments/${program?.id}/edit`}>
                   <Button variant="ghost" className="flex gap-2 items-center">
                     Edit <Settings className="w-4 h-4" />
                   </Button>
                 </Link>
               )}
 
-              <Button variant="ghost" className="flex gap-2 items-center">
-                Share <Share2 />
-              </Button>
+              <ShareButton program={program ?? undefined} />
             </div>
           </div>
 
@@ -666,7 +678,7 @@ const InvestmentDetailsPage: React.FC = () => {
                 <p className="text-slate-600 text-sm whitespace-pre-wrap">{program?.summary}</p>
               </div>
 
-              <div className="mt-6">
+              {!!program?.links?.length && <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM LINKS</p>
                 {program?.links?.map((l) => (
                   <a
@@ -679,20 +691,78 @@ const InvestmentDetailsPage: React.FC = () => {
                     {l?.url}
                   </a>
                 ))}
-              </div>
+              </div>}
 
-              <Link to={`/investments/${program?.id}/create-project`}>
-                <Button size="lg" className="w-full mt-6">
-                  Create Project
-                </Button>
-              </Link>
+              <Button
+                size="lg"
+                className="w-full mt-6"
+                disabled={program?.creator?.id === userId || program?.validators?.some((validator) => validator.id === userId)}
+                onClick={() => navigate(`/investments/${program?.id}/create-project`)}
+              >
+                Submit Project
+              </Button>
+
+              {/* {program?.validators?.some((v) => v.id === userId) && program.status === ProgramStatus.Pending && (
+                <div className="flex justify-end gap-2 w-full mt-3">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="h-11 flex-1">
+                        Reject
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="min-w-[800px] p-0 max-h-screen overflow-y-auto">
+                      <RejectProgramForm programId={program.id} refetch={refetch} />
+                    </DialogContent>
+                  </Dialog>
+                  <Button
+                    onClick={async () => {
+                      await acceptProgram();
+                      notify('Program accepted', 'success');
+                    }}
+                    className="h-11 flex-1"
+                  >
+                    Confirm
+                  </Button>
+                </div>
+              )} */}
+
+
+              {/* {program?.status === ProgramStatus.Rejected && program.creator?.id === userId && (
+                <div className="flex justify-end gap-2 w-full mt-3">
+                  <Button disabled className="h-11 flex-1">
+                    Rejected
+                  </Button>
+                </div>
+              )} */}
+
+              {/* {program?.status === ProgramStatus.Rejected && program.validators?.some((v) => v.id === userId) && (
+                <div className="flex justify-end gap-2 w-full mt-3">
+                  <Button disabled variant='outline' className="h-11 flex-1">
+                    Rejection Reason Submitted
+                  </Button>
+                </div>
+              )} */}
 
               <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM HOST</p>
-                <div className="border rounded-xl w-full p-6 mb-6">
+                <div className="border rounded-xl w-full p-4 mb-6">
+                  <span className="items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex mb-3">
+                    <span
+                      className={cn('bg-gray-400 w-[14px] h-[14px] rounded-full block', {
+                        'bg-green-400':
+                          program?.status === ProgramStatus.Published ||
+                          program?.status === ProgramStatus.Completed,
+                      })}
+                    />
+                    {program?.status === ProgramStatus.Published ||
+                      program?.status === ProgramStatus.Completed
+                      ? 'Confirmed'
+                      : 'Not confirmed'}
+                  </span>
+
                   <Link
                     to={`/users/${program?.creator?.id}`}
-                    className="flex gap-4 items-center text-lg font-bold mb-5"
+                    className="flex gap-2 items-center text-lg font-bold mb-5"
                   >
                     {/* <div className="w-10 h-10 bg-gray-200 rounded-full" /> */}
 
@@ -707,17 +777,27 @@ const InvestmentDetailsPage: React.FC = () => {
                         )}
                       </AvatarFallback>
                     </Avatar>
-                    {getUserName(program?.creator)}
+                    <p className="text-sm font-bold">{getUserName(program?.creator)}</p>
                   </Link>
 
                   <div className="flex gap-3 mb-4">
                     <p className="text-xs font-bold w-[57px]">Summary</p>
-                    <p className="text-xs">{program?.creator?.summary}</p>
+                    <p className="text-xs text-slate-500 line-clamp-2">
+                      {program?.creator?.summary}
+                    </p>
                   </div>
 
                   <div className="flex gap-3 mb-4">
                     <p className="text-xs font-bold w-[57px]">Email</p>
                     <p className="text-xs">{program?.creator?.email}</p>
+                  </div>
+
+                  <div className="flex gap-2 flex-wrap">
+                    {program?.creator?.keywords?.map((k) => (
+                      <Badge key={k.id} variant="secondary" className="text-xs font-semibold">
+                        {k.name}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -728,9 +808,46 @@ const InvestmentDetailsPage: React.FC = () => {
 
                   {program.validators.map((validator) => (
                     <div className="border rounded-xl w-full p-6 mb-6" key={validator.id}>
+                      {/* <ProgramStatusBadge program={program} className='inline-flex mb-3' /> */}
+                      <div className="flex justify-between items-center  mb-3">
+                        <span className="items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex">
+                          <span
+                            className={cn('bg-gray-400 w-[14px] h-[14px] rounded-full block', {
+                              'bg-red-200':
+                                program.status === ProgramStatus.Rejected,
+                              'bg-green-400': program.status !== ProgramStatus.Pending && program.status !== ProgramStatus.Rejected,
+                              'bg-gray-400':
+                                program.status === ProgramStatus.Pending,
+                            })}
+                          />
+                          {program.status === ProgramStatus.Rejected
+                            ? 'Rejected'
+                            : program.status === ProgramStatus.Pending
+                              ? 'Not confirmed'
+                              : 'Accepted'}
+                        </span>
+
+                        {program.status === ProgramStatus.Rejected && program.rejectionReason && (
+                          <Tooltip>
+                            <TooltipTrigger className="text-destructive flex gap-2 items-center">
+                              <CircleAlert className="w-4 h-4" />{' '}
+                              <p className="text-sm font-medium underline">View reason</p>
+                            </TooltipTrigger>
+                            <TooltipContent className="text-destructive flex gap-2 items-start bg-white border shadow-[0px_4px_6px_-1px_#0000001A]">
+                              <div className="mt-1.5">
+                                <CircleAlert className="w-4 h-4" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-base mb-1">Reason for rejection</p>
+                                <p className="text-sm">{program.rejectionReason}</p>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
                       <Link
                         to={`/users/${program?.creator?.id}`}
-                        className="flex gap-4 items-center text-lg font-bold mb-5"
+                        className="flex gap-2 items-center text-lg font-bold"
                       >
                         {/* <div className="w-10 h-10 bg-gray-200 rounded-full" /> */}
 
@@ -745,18 +862,18 @@ const InvestmentDetailsPage: React.FC = () => {
                             )}
                           </AvatarFallback>
                         </Avatar>
-                        {getUserName(validator)}
+                        <div>
+                          <p className="text-sm mb-2">{getUserName(validator)}</p>
+
+                          <div className="flex gap-2 flex-wrap">
+                            {validator?.keywords?.map((k) => (
+                              <Badge key={k.id} variant="secondary" className="text-xs font-semibold">
+                                {k.name}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
                       </Link>
-
-                      <div className="flex gap-3 mb-4">
-                        <p className="text-xs font-bold w-[57px]">Summary</p>
-                        <p className="text-xs">{validator?.summary}</p>
-                      </div>
-
-                      <div className="flex gap-3 mb-4">
-                        <p className="text-xs font-bold w-[57px]">Email</p>
-                        <p className="text-xs">{validator?.email}</p>
-                      </div>
                     </div>
                   ))}
                 </div>

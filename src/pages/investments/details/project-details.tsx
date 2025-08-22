@@ -45,7 +45,7 @@ import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from '@/type
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
 import { ArrowUpRight, Check, ChevronDown, CircleAlert, Coins, Settings, TrendingUp } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
 function ProjectDetailsPage() {
@@ -137,7 +137,7 @@ function ProjectDetailsPage() {
           notify('You are not assigned to any tier for this program. Please contact the program creator to get tier access.', 'error');
           return;
         }
-        
+
         // Validate selected tier matches user's assigned tier
         if (userTierAssignment.tier !== selectedTier) {
           notify(`You can only invest in your assigned tier: ${userTierAssignment.tier}`, 'error');
@@ -154,12 +154,12 @@ function ProjectDetailsPage() {
 
       // Get the amount from the program tier settings or term price
       const amount = program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount || selectedTerm.price;
-      
+
       // Validate investment amount against tier limits
       if (userTierAssignment?.remainingCapacity) {
         const remainingCapacity = Number.parseFloat(userTierAssignment.remainingCapacity);
         const investmentAmount = Number.parseFloat(amount);
-        
+
         if (investmentAmount > remainingCapacity) {
           notify(`Investment exceeds your remaining capacity of ${remainingCapacity} ${program?.currency}`, 'error');
           return;
@@ -172,23 +172,23 @@ function ProjectDetailsPage() {
       if (program?.educhainProgramId) {
         // Get the on-chain project ID from the application
         const onChainProjectId = data?.application?.onChainProjectId;
-        
+
         if (!onChainProjectId) {
-          notify('This project needs to be registered on the blockchain before investments can be made. Please contact the program administrator.', 'warning');
+          notify('This project needs to be registered on the blockchain before investments can be made. Please contact the program administrator.', 'error');
           // For now, continue with off-chain investment only
         } else {
           try {
-            notify('Please approve the transaction in your wallet', 'info');
-            
+            notify('Please approve the transaction in your wallet', 'loading');
+
             // Call the blockchain investment function with the actual on-chain project ID
             const tx = await investmentContract.invest(
               Number(onChainProjectId), // Use the actual on-chain project ID
               amount, // investment amount
               '0x0000000000000000000000000000000000000000' // Native token for now
             );
-            
+
             txHash = tx.hash;
-            notify('Transaction submitted! Waiting for confirmation...', 'info');
+            notify('Transaction submitted! Waiting for confirmation...', 'loading');
           } catch (blockchainError) {
             console.error('Blockchain investment failed:', blockchainError);
             notify('Blockchain transaction failed. Please try again.', 'error');
@@ -208,9 +208,9 @@ function ProjectDetailsPage() {
         },
         onCompleted: () => {
           notify(
-            txHash 
-              ? 'Investment successfully recorded on blockchain and database!' 
-              : 'Investment created successfully', 
+            txHash
+              ? 'Investment successfully recorded on blockchain and database!'
+              : 'Investment created successfully',
             'success'
           );
           setIsInvestDialogOpen(false);
@@ -237,7 +237,7 @@ function ProjectDetailsPage() {
             Number(data.application.onChainProjectId),
             milestoneIndex ?? 0 // The index of the milestone being approved
           );
-          
+
           if (tx) {
             await checkMilestone({
               variables: {
@@ -540,7 +540,7 @@ function ProjectDetailsPage() {
                   {data?.application?.fundingProgress ?? 0}<span className="text-sm text-muted-foreground">%</span>
                 </p>
               </div>
-              
+
               {/* On-chain funding progress */}
               {onChainFundingProgress && data?.application?.onChainProjectId && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
@@ -555,10 +555,10 @@ function ProjectDetailsPage() {
                     <div className="text-xs text-muted-foreground">
                       {onChainFundingProgress.totalInvested.toFixed(2)} / {onChainFundingProgress.targetFunding.toFixed(2)} {program?.currency}
                     </div>
-                    <Progress 
-                      value={onChainFundingProgress.fundingProgress} 
-                      rootClassName="w-full max-w-[200px]" 
-                      indicatorClassName="bg-green-500" 
+                    <Progress
+                      value={onChainFundingProgress.fundingProgress}
+                      rootClassName="w-full max-w-[200px]"
+                      indicatorClassName="bg-green-500"
                     />
                     <p className="text-sm font-bold flex items-center text-green-600">
                       {onChainFundingProgress.fundingProgress.toFixed(1)}<span className="text-xs text-muted-foreground">%</span>
@@ -750,54 +750,54 @@ function ProjectDetailsPage() {
                     const canSelectTier = !isTierBased || (userTierAssignment && userTierAssignment.tier === t.price);
                     const purchaseLimitReached = typeof t.purchaseLimit === 'number' &&
                       t.purchaseLimit - (data?.application?.investors?.filter((i) => i.tier === t.price).length ?? 0) <= 0;
-                    
+
                     return (
-                    <button
-                      disabled={!canSelectTier || purchaseLimitReached}
-                      type="button"
-                      className={cn(
-                        "group block w-full text-left border rounded-lg p-4 shadow-sm cursor-pointer transition-all disabled:opacity-60",
-                        selectedTier === t.price ? "bg-[#F4F4F5]" : "bg-white"
-                      )}
-                      key={t.id}
-                      onClick={() => setSelectedTier(t.price || '')}
-                      aria-label={`Select ${t.price} tier`}
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        {programData?.program?.tierSettings ? <TierBadge tier={t.price as TierType} /> : <Badge variant="secondary" className="bg-gray-200 text-gray-600">
-                          Open
-                        </Badge>}
+                      <button
+                        disabled={!canSelectTier || purchaseLimitReached || data?.application?.status !== ApplicationStatus.Accepted}
+                        type="button"
+                        className={cn(
+                          "group block w-full text-left border rounded-lg p-4 shadow-sm cursor-pointer transition-all disabled:opacity-60",
+                          selectedTier === t.price ? "bg-[#F4F4F5]" : "bg-white"
+                        )}
+                        key={t.id}
+                        onClick={() => setSelectedTier(t.price || '')}
+                        aria-label={`Select ${t.price} tier`}
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          {programData?.program?.tierSettings ? <TierBadge tier={t.price as TierType} /> : <Badge variant="secondary" className="bg-gray-200 text-gray-600">
+                            Open
+                          </Badge>}
 
-                        <div className="flex items-center gap-2">
-                          {selectedTier === t.price && (
-                            <div className="flex items-center bg-[#B331FF1A] p-1 rounded-full">
-                              <Check className="w-3 h-3 text-primary" />
-                            </div>
-                          )}
-                          <Badge variant="secondary" className="bg-primary text-white group-disabled:bg-gray-200 group-disabled:text-gray-600">
-                            {t.purchaseLimit ? t.purchaseLimit - (data?.application?.investors?.filter(i => i.tier === t.price).length ?? 0) : 0} left
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            {selectedTier === t.price && (
+                              <div className="flex items-center bg-[#B331FF1A] p-1 rounded-full">
+                                <Check className="w-3 h-3 text-primary" />
+                              </div>
+                            )}
+                            <Badge variant="secondary" className="bg-primary text-white group-disabled:bg-gray-200 group-disabled:text-gray-600">
+                              {t.purchaseLimit ? t.purchaseLimit - (data?.application?.investors?.filter(i => i.tier === t.price).length ?? 0) : 0} left
+                            </Badge>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="mb-4">
-                        <p className="text-sm text-muted-foreground mb-1">PRICE</p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl font-bold">{program?.tierSettings ? program?.tierSettings[t.price as TierType]?.maxAmount : t.price}</span>
-                          {getCurrencyIcon(program?.currency)}
-                          <span className="text-lg font-semibold">{program?.currency}</span>
+                        <div className="mb-4">
+                          <p className="text-sm text-muted-foreground mb-1">PRICE</p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl font-bold">{program?.tierSettings ? program?.tierSettings[t.price as TierType]?.maxAmount : t.price}</span>
+                            {getCurrencyIcon(program?.currency)}
+                            <span className="text-lg font-semibold">{program?.currency}</span>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="text-sm text-muted-foreground">
-                        <p>{t.description}</p>
-                      </div>
-                      {isTierBased && !canSelectTier && (
-                        <div className="mt-2 text-xs text-orange-600">
-                          This tier is not available for your assignment
+                        <div className="text-sm text-muted-foreground">
+                          <p>{t.description}</p>
                         </div>
-                      )}
-                    </button>
+                        {isTierBased && !canSelectTier && (
+                          <div className="mt-2 text-xs text-orange-600">
+                            This tier is not available for your assignment
+                          </div>
+                        )}
+                      </button>
                     );
                   })}
                   {/* Gold Tier */}
@@ -1080,7 +1080,7 @@ function ProjectDetailsPage() {
                 <Dialog open={isInvestDialogOpen} onOpenChange={setIsInvestDialogOpen}>
                   <DialogTrigger asChild>
                     <Button
-                      disabled={!selectedTier}
+                      disabled={!selectedTier || data?.application?.status !== ApplicationStatus.Accepted}
                       className="w-full h-10 bg-primary hover:bg-primary/90 text-white font-medium flex items-center justify-center gap-2"
                       onClick={() => {
                         if (!selectedTier) {
