@@ -72,6 +72,16 @@ query programs($pagination: PaginationInput) {
       status
       summary
       network
+      type
+      applicationStartDate
+      applicationEndDate
+      fundingStartDate
+      fundingEndDate
+      fundingCondition
+      tierSettings
+      feePercentage
+      customFeePercentage
+      image
       validators {
         about
         email

@@ -1,0 +1,26 @@
+query investments($supporterId: ID, $projectId: ID, $pagination: PaginationInput) {
+  investments(supporterId: $supporterId, projectId: $projectId, pagination: $pagination) {
+    data {
+      id
+      amount
+      tier
+      txHash
+      status
+      reclaimed
+      reclaimTxHash
+      reclaimedAt
+      project {
+        id
+        name
+        onChainProjectId
+      }
+      supporter {
+        id
+        email
+        firstName
+        lastName
+      }
+    }
+    count
+  }
+}

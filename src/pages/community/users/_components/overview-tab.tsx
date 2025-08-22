@@ -10,9 +10,9 @@ import {
   hostStatuses,
   investmentStatuses,
   statusColorMap,
-  statuses,
   statusHostColorMap,
   statusInvestmentColorMap,
+  statuses,
 } from '../agent-utils';
 
 export default function UserOverviewTab() {

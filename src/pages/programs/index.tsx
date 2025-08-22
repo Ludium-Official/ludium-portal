@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import ProgramCard from '@/pages/programs/_components/program-card';
-import { ProgramStatus, SortEnum } from '@/types/types.generated';
+import { ProgramStatus, ProgramType, SortEnum } from '@/types/types.generated';
 import { CirclePlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
@@ -42,56 +42,68 @@ const ProgramsPage: React.FC = () => {
   const filter = [
     ...(selectedTab === 'my-programs'
       ? [
-        {
-          field: 'userId',
-          value: userId,
-        },
-      ]
+          {
+            field: 'userId',
+            value: userId,
+          },
+        ]
       : []),
     ...(selectedTab === 'newest'
       ? [
-        {
-          field: 'status',
-          values: [ProgramStatus.Published, ProgramStatus.Completed, ProgramStatus.Pending, ProgramStatus.PaymentRequired, ProgramStatus.Cancelled, ProgramStatus.Closed, ProgramStatus.Rejected],
-        },
-        {
-          field: 'visibility',
-          value: 'public',
-        },
-      ]
+          {
+            field: 'status',
+            values: [
+              ProgramStatus.Published,
+              ProgramStatus.Completed,
+              ProgramStatus.Pending,
+              ProgramStatus.PaymentRequired,
+              ProgramStatus.Cancelled,
+              ProgramStatus.Closed,
+              ProgramStatus.Rejected,
+            ],
+          },
+          {
+            field: 'visibility',
+            value: 'public',
+          },
+        ]
       : []),
     ...(selectedTab === 'imminent'
       ? [
-        {
-          field: 'status',
-          value: 'published',
-        },
-        {
-          field: 'visibility',
-          value: 'public',
-        },
+          {
+            field: 'status',
+            value: 'published',
+          },
+          {
+            field: 'visibility',
+            value: 'public',
+          },
 
-        {
-          field: 'imminent',
-          value: "true",
-        },
-      ]
+          {
+            field: 'imminent',
+            value: 'true',
+          },
+        ]
       : []),
     ...(selectedTab === 'completed'
       ? [
-        {
-          field: 'status',
-          value: 'completed',
-        },
-        {
-          field: 'visibility',
-          value: 'public',
-        },
-      ]
+          {
+            field: 'status',
+            value: 'completed',
+          },
+          {
+            field: 'visibility',
+            value: 'public',
+          },
+        ]
       : []),
     {
       field: 'name',
       value: debouncedSearch,
+    },
+    {
+      field: 'type',
+      value: ProgramType.Regular,
     },
   ];
 

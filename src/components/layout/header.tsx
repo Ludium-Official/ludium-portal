@@ -28,7 +28,7 @@ function Header() {
   const navigate = useNavigate();
   const { data: profileData } = useProfileQuery({
     fetchPolicy: 'cache-first',
-    // skip: !isLoggedIn
+    skip: !authenticated,
   });
 
   const [network, setNetwork] = useState(mainnetDefaultNetwork);
@@ -231,8 +231,8 @@ function Header() {
                               {balance.name}:{' '}
                               {balance.amount !== null
                                 ? commaNumber(
-                                  ethers.utils.formatUnits(balance.amount, balance.decimal),
-                                )
+                                    ethers.utils.formatUnits(balance.amount, balance.decimal),
+                                  )
                                 : 'Fetching...'}
                             </div>
                           );

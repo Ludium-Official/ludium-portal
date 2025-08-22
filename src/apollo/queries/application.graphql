@@ -41,6 +41,33 @@ query application($id: ID!) {
         url
       }
     }
+    investmentTerms {
+      applicationId
+      createdAt
+      description
+      id
+      price
+      purchaseLimit
+      title
+      updatedAt
+    }
+    investors {
+      amount
+      createdAt
+      email
+      firstName
+      investmentStatus
+      lastName
+      maxInvestmentAmount
+      tier
+      userId
+    }
+    currentFundingAmount
+    fundingProgress
     status
+    onChainProjectId
+    fundingTarget
+    walletAddress
+    price
   }
 }

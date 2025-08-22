@@ -17,6 +17,7 @@ query program($id: ID!) {
       content
       id
       metadata
+      fundingProgress
       name
       milestones {
         currency
@@ -104,6 +105,31 @@ query program($id: ID!) {
       }
       walletAddress
     }
+    supporters {
+      email
+      firstName
+      lastName
+      maxInvestmentAmount
+      tier
+      userId
+    }
+    userTierAssignment {
+      userId
+      tier
+      maxInvestmentAmount
+      currentInvestment
+      remainingCapacity
+      createdAt
+    }
     network
+    type
+    applicationStartDate
+    applicationEndDate
+    fundingStartDate
+    fundingEndDate
+    fundingCondition
+    tierSettings
+    feePercentage
+    customFeePercentage
   }
 }

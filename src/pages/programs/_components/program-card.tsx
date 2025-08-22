@@ -37,18 +37,11 @@ function ProgramCard({ program }: { program: Program }) {
       </div>
 
       <Link to={`/programs/${id}`} className="flex items-stretch gap-4 mb-4">
-        {/* <div className="w-[104px] h-[104px] bg-slate-200 rounded-md " /> */}
-
-        {program?.image ? (
-          <img
-            src={program.image}
-            alt={program?.name || 'Program image'}
-            className="w-[104px] h-[104px] object-cover rounded-lg"
-          />
+        {program.image ? (
+          <img src={program.image} className="w-[104px] h-[104px] rounded-md" alt="Program" />
         ) : (
-          <div className="w-[104px] h-[104px] bg-gray-200 rounded-lg" />
+          <div className="w-[104px] h-[104px] bg-slate-200 rounded-md " />
         )}
-
         <div className="flex flex-col justify-between">
           <h2 className="text-lg font-bold text-[#18181B]">{name}</h2>
           <div className="inline-flex self-start text-sm bg-secondary py-1 px-2 items-center rounded-md">
@@ -98,8 +91,10 @@ function ProgramCard({ program }: { program: Program }) {
         >
           Approved Application{' '}
           <span className="text-green-600">
-            {program.applications?.filter((a) => a.status === ApplicationStatus.Accepted || a.status === ApplicationStatus.Completed).length ??
-              0}
+            {program.applications?.filter(
+              (a) =>
+                a.status === ApplicationStatus.Accepted || a.status === ApplicationStatus.Completed,
+            ).length ?? 0}
           </span>
         </Link>
       </div>

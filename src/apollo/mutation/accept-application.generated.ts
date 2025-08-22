@@ -5,15 +5,16 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type AcceptApplicationMutationVariables = Types.Exact<{
   id: Types.Scalars['ID']['input'];
+  onChainProjectId?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
 
 
-export type AcceptApplicationMutation = { __typename?: 'Mutation', acceptApplication?: { __typename?: 'Application', content?: string | null, id?: string | null, metadata?: any | null, name?: string | null, status?: Types.ApplicationStatus | null, applicant?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null } | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, milestones?: Array<{ __typename?: 'Milestone', currency?: string | null, description?: string | null, id?: string | null, price?: string | null, status?: Types.MilestoneStatus | null, title?: string | null }> | null } | null };
+export type AcceptApplicationMutation = { __typename?: 'Mutation', acceptApplication?: { __typename?: 'Application', content?: string | null, id?: string | null, metadata?: any | null, name?: string | null, status?: Types.ApplicationStatus | null, onChainProjectId?: number | null, applicant?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null } | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, milestones?: Array<{ __typename?: 'Milestone', currency?: string | null, description?: string | null, id?: string | null, price?: string | null, status?: Types.MilestoneStatus | null, title?: string | null }> | null } | null };
 
 
 export const AcceptApplicationDocument = gql`
-    mutation acceptApplication($id: ID!) {
-  acceptApplication(id: $id) {
+    mutation acceptApplication($id: ID!, $onChainProjectId: Int) {
+  acceptApplication(id: $id, onChainProjectId: $onChainProjectId) {
     applicant {
       about
       email
@@ -40,6 +41,7 @@ export const AcceptApplicationDocument = gql`
     }
     name
     status
+    onChainProjectId
   }
 }
     `;
@@ -59,6 +61,7 @@ export type AcceptApplicationMutationFn = Apollo.MutationFunction<AcceptApplicat
  * const [acceptApplicationMutation, { data, loading, error }] = useAcceptApplicationMutation({
  *   variables: {
  *      id: // value for 'id'
+ *      onChainProjectId: // value for 'onChainProjectId'
  *   },
  * });
  */
