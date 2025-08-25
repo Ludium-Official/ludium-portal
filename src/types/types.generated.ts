@@ -37,6 +37,7 @@ export type Application = {
   name?: Maybe<Scalars['String']['output']>;
   onChainProjectId?: Maybe<Scalars['Int']['output']>;
   price?: Maybe<Scalars['String']['output']>;
+  program?: Maybe<Program>;
   rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<ApplicationStatus>;
   summary?: Maybe<Scalars['String']['output']>;
@@ -50,6 +51,18 @@ export enum ApplicationStatus {
   Rejected = 'rejected',
   Submitted = 'submitted'
 }
+
+export type AssignUserTierInput = {
+  maxInvestmentAmount: Scalars['String']['input'];
+  programId: Scalars['ID']['input'];
+  tier: InvestmentTier;
+  userId: Scalars['ID']['input'];
+};
+
+export type BulkAssignTiersInput = {
+  assignments: Array<AssignUserTierInput>;
+  programId: Scalars['ID']['input'];
+};
 
 export type CarouselItem = {
   __typename?: 'CarouselItem';
@@ -317,6 +330,7 @@ export type Mutation = {
   acceptProgram?: Maybe<Program>;
   addProgramKeyword?: Maybe<Keyword>;
   addUserKeyword?: Maybe<Keyword>;
+  assignUserTier?: Maybe<UserTierAssignment>;
   assignValidatorToProgram?: Maybe<Program>;
   checkMilestone?: Maybe<Milestone>;
   createApplication?: Maybe<Application>;
@@ -342,6 +356,7 @@ export type Mutation = {
   rejectProgram?: Maybe<Program>;
   removeProgramKeyword?: Maybe<Scalars['Boolean']['output']>;
   removeUserKeyword?: Maybe<Scalars['Boolean']['output']>;
+  removeUserTier?: Maybe<Scalars['Boolean']['output']>;
   removeValidatorFromProgram?: Maybe<Program>;
   reorderCarouselItems?: Maybe<Array<CarouselItem>>;
   submitMilestone?: Maybe<Milestone>;
@@ -355,6 +370,7 @@ export type Mutation = {
   updateProfile?: Maybe<User>;
   updateProgram?: Maybe<Program>;
   updateUser?: Maybe<User>;
+  updateUserTier?: Maybe<UserTierAssignment>;
 };
 
 
@@ -378,6 +394,11 @@ export type MutationAddProgramKeywordArgs = {
 export type MutationAddUserKeywordArgs = {
   keyword: Scalars['String']['input'];
   userId: Scalars['ID']['input'];
+};
+
+
+export type MutationAssignUserTierArgs = {
+  input: AssignUserTierInput;
 };
 
 
@@ -512,6 +533,12 @@ export type MutationRemoveUserKeywordArgs = {
 };
 
 
+export type MutationRemoveUserTierArgs = {
+  programId: Scalars['ID']['input'];
+  userId: Scalars['ID']['input'];
+};
+
+
 export type MutationRemoveValidatorFromProgramArgs = {
   programId: Scalars['ID']['input'];
   validatorId: Scalars['ID']['input'];
@@ -577,6 +604,11 @@ export type MutationUpdateProgramArgs = {
 
 export type MutationUpdateUserArgs = {
   input: UserUpdateInput;
+};
+
+
+export type MutationUpdateUserTierArgs = {
+  input: AssignUserTierInput;
 };
 
 export type Notification = {

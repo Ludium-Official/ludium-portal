@@ -724,7 +724,8 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     <DatePicker
                       date={applicationStartDate}
                       setDate={setApplicationStartDate}
-                      disabled={{ before: new Date() }}
+                      // Allow selecting today and future dates
+                      disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
                     />
                   </div>
                 </div>
@@ -739,7 +740,8 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                       date={applicationDueDate}
                       setDate={setApplicationDueDate}
                       disabled={{
-                        before: applicationStartDate ? applicationStartDate : new Date(),
+                        // Application end must be same day or after application start
+                        before: applicationStartDate ? applicationStartDate : new Date(new Date().setHours(0, 0, 0, 0)),
                       }}
                     />
                   </div>
@@ -763,7 +765,8 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     <DatePicker
                       date={fundingStartDate}
                       setDate={setFundingStartDate}
-                      disabled={{ before: new Date() }}
+                      // Allow selecting today and future dates (can overlap with application period per PRD)
+                      disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
                     />
                   </div>
                 </div>
@@ -778,7 +781,8 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                       date={fundingDueDate}
                       setDate={setFundingDueDate}
                       disabled={{
-                        before: fundingStartDate ? fundingStartDate : new Date(),
+                        // Funding end must be same day or after funding start
+                        before: fundingStartDate ? fundingStartDate : new Date(new Date().setHours(0, 0, 0, 0)),
                       }}
                     />
                   </div>

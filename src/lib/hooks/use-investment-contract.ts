@@ -134,12 +134,10 @@ export function useInvestmentContract(network: string | null = null) {
     transport: http(checkNetwork.rpcUrls.default.http[0]),
   });
 
-  const investmentContract = new InvestmentContract(
-    contractAddresses,
-    checkNetwork.id,
-    sendTx,
-    client,
-  );
+  // Get chain ID for the network
+  const chainId = checkNetwork.id;
+
+  const investmentContract = new InvestmentContract(contractAddresses, sendTx, client, chainId);
 
   return investmentContract;
 }
@@ -153,24 +151,15 @@ export function getInvestmentContract(
   const contractAddresses =
     CONTRACT_ADDRESSES[network || 'educhain-testnet'] || CONTRACT_ADDRESSES['educhain-testnet'];
 
-  return new InvestmentContract(
-    contractAddresses,
-    getChainIdForNetwork(network),
-    sendTransaction,
-    client,
-  );
-}
-
-function getChainIdForNetwork(network: string): number {
-  const chainMap: Record<string, number> = {
-    sepolia: 11155111,
-    base: 8453,
-    'base-sepolia': 84532,
+  // Get chain ID for the network
+  const chainIdMap: Record<string, number> = {
     'educhain-testnet': 656476,
-    educhain: 41923,
-    arbitrum: 42161,
+    'base-sepolia': 84532,
     'arbitrum-sepolia': 421614,
+    sepolia: 11155111,
   };
 
-  return chainMap[network] || 656476; // Default to EduChain testnet
+  const chainId = chainIdMap[network] || chainIdMap['educhain-testnet'];
+
+  return new InvestmentContract(contractAddresses, sendTransaction, client, chainId);
 }
