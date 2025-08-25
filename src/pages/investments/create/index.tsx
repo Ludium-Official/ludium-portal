@@ -10,29 +10,27 @@ import notify from '@/lib/notify';
 import type { OnSubmitInvestmentFunc } from '@/pages/investments/_components/investment-form';
 import InvestmentForm from '@/pages/investments/_components/investment-form';
 import { FundingCondition, ProgramType, type ProgramVisibility } from '@/types/types.generated';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { http, type PublicClient, createPublicClient } from 'viem';
+import { http, type PublicClient, createPublicClient, type Chain } from 'viem';
+import { eduChainTestnet, baseSepolia, arbitrumSepolia } from 'viem/chains';
 
 // Helper functions
-function getRpcUrlForNetwork(network: string): string {
-  const rpcMap: Record<string, string> = {
-    sepolia: 'https://rpc.sepolia.org',
-    base: 'https://mainnet.base.org',
-    'base-sepolia': 'https://sepolia.base.org',
-    'educhain-testnet': 'https://open-campus-codex-sepolia.drpc.org',
-    educhain: 'https://rpc.open-campus-codex.gelato.digital',
-    arbitrum: 'https://arb1.arbitrum.io/rpc',
-    'arbitrum-sepolia': 'https://sepolia-rollup.arbitrum.io/rpc',
-  };
 
-  return rpcMap[network] || rpcMap['educhain-testnet'];
+function getChainForNetwork(network: string) {
+  const chainMap: Record<string, Chain> = {
+    'educhain-testnet': eduChainTestnet,
+    'base-sepolia': baseSepolia,
+    'arbitrum-sepolia': arbitrumSepolia,
+  };
+  return chainMap[network] || eduChainTestnet;
 }
 
 const CreateInvestment: React.FC = () => {
   const navigate = useNavigate();
   const { sendTransaction, user } = usePrivy();
+  const { wallets } = useWallets();
   const [createProgram] = useCreateProgramMutation();
   const [isDeploying, setIsDeploying] = useState(false);
 
@@ -67,13 +65,29 @@ const CreateInvestment: React.FC = () => {
       if (args.network !== 'off-chain') {
         notify('Deploying to blockchain...');
 
-        // Create public client for the network
-        const rpcUrl = getRpcUrlForNetwork(args.network);
+        // Switch to the correct network if needed
+        const chain = getChainForNetwork(args.network);
+        
+        // Check if we have a wallet and switch network if needed
+        const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
+        if (currentWallet?.switchChain) {
+          try {
+            await currentWallet.switchChain(chain.id);
+            notify(`Switched to ${chain.name} network`, 'success');
+          } catch (error) {
+            console.warn('Failed to switch network:', error);
+            // Continue anyway, Privy modal will handle network switching
+          }
+        }
+
+        // Create public client for the network with proper chain configuration
         const publicClient = createPublicClient({
-          transport: http(rpcUrl),
+          chain,
+          transport: http(chain.rpcUrls.default.http[0]),
         }) as PublicClient;
 
         // Get the investment contract for the selected network
+        // The contract will use the chainId to ensure transactions go to the correct network
         const investmentContract = getInvestmentContract(
           args.network,
           sendTransaction,
@@ -120,7 +134,8 @@ const CreateInvestment: React.FC = () => {
           fundingEndDate: args.fundingEndDate || '',
           feePercentage: args.feePercentage || 300, // 3% default
           validators: validatorAddresses,
-          tierSettings: args.tierSettings,
+          requiredValidations: validatorAddresses.length,
+          fundingCondition: args.fundingCondition === 'tier' ? 'tier' : 'open',
         });
 
         // Store the program ID from blockchain

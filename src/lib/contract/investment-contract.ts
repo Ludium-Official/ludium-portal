@@ -1,19 +1,16 @@
 import type { usePrivy } from '@privy-io/react-auth';
-import { ethers } from 'ethers';
-import type { PublicClient } from 'viem';
+import * as ethers from 'ethers';
+import type { Abi, PublicClient } from 'viem';
 import { encodeFunctionData } from 'viem';
 
 import LdFundingArtifact from './abi/LdFunding.json';
-// Import contract ABIs
 import LdInvestmentCoreArtifact from './abi/LdInvestmentCore.json';
 import LdMilestoneManagerArtifact from './abi/LdMilestoneManager.json';
-// import LdTimeLockArtifact from './abi/LdTimeLock.json';
 
 // Extract ABIs from artifacts
-const INVESTMENT_CORE_ABI = LdInvestmentCoreArtifact.abi;
-const FUNDING_MODULE_ABI = LdFundingArtifact.abi;
-const MILESTONE_MANAGER_ABI = LdMilestoneManagerArtifact.abi;
-// const TIMELOCK_ABI = LdTimeLockArtifact.abi;
+const INVESTMENT_CORE_ABI = LdInvestmentCoreArtifact.abi as Abi;
+const FUNDING_MODULE_ABI = LdFundingArtifact.abi as Abi;
+const MILESTONE_MANAGER_ABI = LdMilestoneManagerArtifact.abi as Abi;
 
 export interface InvestmentContractAddresses {
   core: string;
@@ -24,20 +21,102 @@ export interface InvestmentContractAddresses {
 
 export class InvestmentContract {
   private addresses: InvestmentContractAddresses;
-  private chainId: number;
   private sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'];
   private client: PublicClient;
+  private chainId?: number;
 
   constructor(
     addresses: InvestmentContractAddresses,
-    chainId: number,
     sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'],
     client: PublicClient,
+    chainId?: number,
   ) {
     this.addresses = addresses;
-    this.chainId = chainId;
     this.sendTransaction = sendTransaction;
     this.client = client;
+    this.chainId = chainId;
+  }
+
+  private async waitForTransaction(hash: `0x${string}`) {
+    const receipt = await this.client.waitForTransactionReceipt({ hash });
+    return receipt;
+  }
+
+  async signValidate(params: {
+    applicationId: number;
+    milestones: Array<{
+      description: string;
+      percentage: number;
+      deadline: string;
+    }>;
+  }) {
+    try {
+      // Convert milestones to contract format
+      const milestonesForContract = params.milestones.map((m) => ({
+        description: m.description,
+        percentage: m.percentage * 100, // Convert to basis points
+        deadline: Math.floor(new Date(m.deadline).getTime() / 1000),
+      }));
+
+      // Encode milestone data
+      const milestoneData = ethers.utils.defaultAbiCoder.encode(
+        ['tuple(string description, uint256 percentage, uint256 deadline)[]'],
+        [milestonesForContract],
+      );
+
+      const data = encodeFunctionData({
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'approveProjectApplication',
+        args: [params.applicationId, milestoneData],
+      });
+
+      const txResult = await this.sendTransaction(
+        {
+          to: this.addresses.core as `0x${string}`,
+          data,
+          value: BigInt(0),
+        } as Parameters<typeof this.sendTransaction>[0],
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            transactionInfo: {
+              title: 'Approve Project Application',
+              action: 'Approve',
+            },
+            description: `Approving application #${params.applicationId}`,
+            successHeader: 'Application Approved!',
+            successDescription: 'The project application has been approved.',
+          },
+        },
+      );
+
+      const receipt = await this.waitForTransaction(txResult.hash);
+
+      // Check if project was created
+      let projectCreated = false;
+      let projectId = null;
+
+      const projectCreatedTopic = ethers.utils.id(
+        'ProjectCreated(uint256,uint256,string,address,uint256)',
+      );
+      const log = receipt.logs.find(
+        (log) =>
+          'topics' in log && Array.isArray(log.topics) && log.topics[0] === projectCreatedTopic,
+      );
+      if (log && 'topics' in log && Array.isArray(log.topics)) {
+        projectCreated = true;
+        projectId = Number.parseInt(log.topics[1] as string, 16);
+      }
+
+      return {
+        txHash: receipt.transactionHash,
+        projectCreated,
+        projectId,
+      };
+    } catch (error) {
+      console.error('Failed to approve application:', error);
+      throw error;
+    }
   }
 
   async createInvestmentProgram(params: {
@@ -49,451 +128,510 @@ export class InvestmentContract {
     applicationEndDate: string;
     fundingStartDate: string;
     fundingEndDate: string;
-    feePercentage: number;
     validators: string[];
-    tierSettings?: {
-      bronze?: { enabled: boolean; maxAmount: string };
-      silver?: { enabled: boolean; maxAmount: string };
-      gold?: { enabled: boolean; maxAmount: string };
-      platinum?: { enabled: boolean; maxAmount: string };
-    };
+    requiredValidations: number;
+    feePercentage?: number;
+    fundingCondition?: 'open' | 'tier';
   }) {
     try {
-      // Validate inputs
-      if (!params.name || params.name.trim() === '') {
-        throw new Error('Program name is required');
-      }
-
-      if (!params.validators || params.validators.length === 0) {
-        throw new Error('At least one validator is required');
-      }
-
       const fundingGoalWei = ethers.utils.parseEther(params.fundingGoal);
 
-      // Convert dates to timestamps
-      const applicationStartTime = Math.floor(
-        new Date(params.applicationStartDate).getTime() / 1000,
-      );
-      const applicationEndTime = Math.floor(new Date(params.applicationEndDate).getTime() / 1000);
-      const fundingStartTime = Math.floor(new Date(params.fundingStartDate).getTime() / 1000);
-      const fundingEndTime = Math.floor(new Date(params.fundingEndDate).getTime() / 1000);
-
-      // Validate dates
-      const currentTime = Math.floor(Date.now() / 1000);
-      if (applicationStartTime < currentTime) {
-        throw new Error('Application start date must be in the future');
-      }
-      if (fundingStartTime < currentTime) {
-        throw new Error('Funding start date must be in the future');
-      }
-
-      // Encode the transaction data
-      // Function signature: createInvestmentProgram(string,address[],uint256,uint256,uint256,uint256,uint256,uint256,uint8,uint256,address)
-      const args = [
-        params.name, // _name
-        params.validators as `0x${string}`[], // _validators
-        1, // _requiredApprovals (default to 1 for now)
-        fundingGoalWei, // _maxFundingPerProject (using funding goal as max per project)
-        applicationStartTime, // _applicationStartTime
-        applicationEndTime, // _applicationEndTime
-        fundingStartTime, // _fundingStartTime
-        fundingEndTime, // _fundingEndTime
-        params.tierSettings ? 1 : 0, // _condition (0 = Open, 1 = Tier)
-        params.feePercentage, // _feePercentage
-        params.fundingToken as `0x${string}`, // _token
-      ];
-
+      // Note: description is not used in the contract, only kept in params for future use
       const data = encodeFunctionData({
         abi: INVESTMENT_CORE_ABI,
         functionName: 'createInvestmentProgram',
-        args,
+        args: [
+          params.name, // _name
+          params.validators, // _validators
+          params.requiredValidations, // _requiredApprovals
+          fundingGoalWei, // _maxFundingPerProject
+          Math.floor(new Date(params.applicationStartDate).getTime() / 1000), // _applicationStartTime
+          Math.floor(new Date(params.applicationEndDate).getTime() / 1000), // _applicationEndTime
+          Math.floor(new Date(params.fundingStartDate).getTime() / 1000), // _fundingStartTime
+          Math.floor(new Date(params.fundingEndDate).getTime() / 1000), // _fundingEndTime
+          params.fundingCondition === 'tier' ? 1 : 0, // _condition (0 = open, 1 = tier)
+          params.feePercentage || 300, // _feePercentage (3% default in basis points)
+          params.fundingToken || ethers.constants.AddressZero, // _token
+        ],
       });
 
-      // Send the transaction
-      const tx = await this.sendTransaction(
+      const txResult = await this.sendTransaction(
         {
           to: this.addresses.core as `0x${string}`,
           data,
-          chainId: this.chainId,
-        },
+          value: BigInt(0),
+          ...(this.chainId && { chainId: `0x${this.chainId.toString(16)}` }),
+        } as Parameters<typeof this.sendTransaction>[0],
         {
           uiOptions: {
             showWalletUIs: true,
-            description: `Creating investment program: ${params.name}`,
-            buttonText: 'Create Program',
             transactionInfo: {
               title: 'Create Investment Program',
               action: 'Create',
             },
-            successHeader: 'Program Created Successfully!',
-            successDescription: 'Your investment program has been created and is now live.',
+            description: `Creating program: ${params.name}`,
+            successHeader: 'Program Created!',
+            successDescription: 'Investment program has been created successfully.',
           },
         },
       );
 
-      // Wait for transaction receipt with timeout
-      let receipt: Awaited<ReturnType<typeof this.client.waitForTransactionReceipt>>;
-      try {
-        receipt = await this.client.waitForTransactionReceipt({
-          hash: tx.hash,
-          confirmations: 1,
-        });
-      } catch (receiptError) {
-        console.error('Error getting receipt:', receiptError);
-        // Even if we can't get the receipt, the transaction might have succeeded
-        return { txHash: tx.hash, programId: null };
-      }
+      const receipt = await this.waitForTransaction(txResult.hash);
 
-      // Check if transaction was successful
-      if (receipt.status !== 'success') {
-        throw new Error('Transaction failed');
-      }
+      // Extract program ID from event
+      const eventTopic = ethers.utils.id('InvestmentProgramCreated(uint256,string,address)');
+      let programId = null;
 
-      // Try multiple approaches to extract program ID
-
-      // Approach 1: Standard event signature matching
-      const eventSignature = ethers.utils.id(
-        'InvestmentProgramCreated(uint256,address,string,uint256,address)',
+      const log = receipt.logs.find(
+        (log) => 'topics' in log && Array.isArray(log.topics) && log.topics[0] === eventTopic,
       );
-
-      // Find the event in the logs
-      const event = receipt.logs.find((log) => {
-        return log.topics[0]?.toLowerCase() === eventSignature.toLowerCase();
-      });
-
-      if (event?.topics[1]) {
-        // The program ID is in the first indexed parameter (topics[1])
-        const programId = Number.parseInt(event.topics[1], 16);
-        return { txHash: tx.hash, programId };
+      if (log && 'topics' in log && Array.isArray(log.topics)) {
+        programId = Number.parseInt(log.topics[1] as string, 16);
       }
 
-      // Approach 2: Try to find logs from core contract
-      if (!event && receipt.logs && receipt.logs.length > 0) {
-        try {
-          const coreLogs = receipt.logs.filter(
-            (log) => log.address?.toLowerCase() === this.addresses.core.toLowerCase(),
-          );
-
-          if (coreLogs.length > 0) {
-            const programLog = coreLogs[0];
-            if (programLog.topics?.[1]) {
-              const programId = Number.parseInt(programLog.topics[1], 16);
-              if (programId >= 0 && programId < 1000000) {
-                return { txHash: tx.hash, programId };
-              }
-            }
-          }
-        } catch (_parseError) {
-          // Silent fail, try next approach
-        }
-      }
-
-      // Approach 3: Fallback to first log
-      if (receipt.logs && receipt.logs.length > 0) {
-        const firstLog = receipt.logs[0];
-        if (firstLog.topics?.[1]) {
-          const possibleProgramId = Number.parseInt(firstLog.topics[1], 16);
-          if (possibleProgramId >= 0 && possibleProgramId < 1000000) {
-            return { txHash: tx.hash, programId: possibleProgramId };
-          }
-        }
-      }
-
-      // Return 0 as a default program ID if extraction fails
-      return { txHash: tx.hash, programId: 0 };
+      return {
+        txHash: receipt.transactionHash,
+        programId,
+      };
     } catch (error) {
-      console.error('Error in investment creation:', error);
+      console.error('Failed to create investment program:', error);
       throw error;
     }
   }
 
-  async invest(projectId: number, amount: string, tokenAddress: string) {
-    const isNative = tokenAddress === '0x0000000000000000000000000000000000000000';
-    const amountWei = ethers.utils.parseEther(amount);
-
-    const data = encodeFunctionData({
-      abi: FUNDING_MODULE_ABI,
-      functionName: isNative ? 'investFund' : 'investWithToken',
-      args: isNative ? [projectId] : [projectId, amountWei],
-    });
-
-    const tx = await this.sendTransaction(
-      {
-        to: this.addresses.funding as `0x${string}`,
-        data,
-        value: isNative ? BigInt(amountWei.toString()) : BigInt(0),
-        chainId: this.chainId,
-      },
-      {
-        uiOptions: {
-          showWalletUIs: true,
-          description: `Investing ${amount} in project`,
-          buttonText: 'Invest',
-          transactionInfo: {
-            title: 'Investment',
-            action: 'Invest',
-          },
-          successHeader: 'Investment Successful!',
-          successDescription: 'Your investment has been recorded.',
-        },
-      },
-    );
-
-    await this.client.waitForTransactionReceipt({
-      hash: tx.hash,
-    });
-
-    return tx;
-  }
-
-  async checkReclaimEligibility(programId: number, projectId: number, investor: string) {
-    try {
-      const data = await this.client.readContract({
-        address: this.addresses.core as `0x${string}`,
-        abi: INVESTMENT_CORE_ABI,
-        functionName: 'checkReclaimEligibility',
-        args: [programId, projectId, investor as `0x${string}`],
-      });
-
-      const [canReclaim, reason, reclaimAmount] = data as [boolean, string, bigint];
-
-      return {
-        canReclaim,
-        reason,
-        reclaimAmount: Number(ethers.utils.formatEther(reclaimAmount)),
-      };
-    } catch (error) {
-      console.error('Failed to check reclaim eligibility:', error);
-      return {
-        canReclaim: false,
-        reason: 'Failed to check eligibility',
-        reclaimAmount: 0,
-      };
-    }
-  }
-
-  async approveMilestone(projectId: number, milestoneIndex: number) {
-    // Call approveMilestone which only records the approval (no funds transferred)
-    const data = encodeFunctionData({
-      abi: MILESTONE_MANAGER_ABI,
-      functionName: 'approveMilestone',
-      args: [projectId, milestoneIndex],
-    });
-
-    const tx = await this.sendTransaction(
-      {
-        to: this.addresses.milestone as `0x${string}`,
-        data,
-        chainId: this.chainId,
-      },
-      {
-        uiOptions: {
-          showWalletUIs: true,
-          description: 'Approving milestone (recording validator approval)',
-          buttonText: 'Approve Milestone',
-          transactionInfo: {
-            title: 'Milestone Approval',
-            action: 'Approve',
-          },
-          successHeader: 'Milestone Approved!',
-          successDescription:
-            'Your approval has been recorded. If this was the final approval needed, funds will be released automatically.',
-        },
-      },
-    );
-
-    // Wait for transaction to be mined
-    await this.client.waitForTransactionReceipt({
-      hash: tx.hash,
-    });
-
-    return { txHash: tx.hash };
-  }
-
-  async reclaimFunds(programId: number, projectId: number) {
+  async acceptMilestone(projectId: number, milestoneIndex: number) {
     try {
       const data = encodeFunctionData({
-        abi: INVESTMENT_CORE_ABI,
-        functionName: 'reclaimFund',
-        args: [programId, projectId],
+        abi: MILESTONE_MANAGER_ABI,
+        functionName: 'approveMilestone',
+        args: [projectId, milestoneIndex],
       });
 
-      const tx = await this.sendTransaction(
+      const txResult = await this.sendTransaction(
         {
-          to: this.addresses.core as `0x${string}`,
+          to: this.addresses.milestone as `0x${string}`,
           data,
-          chainId: this.chainId,
-        },
+          value: BigInt(0),
+        } as Parameters<typeof this.sendTransaction>[0],
         {
           uiOptions: {
             showWalletUIs: true,
-            description: 'Reclaiming your investment funds',
-            buttonText: 'Reclaim Funds',
             transactionInfo: {
-              title: 'Reclaim Investment',
-              action: 'Reclaim',
+              title: 'Approve Milestone',
+              action: 'Approve',
             },
-            successHeader: 'Funds Reclaimed!',
-            successDescription: 'Your investment has been successfully refunded.',
+            description: `Approving milestone #${milestoneIndex + 1} for project #${projectId}`,
+            successHeader: 'Milestone Approved!',
+            successDescription: 'The milestone has been approved and funds will be released.',
           },
         },
       );
 
-      return { txHash: tx.hash };
+      const receipt = await this.waitForTransaction(txResult.hash);
+      return {
+        txHash: receipt.transactionHash,
+      };
+    } catch (error) {
+      console.error('Failed to approve milestone:', error);
+      throw error;
+    }
+  }
+
+  async investFund(params: {
+    projectId: number;
+    amount: string; // Amount in ETH
+    token?: string; // Optional token address, if not provided uses ETH
+  }) {
+    try {
+      const valueInWei = ethers.utils.parseEther(params.amount);
+      const isNative = !params.token || params.token === ethers.constants.AddressZero;
+
+      let data: `0x${string}`;
+      let value: bigint;
+
+      if (isNative) {
+        // ETH investment
+        data = encodeFunctionData({
+          abi: FUNDING_MODULE_ABI,
+          functionName: 'investFund',
+          args: [params.projectId],
+        });
+        value = BigInt(valueInWei.toString());
+      } else {
+        // ERC20 token investment
+        data = encodeFunctionData({
+          abi: FUNDING_MODULE_ABI,
+          functionName: 'investWithToken',
+          args: [params.projectId, params.token as `0x${string}`, valueInWei],
+        });
+        value = BigInt(0);
+      }
+
+      const txResult = await this.sendTransaction(
+        {
+          to: this.addresses.funding as `0x${string}`,
+          data,
+          value,
+        } as Parameters<typeof this.sendTransaction>[0],
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            transactionInfo: {
+              title: 'Invest in Project',
+              action: 'Invest',
+            },
+            description: `Investing ${params.amount} ${isNative ? 'ETH' : 'tokens'} in project #${params.projectId}`,
+            successHeader: 'Investment Successful!',
+            successDescription: 'Your investment has been confirmed.',
+          },
+        },
+      );
+
+      const receipt = await this.waitForTransaction(txResult.hash);
+
+      // Parse investment event
+      const investmentEventTopic = ethers.utils.id('InvestmentMade(uint256,address,uint256)');
+      let investmentAmount = null;
+
+      const log = receipt.logs.find(
+        (log) =>
+          'topics' in log && Array.isArray(log.topics) && log.topics[0] === investmentEventTopic,
+      );
+
+      if (log && 'data' in log) {
+        const decoded = ethers.utils.defaultAbiCoder.decode(['uint256'], log.data);
+        investmentAmount = ethers.utils.formatEther(decoded[0]);
+      }
+
+      return {
+        txHash: receipt.transactionHash,
+        amount: investmentAmount || params.amount,
+        projectId: params.projectId,
+      };
+    } catch (error) {
+      console.error('Failed to invest:', error);
+      throw error;
+    }
+  }
+
+  async reclaimFund(projectId: number) {
+    try {
+      const data = encodeFunctionData({
+        abi: FUNDING_MODULE_ABI,
+        functionName: 'reclaimFund',
+        args: [projectId],
+      });
+
+      const txResult = await this.sendTransaction(
+        {
+          to: this.addresses.funding as `0x${string}`,
+          data,
+          value: BigInt(0),
+        } as Parameters<typeof this.sendTransaction>[0],
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            transactionInfo: {
+              title: 'Reclaim Investment',
+              action: 'Reclaim',
+            },
+            description: `Reclaiming funds from project #${projectId}`,
+            successHeader: 'Funds Reclaimed!',
+            successDescription: 'Your investment has been returned.',
+          },
+        },
+      );
+
+      const receipt = await this.waitForTransaction(txResult.hash);
+
+      // Parse reclaim event
+      const reclaimEventTopic = ethers.utils.id('FundsReclaimed(uint256,address,uint256)');
+      let reclaimedAmount = null;
+
+      const log = receipt.logs.find(
+        (log) =>
+          'topics' in log && Array.isArray(log.topics) && log.topics[0] === reclaimEventTopic,
+      );
+
+      if (log && 'data' in log) {
+        const decoded = ethers.utils.defaultAbiCoder.decode(['uint256'], log.data);
+        reclaimedAmount = ethers.utils.formatEther(decoded[0]);
+      }
+
+      return {
+        txHash: receipt.transactionHash,
+        amount: reclaimedAmount,
+        projectId,
+      };
     } catch (error) {
       console.error('Failed to reclaim funds:', error);
       throw error;
     }
   }
 
-  async getProjectFundingProgress(programId: number, projectId: number) {
+  async feeClaim(programId: number) {
     try {
-      // Read project details from the blockchain
-      const data = await this.client.readContract({
-        address: this.addresses.core as `0x${string}`,
-        abi: INVESTMENT_CORE_ABI,
-        functionName: 'getProjectDetails',
-        args: [programId, projectId],
+      const data = encodeFunctionData({
+        abi: FUNDING_MODULE_ABI,
+        functionName: 'feeClaim',
+        args: [programId],
       });
 
-      const [name, owner, targetFunding, totalInvested, status, returnedProgramId] = data as [
-        string,
-        string,
-        bigint,
-        bigint,
-        number,
-        bigint,
-      ];
+      const txResult = await this.sendTransaction(
+        {
+          to: this.addresses.funding as `0x${string}`,
+          data,
+          value: BigInt(0),
+        } as Parameters<typeof this.sendTransaction>[0],
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            transactionInfo: {
+              title: 'Claim Program Fees',
+              action: 'Claim',
+            },
+            description: `Claiming fees for program #${programId}`,
+            successHeader: 'Fees Claimed!',
+            successDescription: 'Program fees have been transferred to your wallet.',
+          },
+        },
+      );
 
-      // Calculate funding progress percentage
-      const targetAmount = Number(ethers.utils.formatEther(targetFunding));
-      const investedAmount = Number(ethers.utils.formatEther(totalInvested));
-      const progress = targetAmount > 0 ? (investedAmount / targetAmount) * 100 : 0;
+      const receipt = await this.waitForTransaction(txResult.hash);
+
+      // Parse fee claim event
+      const feeClaimEventTopic = ethers.utils.id('FeeClaimed(uint256,address,uint256)');
+      let claimedAmount = null;
+
+      const log = receipt.logs.find(
+        (log) =>
+          'topics' in log && Array.isArray(log.topics) && log.topics[0] === feeClaimEventTopic,
+      );
+
+      if (log && 'data' in log) {
+        const decoded = ethers.utils.defaultAbiCoder.decode(['uint256'], log.data);
+        claimedAmount = ethers.utils.formatEther(decoded[0]);
+      }
 
       return {
-        name,
-        owner,
-        targetFunding: targetAmount,
-        totalInvested: investedAmount,
-        fundingProgress: Math.min(progress, 100),
-        status,
-        programId: Number(returnedProgramId),
+        txHash: receipt.transactionHash,
+        amount: claimedAmount,
+        programId,
       };
     } catch (error) {
-      console.error('Failed to get project funding progress:', error);
-      // Return default values if the read fails
-      return {
-        name: '',
-        owner: '',
-        targetFunding: 0,
-        totalInvested: 0,
-        fundingProgress: 0,
-        status: 0,
-        programId: 0,
-      };
+      console.error('Failed to claim fees:', error);
+      throw error;
     }
   }
 
-  async signValidateProject(params: {
+  async submitProjectApplication(params: {
     programId: number;
-    projectOwner: string;
     projectName: string;
+    description: string;
     targetFunding: string;
-    milestones: Array<{
-      title: string;
-      description: string;
-      percentage: number;
-      deadline: string;
-    }>;
+    additionalData?: Record<string, unknown>;
   }) {
-    const targetFundingWei = ethers.utils.parseEther(params.targetFunding);
+    try {
+      const targetFundingWei = ethers.utils.parseEther(params.targetFunding);
 
-    // Convert milestones to contract format
-    const milestonesForContract = params.milestones.map((m) => ({
-      title: m.title,
-      description: m.description || '',
-      percentage: m.percentage * 100, // Convert to basis points (1% = 100)
-      deadline: Math.floor(new Date(m.deadline).getTime() / 1000),
-    }));
+      // Encode additional data if provided
+      const additionalDataBytes = params.additionalData
+        ? ethers.utils.defaultAbiCoder.encode(['string'], [JSON.stringify(params.additionalData)])
+        : '0x';
 
-    const data = encodeFunctionData({
-      abi: INVESTMENT_CORE_ABI,
-      functionName: 'signValidate',
-      args: [
-        params.programId,
-        params.projectOwner as `0x${string}`,
-        params.projectName,
-        targetFundingWei,
-        milestonesForContract,
-      ],
-    });
+      const data = encodeFunctionData({
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'submitProjectApplication',
+        args: [
+          params.programId,
+          params.projectName,
+          params.description,
+          targetFundingWei,
+          additionalDataBytes,
+        ],
+      });
 
-    const tx = await this.sendTransaction(
-      {
-        to: this.addresses.core as `0x${string}`,
-        data,
-        chainId: this.chainId,
-      },
-      {
-        uiOptions: {
-          showWalletUIs: true,
-          description: `Validating project: ${params.projectName}`,
-          buttonText: 'Validate Project',
-          transactionInfo: {
-            title: 'Project Validation',
-            action: 'Validate',
+      const txResult = await this.sendTransaction(
+        {
+          to: this.addresses.core as `0x${string}`,
+          data,
+          value: BigInt(0),
+        } as Parameters<typeof this.sendTransaction>[0],
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            transactionInfo: {
+              title: 'Submit Project Application',
+              action: 'Submit',
+            },
+            description: `Applying to program with project: ${params.projectName}`,
+            successHeader: 'Application Submitted!',
+            successDescription: 'Your project application has been submitted.',
           },
-          successHeader: 'Project Validated!',
-          successDescription: 'The project has been registered on the blockchain.',
         },
-      },
-    );
-
-    // Wait for transaction receipt
-    const receipt = await this.client.waitForTransactionReceipt({
-      hash: tx.hash,
-    });
-
-    // Extract project ID from events
-    // Event: ProjectValidated(uint256 indexed programId, uint256 indexed projectId, address projectOwner, string projectName, uint256 targetFunding)
-    const eventSignature = ethers.utils.id(
-      'ProjectValidated(uint256,uint256,address,string,uint256)',
-    );
-
-    const event = receipt.logs.find((log) => {
-      return log.topics[0]?.toLowerCase() === eventSignature.toLowerCase();
-    });
-
-    if (event?.topics[2]) {
-      // Project ID is the second indexed parameter (topics[2])
-      const projectId = Number.parseInt(event.topics[2], 16);
-      return { txHash: tx.hash, projectId };
-    }
-
-    // Try to extract from any log that might contain the project ID
-    if (receipt.logs.length > 0) {
-      // Look for logs from the core contract
-      const coreLogs = receipt.logs.filter(
-        (log) => log.address?.toLowerCase() === this.addresses.core.toLowerCase(),
       );
 
-      if (coreLogs.length > 0 && coreLogs[0].topics?.[2]) {
-        const possibleProjectId = Number.parseInt(coreLogs[0].topics[2], 16);
-        return { txHash: tx.hash, projectId: possibleProjectId };
+      const receipt = await this.waitForTransaction(txResult.hash);
+
+      // Extract application ID from event
+      let applicationId = null;
+      if (receipt.logs && receipt.logs.length > 0) {
+        const eventTopic = ethers.utils.id(
+          'ProjectApplicationSubmitted(uint256,uint256,address,string,uint256)',
+        );
+        const log = receipt.logs.find(
+          (log) => 'topics' in log && Array.isArray(log.topics) && log.topics[0] === eventTopic,
+        );
+        if (log && 'topics' in log && Array.isArray(log.topics)) {
+          applicationId = Number.parseInt(log.topics[2] as string, 16);
+        }
       }
 
-      // Last resort - check first log
-      if (
-        receipt.logs[0].topics?.length &&
-        receipt.logs[0].topics.length > 2 &&
-        receipt.logs[0].topics[2]
-      ) {
-        const possibleProjectId = Number.parseInt(receipt.logs[0].topics[2], 16);
-        return { txHash: tx.hash, projectId: possibleProjectId };
-      }
+      return {
+        txHash: receipt.transactionHash,
+        applicationId,
+      };
+    } catch (error) {
+      console.error('Failed to submit project application:', error);
+      throw error;
     }
+  }
 
-    // Fallback to ID 0 if extraction fails
-    return { txHash: tx.hash, projectId: 0 };
+  async getProgramStatusDetailed(programId: number) {
+    try {
+      const data = await this.client.readContract({
+        address: this.addresses.core as `0x${string}`,
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'getProgramStatusDetailed',
+        args: [programId],
+      });
+
+      const [
+        status,
+        isInApplicationPeriod,
+        isInFundingPeriod,
+        isInPendingPeriod,
+        timeUntilNextPhase,
+      ] = data as [number, boolean, boolean, boolean, bigint];
+
+      const statusNames = [
+        'Ready',
+        'ApplicationOngoing',
+        'ApplicationClosed',
+        'FundingOngoing',
+        'ProjectOngoing',
+        'ProgramCompleted',
+        'Failed',
+        'Pending',
+      ];
+
+      return {
+        status: statusNames[status] || 'Unknown',
+        statusCode: status,
+        isInApplicationPeriod,
+        isInFundingPeriod,
+        isInPendingPeriod,
+        timeUntilNextPhase: Number(timeUntilNextPhase),
+      };
+    } catch (error) {
+      console.error('Failed to get program status:', error);
+      throw error;
+    }
+  }
+
+  async getProjectInvestmentDetails(projectId: number) {
+    try {
+      const data = await this.client.readContract({
+        address: this.addresses.funding as `0x${string}`,
+        abi: [
+          'function getProjectDetails(uint256) view returns (uint256 totalRaised, uint256 targetAmount, bool fundingSuccessful, uint256 investorCount)',
+        ],
+        functionName: 'getProjectDetails',
+        args: [projectId],
+      });
+
+      const [totalRaised, targetAmount, fundingSuccessful, investorCount] = data as [
+        bigint,
+        bigint,
+        boolean,
+        bigint,
+      ];
+
+      return {
+        totalRaised: ethers.utils.formatEther(totalRaised),
+        targetAmount: ethers.utils.formatEther(targetAmount),
+        fundingSuccessful,
+        investorCount: Number(investorCount),
+        fundingProgress: targetAmount > 0 ? (Number(totalRaised) * 100) / Number(targetAmount) : 0,
+      };
+    } catch (error) {
+      console.error('Failed to get project investment details:', error);
+      throw error;
+    }
+  }
+
+  async canClaimFees(programId: number, userAddress: string): Promise<boolean> {
+    try {
+      const data = await this.client.readContract({
+        address: this.addresses.funding as `0x${string}`,
+        abi: ['function canClaimFees(uint256,address) view returns (bool)'],
+        functionName: 'canClaimFees',
+        args: [programId, userAddress as `0x${string}`],
+      });
+
+      return data as boolean;
+    } catch (error) {
+      console.error('Failed to check fee claim eligibility:', error);
+      return false;
+    }
+  }
+
+  async isInApplicationPeriod(programId: number): Promise<boolean> {
+    const status = await this.getProgramStatusDetailed(programId);
+    return status.isInApplicationPeriod;
+  }
+
+  async isInFundingPeriod(programId: number): Promise<boolean> {
+    const status = await this.getProgramStatusDetailed(programId);
+    return status.isInFundingPeriod;
+  }
+
+  /**
+   * Alias for acceptMilestone (backward compatibility)
+   */
+  async approveMilestone(projectId: number, milestoneIndex: number) {
+    return this.acceptMilestone(projectId, milestoneIndex);
+  }
+
+  /**
+   * Alias for reclaimFund (backward compatibility)
+   */
+  async reclaimFunds(projectId: number) {
+    // programId parameter is ignored for backward compatibility
+    return this.reclaimFund(projectId);
+  }
+
+  async checkReclaimEligibility(
+    projectId: number,
+    investor: string,
+  ): Promise<{ canReclaim: boolean; reason?: string }> {
+    try {
+      const data = await this.client.readContract({
+        address: this.addresses.funding as `0x${string}`,
+        abi: ['function canReclaimFunds(uint256,address) view returns (bool,string)'],
+        functionName: 'canReclaimFunds',
+        args: [projectId, investor as `0x${string}`],
+      });
+
+      const [canReclaim, reason] = data as [boolean, string];
+      return { canReclaim, reason };
+    } catch (error) {
+      console.error('Failed to check reclaim eligibility:', error);
+      return { canReclaim: false, reason: 'Failed to check eligibility' };
+    }
+  }
+
+  async getProjectFundingProgress(projectId: number) {
+    return this.getProjectInvestmentDetails(projectId);
   }
 }

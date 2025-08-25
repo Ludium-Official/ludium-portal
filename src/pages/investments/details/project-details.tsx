@@ -98,7 +98,7 @@ function ProjectDetailsPage() {
   const { name, keywords, network } = program ?? {};
 
   const contract = useContract(network || mainnetDefaultNetwork);
-  const investmentContract = useInvestmentContract(network || mainnetDefaultNetwork);
+  const investmentContract = useInvestmentContract(network || 'educhain-testnet');
 
   const applicationMutationParams = {
     onCompleted: () => {
@@ -154,13 +154,8 @@ function ProjectDetailsPage() {
               })) || [];
 
             // Call signValidate to register the project on blockchain
-            const result = await investmentContract.signValidateProject({
-              programId: Number(program.educhainProgramId),
-              projectOwner:
-                application.applicant?.walletAddress ||
-                '0x0000000000000000000000000000000000000000',
-              projectName: application.name || 'Untitled Project',
-              targetFunding: application.fundingTarget || application.price || '0',
+            const result = await investmentContract.signValidate({
+              applicationId: Number(projectId),
               milestones,
             });
 
@@ -208,10 +203,13 @@ function ProjectDetailsPage() {
       if (program?.educhainProgramId && data?.application?.onChainProjectId) {
         try {
           const progress = await investmentContract.getProjectFundingProgress(
-            Number(program.educhainProgramId),
             Number(data.application.onChainProjectId),
           );
-          setOnChainFundingProgress(progress);
+          setOnChainFundingProgress({
+            targetFunding: Number(progress.targetAmount),
+            totalInvested: Number(progress.totalRaised),
+            fundingProgress: progress.fundingProgress,
+          });
         } catch (_error) {
           // Silently fail - funding progress is not critical
         }
@@ -298,13 +296,13 @@ function ProjectDetailsPage() {
           notify('Please approve the transaction in your wallet', 'loading');
 
           // Call the blockchain investment function with the actual on-chain project ID
-          const tx = await investmentContract.invest(
-            Number(onChainProjectId), // Use the actual on-chain project ID
-            amount, // investment amount
-            '0x0000000000000000000000000000000000000000', // Native token for now
-          );
+          const result = await investmentContract.investFund({
+            projectId: Number(onChainProjectId), // Use the actual on-chain project ID
+            amount: amount, // investment amount in ETH
+            // token is optional, if not provided uses ETH
+          });
 
-          txHash = tx.hash;
+          txHash = result.txHash;
           notify('Transaction submitted! Waiting for confirmation...', 'loading');
         } catch (_blockchainError) {
           notify('Blockchain transaction failed. Please try again.', 'error');

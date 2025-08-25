@@ -13,6 +13,13 @@ query investments($supporterId: ID, $projectId: ID, $pagination: PaginationInput
         id
         name
         onChainProjectId
+        program {
+          id
+          name
+          network
+          currency
+          educhainProgramId
+        }
       }
       supporter {
         id

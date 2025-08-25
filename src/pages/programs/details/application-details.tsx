@@ -150,13 +150,10 @@ function ApplicationDetails() {
               })) || [];
 
             // Call signValidate to register the project on blockchain
-            const result = await investmentContract.signValidateProject({
-              programId: Number(program.educhainProgramId),
-              projectOwner:
-                application.applicant?.walletAddress ||
-                '0x0000000000000000000000000000000000000000',
-              projectName: application.name || 'Untitled Project',
-              targetFunding: application.fundingTarget || application.price || '0',
+            // Note: signValidate expects applicationId, not programId
+            // We need to get the application ID from the database first
+            const result = await investmentContract.signValidate({
+              applicationId: Number(applicationId), // Use the application ID from params
               milestones,
             });
 
