@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import { AgentBreadcrumbs } from './agent-breadcrumbs';
 import ProgramHostCard from './program-host-card';
+// import { useProfileQuery } from '@/apollo/queries/profile.generated';
 
 const programPageSize = 6;
 
@@ -14,6 +15,13 @@ export default function UserInvestmentHostTab() {
   const [searchParams, _setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const currentPage = Number(searchParams.get('page')) || 1;
+
+  // const { data: profileData } = useProfileQuery({
+  //   fetchPolicy: 'network-only',
+  //   skip: !myProfile,
+  // });
+
+  // const profileId = myProfile ? profileData?.profile?.id ?? '' : id ?? '';
 
   const { data: programData } = useProgramsQuery({
     variables: {
@@ -24,11 +32,11 @@ export default function UserInvestmentHostTab() {
         filter: [
           ...(searchQuery
             ? [
-                {
-                  field: 'name',
-                  value: searchQuery,
-                },
-              ]
+              {
+                field: 'name',
+                value: searchQuery,
+              },
+            ]
             : []),
         ],
       },

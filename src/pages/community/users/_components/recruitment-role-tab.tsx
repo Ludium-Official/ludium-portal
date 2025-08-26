@@ -1,3 +1,4 @@
+import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
@@ -9,11 +10,18 @@ import ProgramCard from './program-card';
 
 const programPageSize = 6;
 
-export default function UserRecruitmentRoleTab() {
+export default function UserRecruitmentRoleTab({ myProfile }: { myProfile?: boolean }) {
   const { id, role } = useParams();
   const [searchParams, _setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const currentPage = Number(searchParams.get('page')) || 1;
+
+  const { data: profileData } = useProfileQuery({
+    fetchPolicy: 'network-only',
+    skip: !myProfile,
+  });
+
+  const profileId = myProfile ? profileData?.profile?.id ?? '' : id ?? '';
 
   const { data: programData } = useProgramsQuery({
     variables: {
@@ -23,21 +31,21 @@ export default function UserRecruitmentRoleTab() {
 
         filter: [
           {
-            value: id ?? '',
+            value: profileId,
             field: role ?? '',
           },
           ...(searchQuery
             ? [
-                {
-                  field: 'name',
-                  value: searchQuery,
-                },
-              ]
+              {
+                field: 'name',
+                value: searchQuery,
+              },
+            ]
             : []),
         ],
       },
     },
-    skip: !id,
+    skip: !profileId,
   });
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);

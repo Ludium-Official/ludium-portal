@@ -1,3 +1,4 @@
+import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { Link, useParams } from 'react-router';
 import { AgentBreadcrumbs } from './agent-breadcrumbs';
@@ -17,9 +18,17 @@ const filterBasedOnRole = {
 
 const roles = ['sponsor', 'validator', 'builder'] as const;
 
-export default function UserRecruitmentTab() {
+export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean }) {
   const { id } = useParams();
   const [searchQuery, setSearchQuery] = useState('');
+
+  const { data: profileData } = useProfileQuery({
+    fetchPolicy: 'network-only',
+    skip: !myProfile,
+  });
+
+  const profileId = myProfile ? profileData?.profile?.id ?? '' : id ?? '';
+
   const queries = {
     sponsor: useProgramsQuery({
       variables: {
@@ -28,21 +37,21 @@ export default function UserRecruitmentTab() {
           offset: 0,
           filter: [
             {
-              value: id ?? '',
+              value: profileId,
               field: filterBasedOnRole.sponsor,
             },
             ...(searchQuery
               ? [
-                  {
-                    field: 'name',
-                    value: searchQuery,
-                  },
-                ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
               : []),
           ],
         },
       },
-      skip: !id,
+      skip: !profileId,
     }),
     validator: useProgramsQuery({
       variables: {
@@ -51,21 +60,21 @@ export default function UserRecruitmentTab() {
           offset: 0,
           filter: [
             {
-              value: id ?? '',
+              value: profileId,
               field: filterBasedOnRole.validator,
             },
             ...(searchQuery
               ? [
-                  {
-                    field: 'name',
-                    value: searchQuery,
-                  },
-                ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
               : []),
           ],
         },
       },
-      skip: !id,
+      skip: !profileId,
     }),
     builder: useProgramsQuery({
       variables: {
@@ -74,21 +83,21 @@ export default function UserRecruitmentTab() {
           offset: 0,
           filter: [
             {
-              value: id ?? '',
+              value: profileId,
               field: filterBasedOnRole.builder,
             },
             ...(searchQuery
               ? [
-                  {
-                    field: 'name',
-                    value: searchQuery,
-                  },
-                ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
               : []),
           ],
         },
       },
-      skip: !id,
+      skip: !profileId,
     }),
   };
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
