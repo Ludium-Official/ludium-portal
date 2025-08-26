@@ -43,7 +43,7 @@ export const currencies = [
     code: "creditcoin",
     icon: <CreditCoinIcon />,
     display: "Creditcoin",
-    isTestnet: true,
+    isTestnet: false,
   },
 ];
 
