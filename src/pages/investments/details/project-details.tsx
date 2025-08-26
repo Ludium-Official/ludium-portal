@@ -43,7 +43,6 @@ import { useInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
 import { cn, getCurrency, getCurrencyIcon, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
-import UserInvestments from '@/pages/investments/_components/user-investments';
 // import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
 import EditMilestoneForm from '@/pages/programs/details/_components/edit-milestone-form';
@@ -135,11 +134,9 @@ function ProjectDetailsPage() {
         }
 
         // Check if application already has an onChainProjectId
-        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-        if ((application as any).onChainProjectId) {
+        if (application.onChainProjectId) {
           notify('This project is already registered on the blockchain', 'error');
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-          onChainProjectId = (application as any).onChainProjectId;
+          onChainProjectId = application.onChainProjectId;
         } else {
           notify('Registering project on blockchain...', 'loading');
 
@@ -153,9 +150,12 @@ function ProjectDetailsPage() {
                 deadline: m.deadline || new Date().toISOString(),
               })) || [];
 
-            // Call signValidate to register the project on blockchain
+            // Call signValidate to register the project on blockchain FIRST
             const result = await investmentContract.signValidate({
-              applicationId: Number(projectId),
+              programId: program.educhainProgramId,
+              projectOwner: application.applicant?.walletAddress || application.applicant?.id || '',
+              projectName: application.name || '',
+              targetFunding: application.fundingTarget || '0',
               milestones,
             });
 
@@ -163,18 +163,30 @@ function ProjectDetailsPage() {
               onChainProjectId = result.projectId;
               notify(`Project registered on blockchain with ID: ${onChainProjectId}`, 'success');
             } else {
-              notify('Project registered but could not extract ID from blockchain', 'error');
+              notify('Failed to extract project ID from blockchain transaction', 'error');
+              return; // Don't save to DB if we couldn't get the project ID
             }
-          } catch (_blockchainError) {
-            notify(
-              'Failed to register project on blockchain. Continuing with off-chain approval.',
-              'error',
-            );
+          } catch (blockchainError) {
+            // Check if user rejected the transaction
+            const errorMessage =
+              blockchainError instanceof Error ? blockchainError.message : String(blockchainError);
+            const errorCode = (blockchainError as { code?: number })?.code;
+
+            if (
+              errorMessage.includes('User rejected') ||
+              errorMessage.includes('User denied') ||
+              errorCode === 4001
+            ) {
+              notify('Transaction canceled by user', 'error');
+            } else {
+              notify('Failed to register project on blockchain', 'error');
+            }
+            return; // Exit without saving to database
           }
         }
       }
 
-      // Accept the application in the database
+      // Only save to database AFTER successful blockchain transaction (or if off-chain)
       await approveApplication({
         variables: {
           id: projectId ?? '',
@@ -1164,18 +1176,35 @@ function ProjectDetailsPage() {
                                 <DialogTrigger
                                   asChild
                                   disabled={
-                                    idx !== 0 &&
-                                    data?.application?.milestones?.[idx - 1]?.status !==
-                                      MilestoneStatus.Completed
+                                    (idx !== 0 &&
+                                      data?.application?.milestones?.[idx - 1]?.status !==
+                                        MilestoneStatus.Completed) ||
+                                    // Prevent milestone submission before funding ends
+                                    (program?.fundingEndDate &&
+                                      new Date() <= new Date(program.fundingEndDate))
                                   }
                                 >
-                                  <Button className="h-10 block ml-auto">Submit Milestone</Button>
+                                  <Button
+                                    className="h-10 block ml-auto"
+                                    title={
+                                      program?.fundingEndDate &&
+                                      new Date() <= new Date(program.fundingEndDate)
+                                        ? `Milestones can only be submitted after funding ends on ${new Date(program.fundingEndDate).toLocaleDateString()}`
+                                        : undefined
+                                    }
+                                  >
+                                    Submit Milestone
+                                  </Button>
                                 </DialogTrigger>
                                 <DialogContent>
                                   <DialogTitle />
                                   <DialogDescription />
                                   <DialogClose id="submit-milestone-dialog-close" />
-                                  <SubmitMilestoneForm milestone={m} refetch={refetch} />
+                                  <SubmitMilestoneForm
+                                    milestone={m}
+                                    refetch={refetch}
+                                    program={program}
+                                  />
                                 </DialogContent>
                               </Dialog>
                             )}
@@ -1266,11 +1295,6 @@ function ProjectDetailsPage() {
         </section>
 
         {/* User's Investments Section */}
-        {userId && projectId && (
-          <section className="p-10 bg-white">
-            <UserInvestments projectId={projectId} />
-          </section>
-        )}
       </div>
     </div>
   );

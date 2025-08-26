@@ -9,7 +9,14 @@ import { ProgramStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ShareButton } from '@/components/ui/share-button';
@@ -33,7 +40,6 @@ import { Link, useNavigate, useParams } from 'react-router';
 
 import { http, type Chain, type PublicClient, createPublicClient } from 'viem';
 import { arbitrumSepolia, baseSepolia, eduChainTestnet } from 'viem/chains';
-
 
 function getChainForNetwork(network: string) {
   const chainMap: Record<string, Chain> = {
@@ -317,14 +323,36 @@ const InvestmentDetailsPage: React.FC = () => {
           blockchainProgramId = contractResult.programId;
           txHash = contractResult.txHash;
 
+          console.log('Contract deployment result:', contractResult);
+          console.log('Program ID:', blockchainProgramId);
+          console.log('TX Hash:', txHash);
+
           if (blockchainProgramId !== null && blockchainProgramId !== undefined) {
-            notify(`Blockchain deployment successful! Program ID: ${blockchainProgramId}`, 'success');
+            notify(
+              `Blockchain deployment successful! Program ID: ${blockchainProgramId}`,
+              'success',
+            );
           } else {
             notify('Blockchain deployment successful!', 'success');
           }
         }
 
-        if (txHash && blockchainProgramId) {
+        // For off-chain programs or blockchain programs
+        if (program.network === 'off-chain') {
+          // For off-chain programs, just publish without blockchain details
+          await publishProgram({
+            variables: {
+              id: program?.id ?? '',
+              educhainProgramId: 0, // No blockchain ID for off-chain
+              txHash: '', // No tx hash for off-chain
+            },
+          });
+          notify('Program published successfully', 'success');
+          refetch(); // Refresh the program data
+          // Close the dialog
+          document.getElementById('pay-dialog-close')?.click();
+        } else if (txHash && blockchainProgramId !== null && blockchainProgramId !== undefined) {
+          // For blockchain programs, include the blockchain details
           await publishProgram({
             variables: {
               id: program?.id ?? '',
@@ -332,10 +360,12 @@ const InvestmentDetailsPage: React.FC = () => {
               txHash: txHash,
             },
           });
-
           notify('Program published successfully', 'success');
+          refetch(); // Refresh the program data
+          // Close the dialog
+          document.getElementById('pay-dialog-close')?.click();
         } else {
-          notify('Program published failed', 'error');
+          notify('Failed to deploy to blockchain. Please try again.', 'error');
         }
       }
     } catch (error) {
@@ -367,20 +397,22 @@ const InvestmentDetailsPage: React.FC = () => {
                     <div className="flex border-b mb-6">
                       <button
                         type="button"
-                        className={`px-4 py-2 text-sm font-medium border-b transition-colors ${supportersTab === 'invite'
-                          ? 'border-primary text-primary'
-                          : 'border- text-muted-foreground hover:text-foreground'
-                          }`}
+                        className={`px-4 py-2 text-sm font-medium border-b transition-colors ${
+                          supportersTab === 'invite'
+                            ? 'border-primary text-primary'
+                            : 'border- text-muted-foreground hover:text-foreground'
+                        }`}
                         onClick={() => setSupportersTab('invite')}
                       >
                         Invite supporter
                       </button>
                       <button
                         type="button"
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${supportersTab === 'supporters'
-                          ? 'border-primary text-primary'
-                          : 'border-transparent text-muted-foreground hover:text-foreground'
-                          }`}
+                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                          supportersTab === 'supporters'
+                            ? 'border-primary text-primary'
+                            : 'border-transparent text-muted-foreground hover:text-foreground'
+                        }`}
                         onClick={() => setSupportersTab('supporters')}
                       >
                         Supporters
@@ -937,29 +969,30 @@ const InvestmentDetailsPage: React.FC = () => {
                 Submit Project
               </Button>
 
-              {program?.validators?.some((v) => v.id === userId) && program.status === ProgramStatus.Pending && (
-                <div className="flex justify-end gap-2 w-full mt-3">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="h-11 flex-1">
-                        Reject
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="min-w-[800px] p-0 max-h-screen overflow-y-auto">
-                      <RejectProgramForm programId={program.id} refetch={refetch} />
-                    </DialogContent>
-                  </Dialog>
-                  <Button
-                    onClick={async () => {
-                      await acceptProgram();
-                      notify('Program accepted', 'success');
-                    }}
-                    className="h-11 flex-1"
-                  >
-                    Confirm
-                  </Button>
-                </div>
-              )}
+              {program?.validators?.some((v) => v.id === userId) &&
+                program.status === ProgramStatus.Pending && (
+                  <div className="flex justify-end gap-2 w-full mt-3">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="h-11 flex-1">
+                          Reject
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="min-w-[800px] p-0 max-h-screen overflow-y-auto">
+                        <RejectProgramForm programId={program.id} refetch={refetch} />
+                      </DialogContent>
+                    </Dialog>
+                    <Button
+                      onClick={async () => {
+                        await acceptProgram();
+                        notify('Program accepted', 'success');
+                      }}
+                      className="h-11 flex-1"
+                    >
+                      Confirm
+                    </Button>
+                  </div>
+                )}
 
               {program?.creator?.id === userId &&
                 program.status === ProgramStatus.PaymentRequired && (
@@ -996,13 +1029,14 @@ const InvestmentDetailsPage: React.FC = () => {
                 </div>
               )}
 
-              {program?.status === ProgramStatus.Rejected && program.validators?.some((v) => v.id === userId) && (
-                <div className="flex justify-end gap-2 w-full mt-3">
-                  <Button disabled variant='outline' className="h-11 flex-1">
-                    Rejection Reason Submitted
-                  </Button>
-                </div>
-              )}
+              {program?.status === ProgramStatus.Rejected &&
+                program.validators?.some((v) => v.id === userId) && (
+                  <div className="flex justify-end gap-2 w-full mt-3">
+                    <Button disabled variant="outline" className="h-11 flex-1">
+                      Rejection Reason Submitted
+                    </Button>
+                  </div>
+                )}
 
               <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM HOST</p>
@@ -1016,7 +1050,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       })}
                     />
                     {program?.status === ProgramStatus.Published ||
-                      program?.status === ProgramStatus.Completed
+                    program?.status === ProgramStatus.Completed
                       ? 'Confirmed'
                       : 'Not confirmed'}
                   </span>

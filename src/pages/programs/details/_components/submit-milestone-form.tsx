@@ -2,6 +2,7 @@ import { useSubmitMilestoneMutation } from '@/apollo/mutation/submit-milestone.g
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import notify from '@/lib/notify';
 import { type Milestone, SubmitMilestoneStatus } from '@/types/types.generated';
 import { X } from 'lucide-react';
 import { useState } from 'react';
@@ -9,7 +10,12 @@ import { useState } from 'react';
 function SubmitMilestoneForm({
   milestone,
   refetch,
-}: { milestone: Milestone; refetch: () => void }) {
+  program,
+}: {
+  milestone: Milestone;
+  refetch: () => void;
+  program?: { fundingEndDate?: string | null } | null;
+}) {
   const [file, setFile] = useState<File>();
   const [description, setDescription] = useState<string>(milestone?.description ?? '');
 
@@ -64,6 +70,15 @@ function SubmitMilestoneForm({
   };
 
   const submitMilestone = (milestoneId: string) => {
+    // Check if funding period has ended
+    if (program?.fundingEndDate && new Date() <= new Date(program.fundingEndDate)) {
+      notify(
+        `Milestones cannot be submitted until funding ends on ${new Date(program.fundingEndDate).toLocaleDateString()}`,
+        'error',
+      );
+      return;
+    }
+
     if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
       setLinksError(true);
       return;
