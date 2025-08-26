@@ -14,7 +14,6 @@ import {
   ProgramStatus,
 } from '@/types/types.generated';
 
-
 function ProgramStatusBadge({
   program,
   className,

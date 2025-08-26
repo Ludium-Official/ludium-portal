@@ -70,11 +70,12 @@ const Sidebar = () => {
                 <>
                   <p
                     // to={link.path}
-                    className={`group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium cursor-default ${location.pathname.startsWith('/community') ||
-                        location.pathname.startsWith('/users')
+                    className={`group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium cursor-default ${
+                      location.pathname.startsWith('/community') ||
+                      location.pathname.startsWith('/users')
                         ? 'bg-primary-light text-primary'
                         : 'hover:bg-primary-light hover:text-primary'
-                      }`}
+                    }`}
                   >
                     <link.icon className="group-active:text-primary group-hover:text-primary" />
                     {link.name}
@@ -101,9 +102,10 @@ const Sidebar = () => {
                 <NavLink
                   to={link.path}
                   className={({ isActive }) =>
-                    `group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium ${isActive
-                      ? 'bg-primary-light text-primary'
-                      : 'hover:bg-primary-light hover:text-primary'
+                    `group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium ${
+                      isActive
+                        ? 'bg-primary-light text-primary'
+                        : 'hover:bg-primary-light hover:text-primary'
                     }`
                   }
                 >

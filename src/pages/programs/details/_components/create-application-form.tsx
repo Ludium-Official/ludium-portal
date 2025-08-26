@@ -7,7 +7,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { DialogClose, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { } from '@/components/ui/tooltip';
+import {} from '@/components/ui/tooltip';
 import { useApplicationDraft } from '@/lib/hooks/use-application-draft';
 import notify from '@/lib/notify';
 import { getCurrencyIcon } from '@/lib/utils';
@@ -50,7 +50,11 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   });
   const [linksError, setLinksError] = useState(false);
   const [createApplication, { loading }] = useCreateApplicationMutation();
-  const { saveDraft: saveApplicationDraft, loadDraft: loadApplicationDraft, clearDraft: clearApplicationDraft } = useApplicationDraft(program?.id ?? '');
+  const {
+    saveDraft: saveApplicationDraft,
+    loadDraft: loadApplicationDraft,
+    clearDraft: clearApplicationDraft,
+  } = useApplicationDraft(program?.id ?? '');
 
   // Prefill from draft on mount (scoped by program id)
   useEffect(() => {
@@ -182,11 +186,12 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             // price: formData.milestones
             //   .reduce((prev, curr) => BigNumber(curr?.price ?? '0').plus(prev), BigNumber(0))
             //   .toFixed(18),
-            links:
-              (() => {
-                const { shouldSend } = validateLinks(formData.overview.links);
-                return shouldSend ? filterEmptyLinks(formData.overview.links).map((l) => ({ title: l, url: l })) : undefined;
-              })()
+            links: (() => {
+              const { shouldSend } = validateLinks(formData.overview.links);
+              return shouldSend
+                ? filterEmptyLinks(formData.overview.links).map((l) => ({ title: l, url: l }))
+                : undefined;
+            })(),
             // formData.overview.links.filter(Boolean).map((l) => ({ title: l, url: l })),
           },
         },
@@ -287,7 +292,9 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       content: (
         <div className="space-y-6">
           <label htmlFor="summary" className="w-full block">
-            <p className="text-sm font-medium mb-2">Summary <span className="text-primary">*</span></p>
+            <p className="text-sm font-medium mb-2">
+              Summary <span className="text-primary">*</span>
+            </p>
             <Textarea
               id="summary"
               className="h-10 w-full mb-2"
@@ -296,7 +303,9 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             />
           </label>
           <label htmlFor="description" className="w-full block">
-            <p className="text-sm font-medium mb-2">Description <span className="text-primary">*</span></p>
+            <p className="text-sm font-medium mb-2">
+              Description <span className="text-primary">*</span>
+            </p>
             <MarkdownEditor
               onChange={(val) => handleDescriptionChange('content', val as string)}
               content={formData.description.content}
@@ -313,7 +322,9 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       content: (
         <div className="space-y-4">
           <label htmlFor="title0" className="w-full block">
-            <p className="text-sm font-medium mb-2">Milestone 1 <span className="text-primary">*</span></p>
+            <p className="text-sm font-medium mb-2">
+              Milestone 1 <span className="text-primary">*</span>
+            </p>
             <Input
               id="title0"
               className="h-10 w-full"
@@ -323,7 +334,9 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           </label>
           <div className="flex gap-4">
             <label htmlFor="price0" className="w-full block">
-              <p className="text-sm font-medium mb-2">Milestone Payout (% of Funding) <span className="text-primary">*</span></p>
+              <p className="text-sm font-medium mb-2">
+                Milestone Payout (% of Funding) <span className="text-primary">*</span>
+              </p>
               <Input
                 type="number"
                 id="price0"
@@ -336,7 +349,9 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
               />
             </label>
             <label htmlFor="deadline0" className="w-full block">
-              <p className="text-sm font-medium mb-2">Deadline <span className="text-primary">*</span></p>
+              <p className="text-sm font-medium mb-2">
+                Deadline <span className="text-primary">*</span>
+              </p>
               <DatePicker
                 disabled={{ before: new Date() }}
                 date={
@@ -345,17 +360,15 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                     : undefined
                 }
                 setDate={(date) =>
-                  handleMilestoneChange(
-                    0,
-                    'deadline',
-                    date ? (date as Date)?.toISOString() : '',
-                  )
+                  handleMilestoneChange(0, 'deadline', date ? (date as Date)?.toISOString() : '')
                 }
               />
             </label>
           </div>
           <label htmlFor="summary0" className="w-full block">
-            <p className="text-sm font-medium mb-2">Summary <span className="text-primary">*</span></p>
+            <p className="text-sm font-medium mb-2">
+              Summary <span className="text-primary">*</span>
+            </p>
             <Textarea
               id="summary0"
               value={formData.milestones[0]?.summary}
@@ -364,7 +377,9 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             />
           </label>
           <label htmlFor="desc0" className="w-full block">
-            <p className="text-sm font-medium mb-2">Description <span className="text-primary">*</span></p>
+            <p className="text-sm font-medium mb-2">
+              Description <span className="text-primary">*</span>
+            </p>
             <MarkdownEditor
               onChange={(val) => handleMilestoneChange(0, 'description', val as string)}
               content={formData.milestones[0]?.description}
@@ -381,7 +396,9 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       content: (
         <div className="space-y-4">
           <label htmlFor={`title${idx + 1}`} className="w-full block">
-            <p className="text-sm font-medium mb-2">Milestone {idx + 2} <span className="text-primary">*</span></p>
+            <p className="text-sm font-medium mb-2">
+              Milestone {idx + 2} <span className="text-primary">*</span>
+            </p>
             <Input
               id={`title${idx + 1}`}
               className="h-10 w-full"
@@ -391,7 +408,9 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
           </label>
           <div className="flex gap-4">
             <label htmlFor={`price${idx + 1}`} className="w-full block">
-              <p className="text-sm font-medium mb-2">Milestone Payout (% of Funding) <span className="text-primary">*</span></p>
+              <p className="text-sm font-medium mb-2">
+                Milestone Payout (% of Funding) <span className="text-primary">*</span>
+              </p>
               <Input
                 type="number"
                 id={`price${idx + 1}`}
@@ -404,7 +423,9 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
               />
             </label>
             <label htmlFor={`deadline${idx + 1}`} className="w-full block">
-              <p className="text-sm font-medium mb-2">Deadline <span className="text-primary">*</span></p>
+              <p className="text-sm font-medium mb-2">
+                Deadline <span className="text-primary">*</span>
+              </p>
               <DatePicker
                 disabled={{ before: new Date() }}
                 date={m.deadline ? new Date(m.deadline) : undefined}
@@ -413,14 +434,15 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                     idx + 1,
                     'deadline',
                     date ? (date as Date)?.toISOString() : '',
-                  )
-                }
-                }
+                  );
+                }}
               />
             </label>
           </div>
           <label htmlFor={`summary${idx + 1}`} className="w-full block">
-            <p className="text-sm font-medium mb-2">Summary <span className="text-primary">*</span></p>
+            <p className="text-sm font-medium mb-2">
+              Summary <span className="text-primary">*</span>
+            </p>
             <Textarea
               id={`summary${idx + 1}`}
               value={m.summary}
@@ -429,7 +451,9 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             />
           </label>
           <label htmlFor={`desc${idx + 1}`} className="w-full block">
-            <p className="text-sm font-medium mb-2">Description <span className="text-primary">*</span></p>
+            <p className="text-sm font-medium mb-2">
+              Description <span className="text-primary">*</span>
+            </p>
             <MarkdownEditor
               onChange={(val) => handleMilestoneChange(idx + 1, 'description', val as string)}
               content={m.description}
@@ -441,7 +465,9 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
   ];
 
   // Validation for submit
-  const milestoneValid = formData.milestones.every((m) => !!m.title && !!m.price && !!m.summary && !!m.description && !!m.deadline);
+  const milestoneValid = formData.milestones.every(
+    (m) => !!m.title && !!m.price && !!m.summary && !!m.description && !!m.deadline,
+  );
   const allValid =
     formData.overview.name &&
     formData.overview.price &&

@@ -1,5 +1,6 @@
 import ArbitrumIcon from '@/assets/icons/crypto/arbitrum';
 import BaseIcon from '@/assets/icons/crypto/base';
+import CreditCoinIcon from '@/assets/icons/crypto/creditcoin';
 import EduIcon from '@/assets/icons/crypto/edu';
 
 import EthIcon from '@/assets/icons/crypto/eth';
@@ -38,12 +39,17 @@ export const currencies = [
     display: 'Arbitrum Sepolia',
     isTestnet: true,
   },
+  {
+    code: 'creditcoin',
+    icon: <CreditCoinIcon />,
+    display: 'Creditcoin',
+    isTestnet: false,
+  },
 ];
 
-
 export const currencyIcons = {
-  'EDU': <EduIcon />,
-  'USDT': <UsdtIcon />,
-  'USDC': <UsdcIcon />,
-  'ETH': <EthIcon />,
-}
+  EDU: <EduIcon />,
+  USDT: <UsdtIcon />,
+  USDC: <UsdcIcon />,
+  ETH: <EthIcon />,
+};
