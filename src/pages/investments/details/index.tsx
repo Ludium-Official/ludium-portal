@@ -1,5 +1,7 @@
 // import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
+import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
 import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
+import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { useUsersQuery } from '@/apollo/queries/users.generated';
 import { MarkdownPreviewer } from '@/components/markdown';
@@ -7,23 +9,40 @@ import { ProgramStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ShareButton } from '@/components/ui/share-button';
 import { Tabs } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+// import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { getInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
-import { cn, getCurrencyIcon, getInitials, getUserName } from '@/lib/utils';
+import { cn, getCurrencyIcon, getInitials, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
 import ProjectCard from '@/pages/investments/details/_components/project-card';
+import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 // import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 import { type InvestmentTier, ProgramStatus } from '@/types/types.generated';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { format } from 'date-fns';
-import { ChevronDown, CircleAlert, Settings, X } from 'lucide-react';
+import { ChevronDown, CircleAlert, Settings, TriangleAlert, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
+
+import { http, type Chain, type PublicClient, createPublicClient } from 'viem';
+import { arbitrumSepolia, baseSepolia, eduChainTestnet } from 'viem/chains';
+
+
+function getChainForNetwork(network: string) {
+  const chainMap: Record<string, Chain> = {
+    'educhain-testnet': eduChainTestnet,
+    'base-sepolia': baseSepolia,
+    'arbitrum-sepolia': arbitrumSepolia,
+  };
+  return chainMap[network] || eduChainTestnet;
+}
 
 const InvestmentDetailsPage: React.FC = () => {
   const { userId, isAdmin } = useAuth();
@@ -199,14 +218,130 @@ const InvestmentDetailsPage: React.FC = () => {
     }
   }, []);
 
-  // const [acceptProgram] = useAcceptProgramMutation({
-  //   variables: {
-  //     id: program?.id ?? '',
-  //   },
-  //   onCompleted: () => {
-  //     refetch();
-  //   },
-  // });
+  const [acceptProgram] = useAcceptProgramMutation({
+    variables: {
+      id: program?.id ?? '',
+    },
+    onCompleted: () => {
+      refetch();
+    },
+  });
+  const [publishProgram] = useSubmitProgramMutation();
+
+  // const contract = useContract(program?.network || mainnetDefaultNetwork);
+  const { sendTransaction, user } = usePrivy();
+  const { wallets } = useWallets();
+
+  const callTx = async () => {
+    try {
+      if (program) {
+        // Step 1: Deploy to blockchain if user wants blockchain integration
+        let txHash: string | null = null;
+        let blockchainProgramId: number | null = null;
+
+        if (program.network !== 'off-chain') {
+          notify('Deploying to blockchain...');
+
+          // Switch to the correct network if needed
+          const chain = getChainForNetwork(program.network ?? mainnetDefaultNetwork);
+
+          // Check if we have a wallet and switch network if needed
+          const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
+          if (currentWallet?.switchChain) {
+            try {
+              await currentWallet.switchChain(chain.id);
+              notify(`Switched to ${chain.name} network`, 'success');
+            } catch (error) {
+              console.warn('Failed to switch network:', error);
+              // Continue anyway, Privy modal will handle network switching
+            }
+          }
+
+          // Create public client for the network with proper chain configuration
+          const publicClient = createPublicClient({
+            chain,
+            transport: http(chain.rpcUrls.default.http[0]),
+          }) as PublicClient;
+
+          // Get the investment contract for the selected network
+          // The contract will use the chainId to ensure transactions go to the correct network
+          const investmentContract = getInvestmentContract(
+            program.network ?? mainnetDefaultNetwork,
+            sendTransaction,
+            publicClient,
+          );
+
+          // Get validator wallet addresses from the form data
+          const currentUserAddress =
+            user?.wallet?.address || '0x0000000000000000000000000000000000000000';
+
+          let validatorAddresses: string[] = [];
+
+          if ((program?.validators?.length ?? 0) > 0) {
+            // Use the wallet addresses provided by the form
+            // validatorAddresses = args.validatorWalletAddresses.filter((addr) => addr && addr !== '');
+
+            validatorAddresses = program?.validators?.map((v) => v.walletAddress ?? '') ?? [];
+
+            // Validate that we have wallet addresses for all validators
+            if (validatorAddresses.length !== (program?.validators?.length ?? 0)) {
+              // Fill missing addresses with current user address
+              while (validatorAddresses.length < (program?.validators?.length ?? 0)) {
+                validatorAddresses.push(currentUserAddress);
+              }
+            }
+          } else if ((program?.validators?.length ?? 0) > 0) {
+            // No wallet addresses provided but validators selected - use current user as fallback
+            validatorAddresses = program?.validators?.map(() => currentUserAddress) ?? [];
+          } else {
+            // No validators specified - use current user as default validator
+            validatorAddresses = [currentUserAddress];
+          }
+
+          const contractResult = await investmentContract.createInvestmentProgram({
+            name: program?.name ?? '',
+            description: program?.description ?? '',
+            fundingGoal: program?.price || '0',
+            fundingToken: '0x0000000000000000000000000000000000000000', // Native token for now
+            applicationStartDate: program?.applicationStartDate || '',
+            applicationEndDate: program?.applicationEndDate || '',
+            fundingStartDate: program?.fundingStartDate || '',
+            fundingEndDate: program?.fundingEndDate || '',
+            feePercentage: program?.feePercentage || 300, // 3% default
+            validators: validatorAddresses,
+            requiredValidations: validatorAddresses.length,
+            fundingCondition: program?.fundingCondition === 'tier' ? 'tier' : 'open',
+          });
+
+          // Store the program ID from blockchain
+          blockchainProgramId = contractResult.programId;
+          txHash = contractResult.txHash;
+
+          if (blockchainProgramId !== null && blockchainProgramId !== undefined) {
+            notify(`Blockchain deployment successful! Program ID: ${blockchainProgramId}`, 'success');
+          } else {
+            notify('Blockchain deployment successful!', 'success');
+          }
+        }
+
+        if (txHash && blockchainProgramId) {
+          await publishProgram({
+            variables: {
+              id: program?.id ?? '',
+              educhainProgramId: blockchainProgramId,
+              txHash: txHash,
+            },
+          });
+
+          notify('Program published successfully', 'success');
+        } else {
+          notify('Program published failed', 'error');
+        }
+      }
+    } catch (error) {
+      notify((error as Error).message, 'error');
+    }
+  };
 
   return (
     <div className="bg-[#F7F7F7]">
@@ -232,22 +367,20 @@ const InvestmentDetailsPage: React.FC = () => {
                     <div className="flex border-b mb-6">
                       <button
                         type="button"
-                        className={`px-4 py-2 text-sm font-medium border-b transition-colors ${
-                          supportersTab === 'invite'
-                            ? 'border-primary text-primary'
-                            : 'border- text-muted-foreground hover:text-foreground'
-                        }`}
+                        className={`px-4 py-2 text-sm font-medium border-b transition-colors ${supportersTab === 'invite'
+                          ? 'border-primary text-primary'
+                          : 'border- text-muted-foreground hover:text-foreground'
+                          }`}
                         onClick={() => setSupportersTab('invite')}
                       >
                         Invite supporter
                       </button>
                       <button
                         type="button"
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                          supportersTab === 'supporters'
-                            ? 'border-primary text-primary'
-                            : 'border-transparent text-muted-foreground hover:text-foreground'
-                        }`}
+                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${supportersTab === 'supporters'
+                          ? 'border-primary text-primary'
+                          : 'border-transparent text-muted-foreground hover:text-foreground'
+                          }`}
                         onClick={() => setSupportersTab('supporters')}
                       >
                         Supporters
@@ -804,7 +937,7 @@ const InvestmentDetailsPage: React.FC = () => {
                 Submit Project
               </Button>
 
-              {/* {program?.validators?.some((v) => v.id === userId) && program.status === ProgramStatus.Pending && (
+              {program?.validators?.some((v) => v.id === userId) && program.status === ProgramStatus.Pending && (
                 <div className="flex justify-end gap-2 w-full mt-3">
                   <Dialog>
                     <DialogTrigger asChild>
@@ -826,23 +959,50 @@ const InvestmentDetailsPage: React.FC = () => {
                     Confirm
                   </Button>
                 </div>
-              )} */}
+              )}
 
-              {/* {program?.status === ProgramStatus.Rejected && program.creator?.id === userId && (
+              {program?.creator?.id === userId &&
+                program.status === ProgramStatus.PaymentRequired && (
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="mt-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px] w-full h-11">
+                        Pay
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="w-[400px] p-6 max-h-screen overflow-y-auto">
+                      <DialogClose id="pay-dialog-close" />
+                      <div className="text-center">
+                        <span className="text-red-600 w-[42px] h-[42px] rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                          <TriangleAlert />
+                        </span>
+                        <DialogTitle className="font-semibold text-lg text-[#18181B] mb-2">
+                          Are you sure to pay the settlement for the program?
+                        </DialogTitle>
+                        <DialogDescription className="text-muted-foreground text-sm mb-4">
+                          The amount will be securely stored until you will confirm the completion
+                          of the project.
+                        </DialogDescription>
+                        <Button onClick={callTx}>Yes, Pay now</Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+
+              {program?.status === ProgramStatus.Rejected && program.creator?.id === userId && (
                 <div className="flex justify-end gap-2 w-full mt-3">
                   <Button disabled className="h-11 flex-1">
                     Rejected
                   </Button>
                 </div>
-              )} */}
+              )}
 
-              {/* {program?.status === ProgramStatus.Rejected && program.validators?.some((v) => v.id === userId) && (
+              {program?.status === ProgramStatus.Rejected && program.validators?.some((v) => v.id === userId) && (
                 <div className="flex justify-end gap-2 w-full mt-3">
                   <Button disabled variant='outline' className="h-11 flex-1">
                     Rejection Reason Submitted
                   </Button>
                 </div>
-              )} */}
+              )}
 
               <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM HOST</p>
@@ -856,7 +1016,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       })}
                     />
                     {program?.status === ProgramStatus.Published ||
-                    program?.status === ProgramStatus.Completed
+                      program?.status === ProgramStatus.Completed
                       ? 'Confirmed'
                       : 'Not confirmed'}
                   </span>
