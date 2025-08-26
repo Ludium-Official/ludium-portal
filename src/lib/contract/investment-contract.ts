@@ -43,31 +43,39 @@ export class InvestmentContract {
   }
 
   async signValidate(params: {
-    applicationId: number;
+    programId: number;
+    projectOwner: string;
+    projectName: string;
+    targetFunding: string;
     milestones: Array<{
+      title: string;
       description: string;
       percentage: number;
       deadline: string;
     }>;
   }) {
     try {
-      // Convert milestones to contract format
+      // Convert milestones to contract format (MilestoneInput struct)
       const milestonesForContract = params.milestones.map((m) => ({
+        title: m.title,
         description: m.description,
         percentage: m.percentage * 100, // Convert to basis points
         deadline: Math.floor(new Date(m.deadline).getTime() / 1000),
       }));
 
-      // Encode milestone data
-      const milestoneData = ethers.utils.defaultAbiCoder.encode(
-        ['tuple(string description, uint256 percentage, uint256 deadline)[]'],
-        [milestonesForContract],
-      );
+      // Convert target funding to wei
+      const targetFundingWei = ethers.utils.parseEther(params.targetFunding);
 
       const data = encodeFunctionData({
         abi: INVESTMENT_CORE_ABI,
-        functionName: 'approveProjectApplication',
-        args: [params.applicationId, milestoneData],
+        functionName: 'signValidate',
+        args: [
+          params.programId,
+          params.projectOwner,
+          params.projectName,
+          targetFundingWei,
+          milestonesForContract,
+        ],
       });
 
       const txResult = await this.sendTransaction(
@@ -75,6 +83,7 @@ export class InvestmentContract {
           to: this.addresses.core as `0x${string}`,
           data,
           value: BigInt(0),
+          chainId: this.chainId,
         } as Parameters<typeof this.sendTransaction>[0],
         {
           uiOptions: {
@@ -83,7 +92,7 @@ export class InvestmentContract {
               title: 'Approve Project Application',
               action: 'Approve',
             },
-            description: `Approving application #${params.applicationId}`,
+            description: 'Approving project application',
             successHeader: 'Application Approved!',
             successDescription: 'The project application has been approved.',
           },
@@ -96,8 +105,9 @@ export class InvestmentContract {
       let projectCreated = false;
       let projectId = null;
 
+      // Event: ProjectValidated(uint256 indexed programId, uint256 indexed projectId, address indexed owner, string name, uint256 targetFunding)
       const projectCreatedTopic = ethers.utils.id(
-        'ProjectCreated(uint256,uint256,string,address,uint256)',
+        'ProjectValidated(uint256,uint256,address,string,uint256)',
       );
       const log = receipt.logs.find(
         (log) =>
@@ -105,7 +115,8 @@ export class InvestmentContract {
       );
       if (log && 'topics' in log && Array.isArray(log.topics)) {
         projectCreated = true;
-        projectId = Number.parseInt(log.topics[1] as string, 16);
+        // The project ID is the second indexed parameter (topics[2])
+        projectId = Number.parseInt(log.topics[2] as string, 16);
       }
 
       return {
@@ -160,7 +171,7 @@ export class InvestmentContract {
           to: this.addresses.core as `0x${string}`,
           data,
           value: BigInt(0),
-          ...(this.chainId && { chainId: `0x${this.chainId.toString(16)}` }),
+          chainId: this.chainId,
         } as Parameters<typeof this.sendTransaction>[0],
         {
           uiOptions: {
@@ -179,13 +190,17 @@ export class InvestmentContract {
       const receipt = await this.waitForTransaction(txResult.hash);
 
       // Extract program ID from event
-      const eventTopic = ethers.utils.id('InvestmentProgramCreated(uint256,string,address)');
+      // Event: InvestmentProgramCreated(uint256 indexed id, address indexed host, string name, uint256 maxFundingPerProject, address token)
+      const eventTopic = ethers.utils.id(
+        'InvestmentProgramCreated(uint256,address,string,uint256,address)',
+      );
       let programId = null;
 
       const log = receipt.logs.find(
         (log) => 'topics' in log && Array.isArray(log.topics) && log.topics[0] === eventTopic,
       );
       if (log && 'topics' in log && Array.isArray(log.topics)) {
+        // The program ID is the first indexed parameter (topics[1])
         programId = Number.parseInt(log.topics[1] as string, 16);
       }
 
@@ -212,6 +227,7 @@ export class InvestmentContract {
           to: this.addresses.milestone as `0x${string}`,
           data,
           value: BigInt(0),
+          chainId: this.chainId,
         } as Parameters<typeof this.sendTransaction>[0],
         {
           uiOptions: {
@@ -272,6 +288,7 @@ export class InvestmentContract {
           to: this.addresses.funding as `0x${string}`,
           data,
           value,
+          chainId: this.chainId,
         } as Parameters<typeof this.sendTransaction>[0],
         {
           uiOptions: {
@@ -327,6 +344,7 @@ export class InvestmentContract {
           to: this.addresses.funding as `0x${string}`,
           data,
           value: BigInt(0),
+          chainId: this.chainId,
         } as Parameters<typeof this.sendTransaction>[0],
         {
           uiOptions: {
@@ -382,6 +400,7 @@ export class InvestmentContract {
           to: this.addresses.funding as `0x${string}`,
           data,
           value: BigInt(0),
+          chainId: this.chainId,
         } as Parameters<typeof this.sendTransaction>[0],
         {
           uiOptions: {
@@ -456,6 +475,7 @@ export class InvestmentContract {
           to: this.addresses.core as `0x${string}`,
           data,
           value: BigInt(0),
+          chainId: this.chainId,
         } as Parameters<typeof this.sendTransaction>[0],
         {
           uiOptions: {
