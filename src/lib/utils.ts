@@ -66,3 +66,20 @@ export const getCurrency = (network?: string | null) => {
 export const getCurrencyIcon = (currency?: string | null) => {
   return currency ? currencyIcons[currency as keyof typeof currencyIcons] : null;
 };
+
+// Helper function to sort tierSettings entries
+// By default sorts in reverse order: platinum, gold, silver, bronze
+// Pass reverse=false to sort in ascending order: bronze, silver, gold, platinum
+export const sortTierSettings = (
+  tierSettings: Record<string, { enabled: boolean; maxAmount?: number }>,
+  reverse = true,
+) => {
+  const tierOrder = reverse
+    ? ['platinum', 'gold', 'silver', 'bronze']
+    : ['bronze', 'silver', 'gold', 'platinum'];
+  return Object.entries(tierSettings).sort(([keyA], [keyB]) => {
+    const indexA = tierOrder.indexOf(keyA);
+    const indexB = tierOrder.indexOf(keyB);
+    return indexA - indexB;
+  });
+};
