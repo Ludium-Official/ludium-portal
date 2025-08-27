@@ -41,9 +41,8 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import { useInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
-import { cn, getCurrency, getCurrencyIcon, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
+import { cn, getCurrencyIcon, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
-import UserInvestments from '@/pages/investments/_components/user-investments';
 // import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
 import EditMilestoneForm from '@/pages/programs/details/_components/edit-milestone-form';
@@ -135,11 +134,9 @@ function ProjectDetailsPage() {
         }
 
         // Check if application already has an onChainProjectId
-        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-        if ((application as any).onChainProjectId) {
+        if (application.onChainProjectId) {
           notify('This project is already registered on the blockchain', 'error');
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-          onChainProjectId = (application as any).onChainProjectId;
+          onChainProjectId = application.onChainProjectId;
         } else {
           notify('Registering project on blockchain...', 'loading');
 
@@ -153,9 +150,12 @@ function ProjectDetailsPage() {
                 deadline: m.deadline || new Date().toISOString(),
               })) || [];
 
-            // Call signValidate to register the project on blockchain
+            // Call signValidate to register the project on blockchain FIRST
             const result = await investmentContract.signValidate({
-              applicationId: Number(projectId),
+              programId: program.educhainProgramId,
+              projectOwner: application.applicant?.walletAddress || application.applicant?.id || '',
+              projectName: application.name || '',
+              targetFunding: application.fundingTarget || '0',
               milestones,
             });
 
@@ -163,18 +163,30 @@ function ProjectDetailsPage() {
               onChainProjectId = result.projectId;
               notify(`Project registered on blockchain with ID: ${onChainProjectId}`, 'success');
             } else {
-              notify('Project registered but could not extract ID from blockchain', 'error');
+              notify('Failed to extract project ID from blockchain transaction', 'error');
+              return; // Don't save to DB if we couldn't get the project ID
             }
-          } catch (_blockchainError) {
-            notify(
-              'Failed to register project on blockchain. Continuing with off-chain approval.',
-              'error',
-            );
+          } catch (blockchainError) {
+            // Check if user rejected the transaction
+            const errorMessage =
+              blockchainError instanceof Error ? blockchainError.message : String(blockchainError);
+            const errorCode = (blockchainError as { code?: number })?.code;
+
+            if (
+              errorMessage.includes('User rejected') ||
+              errorMessage.includes('User denied') ||
+              errorCode === 4001
+            ) {
+              notify('Transaction canceled by user', 'error');
+            } else {
+              notify('Failed to register project on blockchain', 'error');
+            }
+            return; // Exit without saving to database
           }
         }
       }
 
-      // Accept the application in the database
+      // Only save to database AFTER successful blockchain transaction (or if off-chain)
       await approveApplication({
         variables: {
           id: projectId ?? '',
@@ -657,7 +669,7 @@ function ProjectDetailsPage() {
                     </span>
                   </p>
                   <span className="text-muted-foreground">
-                    {getCurrency(program?.network)?.icon}
+                    {getCurrencyIcon(program?.currency)}
                   </span>
 
                   <span className="text-sm text-muted-foreground">{program?.currency}</span>
@@ -800,8 +812,7 @@ function ProjectDetailsPage() {
               <p className="text-sm text-red-400">You can edit and resubmit your application.</p>
             )} */}
 
-            {(program?.validators?.some((v) => v.id === userId) ||
-              program?.creator?.id === userId) &&
+            {(program?.validators?.some((v) => v.id === userId)) &&
               data?.application?.status === ApplicationStatus.Pending && (
                 <div className="flex justify-end gap-3 absolute bottom-10 right-10">
                   <Dialog>
@@ -840,22 +851,20 @@ function ProjectDetailsPage() {
                 <button
                   onClick={() => setActiveTab('terms')}
                   type="button"
-                  className={`p-2 font-medium text-sm transition-colors ${
-                    activeTab === 'terms'
-                      ? 'border-b border-b-primary text-primary'
-                      : 'text-muted-foreground hover:text-foreground border-b'
-                  }`}
+                  className={`p-2 font-medium text-sm transition-colors ${activeTab === 'terms'
+                    ? 'border-b border-b-primary text-primary'
+                    : 'text-muted-foreground hover:text-foreground border-b'
+                    }`}
                 >
                   Terms
                 </button>
                 <button
                   onClick={() => setActiveTab('milestones')}
                   type="button"
-                  className={`p-2 font-medium text-sm transition-colors ${
-                    activeTab === 'milestones'
-                      ? 'border-b border-b-primary text-primary'
-                      : 'text-muted-foreground hover:text-foreground border-b'
-                  }`}
+                  className={`p-2 font-medium text-sm transition-colors ${activeTab === 'milestones'
+                    ? 'border-b border-b-primary text-primary'
+                    : 'text-muted-foreground hover:text-foreground border-b'
+                    }`}
                 >
                   Milestones
                 </button>
@@ -915,9 +924,9 @@ function ProjectDetailsPage() {
                     const purchaseLimitReached =
                       typeof t.purchaseLimit === 'number' &&
                       t.purchaseLimit -
-                        (data?.application?.investors?.filter((i) => i.tier === t.price).length ??
-                          0) <=
-                        0;
+                      (data?.application?.investors?.filter((i) => i.tier === t.price).length ??
+                        0) <=
+                      0;
 
                     return (
                       <button
@@ -959,8 +968,8 @@ function ProjectDetailsPage() {
                             >
                               {t.purchaseLimit
                                 ? t.purchaseLimit -
-                                  (data?.application?.investors?.filter((i) => i.tier === t.price)
-                                    .length ?? 0)
+                                (data?.application?.investors?.filter((i) => i.tier === t.price)
+                                  .length ?? 0)
                                 : 0}{' '}
                               left
                             </Badge>
@@ -1164,18 +1173,35 @@ function ProjectDetailsPage() {
                                 <DialogTrigger
                                   asChild
                                   disabled={
-                                    idx !== 0 &&
-                                    data?.application?.milestones?.[idx - 1]?.status !==
-                                      MilestoneStatus.Completed
+                                    (idx !== 0 &&
+                                      data?.application?.milestones?.[idx - 1]?.status !==
+                                      MilestoneStatus.Completed) ||
+                                    // Prevent milestone submission before funding ends
+                                    (program?.fundingEndDate &&
+                                      new Date() <= new Date(program.fundingEndDate))
                                   }
                                 >
-                                  <Button className="h-10 block ml-auto">Submit Milestone</Button>
+                                  <Button
+                                    className="h-10 block ml-auto"
+                                    title={
+                                      program?.fundingEndDate &&
+                                        new Date() <= new Date(program.fundingEndDate)
+                                        ? `Milestones can only be submitted after funding ends on ${new Date(program.fundingEndDate).toLocaleDateString()}`
+                                        : undefined
+                                    }
+                                  >
+                                    Submit Milestone
+                                  </Button>
                                 </DialogTrigger>
                                 <DialogContent>
                                   <DialogTitle />
                                   <DialogDescription />
                                   <DialogClose id="submit-milestone-dialog-close" />
-                                  <SubmitMilestoneForm milestone={m} refetch={refetch} />
+                                  <SubmitMilestoneForm
+                                    milestone={m}
+                                    refetch={refetch}
+                                    program={program}
+                                  />
                                 </DialogContent>
                               </Dialog>
                             )}
@@ -1186,91 +1212,88 @@ function ProjectDetailsPage() {
                 </div>
               )}
 
-              {/* Invest Button - Fixed to Bottom of Right Section */}
-              <div className="absolute bottom-0 left-0 right-0">
-                <Dialog open={isInvestDialogOpen} onOpenChange={setIsInvestDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button
-                      disabled={
-                        !selectedTier ||
-                        data?.application?.status !== ApplicationStatus.Accepted ||
-                        (program?.fundingStartDate &&
-                          new Date() < new Date(program.fundingStartDate)) ||
-                        (program?.fundingEndDate && new Date() > new Date(program.fundingEndDate))
-                      }
-                      className="w-full h-10 bg-primary hover:bg-primary/90 text-white font-medium flex items-center justify-center gap-2"
-                      onClick={() => {
-                        if (!selectedTier) {
-                          notify('Please select a tier first', 'error');
-                          return;
+              {/* Invest Button - Only show when terms tab is active */}
+              {activeTab === 'terms' && (
+                <div className="absolute bottom-0 left-0 right-0">
+                  <Dialog open={isInvestDialogOpen} onOpenChange={setIsInvestDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        disabled={
+                          !selectedTier ||
+                          data?.application?.status !== ApplicationStatus.Accepted ||
+                          (program?.fundingStartDate &&
+                            new Date() < new Date(program.fundingStartDate)) ||
+                          (program?.fundingEndDate && new Date() > new Date(program.fundingEndDate))
                         }
-                        if (
-                          program?.fundingStartDate &&
-                          new Date() < new Date(program.fundingStartDate)
-                        ) {
-                          notify('Funding period has not started yet', 'error');
-                          return;
-                        }
-                        if (
-                          program?.fundingEndDate &&
-                          new Date() > new Date(program.fundingEndDate)
-                        ) {
-                          notify('Funding period has ended', 'error');
-                          return;
-                        }
-                      }}
-                    >
-                      <TrendingUp className="w-5 h-5" />
-                      Invest
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[400px]">
-                    <div className="text-lg font-semibold flex items-center justify-center">
-                      <span className="flex justify-center items-center w-[42px] h-[42px] rounded-full bg-[#B331FF1A]">
-                        <Coins className="text-primary" />
-                      </span>
-                    </div>
-                    <DialogTitle className="text-center font-semibold text-lg">
-                      Are you sure to pay the settlement for the project?
-                    </DialogTitle>
-                    {/* {selectedTier && (
-                      <div className="text-center mb-4">
-                        <p className="text-sm text-muted-foreground mb-2">Selected Tier:</p>
-                        <div className="inline-flex items-center gap-2">
-                          {programData?.program?.tierSettings ? (
-                            <TierBadge tier={selectedTier as TierType} />
-                          ) : (
-                            <Badge variant="secondary" className="bg-gray-200 text-gray-600">
-                              {selectedTier}
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-2">
-                          Amount: {program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount || selectedTier} {program?.currency}
-                        </p>
+                        className="w-full h-10 bg-primary hover:bg-primary/90 text-white font-medium flex items-center justify-center gap-2"
+                        onClick={() => {
+                          if (!selectedTier) {
+                            notify('Please select a tier first', 'error');
+                            return;
+                          }
+                          if (
+                            program?.fundingStartDate &&
+                            new Date() < new Date(program.fundingStartDate)
+                          ) {
+                            notify('Funding period has not started yet', 'error');
+                            return;
+                          }
+                          if (
+                            program?.fundingEndDate &&
+                            new Date() > new Date(program.fundingEndDate)
+                          ) {
+                            notify('Funding period has ended', 'error');
+                            return;
+                          }
+                        }}
+                      >
+                        <TrendingUp className="w-5 h-5" />
+                        Invest
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[400px]">
+                      <div className="text-lg font-semibold flex items-center justify-center">
+                        <span className="flex justify-center items-center w-[42px] h-[42px] rounded-full bg-[#B331FF1A]">
+                          <Coins className="text-primary" />
+                        </span>
                       </div>
-                    )} */}
-                    <DialogDescription className="text-sm text-muted-foreground text-center">
-                      The amount will be securely stored until you will confirm the completion of
-                      the project.
-                    </DialogDescription>
+                      <DialogTitle className="text-center font-semibold text-lg">
+                        Are you sure to pay the settlement for the project?
+                      </DialogTitle>
+                      {/* {selectedTier && (
+                        <div className="text-center mb-4">
+                          <p className="text-sm text-muted-foreground mb-2">Selected Tier:</p>
+                          <div className="inline-flex items-center gap-2">
+                            {programData?.program?.tierSettings ? (
+                              <TierBadge tier={selectedTier as TierType} />
+                            ) : (
+                              <Badge variant="secondary" className="bg-gray-200 text-gray-600">
+                                {selectedTier}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Amount: {program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount || selectedTier} {program?.currency}
+                          </p>
+                        </div>
+                      )} */}
+                      <DialogDescription className="text-sm text-muted-foreground text-center">
+                        The amount will be securely stored until you will confirm the completion of
+                        the project.
+                      </DialogDescription>
 
-                    <Button onClick={handleInvest} className="bg-foreground text-white">
-                      Yes, Pay now
-                    </Button>
-                  </DialogContent>
-                </Dialog>
-              </div>
+                      <Button onClick={handleInvest} className="bg-foreground text-white">
+                        Yes, Pay now
+                      </Button>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              )}
             </ScrollArea>
           </div>
         </section>
 
         {/* User's Investments Section */}
-        {userId && projectId && (
-          <section className="p-10 bg-white">
-            <UserInvestments projectId={projectId} />
-          </section>
-        )}
       </div>
     </div>
   );

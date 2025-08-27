@@ -46,60 +46,60 @@ export default function InvestmentsPage() {
   const filter = [
     ...(activeTab === 'my-programs'
       ? [
-          {
-            field: 'userId',
-            value: userId,
-          },
-        ]
+        {
+          field: 'userId',
+          value: userId,
+        },
+      ]
       : []),
     ...(activeTab === 'newest'
       ? [
-          {
-            field: 'status',
-            values: [
-              ProgramStatus.Published,
-              ProgramStatus.Completed,
-              ProgramStatus.Pending,
-              ProgramStatus.PaymentRequired,
-              ProgramStatus.Cancelled,
-              ProgramStatus.Closed,
-              ProgramStatus.Rejected,
-            ],
-          },
-          {
-            field: 'visibility',
-            value: 'public',
-          },
-        ]
+        {
+          field: 'status',
+          values: [
+            ProgramStatus.Published,
+            ProgramStatus.Completed,
+            ProgramStatus.Pending,
+            ProgramStatus.PaymentRequired,
+            ProgramStatus.Cancelled,
+            ProgramStatus.Closed,
+            ProgramStatus.Rejected,
+          ],
+        },
+        {
+          field: 'visibility',
+          value: 'public',
+        },
+      ]
       : []),
     ...(activeTab === 'imminent'
       ? [
-          {
-            field: 'status',
-            value: 'published',
-          },
-          {
-            field: 'visibility',
-            value: 'public',
-          },
+        {
+          field: 'status',
+          value: 'published',
+        },
+        {
+          field: 'visibility',
+          value: 'public',
+        },
 
-          {
-            field: 'imminent',
-            value: 'true',
-          },
-        ]
+        {
+          field: 'imminent',
+          value: 'true',
+        },
+      ]
       : []),
     ...(activeTab === 'completed'
       ? [
-          {
-            field: 'status',
-            value: 'completed',
-          },
-          {
-            field: 'visibility',
-            value: 'public',
-          },
-        ]
+        {
+          field: 'status',
+          value: 'completed',
+        },
+        {
+          field: 'visibility',
+          value: 'public',
+        },
+      ]
       : []),
     {
       field: 'name',
@@ -207,7 +207,7 @@ export default function InvestmentsPage() {
                     key={`investment-skeleton-${
                       // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                       i
-                    }`}
+                      }`}
                     className="w-full border border-gray-200 rounded-lg"
                   >
                     <CardContent className="p-5">
@@ -328,37 +328,51 @@ function InvestmentCard({ program }: InvestmentCardProps) {
               <div className="bg-[#0000000A] rounded-md py-1 px-2 gap-2 inline-flex items-center">
                 <div className="text-sm font-semibold text-neutral-400">DATE</div>
                 <div className="flex items-center gap-2">
-                  {program.applicationStartDate && program.applicationEndDate ? (
-                    <>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground font-medium">
-                        {new Date(program.applicationStartDate)
-                          .toLocaleDateString('en-US', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                          })
-                          .toUpperCase()
-                          .split(' ')
-                          .join(' . ')}
+                  {(() => {
+                    const formatDate = (dateString: string) => {
+                      return new Date(dateString)
+                        .toLocaleDateString('en-US', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                        })
+                        .toUpperCase()
+                        .split(' ')
+                        .join(' . ');
+                    };
+
+                    const renderDateRange = (startDate: string, endDate: string) => (
+                      <>
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground font-medium">
+                          {formatDate(startDate)}
+                        </div>
+                        <div className="w-2 h-px bg-muted-foreground" />
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground font-medium">
+                          {formatDate(endDate)}
+                        </div>
+                      </>
+                    );
+
+                    const now = new Date();
+                    const fundingHasStarted = program.fundingStartDate && now >= new Date(program.fundingStartDate);
+
+                    // Show funding dates if funding has started and dates are available
+                    if (fundingHasStarted && program.fundingStartDate && program.fundingEndDate) {
+                      return renderDateRange(program.fundingStartDate, program.fundingEndDate);
+                    }
+
+                    // Show application dates if available
+                    if (program.applicationStartDate && program.applicationEndDate) {
+                      return renderDateRange(program.applicationStartDate, program.applicationEndDate);
+                    }
+
+                    // Fallback when no dates are available
+                    return (
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        No dates set
                       </div>
-                      <div className="w-2 h-px bg-muted-foreground" />
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground font-medium">
-                        {new Date(program.applicationEndDate)
-                          .toLocaleDateString('en-US', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric',
-                          })
-                          .toUpperCase()
-                          .split(' ')
-                          .join(' . ')}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                      No dates set
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
                 <Badge className="bg-gray-900 text-white text-xs font-semibold">
                   D-{daysUntilDeadline || 0}
@@ -367,7 +381,7 @@ function InvestmentCard({ program }: InvestmentCardProps) {
 
               {/* Description */}
               <p className="text-sm text-gray-600 line-clamp-2">
-                {program.description ||
+                {program.summary ||
                   "Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) to ensure secure, private, and verifiable task-based payments. It enables seamless collaboration between sponsors and builders, automating fund disbursement upon task completion while maintaining privacy and trust."}
               </p>
             </div>

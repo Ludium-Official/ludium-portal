@@ -91,6 +91,16 @@ export enum CheckMilestoneStatus {
   Rejected = 'rejected'
 }
 
+export type ClaimableFees = {
+  __typename?: 'ClaimableFees';
+  amount?: Maybe<Scalars['String']['output']>;
+  canClaim?: Maybe<Scalars['Boolean']['output']>;
+  claimedAt?: Maybe<Scalars['DateTime']['output']>;
+  feePercentage?: Maybe<Scalars['Float']['output']>;
+  pendingEndDate?: Maybe<Scalars['DateTime']['output']>;
+  reason?: Maybe<Scalars['String']['output']>;
+};
+
 export type Comment = {
   __typename?: 'Comment';
   author?: Maybe<User>;
@@ -202,6 +212,18 @@ export type EnrichedCarouselItem = {
   isActive?: Maybe<Scalars['Boolean']['output']>;
   itemId?: Maybe<Scalars['String']['output']>;
   itemType?: Maybe<CarouselItemType>;
+};
+
+export type FeeClaim = {
+  __typename?: 'FeeClaim';
+  amount?: Maybe<Scalars['String']['output']>;
+  claimedAt?: Maybe<Scalars['DateTime']['output']>;
+  claimedBy?: Maybe<Scalars['ID']['output']>;
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  programId?: Maybe<Scalars['ID']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+  txHash?: Maybe<Scalars['String']['output']>;
 };
 
 export type FilterInput = {
@@ -333,6 +355,7 @@ export type Mutation = {
   assignUserTier?: Maybe<UserTierAssignment>;
   assignValidatorToProgram?: Maybe<Program>;
   checkMilestone?: Maybe<Milestone>;
+  claimProgramFees?: Maybe<FeeClaim>;
   createApplication?: Maybe<Application>;
   createCarouselItem?: Maybe<CarouselItem>;
   createComment?: Maybe<Comment>;
@@ -355,6 +378,7 @@ export type Mutation = {
   rejectApplication?: Maybe<Application>;
   rejectProgram?: Maybe<Program>;
   removeProgramKeyword?: Maybe<Scalars['Boolean']['output']>;
+  removeUserFromProgram?: Maybe<Program>;
   removeUserKeyword?: Maybe<Scalars['Boolean']['output']>;
   removeUserTier?: Maybe<Scalars['Boolean']['output']>;
   removeValidatorFromProgram?: Maybe<Program>;
@@ -410,6 +434,12 @@ export type MutationAssignValidatorToProgramArgs = {
 
 export type MutationCheckMilestoneArgs = {
   input: CheckMilestoneInput;
+};
+
+
+export type MutationClaimProgramFeesArgs = {
+  programId: Scalars['ID']['input'];
+  txHash: Scalars['String']['input'];
 };
 
 
@@ -524,6 +554,12 @@ export type MutationRejectProgramArgs = {
 export type MutationRemoveProgramKeywordArgs = {
   keyword: Scalars['String']['input'];
   programId: Scalars['ID']['input'];
+};
+
+
+export type MutationRemoveUserFromProgramArgs = {
+  programId: Scalars['ID']['input'];
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -734,6 +770,7 @@ export type Program = {
   customFeePercentage?: Maybe<Scalars['Int']['output']>;
   deadline?: Maybe<Scalars['DateTime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
+  detailedStatus?: Maybe<Scalars['JSON']['output']>;
   educhainProgramId?: Maybe<Scalars['Int']['output']>;
   feePercentage?: Maybe<Scalars['Int']['output']>;
   fundingCondition?: Maybe<FundingCondition>;
@@ -795,6 +832,7 @@ export type Query = {
   application?: Maybe<Application>;
   applications?: Maybe<PaginatedApplications>;
   carouselItems?: Maybe<Array<EnrichedCarouselItem>>;
+  claimableFees?: Maybe<ClaimableFees>;
   comment?: Maybe<Comment>;
   comments?: Maybe<PaginatedComments>;
   commentsByCommentable?: Maybe<Array<Comment>>;
@@ -826,6 +864,11 @@ export type QueryApplicationArgs = {
 
 export type QueryApplicationsArgs = {
   pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryClaimableFeesArgs = {
+  programId: Scalars['ID']['input'];
 };
 
 

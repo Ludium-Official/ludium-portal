@@ -490,6 +490,26 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     }
   }, [isEdit]);
 
+  // Auto-update application due date when start date changes
+  useEffect(() => {
+    if (applicationStartDate && applicationDueDate) {
+      // If the due date is before the new start date, update it to match the start date
+      if (applicationDueDate < applicationStartDate) {
+        setApplicationDueDate(applicationStartDate);
+      }
+    }
+  }, [applicationStartDate]);
+
+  // Auto-update funding due date when start date changes
+  useEffect(() => {
+    if (fundingStartDate && fundingDueDate) {
+      // If the due date is before the new start date, update it to match the start date
+      if (fundingDueDate < fundingStartDate) {
+        setFundingDueDate(fundingStartDate);
+      }
+    }
+  }, [fundingStartDate]);
+
   // Tier handlers
   const handleTierChange = (tierName: string, enabled: boolean) => {
     setTiers((prev) => prev.map((tier) => (tier.name === tierName ? { ...tier, enabled } : tier)));
@@ -741,7 +761,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                       setDate={setApplicationDueDate}
                       disabled={{
                         // Application end must be same day or after application start
-                        before: applicationStartDate ? applicationStartDate : new Date(new Date().setHours(0, 0, 0, 0)),
+                        before: applicationStartDate
+                          ? applicationStartDate
+                          : new Date(new Date().setHours(0, 0, 0, 0)),
                       }}
                     />
                   </div>
@@ -782,7 +804,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                       setDate={setFundingDueDate}
                       disabled={{
                         // Funding end must be same day or after funding start
-                        before: fundingStartDate ? fundingStartDate : new Date(new Date().setHours(0, 0, 0, 0)),
+                        before: fundingStartDate
+                          ? fundingStartDate
+                          : new Date(new Date().setHours(0, 0, 0, 0)),
                       }}
                     />
                   </div>
@@ -793,6 +817,12 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
             <label htmlFor="validator" className="space-y-2 block">
               <p className="text-sm font-medium">
                 Validators <span className="text-primary">*</span>
+                {data?.program?.educhainProgramId !== null &&
+                  data?.program?.educhainProgramId !== undefined && (
+                    <span className="text-muted-foreground text-xs ml-2">
+                      (Locked - Program already published to blockchain)
+                    </span>
+                  )}
               </p>
               {/* <SearchSelect
                 options={validatorOptions ?? []}
@@ -817,10 +847,21 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 emptyText="Enter validator email or organization name"
                 loading={loading}
                 singleSelect={true}
+                disabled={
+                  data?.program?.educhainProgramId !== null &&
+                  data?.program?.educhainProgramId !== undefined
+                }
               />
               {extraErrors.validator && (
                 <span className="text-destructive text-sm block">Validator is required</span>
               )}
+              {data?.program?.educhainProgramId !== null &&
+                data?.program?.educhainProgramId !== undefined && (
+                  <span className="text-muted-foreground text-xs block mt-1">
+                    Validators cannot be changed after the host has signed the program on
+                    blockchain.
+                  </span>
+                )}
             </label>
           </div>
 

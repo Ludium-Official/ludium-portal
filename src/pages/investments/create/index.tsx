@@ -2,41 +2,25 @@ import client from '@/apollo/client';
 import { useAssignValidatorToProgramMutation } from '@/apollo/mutation/assign-validator-to-program.generated';
 import { useCreateProgramMutation } from '@/apollo/mutation/create-program.generated';
 import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
-import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
 import { ProgramsDocument } from '@/apollo/queries/programs.generated';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { getInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
 import type { OnSubmitInvestmentFunc } from '@/pages/investments/_components/investment-form';
 import InvestmentForm from '@/pages/investments/_components/investment-form';
 import { FundingCondition, ProgramType, type ProgramVisibility } from '@/types/types.generated';
-import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { http, type PublicClient, createPublicClient, type Chain } from 'viem';
-import { eduChainTestnet, baseSepolia, arbitrumSepolia } from 'viem/chains';
-
-// Helper functions
-
-function getChainForNetwork(network: string) {
-  const chainMap: Record<string, Chain> = {
-    'educhain-testnet': eduChainTestnet,
-    'base-sepolia': baseSepolia,
-    'arbitrum-sepolia': arbitrumSepolia,
-  };
-  return chainMap[network] || eduChainTestnet;
-}
 
 const CreateInvestment: React.FC = () => {
   const navigate = useNavigate();
-  const { sendTransaction, user } = usePrivy();
-  const { wallets } = useWallets();
+  // const { sendTransaction, user } = usePrivy();
+  // const { wallets } = useWallets();
   const [createProgram] = useCreateProgramMutation();
   const [isDeploying, setIsDeploying] = useState(false);
 
   const [assignValidatorToProgram] = useAssignValidatorToProgramMutation();
   const [inviteUserToProgram] = useInviteUserToProgramMutation();
-  const [submitProgram] = useSubmitProgramMutation();
+  // const [submitProgram] = useSubmitProgramMutation();
 
   const { isLoggedIn, isAuthed } = useAuth();
 
@@ -56,98 +40,98 @@ const CreateInvestment: React.FC = () => {
 
   const onSubmit: OnSubmitInvestmentFunc = async (args) => {
     try {
-      setIsDeploying(true);
+      // setIsDeploying(true);
 
-      // Step 1: Deploy to blockchain if user wants blockchain integration
-      let txHash: string | null = null;
-      let blockchainProgramId: number | null = null;
+      // // Step 1: Deploy to blockchain if user wants blockchain integration
+      // let txHash: string | null = null;
+      // let blockchainProgramId: number | null = null;
 
-      if (args.network !== 'off-chain') {
-        notify('Deploying to blockchain...');
+      // if (args.network !== 'off-chain') {
+      //   notify('Deploying to blockchain...');
 
-        // Switch to the correct network if needed
-        const chain = getChainForNetwork(args.network);
-        
-        // Check if we have a wallet and switch network if needed
-        const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
-        if (currentWallet?.switchChain) {
-          try {
-            await currentWallet.switchChain(chain.id);
-            notify(`Switched to ${chain.name} network`, 'success');
-          } catch (error) {
-            console.warn('Failed to switch network:', error);
-            // Continue anyway, Privy modal will handle network switching
-          }
-        }
+      //   // Switch to the correct network if needed
+      //   const chain = getChainForNetwork(args.network);
 
-        // Create public client for the network with proper chain configuration
-        const publicClient = createPublicClient({
-          chain,
-          transport: http(chain.rpcUrls.default.http[0]),
-        }) as PublicClient;
+      //   // Check if we have a wallet and switch network if needed
+      //   const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
+      //   if (currentWallet?.switchChain) {
+      //     try {
+      //       await currentWallet.switchChain(chain.id);
+      //       notify(`Switched to ${chain.name} network`, 'success');
+      //     } catch (error) {
+      //       console.warn('Failed to switch network:', error);
+      //       // Continue anyway, Privy modal will handle network switching
+      //     }
+      //   }
 
-        // Get the investment contract for the selected network
-        // The contract will use the chainId to ensure transactions go to the correct network
-        const investmentContract = getInvestmentContract(
-          args.network,
-          sendTransaction,
-          publicClient,
-        );
+      //   // Create public client for the network with proper chain configuration
+      //   const publicClient = createPublicClient({
+      //     chain,
+      //     transport: http(chain.rpcUrls.default.http[0]),
+      //   }) as PublicClient;
 
-        // Get validator wallet addresses from the form data
-        const currentUserAddress =
-          user?.wallet?.address || '0x0000000000000000000000000000000000000000';
+      //   // Get the investment contract for the selected network
+      //   // The contract will use the chainId to ensure transactions go to the correct network
+      //   const investmentContract = getInvestmentContract(
+      //     args.network,
+      //     sendTransaction,
+      //     publicClient,
+      //   );
 
-        let validatorAddresses: string[] = [];
+      //   // Get validator wallet addresses from the form data
+      //   const currentUserAddress =
+      //     user?.wallet?.address || '0x0000000000000000000000000000000000000000';
 
-        if (
-          args.validators.length > 0 &&
-          args.validatorWalletAddresses &&
-          args.validatorWalletAddresses.length > 0
-        ) {
-          // Use the wallet addresses provided by the form
-          validatorAddresses = args.validatorWalletAddresses.filter((addr) => addr && addr !== '');
+      //   let validatorAddresses: string[] = [];
 
-          // Validate that we have wallet addresses for all validators
-          if (validatorAddresses.length !== args.validators.length) {
-            // Fill missing addresses with current user address
-            while (validatorAddresses.length < args.validators.length) {
-              validatorAddresses.push(currentUserAddress);
-            }
-          }
-        } else if (args.validators.length > 0) {
-          // No wallet addresses provided but validators selected - use current user as fallback
-          validatorAddresses = args.validators.map(() => currentUserAddress);
-        } else {
-          // No validators specified - use current user as default validator
-          validatorAddresses = [currentUserAddress];
-        }
+      //   if (
+      //     args.validators.length > 0 &&
+      //     args.validatorWalletAddresses &&
+      //     args.validatorWalletAddresses.length > 0
+      //   ) {
+      //     // Use the wallet addresses provided by the form
+      //     validatorAddresses = args.validatorWalletAddresses.filter((addr) => addr && addr !== '');
 
-        const contractResult = await investmentContract.createInvestmentProgram({
-          name: args.programName,
-          description: args.description,
-          fundingGoal: args.price || '0',
-          fundingToken: '0x0000000000000000000000000000000000000000', // Native token for now
-          applicationStartDate: args.applicationStartDate || '',
-          applicationEndDate: args.applicationEndDate || '',
-          fundingStartDate: args.fundingStartDate || '',
-          fundingEndDate: args.fundingEndDate || '',
-          feePercentage: args.feePercentage || 300, // 3% default
-          validators: validatorAddresses,
-          requiredValidations: validatorAddresses.length,
-          fundingCondition: args.fundingCondition === 'tier' ? 'tier' : 'open',
-        });
+      //     // Validate that we have wallet addresses for all validators
+      //     if (validatorAddresses.length !== args.validators.length) {
+      //       // Fill missing addresses with current user address
+      //       while (validatorAddresses.length < args.validators.length) {
+      //         validatorAddresses.push(currentUserAddress);
+      //       }
+      //     }
+      //   } else if (args.validators.length > 0) {
+      //     // No wallet addresses provided but validators selected - use current user as fallback
+      //     validatorAddresses = args.validators.map(() => currentUserAddress);
+      //   } else {
+      //     // No validators specified - use current user as default validator
+      //     validatorAddresses = [currentUserAddress];
+      //   }
 
-        // Store the program ID from blockchain
-        blockchainProgramId = contractResult.programId;
-        txHash = contractResult.txHash;
+      //   const contractResult = await investmentContract.createInvestmentProgram({
+      //     name: args.programName,
+      //     description: args.description,
+      //     fundingGoal: args.price || '0',
+      //     fundingToken: '0x0000000000000000000000000000000000000000', // Native token for now
+      //     applicationStartDate: args.applicationStartDate || '',
+      //     applicationEndDate: args.applicationEndDate || '',
+      //     fundingStartDate: args.fundingStartDate || '',
+      //     fundingEndDate: args.fundingEndDate || '',
+      //     feePercentage: args.feePercentage || 300, // 3% default
+      //     validators: validatorAddresses,
+      //     requiredValidations: validatorAddresses.length,
+      //     fundingCondition: args.fundingCondition === 'tier' ? 'tier' : 'open',
+      //   });
 
-        if (blockchainProgramId !== null && blockchainProgramId !== undefined) {
-          notify(`Blockchain deployment successful! Program ID: ${blockchainProgramId}`, 'success');
-        } else {
-          notify('Blockchain deployment successful!', 'success');
-        }
-      }
+      //   // Store the program ID from blockchain
+      //   blockchainProgramId = contractResult.programId;
+      //   txHash = contractResult.txHash;
+
+      //   if (blockchainProgramId !== null && blockchainProgramId !== undefined) {
+      //     notify(`Blockchain deployment successful! Program ID: ${blockchainProgramId}`, 'success');
+      //   } else {
+      //     notify('Blockchain deployment successful!', 'success');
+      //   }
+      // }
 
       // Step 2: Create program in backend
       await createProgram({
@@ -181,27 +165,27 @@ const CreateInvestment: React.FC = () => {
             tierSettings: args.tierSettings,
             feePercentage: args.feePercentage,
             customFeePercentage: args.customFeePercentage,
-            contractAddress: txHash ?? '', // Store tx hash in contractAddress field temporarily
+            // contractAddress: txHash ?? '', // Store tx hash in contractAddress field temporarily
           },
         },
         onCompleted: async (data) => {
           const programId = data.createProgram?.id ?? '';
 
           // Step 3: Update program with blockchain ID if we have one
-          if (blockchainProgramId !== null && txHash) {
-            try {
-              await submitProgram({
-                variables: {
-                  id: programId,
-                  educhainProgramId: blockchainProgramId,
-                  txHash: txHash,
-                },
-              });
-              notify(`Program linked to blockchain with ID: ${blockchainProgramId}`, 'success');
-            } catch (_error) {
-              notify('Warning: Failed to link program with blockchain ID', 'error');
-            }
-          }
+          // if (blockchainProgramId !== null && txHash) {
+          //   try {
+          //     await submitProgram({
+          //       variables: {
+          //         id: programId,
+          //         educhainProgramId: blockchainProgramId,
+          //         txHash: txHash,
+          //       },
+          //     });
+          //     notify(`Program linked to blockchain with ID: ${blockchainProgramId}`, 'success');
+          //   } catch (_error) {
+          //     notify('Warning: Failed to link program with blockchain ID', 'error');
+          //   }
+          // }
 
           const results = await Promise.allSettled(
             args.validators.map((validatorId) =>
