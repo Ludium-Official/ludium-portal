@@ -289,7 +289,7 @@ function ProjectDetailsPage() {
 
       let txHash: string | undefined;
 
-      // If program has a contract address, execute blockchain transaction first
+      // IMPORTANT: For published programs (with educhainProgramId), blockchain transaction is REQUIRED
       if (program?.educhainProgramId !== null && program?.educhainProgramId !== undefined) {
         // Get the on-chain project ID from the application
         const onChainProjectId = data?.application?.onChainProjectId;
@@ -300,7 +300,6 @@ function ProjectDetailsPage() {
             'This project needs to be registered on the blockchain before investments can be made. Please contact the program administrator.',
             'error',
           );
-          notify('Project not registered on blockchain', 'error');
           return; // Don't continue with investment
         }
 
@@ -315,14 +314,33 @@ function ProjectDetailsPage() {
           });
 
           txHash = result.txHash;
-          notify('Transaction submitted! Waiting for confirmation...', 'loading');
-        } catch (_blockchainError) {
-          notify('Blockchain transaction failed. Please try again.', 'error');
-          return;
+          notify('Transaction confirmed! Recording investment...', 'success');
+        } catch (error: unknown) {
+          // Check if user rejected the transaction
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          const errorCode = (error as { code?: number })?.code;
+          
+          if (errorCode === 4001 || errorMessage?.includes('User rejected') || errorMessage?.includes('User denied')) {
+            notify('Transaction cancelled by user', 'error');
+          } else {
+            notify('Blockchain transaction failed. Please try again.', 'error');
+            console.error('Investment blockchain error:', error);
+          }
+          return; // Don't save to database if blockchain transaction failed
         }
+      } else {
+        // Program not published to blockchain yet - this shouldn't happen for published programs
+        notify('Warning: This program is not published on blockchain. Contact administrator.', 'error');
+        return; // Don't allow investment for non-published programs
       }
 
-      // Record investment in database with txHash if available
+      // Only record investment in database if we have a successful blockchain transaction
+      if (!txHash) {
+        notify('Error: Investment requires blockchain transaction for published programs', 'error');
+        return;
+      }
+
+      // Record investment in database with txHash
       await createInvestment({
         variables: {
           input: {
