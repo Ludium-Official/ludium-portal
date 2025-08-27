@@ -1,17 +1,16 @@
 // import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
 import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
-import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
+
 import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
-import { useUsersQuery } from '@/apollo/queries/users.generated';
+
 import { MarkdownPreviewer } from '@/components/markdown';
 import { ProgramStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { MultiSelect } from '@/components/ui/multi-select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
 import { ShareButton } from '@/components/ui/share-button';
 import { Tabs } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -19,15 +18,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useAuth } from '@/lib/hooks/use-auth';
 import { getInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
-import { cn, getCurrencyIcon, getInitials, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
-import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
+import { cn, getInitials, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import ProjectCard from '@/pages/investments/details/_components/project-card';
+import SupportersModal from '@/pages/investments/details/_components/supporters-modal';
 import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 // import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
-import { type InvestmentTier, ProgramStatus } from '@/types/types.generated';
+import { FundingCondition, ProgramStatus } from '@/types/types.generated';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { format } from 'date-fns';
-import { ChevronDown, CircleAlert, Settings, TriangleAlert, X } from 'lucide-react';
+import { CircleAlert, Settings, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
@@ -49,23 +48,6 @@ const InvestmentDetailsPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [isSupportersModalOpen, setIsSupportersModalOpen] = useState(false);
-  const [supportersTab, setSupportersTab] = useState<'invite' | 'supporters'>('invite');
-
-  const [selectedSupporter, setSelectedSupporter] = useState<string[]>([]);
-  const [selectedSupporterItems, setSelectedSupporterItems] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const [supporterInput, setSupporterInput] = useState<string>();
-  const [debouncedSupporterInput, setDebouncedSupporterInput] = useState<string>();
-  const [selectedTier, setSelectedTier] = useState<string | undefined>(undefined);
-  const [storedSupporters, setStoredSupporters] = useState<
-    Array<{
-      id: string;
-      name: string;
-      email: string;
-      tier: string;
-    }>
-  >([]);
 
   const { data, refetch } = useProgramQuery({
     variables: {
@@ -73,119 +55,11 @@ const InvestmentDetailsPage: React.FC = () => {
     },
   });
 
-  const [inviteUserToProgram] = useInviteUserToProgramMutation();
 
-  // Debounce supporter input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSupporterInput(supporterInput);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [supporterInput]);
-
-  // Query for supporters/users
-  const { data: supportersData, loading: supportersLoading } = useUsersQuery({
-    variables: {
-      input: {
-        limit: 5,
-        offset: 0,
-        filter: [
-          {
-            field: 'search',
-            value: debouncedSupporterInput ?? '',
-          },
-        ],
-      },
-    },
-    skip: !supporterInput,
-  });
-
-  const supporterOptions = supportersData?.users?.data?.map((v) => ({
-    value: v.id ?? '',
-    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
-  }));
 
   const program = data?.program;
 
-  // Set initial tier when tierSettings are available
-  useEffect(() => {
-    if (program?.tierSettings && !selectedTier) {
-      const enabledTiers = Object.entries(program.tierSettings).filter(
-        ([_, value]) => (value as { enabled: boolean })?.enabled,
-      );
-      if (enabledTiers.length > 0) {
-        setSelectedTier(enabledTiers[0][0]);
-      }
-    }
-  }, [program?.tierSettings, selectedTier]);
 
-  const handleInviteSupporter = () => {
-    if (!selectedSupporter.length) {
-      console.error('Please select a supporter');
-      return;
-    }
-
-    const supporterId = selectedSupporter[0];
-    const supporterItem = selectedSupporterItems[0];
-
-    // Check if supporter is already in the list
-    const isAlreadyAdded = storedSupporters.some((supporter) => supporter.id === supporterId);
-    if (isAlreadyAdded) {
-      console.error('Supporter is already in the list');
-      return;
-    }
-
-    // Add supporter to stored list
-    const newSupporter = {
-      id: supporterId,
-      name: supporterItem?.label || 'Unknown User',
-      email: supporterItem?.label.split(' ')[0] || 'unknown@email.com', // Extract email from label
-      tier: selectedTier || 'gold',
-    };
-
-    setStoredSupporters((prev) => [...prev, newSupporter]);
-
-    // Reset selection
-    setSelectedSupporter([]);
-    setSelectedSupporterItems([]);
-    setSupporterInput('');
-  };
-
-  const removeSupporter = (supporterId: string) => {
-    setStoredSupporters((prev) => prev.filter((supporter) => supporter.id !== supporterId));
-  };
-
-  const handleSendInvitation = async () => {
-    try {
-      if (!storedSupporters.length || !id) {
-        console.error('Please add at least one supporter');
-        return;
-      }
-
-      // Send invitations to all stored supporters
-      for (const supporter of storedSupporters) {
-        await inviteUserToProgram({
-          variables: {
-            programId: id,
-            userId: supporter.id,
-            tier: supporter.tier as InvestmentTier,
-            maxInvestmentAmount:
-              program?.tierSettings?.[supporter.tier as keyof typeof program.tierSettings]
-                ?.maxAmount,
-          },
-          onError: (error) => {
-            notify(`Failed to invite ${supporter.name}: ${error.message}`, 'error');
-          },
-        });
-      }
-
-      notify('All invitations sent successfully', 'success');
-      setStoredSupporters([]);
-      refetch();
-    } catch (error) {
-      console.error((error as Error).message);
-    }
-  };
 
   // const acceptedPrice = useMemo(
   //   () =>
@@ -352,374 +226,32 @@ const InvestmentDetailsPage: React.FC = () => {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-xl font-bold">{program?.name}</h1>
             <div className="flex justify-between items-center mb-2 gap-2">
-              {(program?.creator?.id === userId || isAdmin) && (
-                <Dialog open={isSupportersModalOpen} onOpenChange={setIsSupportersModalOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="flex gap-2 items-center bg-primary hover:bg-primary/90 text-white">
-                      {/* <Users className="w-4 h-4" /> */}
-                      Manage Supporters
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[800px]">
-                    <DialogTitle className="text-2xl font-semibold">Invite Supporter</DialogTitle>
-
-                    {/* Tabs */}
-                    <div className="flex border-b mb-6">
-                      <button
-                        type="button"
-                        className={`px-4 py-2 text-sm font-medium border-b transition-colors ${supportersTab === 'invite'
-                          ? 'border-primary text-primary'
-                          : 'border- text-muted-foreground hover:text-foreground'
-                          }`}
-                        onClick={() => setSupportersTab('invite')}
-                      >
-                        Invite supporter
-                      </button>
-                      <button
-                        type="button"
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${supportersTab === 'supporters'
-                          ? 'border-primary text-primary'
-                          : 'border-transparent text-muted-foreground hover:text-foreground'
-                          }`}
-                        onClick={() => setSupportersTab('supporters')}
-                      >
-                        Supporters
-                      </button>
-                    </div>
-
-                    {/* Invite Tab */}
-                    {supportersTab === 'invite' && (
-                      <div className="space-y-6">
-                        {/* Supporter Tier Management */}
-                        <div>
-                          <h3 className="text-sm font-medium mb-3">Supporter Tier Management</h3>
-                          <div className="space-y-3 bg-secondary rounded-md p-3">
-                            <div
-                              className={cn(
-                                'flex items-center justify-between',
-                                !!program?.tierSettings && 'border-b pb-3',
-                              )}
-                            >
-                              <span className="text-sm text-muted-foreground font-bold">
-                                Program Tier Condition
-                              </span>
-                              {program?.tierSettings ? (
-                                <div className="flex gap-2">
-                                  {Object.entries(program.tierSettings).map(([key, value]) => {
-                                    if (!(value as { enabled: boolean })?.enabled) return null;
-                                    return <TierBadge key={key} tier={key as TierType} />;
-                                  })}
-                                </div>
-                              ) : (
-                                <Badge className="font-semibold text-gray-600 bg-gray-200">
-                                  Open
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="space-y-2">
-                              {program?.tierSettings &&
-                                Object.entries(program.tierSettings).map(([key, value]) => {
-                                  if (!(value as { enabled: boolean })?.enabled) return null;
-
-                                  return (
-                                    <div
-                                      key={key}
-                                      className="flex items-center justify-end gap-2 text-muted-foreground"
-                                    >
-                                      <span className="text-sm">
-                                        {key.charAt(0).toUpperCase() + key.slice(1)}
-                                      </span>
-                                      <span className="text-sm font-bold">
-                                        {(
-                                          value as { maxAmount?: number }
-                                        )?.maxAmount?.toLocaleString() || 'N/A'}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Invite Supporter Input */}
-                        <div className="">
-                          <div className="flex items-center gap-2 mt-2">
-                            <MultiSelect
-                              options={supporterOptions ?? []}
-                              value={selectedSupporter}
-                              onValueChange={setSelectedSupporter}
-                              placeholder="Select supporter"
-                              animation={2}
-                              maxCount={1}
-                              inputValue={supporterInput}
-                              setInputValue={setSupporterInput}
-                              selectedItems={selectedSupporterItems}
-                              setSelectedItems={setSelectedSupporterItems}
-                              emptyText="Enter supporter email or organization name"
-                              loading={supportersLoading}
-                              singleSelect={true}
-                              className="flex-1"
-                            />
-                            {program?.tierSettings ? (
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    className="h-10 px-3 justify-between min-w-[120px]"
-                                  >
-                                    {selectedTier ? (
-                                      <TierBadge tier={selectedTier as TierType} />
-                                    ) : (
-                                      <span className="text-sm text-muted-foreground">
-                                        Select tier
-                                      </span>
-                                    )}
-                                    <ChevronDown className="h-4 w-4 opacity-50" />
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[120px] p-1" align="end">
-                                  <div className="space-y-1">
-                                    {Object.entries(program.tierSettings).map(([key, value]) => {
-                                      if (!(value as { enabled: boolean })?.enabled) return null;
-
-                                      return (
-                                        <Button
-                                          key={key}
-                                          variant="ghost"
-                                          className="w-full justify-start h-8 px-2"
-                                          onClick={() => setSelectedTier(key)}
-                                        >
-                                          <TierBadge tier={key as TierType} />
-                                        </Button>
-                                      );
-                                    })}
-                                  </div>
-                                </PopoverContent>
-                              </Popover>
-                            ) : (
-                              <div className="h-10 px-3 flex items-center text-sm text-muted-foreground">
-                                Open
-                              </div>
-                            )}
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={handleInviteSupporter}
-                              disabled={!selectedSupporter.length}
-                            >
-                              OK
-                            </Button>
-                          </div>
-                        </div>
-
-                        <div className="min-h-[200px]">
-                          {/* Stored Supporters List */}
-                          {storedSupporters.length > 0 && (
-                            <div className="mt-6">
-                              <h3 className="text-sm font-semibold mb-3">Added Supporters</h3>
-                              <div className="">
-                                <div className="grid grid-cols-3 gap-4 p-3 border-b text-sm font-medium">
-                                  <div className="text-muted-foreground">Tier</div>
-                                  <div className="text-muted-foreground">User name</div>
-                                  <div />
-                                </div>
-                                <div className="max-h-[200px] overflow-y-auto">
-                                  {storedSupporters.map((supporter) => (
-                                    <div
-                                      key={supporter.id}
-                                      className="grid grid-cols-3 gap-4 p-3 border-b last:border-b-0 items-center hover:bg-muted"
-                                    >
-                                      <div>
-                                        <TierBadge tier={supporter.tier as TierType} />
-                                      </div>
-                                      <div className="text-sm">{supporter.name}</div>
-                                      <div className="flex justify-end">
-                                        <Button
-                                          size="sm"
-                                          variant="ghost"
-                                          onClick={() => removeSupporter(supporter.id)}
-                                          className="h-6 w-6 p-0"
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Summary Section */}
-                        {storedSupporters.length > 0 && (
-                          <div className="mt-6 flex justify-between items-center bg-muted p-4">
-                            <div className="text-sm flex items-center gap-8">
-                              <span className="">Total</span>{' '}
-                              <span className="font-bold text-lg">{storedSupporters.length}</span>
-                            </div>
-                            <div className="text-sm font-medium flex items-center gap-2">
-                              <span className="font-bold text-lg">
-                                {storedSupporters
-                                  .reduce((total, supporter) => {
-                                    const tierSettings = program?.tierSettings;
-                                    if (!tierSettings) return total;
-
-                                    const tierValue = (
-                                      tierSettings as Record<string, { maxAmount?: number }>
-                                    )[supporter.tier];
-                                    const amount = Number(tierValue?.maxAmount) || 0;
-                                    return total + amount;
-                                  }, 0)
-                                  .toLocaleString()}
-                              </span>
-                              <span>{getCurrencyIcon(program?.currency)}</span>
-                              <span>{program?.currency}</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Send Invitation Button */}
-                        <div className="flex justify-end mt-6">
-                          <Button
-                            onClick={handleSendInvitation}
-                            disabled={!storedSupporters.length}
-                            className="bg-foreground text-white"
-                          >
-                            Send Invitation
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* <div className="mt-6">
-                      <h3 className="text-sm font-semibold mb-3">Added Supporters</h3>
-                      <div className="">
-                        <div className="grid grid-cols-3 gap-4 p-3 border-b text-sm font-medium">
-                          <div className='text-muted-foreground'>Tier</div>
-                          <div className='text-muted-foreground'>User name</div>
-                          <div />
-                        </div>
-                        <div className='max-h-[200px] overflow-y-auto'>
-
-                          {storedSupporters.map((supporter) => (
-                            <div key={supporter.id} className="grid grid-cols-3 gap-4 p-3 border-b last:border-b-0 items-center hover:bg-muted">
-                              <div>
-                                <TierBadge tier={supporter.tier as TierType} />
-                              </div>
-                              <div className="text-sm">{supporter.name}</div>
-                              <div className="flex justify-end">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => removeSupporter(supporter.id)}
-                                  className="h-6 w-6 p-0"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div> */}
-                    {/* Supporters Tab */}
-                    {supportersTab === 'supporters' && (
-                      <div className="">
-                        {/* <h3 className="text-sm font-semibold">Current Supporters</h3> */}
-                        <div className="grid grid-cols-3 gap-4 p-3 border-b text-sm font-medium">
-                          <div className="text-muted-foreground">Tier</div>
-                          <div className="text-muted-foreground">User name</div>
-                          <div />
-                        </div>
-                        {program?.supporters && program.supporters.length > 0 ? (
-                          <div className="">
-                            {program.supporters.map((supporter) => (
-                              <div
-                                key={supporter.userId}
-                                className="grid grid-cols-3 gap-4 p-3 min-h-[64px] border-b last:border-b-0 items-center hover:bg-muted"
-                              >
-                                <div>
-                                  <TierBadge tier={supporter.tier as TierType} />
-                                </div>
-                                <div className="text-sm">
-                                  {supporter.firstName} {supporter.lastName} {supporter.email}
-                                </div>
-                                <div className="flex justify-end">
-                                  {/* <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => removeSupporter(supporter.id)}
-                                  className="h-6 w-6 p-0"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button> */}
-                                </div>
-                              </div>
-
-                              // <div
-                              //   key={supporter.email || index}
-                              //   className="flex items-center justify-between p-3 border rounded-lg"
-                              // >
-                              //   <div className="flex items-center gap-3">
-                              //     <div className="w-8 h-8 bg-gray-200 rounded-full" />
-                              //     <div>
-                              //       <p className="text-sm font-medium">
-                              //         {supporter.firstName} {supporter.lastName}
-                              //       </p>
-                              //       <p className="text-xs text-muted-foreground">{supporter.email}</p>
-                              //     </div>
-                              //   </div>
-                              //   <Badge variant="secondary">Invited</Badge>
-                              // </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground text-center py-4">
-                            No supporters invited yet
-                          </p>
-                        )}
-
-                        <div className="mt-6 flex justify-between items-center bg-muted p-4">
-                          <div className="text-sm flex items-center gap-8">
-                            <span className="">Total</span>{' '}
-                            <span className="font-bold text-lg">
-                              {program?.invitedBuilders?.length}
-                            </span>
-                          </div>
-                          <div className="text-sm font-medium flex items-center gap-2">
-                            <span className="font-bold text-lg">
-                              {program?.invitedBuilders
-                                ?.reduce((total) => {
-                                  const tierSettings = program?.tierSettings;
-                                  if (!tierSettings) return total;
-
-                                  // hardcoded, dont forget to change
-                                  const tierValue = (
-                                    tierSettings as Record<string, { maxAmount?: number }>
-                                  ).gold;
-                                  const amount = Number(tierValue?.maxAmount) || 0;
-                                  return total + amount;
-                                }, 0)
-                                .toLocaleString()}
-                            </span>
-                            <span>{getCurrencyIcon(program?.currency)}</span>
-                            <span>{program?.currency}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </DialogContent>
-                </Dialog>
-              )}
-
-              {(program?.creator?.id === userId || isAdmin) && (
-                <Link to={`/investments/${program?.id}/edit`}>
-                  <Button variant="ghost" className="flex gap-2 items-center">
-                    Edit <Settings className="w-4 h-4" />
+              {(program?.creator?.id === userId || isAdmin) && (program?.fundingCondition === FundingCondition.Tier) && (
+                <>
+                  <Button
+                    className="flex gap-2 items-center bg-primary hover:bg-primary/90 text-white"
+                    onClick={() => setIsSupportersModalOpen(true)}
+                  >
+                    Manage Supporters
                   </Button>
-                </Link>
+                  <SupportersModal
+                    isOpen={isSupportersModalOpen}
+                    onOpenChange={setIsSupportersModalOpen}
+                    program={program}
+                    programId={id ?? ''}
+                    onRefetch={refetch}
+                  />
+                </>
               )}
+
+              {(program?.creator?.id === userId || isAdmin) &&
+                !(program?.applicationEndDate && new Date() > new Date(program.applicationEndDate)) && (
+                  <Link to={`/investments/${program?.id}/edit`}>
+                    <Button variant="ghost" className="flex gap-2 items-center">
+                      Edit <Settings className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                )}
 
               <ShareButton program={program ?? undefined} />
             </div>
@@ -1163,7 +695,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">Bronze</span>
                         <span className="text-sm text-gray-600">
-                          Max: ${program.tierSettings.bronze.maxAmount}
+                          Max: {program.tierSettings.bronze.maxAmount} {program.currency}
                         </span>
                       </div>
                     )}
@@ -1171,7 +703,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">Silver</span>
                         <span className="text-sm text-gray-600">
-                          Max: ${program.tierSettings.silver.maxAmount}
+                          Max: {program.tierSettings.silver.maxAmount} {program.currency}
                         </span>
                       </div>
                     )}
@@ -1179,7 +711,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">Gold</span>
                         <span className="text-sm text-gray-600">
-                          Max: ${program.tierSettings.gold.maxAmount}
+                          Max: {program.tierSettings.gold.maxAmount} {program.currency}
                         </span>
                       </div>
                     )}
@@ -1187,7 +719,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">Platinum</span>
                         <span className="text-sm text-gray-600">
-                          Max: ${program.tierSettings.platinum.maxAmount}
+                          Max: {program.tierSettings.platinum.maxAmount} {program.currency}
                         </span>
                       </div>
                     )}

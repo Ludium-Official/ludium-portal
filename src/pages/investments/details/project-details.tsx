@@ -41,7 +41,7 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import { useInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
-import { cn, getCurrency, getCurrencyIcon, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
+import { cn, getCurrencyIcon, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
 import UserInvestments from '@/pages/investments/_components/user-investments';
 // import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
@@ -657,7 +657,7 @@ function ProjectDetailsPage() {
                     </span>
                   </p>
                   <span className="text-muted-foreground">
-                    {getCurrency(program?.network)?.icon}
+                    {getCurrencyIcon(program?.currency)}
                   </span>
 
                   <span className="text-sm text-muted-foreground">{program?.currency}</span>
@@ -800,8 +800,7 @@ function ProjectDetailsPage() {
               <p className="text-sm text-red-400">You can edit and resubmit your application.</p>
             )} */}
 
-            {(program?.validators?.some((v) => v.id === userId) ||
-              program?.creator?.id === userId) &&
+            {(program?.validators?.some((v) => v.id === userId)) &&
               data?.application?.status === ApplicationStatus.Pending && (
                 <div className="flex justify-end gap-3 absolute bottom-10 right-10">
                   <Dialog>
@@ -840,22 +839,20 @@ function ProjectDetailsPage() {
                 <button
                   onClick={() => setActiveTab('terms')}
                   type="button"
-                  className={`p-2 font-medium text-sm transition-colors ${
-                    activeTab === 'terms'
-                      ? 'border-b border-b-primary text-primary'
-                      : 'text-muted-foreground hover:text-foreground border-b'
-                  }`}
+                  className={`p-2 font-medium text-sm transition-colors ${activeTab === 'terms'
+                    ? 'border-b border-b-primary text-primary'
+                    : 'text-muted-foreground hover:text-foreground border-b'
+                    }`}
                 >
                   Terms
                 </button>
                 <button
                   onClick={() => setActiveTab('milestones')}
                   type="button"
-                  className={`p-2 font-medium text-sm transition-colors ${
-                    activeTab === 'milestones'
-                      ? 'border-b border-b-primary text-primary'
-                      : 'text-muted-foreground hover:text-foreground border-b'
-                  }`}
+                  className={`p-2 font-medium text-sm transition-colors ${activeTab === 'milestones'
+                    ? 'border-b border-b-primary text-primary'
+                    : 'text-muted-foreground hover:text-foreground border-b'
+                    }`}
                 >
                   Milestones
                 </button>
@@ -915,9 +912,9 @@ function ProjectDetailsPage() {
                     const purchaseLimitReached =
                       typeof t.purchaseLimit === 'number' &&
                       t.purchaseLimit -
-                        (data?.application?.investors?.filter((i) => i.tier === t.price).length ??
-                          0) <=
-                        0;
+                      (data?.application?.investors?.filter((i) => i.tier === t.price).length ??
+                        0) <=
+                      0;
 
                     return (
                       <button
@@ -959,8 +956,8 @@ function ProjectDetailsPage() {
                             >
                               {t.purchaseLimit
                                 ? t.purchaseLimit -
-                                  (data?.application?.investors?.filter((i) => i.tier === t.price)
-                                    .length ?? 0)
+                                (data?.application?.investors?.filter((i) => i.tier === t.price)
+                                  .length ?? 0)
                                 : 0}{' '}
                               left
                             </Badge>
@@ -1166,7 +1163,7 @@ function ProjectDetailsPage() {
                                   disabled={
                                     idx !== 0 &&
                                     data?.application?.milestones?.[idx - 1]?.status !==
-                                      MilestoneStatus.Completed
+                                    MilestoneStatus.Completed
                                   }
                                 >
                                   <Button className="h-10 block ml-auto">Submit Milestone</Button>
@@ -1186,81 +1183,83 @@ function ProjectDetailsPage() {
                 </div>
               )}
 
-              {/* Invest Button - Fixed to Bottom of Right Section */}
-              <div className="absolute bottom-0 left-0 right-0">
-                <Dialog open={isInvestDialogOpen} onOpenChange={setIsInvestDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button
-                      disabled={
-                        !selectedTier ||
-                        data?.application?.status !== ApplicationStatus.Accepted ||
-                        (program?.fundingStartDate &&
-                          new Date() < new Date(program.fundingStartDate)) ||
-                        (program?.fundingEndDate && new Date() > new Date(program.fundingEndDate))
-                      }
-                      className="w-full h-10 bg-primary hover:bg-primary/90 text-white font-medium flex items-center justify-center gap-2"
-                      onClick={() => {
-                        if (!selectedTier) {
-                          notify('Please select a tier first', 'error');
-                          return;
+              {/* Invest Button - Only show when terms tab is active */}
+              {activeTab === 'terms' && (
+                <div className="absolute bottom-0 left-0 right-0">
+                  <Dialog open={isInvestDialogOpen} onOpenChange={setIsInvestDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        disabled={
+                          !selectedTier ||
+                          data?.application?.status !== ApplicationStatus.Accepted ||
+                          (program?.fundingStartDate &&
+                            new Date() < new Date(program.fundingStartDate)) ||
+                          (program?.fundingEndDate && new Date() > new Date(program.fundingEndDate))
                         }
-                        if (
-                          program?.fundingStartDate &&
-                          new Date() < new Date(program.fundingStartDate)
-                        ) {
-                          notify('Funding period has not started yet', 'error');
-                          return;
-                        }
-                        if (
-                          program?.fundingEndDate &&
-                          new Date() > new Date(program.fundingEndDate)
-                        ) {
-                          notify('Funding period has ended', 'error');
-                          return;
-                        }
-                      }}
-                    >
-                      <TrendingUp className="w-5 h-5" />
-                      Invest
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[400px]">
-                    <div className="text-lg font-semibold flex items-center justify-center">
-                      <span className="flex justify-center items-center w-[42px] h-[42px] rounded-full bg-[#B331FF1A]">
-                        <Coins className="text-primary" />
-                      </span>
-                    </div>
-                    <DialogTitle className="text-center font-semibold text-lg">
-                      Are you sure to pay the settlement for the project?
-                    </DialogTitle>
-                    {/* {selectedTier && (
-                      <div className="text-center mb-4">
-                        <p className="text-sm text-muted-foreground mb-2">Selected Tier:</p>
-                        <div className="inline-flex items-center gap-2">
-                          {programData?.program?.tierSettings ? (
-                            <TierBadge tier={selectedTier as TierType} />
-                          ) : (
-                            <Badge variant="secondary" className="bg-gray-200 text-gray-600">
-                              {selectedTier}
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-2">
-                          Amount: {program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount || selectedTier} {program?.currency}
-                        </p>
+                        className="w-full h-10 bg-primary hover:bg-primary/90 text-white font-medium flex items-center justify-center gap-2"
+                        onClick={() => {
+                          if (!selectedTier) {
+                            notify('Please select a tier first', 'error');
+                            return;
+                          }
+                          if (
+                            program?.fundingStartDate &&
+                            new Date() < new Date(program.fundingStartDate)
+                          ) {
+                            notify('Funding period has not started yet', 'error');
+                            return;
+                          }
+                          if (
+                            program?.fundingEndDate &&
+                            new Date() > new Date(program.fundingEndDate)
+                          ) {
+                            notify('Funding period has ended', 'error');
+                            return;
+                          }
+                        }}
+                      >
+                        <TrendingUp className="w-5 h-5" />
+                        Invest
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[400px]">
+                      <div className="text-lg font-semibold flex items-center justify-center">
+                        <span className="flex justify-center items-center w-[42px] h-[42px] rounded-full bg-[#B331FF1A]">
+                          <Coins className="text-primary" />
+                        </span>
                       </div>
-                    )} */}
-                    <DialogDescription className="text-sm text-muted-foreground text-center">
-                      The amount will be securely stored until you will confirm the completion of
-                      the project.
-                    </DialogDescription>
+                      <DialogTitle className="text-center font-semibold text-lg">
+                        Are you sure to pay the settlement for the project?
+                      </DialogTitle>
+                      {/* {selectedTier && (
+                        <div className="text-center mb-4">
+                          <p className="text-sm text-muted-foreground mb-2">Selected Tier:</p>
+                          <div className="inline-flex items-center gap-2">
+                            {programData?.program?.tierSettings ? (
+                              <TierBadge tier={selectedTier as TierType} />
+                            ) : (
+                              <Badge variant="secondary" className="bg-gray-200 text-gray-600">
+                                {selectedTier}
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Amount: {program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount || selectedTier} {program?.currency}
+                          </p>
+                        </div>
+                      )} */}
+                      <DialogDescription className="text-sm text-muted-foreground text-center">
+                        The amount will be securely stored until you will confirm the completion of
+                        the project.
+                      </DialogDescription>
 
-                    <Button onClick={handleInvest} className="bg-foreground text-white">
-                      Yes, Pay now
-                    </Button>
-                  </DialogContent>
-                </Dialog>
-              </div>
+                      <Button onClick={handleInvest} className="bg-foreground text-white">
+                        Yes, Pay now
+                      </Button>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              )}
             </ScrollArea>
           </div>
         </section>
