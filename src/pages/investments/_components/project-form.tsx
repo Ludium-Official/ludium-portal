@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useProjectDraft } from '@/lib/hooks/use-project-draft';
 import notify from '@/lib/notify';
-import { cn, getCurrency } from '@/lib/utils';
+import { cn, getCurrency, sortTierSettings } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { type LinkInput, ProgramStatus } from '@/types/types.generated';
 import { Check, ChevronRight, X } from 'lucide-react';
@@ -291,6 +291,10 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
       notify('Funding to be raised cannot exceed maximum funding amount.', 'error');
       hasErrors = true;
     }
+    if (requestedFunding <= 0) {
+      notify('Funding to be raised cannot be zero.', 'error');
+      hasErrors = true;
+    }
 
     const { isValid } = validateLinks(links);
     if (!isValid) {
@@ -495,7 +499,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                   {data?.program?.tierSettings ? (
                     <div className="flex items-center gap-2">
                       {data?.program?.tierSettings &&
-                        Object.entries(data.program.tierSettings).map(([key, value]) => {
+                        sortTierSettings(data.program.tierSettings, false).map(([key, value]) => {
                           if (!(value as { enabled: boolean })?.enabled) return null;
 
                           return (
@@ -514,12 +518,13 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                 </div>
                 {!!data?.program?.tierSettings && (
                   <div className="flex flex-col items-end space-y-1">
-                    {Object.entries(data?.program?.tierSettings).map(
+                    {sortTierSettings(data?.program?.tierSettings, false).map(
                       ([key, value]) =>
                         (value as { enabled: boolean })?.enabled && (
                           <div className="text-sm text-gray-600">
                             {key.charAt(0).toUpperCase() + key.slice(1)}{' '}
-                            {(value as { maxAmount: string })?.maxAmount}
+                            {(value as { maxAmount?: number })?.maxAmount}{' '}
+                            {data?.program?.currency}
                           </div>
                         ),
                     )}
@@ -706,6 +711,8 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                                     {selectedTiers[index].charAt(0).toUpperCase() +
                                       selectedTiers[index].slice(1)}
                                   </span>
+                                  {(data?.program?.tierSettings as Record<string, { maxAmount?: number }>)[selectedTiers[index]]?.maxAmount}{' '}
+                                  {data?.program?.currency}
                                 </span>
                               ) : (
                                 'Select tier'
@@ -715,7 +722,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                           </PopoverTrigger>
                           <PopoverContent className="w-full p-2" align="start">
                             <div className="">
-                              {Object.entries(data.program.tierSettings).map(([key, value]) => {
+                              {sortTierSettings(data.program.tierSettings, false).map(([key, value]) => {
                                 if (!(value as { enabled: boolean })?.enabled) return null;
 
                                 return (
@@ -744,6 +751,8 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                                       >
                                         {key.charAt(0).toUpperCase() + key.slice(1)}
                                       </span>
+                                      {(value as { maxAmount?: number })?.maxAmount}{' '}
+                                      {data?.program?.currency}
                                     </div>
                                   </Button>
                                 );

@@ -17,7 +17,6 @@ function ProjectCard({
     ?.reduce((prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)), BigNumber(0, 10))
     .toFixed();
 
-  const currency = application?.milestones?.[0]?.currency || program?.currency || 'USDT';
   const network = program?.network || 'Arbitrum';
 
   return (
@@ -79,7 +78,7 @@ function ProjectCard({
               <div className="flex items-center gap-1">
                 <span className="text-sm font-bold text-muted-foreground">{totalPrice}</span>
                 {getCurrencyIcon(program?.currency)}
-                <span className="text-sm font-medium text-muted-foreground">{currency}</span>
+                <span className="text-sm font-medium text-muted-foreground">{program?.currency}</span>
               </div>
               <div className="w-px h-5 bg-slate-200" />
               <span className="text-sm font-medium text-muted-foreground">{network}</span>

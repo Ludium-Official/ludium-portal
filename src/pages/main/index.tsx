@@ -14,8 +14,9 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import MainCommunityCard from '@/pages/main/_components/main-community-card';
 import MainProgramCard from '@/pages/main/_components/main-program-card';
+import ProgramCard from '@/pages/programs/_components/program-card';
 // import MainUserCard from '@/pages/main/_components/main-user-card';
-import type { Post, Program } from '@/types/types.generated';
+import { type Post, type Program, ProgramType } from '@/types/types.generated';
 import Autoplay from 'embla-carousel-autoplay';
 import { ArrowRight } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -156,9 +157,8 @@ function MainPage() {
               key={i}
               onClick={() => api?.scrollTo(i)}
               size="icon"
-              className={`w-2 h-2 rounded-full hover:bg-primary-light ${
-                current === i ? 'bg-primary' : 'bg-gray-300'
-              }`}
+              className={`w-2 h-2 rounded-full hover:bg-primary-light ${current === i ? 'bg-primary' : 'bg-gray-300'
+                }`}
             />
           ))}
         </div>
@@ -183,9 +183,16 @@ function MainPage() {
               </Link>
             </div>
             <div className="flex gap-3 overflow-x-auto whitespace-nowrap pb-4 select-none">
-              {programsData?.programs?.data?.map((program) => (
-                <MainProgramCard key={program.id} program={program} />
-              ))}
+              {programsData?.programs?.data?.map((program) => {
+                if (program.type === ProgramType.Regular) {
+                  return (
+                    <Link to={`/programs/${program.id}`} className='min-w-[624px] hover:shadow-md transition-shadow'>
+                      <ProgramCard key={program.id} program={program} />
+                    </Link>
+                  );
+                }
+                return <MainProgramCard key={program.id} program={program} />;
+              })}
             </div>
           </section>
         )}
