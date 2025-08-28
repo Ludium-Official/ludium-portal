@@ -523,8 +523,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         (value as { enabled: boolean })?.enabled && (
                           <div className="text-sm text-gray-600">
                             {key.charAt(0).toUpperCase() + key.slice(1)}{' '}
-                            {(value as { maxAmount?: number })?.maxAmount}{' '}
-                            {data?.program?.currency}
+                            {(value as { maxAmount?: number })?.maxAmount} {data?.program?.currency}
                           </div>
                         ),
                     )}
@@ -711,7 +710,14 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                                     {selectedTiers[index].charAt(0).toUpperCase() +
                                       selectedTiers[index].slice(1)}
                                   </span>
-                                  {(data?.program?.tierSettings as Record<string, { maxAmount?: number }>)[selectedTiers[index]]?.maxAmount}{' '}
+                                  {
+                                    (
+                                      data?.program?.tierSettings as Record<
+                                        string,
+                                        { maxAmount?: number }
+                                      >
+                                    )[selectedTiers[index]]?.maxAmount
+                                  }{' '}
                                   {data?.program?.currency}
                                 </span>
                               ) : (
@@ -722,41 +728,43 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                           </PopoverTrigger>
                           <PopoverContent className="w-full p-2" align="start">
                             <div className="">
-                              {sortTierSettings(data.program.tierSettings, false).map(([key, value]) => {
-                                if (!(value as { enabled: boolean })?.enabled) return null;
+                              {sortTierSettings(data.program.tierSettings, false).map(
+                                ([key, value]) => {
+                                  if (!(value as { enabled: boolean })?.enabled) return null;
 
-                                return (
-                                  <Button
-                                    key={key}
-                                    variant="ghost"
-                                    className="w-full justify-start pl-1"
-                                    onClick={() => {
-                                      setSelectedTiers((prev) =>
-                                        prev.map((tier, i) => (i === index ? key : tier)),
-                                      );
-                                      updateTerm(index, 'prize', key);
-                                      setPopoverStates((prev) =>
-                                        prev.map((state, i) => (i === index ? false : state)),
-                                      );
-                                    }}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      {selectedTiers[index] === key ? (
-                                        <Check className="h-4 w-4 text-foreground" />
-                                      ) : (
-                                        <div className="w-4 h-4" />
-                                      )}
-                                      <span
-                                        className={`${tierColors[key as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}
-                                      >
-                                        {key.charAt(0).toUpperCase() + key.slice(1)}
-                                      </span>
-                                      {(value as { maxAmount?: number })?.maxAmount}{' '}
-                                      {data?.program?.currency}
-                                    </div>
-                                  </Button>
-                                );
-                              })}
+                                  return (
+                                    <Button
+                                      key={key}
+                                      variant="ghost"
+                                      className="w-full justify-start pl-1"
+                                      onClick={() => {
+                                        setSelectedTiers((prev) =>
+                                          prev.map((tier, i) => (i === index ? key : tier)),
+                                        );
+                                        updateTerm(index, 'prize', key);
+                                        setPopoverStates((prev) =>
+                                          prev.map((state, i) => (i === index ? false : state)),
+                                        );
+                                      }}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        {selectedTiers[index] === key ? (
+                                          <Check className="h-4 w-4 text-foreground" />
+                                        ) : (
+                                          <div className="w-4 h-4" />
+                                        )}
+                                        <span
+                                          className={`${tierColors[key as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}
+                                        >
+                                          {key.charAt(0).toUpperCase() + key.slice(1)}
+                                        </span>
+                                        {(value as { maxAmount?: number })?.maxAmount}{' '}
+                                        {data?.program?.currency}
+                                      </div>
+                                    </Button>
+                                  );
+                                },
+                              )}
                             </div>
                           </PopoverContent>
                         </Popover>

@@ -52,6 +52,7 @@ import SubmitMilestoneForm from '@/pages/programs/details/_components/submit-mil
 import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
+import { ethers } from 'ethers';
 import {
   ArrowUpRight,
   Check,
@@ -141,7 +142,29 @@ function ProjectDetailsPage() {
           notify('Registering project on blockchain...', 'loading');
 
           try {
-            // Prepare milestones for blockchain
+            // Validate that all milestone deadlines are after funding end date
+            const fundingEndDate = program.fundingEndDate ? new Date(program.fundingEndDate) : null;
+
+            // Check for invalid milestone deadlines BEFORE attempting blockchain transaction
+            if (fundingEndDate && application.milestones) {
+              const invalidMilestones = application.milestones.filter((m) => {
+                const milestoneDeadline = m.deadline ? new Date(m.deadline) : new Date();
+                return milestoneDeadline <= fundingEndDate;
+              });
+
+              if (invalidMilestones.length > 0) {
+                const milestoneNames = invalidMilestones
+                  .map((m) => m.title || 'Untitled')
+                  .join(', ');
+                notify(
+                  `Cannot accept application: The following milestones have deadlines before or on the funding end date (${fundingEndDate.toLocaleDateString()}): ${milestoneNames}. The builder must update these milestones first.`,
+                  'error',
+                );
+                return; // Exit without proceeding
+              }
+            }
+
+            // Prepare milestones for blockchain - no adjustment, just pass them as-is
             const milestones =
               application.milestones?.map((m) => ({
                 title: m.title || '',
@@ -269,14 +292,24 @@ function ProjectDetailsPage() {
       }
 
       // Get the amount from the program tier settings or term price
-      const amount =
+      // This amount should already be in Wei format from the backend
+      const amountInWei =
         program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount ||
         selectedTerm.price;
 
+      // Get token information
+      const network = program?.network as keyof typeof tokenAddresses;
+      const tokens = tokenAddresses[network] || tokenAddresses['educhain-testnet'];
+      const targetToken = tokens.find((token) => token.name === program?.currency);
+
       // Validate investment amount against tier limits
       if (userTierAssignment?.remainingCapacity) {
+        // remainingCapacity is likely in display format, amountInWei is in Wei
+        // Convert amountInWei to display format for comparison
+        const decimals = targetToken?.decimal || 18;
+        const investmentAmountDisplay = ethers.utils.formatUnits(amountInWei, decimals);
         const remainingCapacity = Number.parseFloat(userTierAssignment.remainingCapacity);
-        const investmentAmount = Number.parseFloat(amount);
+        const investmentAmount = Number.parseFloat(investmentAmountDisplay);
 
         if (investmentAmount > remainingCapacity) {
           notify(
@@ -309,8 +342,10 @@ function ProjectDetailsPage() {
           // Call the blockchain investment function with the actual on-chain project ID
           const result = await investmentContract.investFund({
             projectId: Number(onChainProjectId), // Use the actual on-chain project ID
-            amount: amount, // investment amount in ETH
-            // token is optional, if not provided uses ETH
+            amount: amountInWei, // Amount already in Wei from backend
+            token: targetToken?.address, // Token address for ERC20, undefined for native
+            tokenName: program?.currency ?? undefined, // Display name (EDU, USDT, etc.)
+            tokenDecimals: targetToken?.decimal || 18, // Token decimals for formatting
           });
 
           txHash = result.txHash;
@@ -319,8 +354,12 @@ function ProjectDetailsPage() {
           // Check if user rejected the transaction
           const errorMessage = error instanceof Error ? error.message : String(error);
           const errorCode = (error as { code?: number })?.code;
-          
-          if (errorCode === 4001 || errorMessage?.includes('User rejected') || errorMessage?.includes('User denied')) {
+
+          if (
+            errorCode === 4001 ||
+            errorMessage?.includes('User rejected') ||
+            errorMessage?.includes('User denied')
+          ) {
             notify('Transaction cancelled by user', 'error');
           } else {
             notify('Blockchain transaction failed. Please try again.', 'error');
@@ -330,7 +369,10 @@ function ProjectDetailsPage() {
         }
       } else {
         // Program not published to blockchain yet - this shouldn't happen for published programs
-        notify('Warning: This program is not published on blockchain. Contact administrator.', 'error');
+        notify(
+          'Warning: This program is not published on blockchain. Contact administrator.',
+          'error',
+        );
         return; // Don't allow investment for non-published programs
       }
 
@@ -341,10 +383,15 @@ function ProjectDetailsPage() {
       }
 
       // Record investment in database with txHash
+      // Convert Wei amount to display format for database storage
+      const displayAmount = targetToken?.decimal
+        ? ethers.utils.formatUnits(amountInWei, targetToken.decimal)
+        : ethers.utils.formatUnits(amountInWei, 18);
+
       await createInvestment({
         variables: {
           input: {
-            amount: amount,
+            amount: displayAmount, // Store in display format in database
             projectId: projectId,
             ...(txHash && { txHash }), // Include txHash if blockchain transaction was made
           },
@@ -830,7 +877,7 @@ function ProjectDetailsPage() {
               <p className="text-sm text-red-400">You can edit and resubmit your application.</p>
             )} */}
 
-            {(program?.validators?.some((v) => v.id === userId)) &&
+            {program?.validators?.some((v) => v.id === userId) &&
               data?.application?.status === ApplicationStatus.Pending && (
                 <div className="flex justify-end gap-3 absolute bottom-10 right-10">
                   <Dialog>
@@ -869,20 +916,22 @@ function ProjectDetailsPage() {
                 <button
                   onClick={() => setActiveTab('terms')}
                   type="button"
-                  className={`p-2 font-medium text-sm transition-colors ${activeTab === 'terms'
-                    ? 'border-b border-b-primary text-primary'
-                    : 'text-muted-foreground hover:text-foreground border-b'
-                    }`}
+                  className={`p-2 font-medium text-sm transition-colors ${
+                    activeTab === 'terms'
+                      ? 'border-b border-b-primary text-primary'
+                      : 'text-muted-foreground hover:text-foreground border-b'
+                  }`}
                 >
                   Terms
                 </button>
                 <button
                   onClick={() => setActiveTab('milestones')}
                   type="button"
-                  className={`p-2 font-medium text-sm transition-colors ${activeTab === 'milestones'
-                    ? 'border-b border-b-primary text-primary'
-                    : 'text-muted-foreground hover:text-foreground border-b'
-                    }`}
+                  className={`p-2 font-medium text-sm transition-colors ${
+                    activeTab === 'milestones'
+                      ? 'border-b border-b-primary text-primary'
+                      : 'text-muted-foreground hover:text-foreground border-b'
+                  }`}
                 >
                   Milestones
                 </button>
@@ -942,9 +991,9 @@ function ProjectDetailsPage() {
                     const purchaseLimitReached =
                       typeof t.purchaseLimit === 'number' &&
                       t.purchaseLimit -
-                      (data?.application?.investors?.filter((i) => i.tier === t.price).length ??
-                        0) <=
-                      0;
+                        (data?.application?.investors?.filter((i) => i.tier === t.price).length ??
+                          0) <=
+                        0;
 
                     return (
                       <button
@@ -986,8 +1035,8 @@ function ProjectDetailsPage() {
                             >
                               {t.purchaseLimit
                                 ? t.purchaseLimit -
-                                (data?.application?.investors?.filter((i) => i.tier === t.price)
-                                  .length ?? 0)
+                                  (data?.application?.investors?.filter((i) => i.tier === t.price)
+                                    .length ?? 0)
                                 : 0}{' '}
                               left
                             </Badge>
@@ -1193,7 +1242,7 @@ function ProjectDetailsPage() {
                                   disabled={
                                     (idx !== 0 &&
                                       data?.application?.milestones?.[idx - 1]?.status !==
-                                      MilestoneStatus.Completed) ||
+                                        MilestoneStatus.Completed) ||
                                     // Prevent milestone submission before funding ends
                                     (program?.fundingEndDate &&
                                       new Date() <= new Date(program.fundingEndDate))
@@ -1203,7 +1252,7 @@ function ProjectDetailsPage() {
                                     className="h-10 block ml-auto"
                                     title={
                                       program?.fundingEndDate &&
-                                        new Date() <= new Date(program.fundingEndDate)
+                                      new Date() <= new Date(program.fundingEndDate)
                                         ? `Milestones can only be submitted after funding ends on ${new Date(program.fundingEndDate).toLocaleDateString()}`
                                         : undefined
                                     }
