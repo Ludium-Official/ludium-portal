@@ -23,8 +23,9 @@ function MainProgramCard({ program }: MainProgramCardProps) {
     if (!program?.applications?.length) return null;
 
     // Filter for active applications (Accepted or Completed status)
-    const activeApplications = program.applications.filter(app =>
-      app.status === ApplicationStatus.Accepted || app.status === ApplicationStatus.Completed
+    const activeApplications = program.applications.filter(
+      (app) =>
+        app.status === ApplicationStatus.Accepted || app.status === ApplicationStatus.Completed,
     );
 
     if (!activeApplications.length) return null;
@@ -80,10 +81,14 @@ function MainProgramCard({ program }: MainProgramCardProps) {
               <span className="text-sm text-neutral-400 font-semibold">STATUS</span>
 
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-purple-600 h-2 rounded-full" style={{ width: `${fundingProgress}%` }} />
+                <div
+                  className="bg-purple-600 h-2 rounded-full"
+                  style={{ width: `${fundingProgress}%` }}
+                />
               </div>
               <span className="text-xl text-primary font-bold flex items-center">
-                {fundingProgress}<span className="text-sm text-muted-foreground">%</span>
+                {fundingProgress}
+                <span className="text-sm text-muted-foreground">%</span>
               </span>
             </div>
 

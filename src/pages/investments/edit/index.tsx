@@ -47,12 +47,16 @@ const EditInvestmentPage: React.FC = () => {
 
   const onSubmit: OnSubmitInvestmentFunc = async (args) => {
     const program = programData?.program;
-    
+
     // Check if program is already published to blockchain (host has signed)
     if (program?.educhainProgramId !== null && program?.educhainProgramId !== undefined) {
       // Program is already on blockchain, validators cannot be changed
       if (args.validators && args.validators.length > 0) {
-        const currentValidatorIds = program?.validators?.map((v) => v.id).filter((id): id is string => id !== null && id !== undefined).sort() || [];
+        const currentValidatorIds =
+          program?.validators
+            ?.map((v) => v.id)
+            .filter((id): id is string => id !== null && id !== undefined)
+            .sort() || [];
         const newValidatorIds = args.validators.sort();
 
         // Check if validators have changed
@@ -118,7 +122,9 @@ const EditInvestmentPage: React.FC = () => {
         }
 
         // Filter out invalid validator IDs
-        const validTargetValidators = targetValidators.filter((id): id is string => id !== null && id !== undefined && typeof id === 'string');
+        const validTargetValidators = targetValidators.filter(
+          (id): id is string => id !== null && id !== undefined && typeof id === 'string',
+        );
         const validCurrentValidators = currentValidators.filter(
           (id): id is string => id !== null && id !== undefined && typeof id === 'string',
         );
@@ -269,13 +275,13 @@ const EditInvestmentPage: React.FC = () => {
         if (args.builders && args.builders.length > 0) {
           // Invite builders to program
           const builderInviteResults = await Promise.allSettled(
-            args.builders.map((userId) => inviteUserToProgram({ variables: { programId, userId } })),
+            args.builders.map((userId) =>
+              inviteUserToProgram({ variables: { programId, userId } }),
+            ),
           );
 
           const failedBuilderInvites = builderInviteResults
-            .map((result, index) =>
-              result.status === 'rejected' ? args.builders?.[index] : null,
-            )
+            .map((result, index) => (result.status === 'rejected' ? args.builders?.[index] : null))
             .filter((id): id is string => id !== null && id !== undefined);
 
           if (failedBuilderInvites.length > 0) {

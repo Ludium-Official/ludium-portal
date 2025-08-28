@@ -152,9 +152,9 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
       const tierSettings = program?.tierSettings;
       if (!tierSettings) return total;
 
-      const tierValue = (
-        tierSettings as Record<string, { maxAmount?: number }>
-      )[supporter.tier ?? ''];
+      const tierValue = (tierSettings as Record<string, { maxAmount?: number }>)[
+        supporter.tier ?? ''
+      ];
       const amount = Number(tierValue?.maxAmount) || 0;
       return total + amount;
     }, 0);
@@ -168,9 +168,9 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
       const tierSettings = program?.tierSettings;
       if (!tierSettings) return total;
 
-      const tierValue = (
-        tierSettings as Record<string, { maxAmount?: number }>
-      )[supporter.tier ?? ''];
+      const tierValue = (tierSettings as Record<string, { maxAmount?: number }>)[
+        supporter.tier ?? ''
+      ];
       const amount = Number(tierValue?.maxAmount) || 0;
       return total + amount;
     }, 0);
@@ -247,20 +247,22 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
         <div className="flex border-b mb-6">
           <button
             type="button"
-            className={`px-4 py-2 text-sm font-medium border-b transition-colors ${supportersTab === 'invite'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
+            className={`px-4 py-2 text-sm font-medium border-b transition-colors ${
+              supportersTab === 'invite'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
             onClick={() => setSupportersTab('invite')}
           >
             Invite supporter
           </button>
           <button
             type="button"
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${supportersTab === 'supporters'
-              ? 'border-primary text-primary'
-              : 'border-transparent text-muted-foreground hover:text-foreground'
-              }`}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              supportersTab === 'supporters'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
             onClick={() => setSupportersTab('supporters')}
           >
             Supporters
@@ -275,8 +277,9 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
               <h3 className="text-sm font-medium mb-3">Supporter Tier Management</h3>
               <div className="space-y-3 bg-secondary rounded-md p-3">
                 <div
-                  className={`flex items-center justify-between ${!!program?.tierSettings && 'border-b pb-3'
-                    }`}
+                  className={`flex items-center justify-between ${
+                    !!program?.tierSettings && 'border-b pb-3'
+                  }`}
                 >
                   <span className="text-sm text-muted-foreground font-bold">
                     Program Tier Condition
@@ -306,9 +309,8 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
                             {key.charAt(0).toUpperCase() + key.slice(1)}
                           </span>
                           <span className="text-sm font-bold">
-                            {(
-                              value as { maxAmount?: number }
-                            )?.maxAmount?.toLocaleString() || 'N/A'}
+                            {(value as { maxAmount?: number })?.maxAmount?.toLocaleString() ||
+                              'N/A'}
                           </span>
                         </div>
                       );
@@ -339,10 +341,7 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
                 {program?.tierSettings ? (
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="h-10 px-3 justify-between min-w-[120px]"
-                      >
+                      <Button variant="outline" className="h-10 px-3 justify-between min-w-[120px]">
                         {selectedTier ? (
                           <TierBadge tier={selectedTier as TierType} />
                         ) : (
@@ -514,9 +513,8 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
                       if (!tierSettings) return total;
 
                       // hardcoded, dont forget to change
-                      const tierValue = (
-                        tierSettings as Record<string, { maxAmount?: number }>
-                      ).gold;
+                      const tierValue = (tierSettings as Record<string, { maxAmount?: number }>)
+                        .gold;
                       const amount = Number(tierValue?.maxAmount) || 0;
                       return total + amount;
                     }, 0)

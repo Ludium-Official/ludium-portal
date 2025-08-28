@@ -164,7 +164,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       return;
     }
     setLinksError(false);
-    
+
     // Validate milestone deadlines for funding programs
     if (program?.type === 'funding' && program?.fundingEndDate) {
       const fundingEndDate = new Date(program.fundingEndDate);
@@ -172,16 +172,16 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
         const milestoneDeadline = m.deadline ? new Date(m.deadline) : new Date();
         return milestoneDeadline <= fundingEndDate;
       });
-      
+
       if (invalidMilestones.length > 0) {
         notify(
-          `Milestone deadlines must be after the funding period ends (${fundingEndDate.toLocaleDateString()}). Please adjust the following milestones: ${invalidMilestones.map(m => m.title || 'Untitled').join(', ')}`,
-          'error'
+          `Milestone deadlines must be after the funding period ends (${fundingEndDate.toLocaleDateString()}). Please adjust the following milestones: ${invalidMilestones.map((m) => m.title || 'Untitled').join(', ')}`,
+          'error',
         );
         return;
       }
     }
-    
+
     try {
       await createApplication({
         variables: {
@@ -376,13 +376,16 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                 )}
               </p>
               <DatePicker
-                disabled={{ 
-                  before: program?.type === 'funding' && program?.fundingEndDate 
-                    ? new Date(Math.max(
-                        new Date().getTime(), 
-                        new Date(program.fundingEndDate).getTime() + 24 * 60 * 60 * 1000 // 1 day after funding ends
-                      ))
-                    : new Date() 
+                disabled={{
+                  before:
+                    program?.type === 'funding' && program?.fundingEndDate
+                      ? new Date(
+                          Math.max(
+                            new Date().getTime(),
+                            new Date(program.fundingEndDate).getTime() + 24 * 60 * 60 * 1000, // 1 day after funding ends
+                          ),
+                        )
+                      : new Date(),
                 }}
                 date={
                   formData.milestones[0]?.deadline
@@ -462,13 +465,16 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                 )}
               </p>
               <DatePicker
-                disabled={{ 
-                  before: program?.type === 'funding' && program?.fundingEndDate 
-                    ? new Date(Math.max(
-                        new Date().getTime(), 
-                        new Date(program.fundingEndDate).getTime() + 24 * 60 * 60 * 1000 // 1 day after funding ends
-                      ))
-                    : new Date() 
+                disabled={{
+                  before:
+                    program?.type === 'funding' && program?.fundingEndDate
+                      ? new Date(
+                          Math.max(
+                            new Date().getTime(),
+                            new Date(program.fundingEndDate).getTime() + 24 * 60 * 60 * 1000, // 1 day after funding ends
+                          ),
+                        )
+                      : new Date(),
                 }}
                 date={m.deadline ? new Date(m.deadline) : undefined}
                 setDate={(date) => {

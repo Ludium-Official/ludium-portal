@@ -144,24 +144,26 @@ function ProjectDetailsPage() {
           try {
             // Validate that all milestone deadlines are after funding end date
             const fundingEndDate = program.fundingEndDate ? new Date(program.fundingEndDate) : null;
-            
+
             // Check for invalid milestone deadlines BEFORE attempting blockchain transaction
             if (fundingEndDate && application.milestones) {
               const invalidMilestones = application.milestones.filter((m) => {
                 const milestoneDeadline = m.deadline ? new Date(m.deadline) : new Date();
                 return milestoneDeadline <= fundingEndDate;
               });
-              
+
               if (invalidMilestones.length > 0) {
-                const milestoneNames = invalidMilestones.map(m => m.title || 'Untitled').join(', ');
+                const milestoneNames = invalidMilestones
+                  .map((m) => m.title || 'Untitled')
+                  .join(', ');
                 notify(
                   `Cannot accept application: The following milestones have deadlines before or on the funding end date (${fundingEndDate.toLocaleDateString()}): ${milestoneNames}. The builder must update these milestones first.`,
-                  'error'
+                  'error',
                 );
                 return; // Exit without proceeding
               }
             }
-            
+
             // Prepare milestones for blockchain - no adjustment, just pass them as-is
             const milestones =
               application.milestones?.map((m) => ({
@@ -352,8 +354,12 @@ function ProjectDetailsPage() {
           // Check if user rejected the transaction
           const errorMessage = error instanceof Error ? error.message : String(error);
           const errorCode = (error as { code?: number })?.code;
-          
-          if (errorCode === 4001 || errorMessage?.includes('User rejected') || errorMessage?.includes('User denied')) {
+
+          if (
+            errorCode === 4001 ||
+            errorMessage?.includes('User rejected') ||
+            errorMessage?.includes('User denied')
+          ) {
             notify('Transaction cancelled by user', 'error');
           } else {
             notify('Blockchain transaction failed. Please try again.', 'error');
@@ -363,7 +369,10 @@ function ProjectDetailsPage() {
         }
       } else {
         // Program not published to blockchain yet - this shouldn't happen for published programs
-        notify('Warning: This program is not published on blockchain. Contact administrator.', 'error');
+        notify(
+          'Warning: This program is not published on blockchain. Contact administrator.',
+          'error',
+        );
         return; // Don't allow investment for non-published programs
       }
 
@@ -375,10 +384,10 @@ function ProjectDetailsPage() {
 
       // Record investment in database with txHash
       // Convert Wei amount to display format for database storage
-      const displayAmount = targetToken?.decimal 
+      const displayAmount = targetToken?.decimal
         ? ethers.utils.formatUnits(amountInWei, targetToken.decimal)
         : ethers.utils.formatUnits(amountInWei, 18);
-      
+
       await createInvestment({
         variables: {
           input: {
@@ -868,7 +877,7 @@ function ProjectDetailsPage() {
               <p className="text-sm text-red-400">You can edit and resubmit your application.</p>
             )} */}
 
-            {(program?.validators?.some((v) => v.id === userId)) &&
+            {program?.validators?.some((v) => v.id === userId) &&
               data?.application?.status === ApplicationStatus.Pending && (
                 <div className="flex justify-end gap-3 absolute bottom-10 right-10">
                   <Dialog>
@@ -907,20 +916,22 @@ function ProjectDetailsPage() {
                 <button
                   onClick={() => setActiveTab('terms')}
                   type="button"
-                  className={`p-2 font-medium text-sm transition-colors ${activeTab === 'terms'
-                    ? 'border-b border-b-primary text-primary'
-                    : 'text-muted-foreground hover:text-foreground border-b'
-                    }`}
+                  className={`p-2 font-medium text-sm transition-colors ${
+                    activeTab === 'terms'
+                      ? 'border-b border-b-primary text-primary'
+                      : 'text-muted-foreground hover:text-foreground border-b'
+                  }`}
                 >
                   Terms
                 </button>
                 <button
                   onClick={() => setActiveTab('milestones')}
                   type="button"
-                  className={`p-2 font-medium text-sm transition-colors ${activeTab === 'milestones'
-                    ? 'border-b border-b-primary text-primary'
-                    : 'text-muted-foreground hover:text-foreground border-b'
-                    }`}
+                  className={`p-2 font-medium text-sm transition-colors ${
+                    activeTab === 'milestones'
+                      ? 'border-b border-b-primary text-primary'
+                      : 'text-muted-foreground hover:text-foreground border-b'
+                  }`}
                 >
                   Milestones
                 </button>
@@ -980,9 +991,9 @@ function ProjectDetailsPage() {
                     const purchaseLimitReached =
                       typeof t.purchaseLimit === 'number' &&
                       t.purchaseLimit -
-                      (data?.application?.investors?.filter((i) => i.tier === t.price).length ??
-                        0) <=
-                      0;
+                        (data?.application?.investors?.filter((i) => i.tier === t.price).length ??
+                          0) <=
+                        0;
 
                     return (
                       <button
@@ -1024,8 +1035,8 @@ function ProjectDetailsPage() {
                             >
                               {t.purchaseLimit
                                 ? t.purchaseLimit -
-                                (data?.application?.investors?.filter((i) => i.tier === t.price)
-                                  .length ?? 0)
+                                  (data?.application?.investors?.filter((i) => i.tier === t.price)
+                                    .length ?? 0)
                                 : 0}{' '}
                               left
                             </Badge>
@@ -1231,7 +1242,7 @@ function ProjectDetailsPage() {
                                   disabled={
                                     (idx !== 0 &&
                                       data?.application?.milestones?.[idx - 1]?.status !==
-                                      MilestoneStatus.Completed) ||
+                                        MilestoneStatus.Completed) ||
                                     // Prevent milestone submission before funding ends
                                     (program?.fundingEndDate &&
                                       new Date() <= new Date(program.fundingEndDate))
@@ -1241,7 +1252,7 @@ function ProjectDetailsPage() {
                                     className="h-10 block ml-auto"
                                     title={
                                       program?.fundingEndDate &&
-                                        new Date() <= new Date(program.fundingEndDate)
+                                      new Date() <= new Date(program.fundingEndDate)
                                         ? `Milestones can only be submitted after funding ends on ${new Date(program.fundingEndDate).toLocaleDateString()}`
                                         : undefined
                                     }

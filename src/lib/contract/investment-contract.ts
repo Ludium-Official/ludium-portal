@@ -266,9 +266,10 @@ export class InvestmentContract {
       const isNative = !params.token || params.token === ethers.constants.AddressZero;
 
       // Format amount for display
-      const displayAmount = params.tokenDecimals !== undefined
-        ? ethers.utils.formatUnits(params.amount, params.tokenDecimals)
-        : ethers.utils.formatEther(params.amount);
+      const displayAmount =
+        params.tokenDecimals !== undefined
+          ? ethers.utils.formatUnits(params.amount, params.tokenDecimals)
+          : ethers.utils.formatEther(params.amount);
       const tokenDisplay = params.tokenName || 'native token';
 
       let data: `0x${string}`;
@@ -327,9 +328,10 @@ export class InvestmentContract {
       if (log && 'data' in log) {
         const decoded = ethers.utils.defaultAbiCoder.decode(['uint256'], log.data);
         // Format based on token decimals
-        investmentAmount = params.tokenDecimals !== undefined
-          ? ethers.utils.formatUnits(decoded[0], params.tokenDecimals)
-          : ethers.utils.formatEther(decoded[0]);
+        investmentAmount =
+          params.tokenDecimals !== undefined
+            ? ethers.utils.formatUnits(decoded[0], params.tokenDecimals)
+            : ethers.utils.formatEther(decoded[0]);
       }
 
       return {

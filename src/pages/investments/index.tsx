@@ -46,60 +46,60 @@ export default function InvestmentsPage() {
   const filter = [
     ...(activeTab === 'my-programs'
       ? [
-        {
-          field: 'userId',
-          value: userId,
-        },
-      ]
+          {
+            field: 'userId',
+            value: userId,
+          },
+        ]
       : []),
     ...(activeTab === 'newest'
       ? [
-        {
-          field: 'status',
-          values: [
-            ProgramStatus.Published,
-            ProgramStatus.Completed,
-            ProgramStatus.Pending,
-            ProgramStatus.PaymentRequired,
-            ProgramStatus.Cancelled,
-            ProgramStatus.Closed,
-            ProgramStatus.Rejected,
-          ],
-        },
-        {
-          field: 'visibility',
-          value: 'public',
-        },
-      ]
+          {
+            field: 'status',
+            values: [
+              ProgramStatus.Published,
+              ProgramStatus.Completed,
+              ProgramStatus.Pending,
+              ProgramStatus.PaymentRequired,
+              ProgramStatus.Cancelled,
+              ProgramStatus.Closed,
+              ProgramStatus.Rejected,
+            ],
+          },
+          {
+            field: 'visibility',
+            value: 'public',
+          },
+        ]
       : []),
     ...(activeTab === 'imminent'
       ? [
-        {
-          field: 'status',
-          value: 'published',
-        },
-        {
-          field: 'visibility',
-          value: 'public',
-        },
+          {
+            field: 'status',
+            value: 'published',
+          },
+          {
+            field: 'visibility',
+            value: 'public',
+          },
 
-        {
-          field: 'imminent',
-          value: 'true',
-        },
-      ]
+          {
+            field: 'imminent',
+            value: 'true',
+          },
+        ]
       : []),
     ...(activeTab === 'completed'
       ? [
-        {
-          field: 'status',
-          value: 'completed',
-        },
-        {
-          field: 'visibility',
-          value: 'public',
-        },
-      ]
+          {
+            field: 'status',
+            value: 'completed',
+          },
+          {
+            field: 'visibility',
+            value: 'public',
+          },
+        ]
       : []),
     {
       field: 'name',
@@ -207,7 +207,7 @@ export default function InvestmentsPage() {
                     key={`investment-skeleton-${
                       // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                       i
-                      }`}
+                    }`}
                     className="w-full border border-gray-200 rounded-lg"
                   >
                     <CardContent className="p-5">
@@ -354,7 +354,8 @@ function InvestmentCard({ program }: InvestmentCardProps) {
                     );
 
                     const now = new Date();
-                    const fundingHasStarted = program.fundingStartDate && now >= new Date(program.fundingStartDate);
+                    const fundingHasStarted =
+                      program.fundingStartDate && now >= new Date(program.fundingStartDate);
 
                     // Show funding dates if funding has started and dates are available
                     if (fundingHasStarted && program.fundingStartDate && program.fundingEndDate) {
@@ -363,7 +364,10 @@ function InvestmentCard({ program }: InvestmentCardProps) {
 
                     // Show application dates if available
                     if (program.applicationStartDate && program.applicationEndDate) {
-                      return renderDateRange(program.applicationStartDate, program.applicationEndDate);
+                      return renderDateRange(
+                        program.applicationStartDate,
+                        program.applicationEndDate,
+                      );
                     }
 
                     // Fallback when no dates are available
