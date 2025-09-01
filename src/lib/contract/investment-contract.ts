@@ -291,6 +291,8 @@ export class InvestmentContract {
     projectId: number;
     amount: string; // Amount in Wei (or smallest unit for tokens)
     token?: string; // Optional token address, if not provided uses native token
+    tokenName?: string; // Token name for display (EDU, USDT, etc.)
+    tokenDecimals?: number; // Token decimals for display formatting
   }) {
     try {
       console.log('=== investFund Debug Info ===');
@@ -298,21 +300,31 @@ export class InvestmentContract {
         projectId: params.projectId,
         amount: params.amount,
         token: params.token,
+        tokenName: params.tokenName,
+        tokenDecimals: params.tokenDecimals,
       });
 
       // Amount is already in Wei, no conversion needed
       const valueInWei = ethers.BigNumber.from(params.amount);
       console.log('valueInWei (BigNumber):', valueInWei.toString());
       console.log('valueInWei (hex):', valueInWei.toHexString());
-
+      
+      const amountBigInt = BigInt(params.amount);
       const isNative = !params.token || params.token === ethers.constants.AddressZero;
       console.log('Is native token:', isNative);
+
+      // Format amount for display
+      const displayAmount =
+        params.tokenDecimals !== undefined
+          ? ethers.utils.formatUnits(params.amount, params.tokenDecimals)
+          : ethers.utils.formatEther(params.amount);
+      const tokenDisplay = params.tokenName || 'native token';
 
       let data: `0x${string}`;
       let value: bigint;
 
       if (isNative) {
-        // ETH investment
+        // Native token investment
         console.log('Calling investFund with args:', [params.projectId]);
         console.log('Project ID type:', typeof params.projectId);
 
@@ -341,7 +353,7 @@ export class InvestmentContract {
         data = encodeFunctionData({
           abi: FUNDING_MODULE_ABI,
           functionName: 'investWithToken',
-          args: [params.projectId, params.token as `0x${string}`, valueInWei],
+          args: [params.projectId, params.token as `0x${string}`, amountBigInt],
         });
         value = BigInt(0);
         console.log('Encoded data:', data);
@@ -368,7 +380,7 @@ export class InvestmentContract {
               title: 'Invest in Project',
               action: 'Invest',
             },
-            description: `Investing ${ethers.utils.formatEther(valueInWei)} ${isNative ? 'native tokens' : 'tokens'} in project #${params.projectId}`,
+            description: `Investing ${displayAmount} ${tokenDisplay} in project #${params.projectId}`,
             successHeader: 'Investment Successful!',
             successDescription: 'Your investment has been confirmed.',
           },
@@ -388,12 +400,16 @@ export class InvestmentContract {
 
       if (log && 'data' in log) {
         const decoded = ethers.utils.defaultAbiCoder.decode(['uint256'], log.data);
-        investmentAmount = ethers.utils.formatEther(decoded[0]);
+        // Format based on token decimals
+        investmentAmount =
+          params.tokenDecimals !== undefined
+            ? ethers.utils.formatUnits(decoded[0], params.tokenDecimals)
+            : ethers.utils.formatEther(decoded[0]);
       }
 
       return {
         txHash: receipt.transactionHash,
-        amount: investmentAmount || params.amount,
+        amount: investmentAmount || displayAmount,
         projectId: params.projectId,
       };
     } catch (error) {

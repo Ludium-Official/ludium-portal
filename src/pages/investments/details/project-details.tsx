@@ -158,7 +158,29 @@ function ProjectDetailsPage() {
           notify('Registering project on blockchain...', 'loading');
 
           try {
-            // Prepare milestones for blockchain
+            // Validate that all milestone deadlines are after funding end date
+            const fundingEndDate = program.fundingEndDate ? new Date(program.fundingEndDate) : null;
+
+            // Check for invalid milestone deadlines BEFORE attempting blockchain transaction
+            if (fundingEndDate && application.milestones) {
+              const invalidMilestones = application.milestones.filter((m) => {
+                const milestoneDeadline = m.deadline ? new Date(m.deadline) : new Date();
+                return milestoneDeadline <= fundingEndDate;
+              });
+
+              if (invalidMilestones.length > 0) {
+                const milestoneNames = invalidMilestones
+                  .map((m) => m.title || 'Untitled')
+                  .join(', ');
+                notify(
+                  `Cannot accept application: The following milestones have deadlines before or on the funding end date (${fundingEndDate.toLocaleDateString()}): ${milestoneNames}. The builder must update these milestones first.`,
+                  'error',
+                );
+                return; // Exit without proceeding
+              }
+            }
+
+            // Prepare milestones for blockchain - no adjustment, just pass them as-is
             const milestones =
               application.milestones?.map((m) => ({
                 title: m.title || '',
@@ -294,7 +316,8 @@ function ProjectDetailsPage() {
       }
 
       // Get the amount from the program tier settings or term price
-      const amount =
+      // This amount should already be in Wei format from the backend
+      const amountInWei =
         program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount ||
         selectedTerm.price;
 
@@ -310,10 +333,19 @@ function ProjectDetailsPage() {
         fundingCondition: program?.fundingCondition,
       });
 
+      // Get token information
+      const network = program?.network as keyof typeof tokenAddresses;
+      const tokens = tokenAddresses[network] || tokenAddresses['educhain-testnet'];
+      const targetToken = tokens.find((token) => token.name === program?.currency);
+
       // Validate investment amount against tier limits
       if (userTierAssignment?.remainingCapacity) {
+        // remainingCapacity is likely in display format, amountInWei is in Wei
+        // Convert amountInWei to display format for comparison
+        const decimals = targetToken?.decimal || 18;
+        const investmentAmountDisplay = ethers.utils.formatUnits(amountInWei, decimals);
         const remainingCapacity = Number.parseFloat(userTierAssignment.remainingCapacity);
-        const investmentAmount = Number.parseFloat(amount);
+        const investmentAmount = Number.parseFloat(investmentAmountDisplay);
 
         if (investmentAmount > remainingCapacity) {
           notify(
@@ -326,7 +358,7 @@ function ProjectDetailsPage() {
 
       let txHash: string | undefined;
 
-      // If program has a contract address, execute blockchain transaction first
+      // IMPORTANT: For published programs (with educhainProgramId), blockchain transaction is REQUIRED
       if (program?.educhainProgramId !== null && program?.educhainProgramId !== undefined) {
         // Get the on-chain project ID from the application
         const onChainProjectId = data?.application?.onChainProjectId;
@@ -345,7 +377,6 @@ function ProjectDetailsPage() {
             'This project needs to be registered on the blockchain before investments can be made. Please contact the program administrator.',
             'error',
           );
-          notify('Project not registered on blockchain', 'error');
           return; // Don't continue with investment
         }
 
@@ -470,8 +501,10 @@ function ProjectDetailsPage() {
           // Call the blockchain investment function with the actual on-chain project ID
           const result = await investmentContract.investFund({
             projectId: Number(onChainProjectId), // Use the actual on-chain project ID
-            amount: amountInWei, // investment amount in Wei
-            // token is optional, if not provided uses native token
+            amount: amountInWei, // Amount already in Wei from backend
+            token: targetToken?.address, // Token address for ERC20, undefined for native
+            tokenName: program?.currency ?? undefined, // Display name (EDU, USDT, etc.)
+            tokenDecimals: targetToken?.decimal || 18, // Token decimals for formatting
           });
 
           txHash = result.txHash;
@@ -482,9 +515,16 @@ function ProjectDetailsPage() {
           // Try to extract the actual error message
           const errorMessage =
             blockchainError instanceof Error ? blockchainError.message : String(blockchainError);
+          const errorCode = (blockchainError as { code?: number })?.code;
 
-          // Check for specific error patterns
-          if (errorMessage.includes('Project not in funding period')) {
+          // Check if user rejected the transaction
+          if (
+            errorCode === 4001 ||
+            errorMessage?.includes('User rejected') ||
+            errorMessage?.includes('User denied')
+          ) {
+            notify('Transaction cancelled by user', 'error');
+          } else if (errorMessage.includes('Project not in funding period')) {
             notify(
               'Investment failed: The program is not currently accepting investments. Please check the funding period.',
               'error',
@@ -508,13 +548,31 @@ function ProjectDetailsPage() {
           }
           return;
         }
+      } else {
+        // Program not published to blockchain yet - this shouldn't happen for published programs
+        notify(
+          'Warning: This program is not published on blockchain. Contact administrator.',
+          'error',
+        );
+        return; // Don't allow investment for non-published programs
       }
 
-      // Record investment in database with txHash if available
+      // Only record investment in database if we have a successful blockchain transaction
+      if (!txHash) {
+        notify('Error: Investment requires blockchain transaction for published programs', 'error');
+        return;
+      }
+
+      // Record investment in database with txHash
+      // Convert Wei amount to display format for database storage
+      const displayAmount = targetToken?.decimal
+        ? ethers.utils.formatUnits(amountInWei, targetToken.decimal)
+        : ethers.utils.formatUnits(amountInWei, 18);
+
       await createInvestment({
         variables: {
           input: {
-            amount: amount,
+            amount: displayAmount, // Store in display format in database
             projectId: projectId,
             ...(txHash && { txHash }), // Include txHash if blockchain transaction was made
           },
