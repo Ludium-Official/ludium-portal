@@ -8,6 +8,7 @@ import {
   Scroll,
   ShieldCheck,
   UserRound,
+  Users,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
@@ -42,11 +43,11 @@ const Sidebar = () => {
       path: '/community',
       icon: MessageCircle,
     },
-    // { name: 'Agent', path: '/users', icon: Users },
+    { name: 'Agent', path: '/users', icon: Users },
   ];
 
   if (isLoggedIn) {
-    links.unshift({ name: 'Profile', path: '/profile', icon: UserRound });
+    links.unshift({ name: 'Profile', path: '/my-profile', icon: UserRound });
   }
 
   return (

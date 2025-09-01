@@ -2,7 +2,6 @@ import client from '@/apollo/client';
 import { useAcceptApplicationMutation } from '@/apollo/mutation/accept-application.generated';
 import { useCheckMilestoneMutation } from '@/apollo/mutation/check-milestone.generated';
 import { useCreateInvestmentMutation } from '@/apollo/mutation/create-investment.generated';
-// import { useRejectApplicationMutation } from '@/apollo/mutation/reject-application.generated';
 import { ApplicationDocument, useApplicationQuery } from '@/apollo/queries/application.generated';
 import { ProgramDocument, useProgramQuery } from '@/apollo/queries/program.generated';
 import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
@@ -50,9 +49,10 @@ import RejectApplicationForm from '@/pages/programs/details/_components/reject-a
 import RejectMilestoneForm from '@/pages/programs/details/_components/reject-milestone-form';
 import SubmitMilestoneForm from '@/pages/programs/details/_components/submit-milestone-form';
 import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from '@/types/types.generated';
+import { usePrivy } from '@privy-io/react-auth';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
-import { ethers } from 'ethers';
+import * as ethers from 'ethers';
 import {
   ArrowUpRight,
   Check,
@@ -70,7 +70,7 @@ function ProjectDetailsPage() {
   const [activeTab, setActiveTab] = useState<'terms' | 'milestones'>('terms');
   const [isInvestDialogOpen, setIsInvestDialogOpen] = useState(false);
   const [selectedTier, setSelectedTier] = useState<string>('');
-  const [onChainFundingProgress, setOnChainFundingProgress] = useState<{
+  const [_onChainFundingProgress, setOnChainFundingProgress] = useState<{
     targetFunding: number;
     totalInvested: number;
     fundingProgress: number;
@@ -78,6 +78,7 @@ function ProjectDetailsPage() {
   const remountKey = () => setMountKey((v) => v + 1);
 
   const { userId, isAdmin } = useAuth();
+  const { user: privyUser } = usePrivy();
   const { id, projectId } = useParams();
 
   const { data, refetch } = useApplicationQuery({
@@ -129,6 +130,7 @@ function ProjectDetailsPage() {
         program?.educhainProgramId !== undefined
       ) {
         const application = data?.application;
+
         if (!application) {
           notify('Application data not found', 'error');
           return;
@@ -173,12 +175,15 @@ function ProjectDetailsPage() {
                 deadline: m.deadline || new Date().toISOString(),
               })) || [];
 
+            // Prepare funding target
+            const fundingTarget = application.fundingTarget || '0';
+
             // Call signValidate to register the project on blockchain FIRST
             const result = await investmentContract.signValidate({
               programId: program.educhainProgramId,
               projectOwner: application.applicant?.walletAddress || application.applicant?.id || '',
               projectName: application.name || '',
-              targetFunding: application.fundingTarget || '0',
+              targetFunding: fundingTarget,
               milestones,
             });
 
@@ -337,6 +342,82 @@ function ProjectDetailsPage() {
         }
 
         try {
+          // First check program status
+          let programStatus = await investmentContract.getProgramStatusDetailed(
+            program.educhainProgramId,
+          );
+
+          // If program is "Ready" but timestamps show it should be active, update it
+          if (programStatus.status === 'Ready' && programStatus.isInFundingPeriod) {
+            notify('Updating program status to Active...', 'loading');
+
+            try {
+              await investmentContract.updateProgramStatus(program.educhainProgramId);
+              // Re-check the status
+              programStatus = await investmentContract.getProgramStatusDetailed(
+                program.educhainProgramId,
+              );
+
+              if (programStatus.status === 'Active') {
+                notify('Program status updated to Active', 'success');
+              }
+            } catch (updateError) {
+              console.error('Failed to update program status:', updateError);
+              notify('Failed to update program status. Contact administrator.', 'error');
+              return;
+            }
+          }
+
+          if (!programStatus.isInFundingPeriod || programStatus.status !== 'Active') {
+            notify(
+              `Investment failed: Program is not active. Current status: ${programStatus.status}`,
+              'error',
+            );
+            return;
+          }
+
+          const userAddress = privyUser?.wallet?.address || '';
+
+          if (!userAddress) {
+            notify('Please connect your wallet to invest', 'error');
+            return;
+          }
+
+          // Check current project funding status
+          try {
+            await investmentContract.getProjectInvestmentDetails(
+              Number(onChainProjectId),
+            );
+          } catch (error) {
+            console.error('Failed to get project funding status:', error);
+          }
+
+          // Check investment eligibility
+          const eligibility = await investmentContract.checkInvestmentEligibility(
+            Number(onChainProjectId),
+            userAddress,
+            amountInWei,
+          );
+
+          if (!eligibility.eligible) {
+            if (eligibility.reason === 'Investment would exceed target funding') {
+              try {
+                const fundingStatus = await investmentContract.getProjectInvestmentDetails(
+                  Number(onChainProjectId),
+                );
+                notify(
+                  `Investment failed: This would exceed the funding target. Current: ${fundingStatus.totalRaised} / Target: ${fundingStatus.targetAmount} ${program?.currency}`,
+                  'error',
+                );
+              } catch {
+                notify(`Investment failed: ${eligibility.reason}`, 'error');
+              }
+            } else {
+              notify(`Investment failed: ${eligibility.reason}`, 'error');
+            }
+            return;
+          }
+
           notify('Please approve the transaction in your wallet', 'loading');
 
           // Call the blockchain investment function with the actual on-chain project ID
@@ -349,23 +430,43 @@ function ProjectDetailsPage() {
           });
 
           txHash = result.txHash;
-          notify('Transaction confirmed! Recording investment...', 'success');
-        } catch (error: unknown) {
-          // Check if user rejected the transaction
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          const errorCode = (error as { code?: number })?.code;
+          notify('Transaction submitted! Waiting for confirmation...', 'loading');
+        } catch (blockchainError) {
+          // Try to extract the actual error message
+          const errorMessage =
+            blockchainError instanceof Error ? blockchainError.message : String(blockchainError);
+          const errorCode = (blockchainError as { code?: number })?.code;
 
+          // Check if user rejected the transaction
           if (
             errorCode === 4001 ||
             errorMessage?.includes('User rejected') ||
             errorMessage?.includes('User denied')
           ) {
             notify('Transaction cancelled by user', 'error');
+          } else if (errorMessage.includes('Project not in funding period')) {
+            notify(
+              'Investment failed: The program is not currently accepting investments. Please check the funding period.',
+              'error',
+            );
+          } else if (errorMessage.includes('InvalidProjectId')) {
+            notify(
+              `Investment failed: Project #${onChainProjectId} not found on blockchain.`,
+              'error',
+            );
+          } else if (errorMessage.includes('InvestmentTooSmall')) {
+            notify('Investment failed: Amount is below minimum requirement.', 'error');
+          } else if (errorMessage.includes('InvestmentExceedsTarget')) {
+            notify('Investment failed: Amount would exceed the funding target.', 'error');
+          } else if (errorMessage.includes('execution reverted')) {
+            notify(
+              'Investment failed: Transaction was rejected by the smart contract. Please ensure the program is in its funding period.',
+              'error',
+            );
           } else {
-            notify('Blockchain transaction failed. Please try again.', 'error');
-            console.error('Investment blockchain error:', error);
+            notify(`Blockchain transaction failed: ${errorMessage}`, 'error');
           }
-          return; // Don't save to database if blockchain transaction failed
+          return;
         }
       } else {
         // Program not published to blockchain yet - this shouldn't happen for published programs
@@ -755,34 +856,6 @@ function ProjectDetailsPage() {
                   <span className="text-sm text-muted-foreground">%</span>
                 </p>
               </div>
-
-              {/* On-chain funding progress */}
-              {onChainFundingProgress && data?.application?.onChainProjectId && (
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-neutral-400 text-sm font-bold">ON-CHAIN STATUS</h4>
-                    <Badge variant="outline" className="text-xs">
-                      <Check className="w-3 h-3 mr-1" />
-                      Blockchain Verified
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-[20px] justify-between w-full">
-                    <div className="text-xs text-muted-foreground">
-                      {onChainFundingProgress.totalInvested.toFixed(2)} /{' '}
-                      {onChainFundingProgress.targetFunding.toFixed(2)} {program?.currency}
-                    </div>
-                    <Progress
-                      value={onChainFundingProgress.fundingProgress}
-                      rootClassName="w-full max-w-[200px]"
-                      indicatorClassName="bg-green-500"
-                    />
-                    <p className="text-sm font-bold flex items-center text-green-600">
-                      {onChainFundingProgress.fundingProgress.toFixed(1)}
-                      <span className="text-xs text-muted-foreground">%</span>
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
 
             <div className="flex justify-between items-center mb-6">

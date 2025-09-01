@@ -1,4 +1,5 @@
 import { usePostsQuery } from '@/apollo/queries/posts.generated';
+import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import { SortEnum } from '@/types/types.generated';
@@ -9,16 +10,23 @@ import CommunityCard from './community-card';
 
 const programPageSize = 6;
 
-export default function UserCommunityTab() {
+export default function UserCommunityTab({ myProfile }: { myProfile?: boolean }) {
   const { id } = useParams();
   const [searchParams, _setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const currentPage = Number(searchParams.get('page')) || 1;
 
+  const { data: profileData } = useProfileQuery({
+    fetchPolicy: 'network-only',
+    skip: !myProfile,
+  });
+
+  const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
+
   const filter = [
-    ...(id
+    ...(profileId
       ? [
-          { field: 'authorId', value: id },
+          { field: 'authorId', value: profileId },
           ...(searchQuery ? [{ field: 'name', value: searchQuery }] : []),
         ]
       : []),
@@ -33,7 +41,7 @@ export default function UserCommunityTab() {
         filter,
       },
     },
-    skip: !id,
+    skip: !profileId,
     fetchPolicy: 'cache-and-network',
   });
 

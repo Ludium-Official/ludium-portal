@@ -240,6 +240,7 @@ export enum FundingCondition {
 export type Investment = {
   __typename?: 'Investment';
   amount?: Maybe<Scalars['String']['output']>;
+  canReclaim?: Maybe<Scalars['Boolean']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   project?: Maybe<Application>;
   reclaimTxHash?: Maybe<Scalars['String']['output']>;

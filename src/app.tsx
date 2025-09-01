@@ -12,11 +12,15 @@ import UserCommunityTab from '@/pages/community/users/_components/community-tab'
 import UserDescriptionTab from '@/pages/community/users/_components/description-tab';
 import UserInvestmentHostTab from '@/pages/community/users/_components/investment-host-tab';
 import UserInvestmentProjectTab from '@/pages/community/users/_components/investment-project-tab';
+import UserInvestmentReclaimTab from '@/pages/community/users/_components/investment-reclaim-tab';
 import UserInvestmentTab from '@/pages/community/users/_components/investment-tab';
 import UserOverviewTab from '@/pages/community/users/_components/overview-tab';
+import UserRecruitmentReclaimTab from '@/pages/community/users/_components/recruitment-reclaim-tab';
 import UserRecruitmentRoleTab from '@/pages/community/users/_components/recruitment-role-tab';
 import UserRecruitmentTab from '@/pages/community/users/_components/recruitment-tab';
 import UserDetailsPage from '@/pages/community/users/details';
+import EditProfilePage from '@/pages/community/users/details/edit-profile';
+import MyProfilePage from '@/pages/community/users/details/my-profile';
 import InvestmentsPage from '@/pages/investments';
 import CreateInvestmentPage from '@/pages/investments/create';
 import CreateProjectPage from '@/pages/investments/create-project';
@@ -24,8 +28,8 @@ import InvestmentDetailsPage from '@/pages/investments/details';
 import ProjectDetailsPage from '@/pages/investments/details/project-details';
 import EditInvestmentPage from '@/pages/investments/edit';
 import MainPage from '@/pages/main';
-import ProfilePage from '@/pages/profile';
-import EditProfilePage from '@/pages/profile/edit';
+// import ProfilePage from '@/pages/profile';
+// import EditProfilePage from '@/pages/profile/edit';
 import ProgramsPage from '@/pages/programs';
 import CreateProgramPage from '@/pages/programs/create';
 import ProgramDetailsPage from '@/pages/programs/details';
@@ -41,10 +45,10 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route path="test" element={<CustomDynamicTabsExample />} />
           <Route index element={<MainPage />} />
-          <Route path="profile">
+          {/* <Route path="profile">
             <Route index element={<ProfilePage />} />
             <Route path="edit" element={<EditProfilePage />} />
-          </Route>
+          </Route> */}
 
           <Route path="programs">
             <Route index element={<ProgramsPage />} />
@@ -85,6 +89,36 @@ function App() {
               <Route path="program/investment/host" element={<UserInvestmentHostTab />} />
               <Route path="program/investment/project" element={<UserInvestmentProjectTab />} />
               <Route path="program/investment/supporter" element={<UserInvestmentProjectTab />} />
+              <Route path="program/investment/supporter" element={<UserInvestmentProjectTab />} />
+              <Route path="community" element={<UserCommunityTab />} />
+            </Route>
+          </Route>
+          <Route path="my-profile">
+            {/* <Route index element={<MyProfilePage />} /> */}
+
+            <Route path="edit" element={<EditProfilePage />} />
+            <Route element={<MyProfilePage />}>
+              <Route index element={<Navigate to="overview" />} />
+            </Route>
+            <Route element={<MyProfilePage />}>
+              {/* <Route index element={<Navigate to="overview" />} /> */}
+
+              <Route path="overview" element={<UserOverviewTab />} />
+              <Route path="description" element={<UserDescriptionTab myProfile />} />
+              <Route path="program/recruitment" element={<UserRecruitmentTab myProfile />} />
+              <Route
+                path="program/recruitment/:role"
+                element={<UserRecruitmentRoleTab myProfile />}
+              />
+              <Route
+                path="program/recruitment/reclaim"
+                element={<UserRecruitmentReclaimTab myProfile />}
+              />
+              <Route path="program/investment" element={<UserInvestmentTab myProfile />} />
+              <Route path="program/investment/host" element={<UserInvestmentHostTab />} />
+              <Route path="program/investment/project" element={<UserInvestmentProjectTab />} />
+              <Route path="program/investment/supporter" element={<UserInvestmentProjectTab />} />
+              <Route path="program/investment/reclaim" element={<UserInvestmentReclaimTab />} />
               <Route path="community" element={<UserCommunityTab />} />
             </Route>
           </Route>

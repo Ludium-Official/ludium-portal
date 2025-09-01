@@ -1,3 +1,4 @@
+import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,9 +15,17 @@ const filterBasedOnRole = {
   builder: 'builderId',
 };
 
-export default function UserInvestmentTab() {
+export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }) {
   const { id } = useParams();
   const [searchQuery, setSearchQuery] = useState('');
+
+  const { data: profileData } = useProfileQuery({
+    fetchPolicy: 'network-only',
+    skip: !myProfile,
+  });
+
+  const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
+
   const { data: programData } = useProgramsQuery({
     variables: {
       pagination: {
@@ -24,7 +33,7 @@ export default function UserInvestmentTab() {
         offset: 0,
         filter: [
           {
-            value: id ?? '',
+            value: profileId,
             field: filterBasedOnRole.sponsor,
           },
           ...(searchQuery
@@ -38,7 +47,7 @@ export default function UserInvestmentTab() {
         ],
       },
     },
-    skip: !id,
+    skip: !profileId,
   });
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
