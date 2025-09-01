@@ -24,7 +24,7 @@ export default function UserDescriptionTab({ myProfile }: { myProfile?: boolean 
       <div className="flex h-12 px-4">
         <h1 className="font-bold text-xl text-gray-dark">Description</h1>
       </div>
-      <div style={{ width: 425, height: 239 }}>
+      {/* <div style={{ width: 425, height: 239 }}>
         <iframe
           width="425"
           height="239"
@@ -34,9 +34,9 @@ export default function UserDescriptionTab({ myProfile }: { myProfile?: boolean 
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
-      </div>
+      </div> */}
       <div>
-        <p className="text-sm text-slate-600">{user?.summary}</p>
+        <p className="text-sm text-slate-600">{user?.about}</p>
       </div>
     </div>
   );

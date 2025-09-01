@@ -47,7 +47,7 @@ const Sidebar = () => {
   ];
 
   if (isLoggedIn) {
-    links.unshift({ name: 'Profile', path: '/profile', icon: UserRound });
+    links.unshift({ name: 'Profile', path: '/my-profile', icon: UserRound });
   }
 
   return (
