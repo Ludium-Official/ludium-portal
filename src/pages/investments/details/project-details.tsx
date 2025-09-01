@@ -121,13 +121,6 @@ function ProjectDetailsPage() {
 
   const handleAcceptApplication = async () => {
     try {
-      console.log('=== Accept Application Debug ===');
-      console.log('Program:', {
-        type: program?.type,
-        educhainProgramId: program?.educhainProgramId,
-        currency: program?.currency,
-      });
-
       let onChainProjectId: number | undefined;
 
       // If this is a funding program with blockchain deployment, register the project first
@@ -137,13 +130,6 @@ function ProjectDetailsPage() {
         program?.educhainProgramId !== undefined
       ) {
         const application = data?.application;
-        console.log('Application data:', {
-          id: application?.id,
-          name: application?.name,
-          fundingTarget: application?.fundingTarget,
-          price: application?.price,
-          milestones: application?.milestones?.length,
-        });
 
         if (!application) {
           notify('Application data not found', 'error');
@@ -191,11 +177,6 @@ function ProjectDetailsPage() {
 
             // Prepare funding target
             const fundingTarget = application.fundingTarget || '0';
-            console.log('Funding target for blockchain:', {
-              fromApplication: application.fundingTarget,
-              usingValue: fundingTarget,
-              fallbackTo: fundingTarget === '0' ? 'YES - using 0' : 'NO',
-            });
 
             // Call signValidate to register the project on blockchain FIRST
             const result = await investmentContract.signValidate({
@@ -321,18 +302,6 @@ function ProjectDetailsPage() {
         program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount ||
         selectedTerm.price;
 
-      console.log('=== Investment Flow Debug ===');
-      console.log('Selected tier:', selectedTier);
-      console.log('Selected term:', selectedTerm);
-      console.log('Program tier settings:', program?.tierSettings);
-      console.log('Amount from backend:', amount);
-      console.log('Program:', {
-        id: program?.id,
-        educhainProgramId: program?.educhainProgramId,
-        currency: program?.currency,
-        fundingCondition: program?.fundingCondition,
-      });
-
       // Get token information
       const network = program?.network as keyof typeof tokenAddresses;
       const tokens = tokenAddresses[network] || tokenAddresses['educhain-testnet'];
@@ -363,14 +332,6 @@ function ProjectDetailsPage() {
         // Get the on-chain project ID from the application
         const onChainProjectId = data?.application?.onChainProjectId;
 
-        console.log('Application data:', {
-          id: data?.application?.id,
-          onChainProjectId: onChainProjectId,
-          name: data?.application?.name,
-          fundingTarget: data?.application?.fundingTarget,
-          price: data?.application?.price,
-        });
-
         // Check if project is registered (0 is a valid project ID)
         if (onChainProjectId === null || onChainProjectId === undefined) {
           notify(
@@ -385,11 +346,9 @@ function ProjectDetailsPage() {
           let programStatus = await investmentContract.getProgramStatusDetailed(
             program.educhainProgramId,
           );
-          console.log('Program status:', programStatus);
 
           // If program is "Ready" but timestamps show it should be active, update it
           if (programStatus.status === 'Ready' && programStatus.isInFundingPeriod) {
-            console.log('Program is Ready but should be Active. Updating status...');
             notify('Updating program status to Active...', 'loading');
 
             try {
@@ -398,7 +357,6 @@ function ProjectDetailsPage() {
               programStatus = await investmentContract.getProgramStatusDetailed(
                 program.educhainProgramId,
               );
-              console.log('Updated program status:', programStatus);
 
               if (programStatus.status === 'Active') {
                 notify('Program status updated to Active', 'success');
@@ -418,15 +376,6 @@ function ProjectDetailsPage() {
             return;
           }
 
-          // Convert amount to Wei before eligibility check
-          const amountInWei = ethers.utils.parseEther(amount).toString();
-
-          console.log('Amount conversion:', {
-            originalAmount: amount,
-            amountInWei: amountInWei,
-            amountInEther: ethers.utils.formatEther(amountInWei),
-          });
-
           const userAddress = privyUser?.wallet?.address || '';
 
           if (!userAddress) {
@@ -434,36 +383,11 @@ function ProjectDetailsPage() {
             return;
           }
 
-          console.log('Eligibility check params:', {
-            projectId: Number(onChainProjectId),
-            userAddress: userAddress,
-            amountInWei: amountInWei,
-          });
-
           // Check current project funding status
           try {
-            const fundingStatus = await investmentContract.getProjectInvestmentDetails(
+            await investmentContract.getProjectInvestmentDetails(
               Number(onChainProjectId),
             );
-            console.log('Project funding status:', {
-              projectId: onChainProjectId,
-              totalRaised: fundingStatus.totalRaised,
-              targetAmount: fundingStatus.targetAmount,
-              fundingProgress: fundingStatus.fundingProgress,
-              fundingSuccessful: fundingStatus.fundingSuccessful,
-              investorCount: fundingStatus.investorCount,
-            });
-            console.log('Investment details:', {
-              yourInvestment: ethers.utils.formatEther(amountInWei),
-              afterInvestment: (
-                Number.parseFloat(fundingStatus.totalRaised) +
-                Number.parseFloat(ethers.utils.formatEther(amountInWei))
-              ).toFixed(6),
-              wouldExceed:
-                Number.parseFloat(fundingStatus.totalRaised) +
-                  Number.parseFloat(ethers.utils.formatEther(amountInWei)) >
-                Number.parseFloat(fundingStatus.targetAmount),
-            });
           } catch (error) {
             console.error('Failed to get project funding status:', error);
           }
@@ -474,8 +398,6 @@ function ProjectDetailsPage() {
             userAddress,
             amountInWei,
           );
-
-          console.log('Investment eligibility result:', eligibility);
 
           if (!eligibility.eligible) {
             if (eligibility.reason === 'Investment would exceed target funding') {
@@ -510,8 +432,6 @@ function ProjectDetailsPage() {
           txHash = result.txHash;
           notify('Transaction submitted! Waiting for confirmation...', 'loading');
         } catch (blockchainError) {
-          console.error('Blockchain error:', blockchainError);
-
           // Try to extract the actual error message
           const errorMessage =
             blockchainError instanceof Error ? blockchainError.message : String(blockchainError);
