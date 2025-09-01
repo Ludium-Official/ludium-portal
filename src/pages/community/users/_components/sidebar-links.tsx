@@ -41,7 +41,11 @@ export function SidebarLinks({ item, myProfile }: { item: SidebarItemType; myPro
   const { id } = useParams();
   const location = useLocation();
 
-  const fullPath = myProfile ? `/my-profile/${item.path}` : item.path ? `/users/${id}/${item.path}` : '';
+  const fullPath = myProfile
+    ? `/my-profile/${item.path}`
+    : item.path
+      ? `/users/${id}/${item.path}`
+      : '';
 
   const isActive = location.pathname === fullPath;
 
@@ -50,10 +54,11 @@ export function SidebarLinks({ item, myProfile }: { item: SidebarItemType; myPro
       {item.path ? (
         <Link
           to={fullPath}
-          className={`px-2 h-8 flex items-center text-sm ${isActive
-            ? 'font-medium text-gray-dark bg-sidebar-accent rounded-md'
-            : 'text-gray-asphalt font-normal'
-            }`}
+          className={`px-2 h-8 flex items-center text-sm ${
+            isActive
+              ? 'font-medium text-gray-dark bg-sidebar-accent rounded-md'
+              : 'text-gray-asphalt font-normal'
+          }`}
         >
           {item.label}
         </Link>

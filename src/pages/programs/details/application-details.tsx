@@ -149,12 +149,35 @@ function ApplicationDetails() {
                 deadline: m.deadline || new Date().toISOString(),
               })) || [];
 
+            // Debug logging for funding target
+            console.log('=== Application Accept Debug ===');
+            console.log('Full application object:', application);
+            console.log('Application data:', {
+              fundingTarget: application.fundingTarget,
+              price: application.price,
+              name: application.name,
+            });
+
+            // Use price as funding target since that's what's set in the form
+            const fundingAmount = application.fundingTarget || application.price || '0';
+            console.log('Using funding amount:', fundingAmount);
+
+            if (fundingAmount === '0' || !fundingAmount) {
+              console.warn(
+                'WARNING: Funding amount is 0 or undefined. This application may have been created before the fundingTarget fix.',
+              );
+              notify(
+                'Warning: This application has no funding target set. It may have been created before the recent fix.',
+                'error',
+              );
+            }
+
             // Call signValidate to register the project on blockchain FIRST
             const result = await investmentContract.signValidate({
               programId: program.educhainProgramId,
               projectOwner: application.applicant?.walletAddress || application.applicant?.id || '',
               projectName: application.name || '',
-              targetFunding: application.fundingTarget || '0',
+              targetFunding: fundingAmount,
               milestones,
             });
 

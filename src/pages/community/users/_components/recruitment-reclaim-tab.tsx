@@ -21,7 +21,7 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
     skip: !myProfile,
   });
 
-  const profileId = myProfile ? profileData?.profile?.id ?? '' : id ?? '';
+  const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
 
   const { data: programData } = useProgramsQuery({
     variables: {
@@ -36,18 +36,18 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
           },
           ...(searchQuery
             ? [
-              {
-                field: 'name',
-                value: searchQuery,
-              },
-            ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
             : []),
         ],
       },
     },
     skip: !profileId,
   });
-  console.log("🚀 ~ UserRecruitmentReclaimTab ~ programData:", programData)
+  console.log('🚀 ~ UserRecruitmentReclaimTab ~ programData:', programData);
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
@@ -68,126 +68,117 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
           </div>
         </div>
         <div className="flex flex-col gap-3">
-          <div className='p-5 border rounded-lg w-full'>
-            <div className='bg-[#18181B0A] rounded-full px-[10px] inline-flex items-center gap-2 mb-4'>
-              <span className='w-[14px] h-[14px] rounded-full bg-red-500 block' />
-              <p className='text-secondary-foreground text-sm font-semibold'>
-                Project Failed
-              </p>
+          <div className="p-5 border rounded-lg w-full">
+            <div className="bg-[#18181B0A] rounded-full px-[10px] inline-flex items-center gap-2 mb-4">
+              <span className="w-[14px] h-[14px] rounded-full bg-red-500 block" />
+              <p className="text-secondary-foreground text-sm font-semibold">Project Failed</p>
             </div>
 
-            <div className='flex items-center gap-2 mb-3'>
-              <div className='w-8 h-8 rounded-full bg-gray-200' />
-              <div className='flex flex-col gap-1'>
-                <p className='text-sm font-semibold'>
-                  Project Name
-                </p>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-full bg-gray-200" />
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-semibold">Project Name</p>
               </div>
             </div>
 
-            <div className='flex items-center justify-between px-2 py-1.5 bg-[#18181B0A] rounded-lg mb-2'>
-              <p className='text-sm font-medium text-neutral-400'>PAYED</p>
-              <div className='flex items-center gap-1'>
-                <p className='text-sm text-muted-foreground font-bold'>2000</p>
+            <div className="flex items-center justify-between px-2 py-1.5 bg-[#18181B0A] rounded-lg mb-2">
+              <p className="text-sm font-medium text-neutral-400">PAYED</p>
+              <div className="flex items-center gap-1">
+                <p className="text-sm text-muted-foreground font-bold">2000</p>
                 <UsdtIcon width={16} height={16} />
-                <p className='text-sm text-muted-foreground font-medium'>USDT</p>
+                <p className="text-sm text-muted-foreground font-medium">USDT</p>
               </div>
             </div>
 
-            <div className='flex items-center justify-between px-2 py-2.5 bg-[#18181B0A] rounded-lg mb-4'>
-              <p className='text-sm font-bold text-foreground'>RECLAIM</p>
-              <div className='flex items-center gap-1'>
-                <p className='text-xl text-primary font-bold'>1000</p>
+            <div className="flex items-center justify-between px-2 py-2.5 bg-[#18181B0A] rounded-lg mb-4">
+              <p className="text-sm font-bold text-foreground">RECLAIM</p>
+              <div className="flex items-center gap-1">
+                <p className="text-xl text-primary font-bold">1000</p>
                 <UsdtIcon width={16} height={16} />
-                <p className='text-sm text-muted-foreground font-medium'>USDT</p>
+                <p className="text-sm text-muted-foreground font-medium">USDT</p>
               </div>
             </div>
 
-            <div className='flex items-center justify-end'>
-
-              <Button size='sm' className='px-6'>Reclaim now</Button>
+            <div className="flex items-center justify-end">
+              <Button size="sm" className="px-6">
+                Reclaim now
+              </Button>
             </div>
           </div>
 
-          <div className='p-5 border rounded-lg w-full'>
-            <div className='bg-[#18181B0A] rounded-full px-[10px] inline-flex items-center gap-2 mb-4'>
-              <span className='w-[14px] h-[14px] rounded-full bg-red-500 block' />
-              <p className='text-secondary-foreground text-sm font-semibold'>
-                Project Failed
-              </p>
+          <div className="p-5 border rounded-lg w-full">
+            <div className="bg-[#18181B0A] rounded-full px-[10px] inline-flex items-center gap-2 mb-4">
+              <span className="w-[14px] h-[14px] rounded-full bg-red-500 block" />
+              <p className="text-secondary-foreground text-sm font-semibold">Project Failed</p>
             </div>
 
-            <div className='flex items-center gap-2 mb-3'>
-              <div className='w-8 h-8 rounded-full bg-gray-200' />
-              <div className='flex flex-col gap-1'>
-                <p className='text-sm font-semibold'>
-                  Project Name
-                </p>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-full bg-gray-200" />
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-semibold">Project Name</p>
               </div>
             </div>
 
-            <div className='flex items-center justify-between px-2 py-1.5 bg-[#18181B0A] rounded-lg mb-2'>
-              <p className='text-sm font-medium text-neutral-400'>PAYED</p>
-              <div className='flex items-center gap-1'>
-                <p className='text-sm text-muted-foreground font-bold'>2000</p>
+            <div className="flex items-center justify-between px-2 py-1.5 bg-[#18181B0A] rounded-lg mb-2">
+              <p className="text-sm font-medium text-neutral-400">PAYED</p>
+              <div className="flex items-center gap-1">
+                <p className="text-sm text-muted-foreground font-bold">2000</p>
                 <UsdtIcon width={16} height={16} />
-                <p className='text-sm text-muted-foreground font-medium'>USDT</p>
+                <p className="text-sm text-muted-foreground font-medium">USDT</p>
               </div>
             </div>
 
-            <div className='flex items-center justify-between px-2 py-2.5 bg-[#18181B0A] rounded-lg mb-4'>
-              <p className='text-sm font-bold text-foreground'>RECLAIM</p>
-              <div className='flex items-center gap-1'>
-                <p className='text-xl text-primary font-bold'>1000</p>
+            <div className="flex items-center justify-between px-2 py-2.5 bg-[#18181B0A] rounded-lg mb-4">
+              <p className="text-sm font-bold text-foreground">RECLAIM</p>
+              <div className="flex items-center gap-1">
+                <p className="text-xl text-primary font-bold">1000</p>
                 <UsdtIcon width={16} height={16} />
-                <p className='text-sm text-muted-foreground font-medium'>USDT</p>
+                <p className="text-sm text-muted-foreground font-medium">USDT</p>
               </div>
             </div>
 
-            <div className='flex items-center justify-end'>
-
-              <Button size='sm' className='px-6'>Reclaim now</Button>
+            <div className="flex items-center justify-end">
+              <Button size="sm" className="px-6">
+                Reclaim now
+              </Button>
             </div>
           </div>
 
-          <div className='p-5 border rounded-lg w-full'>
-            <div className='bg-[#18181B0A] rounded-full px-[10px] inline-flex items-center gap-2 mb-4'>
-              <span className='w-[14px] h-[14px] rounded-full bg-red-500 block' />
-              <p className='text-secondary-foreground text-sm font-semibold'>
-                Project Failed
-              </p>
+          <div className="p-5 border rounded-lg w-full">
+            <div className="bg-[#18181B0A] rounded-full px-[10px] inline-flex items-center gap-2 mb-4">
+              <span className="w-[14px] h-[14px] rounded-full bg-red-500 block" />
+              <p className="text-secondary-foreground text-sm font-semibold">Project Failed</p>
             </div>
 
-            <div className='flex items-center gap-2 mb-3'>
-              <div className='w-8 h-8 rounded-full bg-gray-200' />
-              <div className='flex flex-col gap-1'>
-                <p className='text-sm font-semibold'>
-                  Project Name
-                </p>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-full bg-gray-200" />
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-semibold">Project Name</p>
               </div>
             </div>
 
-            <div className='flex items-center justify-between px-2 py-1.5 bg-[#18181B0A] rounded-lg mb-2'>
-              <p className='text-sm font-medium text-neutral-400'>PAYED</p>
-              <div className='flex items-center gap-1'>
-                <p className='text-sm text-muted-foreground font-bold'>2000</p>
+            <div className="flex items-center justify-between px-2 py-1.5 bg-[#18181B0A] rounded-lg mb-2">
+              <p className="text-sm font-medium text-neutral-400">PAYED</p>
+              <div className="flex items-center gap-1">
+                <p className="text-sm text-muted-foreground font-bold">2000</p>
                 <UsdtIcon width={16} height={16} />
-                <p className='text-sm text-muted-foreground font-medium'>USDT</p>
+                <p className="text-sm text-muted-foreground font-medium">USDT</p>
               </div>
             </div>
 
-            <div className='flex items-center justify-between px-2 py-2.5 bg-[#18181B0A] rounded-lg mb-4'>
-              <p className='text-sm font-bold text-foreground'>RECLAIM</p>
-              <div className='flex items-center gap-1'>
-                <p className='text-xl text-primary font-bold'>1000</p>
+            <div className="flex items-center justify-between px-2 py-2.5 bg-[#18181B0A] rounded-lg mb-4">
+              <p className="text-sm font-bold text-foreground">RECLAIM</p>
+              <div className="flex items-center gap-1">
+                <p className="text-xl text-primary font-bold">1000</p>
                 <UsdtIcon width={16} height={16} />
-                <p className='text-sm text-muted-foreground font-medium'>USDT</p>
+                <p className="text-sm text-muted-foreground font-medium">USDT</p>
               </div>
             </div>
 
-            <div className='flex items-center justify-end'>
-
-              <Button size='sm' className='px-6'>Reclaim now</Button>
+            <div className="flex items-center justify-end">
+              <Button size="sm" className="px-6">
+                Reclaim now
+              </Button>
             </div>
           </div>
         </div>

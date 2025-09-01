@@ -27,7 +27,7 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
     skip: !myProfile,
   });
 
-  const profileId = myProfile ? profileData?.profile?.id ?? '' : id ?? '';
+  const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
 
   const queries = {
     sponsor: useProgramsQuery({
@@ -42,11 +42,11 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
             },
             ...(searchQuery
               ? [
-                {
-                  field: 'name',
-                  value: searchQuery,
-                },
-              ]
+                  {
+                    field: 'name',
+                    value: searchQuery,
+                  },
+                ]
               : []),
           ],
         },
@@ -65,11 +65,11 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
             },
             ...(searchQuery
               ? [
-                {
-                  field: 'name',
-                  value: searchQuery,
-                },
-              ]
+                  {
+                    field: 'name',
+                    value: searchQuery,
+                  },
+                ]
               : []),
           ],
         },
@@ -88,11 +88,11 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
             },
             ...(searchQuery
               ? [
-                {
-                  field: 'name',
-                  value: searchQuery,
-                },
-              ]
+                  {
+                    field: 'name',
+                    value: searchQuery,
+                  },
+                ]
               : []),
           ],
         },

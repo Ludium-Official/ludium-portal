@@ -21,14 +21,14 @@ export default function UserCommunityTab({ myProfile }: { myProfile?: boolean })
     skip: !myProfile,
   });
 
-  const profileId = myProfile ? profileData?.profile?.id ?? '' : id ?? '';
+  const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
 
   const filter = [
     ...(profileId
       ? [
-        { field: 'authorId', value: profileId },
-        ...(searchQuery ? [{ field: 'name', value: searchQuery }] : []),
-      ]
+          { field: 'authorId', value: profileId },
+          ...(searchQuery ? [{ field: 'name', value: searchQuery }] : []),
+        ]
       : []),
   ];
 

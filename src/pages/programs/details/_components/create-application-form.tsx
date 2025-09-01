@@ -165,35 +165,53 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
     }
     setLinksError(false);
     try {
+      console.log('=== Creating Application Debug ===');
+      console.log('Form data price:', formData.overview.price);
+      console.log('Program type:', program?.type);
+
+      const mutationInput = {
+        programId: program?.id ?? '',
+        status: ApplicationStatus.Pending,
+        content: formData.description.content,
+        name: formData.overview.name,
+        summary: formData.description.summary,
+        milestones: formData.milestones.map((m) => ({
+          percentage: m.price,
+          // price: m.price,
+          title: m.title,
+          description: m.description,
+          summary: m.summary,
+          currency: program?.currency ?? 'EDU',
+          deadline: m.deadline || new Date().toISOString(),
+        })),
+        price: formData.overview.price,
+        fundingTarget: formData.overview.price, // Set funding target same as price for funding programs
+      };
+
+      console.log('Mutation input:', mutationInput);
+      console.log('Specifically fundingTarget:', mutationInput.fundingTarget);
+
+      const finalInput = {
+        ...mutationInput,
+        fundingTarget: formData.overview.price, // Explicitly set fundingTarget
+        // price: formData.milestones
+        //   .reduce((prev, curr) => BigNumber(curr?.price ?? '0').plus(prev), BigNumber(0))
+        //   .toFixed(18),
+        links: (() => {
+          const { shouldSend } = validateLinks(formData.overview.links);
+          return shouldSend
+            ? filterEmptyLinks(formData.overview.links).map((l) => ({ title: l, url: l }))
+            : undefined;
+        })(),
+        // formData.overview.links.filter(Boolean).map((l) => ({ title: l, url: l })),
+      };
+
+      console.log('Final input being sent:', finalInput);
+      console.log('Final fundingTarget:', finalInput.fundingTarget);
+
       await createApplication({
         variables: {
-          input: {
-            programId: program?.id ?? '',
-            status: ApplicationStatus.Pending,
-            content: formData.description.content,
-            name: formData.overview.name,
-            summary: formData.description.summary,
-            milestones: formData.milestones.map((m) => ({
-              percentage: m.price,
-              // price: m.price,
-              title: m.title,
-              description: m.description,
-              summary: m.summary,
-              currency: program?.currency ?? 'EDU',
-              deadline: m.deadline || new Date().toISOString(),
-            })),
-            price: formData.overview.price,
-            // price: formData.milestones
-            //   .reduce((prev, curr) => BigNumber(curr?.price ?? '0').plus(prev), BigNumber(0))
-            //   .toFixed(18),
-            links: (() => {
-              const { shouldSend } = validateLinks(formData.overview.links);
-              return shouldSend
-                ? filterEmptyLinks(formData.overview.links).map((l) => ({ title: l, url: l }))
-                : undefined;
-            })(),
-            // formData.overview.links.filter(Boolean).map((l) => ({ title: l, url: l })),
-          },
+          input: finalInput,
         },
         onCompleted: async () => {
           client.refetchQueries({ include: [ProgramDocument] });

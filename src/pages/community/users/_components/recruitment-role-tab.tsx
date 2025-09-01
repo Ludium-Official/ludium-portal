@@ -21,7 +21,7 @@ export default function UserRecruitmentRoleTab({ myProfile }: { myProfile?: bool
     skip: !myProfile,
   });
 
-  const profileId = myProfile ? profileData?.profile?.id ?? '' : id ?? '';
+  const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
 
   const { data: programData } = useProgramsQuery({
     variables: {
@@ -36,11 +36,11 @@ export default function UserRecruitmentRoleTab({ myProfile }: { myProfile?: bool
           },
           ...(searchQuery
             ? [
-              {
-                field: 'name',
-                value: searchQuery,
-              },
-            ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
             : []),
         ],
       },

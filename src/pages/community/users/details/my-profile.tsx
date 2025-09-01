@@ -27,7 +27,7 @@ function MyProfilePage() {
   const injectedWallet = privyUser?.wallet?.connectorType !== 'embedded';
 
   const [network, setNetwork] = useState(mainnetDefaultNetwork);
-  console.log("🚀 ~ MyProfilePage ~ network:", network)
+  console.log('🚀 ~ MyProfilePage ~ network:', network);
   const [balances, setBalances] = useState<
     { name: string; amount: bigint | null; decimal: number }[]
   >([]);
@@ -59,7 +59,6 @@ function MyProfilePage() {
     !user?.organizationName?.trim() ||
     !user?.summary?.trim() ||
     !user?.about?.trim();
-
 
   const contract = useContract(network);
 
@@ -129,18 +128,27 @@ function MyProfilePage() {
                     <p className="text-sm text-muted-foreground">{user?.email}</p>
                   </div>
                   <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-muted-foreground" /> {user?.organizationName?.length ? user?.organizationName : "-"}
+                    <Building2 className="w-4 h-4 text-muted-foreground" />{' '}
+                    {user?.organizationName?.length ? user?.organizationName : '-'}
                   </p>
                 </div>
               </div>
               <div className="space-y-2">
                 <p className="font-bold text-sm text-muted-foreground">SUMMARY</p>
                 <p className="text-sm text-slate-600 line-clamp-4 font-inter">
-                  {user?.summary?.length ? user.summary : "There is no summary written."}
+                  {user?.summary?.length ? user.summary : 'There is no summary written.'}
                 </p>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" className={cn("h-11 flex-1", isProfileIncomplete && "bg-primary text-white hover:bg-primary/90 border-0 hover:text-white")} asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    'h-11 flex-1',
+                    isProfileIncomplete &&
+                      'bg-primary text-white hover:bg-primary/90 border-0 hover:text-white',
+                  )}
+                  asChild
+                >
                   <Link to="/my-profile/edit">
                     Edit Profile <Settings />
                   </Link>
@@ -148,7 +156,11 @@ function MyProfilePage() {
                 <ShareButton variant="outline" className="h-11 flex-1" />
               </div>
 
-              {isProfileIncomplete && <p className="text-sm text-primary font-medium text-center mb-2">Complete Your Profile</p>}
+              {isProfileIncomplete && (
+                <p className="text-sm text-primary font-medium text-center mb-2">
+                  Complete Your Profile
+                </p>
+              )}
               {/* <Button variant={'outline'} className="h-11">
                 <p className="font-medium text-sm text-gray-dark">Share</p>
                 <Share2Icon />
@@ -165,11 +177,9 @@ function MyProfilePage() {
               <div className="border border-[#E4B7FF] rounded-[10px] p-5">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <p className='text-sm font-bold mb-1'>
-                      My Wallet
-                    </p>
-                    <p className='flex gap-1 line-clamp-1 items-center text-xs text-muted-foreground'>
-                      <CircleCheck className='text-green-500 w-4 h-4' />
+                    <p className="text-sm font-bold mb-1">My Wallet</p>
+                    <p className="flex gap-1 line-clamp-1 items-center text-xs text-muted-foreground">
+                      <CircleCheck className="text-green-500 w-4 h-4" />
                       Successfully connected
                     </p>
                   </div>
@@ -181,18 +191,17 @@ function MyProfilePage() {
                     />
                   </div>
                 </div>
-                <div className='bg-accent p-2 rounded-md mb-4'>
+                <div className="bg-accent p-2 rounded-md mb-4">
                   {balances.map((balance) => {
                     return (
-                      <div key={balance.name} className="mb-1.5 last:mb-0 flex items-center justify-between">
-                        <p className='text-muted-foreground text-xs font-bold'>
-                          {balance.name}
-                        </p>
-                        <p className='text-sm font-bold text-foreground'>
+                      <div
+                        key={balance.name}
+                        className="mb-1.5 last:mb-0 flex items-center justify-between"
+                      >
+                        <p className="text-muted-foreground text-xs font-bold">{balance.name}</p>
+                        <p className="text-sm font-bold text-foreground">
                           {balance.amount !== null
-                            ? commaNumber(
-                              ethers.utils.formatUnits(balance.amount, balance.decimal),
-                            )
+                            ? commaNumber(ethers.utils.formatUnits(balance.amount, balance.decimal))
                             : 'Fetching...'}
                         </p>
                         {/* {balance.name}:{' '}
@@ -219,7 +228,7 @@ function MyProfilePage() {
                 ) : (
                   <Button className="h-10 w-full" onClick={exportWallet}>
                     See Wallet Detail
-                    <ArrowUpRight className='w-4 h-4' />
+                    <ArrowUpRight className="w-4 h-4" />
                   </Button>
                 )}
               </div>
@@ -227,13 +236,17 @@ function MyProfilePage() {
               <div className="space-y-2">
                 <p className="font-bold text-sm text-muted-foreground">ROLES</p>
                 <div className="flex gap-[6px]">
-                  {(!profileData?.profile?.keywords || profileData.profile.keywords.length === 0) && (
+                  {(!profileData?.profile?.keywords ||
+                    profileData.profile.keywords.length === 0) && (
                     <span className="text-xs text-muted-foreground font-normal">
                       There are no roles added yet.
                     </span>
                   )}
                   {profileData?.profile?.keywords?.map((k) => (
-                    <Badge key={k.id} className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
+                    <Badge
+                      key={k.id}
+                      className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs"
+                    >
                       {k.name}
                     </Badge>
                   ))}

@@ -24,7 +24,7 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
     skip: !myProfile,
   });
 
-  const profileId = myProfile ? profileData?.profile?.id ?? '' : id ?? '';
+  const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
 
   const { data: programData } = useProgramsQuery({
     variables: {
@@ -38,11 +38,11 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
           },
           ...(searchQuery
             ? [
-              {
-                field: 'name',
-                value: searchQuery,
-              },
-            ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
             : []),
         ],
       },

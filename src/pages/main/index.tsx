@@ -157,8 +157,9 @@ function MainPage() {
               key={i}
               onClick={() => api?.scrollTo(i)}
               size="icon"
-              className={`w-2 h-2 rounded-full hover:bg-primary-light ${current === i ? 'bg-primary' : 'bg-gray-300'
-                }`}
+              className={`w-2 h-2 rounded-full hover:bg-primary-light ${
+                current === i ? 'bg-primary' : 'bg-gray-300'
+              }`}
             />
           ))}
         </div>
@@ -186,7 +187,10 @@ function MainPage() {
               {programsData?.programs?.data?.map((program) => {
                 if (program.type === ProgramType.Regular) {
                   return (
-                    <Link to={`/programs/${program.id}`} className='min-w-[624px] hover:shadow-md transition-shadow'>
+                    <Link
+                      to={`/programs/${program.id}`}
+                      className="min-w-[624px] hover:shadow-md transition-shadow"
+                    >
                       <ProgramCard key={program.id} program={program} />
                     </Link>
                   );

@@ -64,11 +64,12 @@ const Sidebar = () => {
                   <button
                     type="button"
                     onClick={() => setProgramMenuOpen(!programMenuOpen)}
-                    className={`group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium w-full text-left ${location.pathname.startsWith('/programs') ||
+                    className={`group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium w-full text-left ${
+                      location.pathname.startsWith('/programs') ||
                       location.pathname.startsWith('/investments')
-                      ? 'bg-[#B331FF0A] text-primary'
-                      : 'hover:bg-[#B331FF0A] hover:text-primary'
-                      }`}
+                        ? 'bg-[#B331FF0A] text-primary'
+                        : 'hover:bg-[#B331FF0A] hover:text-primary'
+                    }`}
                   >
                     <link.icon className="group-active:text-primary group-hover:text-primary" />
                     {link.name}
@@ -106,9 +107,10 @@ const Sidebar = () => {
                 <NavLink
                   to={link.path}
                   className={({ isActive }) =>
-                    `group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium ${isActive
-                      ? 'bg-[#B331FF0A] text-primary'
-                      : 'hover:bg-[#B331FF0A] hover:text-primary'
+                    `group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium ${
+                      isActive
+                        ? 'bg-[#B331FF0A] text-primary'
+                        : 'hover:bg-[#B331FF0A] hover:text-primary'
                     }`
                   }
                 >

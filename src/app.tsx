@@ -106,8 +106,14 @@ function App() {
               <Route path="overview" element={<UserOverviewTab />} />
               <Route path="description" element={<UserDescriptionTab myProfile />} />
               <Route path="program/recruitment" element={<UserRecruitmentTab myProfile />} />
-              <Route path="program/recruitment/:role" element={<UserRecruitmentRoleTab myProfile />} />
-              <Route path="program/recruitment/reclaim" element={<UserRecruitmentReclaimTab myProfile />} />
+              <Route
+                path="program/recruitment/:role"
+                element={<UserRecruitmentRoleTab myProfile />}
+              />
+              <Route
+                path="program/recruitment/reclaim"
+                element={<UserRecruitmentReclaimTab myProfile />}
+              />
               <Route path="program/investment" element={<UserInvestmentTab myProfile />} />
               <Route path="program/investment/host" element={<UserInvestmentHostTab />} />
               <Route path="program/investment/project" element={<UserInvestmentProjectTab />} />

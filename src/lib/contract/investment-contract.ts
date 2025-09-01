@@ -35,6 +35,11 @@ export class InvestmentContract {
     this.sendTransaction = sendTransaction;
     this.client = client;
     this.chainId = chainId;
+
+    console.log('InvestmentContract initialized with:', {
+      addresses: addresses,
+      chainId: chainId,
+    });
   }
 
   private async waitForTransaction(hash: `0x${string}`) {
@@ -55,6 +60,15 @@ export class InvestmentContract {
     }>;
   }) {
     try {
+      console.log('=== signValidate (Accept Application) Debug ===');
+      console.log('Input params:', {
+        programId: params.programId,
+        projectOwner: params.projectOwner,
+        projectName: params.projectName,
+        targetFunding: params.targetFunding,
+        milestonesCount: params.milestones.length,
+      });
+
       // Convert milestones to contract format (MilestoneInput struct)
       const milestonesForContract = params.milestones.map((m) => ({
         title: m.title,
@@ -63,8 +77,16 @@ export class InvestmentContract {
         deadline: Math.floor(new Date(m.deadline).getTime() / 1000),
       }));
 
+      console.log('Milestones for contract:', milestonesForContract);
+
       // Convert target funding to wei
       const targetFundingWei = ethers.utils.parseEther(params.targetFunding);
+
+      console.log('Target funding conversion:', {
+        originalAmount: params.targetFunding,
+        weiAmount: targetFundingWei.toString(),
+        ethAmount: ethers.utils.formatEther(targetFundingWei),
+      });
 
       const data = encodeFunctionData({
         abi: INVESTMENT_CORE_ABI,
@@ -76,6 +98,18 @@ export class InvestmentContract {
           targetFundingWei,
           milestonesForContract,
         ],
+      });
+
+      console.log('Encoded function data:', {
+        functionName: 'signValidate',
+        args: [
+          params.programId,
+          params.projectOwner,
+          params.projectName,
+          targetFundingWei.toString(),
+          'milestones...',
+        ],
+        contractAddress: this.addresses.core,
       });
 
       const txResult = await this.sendTransaction(
@@ -255,33 +289,70 @@ export class InvestmentContract {
 
   async investFund(params: {
     projectId: number;
-    amount: string; // Amount in ETH
-    token?: string; // Optional token address, if not provided uses ETH
+    amount: string; // Amount in Wei (or smallest unit for tokens)
+    token?: string; // Optional token address, if not provided uses native token
   }) {
     try {
-      const valueInWei = ethers.utils.parseEther(params.amount);
+      console.log('=== investFund Debug Info ===');
+      console.log('Input params:', {
+        projectId: params.projectId,
+        amount: params.amount,
+        token: params.token,
+      });
+
+      // Amount is already in Wei, no conversion needed
+      const valueInWei = ethers.BigNumber.from(params.amount);
+      console.log('valueInWei (BigNumber):', valueInWei.toString());
+      console.log('valueInWei (hex):', valueInWei.toHexString());
+
       const isNative = !params.token || params.token === ethers.constants.AddressZero;
+      console.log('Is native token:', isNative);
 
       let data: `0x${string}`;
       let value: bigint;
 
       if (isNative) {
         // ETH investment
+        console.log('Calling investFund with args:', [params.projectId]);
+        console.log('Project ID type:', typeof params.projectId);
+
         data = encodeFunctionData({
           abi: FUNDING_MODULE_ABI,
           functionName: 'investFund',
           args: [params.projectId],
         });
+
+        // Decode to verify what we're sending
+        const testDecode = ethers.utils.defaultAbiCoder.decode(['uint256'], `0x${data?.slice(10)}`);
+        console.log('Test decode of projectId from data:', testDecode);
+
         value = BigInt(valueInWei.toString());
+        console.log('Encoded data:', data);
+        console.log('Function selector (first 4 bytes):', data?.slice(0, 10));
+        console.log('Value to send (bigint):', value.toString());
+        console.log('Value to send (hex):', `0x${value.toString(16)}`);
       } else {
         // ERC20 token investment
+        console.log('Calling investWithToken with args:', [
+          params.projectId,
+          params.token,
+          valueInWei,
+        ]);
         data = encodeFunctionData({
           abi: FUNDING_MODULE_ABI,
           functionName: 'investWithToken',
           args: [params.projectId, params.token as `0x${string}`, valueInWei],
         });
         value = BigInt(0);
+        console.log('Encoded data:', data);
       }
+
+      console.log('Transaction parameters:', {
+        to: this.addresses.funding,
+        data: data,
+        value: value.toString(),
+        chainId: this.chainId,
+      });
 
       const txResult = await this.sendTransaction(
         {
@@ -297,7 +368,7 @@ export class InvestmentContract {
               title: 'Invest in Project',
               action: 'Invest',
             },
-            description: `Investing ${params.amount} ${isNative ? 'ETH' : 'tokens'} in project #${params.projectId}`,
+            description: `Investing ${ethers.utils.formatEther(valueInWei)} ${isNative ? 'native tokens' : 'tokens'} in project #${params.projectId}`,
             successHeader: 'Investment Successful!',
             successDescription: 'Your investment has been confirmed.',
           },
@@ -519,31 +590,79 @@ export class InvestmentContract {
 
   async getProgramStatusDetailed(programId: number) {
     try {
-      const data = await this.client.readContract({
+      console.log('Getting program status for programId:', programId);
+      console.log('Using core contract address:', this.addresses.core);
+
+      // First get the basic status
+      const statusData = await this.client.readContract({
         address: this.addresses.core as `0x${string}`,
         abi: INVESTMENT_CORE_ABI,
-        functionName: 'getProgramStatusDetailed',
+        functionName: 'getProgramStatus',
         args: [programId],
       });
 
-      const [
-        status,
+      console.log('Program status:', statusData);
+
+      // Then get the program details to check funding period
+      const detailsData = await this.client.readContract({
+        address: this.addresses.core as `0x${string}`,
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'getProgramDetails',
+        args: [programId],
+      });
+
+      console.log('Program details:', detailsData);
+
+      // Extract details
+      const details = detailsData as [
+        string, // name
+        string, // host
+        bigint, // maxFundingPerProject
+        bigint, // applicationStartTime
+        bigint, // applicationEndTime
+        bigint, // fundingStartTime
+        bigint, // fundingEndTime
+        number, // condition
+        bigint, // feePercentage
+        number, // status
+        string, // token
+        bigint, // requiredValidations
+      ];
+
+      const status = statusData as number;
+      const now = Math.floor(Date.now() / 1000);
+      const applicationStartTime = Number(details[3]);
+      const applicationEndTime = Number(details[4]);
+      const fundingStartTime = Number(details[5]);
+      const fundingEndTime = Number(details[6]);
+
+      const isInApplicationPeriod = now >= applicationStartTime && now <= applicationEndTime;
+      const isInFundingPeriod = now >= fundingStartTime && now <= fundingEndTime;
+      const isInPendingPeriod = now < applicationStartTime;
+
+      let timeUntilNextPhase = 0;
+      if (now < applicationStartTime) {
+        timeUntilNextPhase = applicationStartTime - now;
+      } else if (now < applicationEndTime) {
+        timeUntilNextPhase = applicationEndTime - now;
+      } else if (now < fundingStartTime) {
+        timeUntilNextPhase = fundingStartTime - now;
+      } else if (now < fundingEndTime) {
+        timeUntilNextPhase = fundingEndTime - now;
+      }
+
+      const statusNames = ['Ready', 'Active', 'Successful', 'Failed', 'Pending'];
+
+      console.log('Calculated periods:', {
+        now,
+        applicationStartTime,
+        applicationEndTime,
+        fundingStartTime,
+        fundingEndTime,
         isInApplicationPeriod,
         isInFundingPeriod,
         isInPendingPeriod,
-        timeUntilNextPhase,
-      ] = data as [number, boolean, boolean, boolean, bigint];
-
-      const statusNames = [
-        'Ready',
-        'ApplicationOngoing',
-        'ApplicationClosed',
-        'FundingOngoing',
-        'ProjectOngoing',
-        'ProgramCompleted',
-        'Failed',
-        'Pending',
-      ];
+      });
 
       return {
         status: statusNames[status] || 'Unknown',
@@ -551,38 +670,69 @@ export class InvestmentContract {
         isInApplicationPeriod,
         isInFundingPeriod,
         isInPendingPeriod,
-        timeUntilNextPhase: Number(timeUntilNextPhase),
+        timeUntilNextPhase,
       };
     } catch (error) {
       console.error('Failed to get program status:', error);
-      throw error;
+      console.error('Error details:', {
+        programId,
+        coreAddress: this.addresses.core,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      // Return a default status to allow debugging
+      return {
+        status: 'Unknown',
+        statusCode: -1,
+        isInApplicationPeriod: false,
+        isInFundingPeriod: false,
+        isInPendingPeriod: false,
+        timeUntilNextPhase: 0,
+      };
     }
   }
 
   async getProjectInvestmentDetails(projectId: number) {
     try {
-      const data = await this.client.readContract({
-        address: this.addresses.funding as `0x${string}`,
-        abi: [
-          'function getProjectDetails(uint256) view returns (uint256 totalRaised, uint256 targetAmount, bool fundingSuccessful, uint256 investorCount)',
-        ],
+      // Get project details from Core contract
+      const projectData = await this.client.readContract({
+        address: this.addresses.core as `0x${string}`,
+        abi: INVESTMENT_CORE_ABI,
         functionName: 'getProjectDetails',
         args: [projectId],
       });
 
-      const [totalRaised, targetAmount, fundingSuccessful, investorCount] = data as [
-        bigint,
-        bigint,
-        boolean,
-        bigint,
-      ];
+      console.log('Project details from core:', projectData);
+
+      // Project details returns: name, owner, targetFunding, totalInvested, fundingSuccessful, programId
+      const [_name, _owner, targetFunding, _totalInvested, fundingSuccessful, _programId] =
+        projectData as [string, string, bigint, bigint, boolean, bigint];
+
+      // Get total investments from Funding contract
+      const totalRaised = await this.client.readContract({
+        address: this.addresses.funding as `0x${string}`,
+        abi: FUNDING_MODULE_ABI,
+        functionName: 'totalProjectInvestments',
+        args: [projectId],
+      });
+
+      console.log('Total raised from funding:', totalRaised);
+      console.log('Raw values:', {
+        targetFundingWei: targetFunding.toString(),
+        totalRaisedWei: totalRaised?.toString(),
+        targetFundingEth: ethers.utils.formatEther(targetFunding),
+        totalRaisedEth: ethers.utils.formatEther(totalRaised as bigint),
+      });
+
+      const totalRaisedBigInt = totalRaised as bigint;
 
       return {
-        totalRaised: ethers.utils.formatEther(totalRaised),
-        targetAmount: ethers.utils.formatEther(targetAmount),
+        totalRaised: ethers.utils.formatEther(totalRaisedBigInt),
+        targetAmount: ethers.utils.formatEther(targetFunding),
         fundingSuccessful,
-        investorCount: Number(investorCount),
-        fundingProgress: targetAmount > 0 ? (Number(totalRaised) * 100) / Number(targetAmount) : 0,
+        investorCount: 0, // We don't have this easily available
+        fundingProgress:
+          targetFunding > 0 ? (Number(totalRaisedBigInt) * 100) / Number(targetFunding) : 0,
       };
     } catch (error) {
       console.error('Failed to get project investment details:', error);
@@ -594,7 +744,7 @@ export class InvestmentContract {
     try {
       const data = await this.client.readContract({
         address: this.addresses.funding as `0x${string}`,
-        abi: ['function canClaimFees(uint256,address) view returns (bool)'],
+        abi: FUNDING_MODULE_ABI,
         functionName: 'canClaimFees',
         args: [programId, userAddress as `0x${string}`],
       });
@@ -614,6 +764,54 @@ export class InvestmentContract {
   async isInFundingPeriod(programId: number): Promise<boolean> {
     const status = await this.getProgramStatusDetailed(programId);
     return status.isInFundingPeriod;
+  }
+
+  async updateProgramStatus(programId: number) {
+    try {
+      console.log('Updating program status for programId:', programId);
+
+      const data = encodeFunctionData({
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'updateProgramStatus',
+        args: [programId],
+      });
+
+      const txResult = await this.sendTransaction(
+        {
+          to: this.addresses.core as `0x${string}`,
+          data,
+          value: BigInt(0),
+          chainId: this.chainId,
+        } as Parameters<typeof this.sendTransaction>[0],
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            transactionInfo: {
+              title: 'Update Program Status',
+              action: 'Update',
+            },
+            description: `Updating status for program #${programId}`,
+            successHeader: 'Status Updated!',
+            successDescription: 'The program status has been updated.',
+          },
+        },
+      );
+
+      await this.waitForTransaction(txResult.hash);
+
+      // Get the updated status
+      const newStatus = await this.getProgramStatusDetailed(programId);
+      console.log('New program status:', newStatus);
+
+      return {
+        txHash: txResult.hash,
+        newStatus: newStatus.status,
+        statusCode: newStatus.statusCode,
+      };
+    } catch (error) {
+      console.error('Failed to update program status:', error);
+      throw error;
+    }
   }
 
   /**
@@ -638,7 +836,7 @@ export class InvestmentContract {
     try {
       const data = await this.client.readContract({
         address: this.addresses.funding as `0x${string}`,
-        abi: ['function canReclaimFunds(uint256,address) view returns (bool,string)'],
+        abi: FUNDING_MODULE_ABI,
         functionName: 'canReclaimFunds',
         args: [projectId, investor as `0x${string}`],
       });
@@ -648,6 +846,51 @@ export class InvestmentContract {
     } catch (error) {
       console.error('Failed to check reclaim eligibility:', error);
       return { canReclaim: false, reason: 'Failed to check eligibility' };
+    }
+  }
+
+  async checkInvestmentEligibility(
+    projectId: number,
+    investor: string,
+    amount: string,
+  ): Promise<{ eligible: boolean; reason: string }> {
+    try {
+      console.log('Checking investment eligibility:', {
+        projectId,
+        investor,
+        amount,
+        fundingAddress: this.addresses.funding,
+      });
+
+      const data = await this.client.readContract({
+        address: this.addresses.funding as `0x${string}`,
+        abi: FUNDING_MODULE_ABI,
+        functionName: 'isUserEligibleToInvest',
+        args: [projectId, investor as `0x${string}`, ethers.BigNumber.from(amount)],
+      });
+
+      console.log('Eligibility check response:', data);
+
+      const [eligible, reason] = data as [boolean, string];
+      return { eligible, reason: reason || 'Eligible to invest' };
+    } catch (error) {
+      console.error('Failed to check investment eligibility:', error);
+
+      // Try to extract more specific error message
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      if (errorMessage.includes('InvalidProjectId') || errorMessage.includes('project')) {
+        return { eligible: false, reason: `Project #${projectId} not found on blockchain` };
+      }
+
+      if (errorMessage.includes('execution reverted')) {
+        return {
+          eligible: false,
+          reason: 'Contract call failed - project may not exist or be invalid',
+        };
+      }
+
+      return { eligible: false, reason: `Failed to check eligibility: ${errorMessage}` };
     }
   }
 

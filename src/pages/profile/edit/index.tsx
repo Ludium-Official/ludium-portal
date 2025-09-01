@@ -119,8 +119,7 @@ function EditProfilePage() {
     profileData?.profile?.about === content &&
     JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links) &&
     JSON.stringify(profileData.profile.keywords?.map((k) => k.name || '') || []) ===
-    JSON.stringify(watch('keywords') || []);
-
+      JSON.stringify(watch('keywords') || []);
 
   const [keywordInput, setKeywordInput] = useState<string>('');
 
@@ -200,8 +199,6 @@ function EditProfilePage() {
 
           <TabsContent value="overview">
             <div className="bg-white py-6 px-10 rounded-lg mb-3">
-
-
               <label htmlFor="firstName" className="space-y-2 block mb-10">
                 <p className="text-sm font-medium">
                   First name <span className="text-primary">*</span>
@@ -326,7 +323,11 @@ function EditProfilePage() {
                       onChange={handleImageChange}
                     />
                     {imagePreview ? (
-                      <img src={imagePreview} alt="Preview" className="object-cover w-full h-full" />
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="object-cover w-full h-full"
+                      />
                     ) : (
                       <div className="flex flex-col items-center justify-center w-full h-full">
                         <ImageIcon className="w-10 h-10 text-[#666666] mb-2" />
@@ -355,7 +356,6 @@ function EditProfilePage() {
             </div>
 
             <div className="bg-white px-10 pt-6 pb-[32px] rounded-lg mb-3">
-
               <label htmlFor="links" className="space-y-2 block">
                 <p className="text-sm font-medium">Links</p>
                 <span className="block text-[#71717A] text-sm">

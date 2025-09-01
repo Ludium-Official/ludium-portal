@@ -30,57 +30,66 @@ const CreateProjectPage: React.FC = () => {
   // }, [isLoggedIn, isAuthed]);
 
   const onSubmit: OnSubmitProjectFunc = (args) => {
+    console.log('=== Investment Project Creation Debug ===');
+    console.log('Funding to be raised:', args.fundingToBeRaised);
+
+    const applicationInput = {
+      name: args.name,
+      content: args.description,
+      summary: args.summary,
+      milestones:
+        args.milestones?.map((m) => ({
+          deadline: m.endDate ?? new Date().toISOString(),
+          title: m.title,
+          percentage: m.payoutPercentage,
+          summary: m.summary,
+          description: m.description,
+          // title: m.title,
+          // payoutPercentage: m.payoutPercentage,
+          // endDate: m.endDate,
+          // summary: m.summary,
+          // description: m.description,
+        })) ?? [],
+      investmentTerms:
+        args.investmentTerms?.map((t) => ({
+          title: t.title ?? '',
+          price: t.prize ?? '',
+          purchaseLimit: Number(t.purchaseLimit) ?? 0,
+          description: t.description ?? '',
+        })) ?? [],
+      price: args.fundingToBeRaised ?? '0',
+      fundingTarget: args.fundingToBeRaised ?? '0', // Set funding target same as price for investment projects
+      programId: id ?? args?.programId ?? '',
+      status: ApplicationStatus.Pending,
+      // currency: args.currency,
+      // price: args.price ?? '0',
+      // description: args.description,
+      // summary: args.summary,
+      // deadline: args.deadline ?? '',
+      // keywords: args.keywords,
+      links: args.links,
+      // network: args.network,
+      // image: args.image,
+
+      // visibility: args.visibility as ProgramVisibility,
+
+      // type: ProgramType.Funding,
+
+      // applicationStartDate: args.applicationStartDate ?? '',
+      // applicationEndDate: args.applicationDueDate ?? '',
+      // fundingStartDate: args.fundingStartDate ?? '',
+      // fundingEndDate: args.fundingDueDate ?? '',
+
+      // fundingCondition: args.fundingCondition,
+      // tierSettings: args.tierSettings,
+    };
+
+    console.log('Application input:', applicationInput);
+    console.log('Specifically fundingTarget:', applicationInput.fundingTarget);
+
     createApplication({
       variables: {
-        input: {
-          name: args.name,
-          content: args.description,
-          summary: args.summary,
-          milestones:
-            args.milestones?.map((m) => ({
-              deadline: m.endDate ?? new Date().toISOString(),
-              title: m.title,
-              percentage: m.payoutPercentage,
-              summary: m.summary,
-              description: m.description,
-              // title: m.title,
-              // payoutPercentage: m.payoutPercentage,
-              // endDate: m.endDate,
-              // summary: m.summary,
-              // description: m.description,
-            })) ?? [],
-          investmentTerms:
-            args.investmentTerms?.map((t) => ({
-              title: t.title ?? '',
-              price: t.prize ?? '',
-              purchaseLimit: Number(t.purchaseLimit) ?? 0,
-              description: t.description ?? '',
-            })) ?? [],
-          price: args.fundingToBeRaised ?? '0',
-          programId: id ?? args?.programId ?? '',
-          status: ApplicationStatus.Pending,
-          // currency: args.currency,
-          // price: args.price ?? '0',
-          // description: args.description,
-          // summary: args.summary,
-          // deadline: args.deadline ?? '',
-          // keywords: args.keywords,
-          links: args.links,
-          // network: args.network,
-          // image: args.image,
-
-          // visibility: args.visibility as ProgramVisibility,
-
-          // type: ProgramType.Funding,
-
-          // applicationStartDate: args.applicationStartDate ?? '',
-          // applicationEndDate: args.applicationDueDate ?? '',
-          // fundingStartDate: args.fundingStartDate ?? '',
-          // fundingEndDate: args.fundingDueDate ?? '',
-
-          // fundingCondition: args.fundingCondition,
-          // tierSettings: args.tierSettings,
-        },
+        input: applicationInput,
       },
       onCompleted: async (data) => {
         navigate(`/investments/${id}/project/${data.createApplication?.id}`);

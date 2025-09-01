@@ -32,11 +32,11 @@ export default function UserInvestmentHostTab() {
         filter: [
           ...(searchQuery
             ? [
-              {
-                field: 'name',
-                value: searchQuery,
-              },
-            ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
             : []),
         ],
       },

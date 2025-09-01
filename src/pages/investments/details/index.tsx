@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { } from '@/components/ui/popover';
+import {} from '@/components/ui/popover';
 import { ShareButton } from '@/components/ui/share-button';
 import { Tabs } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -61,11 +61,7 @@ const InvestmentDetailsPage: React.FC = () => {
     },
   });
 
-
-
   const program = data?.program;
-
-
 
   // const acceptedPrice = useMemo(
   //   () =>
@@ -256,26 +252,29 @@ const InvestmentDetailsPage: React.FC = () => {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-xl font-bold">{program?.name}</h1>
             <div className="flex justify-between items-center mb-2 gap-2">
-              {(program?.creator?.id === userId || isAdmin) && (program?.fundingCondition === FundingCondition.Tier) && (
-                <>
-                  <Button
-                    className="flex gap-2 items-center bg-primary hover:bg-primary/90 text-white"
-                    onClick={() => setIsSupportersModalOpen(true)}
-                  >
-                    Manage Supporters
-                  </Button>
-                  <SupportersModal
-                    isOpen={isSupportersModalOpen}
-                    onOpenChange={setIsSupportersModalOpen}
-                    program={program}
-                    programId={id ?? ''}
-                    onRefetch={refetch}
-                  />
-                </>
-              )}
+              {(program?.creator?.id === userId || isAdmin) &&
+                program?.fundingCondition === FundingCondition.Tier && (
+                  <>
+                    <Button
+                      className="flex gap-2 items-center bg-primary hover:bg-primary/90 text-white"
+                      onClick={() => setIsSupportersModalOpen(true)}
+                    >
+                      Manage Supporters
+                    </Button>
+                    <SupportersModal
+                      isOpen={isSupportersModalOpen}
+                      onOpenChange={setIsSupportersModalOpen}
+                      program={program}
+                      programId={id ?? ''}
+                      onRefetch={refetch}
+                    />
+                  </>
+                )}
 
               {(program?.creator?.id === userId || isAdmin) &&
-                !(program?.applicationEndDate && new Date() > new Date(program.applicationEndDate)) && (
+                !(
+                  program?.applicationEndDate && new Date() > new Date(program.applicationEndDate)
+                ) && (
                   <Link to={`/investments/${program?.id}/edit`}>
                     <Button variant="ghost" className="flex gap-2 items-center">
                       Edit <Settings className="w-4 h-4" />
@@ -580,7 +579,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       })}
                     />
                     {program?.status === ProgramStatus.Published ||
-                      program?.status === ProgramStatus.Completed
+                    program?.status === ProgramStatus.Completed
                       ? 'Confirmed'
                       : 'Not confirmed'}
                   </span>
