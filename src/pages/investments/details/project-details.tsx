@@ -298,21 +298,22 @@ function ProjectDetailsPage() {
 
       // Get the amount from the program tier settings or term price
       // This amount should already be in Wei format from the backend
-      const amountInWei =
-        program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount ||
-        selectedTerm.price;
-
-      // Get token information
+      // Get token information first
       const network = program?.network as keyof typeof tokenAddresses;
       const tokens = tokenAddresses[network] || tokenAddresses['educhain-testnet'];
       const targetToken = tokens.find((token) => token.name === program?.currency);
 
+      // Get the amount and convert to Wei
+      const amountDisplay =
+        program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount ||
+        selectedTerm.price;
+      const decimals = targetToken?.decimal || 18;
+      const amountInWei = ethers.utils.parseUnits(String(amountDisplay), decimals);
+
       // Validate investment amount against tier limits
       if (userTierAssignment?.remainingCapacity) {
-        // remainingCapacity is likely in display format, amountInWei is in Wei
-        // Convert amountInWei to display format for comparison
-        const decimals = targetToken?.decimal || 18;
-        const investmentAmountDisplay = ethers.utils.formatUnits(amountInWei, decimals);
+        // remainingCapacity is likely in display format, compare with amountDisplay
+        const investmentAmountDisplay = String(amountDisplay);
         const remainingCapacity = Number.parseFloat(userTierAssignment.remainingCapacity);
         const investmentAmount = Number.parseFloat(investmentAmountDisplay);
 
@@ -385,9 +386,7 @@ function ProjectDetailsPage() {
 
           // Check current project funding status
           try {
-            await investmentContract.getProjectInvestmentDetails(
-              Number(onChainProjectId),
-            );
+            await investmentContract.getProjectInvestmentDetails(Number(onChainProjectId));
           } catch (error) {
             console.error('Failed to get project funding status:', error);
           }
@@ -396,7 +395,7 @@ function ProjectDetailsPage() {
           const eligibility = await investmentContract.checkInvestmentEligibility(
             Number(onChainProjectId),
             userAddress,
-            amountInWei,
+            amountInWei.toString(),
           );
 
           if (!eligibility.eligible) {
@@ -423,7 +422,7 @@ function ProjectDetailsPage() {
           // Call the blockchain investment function with the actual on-chain project ID
           const result = await investmentContract.investFund({
             projectId: Number(onChainProjectId), // Use the actual on-chain project ID
-            amount: amountInWei, // Amount already in Wei from backend
+            amount: amountInWei.toString(), // Amount in Wei as string
             token: targetToken?.address, // Token address for ERC20, undefined for native
             tokenName: program?.currency ?? undefined, // Display name (EDU, USDT, etc.)
             tokenDecimals: targetToken?.decimal || 18, // Token decimals for formatting
@@ -484,10 +483,8 @@ function ProjectDetailsPage() {
       }
 
       // Record investment in database with txHash
-      // Convert Wei amount to display format for database storage
-      const displayAmount = targetToken?.decimal
-        ? ethers.utils.formatUnits(amountInWei, targetToken.decimal)
-        : ethers.utils.formatUnits(amountInWei, 18);
+      // Store the original display amount in database (not converted back from Wei)
+      const displayAmount = String(amountDisplay);
 
       await createInvestment({
         variables: {
@@ -506,7 +503,9 @@ function ProjectDetailsPage() {
           );
           setIsInvestDialogOpen(false);
           setSelectedTier('');
-          client.refetchQueries({ include: [ApplicationDocument, ProgramDocument] });
+          client.refetchQueries({
+            include: [ApplicationDocument, ProgramDocument],
+          });
           refetch();
         },
         onError: (error) => {
@@ -1326,7 +1325,9 @@ function ProjectDetailsPage() {
                                     title={
                                       program?.fundingEndDate &&
                                       new Date() <= new Date(program.fundingEndDate)
-                                        ? `Milestones can only be submitted after funding ends on ${new Date(program.fundingEndDate).toLocaleDateString()}`
+                                        ? `Milestones can only be submitted after funding ends on ${new Date(
+                                            program.fundingEndDate,
+                                          ).toLocaleDateString()}`
                                         : undefined
                                     }
                                   >

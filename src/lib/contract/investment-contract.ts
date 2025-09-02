@@ -308,7 +308,7 @@ export class InvestmentContract {
       const valueInWei = ethers.BigNumber.from(params.amount);
       console.log('valueInWei (BigNumber):', valueInWei.toString());
       console.log('valueInWei (hex):', valueInWei.toHexString());
-      
+
       const amountBigInt = BigInt(params.amount);
       const isNative = !params.token || params.token === ethers.constants.AddressZero;
       console.log('Is native token:', isNative);
@@ -882,7 +882,7 @@ export class InvestmentContract {
         address: this.addresses.funding as `0x${string}`,
         abi: FUNDING_MODULE_ABI,
         functionName: 'isUserEligibleToInvest',
-        args: [projectId, investor as `0x${string}`, ethers.BigNumber.from(amount)],
+        args: [projectId, investor as `0x${string}`, ethers.utils.parseEther(amount)],
       });
 
       console.log('Eligibility check response:', data);
@@ -896,7 +896,10 @@ export class InvestmentContract {
       const errorMessage = error instanceof Error ? error.message : String(error);
 
       if (errorMessage.includes('InvalidProjectId') || errorMessage.includes('project')) {
-        return { eligible: false, reason: `Project #${projectId} not found on blockchain` };
+        return {
+          eligible: false,
+          reason: `Project #${projectId} not found on blockchain`,
+        };
       }
 
       if (errorMessage.includes('execution reverted')) {
@@ -906,7 +909,10 @@ export class InvestmentContract {
         };
       }
 
-      return { eligible: false, reason: `Failed to check eligibility: ${errorMessage}` };
+      return {
+        eligible: false,
+        reason: `Failed to check eligibility: ${errorMessage}`,
+      };
     }
   }
 
