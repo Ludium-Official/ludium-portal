@@ -150,6 +150,7 @@ export type CreateCommentInput = {
 
 export type CreateInvestmentInput = {
   amount: Scalars['String']['input'];
+  investmentTermId?: InputMaybe<Scalars['ID']['input']>;
   projectId: Scalars['ID']['input'];
   txHash?: InputMaybe<Scalars['String']['input']>;
 };
@@ -263,10 +264,12 @@ export type InvestmentTerm = {
   __typename?: 'InvestmentTerm';
   applicationId?: Maybe<Scalars['ID']['output']>;
   createdAt?: Maybe<Scalars['DateTime']['output']>;
+  currentPurchases?: Maybe<Scalars['Int']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   price?: Maybe<Scalars['String']['output']>;
   purchaseLimit?: Maybe<Scalars['Int']['output']>;
+  remainingPurchases?: Maybe<Scalars['Int']['output']>;
   title?: Maybe<Scalars['String']['output']>;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };

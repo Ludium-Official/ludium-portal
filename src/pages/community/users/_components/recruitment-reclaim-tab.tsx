@@ -1,7 +1,7 @@
 import { useReclaimMilestoneMutation } from '@/apollo/mutation/reclaim-milestone.generated';
 import { useReclaimProgramMutation } from '@/apollo/mutation/reclaim-program.generated';
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
-import { useProgramsQuery } from '@/apollo/queries/programs.generated';
+import { type ProgramsQuery, useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import notify from '@/lib/notify';
@@ -73,15 +73,17 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
     skip: !profileId,
   });
 
-
-
   // Calculate reclaimable items based on business rules
   const reclaimableItems = useMemo(() => {
+    type Program = NonNullable<NonNullable<ProgramsQuery['programs']>['data']>[number];
+    type Application = NonNullable<Program['applications']>[number];
+    type Milestone = NonNullable<Application['milestones']>[number];
+
     type ReclaimableItem = {
       type: 'unused_program' | 'unpaid_milestone';
-      program?: NonNullable<typeof programData>['programs']['data'][0];
-      application?: NonNullable<typeof builderProgramData>['programs']['data'][0]['applications'][0];
-      milestone?: NonNullable<typeof builderProgramData>['programs']['data'][0]['applications'][0]['milestones'][0];
+      program?: Program;
+      application?: Application;
+      milestone?: Milestone;
       reason: string;
       amount: string;
       currency: string;
@@ -104,8 +106,6 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
         const hasAcceptedApplications = program?.applications?.some(
           (app) => app?.status === 'accepted',
         );
-
-
 
         if (isCreator && isPastDeadline && !hasAcceptedApplications && !program?.reclaimed) {
           items.push({
@@ -152,7 +152,6 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
     return items;
   }, [programData, builderProgramData, profileId]);
 
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
@@ -163,8 +162,6 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
   const [reclaimingId, setReclaimingId] = useState<string | null>(null);
 
   const handleReclaimProgram = async (programId: string) => {
-
-
     if (!programId) {
       console.error('Program ID is empty or undefined!');
       notify('Invalid program ID', 'error');
@@ -178,13 +175,9 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
         programId: programId,
       };
 
-
-
       const result = await reclaimProgram({
         variables,
       });
-
-
 
       if (result.data?.reclaimProgram) {
         notify('Program funds reclaimed successfully!', 'success');
@@ -208,7 +201,6 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
   };
 
   const handleReclaimMilestone = async (milestoneId: string) => {
-
     setReclaimingId(milestoneId);
     try {
       // Create variables object with only milestoneId
@@ -216,13 +208,9 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
         milestoneId: milestoneId,
       };
 
-
-
       const result = await reclaimMilestone({
         variables,
       });
-
-
 
       if (result.data?.reclaimMilestone) {
         notify('Milestone funds reclaimed successfully!', 'success');
@@ -323,8 +311,6 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
                       (item.type === 'unused_program' ? item.program?.id : item.milestone?.id)
                     }
                     onClick={() => {
-
-
                       if (item.type === 'unused_program' && item.program?.id) {
                         handleReclaimProgram(item.program.id);
                       } else if (item.type === 'unpaid_milestone' && item.milestone?.id) {

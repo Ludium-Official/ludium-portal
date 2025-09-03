@@ -41,8 +41,6 @@ export default function UserInvestmentReclaimTab({ myProfile }: { myProfile?: bo
     },
   });
 
-
-
   const [reclaimInvestment] = useReclaimInvestmentMutation();
   const [reclaimingId, setReclaimingId] = useState<string | null>(null);
 
@@ -60,7 +58,6 @@ export default function UserInvestmentReclaimTab({ myProfile }: { myProfile?: bo
 
     if (onChainProjectId === null || onChainProjectId === undefined) {
       // For now, we'll use a mock ID for testing since projects aren't being validated on chain
-
 
       // You can either:
       // 1. Show an error (current behavior)

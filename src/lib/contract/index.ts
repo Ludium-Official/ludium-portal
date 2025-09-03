@@ -83,7 +83,6 @@ class ChainContract {
     const eventSignature = ethers.utils.id(signature);
 
     const event = receipt.logs.find((log) => {
-
       return log.topics[0] === eventSignature;
     });
 
@@ -92,7 +91,6 @@ class ChainContract {
 
       return programId;
     }
-
 
     return null;
   }
@@ -157,8 +155,6 @@ class ChainContract {
     ownerAddress: string;
   }) {
     try {
-
-
       const useToken = program.token?.address ?? NATIVE_TOKEN;
       const isNative = useToken === NATIVE_TOKEN;
 
@@ -174,13 +170,9 @@ class ChainContract {
         ? ethers.utils.parseEther(program.price || '0')
         : ethers.utils.parseUnits(program.price || '0', program.token?.decimal ?? 18);
 
-
-
       if (!isNative) {
         const allowance = await this.getAllowance(useToken, program.ownerAddress);
         const priceInWei = BigInt(price.toString());
-
-
 
         if (allowance < priceInWei) {
           await this.approveToken(useToken, price, program.token);
@@ -189,8 +181,6 @@ class ChainContract {
 
       const nowInSec = Math.floor(Date.now() / 1000);
       const deadlineInSec = Math.floor(new Date(program.deadline).getTime() / 1000);
-
-
 
       const data = encodeFunctionData({
         abi: contractJson.abi,
@@ -205,8 +195,6 @@ class ChainContract {
         ],
       });
 
-
-
       const tx = await this.sendTransaction(
         {
           to: this.contractAddress,
@@ -217,8 +205,9 @@ class ChainContract {
         {
           uiOptions: {
             showWalletUIs: true,
-            description: `To create a program, you need to accept ${program.price
-              } ${program.token?.name ?? 'token'} to the contract.`,
+            description: `To create a program, you need to accept ${
+              program.price
+            } ${program.token?.name ?? 'token'} to the contract.`,
             buttonText: 'Submit Transaction',
             transactionInfo: {
               title: 'Transaction Details',
@@ -234,8 +223,6 @@ class ChainContract {
         tx.hash,
         'ProgramCreated(uint256,address,address,uint256,address)',
       );
-
-
 
       if (receiptResult !== null) {
         return { txHash: tx.hash, programId: receiptResult };
@@ -318,15 +305,17 @@ class ChainContract {
         {
           uiOptions: {
             showWalletUIs: true,
-            description: `Accept milestone and send ${amount} ${token?.name
-              } to ${reduceString(builderAddress || '', 6, 6)}.`,
+            description: `Accept milestone and send ${amount} ${
+              token?.name
+            } to ${reduceString(builderAddress || '', 6, 6)}.`,
             transactionInfo: {
               title: 'Accept Milestone',
               action: 'Accepted Milestone',
             },
             successHeader: 'Milestone Accepted Successfully!',
-            successDescription: `You have successfully accepted the milestone and sent ${amount} ${token?.name
-              } to ${reduceString(builderAddress || '', 6, 6)}.`,
+            successDescription: `You have successfully accepted the milestone and sent ${amount} ${
+              token?.name
+            } to ${reduceString(builderAddress || '', 6, 6)}.`,
           },
         },
       );
