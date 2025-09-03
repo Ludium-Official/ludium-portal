@@ -97,7 +97,9 @@ function ProjectCard({
             />
 
             <p className="text-xl text-primary font-bold flex items-center">
-              {application?.fundingProgress ?? 0}
+              {typeof application?.fundingProgress === 'number'
+                ? application.fundingProgress.toFixed(2)
+                : '0.00'}
               <span className="text-sm text-muted-foreground">%</span>
             </p>
           </div>

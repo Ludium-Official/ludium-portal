@@ -35,6 +35,7 @@ import CreateApplicationForm from '@/pages/programs/details/_components/create-a
 import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 // import MainSection from '@/pages/programs/details/_components/main-section';
 import { ApplicationStatus, ProgramStatus, type User } from '@/types/types.generated';
+import { useWallets } from '@privy-io/react-auth';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
 import { CircleAlert, Settings, TriangleAlert } from 'lucide-react';
@@ -44,6 +45,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 const DetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const { userId, isAdmin, isLoggedIn, isAuthed } = useAuth();
+  const { wallets } = useWallets();
   const { id } = useParams();
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
@@ -115,9 +117,36 @@ const DetailsPage: React.FC = () => {
   const callTx = async () => {
     try {
       if (program) {
+        // Check if program is already on blockchain
+        if (program.educhainProgramId !== null && program.educhainProgramId !== undefined) {
+          notify('This program has already been registered on blockchain', 'error');
+          console.error('Program already on blockchain with ID:', program.educhainProgramId);
+          return;
+        }
+
         const network = program.network as keyof typeof tokenAddresses;
         const tokens = tokenAddresses[network] || [];
         const targetToken = tokens.find((token) => token.name === program.currency);
+
+        // Get the current user's wallet address (sponsor who is paying)
+        const currentWallet = wallets?.[0];
+        if (!currentWallet) {
+          notify('Please connect your wallet first', 'error');
+          return;
+        }
+        const sponsorAddress = currentWallet.address;
+
+        console.log('Creating program with params:', {
+          name: program.name,
+          price: program.price,
+          deadline: program.deadline,
+          validatorAddress: program?.validators?.[0]?.walletAddress,
+          token: targetToken,
+          ownerAddress: sponsorAddress,
+          network,
+          currency: program.currency,
+          existingEduchainId: program.educhainProgramId,
+        });
 
         const result = await contract.createProgram({
           name: program.name as string | undefined,
@@ -125,21 +154,26 @@ const DetailsPage: React.FC = () => {
           deadline: program.deadline,
           validatorAddress: program?.validators?.[0] as User | undefined,
           token: targetToken ?? { name: program.currency as string },
-          ownerAddress: program?.validators?.[0]?.walletAddress || '',
+          ownerAddress: sponsorAddress,
         });
 
-        if (result) {
+        if (result?.txHash) {
+          console.log('Publishing program with result:', result);
+
           await publishProgram({
             variables: {
               id: program?.id ?? '',
-              educhainProgramId: result.programId,
+              educhainProgramId: result.programId || 0,
               txHash: result.txHash,
             },
           });
 
           notify('Program published successfully', 'success');
+
+          // Refetch to update the UI
+          await refetch();
         } else {
-          notify('Program published failed', 'error');
+          notify('Program published failed - no transaction hash', 'error');
         }
       }
     } catch (error) {

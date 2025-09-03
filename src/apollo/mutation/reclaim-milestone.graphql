@@ -1,0 +1,10 @@
+mutation reclaimMilestone($milestoneId: ID!) {
+  reclaimMilestone(milestoneId: $milestoneId) {
+    id
+    title
+    reclaimed
+    reclaimTxHash
+    reclaimedAt
+    canReclaim
+  }
+}

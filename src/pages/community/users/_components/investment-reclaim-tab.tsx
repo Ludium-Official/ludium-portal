@@ -51,9 +51,25 @@ export default function UserInvestmentReclaimTab({ myProfile }: { myProfile?: bo
     const onChainProjectId = investment?.project?.onChainProjectId;
     const network = investment?.project?.program?.network || 'educhain-testnet';
 
-    if (!investmentId || onChainProjectId === null || onChainProjectId === undefined) {
-      notify('Cannot reclaim: Missing project information', 'error');
+    if (!investmentId) {
+      notify('Cannot reclaim: Missing investment ID', 'error');
       return;
+    }
+
+    if (onChainProjectId === null || onChainProjectId === undefined) {
+      // For now, we'll use a mock ID for testing since projects aren't being validated on chain
+
+      // You can either:
+      // 1. Show an error (current behavior)
+      notify(
+        'Cannot reclaim: This project has not been validated on blockchain yet. Please contact an administrator to validate the project first.',
+        'error',
+      );
+      return;
+
+      // 2. Or for testing, use a mock transaction (uncomment below)
+      // notify('Processing reclaim without blockchain (test mode)...', 'loading');
+      // Just update the backend without blockchain transaction
     }
 
     // Create public client for the network
@@ -140,62 +156,78 @@ export default function UserInvestmentReclaimTab({ myProfile }: { myProfile?: bo
           </div>
         </div>
         <div className="flex flex-col gap-3">
-          {investmentData?.investments?.data
-            ?.filter((investment) => investment?.canReclaim || investment?.reclaimed)
-            ?.map((investment) => (
-              <div className="p-5 border rounded-lg w-full" key={investment?.id}>
-                <div className="bg-[#18181B0A] rounded-full px-[10px] inline-flex items-center gap-2 mb-4">
-                  <span className="w-[14px] h-[14px] rounded-full bg-red-500 block" />
-                  <p className="text-secondary-foreground text-sm font-semibold">Refund</p>
-                </div>
+          {!investmentData?.investments?.data ||
+          investmentData.investments.data.filter(
+            (investment) => investment?.canReclaim || investment?.reclaimed,
+          ).length === 0 ? (
+            <div className="p-8 border rounded-lg w-full text-center">
+              <p className="text-muted-foreground mb-2">No reclaimable items found</p>
+              <p className="text-sm text-muted-foreground">
+                Reclaim is available for failed investment projects.
+              </p>
+            </div>
+          ) : (
+            investmentData.investments.data
+              .filter((investment) => investment?.canReclaim || investment?.reclaimed)
+              .map((investment) => (
+                <div className="p-5 border rounded-lg w-full" key={investment?.id}>
+                  <div className="bg-[#18181B0A] rounded-full px-[10px] inline-flex items-center gap-2 mb-4">
+                    <span className="w-[14px] h-[14px] rounded-full bg-red-500 block" />
+                    <p className="text-secondary-foreground text-sm font-semibold">Refund</p>
+                  </div>
 
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-200" />
-                  <div className="flex flex-col gap-1">
-                    <p className="text-sm font-semibold">{investment?.project?.name}</p>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-full bg-gray-200" />
+                    <div className="flex flex-col gap-1">
+                      <p className="text-sm font-semibold">{investment?.project?.name}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between px-2 py-1.5 bg-[#18181B0A] rounded-lg mb-2">
+                    <p className="text-sm font-medium text-neutral-400">PAYED</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground font-bold">
+                        {investment?.amount}
+                      </p>
+                      {getCurrencyIcon(investment?.project?.program?.currency ?? '')}
+                      <p className="text-sm text-muted-foreground font-medium">
+                        {investment?.project?.program?.currency}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between px-2 py-2.5 bg-[#18181B0A] rounded-lg mb-4">
+                    <p className="text-sm font-bold text-foreground">RECLAIM</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xl text-primary font-bold">{investment?.amount}</p>
+                      {getCurrencyIcon(investment?.project?.program?.currency ?? '')}
+                      <p className="text-sm text-muted-foreground font-medium">
+                        {investment?.project?.program?.currency}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end">
+                    {investment?.canReclaim && !investment?.reclaimed ? (
+                      <Button
+                        size="sm"
+                        className="px-6"
+                        disabled={reclaimingId === investment?.id}
+                        onClick={() => handleReclaimInvestment(investment)}
+                      >
+                        {reclaimingId === investment?.id ? 'Processing...' : 'Reclaim now'}
+                      </Button>
+                    ) : investment?.reclaimed ? (
+                      <span className="text-sm text-muted-foreground">Already reclaimed</span>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">
+                        Not eligible for reclaim
+                      </span>
+                    )}
                   </div>
                 </div>
-
-                <div className="flex items-center justify-between px-2 py-1.5 bg-[#18181B0A] rounded-lg mb-2">
-                  <p className="text-sm font-medium text-neutral-400">PAYED</p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-muted-foreground font-bold">{investment?.amount}</p>
-                    {getCurrencyIcon(investment?.project?.program?.currency ?? '')}
-                    <p className="text-sm text-muted-foreground font-medium">
-                      {investment?.project?.program?.currency}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between px-2 py-2.5 bg-[#18181B0A] rounded-lg mb-4">
-                  <p className="text-sm font-bold text-foreground">RECLAIM</p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-xl text-primary font-bold">{investment?.amount}</p>
-                    {getCurrencyIcon(investment?.project?.program?.currency ?? '')}
-                    <p className="text-sm text-muted-foreground font-medium">
-                      {investment?.project?.program?.currency}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-end">
-                  {investment?.canReclaim && !investment?.reclaimed ? (
-                    <Button
-                      size="sm"
-                      className="px-6"
-                      disabled={reclaimingId === investment?.id}
-                      onClick={() => handleReclaimInvestment(investment)}
-                    >
-                      {reclaimingId === investment?.id ? 'Processing...' : 'Reclaim now'}
-                    </Button>
-                  ) : investment?.reclaimed ? (
-                    <span className="text-sm text-muted-foreground">Already reclaimed</span>
-                  ) : (
-                    <span className="text-sm text-muted-foreground">Not eligible for reclaim</span>
-                  )}
-                </div>
-              </div>
-            ))}
+              ))
+          )}
         </div>
       </div>
       <Pagination totalCount={investmentData?.investments?.count ?? 0} pageSize={programPageSize} />

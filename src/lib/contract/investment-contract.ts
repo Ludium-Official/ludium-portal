@@ -35,11 +35,6 @@ export class InvestmentContract {
     this.sendTransaction = sendTransaction;
     this.client = client;
     this.chainId = chainId;
-
-    console.log('InvestmentContract initialized with:', {
-      addresses: addresses,
-      chainId: chainId,
-    });
   }
 
   private async waitForTransaction(hash: `0x${string}`) {
@@ -60,15 +55,6 @@ export class InvestmentContract {
     }>;
   }) {
     try {
-      console.log('=== signValidate (Accept Application) Debug ===');
-      console.log('Input params:', {
-        programId: params.programId,
-        projectOwner: params.projectOwner,
-        projectName: params.projectName,
-        targetFunding: params.targetFunding,
-        milestonesCount: params.milestones.length,
-      });
-
       // Convert milestones to contract format (MilestoneInput struct)
       const milestonesForContract = params.milestones.map((m) => ({
         title: m.title,
@@ -77,16 +63,8 @@ export class InvestmentContract {
         deadline: Math.floor(new Date(m.deadline).getTime() / 1000),
       }));
 
-      console.log('Milestones for contract:', milestonesForContract);
-
       // Convert target funding to wei
       const targetFundingWei = ethers.utils.parseEther(params.targetFunding);
-
-      console.log('Target funding conversion:', {
-        originalAmount: params.targetFunding,
-        weiAmount: targetFundingWei.toString(),
-        ethAmount: ethers.utils.formatEther(targetFundingWei),
-      });
 
       const data = encodeFunctionData({
         abi: INVESTMENT_CORE_ABI,
@@ -98,18 +76,6 @@ export class InvestmentContract {
           targetFundingWei,
           milestonesForContract,
         ],
-      });
-
-      console.log('Encoded function data:', {
-        functionName: 'signValidate',
-        args: [
-          params.programId,
-          params.projectOwner,
-          params.projectName,
-          targetFundingWei.toString(),
-          'milestones...',
-        ],
-        contractAddress: this.addresses.core,
       });
 
       const txResult = await this.sendTransaction(
@@ -295,23 +261,26 @@ export class InvestmentContract {
     tokenDecimals?: number; // Token decimals for display formatting
   }) {
     try {
-      console.log('=== investFund Debug Info ===');
-      console.log('Input params:', {
-        projectId: params.projectId,
-        amount: params.amount,
-        token: params.token,
-        tokenName: params.tokenName,
-        tokenDecimals: params.tokenDecimals,
-      });
+      // Validate amount before conversion
+      if (!params.amount || params.amount === '') {
+        throw new Error('Investment amount is required');
+      }
 
-      // Amount is already in Wei, no conversion needed
-      const valueInWei = ethers.BigNumber.from(params.amount);
-      console.log('valueInWei (BigNumber):', valueInWei.toString());
-      console.log('valueInWei (hex):', valueInWei.toHexString());
-      
-      const amountBigInt = BigInt(params.amount);
+      // Amount is already in Wei as a string, convert directly to BigInt
+      let amountBigInt: bigint;
+      try {
+        amountBigInt = BigInt(params.amount);
+      } catch (error) {
+        console.error('Invalid amount for BigInt conversion:', params.amount, error);
+        throw new Error('Invalid investment amount format');
+      }
+
+      // Check for zero amount
+      if (amountBigInt === BigInt(0)) {
+        throw new Error('Investment amount must be greater than 0');
+      }
+
       const isNative = !params.token || params.token === ethers.constants.AddressZero;
-      console.log('Is native token:', isNative);
 
       // Format amount for display
       const displayAmount =
@@ -324,51 +293,27 @@ export class InvestmentContract {
       let value: bigint;
 
       if (isNative) {
-        // Native token investment
-        console.log('Calling investFund with args:', [params.projectId]);
-        console.log('Project ID type:', typeof params.projectId);
-
+        // Native token investment - use delegateInvestFund from core contract
+        // This routes through the funding module with proper validation
         data = encodeFunctionData({
-          abi: FUNDING_MODULE_ABI,
-          functionName: 'investFund',
+          abi: INVESTMENT_CORE_ABI,
+          functionName: 'delegateInvestFund',
           args: [params.projectId],
         });
-
-        // Decode to verify what we're sending
-        const testDecode = ethers.utils.defaultAbiCoder.decode(['uint256'], `0x${data?.slice(10)}`);
-        console.log('Test decode of projectId from data:', testDecode);
-
-        value = BigInt(valueInWei.toString());
-        console.log('Encoded data:', data);
-        console.log('Function selector (first 4 bytes):', data?.slice(0, 10));
-        console.log('Value to send (bigint):', value.toString());
-        console.log('Value to send (hex):', `0x${value.toString(16)}`);
+        value = amountBigInt;
       } else {
-        // ERC20 token investment
-        console.log('Calling investWithToken with args:', [
-          params.projectId,
-          params.token,
-          valueInWei,
-        ]);
+        // ERC20 token investment - use delegateInvestWithToken from core contract
         data = encodeFunctionData({
-          abi: FUNDING_MODULE_ABI,
-          functionName: 'investWithToken',
-          args: [params.projectId, params.token as `0x${string}`, amountBigInt],
+          abi: INVESTMENT_CORE_ABI,
+          functionName: 'delegateInvestWithToken',
+          args: [params.projectId, amountBigInt],
         });
         value = BigInt(0);
-        console.log('Encoded data:', data);
       }
-
-      console.log('Transaction parameters:', {
-        to: this.addresses.funding,
-        data: data,
-        value: value.toString(),
-        chainId: this.chainId,
-      });
 
       const txResult = await this.sendTransaction(
         {
-          to: this.addresses.funding as `0x${string}`,
+          to: this.addresses.core as `0x${string}`,
           data,
           value,
           chainId: this.chainId,
@@ -420,15 +365,17 @@ export class InvestmentContract {
 
   async reclaimFund(projectId: number) {
     try {
+      // Use delegateReclaimFund from core contract
+      // This routes through the funding module with proper validation
       const data = encodeFunctionData({
-        abi: FUNDING_MODULE_ABI,
-        functionName: 'reclaimFund',
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'delegateReclaimFund',
         args: [projectId],
       });
 
       const txResult = await this.sendTransaction(
         {
-          to: this.addresses.funding as `0x${string}`,
+          to: this.addresses.core as `0x${string}`,
           data,
           value: BigInt(0),
           chainId: this.chainId,
@@ -476,15 +423,16 @@ export class InvestmentContract {
 
   async feeClaim(programId: number) {
     try {
+      // Use delegateFeeClaim from core contract
       const data = encodeFunctionData({
-        abi: FUNDING_MODULE_ABI,
-        functionName: 'feeClaim',
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'delegateFeeClaim',
         args: [programId],
       });
 
       const txResult = await this.sendTransaction(
         {
-          to: this.addresses.funding as `0x${string}`,
+          to: this.addresses.core as `0x${string}`,
           data,
           value: BigInt(0),
           chainId: this.chainId,
@@ -606,9 +554,6 @@ export class InvestmentContract {
 
   async getProgramStatusDetailed(programId: number) {
     try {
-      console.log('Getting program status for programId:', programId);
-      console.log('Using core contract address:', this.addresses.core);
-
       // First get the basic status
       const statusData = await this.client.readContract({
         address: this.addresses.core as `0x${string}`,
@@ -617,8 +562,6 @@ export class InvestmentContract {
         args: [programId],
       });
 
-      console.log('Program status:', statusData);
-
       // Then get the program details to check funding period
       const detailsData = await this.client.readContract({
         address: this.addresses.core as `0x${string}`,
@@ -626,8 +569,6 @@ export class InvestmentContract {
         functionName: 'getProgramDetails',
         args: [programId],
       });
-
-      console.log('Program details:', detailsData);
 
       // Extract details
       const details = detailsData as [
@@ -669,17 +610,6 @@ export class InvestmentContract {
 
       const statusNames = ['Ready', 'Active', 'Successful', 'Failed', 'Pending'];
 
-      console.log('Calculated periods:', {
-        now,
-        applicationStartTime,
-        applicationEndTime,
-        fundingStartTime,
-        fundingEndTime,
-        isInApplicationPeriod,
-        isInFundingPeriod,
-        isInPendingPeriod,
-      });
-
       return {
         status: statusNames[status] || 'Unknown',
         statusCode: status,
@@ -708,6 +638,58 @@ export class InvestmentContract {
     }
   }
 
+  async debugContractInvestmentState(projectId: number, userAddress?: string) {
+    try {
+      // Get total investment from Funding contract
+      const totalInvestmentWei = (await this.client.readContract({
+        address: this.addresses.funding as `0x${string}`,
+        abi: FUNDING_MODULE_ABI,
+        functionName: 'getTotalInvestment',
+        args: [projectId],
+      })) as bigint;
+
+      // Get project details for target funding
+      const projectData = await this.client.readContract({
+        address: this.addresses.core as `0x${string}`,
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'getProjectDetails',
+        args: [projectId],
+      });
+
+      const details = projectData as [
+        string, // name
+        string, // applicant
+        bigint, // targetFunding
+        number, // status
+        bigint, // createdAt
+        bigint, // programId
+      ];
+
+      const targetFunding = details[2];
+
+      // If user address provided, get their investment amount
+      let userInvestmentWei = BigInt(0);
+      if (userAddress) {
+        userInvestmentWei = (await this.client.readContract({
+          address: this.addresses.funding as `0x${string}`,
+          abi: FUNDING_MODULE_ABI,
+          functionName: 'getInvestmentAmount',
+          args: [projectId, userAddress],
+        })) as bigint;
+      }
+
+      return {
+        totalInvestmentWei: totalInvestmentWei.toString(),
+        targetFundingWei: targetFunding.toString(),
+        isFull: totalInvestmentWei >= targetFunding,
+        userInvestmentWei: userInvestmentWei.toString(),
+      };
+    } catch (error) {
+      console.error('Failed to debug contract state:', error);
+      throw error;
+    }
+  }
+
   async getProjectInvestmentDetails(projectId: number) {
     try {
       // Get project details from Core contract
@@ -717,8 +699,6 @@ export class InvestmentContract {
         functionName: 'getProjectDetails',
         args: [projectId],
       });
-
-      console.log('Project details from core:', projectData);
 
       // Project details returns: name, owner, targetFunding, totalInvested, fundingSuccessful, programId
       const [_name, _owner, targetFunding, _totalInvested, fundingSuccessful, _programId] =
@@ -730,14 +710,6 @@ export class InvestmentContract {
         abi: FUNDING_MODULE_ABI,
         functionName: 'totalProjectInvestments',
         args: [projectId],
-      });
-
-      console.log('Total raised from funding:', totalRaised);
-      console.log('Raw values:', {
-        targetFundingWei: targetFunding.toString(),
-        totalRaisedWei: totalRaised?.toString(),
-        targetFundingEth: ethers.utils.formatEther(targetFunding),
-        totalRaisedEth: ethers.utils.formatEther(totalRaised as bigint),
       });
 
       const totalRaisedBigInt = totalRaised as bigint;
@@ -784,8 +756,6 @@ export class InvestmentContract {
 
   async updateProgramStatus(programId: number) {
     try {
-      console.log('Updating program status for programId:', programId);
-
       const data = encodeFunctionData({
         abi: INVESTMENT_CORE_ABI,
         functionName: 'updateProgramStatus',
@@ -817,7 +787,6 @@ export class InvestmentContract {
 
       // Get the updated status
       const newStatus = await this.getProgramStatusDetailed(programId);
-      console.log('New program status:', newStatus);
 
       return {
         txHash: txResult.hash,
@@ -871,21 +840,31 @@ export class InvestmentContract {
     amount: string,
   ): Promise<{ eligible: boolean; reason: string }> {
     try {
-      console.log('Checking investment eligibility:', {
-        projectId,
-        investor,
-        amount,
-        fundingAddress: this.addresses.funding,
-      });
+      // Validate amount before conversion
+      if (!amount || amount === '') {
+        return { eligible: false, reason: 'Investment amount is required' };
+      }
+
+      // Convert amount string (in Wei) directly to BigInt
+      let amountBigInt: bigint;
+      try {
+        amountBigInt = BigInt(amount);
+      } catch (error) {
+        console.error('Invalid amount for BigInt conversion:', amount, error);
+        return { eligible: false, reason: 'Invalid investment amount format' };
+      }
+
+      // Check for zero amount
+      if (amountBigInt === BigInt(0)) {
+        return { eligible: false, reason: 'Investment amount must be greater than 0' };
+      }
 
       const data = await this.client.readContract({
         address: this.addresses.funding as `0x${string}`,
         abi: FUNDING_MODULE_ABI,
         functionName: 'isUserEligibleToInvest',
-        args: [projectId, investor as `0x${string}`, ethers.BigNumber.from(amount)],
+        args: [projectId, investor as `0x${string}`, amountBigInt],
       });
-
-      console.log('Eligibility check response:', data);
 
       const [eligible, reason] = data as [boolean, string];
       return { eligible, reason: reason || 'Eligible to invest' };

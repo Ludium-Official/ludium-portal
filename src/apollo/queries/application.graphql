@@ -48,6 +48,8 @@ query application($id: ID!) {
       id
       price
       purchaseLimit
+      currentPurchases
+      remainingPurchases
       title
       updatedAt
     }
