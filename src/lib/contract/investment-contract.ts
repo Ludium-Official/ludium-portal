@@ -36,10 +36,7 @@ export class InvestmentContract {
     this.client = client;
     this.chainId = chainId;
 
-    console.log('InvestmentContract initialized with:', {
-      addresses: addresses,
-      chainId: chainId,
-    });
+
   }
 
   private async waitForTransaction(hash: `0x${string}`) {
@@ -60,14 +57,7 @@ export class InvestmentContract {
     }>;
   }) {
     try {
-      console.log('=== signValidate (Accept Application) Debug ===');
-      console.log('Input params:', {
-        programId: params.programId,
-        projectOwner: params.projectOwner,
-        projectName: params.projectName,
-        targetFunding: params.targetFunding,
-        milestonesCount: params.milestones.length,
-      });
+
 
       // Convert milestones to contract format (MilestoneInput struct)
       const milestonesForContract = params.milestones.map((m) => ({
@@ -77,16 +67,12 @@ export class InvestmentContract {
         deadline: Math.floor(new Date(m.deadline).getTime() / 1000),
       }));
 
-      console.log('Milestones for contract:', milestonesForContract);
+
 
       // Convert target funding to wei
       const targetFundingWei = ethers.utils.parseEther(params.targetFunding);
 
-      console.log('Target funding conversion:', {
-        originalAmount: params.targetFunding,
-        weiAmount: targetFundingWei.toString(),
-        ethAmount: ethers.utils.formatEther(targetFundingWei),
-      });
+
 
       const data = encodeFunctionData({
         abi: INVESTMENT_CORE_ABI,
@@ -100,17 +86,7 @@ export class InvestmentContract {
         ],
       });
 
-      console.log('Encoded function data:', {
-        functionName: 'signValidate',
-        args: [
-          params.programId,
-          params.projectOwner,
-          params.projectName,
-          targetFundingWei.toString(),
-          'milestones...',
-        ],
-        contractAddress: this.addresses.core,
-      });
+
 
       const txResult = await this.sendTransaction(
         {
@@ -295,23 +271,13 @@ export class InvestmentContract {
     tokenDecimals?: number; // Token decimals for display formatting
   }) {
     try {
-      console.log('=== investFund Debug Info ===');
-      console.log('Input params:', {
-        projectId: params.projectId,
-        amount: params.amount,
-        token: params.token,
-        tokenName: params.tokenName,
-        tokenDecimals: params.tokenDecimals,
-      });
+
 
       // Amount is already in Wei, no conversion needed
       const valueInWei = ethers.BigNumber.from(params.amount);
-      console.log('valueInWei (BigNumber):', valueInWei.toString());
-      console.log('valueInWei (hex):', valueInWei.toHexString());
-      
+
       const amountBigInt = BigInt(params.amount);
       const isNative = !params.token || params.token === ethers.constants.AddressZero;
-      console.log('Is native token:', isNative);
 
       // Format amount for display
       const displayAmount =
@@ -325,8 +291,6 @@ export class InvestmentContract {
 
       if (isNative) {
         // Native token investment
-        console.log('Calling investFund with args:', [params.projectId]);
-        console.log('Project ID type:', typeof params.projectId);
 
         data = encodeFunctionData({
           abi: FUNDING_MODULE_ABI,
@@ -334,37 +298,22 @@ export class InvestmentContract {
           args: [params.projectId],
         });
 
-        // Decode to verify what we're sending
-        const testDecode = ethers.utils.defaultAbiCoder.decode(['uint256'], `0x${data?.slice(10)}`);
-        console.log('Test decode of projectId from data:', testDecode);
+
 
         value = BigInt(valueInWei.toString());
-        console.log('Encoded data:', data);
-        console.log('Function selector (first 4 bytes):', data?.slice(0, 10));
-        console.log('Value to send (bigint):', value.toString());
-        console.log('Value to send (hex):', `0x${value.toString(16)}`);
+
       } else {
         // ERC20 token investment
-        console.log('Calling investWithToken with args:', [
-          params.projectId,
-          params.token,
-          valueInWei,
-        ]);
         data = encodeFunctionData({
           abi: FUNDING_MODULE_ABI,
           functionName: 'investWithToken',
           args: [params.projectId, params.token as `0x${string}`, amountBigInt],
         });
         value = BigInt(0);
-        console.log('Encoded data:', data);
+
       }
 
-      console.log('Transaction parameters:', {
-        to: this.addresses.funding,
-        data: data,
-        value: value.toString(),
-        chainId: this.chainId,
-      });
+
 
       const txResult = await this.sendTransaction(
         {
@@ -606,8 +555,7 @@ export class InvestmentContract {
 
   async getProgramStatusDetailed(programId: number) {
     try {
-      console.log('Getting program status for programId:', programId);
-      console.log('Using core contract address:', this.addresses.core);
+
 
       // First get the basic status
       const statusData = await this.client.readContract({
@@ -617,7 +565,7 @@ export class InvestmentContract {
         args: [programId],
       });
 
-      console.log('Program status:', statusData);
+
 
       // Then get the program details to check funding period
       const detailsData = await this.client.readContract({
@@ -627,7 +575,7 @@ export class InvestmentContract {
         args: [programId],
       });
 
-      console.log('Program details:', detailsData);
+
 
       // Extract details
       const details = detailsData as [
@@ -669,16 +617,7 @@ export class InvestmentContract {
 
       const statusNames = ['Ready', 'Active', 'Successful', 'Failed', 'Pending'];
 
-      console.log('Calculated periods:', {
-        now,
-        applicationStartTime,
-        applicationEndTime,
-        fundingStartTime,
-        fundingEndTime,
-        isInApplicationPeriod,
-        isInFundingPeriod,
-        isInPendingPeriod,
-      });
+
 
       return {
         status: statusNames[status] || 'Unknown',
@@ -718,7 +657,7 @@ export class InvestmentContract {
         args: [projectId],
       });
 
-      console.log('Project details from core:', projectData);
+
 
       // Project details returns: name, owner, targetFunding, totalInvested, fundingSuccessful, programId
       const [_name, _owner, targetFunding, _totalInvested, fundingSuccessful, _programId] =
@@ -732,13 +671,7 @@ export class InvestmentContract {
         args: [projectId],
       });
 
-      console.log('Total raised from funding:', totalRaised);
-      console.log('Raw values:', {
-        targetFundingWei: targetFunding.toString(),
-        totalRaisedWei: totalRaised?.toString(),
-        targetFundingEth: ethers.utils.formatEther(targetFunding),
-        totalRaisedEth: ethers.utils.formatEther(totalRaised as bigint),
-      });
+
 
       const totalRaisedBigInt = totalRaised as bigint;
 
@@ -784,7 +717,7 @@ export class InvestmentContract {
 
   async updateProgramStatus(programId: number) {
     try {
-      console.log('Updating program status for programId:', programId);
+
 
       const data = encodeFunctionData({
         abi: INVESTMENT_CORE_ABI,
@@ -817,7 +750,6 @@ export class InvestmentContract {
 
       // Get the updated status
       const newStatus = await this.getProgramStatusDetailed(programId);
-      console.log('New program status:', newStatus);
 
       return {
         txHash: txResult.hash,
@@ -871,12 +803,7 @@ export class InvestmentContract {
     amount: string,
   ): Promise<{ eligible: boolean; reason: string }> {
     try {
-      console.log('Checking investment eligibility:', {
-        projectId,
-        investor,
-        amount,
-        fundingAddress: this.addresses.funding,
-      });
+
 
       const data = await this.client.readContract({
         address: this.addresses.funding as `0x${string}`,
@@ -885,7 +812,7 @@ export class InvestmentContract {
         args: [projectId, investor as `0x${string}`, ethers.BigNumber.from(amount)],
       });
 
-      console.log('Eligibility check response:', data);
+
 
       const [eligible, reason] = data as [boolean, string];
       return { eligible, reason: reason || 'Eligible to invest' };

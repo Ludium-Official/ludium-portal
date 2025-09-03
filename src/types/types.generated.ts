@@ -310,6 +310,8 @@ export type LinkInput = {
 
 export type Milestone = {
   __typename?: 'Milestone';
+  /** Whether this milestone can be reclaimed (unpaid past deadline) */
+  canReclaim?: Maybe<Scalars['Boolean']['output']>;
   comments?: Maybe<Array<Comment>>;
   currency?: Maybe<Scalars['String']['output']>;
   deadline?: Maybe<Scalars['DateTime']['output']>;
@@ -319,6 +321,9 @@ export type Milestone = {
   links?: Maybe<Array<Link>>;
   percentage?: Maybe<Scalars['String']['output']>;
   price?: Maybe<Scalars['String']['output']>;
+  reclaimTxHash?: Maybe<Scalars['String']['output']>;
+  reclaimed?: Maybe<Scalars['Boolean']['output']>;
+  reclaimedAt?: Maybe<Scalars['DateTime']['output']>;
   rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<MilestoneStatus>;
   summary?: Maybe<Scalars['String']['output']>;
@@ -376,6 +381,9 @@ export type Mutation = {
   markNotificationAsRead?: Maybe<Scalars['Boolean']['output']>;
   processMilestonePayouts?: Maybe<Array<MilestonePayout>>;
   reclaimInvestment?: Maybe<Investment>;
+  /** Reclaim funds from an unpaid milestone past its deadline */
+  reclaimMilestone?: Maybe<Milestone>;
+  reclaimProgram?: Maybe<Program>;
   rejectApplication?: Maybe<Application>;
   rejectProgram?: Maybe<Program>;
   removeProgramKeyword?: Maybe<Scalars['Boolean']['output']>;
@@ -537,6 +545,18 @@ export type MutationProcessMilestonePayoutsArgs = {
 
 export type MutationReclaimInvestmentArgs = {
   input: ReclaimInvestmentInput;
+};
+
+
+export type MutationReclaimMilestoneArgs = {
+  milestoneId: Scalars['ID']['input'];
+  txHash?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationReclaimProgramArgs = {
+  programId: Scalars['ID']['input'];
+  txHash?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -764,6 +784,8 @@ export type Program = {
   applicationEndDate?: Maybe<Scalars['DateTime']['output']>;
   applicationStartDate?: Maybe<Scalars['DateTime']['output']>;
   applications?: Maybe<Array<Application>>;
+  /** Whether this program can be reclaimed (unused past deadline) */
+  canReclaim?: Maybe<Scalars['Boolean']['output']>;
   comments?: Maybe<Array<Comment>>;
   contractAddress?: Maybe<Scalars['String']['output']>;
   creator?: Maybe<User>;
@@ -785,6 +807,9 @@ export type Program = {
   name?: Maybe<Scalars['String']['output']>;
   network?: Maybe<Scalars['String']['output']>;
   price?: Maybe<Scalars['String']['output']>;
+  reclaimTxHash?: Maybe<Scalars['String']['output']>;
+  reclaimed?: Maybe<Scalars['Boolean']['output']>;
+  reclaimedAt?: Maybe<Scalars['DateTime']['output']>;
   rejectionReason?: Maybe<Scalars['String']['output']>;
   status?: Maybe<ProgramStatus>;
   summary?: Maybe<Scalars['String']['output']>;

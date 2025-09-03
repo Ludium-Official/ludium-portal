@@ -49,6 +49,11 @@ export const tokenAddresses = {
   ],
   educhain: [
     {
+      name: 'EDU',
+      address: '0x0000000000000000000000000000000000000000',
+      decimal: 18,
+    },
+    {
       name: 'USDT',
       address: '0x7277cc818e3f3ffbb169c6da9cc77fc2d2a34895',
       decimal: 6,
@@ -60,6 +65,11 @@ export const tokenAddresses = {
     },
   ],
   'educhain-testnet': [
+    {
+      name: 'EDU',
+      address: '0x0000000000000000000000000000000000000000',
+      decimal: 18,
+    },
     {
       name: 'USDT',
       address: '0x3BfB66999C22c0189B0D837D12D5A4004844EC12',

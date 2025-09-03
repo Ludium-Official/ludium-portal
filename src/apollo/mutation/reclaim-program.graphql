@@ -1,0 +1,10 @@
+mutation reclaimProgram($programId: ID!) {
+  reclaimProgram(programId: $programId) {
+    id
+    name
+    reclaimed
+    reclaimTxHash
+    reclaimedAt
+    canReclaim
+  }
+}

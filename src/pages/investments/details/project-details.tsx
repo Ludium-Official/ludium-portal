@@ -385,9 +385,7 @@ function ProjectDetailsPage() {
 
           // Check current project funding status
           try {
-            await investmentContract.getProjectInvestmentDetails(
-              Number(onChainProjectId),
-            );
+            await investmentContract.getProjectInvestmentDetails(Number(onChainProjectId));
           } catch (error) {
             console.error('Failed to get project funding status:', error);
           }

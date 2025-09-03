@@ -35,6 +35,11 @@ query programs($pagination: PaginationInput) {
           price
           status
           title
+          deadline
+          reclaimed
+          reclaimTxHash
+          reclaimedAt
+          canReclaim
         }
         name
         price
@@ -82,6 +87,10 @@ query programs($pagination: PaginationInput) {
       feePercentage
       customFeePercentage
       image
+      reclaimed
+      reclaimTxHash
+      reclaimedAt
+      canReclaim
       validators {
         about
         email

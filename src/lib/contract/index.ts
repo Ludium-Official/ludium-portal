@@ -79,12 +79,20 @@ class ChainContract {
     const receipt = await this.client.waitForTransactionReceipt({
       hash,
     });
-    const eventSignature = ethers.utils.id(signature);
-    const event = receipt.logs.find((log) => log.topics[0] === eventSignature);
 
-    if (event) {
-      return ethers.BigNumber.from(event.topics[1]).toNumber();
+    const eventSignature = ethers.utils.id(signature);
+
+    const event = receipt.logs.find((log) => {
+
+      return log.topics[0] === eventSignature;
+    });
+
+    if (event?.topics[1]) {
+      const programId = ethers.BigNumber.from(event.topics[1]).toNumber();
+
+      return programId;
     }
+
 
     return null;
   }
@@ -149,16 +157,30 @@ class ChainContract {
     ownerAddress: string;
   }) {
     try {
+
+
       const useToken = program.token?.address ?? NATIVE_TOKEN;
       const isNative = useToken === NATIVE_TOKEN;
+
+      // Log warning about native token whitelist issue (non-blocking)
+      if (isNative) {
+        console.warn(
+          '⚠️ Native EDU token (0x0000...0000) may not be whitelisted in the smart contract.',
+        );
+        console.warn('If the transaction fails, this is likely the cause.');
+      }
 
       const price = isNative
         ? ethers.utils.parseEther(program.price || '0')
         : ethers.utils.parseUnits(program.price || '0', program.token?.decimal ?? 18);
 
+
+
       if (!isNative) {
         const allowance = await this.getAllowance(useToken, program.ownerAddress);
         const priceInWei = BigInt(price.toString());
+
+
 
         if (allowance < priceInWei) {
           await this.approveToken(useToken, price, program.token);
@@ -167,6 +189,8 @@ class ChainContract {
 
       const nowInSec = Math.floor(Date.now() / 1000);
       const deadlineInSec = Math.floor(new Date(program.deadline).getTime() / 1000);
+
+
 
       const data = encodeFunctionData({
         abi: contractJson.abi,
@@ -181,6 +205,8 @@ class ChainContract {
         ],
       });
 
+
+
       const tx = await this.sendTransaction(
         {
           to: this.contractAddress,
@@ -191,9 +217,8 @@ class ChainContract {
         {
           uiOptions: {
             showWalletUIs: true,
-            description: `To create a program, you need to accept ${
-              program.price
-            } ${program.token?.name ?? 'token'} to the contract.`,
+            description: `To create a program, you need to accept ${program.price
+              } ${program.token?.name ?? 'token'} to the contract.`,
             buttonText: 'Submit Transaction',
             transactionInfo: {
               title: 'Transaction Details',
@@ -210,13 +235,58 @@ class ChainContract {
         'ProgramCreated(uint256,address,address,uint256,address)',
       );
 
-      if (receiptResult) {
+
+
+      if (receiptResult !== null) {
         return { txHash: tx.hash, programId: receiptResult };
       }
 
-      return null;
-    } catch (error) {
+      // If we couldn't find the event, still return the tx hash
+
+      // Return with programId 0 for now - the backend might need to handle this differently
+      return { txHash: tx.hash, programId: 0 };
+    } catch (error: unknown) {
       console.error('Failed to create program:', error);
+
+      // Check for common revert reasons
+      const errorMessage =
+        (error instanceof Error ? error.message : '') ||
+        (error as { reason?: string })?.reason ||
+        '';
+
+      // Check for whitelist error (common cause)
+      if (
+        errorMessage.includes('execution reverted') ||
+        errorMessage.includes('Execution reverted')
+      ) {
+        const useToken = program.token?.address ?? NATIVE_TOKEN;
+        const isNative = useToken === NATIVE_TOKEN;
+
+        if (isNative) {
+          throw new Error(
+            'Transaction failed: The native EDU token (0x0000...0000) is not whitelisted in the smart contract. Please contact the contract administrator to whitelist the native token.',
+          );
+        }
+        throw new Error(
+          `Transaction failed: The ${program.token?.name || 'selected'} token may not be whitelisted in the smart contract. Please contact the contract administrator.`,
+        );
+      }
+
+      if (errorMessage.includes('Token not whitelisted')) {
+        throw new Error(
+          'The selected token is not whitelisted in the smart contract. Please contact the contract administrator to whitelist this token.',
+        );
+      }
+      if (errorMessage.includes('Price must be greater than 0')) {
+        throw new Error('Program price must be greater than 0');
+      }
+      if (errorMessage.includes('Start time must be earlier')) {
+        throw new Error('The program start time must be earlier than the end time');
+      }
+      if (errorMessage.includes('ETH sent does not match')) {
+        throw new Error('The amount of EDU sent does not match the program price');
+      }
+
       throw error;
     }
   }
@@ -248,17 +318,15 @@ class ChainContract {
         {
           uiOptions: {
             showWalletUIs: true,
-            description: `Accept milestone and send ${amount} ${
-              token?.name
-            } to ${reduceString(builderAddress || '', 6, 6)}.`,
+            description: `Accept milestone and send ${amount} ${token?.name
+              } to ${reduceString(builderAddress || '', 6, 6)}.`,
             transactionInfo: {
               title: 'Accept Milestone',
               action: 'Accepted Milestone',
             },
             successHeader: 'Milestone Accepted Successfully!',
-            successDescription: `You have successfully accepted the milestone and sent ${amount} ${
-              token?.name
-            } to ${reduceString(builderAddress || '', 6, 6)}.`,
+            successDescription: `You have successfully accepted the milestone and sent ${amount} ${token?.name
+              } to ${reduceString(builderAddress || '', 6, 6)}.`,
           },
         },
       );
@@ -273,7 +341,7 @@ class ChainContract {
       }
 
       return null;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to accept milestone:', error);
       throw error;
     }

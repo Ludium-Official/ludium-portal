@@ -161,10 +161,15 @@ function Header() {
       if (!authenticated || !walletInfo?.address) return;
 
       try {
-        // @ts-ignore
-        const tokens = tokenAddresses[network] || [];
+        const tokens = tokenAddresses[network as keyof typeof tokenAddresses] || [];
 
-        const balancesPromises = tokens.map(
+        // Filter out native token (0x0000...0000) as it's not an ERC20 contract
+        const erc20Tokens = tokens.filter(
+          (token: { address: string }) =>
+            token.address !== '0x0000000000000000000000000000000000000000',
+        );
+
+        const balancesPromises = erc20Tokens.map(
           (token: { address: string; decimal: number; name: string }) =>
             callTokenBalance(contract, token.address, walletInfo.address).then((balance) => ({
               name: token.name,
