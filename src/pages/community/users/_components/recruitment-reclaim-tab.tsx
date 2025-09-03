@@ -55,7 +55,7 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
     <div className="flex flex-col gap-10">
       <div className="flex flex-col gap-3">
         <div className="flex h-12 items-center justify-between pl-4">
-          <AgentBreadcrumbs />
+          <AgentBreadcrumbs myProfile={myProfile} />
           <div className="relative w-[360px]">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
