@@ -39,6 +39,7 @@ import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import { useInvestmentContract } from '@/lib/hooks/use-investment-contract';
+import { handleInvestment } from '@/lib/investment-helpers';
 import notify from '@/lib/notify';
 import { cn, getCurrencyIcon, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
@@ -481,15 +482,32 @@ function ProjectDetailsPage() {
             }
           }
 
+          // Determine token symbol for investment helper
+          const tokenSymbol =
+            program?.currency === 'EDU'
+              ? 'EDU'
+              : program?.currency === 'ETH'
+                ? 'ETH'
+                : program?.currency === 'USDC'
+                  ? 'USDC'
+                  : program?.currency === 'USDT'
+                    ? 'USDT'
+                    : 'EDU';
+
+          // Convert Wei amount back to human-readable for helper function
+          const decimals = targetToken?.decimal || 18;
+          const humanReadableAmount = ethers.utils.formatUnits(amountInWei, decimals);
+
           notify('Please approve the transaction in your wallet', 'loading');
 
-          // Call the blockchain investment function with the actual on-chain project ID
-          const result = await investmentContract.investFund({
-            projectId: Number(onChainProjectId), // Use the actual on-chain project ID
-            amount: amountInWei, // Amount already in Wei from backend
-            token: targetToken?.address, // Token address for ERC20, undefined for native
-            tokenName: program?.currency ?? undefined, // Display name (EDU, USDT, etc.)
-            tokenDecimals: targetToken?.decimal || 18, // Token decimals for formatting
+          // Use the helper function that handles ERC20 approval automatically
+          const result = await handleInvestment({
+            projectId: Number(onChainProjectId),
+            amount: humanReadableAmount,
+            tokenSymbol: tokenSymbol as 'EDU' | 'ETH' | 'USDC' | 'USDT',
+            network: network || 'educhain',
+            userAddress,
+            investmentContract,
           });
 
           txHash = result.txHash;

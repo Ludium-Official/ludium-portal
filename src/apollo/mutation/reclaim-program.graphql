@@ -1,5 +1,5 @@
-mutation reclaimProgram($programId: ID!) {
-  reclaimProgram(programId: $programId) {
+mutation reclaimProgram($programId: ID!, $txHash: String) {
+  reclaimProgram(programId: $programId, txHash: $txHash) {
     id
     name
     reclaimed

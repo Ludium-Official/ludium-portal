@@ -503,22 +503,22 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
             <div className="mt-6 flex justify-between items-center bg-muted p-4">
               <div className="text-sm flex items-center gap-8">
                 <span className="">Total</span>{' '}
-                <span className="font-bold text-lg">{program?.invitedBuilders?.length}</span>
+                <span className="font-bold text-lg">{program?.supporters?.length || 0}</span>
               </div>
               <div className="text-sm font-medium flex items-center gap-2">
                 <span className="font-bold text-lg">
-                  {program?.invitedBuilders
-                    ?.reduce((total: number) => {
+                  {(
+                    program?.supporters?.reduce((total: number, supporter) => {
                       const tierSettings = program?.tierSettings;
                       if (!tierSettings) return total;
 
-                      // hardcoded, dont forget to change
-                      const tierValue = (tierSettings as Record<string, { maxAmount?: number }>)
-                        .gold;
+                      const tierValue = (tierSettings as Record<string, { maxAmount?: number }>)[
+                        supporter.tier ?? ''
+                      ];
                       const amount = Number(tierValue?.maxAmount) || 0;
                       return total + amount;
-                    }, 0)
-                    .toLocaleString()}
+                    }, 0) || 0
+                  ).toLocaleString()}
                 </span>
                 <span>{getCurrencyIcon(program?.currency)}</span>
                 <span>{program?.currency}</span>
