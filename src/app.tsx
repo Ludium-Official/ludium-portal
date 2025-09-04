@@ -15,6 +15,7 @@ import UserInvestmentProjectTab from '@/pages/community/users/_components/invest
 import UserInvestmentReclaimTab from '@/pages/community/users/_components/investment-reclaim-tab';
 import UserInvestmentTab from '@/pages/community/users/_components/investment-tab';
 import UserOverviewTab from '@/pages/community/users/_components/overview-tab';
+import UserRecruitmentBuilderTab from '@/pages/community/users/_components/recruitment-builder-tab';
 import UserRecruitmentReclaimTab from '@/pages/community/users/_components/recruitment-reclaim-tab';
 import UserRecruitmentRoleTab from '@/pages/community/users/_components/recruitment-role-tab';
 import UserRecruitmentTab from '@/pages/community/users/_components/recruitment-tab';
@@ -84,6 +85,7 @@ function App() {
               <Route path="overview" element={<UserOverviewTab />} />
               <Route path="description" element={<UserDescriptionTab />} />
               <Route path="program/recruitment" element={<UserRecruitmentTab />} />
+              <Route path="program/recruitment/builder" element={<UserRecruitmentBuilderTab />} />
               <Route path="program/recruitment/:role" element={<UserRecruitmentRoleTab />} />
               <Route path="program/investment" element={<UserInvestmentTab />} />
               <Route path="program/investment/host" element={<UserInvestmentHostTab />} />
@@ -106,6 +108,7 @@ function App() {
               <Route path="overview" element={<UserOverviewTab />} />
               <Route path="description" element={<UserDescriptionTab myProfile />} />
               <Route path="program/recruitment" element={<UserRecruitmentTab myProfile />} />
+              <Route path="program/recruitment/builder" element={<UserRecruitmentBuilderTab myProfile />} />
               <Route
                 path="program/recruitment/:role"
                 element={<UserRecruitmentRoleTab myProfile />}

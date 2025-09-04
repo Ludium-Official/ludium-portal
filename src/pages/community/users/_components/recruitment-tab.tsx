@@ -3,20 +3,22 @@ import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { Link, useParams } from 'react-router';
 import { AgentBreadcrumbs } from './agent-breadcrumbs';
 
+import { useApplicationsQuery } from '@/apollo/queries/applications.generated';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { ArrowRightIcon, ListFilter, Search } from 'lucide-react';
 import { useState } from 'react';
+import ApplicationBuilderCard from './application-builder-card';
 import ProgramCard from './program-card';
 
 const filterBasedOnRole = {
-  sponsor: 'sponsorId',
+  sponsor: 'creatorId',
   validator: 'validatorId',
-  builder: 'builderId',
+  builder: 'applicantId',
 };
 
-const roles = ['sponsor', 'validator', 'builder'] as const;
+const roles = ['sponsor', 'validator', /*'builder'*/] as const;
 
 export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean }) {
   const { id } = useParams();
@@ -28,6 +30,34 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
   });
 
   const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
+
+  const { data: applicationData } = useApplicationsQuery({
+    variables: {
+      pagination: {
+        limit: 2,
+        offset: 0,
+        filter: [
+          {
+            value: "regular",
+            field: "programType",
+          },
+          {
+            value: profileId,
+            field: "applicantId",
+          },
+          ...(searchQuery
+            ? [
+              {
+                field: 'name',
+                value: searchQuery,
+              },
+            ]
+            : []),
+        ],
+      },
+    },
+  });
+  console.log("🚀 ~ UserRecruitmentTab ~ applicationData:", applicationData)
 
   const queries = {
     sponsor: useProgramsQuery({
@@ -42,11 +72,11 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
             },
             ...(searchQuery
               ? [
-                  {
-                    field: 'name',
-                    value: searchQuery,
-                  },
-                ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
               : []),
           ],
         },
@@ -65,40 +95,40 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
             },
             ...(searchQuery
               ? [
-                  {
-                    field: 'name',
-                    value: searchQuery,
-                  },
-                ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
               : []),
           ],
         },
       },
       skip: !profileId,
     }),
-    builder: useProgramsQuery({
-      variables: {
-        pagination: {
-          limit: 2,
-          offset: 0,
-          filter: [
-            {
-              value: profileId,
-              field: filterBasedOnRole.builder,
-            },
-            ...(searchQuery
-              ? [
-                  {
-                    field: 'name',
-                    value: searchQuery,
-                  },
-                ]
-              : []),
-          ],
-        },
-      },
-      skip: !profileId,
-    }),
+    // builder: useProgramsQuery({
+    //   variables: {
+    //     pagination: {
+    //       limit: 2,
+    //       offset: 0,
+    //       filter: [
+    //         {
+    //           value: profileId,
+    //           field: filterBasedOnRole.builder,
+    //         },
+    //         ...(searchQuery
+    //           ? [
+    //               {
+    //                 field: 'name',
+    //                 value: searchQuery,
+    //               },
+    //             ]
+    //           : []),
+    //       ],
+    //     },
+    //   },
+    //   skip: !profileId,
+    // }),
   };
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -154,6 +184,27 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
             </div>
           );
         })}
+        <div className="flex flex-col gap-3">
+          <Separator className="mt-3" />
+          <div className="flex items-center justify-between h-12 px-4">
+            <p className="font-bold text-lg text-gray-dark">
+              As Builder
+            </p>
+            {!!applicationData?.applications?.count && applicationData?.applications?.count > 2 && (
+              <Link to={'builder'} className="px-3 flex items-center gap-2">
+                <p className="font-medium text-sm text-gray-dark">View more</p>
+                <ArrowRightIcon width={16} height={16} />
+              </Link>
+            )}
+          </div>
+          <div className="flex flex-col gap-3 px-4">
+            {applicationData?.applications?.data?.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No applications found</p>
+            ) : (
+              applicationData?.applications?.data?.map((application) => <ApplicationBuilderCard key={application.id} application={application} />)
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
