@@ -47,11 +47,11 @@ function findBreadcrumbTrail(
   return null;
 }
 
-export function AgentBreadcrumbs() {
+export function AgentBreadcrumbs({ myProfile }: { myProfile?: boolean }) {
   const { id } = useParams();
   const location = useLocation();
 
-  const prefix = `/users/${id}/`;
+  const prefix = myProfile ? '/my-profile/' : `/users/${id}/`;
   const relativePath = location.pathname.startsWith(prefix)
     ? location.pathname.slice(prefix.length)
     : '';

@@ -8,20 +8,29 @@ import { Separator } from '@/components/ui/separator';
 import { ShareButton } from '@/components/ui/share-button';
 import { tokenAddresses } from '@/constant/token-address';
 import type ChainContract from '@/lib/contract';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import { cn, commaNumber, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
 import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 // import { Separator } from '@radix-ui/react-dropdown-menu';
-import { ArrowUpRight, Building2, CircleCheck, Settings } from 'lucide-react';
+import { ArrowUpRight, Building2, CircleCheck, Settings, UserCog } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet } from 'react-router';
 import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
 import { platformIcons } from '../agent-utils';
 
+const adminLinks = [
+  { label: 'Banner', path: 'admin/banner' },
+  { label: 'Hidden programs', path: 'admin/hidden-programs' },
+  { label: 'Hidden communities', path: 'admin/hidden-communities' },
+  { label: 'User management', path: 'admin/user-management' },
+];
+
 function MyProfilePage() {
   // const { id } = useParams();
+  const { isAdmin, isSuperadmin } = useAuth();
   const { user: privyUser, exportWallet, authenticated } = usePrivy();
   const walletInfo = privyUser?.wallet;
   const injectedWallet = privyUser?.wallet?.connectorType !== 'embedded';
@@ -177,6 +186,20 @@ function MyProfilePage() {
                 <SidebarLinks key={item.label} item={item} myProfile />
               ))}
             </div>
+
+            {isAdmin && (
+              <div className="flex flex-col gap-2 px-6">
+                <p className='text-sm px-2 gap-2 text-primary h-8 flex items-center select-none'>
+                  <UserCog className='w-4 h-4' /> Admin
+
+                </p>
+                <div className={'ml-4 pl-2 border-l border-gray-200 space-y-1'}>
+                  {adminLinks.map((item) => (
+                    <SidebarLinks key={item.label} item={item} myProfile />
+                  ))}
+                </div>
+              </div>
+            )}
             <Separator />
             <div className="flex flex-col gap-6">
               <div className="border border-[#E4B7FF] rounded-[10px] p-5">
