@@ -80,7 +80,7 @@ function ProjectDetailsPage() {
   const { user: privyUser } = usePrivy();
   const { id, projectId } = useParams();
 
-  const { data, refetch, startPolling, stopPolling } = useApplicationQuery({
+  const { data, refetch, startPolling, stopPolling, error: appError } = useApplicationQuery({
     variables: {
       id: projectId ?? '',
     },
@@ -716,6 +716,17 @@ function ProjectDetailsPage() {
   //   [program],
   // );
 
+  if (appError?.message === 'You do not have access to this application') {
+    return (
+      <div className="text-center bg-white rounded-2xl p-10">
+        <p className="text-lg font-bold mb-10">You do not have access to this application</p>
+        <Link to="/investments" className="text-primary hover:underline font-semibold">
+          Go back to investments
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white  rounded-2xl">
       <div className="max-w-[1440px] mx-auto bg-white">
@@ -1095,22 +1106,20 @@ function ProjectDetailsPage() {
                 <button
                   onClick={() => setActiveTab('terms')}
                   type="button"
-                  className={`p-2 font-medium text-sm transition-colors ${
-                    activeTab === 'terms'
+                  className={`p-2 font-medium text-sm transition-colors ${activeTab === 'terms'
                       ? 'border-b border-b-primary text-primary'
                       : 'text-muted-foreground hover:text-foreground border-b'
-                  }`}
+                    }`}
                 >
                   Terms
                 </button>
                 <button
                   onClick={() => setActiveTab('milestones')}
                   type="button"
-                  className={`p-2 font-medium text-sm transition-colors ${
-                    activeTab === 'milestones'
+                  className={`p-2 font-medium text-sm transition-colors ${activeTab === 'milestones'
                       ? 'border-b border-b-primary text-primary'
                       : 'text-muted-foreground hover:text-foreground border-b'
-                  }`}
+                    }`}
                 >
                   Milestones
                 </button>
@@ -1412,7 +1421,7 @@ function ProjectDetailsPage() {
                                   disabled={
                                     (idx !== 0 &&
                                       data?.application?.milestones?.[idx - 1]?.status !==
-                                        MilestoneStatus.Completed) ||
+                                      MilestoneStatus.Completed) ||
                                     // Prevent milestone submission before funding ends
                                     (program?.fundingEndDate &&
                                       new Date() <= new Date(program.fundingEndDate))
@@ -1422,7 +1431,7 @@ function ProjectDetailsPage() {
                                     className="h-10 block ml-auto"
                                     title={
                                       program?.fundingEndDate &&
-                                      new Date() <= new Date(program.fundingEndDate)
+                                        new Date() <= new Date(program.fundingEndDate)
                                         ? `Milestones can only be submitted after funding ends on ${new Date(program.fundingEndDate).toLocaleDateString()}`
                                         : undefined
                                     }

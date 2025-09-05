@@ -72,6 +72,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
   const [selectedTab, setSelectedTab] = useState<string>('overview');
 
+  // Check if program is published - only allow editing title, keywords, summary, and description
+  const isPublished = data?.program?.status === ProgramStatus.Published;
+
   const [content, setContent] = useState<string>('');
   const [deadline, setDeadline] = useState<Date>();
   const [applicationStartDate, setApplicationStartDate] = useState<Date>();
@@ -272,56 +275,64 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     price: string;
     summary: string;
   }) => {
-    // Validate number fields
-    const price = submitData.price;
-    if (!price || price === '0' || price === '0.0' || price === '0.00' || Number(price) <= 0) {
-      notify('Please enter a valid price greater than 0.', 'error');
-      return;
-    }
-
-    // Validate custom fee if custom fee type is selected
-    if (
-      feeType === 'custom' &&
-      (!customFee || customFee === '0' || customFee === '0.0' || Number(customFee) <= 0)
-    ) {
-      notify('Please enter a valid custom fee percentage greater than 0.', 'error');
-      return;
-    }
-
-    // Validate tier amounts if tier condition is selected
-    if (conditionType === 'tier') {
-      const enabledTiers = tiers.filter((tier) => tier.enabled);
-      if (enabledTiers.length === 0) {
-        notify('Please enable at least one tier.', 'error');
+    // For published programs, only validate editable fields
+    if (isPublished) {
+      if (!submitData.programName || !submitData.summary || !content.length || !selectedKeywords?.length) {
+        notify('Please fill in all required fields.', 'error');
+        return;
+      }
+    } else {
+      // Validate number fields for non-published programs
+      const price = submitData.price;
+      if (!price || price === '0' || price === '0.0' || price === '0.00' || Number(price) <= 0) {
+        notify('Please enter a valid price greater than 0.', 'error');
         return;
       }
 
-      for (const tier of enabledTiers) {
-        if (
-          !tier.maxAmount ||
-          tier.maxAmount === '0' ||
-          tier.maxAmount === '0.0' ||
-          Number(tier.maxAmount) <= 0
-        ) {
-          notify(`Please enter a valid maximum amount for ${tier.name} tier.`, 'error');
+      // Validate custom fee if custom fee type is selected
+      if (
+        feeType === 'custom' &&
+        (!customFee || customFee === '0' || customFee === '0.0' || Number(customFee) <= 0)
+      ) {
+        notify('Please enter a valid custom fee percentage greater than 0.', 'error');
+        return;
+      }
+
+      // Validate tier amounts if tier condition is selected
+      if (conditionType === 'tier') {
+        const enabledTiers = tiers.filter((tier) => tier.enabled);
+        if (enabledTiers.length === 0) {
+          notify('Please enable at least one tier.', 'error');
           return;
         }
-      }
-    }
 
-    if (
-      imageError ||
-      extraErrors.deadline ||
-      extraErrors.keyword ||
-      extraErrors.links ||
-      extraErrors.validator ||
-      extraErrors.invalidLink ||
-      extraErrors.dates ||
-      !content.length ||
-      (!selectedImage && !isEdit)
-    ) {
-      notify('Please fill in all required fields.', 'error');
-      return;
+        for (const tier of enabledTiers) {
+          if (
+            !tier.maxAmount ||
+            tier.maxAmount === '0' ||
+            tier.maxAmount === '0.0' ||
+            Number(tier.maxAmount) <= 0
+          ) {
+            notify(`Please enter a valid maximum amount for ${tier.name} tier.`, 'error');
+            return;
+          }
+        }
+      }
+
+      if (
+        imageError ||
+        extraErrors.deadline ||
+        extraErrors.keyword ||
+        extraErrors.links ||
+        extraErrors.validator ||
+        extraErrors.invalidLink ||
+        extraErrors.dates ||
+        !content.length ||
+        (!selectedImage && !isEdit)
+      ) {
+        notify('Please fill in all required fields.', 'error');
+        return;
+      }
     }
 
     // Get validator wallet addresses
@@ -333,92 +344,125 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
       })
       .filter((address) => address !== null) as string[];
 
-    onSubmitInvestment({
-      id: data?.program?.id ?? id,
-      programName: submitData.programName,
-      price:
-        isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.price,
-      description: content,
-      summary: submitData.summary,
-      currency:
-        isEdit && data?.program?.status !== ProgramStatus.Pending
-          ? (data?.program?.currency as string)
-          : currency,
-      deadline: deadline ? deadline.toISOString() : undefined,
-      keywords: selectedKeywords,
-      validators: selectedValidators ?? [],
-      validatorWalletAddresses,
-      links: (() => {
-        const { shouldSend } = validateLinks(links);
-        return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
-      })(),
-      network:
-        isEdit && data?.program?.status !== ProgramStatus.Pending
-          ? (data?.program?.network as string)
-          : (network ?? mainnetDefaultNetwork),
-      image: selectedImage,
-      visibility: visibility,
-      builders: selectedBuilders,
-      applicationStartDate: applicationStartDate ? applicationStartDate.toISOString() : undefined,
-      applicationEndDate: applicationDueDate ? applicationDueDate.toISOString() : undefined,
-      fundingStartDate: fundingStartDate ? fundingStartDate.toISOString() : undefined,
-      fundingEndDate: fundingDueDate ? fundingDueDate.toISOString() : undefined,
-      fundingCondition: conditionType,
-      tierSettings:
-        conditionType === 'tier'
-          ? {
+    // For published programs, only send editable fields
+    if (isPublished) {
+      onSubmitInvestment({
+        id: data?.program?.id ?? id,
+        programName: submitData.programName,
+        description: content,
+        summary: submitData.summary,
+        keywords: selectedKeywords,
+        // Required fields that we keep from existing data
+        currency: data?.program?.currency as string,
+        network: data?.program?.network as string,
+        validators: selectedValidators ?? [],
+        visibility: data?.program?.visibility as 'public' | 'restricted' | 'private',
+      });
+    } else {
+      // For non-published programs, send all fields
+      onSubmitInvestment({
+        id: data?.program?.id ?? id,
+        programName: submitData.programName,
+        price:
+          isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.price,
+        description: content,
+        summary: submitData.summary,
+        currency:
+          isEdit && data?.program?.status !== ProgramStatus.Pending
+            ? (data?.program?.currency as string)
+            : currency,
+        deadline: deadline ? deadline.toISOString() : undefined,
+        keywords: selectedKeywords,
+        validators: selectedValidators ?? [],
+        validatorWalletAddresses,
+        links: (() => {
+          const { shouldSend } = validateLinks(links);
+          return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
+        })(),
+        network:
+          isEdit && data?.program?.status !== ProgramStatus.Pending
+            ? (data?.program?.network as string)
+            : (network ?? mainnetDefaultNetwork),
+        image: selectedImage,
+        visibility: visibility,
+        builders: selectedBuilders,
+        applicationStartDate: applicationStartDate ? applicationStartDate.toISOString() : undefined,
+        applicationEndDate: applicationDueDate ? applicationDueDate.toISOString() : undefined,
+        fundingStartDate: fundingStartDate ? fundingStartDate.toISOString() : undefined,
+        fundingEndDate: fundingDueDate ? fundingDueDate.toISOString() : undefined,
+        fundingCondition: conditionType,
+        tierSettings:
+          conditionType === 'tier'
+            ? {
               bronze:
                 (tiers.find((t) => t.name === 'Bronze')?.enabled ?? false)
                   ? {
-                      enabled: true,
-                      maxAmount: tiers.find((t) => t.name === 'Bronze')?.maxAmount || '',
-                    }
+                    enabled: true,
+                    maxAmount: tiers.find((t) => t.name === 'Bronze')?.maxAmount || '',
+                  }
                   : undefined,
               silver:
                 (tiers.find((t) => t.name === 'Silver')?.enabled ?? false)
                   ? {
-                      enabled: true,
-                      maxAmount: tiers.find((t) => t.name === 'Silver')?.maxAmount || '',
-                    }
+                    enabled: true,
+                    maxAmount: tiers.find((t) => t.name === 'Silver')?.maxAmount || '',
+                  }
                   : undefined,
               gold:
                 (tiers.find((t) => t.name === 'Gold')?.enabled ?? false)
                   ? {
-                      enabled: true,
-                      maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '',
-                    }
+                    enabled: true,
+                    maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '',
+                  }
                   : undefined,
               platinum:
                 (tiers.find((t) => t.name === 'Platinum')?.enabled ?? false)
                   ? {
-                      enabled: true,
-                      maxAmount: tiers.find((t) => t.name === 'Platinum')?.maxAmount || '',
-                    }
+                    enabled: true,
+                    maxAmount: tiers.find((t) => t.name === 'Platinum')?.maxAmount || '',
+                  }
                   : undefined,
             }
-          : undefined,
-      feePercentage: feeType === 'default' ? 300 : undefined,
-      customFeePercentage:
-        feeType === 'custom' ? Math.round(Number.parseFloat(customFee ?? '0') * 100) : undefined,
-    });
+            : undefined,
+        feePercentage: feeType === 'default' ? 300 : undefined,
+        customFeePercentage:
+          feeType === 'custom' ? Math.round(Number.parseFloat(customFee ?? '0') * 100) : undefined,
+      });
+    }
   };
 
   const extraValidation = () => {
-    if (!watch('programName') || !watch('price') || !watch('summary')) {
+    if (!watch('programName') || !watch('summary')) {
       notify('Please fill in all required fields.', 'error');
     }
+
+    // Only validate price if not published
+    if (!isPublished && !watch('price')) {
+      notify('Please fill in all required fields.', 'error');
+    }
+
     dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
-    if (!selectedImage && !isEdit) setImageError('Picture is required.');
+
+    // Only validate image if not published and not editing
+    if (!isPublished && !selectedImage && !isEdit) setImageError('Picture is required.');
+
     if (!selectedKeywords?.length)
       dispatchErrors({ type: ExtraErrorActionKind.SET_KEYWORDS_ERROR });
-    if (!selectedValidators?.length)
+
+    // Only validate validators if not published
+    if (!isPublished && !selectedValidators?.length)
       dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
-    if (!applicationStartDate || !applicationDueDate || !fundingStartDate || !fundingDueDate)
+
+    // Only validate dates if not published
+    if (!isPublished && (!applicationStartDate || !applicationDueDate || !fundingStartDate || !fundingDueDate))
       dispatchErrors({ type: ExtraErrorActionKind.SET_DATE_ERROR });
 
-    const { isValid } = validateLinks(links);
-    if (!isValid) {
-      dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
+    // Only validate links if not published
+    if (!isPublished) {
+      const { isValid } = validateLinks(links);
+      if (!isValid) {
+        dispatchErrors({ type: ExtraErrorActionKind.SET_INVALID_LINK_ERROR });
+      }
     }
 
     formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
@@ -546,6 +590,13 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   const isOverviewTabValid = () => {
     const programName = watch('programName');
     const hasKeywords = selectedKeywords.length > 0;
+
+    // For published programs, only validate editable fields
+    if (isPublished) {
+      return programName && hasKeywords;
+    }
+
+    // For non-published programs, validate all fields
     const hasImage = selectedImage || (isEdit && imagePreview);
     const hasApplicationDates = applicationStartDate && applicationDueDate;
     const hasFundingDates = fundingStartDate && fundingDueDate;
@@ -616,7 +667,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         <TabsList className="w-full px-0 mb-3">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="details">Details</TabsTrigger>
-          <TabsTrigger value="condition">Condition</TabsTrigger>
+          {!isPublished && <TabsTrigger value="condition">Condition</TabsTrigger>}
         </TabsList>
         <TabsContent value="overview">
           <div className="bg-white py-6 px-10 rounded-lg mb-3">
@@ -702,6 +753,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     accept="image/png, image/jpeg, image/jpg"
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     onChange={handleImageChange}
+                    disabled={isPublished}
                   />
                   {imagePreview ? (
                     <img src={imagePreview} alt="Preview" className="object-cover w-full h-full" />
@@ -745,7 +797,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                       date={applicationStartDate}
                       setDate={setApplicationStartDate}
                       // Allow selecting today and future dates
-                      disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
+                      disabled={isPublished ? true : { before: new Date(new Date().setHours(0, 0, 0, 0)) }}
                     />
                   </div>
                 </div>
@@ -759,7 +811,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     <DatePicker
                       date={applicationDueDate}
                       setDate={setApplicationDueDate}
-                      disabled={{
+                      disabled={isPublished ? true : {
                         // Application end must be same day or after application start
                         before: applicationStartDate
                           ? applicationStartDate
@@ -788,7 +840,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                       date={fundingStartDate}
                       setDate={setFundingStartDate}
                       // Allow selecting today and future dates (can overlap with application period per PRD)
-                      disabled={{ before: new Date(new Date().setHours(0, 0, 0, 0)) }}
+                      disabled={isPublished ? true : { before: new Date(new Date().setHours(0, 0, 0, 0)) }}
                     />
                   </div>
                 </div>
@@ -802,7 +854,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     <DatePicker
                       date={fundingDueDate}
                       setDate={setFundingDueDate}
-                      disabled={{
+                      disabled={isPublished ? true : {
                         // Funding end must be same day or after funding start
                         before: fundingStartDate
                           ? fundingStartDate
@@ -848,8 +900,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 loading={loading}
                 singleSelect={true}
                 disabled={
-                  data?.program?.educhainProgramId !== null &&
-                  data?.program?.educhainProgramId !== undefined
+                  isPublished ||
+                  (data?.program?.educhainProgramId !== null &&
+                    data?.program?.educhainProgramId !== undefined)
                 }
               />
               {extraErrors.validator && (
@@ -885,6 +938,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                         return newLinks;
                       });
                     }}
+                    disabled={isPublished}
                   />
                   {idx !== 0 && (
                     <X
@@ -908,6 +962,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 variant="outline"
                 size="sm"
                 className="rounded-[6px]"
+                disabled={isPublished}
               >
                 Add URL
               </Button>
@@ -956,178 +1011,180 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
           </div>
         </TabsContent>
 
-        <TabsContent value="condition">
-          <div className="bg-white px-10 py-8 rounded-lg mb-3">
-            <label htmlFor="price" className="space-y-2 block">
-              <p className="text-sm font-medium text-muted-foreground">
-                Maximum funding amount for the project
-              </p>
-              <div className="flex gap-2 items-end">
-                <div className="w-1/2">
-                  <p className="text-sm font-medium mb-2">
-                    Network <span className="text-primary">*</span>
-                  </p>
-                  <NetworkSelector
-                    disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
-                    value={network ?? mainnetDefaultNetwork}
-                    onValueChange={setNetwork}
-                    className="min-w-[120px] h-10 w-full flex justify-between bg-white text-gray-dark border border-input shadow-sm hover:bg-white"
-                  />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium mb-2">
-                    Terms <span className="text-primary">*</span>
-                  </p>
-                  <Input
-                    disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
-                    step={0.000000000000000001}
-                    id="price"
-                    type="number"
-                    min={0}
-                    placeholder="Enter price"
-                    className="h-10 w-full"
-                    {...register('price', { required: true })}
-                  />
-                </div>
-                <CurrencySelector
-                  disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
-                  value={currency}
-                  onValueChange={setCurrency}
-                  network={network ?? mainnetDefaultNetwork}
-                  className="w-[108px] h-10"
-                />
-              </div>
-
-              {errors.price && (
-                <span className="text-destructive text-sm block">Price is required</span>
-              )}
-              {isEdit && data?.program?.status !== ProgramStatus.Pending && (
-                <span className="text-destructive text-sm block">
-                  Price can't be updated after publishing.
-                </span>
-              )}
-            </label>
-          </div>
-
-          <div className="bg-white px-10 py-6 rounded-lg mb-3">
-            <label htmlFor="condition" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium text-muted-foreground mb-8">
-                Setting up condition <span className="text-primary">*</span>
-              </p>
-              <RadioGroup
-                defaultValue="open"
-                className="space-y-4"
-                value={conditionType}
-                onValueChange={(value) => setConditionType(value as 'open' | 'tier')}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="open" id="open" />
-                  <Label htmlFor="open">Open</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="tier" id="tier" />
-                  <Label htmlFor="tier">Revealed by tier</Label>
-                </div>
-              </RadioGroup>
-
-              <div className="space-y-4 mt-4 ml-4">
-                {tiers.map((tier) => (
-                  <div key={tier.name} className="flex items-start gap-2">
-                    <input
-                      type="checkbox"
-                      id={tier.name}
-                      checked={tier.enabled}
-                      onChange={(e) => handleTierChange(tier.name, e.target.checked)}
-                      disabled={conditionType !== 'tier'}
-                      className="rounded w-4 h-4 mt-1"
+        {!isPublished && (
+          <TabsContent value="condition">
+            <div className="bg-white px-10 py-8 rounded-lg mb-3">
+              <label htmlFor="price" className="space-y-2 block">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Maximum funding amount for the project
+                </p>
+                <div className="flex gap-2 items-end">
+                  <div className="w-1/2">
+                    <p className="text-sm font-medium mb-2">
+                      Network <span className="text-primary">*</span>
+                    </p>
+                    <NetworkSelector
+                      disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
+                      value={network ?? mainnetDefaultNetwork}
+                      onValueChange={setNetwork}
+                      className="min-w-[120px] h-10 w-full flex justify-between bg-white text-gray-dark border border-input shadow-sm hover:bg-white"
                     />
-                    <div>
-                      <Label
-                        htmlFor={tier.name}
-                        className={cn(
-                          'flex-1',
-                          conditionType !== 'tier' && 'text-muted-foreground',
-                        )}
-                      >
-                        <span
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium mb-2">
+                      Terms <span className="text-primary">*</span>
+                    </p>
+                    <Input
+                      disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
+                      step={0.000000000000000001}
+                      id="price"
+                      type="number"
+                      min={0}
+                      placeholder="Enter price"
+                      className="h-10 w-full"
+                      {...register('price', { required: true })}
+                    />
+                  </div>
+                  <CurrencySelector
+                    disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
+                    value={currency}
+                    onValueChange={setCurrency}
+                    network={network ?? mainnetDefaultNetwork}
+                    className="w-[108px] h-10"
+                  />
+                </div>
+
+                {errors.price && (
+                  <span className="text-destructive text-sm block">Price is required</span>
+                )}
+                {isEdit && data?.program?.status !== ProgramStatus.Pending && (
+                  <span className="text-destructive text-sm block">
+                    Price can't be updated after publishing.
+                  </span>
+                )}
+              </label>
+            </div>
+
+            <div className="bg-white px-10 py-6 rounded-lg mb-3">
+              <label htmlFor="condition" className="space-y-2 block mb-10">
+                <p className="text-sm font-medium text-muted-foreground mb-8">
+                  Setting up condition <span className="text-primary">*</span>
+                </p>
+                <RadioGroup
+                  defaultValue="open"
+                  className="space-y-4"
+                  value={conditionType}
+                  onValueChange={(value) => setConditionType(value as 'open' | 'tier')}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="open" id="open" />
+                    <Label htmlFor="open">Open</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="tier" id="tier" />
+                    <Label htmlFor="tier">Revealed by tier</Label>
+                  </div>
+                </RadioGroup>
+
+                <div className="space-y-4 mt-4 ml-4">
+                  {tiers.map((tier) => (
+                    <div key={tier.name} className="flex items-start gap-2">
+                      <input
+                        type="checkbox"
+                        id={tier.name}
+                        checked={tier.enabled}
+                        onChange={(e) => handleTierChange(tier.name, e.target.checked)}
+                        disabled={conditionType !== 'tier'}
+                        className="rounded w-4 h-4 mt-1"
+                      />
+                      <div>
+                        <Label
+                          htmlFor={tier.name}
                           className={cn(
-                            'px-2 py-1 rounded-full text-xs font-medium',
-                            tier.name === 'Bronze' && 'bg-amber-100 text-amber-800',
-                            tier.name === 'Silver' && 'bg-slate-100 text-slate-800',
-                            tier.name === 'Gold' && 'bg-orange-100 text-orange-800',
-                            tier.name === 'Platinum' && 'bg-emerald-100 text-emerald-800',
+                            'flex-1',
+                            conditionType !== 'tier' && 'text-muted-foreground',
                           )}
                         >
-                          {tier.name}
-                        </span>{' '}
-                        can invest
-                      </Label>
-                      <div className="flex items-center gap-4">
-                        <span
-                          className={cn(
-                            'text-sm mb-1',
-                            conditionType !== 'tier' || !tier.enabled
-                              ? 'text-muted-foreground'
-                              : 'text-foreground',
-                          )}
-                        >
-                          Maximum amount
-                        </span>
-                        <Input
-                          type="number"
-                          min={0}
-                          placeholder="0"
-                          value={tier.maxAmount || ''}
-                          onChange={(e) => handleTierAmountChange(tier.name, e.target.value)}
-                          disabled={conditionType !== 'tier' || !tier.enabled}
-                          className="w-[296px] h-8"
-                        />
+                          <span
+                            className={cn(
+                              'px-2 py-1 rounded-full text-xs font-medium',
+                              tier.name === 'Bronze' && 'bg-amber-100 text-amber-800',
+                              tier.name === 'Silver' && 'bg-slate-100 text-slate-800',
+                              tier.name === 'Gold' && 'bg-orange-100 text-orange-800',
+                              tier.name === 'Platinum' && 'bg-emerald-100 text-emerald-800',
+                            )}
+                          >
+                            {tier.name}
+                          </span>{' '}
+                          can invest
+                        </Label>
+                        <div className="flex items-center gap-4">
+                          <span
+                            className={cn(
+                              'text-sm mb-1',
+                              conditionType !== 'tier' || !tier.enabled
+                                ? 'text-muted-foreground'
+                                : 'text-foreground',
+                            )}
+                          >
+                            Maximum amount
+                          </span>
+                          <Input
+                            type="number"
+                            min={0}
+                            placeholder="0"
+                            value={tier.maxAmount || ''}
+                            onChange={(e) => handleTierAmountChange(tier.name, e.target.value)}
+                            disabled={conditionType !== 'tier' || !tier.enabled}
+                            className="w-[296px] h-8"
+                          />
+                        </div>
                       </div>
                     </div>
+                  ))}
+                </div>
+              </label>
+            </div>
+
+            <div className="bg-white px-10 py-6 rounded-lg">
+              <label htmlFor="fee" className="space-y-2 block mb-10">
+                <p className="text-sm font-medium text-muted-foreground mb-8">Fee settings *</p>
+                <RadioGroup
+                  defaultValue="default"
+                  className="space-y-4"
+                  value={feeType}
+                  onValueChange={(value) => setFeeType(value as 'default' | 'custom')}
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="default" id="default" />
+                    <Label htmlFor="default">Default fee (3%)</Label>
                   </div>
-                ))}
-              </div>
-            </label>
-          </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="custom" id="custom" />
+                    <Label htmlFor="custom">Enter directly</Label>
+                  </div>
+                </RadioGroup>
 
-          <div className="bg-white px-10 py-6 rounded-lg">
-            <label htmlFor="fee" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium text-muted-foreground mb-8">Fee settings *</p>
-              <RadioGroup
-                defaultValue="default"
-                className="space-y-4"
-                value={feeType}
-                onValueChange={(value) => setFeeType(value as 'default' | 'custom')}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="default" id="default" />
-                  <Label htmlFor="default">Default fee (3%)</Label>
+                <div className="flex items-center gap-2 mt-4 ml-6">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={0.01}
+                    placeholder="0"
+                    value={customFee || ''}
+                    onChange={(e) => setCustomFee(e.target.value)}
+                    disabled={feeType !== 'custom'}
+                    className="w-32 h-8"
+                  />
+                  <span className={cn('text-sm', feeType !== 'custom' && 'text-muted-foreground')}>
+                    %
+                  </span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="custom" id="custom" />
-                  <Label htmlFor="custom">Enter directly</Label>
-                </div>
-              </RadioGroup>
-
-              <div className="flex items-center gap-2 mt-4 ml-6">
-                <Input
-                  type="number"
-                  min={0}
-                  max={100}
-                  step={0.01}
-                  placeholder="0"
-                  value={customFee || ''}
-                  onChange={(e) => setCustomFee(e.target.value)}
-                  disabled={feeType !== 'custom'}
-                  className="w-32 h-8"
-                />
-                <span className={cn('text-sm', feeType !== 'custom' && 'text-muted-foreground')}>
-                  %
-                </span>
-              </div>
-            </label>
-          </div>
-        </TabsContent>
+              </label>
+            </div>
+          </TabsContent>
+        )}
       </Tabs>
 
       <div className="py-3 flex justify-end gap-4">
@@ -1163,34 +1220,34 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     tierSettings:
                       conditionType === 'tier'
                         ? {
-                            bronze: tiers.find((t) => t.name === 'Bronze')?.enabled
-                              ? {
-                                  enabled: true,
-                                  maxAmount:
-                                    tiers.find((t) => t.name === 'Bronze')?.maxAmount || '0',
-                                }
-                              : undefined,
-                            silver: tiers.find((t) => t.name === 'Silver')?.enabled
-                              ? {
-                                  enabled: true,
-                                  maxAmount:
-                                    tiers.find((t) => t.name === 'Silver')?.maxAmount || '0',
-                                }
-                              : undefined,
-                            gold: tiers.find((t) => t.name === 'Gold')?.enabled
-                              ? {
-                                  enabled: true,
-                                  maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '0',
-                                }
-                              : undefined,
-                            platinum: tiers.find((t) => t.name === 'Platinum')?.enabled
-                              ? {
-                                  enabled: true,
-                                  maxAmount:
-                                    tiers.find((t) => t.name === 'Platinum')?.maxAmount || '0',
-                                }
-                              : undefined,
-                          }
+                          bronze: tiers.find((t) => t.name === 'Bronze')?.enabled
+                            ? {
+                              enabled: true,
+                              maxAmount:
+                                tiers.find((t) => t.name === 'Bronze')?.maxAmount || '0',
+                            }
+                            : undefined,
+                          silver: tiers.find((t) => t.name === 'Silver')?.enabled
+                            ? {
+                              enabled: true,
+                              maxAmount:
+                                tiers.find((t) => t.name === 'Silver')?.maxAmount || '0',
+                            }
+                            : undefined,
+                          gold: tiers.find((t) => t.name === 'Gold')?.enabled
+                            ? {
+                              enabled: true,
+                              maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '0',
+                            }
+                            : undefined,
+                          platinum: tiers.find((t) => t.name === 'Platinum')?.enabled
+                            ? {
+                              enabled: true,
+                              maxAmount:
+                                tiers.find((t) => t.name === 'Platinum')?.maxAmount || '0',
+                            }
+                            : undefined,
+                        }
                         : undefined,
                     feeType,
                     customFee,
@@ -1211,7 +1268,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
           </Tooltip>
         )}
 
-        {selectedTab === 'condition' && (
+        {selectedTab === 'condition' && !isPublished && (
           <Popover>
             <PopoverTrigger>
               <Button
@@ -1303,7 +1360,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
           </Button>
         )}
 
-        {selectedTab === 'details' && (
+        {selectedTab === 'details' && !isPublished && (
           <Button
             type="button"
             size="lg"
@@ -1312,6 +1369,19 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
             disabled={!isDetailsTabValid()}
           >
             Next to Condition <ChevronRight />
+          </Button>
+        )}
+
+        {selectedTab === 'details' && isPublished && (
+          <Button
+            type="button"
+            size="lg"
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => {
+              extraValidation();
+            }}
+          >
+            Save Changes
           </Button>
         )}
       </div>

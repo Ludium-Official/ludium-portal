@@ -7,10 +7,14 @@ import { useForm } from 'react-hook-form';
 import { useUpdateProfileMutation } from '@/apollo/mutation/updateProfile.generated';
 import { MarkdownEditor } from '@/components/markdown';
 import { Badge } from '@/components/ui/badge';
+import SocialIcon from '@/components/ui/social-icon';
 import notify from '@/lib/notify';
+import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+
+// Social icon logic moved to SocialIcon component
 
 function EditProfilePage() {
   const navigate = useNavigate();
@@ -73,7 +77,8 @@ function EditProfilePage() {
     lastName: string;
     keywords: string[];
   }) => {
-    if (links?.some((l) => !/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(l))) {
+    const { isValid } = validateLinks(links);
+    if (!isValid) {
       setLinksError(true);
       return;
     }
@@ -90,15 +95,16 @@ function EditProfilePage() {
           lastName: data?.lastName,
           about: content,
           keywords: data.keywords,
-          links: links?.filter((l) => l)?.length
-            ? links?.filter((l) => l).map((l) => ({ title: l, url: l }))
-            : undefined,
+          links: (() => {
+            const { shouldSend } = validateLinks(links);
+            return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
+          })(),
         },
       },
       onCompleted: () => {
         notify('Profile successfully updated');
         refetch();
-        navigate('/profile');
+        navigate('/my-profile');
       },
       onError: (e) => {
         if (e.message === 'duplicate key value violates unique constraint "users_email_unique"') {
@@ -119,7 +125,7 @@ function EditProfilePage() {
     profileData?.profile?.about === content &&
     JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links) &&
     JSON.stringify(profileData.profile.keywords?.map((k) => k.name || '') || []) ===
-      JSON.stringify(watch('keywords') || []);
+    JSON.stringify(watch('keywords') || []);
 
   const [keywordInput, setKeywordInput] = useState<string>('');
 
@@ -362,36 +368,46 @@ function EditProfilePage() {
                   Add links to your website, blog, or social media profiles.
                 </span>
 
-                {links.map((l, idx) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                  <div key={idx} className="flex items-center gap-2">
-                    <Input
-                      className="h-10 max-w-[555px]"
-                      value={l}
-                      onChange={(e) => {
-                        setLinks((prev) => {
-                          const newLinks = [...prev];
-                          newLinks[idx] = e.target.value;
-                          return newLinks;
-                        });
-                      }}
-                    />
-                    {idx !== 0 && (
-                      <X
-                        onClick={() =>
+                {links.map((l, idx) => {
+                  return (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                    <div key={idx} className="flex items-center gap-2">
+                      <div className='bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center'>
+                        <SocialIcon value={l} className='w-4 h-4 text-secondary-foreground' />
+                      </div>
+                      <Input
+                        className="h-10"
+                        value={l}
+                        onChange={(e) => {
                           setLinks((prev) => {
-                            const newLinks = [
-                              ...[...prev].slice(0, idx),
-                              ...[...prev].slice(idx + 1),
-                            ];
-
+                            const newLinks = [...prev];
+                            newLinks[idx] = e.target.value;
                             return newLinks;
-                          })
-                        }
+                          });
+                          // Clear error when user starts typing
+                          if (linksError) {
+                            setLinksError(false);
+                          }
+                        }}
                       />
-                    )}
-                  </div>
-                ))}
+                      {idx !== 0 && (
+                        <X
+                          className='hover:cursor-pointer'
+                          onClick={() =>
+                            setLinks((prev) => {
+                              const newLinks = [
+                                ...[...prev].slice(0, idx),
+                                ...[...prev].slice(idx + 1),
+                              ];
+
+                              return newLinks;
+                            })
+                          }
+                        />
+                      )}
+                    </div>
+                  );
+                })}
                 <Button
                   onClick={() => setLinks((prev) => [...prev, ''])}
                   type="button"
@@ -402,7 +418,7 @@ function EditProfilePage() {
                   Add URL
                 </Button>
                 {linksError && (
-                  <span className="text-red-400 text-sm block">
+                  <span className="text-destructive text-sm block">
                     The provided link is not valid. All links must begin with{' '}
                     <span className="font-bold">https://</span>.
                   </span>

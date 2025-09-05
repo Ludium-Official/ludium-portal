@@ -2,10 +2,10 @@ import { useUserQuery } from '@/apollo/queries/user.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
 import { Badge } from '@/components/ui/badge';
 import { ShareButton } from '@/components/ui/share-button';
+import SocialIcon from '@/components/ui/social-icon';
 import { Separator } from '@radix-ui/react-dropdown-menu';
 import { Outlet, useParams } from 'react-router';
 import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
-import { platformIcons } from '../agent-utils';
 
 function UserDetailsPage() {
   const { id } = useParams();
@@ -96,25 +96,13 @@ function UserDetailsPage() {
                   <div className="space-y-2">
                     {userData?.user?.links?.length ? (
                       userData.user.links.map((link, index) => {
-                        const url = link.url?.toLowerCase() || '';
-                        const matchedKey = Object.keys(platformIcons).find((key) =>
-                          url.includes(key),
-                        );
-                        const platform = matchedKey ? platformIcons[matchedKey] : null;
-
                         return (
                           // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                           <div key={index} className="flex items-center gap-2">
-                            {platform && (
-                              <div className="flex items-center justify-center h-10 w-10 rounded-md bg-secondary">
-                                <img
-                                  src={platform.icon}
-                                  width={16}
-                                  height={16}
-                                  alt={platform.alt}
-                                />
-                              </div>
-                            )}
+
+                            <div className='bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center'>
+                              <SocialIcon value={link.url ?? ""} className='w-4 h-4 text-secondary-foreground' />
+                            </div>
                             <a
                               target="_blank"
                               href={link.url || '#'}
