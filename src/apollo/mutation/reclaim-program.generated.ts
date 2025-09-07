@@ -40,6 +40,7 @@ export type ReclaimProgramMutationFn = Apollo.MutationFunction<ReclaimProgramMut
  * const [reclaimProgramMutation, { data, loading, error }] = useReclaimProgramMutation({
  *   variables: {
  *      programId: // value for 'programId'
+ *      txHash: // value for 'txHash'
  *   },
  * });
  */

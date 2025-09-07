@@ -292,7 +292,7 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
         rpcUrls: checkNetwork.rpcUrls.default.http,
         nativeCurrency: checkNetwork.nativeCurrency,
       };
-      
+
       if ('request' in eip1193Provider && typeof eip1193Provider.request === 'function') {
         const currentChainId = await eip1193Provider.request({
           method: 'eth_chainId',

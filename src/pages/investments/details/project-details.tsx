@@ -2,7 +2,7 @@ import client from '@/apollo/client';
 import { useAcceptApplicationMutation } from '@/apollo/mutation/accept-application.generated';
 import { useCheckMilestoneMutation } from '@/apollo/mutation/check-milestone.generated';
 import { useCreateInvestmentMutation } from '@/apollo/mutation/create-investment.generated';
-import { ApplicationDocument, useApplicationQuery } from '@/apollo/queries/application.generated';
+import { useApplicationQuery } from '@/apollo/queries/application.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import {
@@ -100,6 +100,45 @@ function ProjectDetailsPage() {
   const program = programData?.program;
 
   const { name, keywords, network } = program ?? {};
+
+  // Auto-select tier for tier-based programs with user assignment
+  useEffect(() => {
+    if (program?.fundingCondition === 'tier' && program?.userTierAssignment) {
+      // For tier-based programs with tier assignments, auto-select based on tier settings
+      const tier = program.userTierAssignment.tier;
+      const tierSettings = program?.tierSettings;
+
+      // Get the max amount from tier settings
+      const maxAmountFromSettings = tierSettings?.[tier as keyof typeof tierSettings]?.maxAmount;
+      const maxAmountFromAssignment = program.userTierAssignment.maxInvestmentAmount;
+
+      // Use the amount from settings if available, otherwise from assignment
+      const maxAmount = maxAmountFromSettings || maxAmountFromAssignment;
+
+      if (maxAmount) {
+        setSelectedTier(maxAmount.toString());
+      }
+    } else if (
+      program?.fundingCondition === 'open' &&
+      data?.application?.investmentTerms &&
+      data.application.investmentTerms.length > 0
+    ) {
+      // For open programs, default term selection is not needed
+    }
+  }, [
+    program?.fundingCondition,
+    program?.userTierAssignment,
+    program?.tierSettings,
+    data?.application?.investmentTerms,
+  ]);
+
+  // Debug logging for button state
+  useEffect(() => {}, [
+    selectedTier,
+    data?.application?.status,
+    program?.fundingStartDate,
+    program?.fundingEndDate,
+  ]);
 
   const contract = useContract(network || mainnetDefaultNetwork);
   const investmentContract = useInvestmentContract(network || 'educhain-testnet');
@@ -225,6 +264,9 @@ function ProjectDetailsPage() {
         },
       });
 
+      // Tier sync is now handled at the program level when hosts invite supporters
+      // No longer syncing tiers when approving applications
+
       // Refetch the application data to get the updated onChainProjectId
       await refetch();
       await programRefetch();
@@ -265,15 +307,29 @@ function ProjectDetailsPage() {
     return () => clearInterval(interval);
   }, [program?.educhainProgramId, data?.application?.onChainProjectId]);
 
+  const [isInvesting, setIsInvesting] = useState(false);
+
   const handleInvest = async () => {
+    // Prevent double execution
+    if (isInvesting) {
+      console.log('Investment already in progress, skipping duplicate call');
+      return;
+    }
+
     try {
       if (!selectedTier || !projectId) {
         notify('Please select a tier first', 'error');
         return;
       }
 
+      setIsInvesting(true);
+
       // Check if user has tier assignment for tier-based programs
       const userTierAssignment = program?.userTierAssignment;
+
+      let rawAmount: string | undefined;
+      let selectedTerm: { id?: string | null; price?: string | null } | undefined;
+
       if (program?.fundingCondition === 'tier') {
         if (!userTierAssignment) {
           notify(
@@ -283,77 +339,80 @@ function ProjectDetailsPage() {
           return;
         }
 
-        // Validate selected tier matches user's assigned tier
-        if (userTierAssignment.tier !== selectedTier) {
-          notify(`You can only invest in your assigned tier: ${userTierAssignment.tier}`, 'error');
+        // For tier-based programs, use the tier's max investment amount
+        rawAmount = userTierAssignment.maxInvestmentAmount ?? undefined;
+
+        // Auto-correct selectedTier to match the tier's max amount
+        if (rawAmount && selectedTier !== rawAmount.toString()) {
+          setSelectedTier(rawAmount.toString());
+        }
+      } else {
+        // For non-tier programs, find the selected term to get the amount
+        selectedTerm = data?.application?.investmentTerms?.find(
+          (term) => term.price === selectedTier,
+        );
+        if (!selectedTerm) {
+          notify('Selected tier not found', 'error');
           return;
         }
+        rawAmount = selectedTerm?.price ?? undefined;
       }
-
-      // Find the selected term to get the amount
-      const selectedTerm = data?.application?.investmentTerms?.find(
-        (term) => term.price === selectedTier,
-      );
-      if (!selectedTerm) {
-        notify('Selected tier not found', 'error');
-        return;
-      }
-
-      // Get the amount from the program tier settings or term price
-      const rawAmount =
-        program?.tierSettings?.[selectedTier as keyof typeof program.tierSettings]?.maxAmount ||
-        selectedTerm.price;
 
       // Validate amount exists
       if (!rawAmount || rawAmount === '0') {
         notify('Invalid investment amount', 'error');
         console.error('No valid amount found:', {
           rawAmount,
-          selectedTerm,
+          fundingCondition: program?.fundingCondition,
+          userTierAssignment: program?.userTierAssignment,
           tierSettings: program?.tierSettings,
         });
         return;
       }
 
-      // Convert the amount to Wei
-      // The amount from investment terms is in ETH format (e.g., "0.01")
-      let amountInWei: string;
+      // Get token information first to know the decimals
+      const network = program?.network as keyof typeof tokenAddresses;
+      const tokens = tokenAddresses[network] || tokenAddresses['educhain-testnet'];
+      const targetToken = tokens.find((token) => token.name === program?.currency);
+      const decimals = targetToken?.decimal || 18;
+
+      // Convert the amount to smallest unit (Wei for ETH, smallest unit for tokens)
+      let amountInWei: string = rawAmount; // Initialize with rawAmount as fallback
       try {
-        // Check if it's already in Wei format (large number) or ETH format (decimal)
+        // Check if it's already in smallest unit format (large number) or display format (decimal)
         const amountStr = String(rawAmount);
+
         if (amountStr.includes('.') || Number(amountStr) < 1000) {
-          // It's in ETH format, convert to Wei
-          amountInWei = ethers.utils.parseEther(amountStr).toString();
+          // It's in display format, convert to smallest unit using correct decimals
+          amountInWei = ethers.utils.parseUnits(amountStr, decimals).toString();
         } else {
-          // Already in Wei format
+          // Already in smallest unit format
           amountInWei = amountStr;
         }
 
         // Validate it's a valid BigInt
         BigInt(amountInWei);
-      } catch (error) {
+      } catch {
         notify('Invalid investment amount format', 'error');
-        console.error('Invalid investment amount format:', error);
         return;
       }
 
-      // Get token information
-      const network = program?.network as keyof typeof tokenAddresses;
-      const tokens = tokenAddresses[network] || tokenAddresses['educhain-testnet'];
-      const targetToken = tokens.find((token) => token.name === program?.currency);
+      // Calculate human readable amount for later use (both blockchain and database)
+      const humanReadableAmount = ethers.utils.formatUnits(amountInWei, decimals);
 
       // Validate investment amount against tier limits
       if (userTierAssignment?.remainingCapacity) {
         // remainingCapacity is likely in display format, amountInWei is in Wei
         // Convert amountInWei to display format for comparison
-        const decimals = targetToken?.decimal || 18;
-        const investmentAmountDisplay = ethers.utils.formatUnits(amountInWei, decimals);
+        const investmentAmountDisplay = humanReadableAmount;
         const remainingCapacity = Number.parseFloat(userTierAssignment.remainingCapacity);
         const investmentAmount = Number.parseFloat(investmentAmountDisplay);
 
-        if (investmentAmount > remainingCapacity) {
+        // Use a small epsilon for floating point comparison
+        const epsilon = 0.000001;
+        if (investmentAmount > remainingCapacity + epsilon) {
           notify(
-            `Investment exceeds your remaining capacity of ${remainingCapacity} ${program?.currency}`,
+            `Investment exceeds your remaining capacity of ${remainingCapacity} ${program?.currency}. Your tier (${userTierAssignment.tier}) has a max of ${userTierAssignment.maxInvestmentAmount} ${program?.currency} and you've already invested ${userTierAssignment.currentInvestment} ${program?.currency}`,
             'error',
           );
           return;
@@ -375,6 +434,18 @@ function ProjectDetailsPage() {
           );
           return; // Don't continue with investment
         }
+
+        // Determine token symbol for investment helper
+        const tokenSymbol =
+          program?.currency === 'EDU'
+            ? 'EDU'
+            : program?.currency === 'ETH'
+              ? 'ETH'
+              : program?.currency === 'USDC'
+                ? 'USDC'
+                : program?.currency === 'USDT'
+                  ? 'USDT'
+                  : 'EDU';
 
         try {
           // First check program status
@@ -482,21 +553,38 @@ function ProjectDetailsPage() {
             }
           }
 
-          // Determine token symbol for investment helper
-          const tokenSymbol =
-            program?.currency === 'EDU'
-              ? 'EDU'
-              : program?.currency === 'ETH'
-                ? 'ETH'
-                : program?.currency === 'USDC'
-                  ? 'USDC'
-                  : program?.currency === 'USDT'
-                    ? 'USDT'
-                    : 'EDU';
+          // For tier-based programs, ensure tier is assigned on-chain
+          if (program?.fundingCondition === 'tier') {
+            const userTierAssignment = program?.userTierAssignment;
+            if (
+              userTierAssignment &&
+              onChainProjectId !== null &&
+              onChainProjectId !== undefined &&
+              userAddress
+            ) {
+              console.log(
+                'Tier-based investment detected. User tier assignment:',
+                userTierAssignment,
+              );
 
-          // Convert Wei amount back to human-readable for helper function
-          const decimals = targetToken?.decimal || 18;
-          const humanReadableAmount = ethers.utils.formatUnits(amountInWei, decimals);
+              // We need to check who can assign tiers
+              // The program owner should be able to assign tiers
+              const programOwnerAddress = program?.creator?.walletAddress;
+              const currentUserAddress = privyUser?.wallet?.address;
+              const isProgramOwner =
+                programOwnerAddress &&
+                currentUserAddress &&
+                currentUserAddress.toLowerCase() === programOwnerAddress.toLowerCase();
+
+              // For now, let's just log the issue and let the user know
+              if (!isProgramOwner) {
+                notify(
+                  `Note: Your tier (${userTierAssignment.tier}) needs to be synced to blockchain by the program owner for this project.`,
+                  'blank',
+                );
+              }
+            }
+          }
 
           notify('Please approve the transaction in your wallet', 'loading');
 
@@ -539,12 +627,25 @@ function ProjectDetailsPage() {
             notify('Investment failed: Amount is below minimum requirement.', 'error');
           } else if (errorMessage.includes('InvestmentExceedsTarget')) {
             notify('Investment failed: Amount would exceed the funding target.', 'error');
-          } else if (errorMessage.includes('execution reverted')) {
+          } else if (errorMessage.includes('User has no tier assigned')) {
             notify(
-              'Investment failed: Transaction was rejected by the smart contract. Please ensure the program is in its funding period.',
+              `Investment failed: Your tier needs to be assigned on the blockchain for this project. Please use the "Sync My Tier to Blockchain" button above if you're an admin, or contact the program owner.`,
+              'error',
+            );
+          } else if (errorMessage.includes('Token not whitelisted')) {
+            notify(
+              `Investment failed: ${tokenSymbol} is not whitelisted for investments. Please contact the administrator to whitelist this token.`,
+              'error',
+            );
+          } else if (errorMessage.includes('execution reverted')) {
+            // Try to extract more details from the error
+            console.error('Smart contract reverted. Full error:', errorMessage);
+            notify(
+              'Investment failed: Transaction was rejected by the smart contract. Check console for details.',
               'error',
             );
           } else {
+            console.error('Investment failed with error:', errorMessage);
             notify(`Blockchain transaction failed: ${errorMessage}`, 'error');
           }
           return;
@@ -567,15 +668,38 @@ function ProjectDetailsPage() {
       // Record investment in database with txHash
       // Keep amount in Wei format for database storage to match contract
 
+      // IMPORTANT: Make absolutely sure we're using the Wei amount
+      const amountForDatabase = amountInWei; // This should be the Wei amount (e.g., "500000" for 0.5 USDT)
+
       try {
+        // Determine if this is a tier-based investment
+        const isTierBased = program?.fundingCondition === 'tier';
+
+        // Build investment input based on investment type
+        const baseInput = {
+          amount: amountForDatabase, // Store in Wei format to match contract
+          projectId: projectId,
+          ...(txHash && { txHash }), // Include txHash if blockchain transaction was made
+        };
+
+        // For term-based investments, include the term ID
+        const investmentInput =
+          !isTierBased && selectedTerm
+            ? { ...baseInput, investmentTermId: selectedTerm?.id }
+            : baseInput;
+
+        console.log('Step 6 - Saving investment to database:', {
+          investmentInput,
+          isTierBased,
+          selectedTerm: selectedTerm ? { id: selectedTerm?.id, price: selectedTerm?.price } : null,
+          expectedAmount: '500000 (for 0.5 USDT)',
+          actualAmount: investmentInput.amount,
+          verification: `Is ${investmentInput.amount} in smallest units? ${Number(investmentInput.amount) > 1000 ? 'YES' : 'NO'}`,
+        });
+
         await createInvestment({
           variables: {
-            input: {
-              amount: amountInWei, // Store in Wei format to match contract
-              projectId: projectId,
-              investmentTermId: selectedTerm.id, // Track which term was purchased
-              ...(txHash && { txHash }), // Include txHash if blockchain transaction was made
-            },
+            input: investmentInput,
           },
         });
 
@@ -590,38 +714,26 @@ function ProjectDetailsPage() {
         setIsInvestDialogOpen(false);
         setSelectedTier('');
 
-        // Force refetch of all queries
-
         // Give database a moment to update
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        // Method 1: Refetch specific queries with network-only policy
-        try {
-          await refetch();
-          await programRefetch();
-        } catch (refetchError) {
-          console.error('Error refetching queries:', refetchError);
-        }
+        // Refetch data from server
+        await Promise.all([
+          refetch(),
+          programRefetch(),
+          client.refetchQueries({
+            include: ['application', 'program'],
+          }),
+        ]);
 
-        // Method 2: Force Apollo cache update
-        await client.refetchQueries({
-          include: ['application', 'program'],
-        });
-
-        // Method 3: Manually refetch with network-only to bypass cache
-        await client.query({
-          query: ApplicationDocument,
-          variables: { id: projectId },
-          fetchPolicy: 'network-only',
-        });
-
-        // Start polling for 10 seconds to ensure UI updates
-        startPolling?.(1000); // Poll every second
+        // Start polling for 5 seconds to catch any delayed updates
+        startPolling?.(1000);
         setTimeout(() => {
           stopPolling?.();
-        }, 10000);
+        }, 5000);
       } catch (dbError) {
-        console.error('Failed to save investment to database:', dbError);
+        const errorMessage = dbError instanceof Error ? dbError.message : 'Unknown error';
+        notify(`Failed to save investment to database: ${errorMessage}`, 'error');
         notify(
           `Investment was successful on blockchain (tx: ${txHash}) but failed to save to database. Please contact support with the transaction hash.`,
           'error',
@@ -632,6 +744,9 @@ function ProjectDetailsPage() {
     } catch (error) {
       console.error('Investment error:', error);
       notify((error as Error).message || 'Investment failed', 'error');
+    } finally {
+      // Always reset the investing flag
+      setIsInvesting(false);
     }
   };
 
@@ -944,14 +1059,55 @@ function ProjectDetailsPage() {
                   <p className="text-muted-foreground text-sm font-bold">
                     <span className="text-xl ml-3">
                       {(() => {
-                        // Convert funding target from Wei to display format
-                        const targetWei = data?.application?.fundingTarget || '0';
-                        const decimals = 18; // EDU has 18 decimals
+                        // Get funding target value
+                        const targetValue = data?.application?.fundingTarget || '0';
+
+                        // For investment programs, the fundingTarget is usually stored in display format
+                        // (e.g., "1" for 1 USDT, "0.1" for 0.1 ETH) in the database
+                        // We should just display it as-is unless it's clearly in wei format
+
                         try {
-                          return ethers.utils.formatUnits(targetWei, decimals);
-                        } catch {
-                          // If it's already in ETH format or invalid, show as-is
-                          return targetWei;
+                          const targetStr = String(targetValue);
+
+                          // Check if it's in scientific notation (e.g., 1e18)
+                          if (targetStr.includes('e') || targetStr.includes('E')) {
+                            // Get the correct decimals based on the currency
+                            const network = program?.network as keyof typeof tokenAddresses;
+                            const tokens =
+                              tokenAddresses[network] || tokenAddresses['educhain-testnet'];
+                            const targetToken = tokens.find(
+                              (token) => token.name === program?.currency,
+                            );
+                            const decimals = targetToken?.decimal || 18;
+                            return ethers.utils.formatUnits(targetValue, decimals);
+                          }
+
+                          // Check if it's a very large number (likely wei)
+                          // For USDT with 6 decimals: 1 USDT = 1,000,000
+                          // For ETH with 18 decimals: 1 ETH = 1,000,000,000,000,000,000
+                          const numValue = Number(targetValue);
+                          if (!Number.isNaN(numValue) && numValue > 1000000) {
+                            // This is likely in smallest units, convert it
+                            const network = program?.network as keyof typeof tokenAddresses;
+                            const tokens =
+                              tokenAddresses[network] || tokenAddresses['educhain-testnet'];
+                            const targetToken = tokens.find(
+                              (token) => token.name === program?.currency,
+                            );
+                            const decimals = targetToken?.decimal || 18;
+                            return ethers.utils.formatUnits(targetValue, decimals);
+                          }
+
+                          // For normal values like "1", "0.1", "100", "0.001"
+                          // These are already in display format from the database
+                          return targetValue;
+                        } catch (error) {
+                          console.error('Error formatting funding target:', error, {
+                            targetValue,
+                            currency: program?.currency,
+                          });
+                          // If any error occurs, just show the raw value
+                          return targetValue;
                         }
                       })()}
                     </span>
@@ -1179,7 +1335,39 @@ function ProjectDetailsPage() {
                     </div>
                   )}
 
-                  {data?.application?.investmentTerms?.map((t) => {
+                  {/* For tier-based programs, create terms from tier settings if no investment terms exist */}
+                  {(() => {
+                    // Check if we have investment terms
+                    if (
+                      data?.application?.investmentTerms &&
+                      data.application.investmentTerms.length > 0
+                    ) {
+                      return data.application.investmentTerms;
+                    }
+
+                    // For tier-based programs, generate terms from tier settings
+                    if (program?.fundingCondition === 'tier' && program?.tierSettings) {
+                      const generatedTerms = [];
+                      const tierOrder = ['bronze', 'silver', 'gold', 'platinum'] as const;
+
+                      for (const tier of tierOrder) {
+                        const tierSetting = program.tierSettings[tier];
+                        if (tierSetting?.enabled) {
+                          generatedTerms.push({
+                            id: `generated-${tier}`,
+                            price: tier,
+                            description: `${tier.charAt(0).toUpperCase() + tier.slice(1)} tier investment`,
+                            remainingPurchases: null, // Tier-based programs don't have purchase limits
+                          });
+                        }
+                      }
+
+                      return generatedTerms;
+                    }
+
+                    // No terms available
+                    return [];
+                  })().map((t) => {
                     // Check if user can select this tier
                     const isTierBased = program?.fundingCondition === 'tier';
                     const userTierAssignment = program?.userTierAssignment;
@@ -1222,12 +1410,23 @@ function ProjectDetailsPage() {
                                 <Check className="w-3 h-3 text-primary" />
                               </div>
                             )}
-                            <Badge
-                              variant="secondary"
-                              className="bg-primary text-white group-disabled:bg-gray-200 group-disabled:text-gray-600"
-                            >
-                              {t.remainingPurchases ?? 0} left
-                            </Badge>
+                            {t.remainingPurchases !== null && (
+                              <Badge
+                                variant="secondary"
+                                className="bg-primary text-white group-disabled:bg-gray-200 group-disabled:text-gray-600"
+                              >
+                                {t.remainingPurchases} left
+                              </Badge>
+                            )}
+                            {t.remainingPurchases === null &&
+                              program?.fundingCondition === 'tier' && (
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-green-100 text-green-700 group-disabled:bg-gray-200 group-disabled:text-gray-600"
+                                >
+                                  Available
+                                </Badge>
+                              )}
                           </div>
                         </div>
 
@@ -1537,8 +1736,12 @@ function ProjectDetailsPage() {
                         the project.
                       </DialogDescription>
 
-                      <Button onClick={handleInvest} className="bg-foreground text-white">
-                        Yes, Pay now
+                      <Button
+                        onClick={handleInvest}
+                        className="bg-foreground text-white"
+                        disabled={isInvesting}
+                      >
+                        {isInvesting ? 'Processing...' : 'Yes, Pay now'}
                       </Button>
                     </DialogContent>
                   </Dialog>

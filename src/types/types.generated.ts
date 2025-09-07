@@ -397,6 +397,7 @@ export type Mutation = {
   reorderCarouselItems?: Maybe<Array<CarouselItem>>;
   submitMilestone?: Maybe<Milestone>;
   submitProgram?: Maybe<Program>;
+  syncApplicationTiers?: Maybe<TierSyncResult>;
   updateApplication?: Maybe<Application>;
   updateCarouselItem?: Maybe<CarouselItem>;
   updateComment?: Maybe<Comment>;
@@ -413,6 +414,7 @@ export type Mutation = {
 export type MutationAcceptApplicationArgs = {
   id: Scalars['ID']['input'];
   onChainProjectId?: InputMaybe<Scalars['Int']['input']>;
+  tierSyncInfo?: InputMaybe<TierSyncInfo>;
 };
 
 
@@ -619,6 +621,11 @@ export type MutationSubmitProgramArgs = {
   educhainProgramId: Scalars['Int']['input'];
   id: Scalars['ID']['input'];
   txHash: Scalars['String']['input'];
+};
+
+
+export type MutationSyncApplicationTiersArgs = {
+  applicationId: Scalars['ID']['input'];
 };
 
 
@@ -1035,6 +1042,28 @@ export type Supporter = {
   maxInvestmentAmount?: Maybe<Scalars['String']['output']>;
   tier?: Maybe<Scalars['String']['output']>;
   userId?: Maybe<Scalars['ID']['output']>;
+};
+
+export type TierAssignmentData = {
+  __typename?: 'TierAssignmentData';
+  maxInvestmentAmount?: Maybe<Scalars['String']['output']>;
+  tier?: Maybe<Scalars['String']['output']>;
+  userId?: Maybe<Scalars['String']['output']>;
+  walletAddress?: Maybe<Scalars['String']['output']>;
+};
+
+export type TierSyncInfo = {
+  contractAddress: Scalars['String']['input'];
+  programOwnerAddress: Scalars['String']['input'];
+};
+
+export type TierSyncResult = {
+  __typename?: 'TierSyncResult';
+  contractAddress?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  projectId?: Maybe<Scalars['Int']['output']>;
+  success?: Maybe<Scalars['Boolean']['output']>;
+  tierAssignments?: Maybe<Array<TierAssignmentData>>;
 };
 
 export type UpdateApplicationInput = {

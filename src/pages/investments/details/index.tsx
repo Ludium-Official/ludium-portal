@@ -24,6 +24,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 // import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { getInvestmentContract } from '@/lib/hooks/use-investment-contract';
+import { TOKEN_CONFIGS } from '@/lib/investment-helpers';
 import notify from '@/lib/notify';
 import { cn, getInitials, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import ProjectCard from '@/pages/investments/details/_components/project-card';
@@ -59,6 +60,7 @@ const InvestmentDetailsPage: React.FC = () => {
     variables: {
       id: id ?? '',
     },
+    fetchPolicy: 'network-only', // Force fresh data from server
   });
 
   const program = data?.program;
@@ -174,11 +176,54 @@ const InvestmentDetailsPage: React.FC = () => {
             validatorAddresses = [currentUserAddress];
           }
 
+          // Determine the funding token address based on the program's currency
+          let fundingTokenAddress = '0x0000000000000000000000000000000000000000'; // Default to native token
+
+          // Check if it's not a native token (EDU, ETH)
+          if (program?.currency && program.currency !== 'EDU' && program.currency !== 'ETH') {
+            // Get the network key (convert to lowercase and replace spaces)
+            const networkKey =
+              program?.network?.toLowerCase().replace(' ', '-') || 'educhain-testnet';
+            // Map network to TOKEN_CONFIGS key
+            const tokenConfigKey =
+              networkKey === 'educhain-testnet'
+                ? 'educhain'
+                : networkKey === 'base-sepolia'
+                  ? 'base-sepolia'
+                  : networkKey === 'arbitrum-sepolia'
+                    ? 'arbitrum-sepolia'
+                    : networkKey === 'sepolia'
+                      ? 'sepolia'
+                      : 'educhain';
+
+            const networkConfig = TOKEN_CONFIGS[tokenConfigKey as keyof typeof TOKEN_CONFIGS];
+            if (networkConfig) {
+              const tokenConfig = networkConfig[program.currency as keyof typeof networkConfig];
+              if (tokenConfig) {
+                fundingTokenAddress = tokenConfig.address;
+                console.log(
+                  `Using ${program.currency} token address:`,
+                  fundingTokenAddress,
+                  'on network:',
+                  tokenConfigKey,
+                );
+              } else {
+                console.warn(
+                  `Token ${program.currency} not found in TOKEN_CONFIGS for network ${tokenConfigKey}`,
+                );
+              }
+            } else {
+              console.warn(`Network ${tokenConfigKey} not found in TOKEN_CONFIGS`);
+            }
+          } else {
+            console.log(`Using native token for currency: ${program?.currency || 'default'}`);
+          }
+
           const contractResult = await investmentContract.createInvestmentProgram({
             name: program?.name ?? '',
             description: program?.description ?? '',
             fundingGoal: program?.price || '0',
-            fundingToken: '0x0000000000000000000000000000000000000000', // Native token for now
+            fundingToken: fundingTokenAddress,
             applicationStartDate: program?.applicationStartDate || '',
             applicationEndDate: program?.applicationEndDate || '',
             fundingStartDate: program?.fundingStartDate || '',

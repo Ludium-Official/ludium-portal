@@ -5,14 +5,26 @@ import notify from './notify';
 
 // Token configurations for different networks
 export const TOKEN_CONFIGS = {
-  educhain: {
+  'educhain-testnet': {
     USDC: {
-      address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+      address: '0x19EeaDcBA1801Afec43e87Cefcd4239E13fc294d', // USDC on EDUChain testnet
       decimals: 6,
       name: 'USDC',
     },
     USDT: {
-      address: '0x55d398326f99059fF775485246999027B3197955',
+      address: '0x3BfB66999C22c0189B0D837D12D5A4004844EC12', // USDT on EDUChain testnet
+      decimals: 6,
+      name: 'USDT',
+    },
+  },
+  educhain: {
+    USDC: {
+      address: '0x19EeaDcBA1801Afec43e87Cefcd4239E13fc294d', // USDC on EDUChain testnet
+      decimals: 6,
+      name: 'USDC',
+    },
+    USDT: {
+      address: '0x3BfB66999C22c0189B0D837D12D5A4004844EC12', // USDT on EDUChain testnet
       decimals: 6,
       name: 'USDT',
     },
@@ -66,7 +78,7 @@ export async function handleInvestment({
 
     if (isNative) {
       // Native token investment - simple flow
-      const amountWei = ethers.utils.parseEther(amount);
+      const amountWei = ethers.utils.parseUnits(amount, 18); // Native tokens always use 18 decimals
 
       const result = await investmentContract.investFund({
         projectId,

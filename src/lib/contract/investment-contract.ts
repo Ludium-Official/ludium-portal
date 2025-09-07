@@ -3,14 +3,14 @@ import * as ethers from 'ethers';
 import type { Abi, PublicClient } from 'viem';
 import { encodeFunctionData } from 'viem';
 
-import LdFundingArtifact from './abi/LdFunding.json';
-import LdInvestmentCoreArtifact from './abi/LdInvestmentCore.json';
-import LdMilestoneManagerArtifact from './abi/LdMilestoneManager.json';
+import LdFundingABI from './abi/LdFunding.json';
+import LdInvestmentCoreABI from './abi/LdInvestmentCore.json';
+import LdMilestoneManagerABI from './abi/LdMilestoneManager.json';
 
-// Extract ABIs from artifacts
-const INVESTMENT_CORE_ABI = LdInvestmentCoreArtifact.abi as Abi;
-const FUNDING_MODULE_ABI = LdFundingArtifact.abi as Abi;
-const MILESTONE_MANAGER_ABI = LdMilestoneManagerArtifact.abi as Abi;
+// Use ABIs directly as they are already ABI arrays
+const INVESTMENT_CORE_ABI = LdInvestmentCoreABI as Abi;
+const FUNDING_MODULE_ABI = LdFundingABI as Abi;
+const MILESTONE_MANAGER_ABI = LdMilestoneManagerABI as Abi;
 
 export interface InvestmentContractAddresses {
   core: string;
@@ -47,6 +47,7 @@ export class InvestmentContract {
     projectOwner: string;
     projectName: string;
     targetFunding: string;
+    tokenDecimals?: number; // Optional token decimals, defaults to 18
     milestones: Array<{
       title: string;
       description: string;
@@ -63,8 +64,9 @@ export class InvestmentContract {
         deadline: Math.floor(new Date(m.deadline).getTime() / 1000),
       }));
 
-      // Convert target funding to wei
-      const targetFundingWei = ethers.utils.parseEther(params.targetFunding);
+      // Convert target funding to smallest unit (wei for ETH/EDU, or token's smallest unit)
+      const decimals = params.tokenDecimals ?? 18; // Default to 18 decimals for native tokens
+      const targetFundingWei = ethers.utils.parseUnits(params.targetFunding, decimals);
 
       const data = encodeFunctionData({
         abi: INVESTMENT_CORE_ABI,
@@ -135,6 +137,7 @@ export class InvestmentContract {
     description: string;
     fundingGoal: string;
     fundingToken: string;
+    tokenDecimals?: number; // Optional token decimals, defaults to 18
     applicationStartDate: string;
     applicationEndDate: string;
     fundingStartDate: string;
@@ -145,7 +148,9 @@ export class InvestmentContract {
     fundingCondition?: 'open' | 'tier';
   }) {
     try {
-      const fundingGoalWei = ethers.utils.parseEther(params.fundingGoal);
+      // Convert funding goal to smallest unit based on token decimals
+      const decimals = params.tokenDecimals ?? 18; // Default to 18 decimals
+      const fundingGoalWei = ethers.utils.parseUnits(params.fundingGoal, decimals);
 
       // Note: description is not used in the contract, only kept in params for future use
       const data = encodeFunctionData({
@@ -426,19 +431,24 @@ export class InvestmentContract {
         });
         value = amountBigInt;
       } else {
-        // ERC20 token investment - use delegateInvestWithToken from core contract
-        // Note: The token is already configured in the program, we just pass amount
+        // ERC20 token investment - call funding module directly
+        // Cannot use delegateInvestWithToken because it would make msg.sender the core contract
+        console.log('ERC20 investment: Calling funding module directly for', params.token);
+
         data = encodeFunctionData({
-          abi: INVESTMENT_CORE_ABI,
-          functionName: 'delegateInvestWithToken',
+          abi: FUNDING_MODULE_ABI,
+          functionName: 'investWithToken',
           args: [params.projectId, amountBigInt],
         });
         value = BigInt(0);
       }
 
+      // Determine target address based on investment type
+      const targetAddress = isNative ? this.addresses.core : this.addresses.funding;
+
       const txResult = await this.sendTransaction(
         {
-          to: this.addresses.core as `0x${string}`,
+          to: targetAddress as `0x${string}`,
           data,
           value,
           chainId: this.chainId,
@@ -603,15 +613,106 @@ export class InvestmentContract {
     }
   }
 
+  async assignUserTier(params: {
+    projectId: number;
+    user: string;
+    tierName: string;
+    maxInvestment: string; // In smallest unit (wei)
+  }) {
+    try {
+      const data = encodeFunctionData({
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'assignUserTier',
+        args: [params.projectId, params.user, params.tierName, BigInt(params.maxInvestment)],
+      });
+
+      const txResult = await this.sendTransaction(
+        {
+          to: this.addresses.core as `0x${string}`,
+          data,
+          value: BigInt(0),
+          chainId: this.chainId,
+        } as Parameters<typeof this.sendTransaction>[0],
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            transactionInfo: {
+              title: 'Assign User Tier',
+              action: 'Assign',
+            },
+            description: `Assigning ${params.tierName} tier to user for project #${params.projectId}`,
+            successHeader: 'Tier Assigned!',
+            successDescription: 'User tier has been assigned successfully.',
+          },
+        },
+      );
+
+      const receipt = await this.waitForTransaction(txResult.hash);
+      return {
+        txHash: receipt.transactionHash,
+      };
+    } catch (error) {
+      console.error('Failed to assign user tier:', error);
+      throw error;
+    }
+  }
+
+  async assignUserTierToProgram(params: {
+    programId: number;
+    user: string;
+    tierName: string;
+    maxInvestment: string; // In smallest unit (wei)
+  }) {
+    try {
+      const data = encodeFunctionData({
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'assignUserTierToProgram',
+        args: [params.programId, params.user, params.tierName, BigInt(params.maxInvestment)],
+      });
+
+      const txResult = await this.sendTransaction(
+        {
+          to: this.addresses.core as `0x${string}`,
+          data,
+          value: BigInt(0),
+          chainId: this.chainId,
+        } as Parameters<typeof this.sendTransaction>[0],
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            transactionInfo: {
+              title: 'Assign User Tier to Program',
+              action: 'Assign',
+            },
+            description: `Assigning ${params.tierName} tier to user for program #${params.programId}`,
+            successHeader: 'Tier Assigned!',
+            successDescription: 'User tier has been assigned to the program successfully.',
+          },
+        },
+      );
+
+      const receipt = await this.waitForTransaction(txResult.hash);
+      return {
+        txHash: receipt.transactionHash,
+      };
+    } catch (error) {
+      console.error('Failed to assign user tier to program:', error);
+      throw error;
+    }
+  }
+
   async submitProjectApplication(params: {
     programId: number;
     projectName: string;
     description: string;
     targetFunding: string;
+    tokenDecimals?: number; // Optional token decimals, defaults to 18
     additionalData?: Record<string, unknown>;
   }) {
     try {
-      const targetFundingWei = ethers.utils.parseEther(params.targetFunding);
+      // Convert target funding to smallest unit based on token decimals
+      const decimals = params.tokenDecimals ?? 18; // Default to 18 decimals
+      const targetFundingWei = ethers.utils.parseUnits(params.targetFunding, decimals);
 
       // Encode additional data if provided
       const additionalDataBytes = params.additionalData

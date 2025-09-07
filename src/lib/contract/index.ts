@@ -166,9 +166,10 @@ class ChainContract {
         console.warn('If the transaction fails, this is likely the cause.');
       }
 
-      const price = isNative
-        ? ethers.utils.parseEther(program.price || '0')
-        : ethers.utils.parseUnits(program.price || '0', program.token?.decimal ?? 18);
+      const price = ethers.utils.parseUnits(
+        program.price || '0',
+        isNative ? 18 : (program.token?.decimal ?? 18),
+      );
 
       if (!isNative) {
         const allowance = await this.getAllowance(useToken, program.ownerAddress);
@@ -322,9 +323,7 @@ class ChainContract {
   ) {
     try {
       const isNative = token?.address === NATIVE_TOKEN;
-      const reward = isNative
-        ? ethers.utils.parseEther(amount || '0')
-        : ethers.utils.parseUnits(amount || '0', token?.decimal);
+      const reward = ethers.utils.parseUnits(amount || '0', isNative ? 18 : (token?.decimal ?? 18));
 
       const data = encodeFunctionData({
         abi: contractJson.abi,
