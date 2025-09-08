@@ -1,5 +1,6 @@
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useUserQuery } from '@/apollo/queries/user.generated';
+import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { useParams } from 'react-router';
 
 export default function UserDescriptionTab({ myProfile }: { myProfile?: boolean }) {
@@ -36,7 +37,8 @@ export default function UserDescriptionTab({ myProfile }: { myProfile?: boolean 
         />
       </div> */}
       <div>
-        <p className="text-sm text-slate-600">{user?.about}</p>
+        {/* <p className="text-sm text-slate-600">{user?.about}</p> */}
+        {user?.about && <MarkdownPreviewer value={user?.about ?? ''} />}
       </div>
     </div>
   );

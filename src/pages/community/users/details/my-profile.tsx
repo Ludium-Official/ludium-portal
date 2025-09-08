@@ -6,25 +6,41 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ShareButton } from '@/components/ui/share-button';
+import SocialIcon from '@/components/ui/social-icon';
 import { tokenAddresses } from '@/constant/token-address';
 import type ChainContract from '@/lib/contract';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import { cn, commaNumber, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
 import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 // import { Separator } from '@radix-ui/react-dropdown-menu';
-import { ArrowUpRight, Building2, CircleCheck, Settings } from 'lucide-react';
+import { ArrowUpRight, Building2, CircleCheck, Settings, UserCog } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, Outlet } from 'react-router';
+import { Link, Outlet, useNavigate } from 'react-router';
 import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
-import { platformIcons } from '../agent-utils';
+
+const adminLinks = [
+  { label: 'Banner', path: 'admin/banner' },
+  { label: 'Hidden programs', path: 'admin/hidden-programs' },
+  { label: 'Hidden communities', path: 'admin/hidden-communities' },
+  { label: 'User management', path: 'admin/user-management' },
+];
 
 function MyProfilePage() {
   // const { id } = useParams();
+  const { isAdmin, isLoggedIn/*isSuperadmin */ } = useAuth();
   const { user: privyUser, exportWallet, authenticated } = usePrivy();
   const walletInfo = privyUser?.wallet;
   const injectedWallet = privyUser?.wallet?.connectorType !== 'embedded';
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/');
+    }
+  }, [isLoggedIn]);
 
   const [network, setNetwork] = useState(mainnetDefaultNetwork);
 
@@ -43,14 +59,6 @@ function MyProfilePage() {
   // });
 
   const user = profileData?.profile;
-
-  // Pseudocode:
-  // 1. Identify required fields for profile from edit-profile.tsx.
-  //    - Typically: firstName, lastName, email, organizationName, summary, image (avatar).
-  //    - For this context, let's assume these are required: firstName, lastName, email, organizationName, summary.
-  // 2. Create a boolean variable `isProfileIncomplete` that is true if any required field is missing or empty.
-  // 3. Use early return logic for readability.
-  // 4. Use nullish coalescing and trim for string fields to ensure no whitespace-only values.
 
   const isProfileIncomplete =
     !user?.firstName?.trim() ||
@@ -111,6 +119,7 @@ function MyProfilePage() {
     fetchBalances();
   }, [authenticated, walletInfo, network]);
 
+
   return (
     <div className="bg-white rounded-2xl">
       <div className="max-w-1440 mx-auto p-10">
@@ -150,7 +159,7 @@ function MyProfilePage() {
                   className={cn(
                     'h-11 flex-1',
                     isProfileIncomplete &&
-                      'bg-primary text-white hover:bg-primary/90 border-0 hover:text-white',
+                    'bg-primary text-white hover:bg-primary/90 border-0 hover:text-white',
                   )}
                   asChild
                 >
@@ -158,7 +167,11 @@ function MyProfilePage() {
                     Edit Profile <Settings />
                   </Link>
                 </Button>
-                <ShareButton variant="outline" className="h-11 flex-1" />
+                <ShareButton
+                  variant="outline"
+                  className="h-11 flex-1"
+                  linkToCopy={`${window.location.origin}/users/${profileData?.profile?.id}/overview`}
+                />
               </div>
 
               {isProfileIncomplete && (
@@ -177,6 +190,20 @@ function MyProfilePage() {
                 <SidebarLinks key={item.label} item={item} myProfile />
               ))}
             </div>
+
+            {isAdmin && (
+              <div className="flex flex-col gap-2 px-6">
+                <p className='text-sm px-2 gap-2 text-primary h-8 flex items-center select-none'>
+                  <UserCog className='w-4 h-4' /> Admin
+
+                </p>
+                <div className={'ml-4 pl-2 border-l border-gray-200 space-y-1'}>
+                  {adminLinks.map((item) => (
+                    <SidebarLinks key={item.label} item={item} myProfile />
+                  ))}
+                </div>
+              </div>
+            )}
             <Separator />
             <div className="flex flex-col gap-6">
               <div className="border border-[#E4B7FF] rounded-[10px] p-5">
@@ -243,10 +270,10 @@ function MyProfilePage() {
                 <div className="flex gap-[6px]">
                   {(!profileData?.profile?.keywords ||
                     profileData.profile.keywords.length === 0) && (
-                    <span className="text-xs text-muted-foreground font-normal">
-                      There are no roles added yet.
-                    </span>
-                  )}
+                      <span className="text-xs text-muted-foreground font-normal">
+                        There are no roles added yet.
+                      </span>
+                    )}
                   {profileData?.profile?.keywords?.map((k) => (
                     <Badge
                       key={k.id}
@@ -283,16 +310,14 @@ function MyProfilePage() {
                   <div className="space-y-2">
                     {user?.links?.length ? (
                       user.links.map((link, index) => {
-                        const url = link.url?.toLowerCase() || '';
-                        const matchedKey = Object.keys(platformIcons).find((key) =>
-                          url.includes(key),
-                        );
-                        const platform = matchedKey ? platformIcons[matchedKey] : null;
-
                         return (
                           // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                           <div key={index} className="flex items-center gap-2">
-                            {platform && (
+
+                            <div className='bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center'>
+                              <SocialIcon value={link.url ?? ""} className='w-4 h-4 text-secondary-foreground' />
+                            </div>
+                            {/* {platform && (
                               <div className="flex items-center justify-center h-10 w-10 rounded-md bg-secondary">
                                 <img
                                   src={platform.icon}
@@ -301,7 +326,7 @@ function MyProfilePage() {
                                   alt={platform.alt}
                                 />
                               </div>
-                            )}
+                            )} */}
                             <a
                               target="_blank"
                               href={link.url || '#'}

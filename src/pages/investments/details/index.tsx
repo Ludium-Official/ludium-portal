@@ -17,7 +17,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {} from '@/components/ui/popover';
 import { ShareButton } from '@/components/ui/share-button';
 import { Tabs } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -51,12 +50,12 @@ function getChainForNetwork(network: string) {
 }
 
 const InvestmentDetailsPage: React.FC = () => {
-  const { userId, isAdmin } = useAuth();
+  const { userId, isAdmin, isLoggedIn } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [isSupportersModalOpen, setIsSupportersModalOpen] = useState(false);
 
-  const { data, refetch } = useProgramQuery({
+  const { data, refetch, error: programError } = useProgramQuery({
     variables: {
       id: id ?? '',
     },
@@ -288,6 +287,18 @@ const InvestmentDetailsPage: React.FC = () => {
     }
   };
 
+
+  if (programError?.message === 'You do not have access to this program') {
+    return (
+      <div className="text-center bg-white rounded-2xl p-10">
+        <p className="text-lg font-bold mb-10">You do not have access to this program</p>
+        <Link to="/investments" className="text-primary hover:underline font-semibold">
+          Go back to investments
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-[#F7F7F7]">
       <div className="bg-white p-10 rounded-2xl">
@@ -316,16 +327,13 @@ const InvestmentDetailsPage: React.FC = () => {
                   </>
                 )}
 
-              {(program?.creator?.id === userId || isAdmin) &&
-                !(
-                  program?.applicationEndDate && new Date() > new Date(program.applicationEndDate)
-                ) && (
-                  <Link to={`/investments/${program?.id}/edit`}>
-                    <Button variant="ghost" className="flex gap-2 items-center">
-                      Edit <Settings className="w-4 h-4" />
-                    </Button>
-                  </Link>
-                )}
+              {(program?.creator?.id === userId || isAdmin) && (
+                <Link to={`/investments/${program?.id}/edit`}>
+                  <Button variant="ghost" className="flex gap-2 items-center">
+                    Edit <Settings className="w-4 h-4" />
+                  </Button>
+                </Link>
+              )}
 
               <ShareButton program={program ?? undefined} />
             </div>
@@ -392,7 +400,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       onClick={(e) => {
                         if (!isAuthed) {
                           notify('Please add your email', 'success');
-                          navigate('/profile/edit');
+                          navigate('/my-profile/edit');
                           return;
                         }
 
@@ -532,6 +540,8 @@ const InvestmentDetailsPage: React.FC = () => {
                 size="lg"
                 className="w-full mt-6"
                 disabled={
+                  !isLoggedIn ||
+                  program?.status !== 'published' ||
                   program?.creator?.id === userId ||
                   program?.validators?.some((validator) => validator.id === userId) ||
                   (program?.applicationStartDate &&
@@ -624,7 +634,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       })}
                     />
                     {program?.status === ProgramStatus.Published ||
-                    program?.status === ProgramStatus.Completed
+                      program?.status === ProgramStatus.Completed
                       ? 'Confirmed'
                       : 'Not confirmed'}
                   </span>
