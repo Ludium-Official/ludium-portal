@@ -44,6 +44,9 @@ query programs($pagination: PaginationInput) {
         name
         price
         status
+        fundingTarget
+        fundingSuccessful
+        currentFundingAmount
       }
 
       creator {
@@ -64,6 +67,7 @@ query programs($pagination: PaginationInput) {
       description
       image
       id
+      educhainProgramId
       keywords {
         id
         name

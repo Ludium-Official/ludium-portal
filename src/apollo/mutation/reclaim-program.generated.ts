@@ -5,6 +5,7 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type ReclaimProgramMutationVariables = Types.Exact<{
   programId: Types.Scalars['ID']['input'];
+  txHash?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
 
 
@@ -12,8 +13,8 @@ export type ReclaimProgramMutation = { __typename?: 'Mutation', reclaimProgram?:
 
 
 export const ReclaimProgramDocument = gql`
-    mutation reclaimProgram($programId: ID!) {
-  reclaimProgram(programId: $programId) {
+    mutation reclaimProgram($programId: ID!, $txHash: String) {
+  reclaimProgram(programId: $programId, txHash: $txHash) {
     id
     name
     reclaimed
@@ -39,6 +40,7 @@ export type ReclaimProgramMutationFn = Apollo.MutationFunction<ReclaimProgramMut
  * const [reclaimProgramMutation, { data, loading, error }] = useReclaimProgramMutation({
  *   variables: {
  *      programId: // value for 'programId'
+ *      txHash: // value for 'txHash'
  *   },
  * });
  */

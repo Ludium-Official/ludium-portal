@@ -6,10 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
 import { getCurrencyIcon, sortTierSettings } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
 import type { InvestmentTier, Program, Supporter } from '@/types/types.generated';
+import { ethers } from 'ethers';
 import { ChevronDown, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -26,6 +28,7 @@ interface StoredSupporter {
   name: string;
   email: string;
   tier: string;
+  walletAddress?: string;
 }
 
 const SupportersModal: React.FC<SupportersModalProps> = ({
@@ -47,6 +50,7 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
 
   const [inviteUserToProgram] = useInviteUserToProgramMutation();
   const [removeUserFromProgram] = useRemoveUserFromProgramMutation();
+  const investmentContract = useInvestmentContract(program?.network || null);
 
   // Debounce supporter input
   useEffect(() => {
@@ -106,13 +110,23 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
       return;
     }
 
-    // Add supporter to stored list
+    // Find the user data to get wallet address
+    const userData = supportersData?.users?.data?.find((u) => u.id === supporterId);
+
+    // Add supporter to stored list with wallet address
     const newSupporter = {
       id: supporterId,
       name: supporterItem?.label || 'Unknown User',
       email: supporterItem?.label.split(' ')[0] || 'unknown@email.com', // Extract email from label
       tier: selectedTier || 'gold',
+      walletAddress: userData?.walletAddress || undefined, // Store wallet address here!
     };
+
+    if (!userData?.walletAddress) {
+      console.warn(
+        `⚠️ User ${newSupporter.name} has no wallet address. They will need to connect a wallet before investing.`,
+      );
+    }
 
     setStoredSupporters((prev) => [...prev, newSupporter]);
 
@@ -193,28 +207,141 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
         return;
       }
 
-      // Send invitations to all stored supporters
-      for (const supporter of storedSupporters) {
-        await inviteUserToProgram({
-          variables: {
-            programId: programId,
-            userId: supporter.id,
-            tier: supporter.tier as InvestmentTier,
-            maxInvestmentAmount:
-              program?.tierSettings?.[supporter.tier as keyof typeof program.tierSettings]
-                ?.maxAmount,
-          },
-          onError: (error) => {
-            notify(`Failed to invite ${supporter.name}: ${error.message}`, 'error');
-          },
-        });
+      // Get on-chain program ID from the program
+      const onChainProgramId = program?.educhainProgramId;
+      if (!onChainProgramId) {
+        notify('Program not yet deployed on blockchain', 'error');
+        return;
       }
 
-      notify('All invitations sent successfully', 'success');
+      // Use wallet addresses from stored supporters
+      console.log('📋 Processing supporters with their wallet addresses...');
+      for (const supporter of storedSupporters) {
+        if (supporter.walletAddress) {
+          console.log(`✅ ${supporter.name} has wallet: ${supporter.walletAddress}`);
+        } else {
+          console.warn(`⚠️ ${supporter.name} has no wallet address - tier sync will be skipped`);
+        }
+      }
+
+      // Send invitations to all stored supporters
+      const invitedSupporters: Array<{ supporter: StoredSupporter; walletAddress?: string }> = [];
+      let syncedCount = 0;
+      let failedCount = 0;
+
+      for (const supporter of storedSupporters) {
+        try {
+          // First, save to database
+          await inviteUserToProgram({
+            variables: {
+              programId: programId,
+              userId: supporter.id,
+              tier: supporter.tier as InvestmentTier,
+              maxInvestmentAmount:
+                program?.tierSettings?.[supporter.tier as keyof typeof program.tierSettings]
+                  ?.maxAmount,
+            },
+            onError: (error) => {
+              notify(`Failed to invite ${supporter.name}: ${error.message}`, 'error');
+              failedCount++;
+            },
+          });
+
+          const walletAddress = supporter.walletAddress; // Use wallet from stored supporter
+          invitedSupporters.push({
+            supporter,
+            walletAddress,
+          });
+
+          // Then sync to blockchain if wallet address is available
+          if (walletAddress && program?.fundingCondition === 'tier') {
+            try {
+              const maxAmount =
+                program?.tierSettings?.[supporter.tier as keyof typeof program.tierSettings]
+                  ?.maxAmount || '0';
+
+              // Get token decimals based on currency
+              const decimals = program?.currency === 'EDU' || program?.currency === 'ETH' ? 18 : 6;
+              const maxInvestmentWei = ethers.utils
+                .parseUnits(maxAmount.toString(), decimals)
+                .toString();
+
+              console.log('🔄 Syncing tier to blockchain:', {
+                programId: onChainProgramId,
+                user: walletAddress,
+                tier: supporter.tier,
+                maxInvestment: maxInvestmentWei,
+                currency: program?.currency,
+                decimals: decimals,
+              });
+
+              await investmentContract.assignUserTierToProgram({
+                programId: onChainProgramId,
+                user: walletAddress,
+                tierName: supporter.tier,
+                maxInvestment: maxInvestmentWei,
+              });
+
+              syncedCount++;
+              console.log(`✅ Successfully synced tier for ${supporter.name} (${walletAddress})`);
+              notify(`Tier synced for ${supporter.name}`, 'success');
+            } catch (error) {
+              console.error(`❌ Failed to sync tier for ${supporter.name}:`, error);
+
+              // Provide specific error messages
+              let errorMsg = 'Failed to sync tier to blockchain. ';
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              if (errorMessage.includes('Only program creator')) {
+                errorMsg += 'Only the program creator can assign tiers.';
+              } else if (errorMessage.includes('User rejected')) {
+                errorMsg += 'Transaction was cancelled.';
+              } else if (errorMessage.includes('insufficient funds')) {
+                errorMsg += 'Insufficient funds for gas fees.';
+              } else {
+                errorMsg +=
+                  'The invitation was saved but tier sync failed. Manual sync may be required.';
+              }
+
+              notify(errorMsg, 'error');
+              console.error('Full error details:', error);
+
+              // Track failed syncs
+              failedCount++;
+            }
+          } else if (!walletAddress) {
+            console.warn(
+              `⚠️ No wallet address found for ${supporter.name}. Tier will not be synced to blockchain.`,
+            );
+            notify(
+              `Warning: ${supporter.name} has no wallet address. They need to connect a wallet before they can invest.`,
+              'error',
+            );
+          }
+        } catch (error) {
+          console.error(`Failed to process supporter ${supporter.name}:`, error);
+          failedCount++;
+        }
+      }
+
+      if (syncedCount > 0) {
+        notify(
+          `Successfully invited supporters and synced ${syncedCount} tiers to blockchain`,
+          'success',
+        );
+      } else if (failedCount === 0) {
+        notify('All invitations sent successfully', 'success');
+      } else {
+        notify(
+          `Invited ${storedSupporters.length - failedCount} supporters, ${failedCount} failed`,
+          'error',
+        );
+      }
+
       setStoredSupporters([]);
       onRefetch();
     } catch (error) {
       console.error((error as Error).message);
+      notify('Failed to send invitations', 'error');
     }
   };
 
@@ -503,22 +630,22 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
             <div className="mt-6 flex justify-between items-center bg-muted p-4">
               <div className="text-sm flex items-center gap-8">
                 <span className="">Total</span>{' '}
-                <span className="font-bold text-lg">{program?.invitedBuilders?.length}</span>
+                <span className="font-bold text-lg">{program?.supporters?.length || 0}</span>
               </div>
               <div className="text-sm font-medium flex items-center gap-2">
                 <span className="font-bold text-lg">
-                  {program?.invitedBuilders
-                    ?.reduce((total: number) => {
+                  {(
+                    program?.supporters?.reduce((total: number, supporter) => {
                       const tierSettings = program?.tierSettings;
                       if (!tierSettings) return total;
 
-                      // hardcoded, dont forget to change
-                      const tierValue = (tierSettings as Record<string, { maxAmount?: number }>)
-                        .gold;
+                      const tierValue = (tierSettings as Record<string, { maxAmount?: number }>)[
+                        supporter.tier ?? ''
+                      ];
                       const amount = Number(tierValue?.maxAmount) || 0;
                       return total + amount;
-                    }, 0)
-                    .toLocaleString()}
+                    }, 0) || 0
+                  ).toLocaleString()}
                 </span>
                 <span>{getCurrencyIcon(program?.currency)}</span>
                 <span>{program?.currency}</span>

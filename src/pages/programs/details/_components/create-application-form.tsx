@@ -7,7 +7,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { DialogClose, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {} from '@/components/ui/tooltip';
+import { } from '@/components/ui/tooltip';
 import { useApplicationDraft } from '@/lib/hooks/use-application-draft';
 import notify from '@/lib/notify';
 import { getCurrencyIcon } from '@/lib/utils';
@@ -398,11 +398,11 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                   before:
                     program?.type === 'funding' && program?.fundingEndDate
                       ? new Date(
-                          Math.max(
-                            new Date().getTime(),
-                            new Date(program.fundingEndDate).getTime() + 24 * 60 * 60 * 1000, // 1 day after funding ends
-                          ),
-                        )
+                        Math.max(
+                          new Date().getTime(),
+                          new Date(program.fundingEndDate).getTime() + 24 * 60 * 60 * 1000, // 1 day after funding ends
+                        ),
+                      )
                       : new Date(),
                 }}
                 date={
@@ -410,9 +410,15 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                     ? new Date(formData.milestones[0]?.deadline)
                     : undefined
                 }
-                setDate={(date) =>
-                  handleMilestoneChange(0, 'deadline', date ? (date as Date)?.toISOString() : '')
-                }
+                setDate={(date) => {
+                  if (date && typeof date === 'object' && 'getTime' in date) {
+                    const newDate = new Date(date.getTime());
+                    newDate.setHours(23, 59, 59, 999);
+                    handleMilestoneChange(0, 'deadline', newDate.toISOString());
+                  } else {
+                    handleMilestoneChange(0, 'deadline', '');
+                  }
+                }}
               />
             </label>
           </div>
@@ -487,20 +493,30 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
                   before:
                     program?.type === 'funding' && program?.fundingEndDate
                       ? new Date(
-                          Math.max(
-                            new Date().getTime(),
-                            new Date(program.fundingEndDate).getTime() + 24 * 60 * 60 * 1000, // 1 day after funding ends
-                          ),
-                        )
+                        Math.max(
+                          new Date().getTime(),
+                          new Date(program.fundingEndDate).getTime() + 24 * 60 * 60 * 1000, // 1 day after funding ends
+                        ),
+                      )
                       : new Date(),
                 }}
                 date={m.deadline ? new Date(m.deadline) : undefined}
                 setDate={(date) => {
-                  handleMilestoneChange(
-                    idx + 1,
-                    'deadline',
-                    date ? (date as Date)?.toISOString() : '',
-                  );
+                  if (date && typeof date === 'object' && 'getTime' in date) {
+                    const newDate = new Date(date.getTime());
+                    newDate.setHours(23, 59, 59, 999);
+                    handleMilestoneChange(
+                      idx + 1,
+                      'deadline',
+                      newDate.toISOString(),
+                    );
+                  } else {
+                    handleMilestoneChange(
+                      idx + 1,
+                      'deadline',
+                      '',
+                    );
+                  }
                 }}
               />
             </label>

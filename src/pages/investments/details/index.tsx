@@ -17,13 +17,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {} from '@/components/ui/popover';
 import { ShareButton } from '@/components/ui/share-button';
 import { Tabs } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 // import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { getInvestmentContract } from '@/lib/hooks/use-investment-contract';
+import { TOKEN_CONFIGS } from '@/lib/investment-helpers';
 import notify from '@/lib/notify';
 import { cn, getInitials, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import ProjectCard from '@/pages/investments/details/_components/project-card';
@@ -50,15 +50,16 @@ function getChainForNetwork(network: string) {
 }
 
 const InvestmentDetailsPage: React.FC = () => {
-  const { userId, isAdmin } = useAuth();
+  const { userId, isAdmin, isLoggedIn } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [isSupportersModalOpen, setIsSupportersModalOpen] = useState(false);
 
-  const { data, refetch } = useProgramQuery({
+  const { data, refetch, error: programError } = useProgramQuery({
     variables: {
       id: id ?? '',
     },
+    fetchPolicy: 'network-only', // Force fresh data from server
   });
 
   const program = data?.program;
@@ -174,11 +175,54 @@ const InvestmentDetailsPage: React.FC = () => {
             validatorAddresses = [currentUserAddress];
           }
 
+          // Determine the funding token address based on the program's currency
+          let fundingTokenAddress = '0x0000000000000000000000000000000000000000'; // Default to native token
+
+          // Check if it's not a native token (EDU, ETH)
+          if (program?.currency && program.currency !== 'EDU' && program.currency !== 'ETH') {
+            // Get the network key (convert to lowercase and replace spaces)
+            const networkKey =
+              program?.network?.toLowerCase().replace(' ', '-') || 'educhain-testnet';
+            // Map network to TOKEN_CONFIGS key
+            const tokenConfigKey =
+              networkKey === 'educhain-testnet'
+                ? 'educhain'
+                : networkKey === 'base-sepolia'
+                  ? 'base-sepolia'
+                  : networkKey === 'arbitrum-sepolia'
+                    ? 'arbitrum-sepolia'
+                    : networkKey === 'sepolia'
+                      ? 'sepolia'
+                      : 'educhain';
+
+            const networkConfig = TOKEN_CONFIGS[tokenConfigKey as keyof typeof TOKEN_CONFIGS];
+            if (networkConfig) {
+              const tokenConfig = networkConfig[program.currency as keyof typeof networkConfig];
+              if (tokenConfig) {
+                fundingTokenAddress = tokenConfig.address;
+                console.log(
+                  `Using ${program.currency} token address:`,
+                  fundingTokenAddress,
+                  'on network:',
+                  tokenConfigKey,
+                );
+              } else {
+                console.warn(
+                  `Token ${program.currency} not found in TOKEN_CONFIGS for network ${tokenConfigKey}`,
+                );
+              }
+            } else {
+              console.warn(`Network ${tokenConfigKey} not found in TOKEN_CONFIGS`);
+            }
+          } else {
+            console.log(`Using native token for currency: ${program?.currency || 'default'}`);
+          }
+
           const contractResult = await investmentContract.createInvestmentProgram({
             name: program?.name ?? '',
             description: program?.description ?? '',
             fundingGoal: program?.price || '0',
-            fundingToken: '0x0000000000000000000000000000000000000000', // Native token for now
+            fundingToken: fundingTokenAddress,
             applicationStartDate: program?.applicationStartDate || '',
             applicationEndDate: program?.applicationEndDate || '',
             fundingStartDate: program?.fundingStartDate || '',
@@ -243,6 +287,18 @@ const InvestmentDetailsPage: React.FC = () => {
     }
   };
 
+
+  if (programError?.message === 'You do not have access to this program') {
+    return (
+      <div className="text-center bg-white rounded-2xl p-10">
+        <p className="text-lg font-bold mb-10">You do not have access to this program</p>
+        <Link to="/investments" className="text-primary hover:underline font-semibold">
+          Go back to investments
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-[#F7F7F7]">
       <div className="bg-white p-10 rounded-2xl">
@@ -271,16 +327,13 @@ const InvestmentDetailsPage: React.FC = () => {
                   </>
                 )}
 
-              {(program?.creator?.id === userId || isAdmin) &&
-                !(
-                  program?.applicationEndDate && new Date() > new Date(program.applicationEndDate)
-                ) && (
-                  <Link to={`/investments/${program?.id}/edit`}>
-                    <Button variant="ghost" className="flex gap-2 items-center">
-                      Edit <Settings className="w-4 h-4" />
-                    </Button>
-                  </Link>
-                )}
+              {(program?.creator?.id === userId || isAdmin) && (
+                <Link to={`/investments/${program?.id}/edit`}>
+                  <Button variant="ghost" className="flex gap-2 items-center">
+                    Edit <Settings className="w-4 h-4" />
+                  </Button>
+                </Link>
+              )}
 
               <ShareButton program={program ?? undefined} />
             </div>
@@ -347,7 +400,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       onClick={(e) => {
                         if (!isAuthed) {
                           notify('Please add your email', 'success');
-                          navigate('/profile/edit');
+                          navigate('/my-profile/edit');
                           return;
                         }
 
@@ -487,6 +540,8 @@ const InvestmentDetailsPage: React.FC = () => {
                 size="lg"
                 className="w-full mt-6"
                 disabled={
+                  !isLoggedIn ||
+                  program?.status !== 'published' ||
                   program?.creator?.id === userId ||
                   program?.validators?.some((validator) => validator.id === userId) ||
                   (program?.applicationStartDate &&
@@ -579,7 +634,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       })}
                     />
                     {program?.status === ProgramStatus.Published ||
-                    program?.status === ProgramStatus.Completed
+                      program?.status === ProgramStatus.Completed
                       ? 'Confirmed'
                       : 'Not confirmed'}
                   </span>

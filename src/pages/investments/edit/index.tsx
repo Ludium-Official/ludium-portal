@@ -39,7 +39,7 @@ const EditInvestmentPage: React.FC = () => {
       return;
     }
     if (!isAuthed) {
-      navigate('/profile/edit');
+      navigate('/my-profile/edit');
       notify('Please add your email', 'success');
       return;
     }
@@ -294,7 +294,7 @@ const EditInvestmentPage: React.FC = () => {
         });
 
         notify('Program updated successfully', 'success');
-        navigate(`/investments/details/${programId ?? id}`);
+        navigate(`/investments/${programId ?? id}`);
       },
       onError: (error) => {
         console.error('Failed to update program', error);
@@ -304,12 +304,7 @@ const EditInvestmentPage: React.FC = () => {
   };
 
   return (
-    <div className="p-10 bg-gray-200 min-h-screen">
-      <div className="mb-10 max-w-3xl mx-auto">
-        <h1 className="font-bold text-[48px] leading-[48px] text-center">
-          Editing - Investment Program
-        </h1>
-      </div>
+    <div className="p-10 min-h-screen">
       <InvestmentForm isEdit onSubmitInvestment={onSubmit} />
     </div>
   );

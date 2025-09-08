@@ -276,12 +276,16 @@ const DetailsPage: React.FC = () => {
                       !isLoggedIn ||
                       program?.status !== 'published' ||
                       program.creator?.id === userId ||
-                      program?.validators?.some((validator) => validator.id === userId)
+                      program?.validators?.some((validator) => validator.id === userId) ||
+                      (program?.applicationStartDate &&
+                        new Date() < new Date(program.applicationStartDate)) ||
+                      (program?.applicationEndDate && new Date() > new Date(program.applicationEndDate)) ||
+                      (program?.price && acceptedPrice && BigNumber(acceptedPrice).isGreaterThanOrEqualTo(BigNumber(program.price)))
                     }
                     onClick={(e) => {
                       if (!isAuthed) {
                         notify('Please add your email', 'success');
-                        navigate('/profile/edit');
+                        navigate('/my-profile/edit');
                         return;
                       }
 
@@ -416,7 +420,7 @@ const DetailsPage: React.FC = () => {
                       })}
                     />
                     {program?.status === ProgramStatus.Published ||
-                    program?.status === ProgramStatus.Completed
+                      program?.status === ProgramStatus.Completed
                       ? 'Paid'
                       : 'Not paid'}
                   </span>

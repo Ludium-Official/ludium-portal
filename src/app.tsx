@@ -15,9 +15,14 @@ import UserInvestmentProjectTab from '@/pages/community/users/_components/invest
 import UserInvestmentReclaimTab from '@/pages/community/users/_components/investment-reclaim-tab';
 import UserInvestmentTab from '@/pages/community/users/_components/investment-tab';
 import UserOverviewTab from '@/pages/community/users/_components/overview-tab';
+import UserRecruitmentBuilderTab from '@/pages/community/users/_components/recruitment-builder-tab';
 import UserRecruitmentReclaimTab from '@/pages/community/users/_components/recruitment-reclaim-tab';
 import UserRecruitmentRoleTab from '@/pages/community/users/_components/recruitment-role-tab';
 import UserRecruitmentTab from '@/pages/community/users/_components/recruitment-tab';
+import BannerAdminPage from '@/pages/community/users/admin/banner';
+import HiddenCommunitiesAdminPage from '@/pages/community/users/admin/hidden-communities';
+import HiddenProgramsAdminPage from '@/pages/community/users/admin/hidden-programs';
+import UserManagementAdminPage from '@/pages/community/users/admin/user-management';
 import UserDetailsPage from '@/pages/community/users/details';
 import EditProfilePage from '@/pages/community/users/details/edit-profile';
 import MyProfilePage from '@/pages/community/users/details/my-profile';
@@ -29,7 +34,7 @@ import ProjectDetailsPage from '@/pages/investments/details/project-details';
 import EditInvestmentPage from '@/pages/investments/edit';
 import MainPage from '@/pages/main';
 // import ProfilePage from '@/pages/profile';
-// import EditProfilePage from '@/pages/profile/edit';
+// import EditProfilePage from '@/pages/my-profile/edit';
 import ProgramsPage from '@/pages/programs';
 import CreateProgramPage from '@/pages/programs/create';
 import ProgramDetailsPage from '@/pages/programs/details';
@@ -84,6 +89,7 @@ function App() {
               <Route path="overview" element={<UserOverviewTab />} />
               <Route path="description" element={<UserDescriptionTab />} />
               <Route path="program/recruitment" element={<UserRecruitmentTab />} />
+              <Route path="program/recruitment/builder" element={<UserRecruitmentBuilderTab />} />
               <Route path="program/recruitment/:role" element={<UserRecruitmentRoleTab />} />
               <Route path="program/investment" element={<UserInvestmentTab />} />
               <Route path="program/investment/host" element={<UserInvestmentHostTab />} />
@@ -106,6 +112,7 @@ function App() {
               <Route path="overview" element={<UserOverviewTab />} />
               <Route path="description" element={<UserDescriptionTab myProfile />} />
               <Route path="program/recruitment" element={<UserRecruitmentTab myProfile />} />
+              <Route path="program/recruitment/builder" element={<UserRecruitmentBuilderTab myProfile />} />
               <Route
                 path="program/recruitment/:role"
                 element={<UserRecruitmentRoleTab myProfile />}
@@ -115,11 +122,18 @@ function App() {
                 element={<UserRecruitmentReclaimTab myProfile />}
               />
               <Route path="program/investment" element={<UserInvestmentTab myProfile />} />
-              <Route path="program/investment/host" element={<UserInvestmentHostTab />} />
-              <Route path="program/investment/project" element={<UserInvestmentProjectTab />} />
-              <Route path="program/investment/supporter" element={<UserInvestmentProjectTab />} />
-              <Route path="program/investment/reclaim" element={<UserInvestmentReclaimTab />} />
+              <Route path="program/investment/host" element={<UserInvestmentHostTab myProfile />} />
+              <Route path="program/investment/project" element={<UserInvestmentProjectTab myProfile />} />
+              <Route path="program/investment/supporter" element={<UserInvestmentProjectTab myProfile />} />
+              <Route path="program/investment/reclaim" element={<UserInvestmentReclaimTab myProfile />} />
               <Route path="community" element={<UserCommunityTab />} />
+
+              <Route path="admin">
+                <Route path="banner" element={<BannerAdminPage />} />
+                <Route path="hidden-programs" element={<HiddenProgramsAdminPage />} />
+                <Route path="hidden-communities" element={<HiddenCommunitiesAdminPage />} />
+                <Route path="user-management" element={<UserManagementAdminPage />} />
+              </Route>
             </Route>
           </Route>
 

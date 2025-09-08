@@ -15,6 +15,7 @@ interface ShareButtonProps {
   children?: React.ReactNode;
   onShare?: (type: 'link' | 'farcaster') => void;
   program?: Program;
+  linkToCopy?: string;
 }
 
 export function ShareButton({
@@ -24,19 +25,19 @@ export function ShareButton({
   children,
   onShare,
   program,
+  linkToCopy,
 }: ShareButtonProps) {
   const [shareType, setShareType] = useState<'link' | 'farcaster'>('link');
 
   const handleShare = () => {
     onShare?.(shareType);
     if (shareType === 'link') {
-      window.navigator.clipboard.writeText(window.location.href);
+      window.navigator.clipboard.writeText(linkToCopy ?? window.location.href);
       notify('Link copied to clipboard', 'success');
     }
     if (shareType === 'farcaster') {
       navigator.clipboard.writeText(
-        `https://ludium-farcaster.vercel.app/api/programs/${
-          program?.name
+        `https://ludium-farcaster.vercel.app/api/programs/${program?.name
         }/${program?.id}/${Math.floor(
           new Date(program?.deadline).getTime() / 1000,
         )}/${program?.price}/${program?.currency}`,
@@ -70,7 +71,7 @@ export function ShareButton({
               >
                 <div className="font-medium">Share with link</div>
                 <p className="text-sm text-muted-foreground truncate max-w-[342px]">
-                  {window.location.href}
+                  {linkToCopy ?? window.location.href}
                 </p>
               </Label>
             </div>

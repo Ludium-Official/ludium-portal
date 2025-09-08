@@ -6,6 +6,7 @@ const defaultOptions = {} as const;
 export type AcceptApplicationMutationVariables = Types.Exact<{
   id: Types.Scalars['ID']['input'];
   onChainProjectId?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  tierSyncInfo?: Types.InputMaybe<Types.TierSyncInfo>;
 }>;
 
 
@@ -13,8 +14,12 @@ export type AcceptApplicationMutation = { __typename?: 'Mutation', acceptApplica
 
 
 export const AcceptApplicationDocument = gql`
-    mutation acceptApplication($id: ID!, $onChainProjectId: Int) {
-  acceptApplication(id: $id, onChainProjectId: $onChainProjectId) {
+    mutation acceptApplication($id: ID!, $onChainProjectId: Int, $tierSyncInfo: TierSyncInfo) {
+  acceptApplication(
+    id: $id
+    onChainProjectId: $onChainProjectId
+    tierSyncInfo: $tierSyncInfo
+  ) {
     applicant {
       about
       email
@@ -62,6 +67,7 @@ export type AcceptApplicationMutationFn = Apollo.MutationFunction<AcceptApplicat
  *   variables: {
  *      id: // value for 'id'
  *      onChainProjectId: // value for 'onChainProjectId'
+ *      tierSyncInfo: // value for 'tierSyncInfo'
  *   },
  * });
  */

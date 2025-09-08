@@ -1,9 +1,10 @@
 import logoFooter from '@/assets/logo-footer.svg';
 import customerService from '@/assets/social/customer-service.svg';
-import discord from '@/assets/social/discord.svg';
 import twitter from '@/assets/social/twitter.svg';
-import youtube from '@/assets/social/youtube.svg';
 import { Link } from 'react-router';
+import Discord from '../../assets/social/discord.svg?react';
+// import youtube from '@/assets/social/youtube.svg';
+import Youtube from '../../assets/social/youtube.svg?react';
 
 function Footer() {
   return (
@@ -29,7 +30,7 @@ function Footer() {
               className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
               rel="noreferrer"
             >
-              <img src={youtube} alt="youtube" /> Youtube
+              <Youtube className='w-4 h-4 fill-gray-text' /> Youtube
             </a>
             <a
               target="_blank"
@@ -37,7 +38,7 @@ function Footer() {
               className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
               rel="noreferrer"
             >
-              <img src={discord} alt="discord" /> Discord
+              <Discord className='w-4 h-4 fill-gray-text' /> Discord
             </a>
             <a href="/" className="flex items-center gap-2 leading-[25px] mb-1 text-xs">
               <img src={customerService} alt="customer-service" /> Customer Service{' '}
