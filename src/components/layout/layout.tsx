@@ -5,21 +5,29 @@ import Sidebar from '@/components/layout/sidebar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { Outlet } from 'react-router';
+import { Outlet, useLocation } from 'react-router';
 import MobileWebView from '../mobile-web-view';
 
 function Layout() {
   const [isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
-    const userAgent = navigator.userAgent || navigator.vendor;
-    const isMobileDevice = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
-      userAgent,
-    );
-    setIsMobile(isMobileDevice);
+    const currentPath = location.pathname;
+
+    // Only main page and pages starting with "investments" should NOT be mobile
+    const isMainPage = currentPath === '/' || currentPath === '';
+    const isInvestmentsPage = currentPath.startsWith('/investments');
+
+    if (isMainPage || isInvestmentsPage) {
+      setIsMobile(false);
+    } else {
+      setIsMobile(true);
+    }
+
     setLoading(false);
-  }, []);
+  }, [location.pathname]);
 
   return (
     <>

@@ -279,8 +279,11 @@ const DetailsPage: React.FC = () => {
                       program?.validators?.some((validator) => validator.id === userId) ||
                       (program?.applicationStartDate &&
                         new Date() < new Date(program.applicationStartDate)) ||
-                      (program?.applicationEndDate && new Date() > new Date(program.applicationEndDate)) ||
-                      (program?.price && acceptedPrice && BigNumber(acceptedPrice).isGreaterThanOrEqualTo(BigNumber(program.price)))
+                      (program?.applicationEndDate &&
+                        new Date() > new Date(program.applicationEndDate)) ||
+                      (program?.price &&
+                        acceptedPrice &&
+                        BigNumber(acceptedPrice).isGreaterThanOrEqualTo(BigNumber(program.price)))
                     }
                     onClick={(e) => {
                       if (!isAuthed) {
@@ -420,7 +423,7 @@ const DetailsPage: React.FC = () => {
                       })}
                     />
                     {program?.status === ProgramStatus.Published ||
-                      program?.status === ProgramStatus.Completed
+                    program?.status === ProgramStatus.Completed
                       ? 'Paid'
                       : 'Not paid'}
                   </span>

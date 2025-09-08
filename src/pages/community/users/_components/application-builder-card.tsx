@@ -1,20 +1,21 @@
-import { ApplicationStatusBadge, ProgramStatusBadge } from "@/components/status-badge"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { getCurrencyIcon } from "@/lib/utils"
-import type { Application } from "@/types/types.generated"
-import BigNumber from "bignumber.js"
-import { ArrowUpRightIcon } from "lucide-react"
-import { Link } from "react-router"
+import { ApplicationStatusBadge, ProgramStatusBadge } from '@/components/status-badge';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { getCurrencyIcon } from '@/lib/utils';
+import type { Application } from '@/types/types.generated';
+import BigNumber from 'bignumber.js';
+import { ArrowUpRightIcon } from 'lucide-react';
+import { Link } from 'react-router';
 
 function ApplicationBuilderCard({ application }: { application: Application }) {
   return (
     <div className="border rounded-lg p-5 bg-white">
-
       <div className="flex items-center justify-between mb-3">
         <div className="flex gap-2">
           {application.program?.keywords?.map((keyword) => (
-            <Badge variant="secondary" key={keyword.id} className="font-semibold">{keyword.name}</Badge>
+            <Badge variant="secondary" key={keyword.id} className="font-semibold">
+              {keyword.name}
+            </Badge>
           ))}
         </div>
 
@@ -38,7 +39,9 @@ function ApplicationBuilderCard({ application }: { application: Application }) {
               role="img"
             />
           )}
-          <p className="font-bold text-sm text-gray-dark truncate max-w-[450px]">{application.program?.name}</p>
+          <p className="font-bold text-sm text-gray-dark truncate max-w-[450px]">
+            {application.program?.name}
+          </p>
         </div>
         <Link
           to={`/programs/${application.program?.id}/application/${application.id}`}
@@ -72,19 +75,17 @@ function ApplicationBuilderCard({ application }: { application: Application }) {
                 {getCurrencyIcon(application?.program?.currency)}
               </span>
 
-              <span className="text-sm text-muted-foreground">{application?.program?.currency}</span>
+              <span className="text-sm text-muted-foreground">
+                {application?.program?.currency}
+              </span>
             </div>
 
             {/* <Separator orientation="vertical" /> */}
 
             <div className="border-l pl-2 ml-2 h-4 flex items-center">
-              <span className="text-sm text-muted-foreground">
-                {application?.program?.network}
-              </span>
+              <span className="text-sm text-muted-foreground">{application?.program?.network}</span>
             </div>
-
           </div>
-
         </div>
 
         <div>
@@ -94,7 +95,7 @@ function ApplicationBuilderCard({ application }: { application: Application }) {
       </div>
       {/* <h1>Application Builder Card {application.name}</h1> */}
     </div>
-  )
+  );
 }
 
-export default ApplicationBuilderCard
+export default ApplicationBuilderCard;

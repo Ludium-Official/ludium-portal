@@ -1,7 +1,5 @@
 function HiddenProgramsAdminPage() {
-  return (
-    <div>Hidden Programs Admin Page</div>
-  )
+  return <div>Hidden Programs Admin Page</div>;
 }
 
-export default HiddenProgramsAdminPage
+export default HiddenProgramsAdminPage;

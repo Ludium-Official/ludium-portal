@@ -18,7 +18,7 @@ const filterBasedOnRole = {
   builder: 'applicantId',
 };
 
-const roles = ['sponsor', 'validator', /*'builder'*/] as const;
+const roles = ['sponsor', 'validator' /*'builder'*/] as const;
 
 export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean }) {
   const { id } = useParams();
@@ -38,26 +38,26 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
         offset: 0,
         filter: [
           {
-            value: "regular",
-            field: "programType",
+            value: 'regular',
+            field: 'programType',
           },
           {
             value: profileId,
-            field: "applicantId",
+            field: 'applicantId',
           },
           ...(searchQuery
             ? [
-              {
-                field: 'name',
-                value: searchQuery,
-              },
-            ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
             : []),
         ],
       },
     },
   });
-  console.log("🚀 ~ UserRecruitmentTab ~ applicationData:", applicationData)
+  console.log('🚀 ~ UserRecruitmentTab ~ applicationData:', applicationData);
 
   const queries = {
     sponsor: useProgramsQuery({
@@ -72,11 +72,11 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
             },
             ...(searchQuery
               ? [
-                {
-                  field: 'name',
-                  value: searchQuery,
-                },
-              ]
+                  {
+                    field: 'name',
+                    value: searchQuery,
+                  },
+                ]
               : []),
           ],
         },
@@ -95,11 +95,11 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
             },
             ...(searchQuery
               ? [
-                {
-                  field: 'name',
-                  value: searchQuery,
-                },
-              ]
+                  {
+                    field: 'name',
+                    value: searchQuery,
+                  },
+                ]
               : []),
           ],
         },
@@ -187,9 +187,7 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
         <div className="flex flex-col gap-3">
           <Separator className="mt-3" />
           <div className="flex items-center justify-between h-12 px-4">
-            <p className="font-bold text-lg text-gray-dark">
-              As Builder
-            </p>
+            <p className="font-bold text-lg text-gray-dark">As Builder</p>
             {!!applicationData?.applications?.count && applicationData?.applications?.count > 2 && (
               <Link to={'builder'} className="px-3 flex items-center gap-2">
                 <p className="font-medium text-sm text-gray-dark">View more</p>
@@ -201,7 +199,9 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
             {applicationData?.applications?.data?.length === 0 ? (
               <p className="text-sm text-muted-foreground">No applications found</p>
             ) : (
-              applicationData?.applications?.data?.map((application) => <ApplicationBuilderCard key={application.id} application={application} />)
+              applicationData?.applications?.data?.map((application) => (
+                <ApplicationBuilderCard key={application.id} application={application} />
+              ))
             )}
           </div>
         </div>

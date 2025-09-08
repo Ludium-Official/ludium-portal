@@ -1,4 +1,3 @@
-
 import { ApplicationStatusBadge } from '@/components/status-badge';
 import { Progress } from '@/components/ui/progress';
 import { getCurrencyIcon } from '@/lib/utils';
@@ -37,12 +36,18 @@ export default function ProgramProjectCard({ application, isProject, isSupporter
             <p className="font-semibold text-sm text-neutral-400">PRIZE</p>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1">
-                <p className="font-bold text-sm text-muted-foreground">{application?.program?.price}</p>
+                <p className="font-bold text-sm text-muted-foreground">
+                  {application?.program?.price}
+                </p>
                 {getCurrencyIcon(application?.program?.currency)}
-                <p className="font-medium text-sm text-muted-foreground">{application?.program?.currency}</p>
+                <p className="font-medium text-sm text-muted-foreground">
+                  {application?.program?.currency}
+                </p>
               </div>
               <div className="border-l pl-2">
-                <p className="font-medium text-sm text-muted-foreground">{application?.program?.network}</p>
+                <p className="font-medium text-sm text-muted-foreground">
+                  {application?.program?.network}
+                </p>
               </div>
             </div>
           </div>
@@ -63,13 +68,17 @@ export default function ProgramProjectCard({ application, isProject, isSupporter
               <div className="flex items-center gap-1">
                 <p className="font-bold text-xl text-primary">{application?.program?.price}</p>
                 {getCurrencyIcon(application?.program?.currency)}
-                <p className="font-medium text-sm text-muted-foreground">{application?.program?.currency}</p>
+                <p className="font-medium text-sm text-muted-foreground">
+                  {application?.program?.currency}
+                </p>
               </div>
             </div>
             <div className="flex items-center justify-between py-1">
               <p className="font-semibold text-sm text-neutral-400">PAYED DATE</p>
               <p className="text-sm text-muted-foreground">
-                {application?.program?.deadline ? format(application?.program?.deadline, 'yyyy.MM.dd') : ''}
+                {application?.program?.deadline
+                  ? format(application?.program?.deadline, 'yyyy.MM.dd')
+                  : ''}
               </p>
             </div>
           </div>

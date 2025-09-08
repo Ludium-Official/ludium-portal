@@ -13,59 +13,66 @@ const mockPrograms = [
     name: 'PROGRAM NAME 3: SAMPLE',
     creator: {
       firstName: 'William Smith',
-      image: 'https://via.placeholder.com/28x28'
+      image: 'https://via.placeholder.com/28x28',
     },
     price: '40,000',
     currency: 'USDT',
     network: 'Arbitrum',
     deadline: '2025-03-30',
-    description: "Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages",
+    description:
+      "Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages",
     status: 'payment_required',
     keywords: [
       { id: '1', name: 'New' },
       { id: '2', name: 'Social' },
-      { id: '3', name: 'Solidity' }
+      { id: '3', name: 'Solidity' },
     ],
-    image: 'https://via.placeholder.com/128x128'
+    image: 'https://via.placeholder.com/128x128',
   },
   {
     id: '2',
     name: 'PROGRAM NAME 4: SAMPLE',
     creator: {
       firstName: 'William Smith',
-      image: 'https://via.placeholder.com/28x28'
+      image: 'https://via.placeholder.com/28x28',
     },
     price: '25,000',
     currency: 'USDT',
     network: 'Arbitrum',
     deadline: '2025-04-15',
-    description: "Another innovative blockchain solution that leverages advanced cryptographic protocols for secure and efficient decentralized applications.",
+    description:
+      'Another innovative blockchain solution that leverages advanced cryptographic protocols for secure and efficient decentralized applications.',
     status: 'payment_required',
     keywords: [
       { id: '1', name: 'New' },
       { id: '2', name: 'Social' },
-      { id: '3', name: 'Solidity' }
+      { id: '3', name: 'Solidity' },
     ],
-    image: 'https://via.placeholder.com/128x128'
-  }
+    image: 'https://via.placeholder.com/128x128',
+  },
 ];
 
 // Mock data for posts
 const mockPosts = [
   {
     id: '1',
-    title: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc convallis nisl non euismod fringilla.',
+    title:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc convallis nisl non euismod fringilla.',
     author: 'William Smith',
     date: '2025.06.13',
     views: 12,
-    description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc convallis nisl non euismod fringilla. Aliquam cursus, ante ut malesuada ultrices, diam eros condimentum enim, in mattis sapien eros eget nunc. Vivamus erat massa, pharetra eget nibh et, imperdiet convallis mi. Vestibulum dapibus, odio at sodales',
+    description:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc convallis nisl non euismod fringilla. Aliquam cursus, ante ut malesuada ultrices, diam eros condimentum enim, in mattis sapien eros eget nunc. Vivamus erat massa, pharetra eget nibh et, imperdiet convallis mi. Vestibulum dapibus, odio at sodales',
     comments: 2,
-    image: 'https://via.placeholder.com/356x242'
-  }
+    image: 'https://via.placeholder.com/356x242',
+  },
 ];
 
 // Simple Switch component
-const Switch = ({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) => {
+const Switch = ({
+  checked,
+  onChange,
+}: { checked: boolean; onChange: (checked: boolean) => void }) => {
   return (
     <button
       type="button"
@@ -74,13 +81,13 @@ const Switch = ({ checked, onChange }: { checked: boolean; onChange: (checked: b
       onClick={() => onChange(!checked)}
       className={cn(
         'relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-        checked ? 'bg-primary' : 'bg-input'
+        checked ? 'bg-primary' : 'bg-input',
       )}
     >
       <span
         className={cn(
           'pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform',
-          checked ? 'translate-x-5' : 'translate-x-0'
+          checked ? 'translate-x-5' : 'translate-x-0',
         )}
       />
     </button>
@@ -118,7 +125,7 @@ function BannerAdminPage() {
               {/* Badge Section */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Switch checked={false} onChange={() => { }} />
+                  <Switch checked={false} onChange={() => {}} />
                   {program.keywords.map((keyword) => (
                     <Badge key={keyword.id} variant="secondary" className="text-xs">
                       {keyword.name}
@@ -152,10 +159,16 @@ function BannerAdminPage() {
                       <div className="flex justify-between items-center">
                         <span className="text-xs font-semibold text-[#A3A3A3]">PRICE</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-[#71717A]">{program.price}</span>
-                          <span className="text-xs font-medium text-[#71717A]">{program.currency}</span>
+                          <span className="text-xs font-semibold text-[#71717A]">
+                            {program.price}
+                          </span>
+                          <span className="text-xs font-medium text-[#71717A]">
+                            {program.currency}
+                          </span>
                           <div className="w-px h-4 bg-gray-300" />
-                          <span className="text-xs font-medium text-[#71717A]">{program.network}</span>
+                          <span className="text-xs font-medium text-[#71717A]">
+                            {program.network}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -165,7 +178,9 @@ function BannerAdminPage() {
                         <span className="text-xs font-semibold text-[#A3A3A3]">DEADLINE</span>
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-medium text-[#71717A]">30.MAR.2025</span>
-                          <Badge variant="default" className="text-xs">D-7</Badge>
+                          <Badge variant="default" className="text-xs">
+                            D-7
+                          </Badge>
                         </div>
                       </div>
                     </div>
@@ -183,7 +198,7 @@ function BannerAdminPage() {
         <div className="flex flex-col gap-3 p-3 border rounded-lg bg-[#FAFAFA]">
           {/* Switch */}
           <div className="flex justify-start">
-            <Switch checked={false} onChange={() => { }} />
+            <Switch checked={false} onChange={() => {}} />
           </div>
 
           {/* Post Content */}
@@ -194,7 +209,9 @@ function BannerAdminPage() {
             {/* Content */}
             <div className="flex flex-col gap-3 flex-1">
               <div className="flex flex-col gap-1">
-                <h3 className="text-base font-bold text-[#18181B] line-clamp-2">{mockPosts[0].title}</h3>
+                <h3 className="text-base font-bold text-[#18181B] line-clamp-2">
+                  {mockPosts[0].title}
+                </h3>
                 <span className="text-xs font-semibold text-[#71717A]">{mockPosts[0].author}</span>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-[#71717A]">{mockPosts[0].date}</span>
@@ -209,9 +226,14 @@ function BannerAdminPage() {
               <p className="text-sm text-[#64748B] line-clamp-3">{mockPosts[0].description}</p>
 
               <div className="mt-auto">
-                <Button variant="secondary" className="bg-[#F4F4F5] text-[#71717A] hover:bg-[#F4F4F5]">
+                <Button
+                  variant="secondary"
+                  className="bg-[#F4F4F5] text-[#71717A] hover:bg-[#F4F4F5]"
+                >
                   <span className="text-sm font-medium">Comment</span>
-                  <span className="text-sm font-bold text-[#B331FF] ml-1">{mockPosts[0].comments}</span>
+                  <span className="text-sm font-bold text-[#B331FF] ml-1">
+                    {mockPosts[0].comments}
+                  </span>
                 </Button>
               </div>
             </div>

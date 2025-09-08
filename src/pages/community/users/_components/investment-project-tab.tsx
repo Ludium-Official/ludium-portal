@@ -31,19 +31,19 @@ export default function UserInvestmentProjectTab({ myProfile }: { myProfile?: bo
         filter: [
           {
             value: profileId,
-            field: "applicantId",
+            field: 'applicantId',
           },
           {
-            value: "regular",
-            field: "programType",
+            value: 'regular',
+            field: 'programType',
           },
           ...(searchQuery
             ? [
-              {
-                field: 'name',
-                value: searchQuery,
-              },
-            ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
             : []),
         ],
       },
@@ -79,7 +79,10 @@ export default function UserInvestmentProjectTab({ myProfile }: { myProfile?: bo
           ))}
         </div>
       </div>
-      <Pagination totalCount={applicationsData?.applications?.count ?? 0} pageSize={programPageSize} />
+      <Pagination
+        totalCount={applicationsData?.applications?.count ?? 0}
+        pageSize={programPageSize}
+      />
     </div>
   );
 }

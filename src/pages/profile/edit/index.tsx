@@ -119,7 +119,7 @@ function EditProfilePage() {
     profileData?.profile?.about === content &&
     JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links) &&
     JSON.stringify(profileData.profile.keywords?.map((k) => k.name || '') || []) ===
-    JSON.stringify(watch('keywords') || []);
+      JSON.stringify(watch('keywords') || []);
 
   const [keywordInput, setKeywordInput] = useState<string>('');
 

@@ -81,7 +81,13 @@ function ProjectDetailsPage() {
   const { user: privyUser } = usePrivy();
   const { id, projectId } = useParams();
 
-  const { data, refetch, startPolling, stopPolling, error: appError } = useApplicationQuery({
+  const {
+    data,
+    refetch,
+    startPolling,
+    stopPolling,
+    error: appError,
+  } = useApplicationQuery({
     variables: {
       id: projectId ?? '',
     },
@@ -1280,20 +1286,22 @@ function ProjectDetailsPage() {
                 <button
                   onClick={() => setActiveTab('terms')}
                   type="button"
-                  className={`p-2 font-medium text-sm transition-colors ${activeTab === 'terms'
+                  className={`p-2 font-medium text-sm transition-colors ${
+                    activeTab === 'terms'
                       ? 'border-b border-b-primary text-primary'
                       : 'text-muted-foreground hover:text-foreground border-b'
-                    }`}
+                  }`}
                 >
                   Terms
                 </button>
                 <button
                   onClick={() => setActiveTab('milestones')}
                   type="button"
-                  className={`p-2 font-medium text-sm transition-colors ${activeTab === 'milestones'
+                  className={`p-2 font-medium text-sm transition-colors ${
+                    activeTab === 'milestones'
                       ? 'border-b border-b-primary text-primary'
                       : 'text-muted-foreground hover:text-foreground border-b'
-                    }`}
+                  }`}
                 >
                   Milestones
                 </button>
@@ -1638,7 +1646,7 @@ function ProjectDetailsPage() {
                                   disabled={
                                     (idx !== 0 &&
                                       data?.application?.milestones?.[idx - 1]?.status !==
-                                      MilestoneStatus.Completed) ||
+                                        MilestoneStatus.Completed) ||
                                     // Prevent milestone submission before funding ends
                                     (program?.fundingEndDate &&
                                       new Date() <= new Date(program.fundingEndDate))
@@ -1648,7 +1656,7 @@ function ProjectDetailsPage() {
                                     className="h-10 block ml-auto"
                                     title={
                                       program?.fundingEndDate &&
-                                        new Date() <= new Date(program.fundingEndDate)
+                                      new Date() <= new Date(program.fundingEndDate)
                                         ? `Milestones can only be submitted after funding ends on ${new Date(program.fundingEndDate).toLocaleDateString()}`
                                         : undefined
                                     }

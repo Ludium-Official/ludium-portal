@@ -31,19 +31,19 @@ export default function UserRecruitmentBuilderTab({ myProfile }: { myProfile?: b
         filter: [
           {
             value: profileId,
-            field: "applicantId",
+            field: 'applicantId',
           },
           {
-            value: "regular",
-            field: "programType",
+            value: 'regular',
+            field: 'programType',
           },
           ...(searchQuery
             ? [
-              {
-                field: 'name',
-                value: searchQuery,
-              },
-            ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
             : []),
         ],
       },
@@ -77,7 +77,10 @@ export default function UserRecruitmentBuilderTab({ myProfile }: { myProfile?: b
           ))}
         </div>
       </div>
-      <Pagination totalCount={applicationData?.applications?.count ?? 0} pageSize={programPageSize} />
+      <Pagination
+        totalCount={applicationData?.applications?.count ?? 0}
+        pageSize={programPageSize}
+      />
     </div>
   );
 }

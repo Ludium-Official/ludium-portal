@@ -99,9 +99,11 @@ function UserDetailsPage() {
                         return (
                           // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                           <div key={index} className="flex items-center gap-2">
-
-                            <div className='bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center'>
-                              <SocialIcon value={link.url ?? ""} className='w-4 h-4 text-secondary-foreground' />
+                            <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
+                              <SocialIcon
+                                value={link.url ?? ''}
+                                className="w-4 h-4 text-secondary-foreground"
+                              />
                             </div>
                             <a
                               target="_blank"
