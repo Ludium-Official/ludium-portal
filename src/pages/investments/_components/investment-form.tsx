@@ -795,7 +795,15 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                   <div className="flex-1">
                     <DatePicker
                       date={applicationStartDate}
-                      setDate={setApplicationStartDate}
+                      setDate={(date) => {
+                        if (date && typeof date === 'object' && 'getTime' in date) {
+                          const newDate = new Date(date.getTime());
+                          newDate.setHours(0, 0, 0, 0);
+                          setApplicationStartDate(newDate);
+                        } else {
+                          setApplicationStartDate(date);
+                        }
+                      }}
                       // Allow selecting today and future dates
                       disabled={isPublished ? true : { before: new Date(new Date().setHours(0, 0, 0, 0)) }}
                     />
@@ -810,7 +818,15 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                   <div className="flex-1">
                     <DatePicker
                       date={applicationDueDate}
-                      setDate={setApplicationDueDate}
+                      setDate={(date) => {
+                        if (date && typeof date === 'object' && 'getTime' in date) {
+                          const newDate = new Date(date.getTime());
+                          newDate.setHours(23, 59, 59, 999);
+                          setApplicationDueDate(newDate);
+                        } else {
+                          setApplicationDueDate(date);
+                        }
+                      }}
                       disabled={isPublished ? true : {
                         // Application end must be same day or after application start
                         before: applicationStartDate
@@ -838,7 +854,15 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                   <div className="flex-1">
                     <DatePicker
                       date={fundingStartDate}
-                      setDate={setFundingStartDate}
+                      setDate={(date) => {
+                        if (date && typeof date === 'object' && 'getTime' in date) {
+                          const newDate = new Date(date.getTime());
+                          newDate.setHours(0, 0, 0, 0);
+                          setFundingStartDate(newDate);
+                        } else {
+                          setFundingStartDate(date);
+                        }
+                      }}
                       // Allow selecting today and future dates (can overlap with application period per PRD)
                       disabled={isPublished ? true : { before: new Date(new Date().setHours(0, 0, 0, 0)) }}
                     />
@@ -853,7 +877,15 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                   <div className="flex-1">
                     <DatePicker
                       date={fundingDueDate}
-                      setDate={setFundingDueDate}
+                      setDate={(date) => {
+                        if (date && typeof date === 'object' && 'getTime' in date) {
+                          const newDate = new Date(date.getTime());
+                          newDate.setHours(23, 59, 59, 999);
+                          setFundingDueDate(newDate);
+                        } else {
+                          setFundingDueDate(date);
+                        }
+                      }}
                       disabled={isPublished ? true : {
                         // Funding end must be same day or after funding start
                         before: fundingStartDate

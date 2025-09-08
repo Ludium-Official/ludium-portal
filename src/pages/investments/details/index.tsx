@@ -355,7 +355,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       onClick={(e) => {
                         if (!isAuthed) {
                           notify('Please add your email', 'success');
-                          navigate('/profile/edit');
+                          navigate('/my-profile/edit');
                           return;
                         }
 

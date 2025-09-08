@@ -34,7 +34,7 @@ import ProjectDetailsPage from '@/pages/investments/details/project-details';
 import EditInvestmentPage from '@/pages/investments/edit';
 import MainPage from '@/pages/main';
 // import ProfilePage from '@/pages/profile';
-// import EditProfilePage from '@/pages/profile/edit';
+// import EditProfilePage from '@/pages/my-profile/edit';
 import ProgramsPage from '@/pages/programs';
 import CreateProgramPage from '@/pages/programs/create';
 import ProgramDetailsPage from '@/pages/programs/details';

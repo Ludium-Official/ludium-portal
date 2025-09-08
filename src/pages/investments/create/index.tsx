@@ -32,7 +32,7 @@ const CreateInvestment: React.FC = () => {
       return;
     }
     if (!isAuthed) {
-      navigate('/profile/edit');
+      navigate('/my-profile/edit');
       notify('Please add your email', 'success');
       return;
     }
