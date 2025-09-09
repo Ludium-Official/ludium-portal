@@ -66,7 +66,10 @@ function UserDetailsPage() {
                 <p className="font-bold text-sm text-muted-foreground">ROLES</p>
                 <div className="flex gap-[6px] flex-wrap">
                   {userData?.user?.roleKeywords?.map((keyword) => (
-                    <Badge key={keyword.id} className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
+                    <Badge
+                      key={keyword.id}
+                      className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs"
+                    >
                       {keyword.name}
                     </Badge>
                   ))}
@@ -79,7 +82,10 @@ function UserDetailsPage() {
                 <p className="font-bold text-sm text-muted-foreground">SKILLS</p>
                 <div className="flex gap-[6px] flex-wrap">
                   {userData?.user?.skillKeywords?.map((keyword) => (
-                    <Badge key={keyword.id} className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
+                    <Badge
+                      key={keyword.id}
+                      className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs"
+                    >
                       {keyword.name}
                     </Badge>
                   ))}
@@ -97,9 +103,11 @@ function UserDetailsPage() {
                         return (
                           // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                           <div key={index} className="flex items-center gap-2">
-
-                            <div className='bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center'>
-                              <SocialIcon value={link.url ?? ""} className='w-4 h-4 text-secondary-foreground' />
+                            <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
+                              <SocialIcon
+                                value={link.url ?? ''}
+                                className="w-4 h-4 text-secondary-foreground"
+                              />
                             </div>
                             <a
                               target="_blank"

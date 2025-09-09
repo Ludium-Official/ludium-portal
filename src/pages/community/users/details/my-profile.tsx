@@ -30,7 +30,7 @@ const adminLinks = [
 
 function MyProfilePage() {
   // const { id } = useParams();
-  const { isAdmin, isLoggedIn/*isSuperadmin */ } = useAuth();
+  const { isAdmin, isLoggedIn /*isSuperadmin */ } = useAuth();
   const { user: privyUser, exportWallet, authenticated } = usePrivy();
   const walletInfo = privyUser?.wallet;
   const injectedWallet = privyUser?.wallet?.connectorType !== 'embedded';
@@ -119,7 +119,6 @@ function MyProfilePage() {
     fetchBalances();
   }, [authenticated, walletInfo, network]);
 
-
   return (
     <div className="bg-white rounded-2xl">
       <div className="max-w-1440 mx-auto p-10">
@@ -159,7 +158,7 @@ function MyProfilePage() {
                   className={cn(
                     'h-11 flex-1',
                     isProfileIncomplete &&
-                    'bg-primary text-white hover:bg-primary/90 border-0 hover:text-white',
+                      'bg-primary text-white hover:bg-primary/90 border-0 hover:text-white',
                   )}
                   asChild
                 >
@@ -193,9 +192,8 @@ function MyProfilePage() {
 
             {isAdmin && (
               <div className="flex flex-col gap-2 px-6">
-                <p className='text-sm px-2 gap-2 text-primary h-8 flex items-center select-none'>
-                  <UserCog className='w-4 h-4' /> Admin
-
+                <p className="text-sm px-2 gap-2 text-primary h-8 flex items-center select-none">
+                  <UserCog className="w-4 h-4" /> Admin
                 </p>
                 <div className={'ml-4 pl-2 border-l border-gray-200 space-y-1'}>
                   {adminLinks.map((item) => (
@@ -270,10 +268,10 @@ function MyProfilePage() {
                 <div className="flex gap-[6px] flex-wrap">
                   {(!profileData?.profile?.roleKeywords ||
                     profileData.profile.roleKeywords.length === 0) && (
-                      <span className="text-xs text-muted-foreground font-normal">
-                        There are no roles added yet.
-                      </span>
-                    )}
+                    <span className="text-xs text-muted-foreground font-normal">
+                      There are no roles added yet.
+                    </span>
+                  )}
                   {profileData?.profile?.roleKeywords?.map((k) => (
                     <Badge
                       key={k.id}
@@ -289,10 +287,10 @@ function MyProfilePage() {
                 <div className="flex gap-[6px] flex-wrap">
                   {(!profileData?.profile?.skillKeywords ||
                     profileData.profile.skillKeywords.length === 0) && (
-                      <span className="text-xs text-muted-foreground font-normal">
-                        There are no skills added yet.
-                      </span>
-                    )}
+                    <span className="text-xs text-muted-foreground font-normal">
+                      There are no skills added yet.
+                    </span>
+                  )}
                   {profileData?.profile?.skillKeywords?.map((k) => (
                     <Badge
                       key={k.id}
@@ -312,9 +310,11 @@ function MyProfilePage() {
                         return (
                           // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                           <div key={index} className="flex items-center gap-2">
-
-                            <div className='bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center'>
-                              <SocialIcon value={link.url ?? ""} className='w-4 h-4 text-secondary-foreground' />
+                            <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
+                              <SocialIcon
+                                value={link.url ?? ''}
+                                className="w-4 h-4 text-secondary-foreground"
+                              />
                             </div>
                             {/* {platform && (
                               <div className="flex items-center justify-center h-10 w-10 rounded-md bg-secondary">

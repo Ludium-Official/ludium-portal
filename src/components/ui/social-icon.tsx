@@ -27,10 +27,16 @@ type SocialIconProps = {
   className?: string;
 };
 
-const SocialIcon: React.FC<SocialIconProps> = ({ value, className = 'w-5 h-5 text-secondary-foreground' }) => {
+const SocialIcon: React.FC<SocialIconProps> = ({
+  value,
+  className = 'w-5 h-5 text-secondary-foreground',
+}) => {
   const url = (value || '').toLowerCase();
 
-  const patterns: Array<{ test: RegExp; Icon: React.ComponentType<React.SVGProps<SVGSVGElement>> }> = [
+  const patterns: Array<{
+    test: RegExp;
+    Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  }> = [
     { test: /instagram\.com/, Icon: Instagram },
     { test: /facebook\.com|fb\.com/, Icon: Facebook },
     { test: /x\.com|twitter\.com/, Icon: XIcon },

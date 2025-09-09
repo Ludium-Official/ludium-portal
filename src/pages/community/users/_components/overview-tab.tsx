@@ -1,4 +1,11 @@
 import {
+  type ProfileOverviewQuery,
+  type UserOverviewQuery,
+  useProfileOverviewQuery,
+  useUserOverviewQuery,
+} from '@/apollo/queries/user-overview.generated';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
   Table,
   TableBody,
   TableCell,
@@ -6,8 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useUserOverviewQuery, useProfileOverviewQuery } from '@/apollo/queries/user-overview.generated';
-import { Skeleton } from '@/components/ui/skeleton';
 
 const statusColorMap: Record<string, string> = {
   'Not confirmed': 'bg-gray-400',
@@ -42,7 +47,7 @@ interface OverviewTabProps {
 export default function UserOverviewTab({ userId }: OverviewTabProps) {
   // Use different queries based on whether we're viewing another user or the current user
   const userQuery = useUserOverviewQuery({
-    variables: { userId: userId! },
+    variables: { userId: userId || '' },
     skip: !userId,
     fetchPolicy: 'network-only',
   });
@@ -54,7 +59,9 @@ export default function UserOverviewTab({ userId }: OverviewTabProps) {
 
   const loading = userId ? userQuery.loading : profileQuery.loading;
   const data = userId ? userQuery.data : profileQuery.data;
-  const userData = userId ? data?.user : data?.profile;
+  const userData = userId
+    ? (data as UserOverviewQuery | undefined)?.user
+    : (data as ProfileOverviewQuery | undefined)?.profile;
   const programStats = userData?.programStatistics;
   const investmentStats = userData?.investmentStatistics;
 

@@ -4,12 +4,7 @@ import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -360,13 +355,14 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     // Check if total sum of terms doesn't exceed funding to be raised
     const fundingToBeRaised = Number.parseFloat(watch('fundingToBeRaised') ?? '0');
     const totalSum = terms
-      .filter(term => term.title && term.prize && term.purchaseLimit)
+      .filter((term) => term.title && term.prize && term.purchaseLimit)
       .reduce((sum, term) => {
         const prize = data?.program?.tierSettings
-          ? (data.program.tierSettings as Record<string, { maxAmount?: number }>)[term.prize]?.maxAmount || 0
+          ? (data.program.tierSettings as Record<string, { maxAmount?: number }>)[term.prize]
+              ?.maxAmount || 0
           : Number.parseFloat(term.prize) || 0;
         const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
-        return sum + (prize * purchaseLimit);
+        return sum + prize * purchaseLimit;
       }, 0);
 
     return totalSum <= fundingToBeRaised;
@@ -768,7 +764,8 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                           (value as { enabled: boolean })?.enabled && (
                             <div className="text-sm text-gray-600">
                               {key.charAt(0).toUpperCase() + key.slice(1)}{' '}
-                              {(value as { maxAmount?: number })?.maxAmount} {data?.program?.currency}
+                              {(value as { maxAmount?: number })?.maxAmount}{' '}
+                              {data?.program?.currency}
                             </div>
                           ),
                       )}
@@ -982,22 +979,26 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
               </div>
             ))}
             <div className="bg-[#FAF5FF] rounded-lg py-6 px-10 border border-primary">
-              {terms.length > 0 && terms.some(term => term.title && term.prize && term.purchaseLimit) ? (
+              {terms.length > 0 &&
+              terms.some((term) => term.title && term.prize && term.purchaseLimit) ? (
                 <div className="space-y-4">
-
-                  <div className=''>
-
+                  <div className="">
                     {terms
-                      .filter(term => term.title && term.prize && term.purchaseLimit)
+                      .filter((term) => term.title && term.prize && term.purchaseLimit)
                       .map((term) => {
                         const prize = data?.program?.tierSettings
-                          ? (data.program.tierSettings as Record<string, { maxAmount?: number }>)[term.prize]?.maxAmount || 0
+                          ? (data.program.tierSettings as Record<string, { maxAmount?: number }>)[
+                              term.prize
+                            ]?.maxAmount || 0
                           : Number.parseFloat(term.prize) || 0;
                         const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
                         const totalPrice = prize * purchaseLimit;
 
                         return (
-                          <div key={term.id} className="grid grid-cols-3 gap-4 p-4 border-b border-gray-100 text-sm last:border-b-0">
+                          <div
+                            key={term.id}
+                            className="grid grid-cols-3 gap-4 p-4 border-b border-gray-100 text-sm last:border-b-0"
+                          >
                             <div className="flex items-center">
                               {data?.program?.tierSettings ? (
                                 <span
@@ -1023,13 +1024,15 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                   {/* Total Row */}
                   {(() => {
                     const totalSum = terms
-                      .filter(term => term.title && term.prize && term.purchaseLimit)
+                      .filter((term) => term.title && term.prize && term.purchaseLimit)
                       .reduce((sum, term) => {
                         const prize = data?.program?.tierSettings
-                          ? (data.program.tierSettings as Record<string, { maxAmount?: number }>)[term.prize]?.maxAmount || 0
+                          ? (data.program.tierSettings as Record<string, { maxAmount?: number }>)[
+                              term.prize
+                            ]?.maxAmount || 0
                           : Number.parseFloat(term.prize) || 0;
                         const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
-                        return sum + (prize * purchaseLimit);
+                        return sum + prize * purchaseLimit;
                       }, 0);
 
                     const fundingToBeRaised = Number.parseFloat(watch('fundingToBeRaised') ?? '0');
@@ -1040,14 +1043,18 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         <div className="grid grid-cols-3 gap-4 p-4 border-t-2 border-foreground font-bold text-base bg-gray-50">
                           <div>Total</div>
                           <div />
-                          <div className={`justify-self-end text-right ${exceedsFunding ? 'text-destructive' : 'text-primary'}`}>
+                          <div
+                            className={`justify-self-end text-right ${exceedsFunding ? 'text-destructive' : 'text-primary'}`}
+                          >
                             {totalSum.toLocaleString()} {data?.program?.currency}
                           </div>
                         </div>
                         {exceedsFunding && (
                           <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
                             <p className="text-destructive text-sm font-medium">
-                              Total terms amount ({totalSum.toLocaleString()} {data?.program?.currency}) exceeds funding to be raised ({fundingToBeRaised.toLocaleString()} {data?.program?.currency})
+                              Total terms amount ({totalSum.toLocaleString()}{' '}
+                              {data?.program?.currency}) exceeds funding to be raised (
+                              {fundingToBeRaised.toLocaleString()} {data?.program?.currency})
                             </p>
                           </div>
                         )}

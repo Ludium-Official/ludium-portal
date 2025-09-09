@@ -7,7 +7,7 @@ import { Pagination } from '@/components/ui/pagination';
 import { getInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
 import { getCurrencyIcon } from '@/lib/utils';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
@@ -23,6 +23,7 @@ export default function UserInvestmentReclaimTab({ myProfile }: { myProfile?: bo
   const [searchQuery, setSearchQuery] = useState('');
   const currentPage = Number(searchParams.get('page')) || 1;
   const { sendTransaction } = usePrivy();
+  const { wallets } = useWallets();
 
   const { data: profileData } = useProfileQuery({
     fetchPolicy: 'network-only',
@@ -47,6 +48,37 @@ export default function UserInvestmentReclaimTab({ myProfile }: { myProfile?: bo
   type Investment = NonNullable<NonNullable<InvestmentsQuery['investments']>['data']>[0];
 
   const handleReclaimInvestment = async (investment: Investment) => {
+    console.log('=== HANDLE RECLAIM INVESTMENT START ===');
+    console.log('Full investment object:', investment);
+    console.log('Investment ID:', investment?.id);
+    console.log('Project:', investment?.project);
+    console.log('On-chain project ID:', investment?.project?.onChainProjectId);
+    console.log('Program:', investment?.project?.program);
+    console.log('Network:', investment?.project?.program?.network);
+    console.log('Can reclaim:', investment?.canReclaim);
+    console.log('Already reclaimed:', investment?.reclaimed);
+    console.log('Investment amount:', investment?.amount);
+    console.log('Investor ID from DB:', investment?.supporter?.id);
+    console.log('Investor email from DB:', investment?.supporter?.email);
+    console.log('Investment transaction hash from DB:', investment?.txHash);
+    console.log('Reclaim transaction hash from DB:', investment?.reclaimTxHash);
+
+    // If there's a transaction hash, provide a link to check it
+    if (investment?.txHash) {
+      const network = investment?.project?.program?.network || 'educhain-testnet';
+      let explorerUrl = '';
+      if (network === 'educhain-testnet') {
+        explorerUrl = `https://explorer.open-campus-codex.gelato.digital/tx/${investment.txHash}`;
+      } else if (network === 'base-sepolia') {
+        explorerUrl = `https://sepolia.basescan.org/tx/${investment.txHash}`;
+      } else if (network === 'arbitrum-sepolia') {
+        explorerUrl = `https://sepolia.arbiscan.io/tx/${investment.txHash}`;
+      }
+      console.log('Check investment transaction on explorer:', explorerUrl);
+    }
+
+    console.log('=== END INVESTMENT DATA ===');
+
     const investmentId = investment?.id;
     const onChainProjectId = investment?.project?.onChainProjectId;
     const network = investment?.project?.program?.network || 'educhain-testnet';
@@ -56,8 +88,18 @@ export default function UserInvestmentReclaimTab({ myProfile }: { myProfile?: bo
       return;
     }
 
+    // Get user's wallet address
+    const userAddress = wallets?.[0]?.address;
+    if (!userAddress) {
+      notify('Please connect your wallet first', 'error');
+      return;
+    }
+    console.log('User wallet address:', userAddress);
+
     if (onChainProjectId === null || onChainProjectId === undefined) {
       // For now, we'll use a mock ID for testing since projects aren't being validated on chain
+      console.error('No on-chain project ID found');
+      console.log('Project data:', investment?.project);
 
       // You can either:
       // 1. Show an error (current behavior)
@@ -86,7 +128,7 @@ export default function UserInvestmentReclaimTab({ myProfile }: { myProfile?: bo
     }) as PublicClient;
 
     // Get the investment contract for the correct network
-    const investmentContract = getInvestmentContract(network, sendTransaction, client);
+    const investmentContract = getInvestmentContract(network, sendTransaction, client, userAddress);
 
     setReclaimingId(investmentId);
     try {
@@ -128,8 +170,20 @@ export default function UserInvestmentReclaimTab({ myProfile }: { myProfile?: bo
         errorMessage?.includes('User denied')
       ) {
         notify('Transaction cancelled by user', 'error');
+      } else if (errorMessage?.includes('still active')) {
+        notify(
+          'Cannot reclaim: The project is still active. Reclaim is only available when the project fails or funding period ends.',
+          'error',
+        );
+      } else if (errorMessage?.includes('completed successfully')) {
+        notify(
+          'Cannot reclaim: This project completed successfully. Funds are distributed via milestones.',
+          'error',
+        );
+      } else if (errorMessage?.includes('No investment found')) {
+        notify('Cannot reclaim: No investment found for your wallet on the blockchain.', 'error');
       } else {
-        notify(`Failed to reclaim investment: ${errorMessage || 'Unknown error'}`, 'error');
+        notify(`Failed to reclaim: ${errorMessage || 'Unknown error'}`, 'error');
       }
     } finally {
       setReclaimingId(null);

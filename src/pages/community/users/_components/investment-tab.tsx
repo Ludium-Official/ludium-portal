@@ -39,11 +39,11 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
           },
           ...(searchQuery
             ? [
-              {
-                field: 'name',
-                value: searchQuery,
-              },
-            ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
             : []),
         ],
       },
@@ -55,7 +55,6 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
     setSearchQuery(e.target.value);
   };
 
-
   const { data: applicationsData } = useApplicationsQuery({
     variables: {
       pagination: {
@@ -64,19 +63,19 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
         filter: [
           {
             value: profileId,
-            field: "applicantId",
+            field: 'applicantId',
           },
           {
-            value: "regular",
-            field: "programType",
+            value: 'regular',
+            field: 'programType',
           },
           ...(searchQuery
             ? [
-              {
-                field: 'name',
-                value: searchQuery,
-              },
-            ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
             : []),
         ],
       },

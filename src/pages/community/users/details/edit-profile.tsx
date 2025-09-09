@@ -101,15 +101,24 @@ function EditProfilePage() {
           lastName: data?.lastName,
           about: content,
           // Only send keywords if they've changed
-          ...(JSON.stringify(profileData?.profile?.keywords?.map((k) => k.name || '') || []) !== 
-             JSON.stringify(data.keywords || []) ? { keywords: data.keywords } : {}),
-          ...(JSON.stringify(profileData?.profile?.roleKeywords?.map((k) => k.name || '') || []) !== 
-             JSON.stringify(data.roleKeywords || []) ? { roleKeywords: data.roleKeywords } : {}),
-          ...(JSON.stringify(profileData?.profile?.skillKeywords?.map((k) => k.name || '') || []) !== 
-             JSON.stringify(data.skillKeywords || []) ? { skillKeywords: data.skillKeywords } : {}),
+          ...(JSON.stringify(profileData?.profile?.keywords?.map((k) => k.name || '') || []) !==
+          JSON.stringify(data.keywords || [])
+            ? { keywords: data.keywords }
+            : {}),
+          ...(JSON.stringify(profileData?.profile?.roleKeywords?.map((k) => k.name || '') || []) !==
+          JSON.stringify(data.roleKeywords || [])
+            ? { roleKeywords: data.roleKeywords }
+            : {}),
+          ...(JSON.stringify(
+            profileData?.profile?.skillKeywords?.map((k) => k.name || '') || [],
+          ) !== JSON.stringify(data.skillKeywords || [])
+            ? { skillKeywords: data.skillKeywords }
+            : {}),
           links: (() => {
             const { shouldSend } = validateLinks(links);
-            return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
+            return shouldSend
+              ? filterEmptyLinks(links).map((l) => ({ title: l, url: l }))
+              : undefined;
           })(),
         },
       },
@@ -137,39 +146,40 @@ function EditProfilePage() {
     profileData?.profile?.about === content &&
     JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links) &&
     JSON.stringify(profileData.profile.keywords?.map((k) => k.name || '') || []) ===
-    JSON.stringify(watch('keywords') || []) &&
+      JSON.stringify(watch('keywords') || []) &&
     JSON.stringify(profileData.profile.roleKeywords?.map((k) => k.name || '') || []) ===
-    JSON.stringify(watch('roleKeywords') || []) &&
+      JSON.stringify(watch('roleKeywords') || []) &&
     JSON.stringify(profileData.profile.skillKeywords?.map((k) => k.name || '') || []) ===
-    JSON.stringify(watch('skillKeywords') || []);
+      JSON.stringify(watch('skillKeywords') || []);
 
-  const [keywordInput, setKeywordInput] = useState<string>('');
+  // const [keywordInput, setKeywordInput] = useState<string>('');
   const [roleKeywordInput, setRoleKeywordInput] = useState<string>('');
   const [skillKeywordInput, setSkillKeywordInput] = useState<string>('');
 
-  const handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setKeywordInput(e.target.value);
-  };
+  // Unused functions - keeping for potential future use
+  // const _handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setKeywordInput(e.target.value);
+  // };
 
-  const handleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if ((e.key === ' ' || e.key === 'Enter') && keywordInput.trim()) {
-      e.preventDefault();
-      const newKeyword = keywordInput.trim();
-      const currentKeywords = getValues('keywords') || [];
-      if (newKeyword && !currentKeywords.includes(newKeyword)) {
-        setValue('keywords', [...currentKeywords, newKeyword]);
-      }
-      setKeywordInput('');
-    }
-  };
+  // const _handleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  //   if ((e.key === ' ' || e.key === 'Enter') && keywordInput.trim()) {
+  //     e.preventDefault();
+  //     const newKeyword = keywordInput.trim();
+  //     const currentKeywords = getValues('keywords') || [];
+  //     if (newKeyword && !currentKeywords.includes(newKeyword)) {
+  //       setValue('keywords', [...currentKeywords, newKeyword]);
+  //     }
+  //     setKeywordInput('');
+  //   }
+  // };
 
-  const removeKeyword = (keywordToRemove: string) => {
-    const currentKeywords = getValues('keywords') || [];
-    setValue(
-      'keywords',
-      currentKeywords.filter((keyword) => keyword !== keywordToRemove),
-    );
-  };
+  // const _removeKeyword = (keywordToRemove: string) => {
+  //   const currentKeywords = getValues('keywords') || [];
+  //   setValue(
+  //     'keywords',
+  //     currentKeywords.filter((keyword) => keyword !== keywordToRemove),
+  //   );
+  // };
 
   // Role keywords handlers
   const handleRoleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -386,9 +396,7 @@ function EditProfilePage() {
               </label>
 
               <label htmlFor="skillKeyword" className="space-y-2 block mb-10">
-                <p className="text-sm font-medium">
-                  Skills
-                </p>
+                <p className="text-sm font-medium">Skills</p>
                 <div className="space-y-3">
                   <Input
                     id="skillKeyword"
@@ -492,8 +500,8 @@ function EditProfilePage() {
                   return (
                     // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                     <div key={idx} className="flex items-center gap-2">
-                      <div className='bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center'>
-                        <SocialIcon value={l} className='w-4 h-4 text-secondary-foreground' />
+                      <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
+                        <SocialIcon value={l} className="w-4 h-4 text-secondary-foreground" />
                       </div>
                       <Input
                         className="h-10"
@@ -512,7 +520,7 @@ function EditProfilePage() {
                       />
                       {idx !== 0 && (
                         <X
-                          className='hover:cursor-pointer'
+                          className="hover:cursor-pointer"
                           onClick={() =>
                             setLinks((prev) => {
                               const newLinks = [

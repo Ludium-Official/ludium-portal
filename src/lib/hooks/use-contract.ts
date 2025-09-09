@@ -43,8 +43,12 @@ export function useContract(network: string) {
   const { wallets } = useWallets();
   const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
 
+  // Check if the user is using an external wallet (like MetaMask)
   const injectedWallet = user?.wallet?.connectorType !== 'embedded';
   let sendTx = sendTransaction;
+
+  // If no currentWallet found but user has a wallet, try to use the first available wallet
+  const activeWallet = currentWallet || (injectedWallet && wallets.length > 0 ? wallets[0] : null);
 
   const checkNetwork: Chain = (() => {
     if (network === 'base') {
@@ -66,12 +70,14 @@ export function useContract(network: string) {
     return eduChain;
   })();
 
-  if (injectedWallet && currentWallet) {
+  if (injectedWallet && activeWallet) {
     sendTx = async (input) => {
-      const signer = await getSigner(checkNetwork, currentWallet);
+      const signer = await getSigner(checkNetwork, activeWallet);
       const txResponse = await signer.sendTransaction(input);
       return { hash: txResponse.hash as `0x${string}` };
     };
+  } else if (injectedWallet && !activeWallet) {
+    console.warn('User has an external wallet but no active wallet found. Transactions may fail.');
   }
 
   const checkContract = (() => {
