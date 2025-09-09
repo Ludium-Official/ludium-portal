@@ -253,6 +253,16 @@ export type Investment = {
   txHash?: Maybe<Scalars['String']['output']>;
 };
 
+export type InvestmentStatsByStatus = {
+  __typename?: 'InvestmentStatsByStatus';
+  applicationOngoing?: Maybe<Scalars['Int']['output']>;
+  fundingOngoing?: Maybe<Scalars['Int']['output']>;
+  programCompleted?: Maybe<Scalars['Int']['output']>;
+  projectOngoing?: Maybe<Scalars['Int']['output']>;
+  ready?: Maybe<Scalars['Int']['output']>;
+  refund?: Maybe<Scalars['Int']['output']>;
+};
+
 export enum InvestmentStatus {
   Confirmed = 'confirmed',
   Failed = 'failed',
@@ -1042,6 +1052,7 @@ export type Supporter = {
   maxInvestmentAmount?: Maybe<Scalars['String']['output']>;
   tier?: Maybe<Scalars['String']['output']>;
   userId?: Maybe<Scalars['ID']['output']>;
+  walletAddress?: Maybe<Scalars['String']['output']>;
 };
 
 export type TierAssignmentData = {
@@ -1151,6 +1162,7 @@ export type User = {
   firstName?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   image?: Maybe<Scalars['String']['output']>;
+  investmentStatistics?: Maybe<UserInvestmentStatistics>;
   keywords?: Maybe<Array<Keyword>>;
   lastName?: Maybe<Scalars['String']['output']>;
   links?: Maybe<Array<Link>>;
@@ -1175,6 +1187,13 @@ export type UserInput = {
   password: Scalars['String']['input'];
   summary?: InputMaybe<Scalars['String']['input']>;
   walletAddress?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UserInvestmentStatistics = {
+  __typename?: 'UserInvestmentStatistics';
+  asHost?: Maybe<InvestmentStatsByStatus>;
+  asProject?: Maybe<InvestmentStatsByStatus>;
+  asSupporter?: Maybe<InvestmentStatsByStatus>;
 };
 
 export type UserProgramStatistics = {

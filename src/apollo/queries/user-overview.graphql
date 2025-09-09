@@ -1,0 +1,111 @@
+query UserOverview($userId: ID!) {
+  user(id: $userId) {
+    id
+    programStatistics {
+      asSponsor {
+        notConfirmed
+        confirmed
+        published
+        paymentRequired
+        completed
+        refund
+      }
+      asValidator {
+        notConfirmed
+        confirmed
+        published
+        paymentRequired
+        completed
+        refund
+      }
+      asBuilder {
+        notConfirmed
+        confirmed
+        published
+        paymentRequired
+        completed
+        refund
+      }
+    }
+    investmentStatistics {
+      asHost {
+        ready
+        applicationOngoing
+        fundingOngoing
+        projectOngoing
+        programCompleted
+        refund
+      }
+      asProject {
+        ready
+        fundingOngoing
+        projectOngoing
+        programCompleted
+        refund
+      }
+      asSupporter {
+        ready
+        fundingOngoing
+        projectOngoing
+        programCompleted
+        refund
+      }
+    }
+  }
+}
+
+query ProfileOverview {
+  profile {
+    id
+    programStatistics {
+      asSponsor {
+        notConfirmed
+        confirmed
+        published
+        paymentRequired
+        completed
+        refund
+      }
+      asValidator {
+        notConfirmed
+        confirmed
+        published
+        paymentRequired
+        completed
+        refund
+      }
+      asBuilder {
+        notConfirmed
+        confirmed
+        published
+        paymentRequired
+        completed
+        refund
+      }
+    }
+    investmentStatistics {
+      asHost {
+        ready
+        applicationOngoing
+        fundingOngoing
+        projectOngoing
+        programCompleted
+        refund
+      }
+      asProject {
+        ready
+        fundingOngoing
+        projectOngoing
+        programCompleted
+        refund
+      }
+      asSupporter {
+        ready
+        fundingOngoing
+        projectOngoing
+        programCompleted
+        refund
+      }
+    }
+  }
+}
