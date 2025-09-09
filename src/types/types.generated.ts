@@ -310,6 +310,11 @@ export type Keyword = {
   name?: Maybe<Scalars['String']['output']>;
 };
 
+export enum KeywordType {
+  Role = 'role',
+  Skill = 'skill'
+}
+
 export type Link = {
   __typename?: 'Link';
   title?: Maybe<Scalars['String']['output']>;
@@ -441,6 +446,7 @@ export type MutationAddProgramKeywordArgs = {
 
 export type MutationAddUserKeywordArgs = {
   keyword: Scalars['String']['input'];
+  type?: InputMaybe<KeywordType>;
   userId: Scalars['ID']['input'];
 };
 
@@ -601,6 +607,7 @@ export type MutationRemoveUserFromProgramArgs = {
 
 export type MutationRemoveUserKeywordArgs = {
   keyword: Scalars['String']['input'];
+  type?: InputMaybe<KeywordType>;
   userId: Scalars['ID']['input'];
 };
 
@@ -1170,6 +1177,8 @@ export type User = {
   organizationName?: Maybe<Scalars['String']['output']>;
   programStatistics?: Maybe<UserProgramStatistics>;
   role?: Maybe<UserRole>;
+  roleKeywords?: Maybe<Array<Keyword>>;
+  skillKeywords?: Maybe<Array<Keyword>>;
   summary?: Maybe<Scalars['String']['output']>;
   walletAddress?: Maybe<Scalars['String']['output']>;
 };
