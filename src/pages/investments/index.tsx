@@ -186,12 +186,11 @@ export default function InvestmentsPage() {
                   />
                 </div>
                 <Button
-                  className="bg-gray-900 text-white hover:bg-gray-800 px-3 py-2 text-sm whitespace-nowrap"
+                  className="hidden md:flex bg-gray-900 text-white hover:bg-gray-800 px-3 py-2 text-sm whitespace-nowrap items-center gap-2"
                   onClick={() => navigate('/investments/create')}
                 >
                   <CirclePlus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Create Investment</span>
-                  <span className="sm:hidden">Create</span>
+                  Create Investment
                 </Button>
               </div>
             </div>

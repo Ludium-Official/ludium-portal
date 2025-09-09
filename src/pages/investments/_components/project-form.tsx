@@ -255,7 +255,10 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     });
 
     if (termsErrors.some((error) => error)) {
-      dispatchErrors({ type: ExtraErrorActionKind.SET_TERMS_ERROR, payload: termsErrors });
+      dispatchErrors({
+        type: ExtraErrorActionKind.SET_TERMS_ERROR,
+        payload: termsErrors,
+      });
       hasErrors = true;
     }
 
@@ -354,16 +357,19 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
     // Check if total sum of terms doesn't exceed funding to be raised
     const fundingToBeRaised = Number.parseFloat(watch('fundingToBeRaised') ?? '0');
-    const totalSum = terms
-      .filter((term) => term.title && term.prize && term.purchaseLimit)
-      .reduce((sum, term) => {
-        const prize = data?.program?.tierSettings
-          ? (data.program.tierSettings as Record<string, { maxAmount?: number }>)[term.prize]
-              ?.maxAmount || 0
-          : Number.parseFloat(term.prize) || 0;
-        const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
-        return sum + prize * purchaseLimit;
-      }, 0);
+    const totalSum =
+      Math.round(
+        terms
+          .filter((term) => term.title && term.prize && term.purchaseLimit)
+          .reduce((sum, term) => {
+            const prize = data?.program?.tierSettings
+              ? (data.program.tierSettings as Record<string, { maxAmount?: number }>)[term.prize]
+                  ?.maxAmount || 0
+              : Number.parseFloat(term.prize) || 0;
+            const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
+            return sum + prize * purchaseLimit;
+          }, 0) * 100000000,
+      ) / 100000000;
 
     return totalSum <= fundingToBeRaised;
   };
@@ -551,7 +557,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                           return (
                             <span
                               key={key}
-                              className={`${tierColors[key as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}
+                              className={`${
+                                tierColors[key as keyof typeof tierColors]
+                              } px-2 py-0.5 rounded-full text-sm font-semibold`}
                             >
                               {key.charAt(0).toUpperCase() + key.slice(1)}
                             </span>
@@ -746,7 +754,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                             return (
                               <span
                                 key={key}
-                                className={`${tierColors[key as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}
+                                className={`${
+                                  tierColors[key as keyof typeof tierColors]
+                                } px-2 py-0.5 rounded-full text-sm font-semibold`}
                               >
                                 {key.charAt(0).toUpperCase() + key.slice(1)}
                               </span>
@@ -836,7 +846,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                               {selectedTiers[index] ? (
                                 <span className="flex items-center gap-2">
                                   <span
-                                    className={`${tierColors[selectedTiers[index] as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}
+                                    className={`${
+                                      tierColors[selectedTiers[index] as keyof typeof tierColors]
+                                    } px-2 py-0.5 rounded-full text-sm font-semibold`}
                                   >
                                     {selectedTiers[index].charAt(0).toUpperCase() +
                                       selectedTiers[index].slice(1)}
@@ -885,7 +897,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                                           <div className="w-4 h-4" />
                                         )}
                                         <span
-                                          className={`${tierColors[key as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}
+                                          className={`${
+                                            tierColors[key as keyof typeof tierColors]
+                                          } px-2 py-0.5 rounded-full text-sm font-semibold`}
                                         >
                                           {key.charAt(0).toUpperCase() + key.slice(1)}
                                         </span>
@@ -1002,7 +1016,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                             <div className="flex items-center">
                               {data?.program?.tierSettings ? (
                                 <span
-                                  className={`${tierColors[term.prize as keyof typeof tierColors]} px-2 py-1 rounded-full text-xs font-semibold`}
+                                  className={`${
+                                    tierColors[term.prize as keyof typeof tierColors]
+                                  } px-2 py-1 rounded-full text-xs font-semibold`}
                                 >
                                   {term.prize.charAt(0).toUpperCase() + term.prize.slice(1)}
                                 </span>
@@ -1014,7 +1030,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                             </div>
                             <div className="text-gray-600">{purchaseLimit}</div>
                             <div className="font-medium  justify-self-end text-right">
-                              {totalPrice.toLocaleString()} {data?.program?.currency}
+                              {totalPrice} {data?.program?.currency}
                             </div>
                           </div>
                         );
@@ -1023,17 +1039,23 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
                   {/* Total Row */}
                   {(() => {
-                    const totalSum = terms
-                      .filter((term) => term.title && term.prize && term.purchaseLimit)
-                      .reduce((sum, term) => {
-                        const prize = data?.program?.tierSettings
-                          ? (data.program.tierSettings as Record<string, { maxAmount?: number }>)[
-                              term.prize
-                            ]?.maxAmount || 0
-                          : Number.parseFloat(term.prize) || 0;
-                        const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
-                        return sum + prize * purchaseLimit;
-                      }, 0);
+                    const totalSum =
+                      Math.round(
+                        terms
+                          .filter((term) => term.title && term.prize && term.purchaseLimit)
+                          .reduce((sum, term) => {
+                            const prize = data?.program?.tierSettings
+                              ? (
+                                  data.program.tierSettings as Record<
+                                    string,
+                                    { maxAmount?: number }
+                                  >
+                                )[term.prize]?.maxAmount || 0
+                              : Number.parseFloat(term.prize) || 0;
+                            const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
+                            return sum + prize * purchaseLimit;
+                          }, 0) * 100000000,
+                      ) / 100000000;
 
                     const fundingToBeRaised = Number.parseFloat(watch('fundingToBeRaised') ?? '0');
                     const exceedsFunding = totalSum > fundingToBeRaised;
@@ -1044,17 +1066,18 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                           <div>Total</div>
                           <div />
                           <div
-                            className={`justify-self-end text-right ${exceedsFunding ? 'text-destructive' : 'text-primary'}`}
+                            className={`justify-self-end text-right ${
+                              exceedsFunding ? 'text-destructive' : 'text-primary'
+                            }`}
                           >
-                            {totalSum.toLocaleString()} {data?.program?.currency}
+                            {totalSum} {data?.program?.currency}
                           </div>
                         </div>
                         {exceedsFunding && (
                           <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
                             <p className="text-destructive text-sm font-medium">
-                              Total terms amount ({totalSum.toLocaleString()}{' '}
-                              {data?.program?.currency}) exceeds funding to be raised (
-                              {fundingToBeRaised.toLocaleString()} {data?.program?.currency})
+                              Total terms amount ({totalSum} {data?.program?.currency}) exceeds
+                              funding to be raised ({fundingToBeRaised} {data?.program?.currency})
                             </p>
                           </div>
                         )}
