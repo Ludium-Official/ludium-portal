@@ -122,7 +122,7 @@ const ProgramsPage: React.FC = () => {
 
   return (
     <div className="bg-white rounded-2xl p-10 pr-[55px]">
-      <div className="max-w-1440 mx-auto">
+      <div className="max-w-full md:max-w-1440 mx-auto">
         <div className="flex justify-between items-center pb-4">
           <h1 className="text-3xl font-bold">Recruitment</h1>
         </div>

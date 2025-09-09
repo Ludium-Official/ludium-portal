@@ -1,3 +1,4 @@
+import logo from '@/assets/logo.svg';
 import Notifications from '@/components/notifications';
 
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
@@ -26,6 +27,14 @@ function Header() {
   const { user, authenticated, login: privyLogin, logout: privyLogout, exportWallet } = usePrivy();
   const { login: authLogin, logout: authLogout } = useAuth();
   const navigate = useNavigate();
+
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
+
+  useEffect(() => {
+    const userAgent = navigator.userAgent;
+    const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    setIsMobileDevice(isMobile);
+  }, []);
   const { data: profileData } = useProfileQuery({
     fetchPolicy: 'cache-first',
     skip: !authenticated,
@@ -67,7 +76,9 @@ function Header() {
     const scrollAreaViewport = document.getElementById('scroll-area-main-viewport');
 
     if (scrollAreaViewport) {
-      scrollAreaViewport.addEventListener('scroll', handleScroll, { passive: true });
+      scrollAreaViewport.addEventListener('scroll', handleScroll, {
+        passive: true,
+      });
       return () => scrollAreaViewport.removeEventListener('scroll', handleScroll);
     }
 
@@ -192,16 +203,33 @@ function Header() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-[1] bg-white rounded-2xl flex justify-between items-center px-10 py-[14px] ml-[240px] mr-4 mt-3"
+      className="fixed top-0 left-0 right-0 z-[1] bg-white rounded-2xl flex justify-between items-center px-4 md:px-10 py-[14px] md:ml-[240px] ml-4 mr-4 mt-3"
       style={getHeaderStyles()}
     >
-      <div />
+      {isMobileDevice && (
+        <div className="flex items-center gap-4">
+          <div onClick={() => navigate('/')} className="cursor-pointer flex items-center w-[50px]">
+            <img src={logo} alt="Logo" className="h-8 w-auto" />
+          </div>
+          <button
+            onClick={() => navigate('/investments')}
+            className="text-sm font-medium text-gray-700 hover:text-primary transition-colors px-3 py-1 rounded-md hover:bg-gray-50"
+          >
+            Investment
+          </button>
+        </div>
+      )}
 
-      <div className="flex gap-2">
+      {!isMobileDevice && <div></div>}
+
+      <div className="flex gap-2 items-center ml-auto">
         {authenticated && <Notifications />}
         <div>
           {!authenticated && (
-            <Button className="bg-primary hover:bg-primary/90 h-fit" onClick={login}>
+            <Button
+              className="bg-primary hover:bg-primary/90 h-fit text-sm md:text-base px-3 md:px-4"
+              onClick={login}
+            >
               Login
             </Button>
           )}
@@ -209,61 +237,84 @@ function Header() {
             <Dialog>
               <DialogTrigger asChild>
                 <Button className="bg-primary hover:bg-primary/90 h-fit">
-                  {profileData?.profile?.firstName && profileData?.profile?.lastName
-                    ? `${profileData.profile.firstName} ${profileData.profile.lastName}`
-                    : reduceString(walletInfo?.address || '', 6, 6)}
+                  <span className="hidden sm:inline">
+                    {profileData?.profile?.firstName && profileData?.profile?.lastName
+                      ? `${profileData.profile.firstName} ${profileData.profile.lastName}`
+                      : reduceString(walletInfo?.address || '', 6, 6)}
+                  </span>
+                  <span className="sm:hidden">
+                    {profileData?.profile?.firstName && profileData?.profile?.lastName
+                      ? `${profileData.profile.firstName.charAt(
+                          0,
+                        )}${profileData.profile.lastName.charAt(0)}`
+                      : reduceString(walletInfo?.address || '', 4, 4)}
+                  </span>
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="max-w-[95vw] md:max-w-[425px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle className="text-center text-[20px] font-bold">Profile</DialogTitle>
+                  <DialogTitle className="text-center text-lg md:text-[20px] font-bold">
+                    Profile
+                  </DialogTitle>
                   <DialogDescription className="flex flex-col gap-4 mt-5">
-                    <div className="border border-gray-border rounded-[10px] p-5">
-                      <div className="flex items-center justify-between mb-3 text-[16px] font-bold">
-                        Balance
+                    <div className="border border-gray-border rounded-[10px] p-3 md:p-5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 text-sm md:text-[16px] font-bold gap-2">
+                        <span>Balance</span>
                         <div>
                           <NetworkSelector
                             value={network}
                             onValueChange={setNetwork}
-                            className="min-w-[120px] h-10"
+                            className="min-w-[120px] h-10 w-full sm:w-auto"
                           />
                         </div>
                       </div>
-                      <div>
+                      <div className="text-sm md:text-base">
                         {balances.map((balance) => {
                           return (
-                            <div key={balance.name} className="mb-2">
-                              {balance.name}:{' '}
-                              {balance.amount !== null
-                                ? commaNumber(
-                                    ethers.utils.formatUnits(balance.amount, balance.decimal),
-                                  )
-                                : 'Fetching...'}
+                            <div
+                              key={balance.name}
+                              className="mb-2 flex flex-col sm:flex-row sm:justify-between"
+                            >
+                              <span className="font-medium">{balance.name}:</span>
+                              <span className="break-all">
+                                {balance.amount !== null
+                                  ? commaNumber(
+                                      ethers.utils.formatUnits(balance.amount, balance.decimal),
+                                    )
+                                  : 'Fetching...'}
+                              </span>
                             </div>
                           );
                         })}
                       </div>
                     </div>
-                    <div className="border border-gray-border rounded-[10px] p-5">
-                      <div className="mb-3 text-[16px] font-bold">Account</div>
+                    <div className="border border-gray-border rounded-[10px] p-3 md:p-5">
+                      <div className="mb-3 text-sm md:text-[16px] font-bold">Account</div>
                       {injectedWallet ? (
                         // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
                         <div
-                          className="cursor-pointer hover:underline"
+                          className="cursor-pointer hover:underline text-sm md:text-base break-all"
                           onClick={() => {
                             navigator.clipboard.writeText(walletInfo?.address || '');
                             notify('Copied address!', 'success');
                           }}
                         >
-                          {reduceString(walletInfo?.address || '', 8, 8)}
+                          <span className="hidden sm:inline">
+                            {reduceString(walletInfo?.address || '', 8, 8)}
+                          </span>
+                          <span className="sm:hidden">
+                            {reduceString(walletInfo?.address || '', 6, 6)}
+                          </span>
                         </div>
                       ) : (
-                        <Button className="h-10" onClick={exportWallet}>
+                        <Button className="h-10 w-full text-sm md:text-base" onClick={exportWallet}>
                           See Wallet Detail
                         </Button>
                       )}
                     </div>
-                    <Button onClick={logout}>Logout</Button>
+                    <Button className="w-full text-sm md:text-base" onClick={logout}>
+                      Logout
+                    </Button>
                   </DialogDescription>
                 </DialogHeader>
               </DialogContent>

@@ -8,13 +8,15 @@ import Youtube from '../../assets/social/youtube.svg?react';
 
 function Footer() {
   return (
-    <footer className="bg-white rounded-t-2xl min-h-[310px] py-[64px] px-[60px] text-gray-text">
-      <div className="flex justify-between items-start">
-        <div className="flex items-start gap-[252px]">
-          <Link to="/">
-            <img src={logoFooter} alt="logo" />
-          </Link>
-          <div>
+    <footer className="bg-white rounded-t-2xl min-h-[310px] md:min-h-[310px] py-8 md:py-[64px] px-4 md:px-[60px] text-gray-text">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-8 md:gap-0">
+        <div className="flex flex-col md:flex-row items-start gap-8 md:gap-[252px] w-full md:w-auto">
+          <div className="flex justify-center md:justify-start w-full md:w-auto">
+            <Link to="/">
+              <img src={logoFooter} alt="logo" className="h-8 md:h-auto" />
+            </Link>
+          </div>
+          <div className="text-center md:text-left">
             <h3 className="text-xs font-bold leading-[25px] mb-1">Contact us</h3>
             <a
               target="_blank"
@@ -45,7 +47,7 @@ function Footer() {
             </a>
           </div>
         </div>
-        <div className="text-sm">
+        <div className="text-xs md:text-sm text-center md:text-left mt-4 md:mt-0">
           <p className="leading-[25px]">주식회사 루디움</p>
           <p className="leading-[25px]">대표자 : 임동선 l 사업자등록번호: 379-87-03224</p>
           <p className="leading-[25px]">서울시 서초구 강남대로 305 B117-14</p>

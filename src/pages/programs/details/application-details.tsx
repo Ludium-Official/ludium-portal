@@ -344,7 +344,7 @@ function ApplicationDetails() {
   return (
     <div className="bg-[#F7F7F7]">
       <section className="bg-white p-10 pb-0 rounded-b-2xl">
-        <div className="max-w-1440 mx-auto">
+        <div className="max-w-full md:max-w-1440 mx-auto">
           <ProgramStatusBadge program={program} className="inline-flex mb-4" />
           <div className="flex justify-between mb-5">
             <Link to={`/programs/${id}`} className="flex items-center gap-4 mb-4">

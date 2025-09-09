@@ -54,6 +54,13 @@ const InvestmentDetailsPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [isSupportersModalOpen, setIsSupportersModalOpen] = useState(false);
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
+
+  useEffect(() => {
+    const userAgent = navigator.userAgent;
+    const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    setIsMobileDevice(isMobile);
+  }, []);
 
   const {
     data,
@@ -67,6 +74,15 @@ const InvestmentDetailsPage: React.FC = () => {
   });
 
   const program = data?.program;
+
+  // Check if funding is currently active
+  const isFundingActive = () => {
+    if (!program?.fundingStartDate || !program?.fundingEndDate) return false;
+    const now = new Date();
+    const fundingStart = new Date(program.fundingStartDate);
+    const fundingEnd = new Date(program.fundingEndDate);
+    return now >= fundingStart && now <= fundingEnd;
+  };
 
   // const acceptedPrice = useMemo(
   //   () =>
@@ -302,15 +318,39 @@ const InvestmentDetailsPage: React.FC = () => {
     );
   }
 
+  // Projects section component
+  const ProjectsSection = () => (
+    <div className="bg-white rounded-2xl p-4 md:p-10 mt-0 md:mt-3">
+      <div className="max-w-full md:max-w-[1440px] mx-auto" id="applications">
+        <h2 className="text-xl font-bold mb-4">Projects</h2>
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {!data?.program?.applications?.length && (
+            <div className="text-slate-600 text-sm col-span-full">No applications yet.</div>
+          )}
+          {data?.program?.applications?.map((a) => (
+            <ProjectCard key={a.id} application={a} program={data?.program} />
+          ))}
+        </section>
+      </div>
+    </div>
+  );
+
   return (
     <div className="bg-[#F7F7F7]">
-      <div className="bg-white p-10 rounded-2xl">
-        <section className="max-w-[1440px] mx-auto">
+      {/* Show Projects first on mobile when funding is active */}
+      {isMobileDevice && isFundingActive() && <ProjectsSection />}
+
+      <div
+        className={`bg-white p-4 md:p-10 rounded-2xl ${
+          isMobileDevice && isFundingActive() ? 'mt-3' : ''
+        }`}
+      >
+        <section className="max-w-full md:max-w-[1440px] mx-auto">
           <ProgramStatusBadge program={program} className="inline-flex mb-2" />
 
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl font-bold">{program?.name}</h1>
-            <div className="flex justify-between items-center mb-2 gap-2">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
+            <h1 className="text-xl md:text-2xl font-bold">{program?.name}</h1>
+            <div className="flex flex-wrap justify-start md:justify-end items-center gap-2">
               {(program?.creator?.id === userId || isAdmin) &&
                 program?.fundingCondition === FundingCondition.Tier && (
                   <>
@@ -342,9 +382,9 @@ const InvestmentDetailsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex gap-6">
+          <div className="flex flex-col lg:flex-row gap-6">
             {/* Overview */}
-            <div className="w-full max-w-[360px]">
+            <div className="w-full lg:max-w-[360px]">
               <h3 className="flex items-end mb-3">
                 <span className="p-2 border-b border-b-primary font-medium text-sm">Overview</span>
                 <span className="block border-b w-full" />
@@ -356,7 +396,7 @@ const InvestmentDetailsPage: React.FC = () => {
                 <img
                   src={program?.image}
                   alt="program"
-                  className="w-full aspect-square rounded-xl"
+                  className="w-full aspect-square rounded-xl mb-6"
                 />
               ) : (
                 <div className="bg-[#eaeaea] w-full rounded-xl aspect-square mb-6" />
@@ -414,7 +454,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       Submit application
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="min-w-[800px] min-h-[760px] z-50 w-full max-w-[1440px] p-6 max-h-screen overflow-y-auto">
+                  <DialogContent className="min-w-[800px] min-h-[760px] z-50 w-full max-w-full md:max-w-[1440px] p-6 max-h-screen overflow-y-auto">
                     <CreateApplicationForm program={program} />
                   </DialogContent>
                 </Dialog>
@@ -454,7 +494,13 @@ const InvestmentDetailsPage: React.FC = () => {
                             )}
                           >
                             {program?.applicationStartDate && program?.applicationEndDate
-                              ? `${format(new Date(program.applicationStartDate), 'dd. MMM. yyyy').toUpperCase()} – ${format(new Date(program.applicationEndDate), 'dd. MMM. yyyy').toUpperCase()}`
+                              ? `${format(
+                                  new Date(program.applicationStartDate),
+                                  'dd. MMM. yyyy',
+                                ).toUpperCase()} – ${format(
+                                  new Date(program.applicationEndDate),
+                                  'dd. MMM. yyyy',
+                                ).toUpperCase()}`
                               : 'N/A'}
                           </span>
                         </div>
@@ -494,7 +540,13 @@ const InvestmentDetailsPage: React.FC = () => {
                             )}
                           >
                             {program?.fundingStartDate && program?.fundingEndDate
-                              ? `${format(new Date(program.fundingStartDate), 'dd. MMM. yyyy').toUpperCase()} – ${format(new Date(program.fundingEndDate), 'dd. MMM. yyyy').toUpperCase()}`
+                              ? `${format(
+                                  new Date(program.fundingStartDate),
+                                  'dd. MMM. yyyy',
+                                ).toUpperCase()} – ${format(
+                                  new Date(program.fundingEndDate),
+                                  'dd. MMM. yyyy',
+                                ).toUpperCase()}`
                               : 'N/A'}
                           </span>
                         </div>
@@ -655,7 +707,9 @@ const InvestmentDetailsPage: React.FC = () => {
                       />
                       <AvatarFallback>
                         {getInitials(
-                          `${program?.creator?.firstName || ''} ${program?.creator?.lastName || ''}`,
+                          `${program?.creator?.firstName || ''} ${
+                            program?.creator?.lastName || ''
+                          }`,
                         )}
                       </AvatarFallback>
                     </Avatar>
@@ -846,23 +900,8 @@ const InvestmentDetailsPage: React.FC = () => {
         </section>
       </div>
 
-      {/* <MainSection program={program} refetch={() => refetch} /> */}
-
-      <div className="bg-white rounded-2xl p-10 mt-3">
-        <Tabs className="mt-3 max-w-[1440px] mx-auto" id="applications">
-          <h2 className="text-xl font-bold mb-4">Projects</h2>
-          <section className="" />
-
-          <section className="grid grid-cols-3 gap-5">
-            {!data?.program?.applications?.length && (
-              <div className="text-slate-600 text-sm">No applications yet.</div>
-            )}
-            {data?.program?.applications?.map((a) => (
-              <ProjectCard key={a.id} application={a} program={data?.program} />
-            ))}
-          </section>
-        </Tabs>
-      </div>
+      {/* Show Projects section normally when not mobile or funding is not active */}
+      {(!isMobileDevice || !isFundingActive()) && <ProjectsSection />}
     </div>
   );
 };

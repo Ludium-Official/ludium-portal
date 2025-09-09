@@ -124,7 +124,7 @@ const CommunityDetailsPage: React.FC = () => {
 
   return (
     <div className="bg-white rounded-2xl">
-      <div className="max-w-1440 mx-auto">
+      <div className="max-w-full md:max-w-1440 mx-auto">
         <div className="flex">
           <div className="w-[70%] p-10 flex flex-col gap-20">
             <div className="flex flex-col gap-6">

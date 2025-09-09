@@ -15,15 +15,22 @@ function Layout() {
 
   useEffect(() => {
     const currentPath = location.pathname;
+    const userAgent = navigator.userAgent || navigator.vendor;
+    const isMobileDevice = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+      userAgent,
+    );
 
-    // Only main page and pages starting with "investments" should NOT be mobile
+    // Only main page and pages starting with "investments" should NOT be mobile IF it's a mobile device
     const isMainPage = currentPath === '/' || currentPath === '';
-    const isInvestmentsPage = currentPath.startsWith('/investments');
+    const isInvestmentsPage =
+      currentPath.startsWith('/investments') || currentPath.startsWith('/my-profile');
 
-    if (isMainPage || isInvestmentsPage) {
+    if ((isMainPage || isInvestmentsPage) && isMobileDevice) {
       setIsMobile(false);
-    } else {
+    } else if (isMobileDevice) {
       setIsMobile(true);
+    } else {
+      setIsMobile(false);
     }
 
     setLoading(false);
@@ -41,10 +48,12 @@ function Layout() {
             <MobileWebView />
           ) : (
             <>
-              <Sidebar />
+              <div className="hidden md:block">
+                <Sidebar />
+              </div>
               <ScrollArea
                 id="scroll-area-main"
-                className="bg-gray-light h-[calc(100dvh-24px)] rounded-2xl m-3 ml-[240px] flex flex-col gap-3 relative"
+                className="bg-gray-light h-[calc(100dvh-24px)] rounded-2xl m-3 md:ml-[240px] flex flex-col gap-3 relative"
               >
                 <div className="relative">
                   <Header />

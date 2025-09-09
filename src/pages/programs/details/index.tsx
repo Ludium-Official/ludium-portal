@@ -195,7 +195,7 @@ const DetailsPage: React.FC = () => {
   return (
     <div className="bg-[#F7F7F7]">
       <section className="bg-white rounded-2xl">
-        <div className="max-w-1440 mx-auto p-10">
+        <div className="max-w-full md:max-w-1440 mx-auto p-10">
           <div className="flex justify-between items-center mb-2">
             <ProgramStatusBadge program={program} />
           </div>
@@ -299,7 +299,7 @@ const DetailsPage: React.FC = () => {
                     Submit application
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="min-w-[800px] min-h-[760px] z-50 w-full max-w-[1440px] p-6 max-h-screen overflow-y-auto">
+                <DialogContent className="min-w-[800px] min-h-[760px] z-50 w-full max-w-full md:max-w-[1440px] p-6 max-h-screen overflow-y-auto">
                   <CreateApplicationForm program={program} />
                 </DialogContent>
               </Dialog>
@@ -570,7 +570,7 @@ const DetailsPage: React.FC = () => {
       {/* <MainSection program={program} refetch={() => refetch} /> */}
 
       <section className="bg-white rounded-2xl mt-3">
-        <div className="max-w-1440 mx-auto p-10">
+        <div className="max-w-full md:max-w-1440 mx-auto p-10">
           <Tabs
             id="applications"
             value={selectedStatus}
