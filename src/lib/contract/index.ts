@@ -84,7 +84,7 @@ class ChainContract {
     console.log('Transaction receipt status:', receipt.status);
     console.log('Transaction hash:', hash);
     console.log('Number of logs:', receipt.logs.length);
-    
+
     if (receipt.status === 'reverted') {
       console.error('Transaction reverted');
       throw new Error('Transaction reverted on-chain');
@@ -198,18 +198,15 @@ class ChainContract {
         const balance = await this.getAmount(useToken, program.ownerAddress);
         const priceInWei = BigInt(price.toString());
         const balanceInWei = BigInt(balance as string | number);
-        
+
         if (balanceInWei < priceInWei) {
           const formattedBalance = ethers.utils.formatUnits(
             balanceInWei.toString(),
-            program.token?.decimal ?? 18
+            program.token?.decimal ?? 18,
           );
-          const formattedPrice = ethers.utils.formatUnits(
-            price,
-            program.token?.decimal ?? 18
-          );
+          const formattedPrice = ethers.utils.formatUnits(price, program.token?.decimal ?? 18);
           throw new Error(
-            `Insufficient ${program.token?.name || 'token'} balance. You have ${formattedBalance} ${program.token?.name || 'tokens'} but need ${formattedPrice} ${program.token?.name || 'tokens'} to create this program.`
+            `Insufficient ${program.token?.name || 'token'} balance. You have ${formattedBalance} ${program.token?.name || 'tokens'} but need ${formattedPrice} ${program.token?.name || 'tokens'} to create this program.`,
           );
         }
 
@@ -223,12 +220,12 @@ class ChainContract {
         const balance = await this.getBalance(program.ownerAddress);
         const priceInWei = BigInt(price.toString());
         const balanceInWei = BigInt(balance.toString());
-        
+
         if (balanceInWei < priceInWei) {
           const formattedBalance = ethers.utils.formatUnits(balanceInWei.toString(), 18);
           const formattedPrice = ethers.utils.formatUnits(price, 18);
           throw new Error(
-            `Insufficient EDU balance. You have ${formattedBalance} EDU but need ${formattedPrice} EDU to create this program.`
+            `Insufficient EDU balance. You have ${formattedBalance} EDU but need ${formattedPrice} EDU to create this program.`,
           );
         }
       }
@@ -351,7 +348,7 @@ class ChainContract {
         errorMessage.includes('ERC20: transfer amount exceeds balance')
       ) {
         throw new Error(
-          `Insufficient ${program.token?.name || 'token'} balance. Please ensure you have enough ${program.token?.name || 'tokens'} in your wallet to create this program.`
+          `Insufficient ${program.token?.name || 'token'} balance. Please ensure you have enough ${program.token?.name || 'tokens'} in your wallet to create this program.`,
         );
       }
 
@@ -362,7 +359,7 @@ class ChainContract {
         errorMessage.includes('ERC20: insufficient allowance')
       ) {
         throw new Error(
-          `Token approval failed. Please approve the contract to spend your ${program.token?.name || 'tokens'} and try again.`
+          `Token approval failed. Please approve the contract to spend your ${program.token?.name || 'tokens'} and try again.`,
         );
       }
 
@@ -378,7 +375,7 @@ class ChainContract {
 
         // Try to provide more specific error for common cases
         throw new Error(
-          `Transaction failed: This could be due to insufficient funds, token not whitelisted, or other contract requirements not being met. Please check your ${isNative ? 'EDU' : program.token?.name || 'token'} balance and try again.`
+          `Transaction failed: This could be due to insufficient funds, token not whitelisted, or other contract requirements not being met. Please check your ${isNative ? 'EDU' : program.token?.name || 'token'} balance and try again.`,
         );
       }
 
@@ -449,10 +446,10 @@ class ChainContract {
 
         // Return success with tx hash regardless of whether event was found
         // The transaction succeeded if findReceipt didn't throw
-        return { 
+        return {
           txHash: tx.hash,
           eventFound: receiptResult !== null,
-          programId: receiptResult 
+          programId: receiptResult,
         };
       } catch (receiptError) {
         console.error('Error checking receipt:', receiptError);
@@ -462,10 +459,10 @@ class ChainContract {
         }
         // Otherwise, transaction likely succeeded but we couldn't parse the event
         console.warn('Could not parse event, but transaction may have succeeded');
-        return { 
+        return {
           txHash: tx.hash,
           eventFound: false,
-          programId: null 
+          programId: null,
         };
       }
     } catch (error: unknown) {

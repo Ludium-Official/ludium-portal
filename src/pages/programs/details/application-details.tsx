@@ -288,7 +288,7 @@ function ApplicationDetails() {
           if (result?.txHash) {
             // Transaction was sent successfully
             console.log('Milestone acceptance result:', result);
-            
+
             // Update backend milestone status regardless of event detection
             await checkMilestone({
               variables: {
@@ -300,7 +300,7 @@ function ApplicationDetails() {
               onCompleted: () => {
                 refetch();
                 programRefetch();
-                
+
                 if (!result.eventFound) {
                   notify(
                     'Milestone accepted! Transaction succeeded but event log not found. Please verify on blockchain explorer.',

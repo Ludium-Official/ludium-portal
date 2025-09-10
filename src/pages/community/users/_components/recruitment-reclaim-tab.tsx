@@ -142,9 +142,11 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
 
               // Reclaimable amount is what wasn't paid out
               const reclaimableAmount = totalDeposited - totalPaidOut;
-              
+
               // Add debug logging to see what's happening
-              console.log(`Program ${program?.name}: Deposited=${totalDeposited}, PaidOut=${totalPaidOut}, Reclaimable=${reclaimableAmount}`);
+              console.log(
+                `Program ${program?.name}: Deposited=${totalDeposited}, PaidOut=${totalPaidOut}, Reclaimable=${reclaimableAmount}`,
+              );
 
               if (reclaimableAmount > 0) {
                 // Any amount greater than 0 can be reclaimed
@@ -160,7 +162,9 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
                 });
               } else if (isPastDeadline && totalDeposited > 0) {
                 // Log when a program is past deadline but fully paid out
-                console.log(`Program ${program?.name} is past deadline but fully paid out (no funds to reclaim)`);
+                console.log(
+                  `Program ${program?.name} is past deadline but fully paid out (no funds to reclaim)`,
+                );
               }
             }
           }
