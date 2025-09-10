@@ -1,7 +1,5 @@
 function HiddenCommunitiesAdminPage() {
-  return (
-    <div>Hidden Communities Admin Page</div>
-  )
+  return <div>Hidden Communities Admin Page</div>;
 }
 
-export default HiddenCommunitiesAdminPage
+export default HiddenCommunitiesAdminPage;

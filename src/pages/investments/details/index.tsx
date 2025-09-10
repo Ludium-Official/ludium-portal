@@ -55,7 +55,11 @@ const InvestmentDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const [isSupportersModalOpen, setIsSupportersModalOpen] = useState(false);
 
-  const { data, refetch, error: programError } = useProgramQuery({
+  const {
+    data,
+    refetch,
+    error: programError,
+  } = useProgramQuery({
     variables: {
       id: id ?? '',
     },
@@ -286,7 +290,6 @@ const InvestmentDetailsPage: React.FC = () => {
       notify((error as Error).message, 'error');
     }
   };
-
 
   if (programError?.message === 'You do not have access to this program') {
     return (
@@ -634,7 +637,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       })}
                     />
                     {program?.status === ProgramStatus.Published ||
-                      program?.status === ProgramStatus.Completed
+                    program?.status === ProgramStatus.Completed
                       ? 'Confirmed'
                       : 'Not confirmed'}
                   </span>

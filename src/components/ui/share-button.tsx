@@ -37,7 +37,8 @@ export function ShareButton({
     }
     if (shareType === 'farcaster') {
       navigator.clipboard.writeText(
-        `https://ludium-farcaster.vercel.app/api/programs/${program?.name
+        `https://ludium-farcaster.vercel.app/api/programs/${
+          program?.name
         }/${program?.id}/${Math.floor(
           new Date(program?.deadline).getTime() / 1000,
         )}/${program?.price}/${program?.currency}`,

@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import ChainContract from '@/lib/contract';
 import notify from '@/lib/notify';
 import { getCurrencyIcon } from '@/lib/utils';
+import { ProgramType } from '@/types/types.generated';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import { Search } from 'lucide-react';
@@ -53,7 +54,11 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
         filter: [
           {
             value: profileId,
-            field: 'creator', // Get programs created by this user
+            field: 'creatorId', // Get programs created by this user
+          },
+          {
+            field: 'type',
+            value: ProgramType.Regular,
           },
           ...(searchQuery
             ? [
@@ -143,8 +148,13 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
               // Reclaimable amount is what wasn't paid out
               const reclaimableAmount = totalDeposited - totalPaidOut;
 
-              if (reclaimableAmount > 0.001) {
-                // Small tolerance for rounding
+              // Add debug logging to see what's happening
+              console.log(
+                `Program ${program?.name}: Deposited=${totalDeposited}, PaidOut=${totalPaidOut}, Reclaimable=${reclaimableAmount}`,
+              );
+
+              if (reclaimableAmount > 0) {
+                // Any amount greater than 0 can be reclaimed
                 items.push({
                   type: 'unused_program',
                   program,
@@ -155,6 +165,11 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
                   amount: reclaimableAmount.toFixed(4),
                   currency: program?.currency || 'ETH',
                 });
+              } else if (isPastDeadline && totalDeposited > 0) {
+                // Log when a program is past deadline but fully paid out
+                console.log(
+                  `Program ${program?.name} is past deadline but fully paid out (no funds to reclaim)`,
+                );
               }
             }
           }
@@ -188,8 +203,8 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
               // Reclaimable amount is what wasn't paid out
               const reclaimableAmount = totalDeposited - totalPaidOut;
 
-              if (reclaimableAmount > 0.001) {
-                // Small tolerance for rounding
+              if (reclaimableAmount > 0) {
+                // Any amount greater than 0 can be reclaimed
                 items.push({
                   type: 'unused_program',
                   program,

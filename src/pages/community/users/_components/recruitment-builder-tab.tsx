@@ -3,6 +3,7 @@ import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import ApplicationBuilderCard from '@/pages/community/users/_components/application-builder-card';
+import { ProgramType } from '@/types/types.generated';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
@@ -31,19 +32,19 @@ export default function UserRecruitmentBuilderTab({ myProfile }: { myProfile?: b
         filter: [
           {
             value: profileId,
-            field: "applicantId",
+            field: 'applicantId',
           },
           {
-            value: "regular",
-            field: "programType",
+            value: ProgramType.Regular,
+            field: 'programType',
           },
           ...(searchQuery
             ? [
-              {
-                field: 'name',
-                value: searchQuery,
-              },
-            ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
             : []),
         ],
       },
@@ -77,7 +78,10 @@ export default function UserRecruitmentBuilderTab({ myProfile }: { myProfile?: b
           ))}
         </div>
       </div>
-      <Pagination totalCount={applicationData?.applications?.count ?? 0} pageSize={programPageSize} />
+      <Pagination
+        totalCount={applicationData?.applications?.count ?? 0}
+        pageSize={programPageSize}
+      />
     </div>
   );
 }

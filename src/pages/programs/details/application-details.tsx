@@ -278,14 +278,18 @@ function ApplicationDetails() {
           const tokens = tokenAddresses[network] || [];
           const targetToken = tokens.find((token) => token.name === program.currency);
 
-          const tx = await contract.acceptMilestone(
+          const result = await contract.acceptMilestone(
             Number(program?.educhainProgramId),
             data?.application?.applicant?.walletAddress ?? '',
             price ?? '',
             targetToken ?? { name: program.currency as string },
           );
 
-          if (tx) {
+          if (result?.txHash) {
+            // Transaction was sent successfully
+            console.log('Milestone acceptance result:', result);
+
+            // Update backend milestone status regardless of event detection
             await checkMilestone({
               variables: {
                 input: {
@@ -296,11 +300,26 @@ function ApplicationDetails() {
               onCompleted: () => {
                 refetch();
                 programRefetch();
-                notify('Milestone accepted successfully', 'success');
+
+                if (!result.eventFound) {
+                  notify(
+                    'Milestone accepted! Transaction succeeded but event log not found. Please verify on blockchain explorer.',
+                    'success',
+                  );
+                } else {
+                  notify('Milestone accepted successfully', 'success');
+                }
+              },
+              onError: (error) => {
+                console.error('Failed to update milestone status in backend:', error);
+                notify(
+                  `Transaction succeeded (${result.txHash}) but failed to update status: ${error.message}`,
+                  'error',
+                );
               },
             });
           } else {
-            notify("Can't found acceptMilestone event", 'error');
+            notify('Failed to accept milestone: No transaction hash returned', 'error');
           }
         }
       }

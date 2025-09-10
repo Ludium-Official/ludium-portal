@@ -2,6 +2,7 @@ import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
+import { ProgramType } from '@/types/types.generated';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
@@ -10,8 +11,15 @@ import ProgramCard from './program-card';
 
 const programPageSize = 6;
 
+const roleBasedOnRole = {
+  builder: 'builderId',
+  validator: 'validatorId',
+  sponsor: 'creatorId',
+};
+
 export default function UserRecruitmentRoleTab({ myProfile }: { myProfile?: boolean }) {
   const { id, role } = useParams();
+  console.log('🚀 ~ UserRecruitmentRoleTab ~ role:', role);
   const [searchParams, _setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -32,7 +40,11 @@ export default function UserRecruitmentRoleTab({ myProfile }: { myProfile?: bool
         filter: [
           {
             value: profileId,
-            field: role ?? '',
+            field: roleBasedOnRole[role as 'builder' | 'validator' | 'sponsor'],
+          },
+          {
+            field: 'type',
+            value: ProgramType.Regular,
           },
           ...(searchQuery
             ? [

@@ -1,6 +1,8 @@
+import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
+import { ProgramType } from '@/types/types.generated';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
@@ -16,12 +18,12 @@ export default function UserInvestmentHostTab({ myProfile }: { myProfile?: boole
   const [searchQuery, setSearchQuery] = useState('');
   const currentPage = Number(searchParams.get('page')) || 1;
 
-  // const { data: profileData } = useProfileQuery({
-  //   fetchPolicy: 'network-only',
-  //   skip: !myProfile,
-  // });
+  const { data: profileData } = useProfileQuery({
+    fetchPolicy: 'network-only',
+    skip: !myProfile,
+  });
 
-  // const profileId = myProfile ? profileData?.profile?.id ?? '' : id ?? '';
+  const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
 
   const { data: programData } = useProgramsQuery({
     variables: {
@@ -30,6 +32,14 @@ export default function UserInvestmentHostTab({ myProfile }: { myProfile?: boole
         offset: (currentPage - 1) * programPageSize,
 
         filter: [
+          {
+            value: profileId,
+            field: 'creatorId',
+          },
+          {
+            value: ProgramType.Funding,
+            field: 'programType',
+          },
           ...(searchQuery
             ? [
                 {

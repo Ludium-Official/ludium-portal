@@ -30,7 +30,7 @@ function Footer() {
               className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
               rel="noreferrer"
             >
-              <Youtube className='w-4 h-4 fill-gray-text' /> Youtube
+              <Youtube className="w-4 h-4 fill-gray-text" /> Youtube
             </a>
             <a
               target="_blank"
@@ -38,7 +38,7 @@ function Footer() {
               className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
               rel="noreferrer"
             >
-              <Discord className='w-4 h-4 fill-gray-text' /> Discord
+              <Discord className="w-4 h-4 fill-gray-text" /> Discord
             </a>
             <a href="/" className="flex items-center gap-2 leading-[25px] mb-1 text-xs">
               <img src={customerService} alt="customer-service" /> Customer Service{' '}

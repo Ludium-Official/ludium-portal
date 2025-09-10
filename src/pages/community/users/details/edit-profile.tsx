@@ -53,6 +53,8 @@ function EditProfilePage() {
     firstName: string;
     lastName: string;
     keywords: string[];
+    roleKeywords: string[];
+    skillKeywords: string[];
   }>({
     values: {
       email: profileData?.profile?.email ?? '',
@@ -61,6 +63,8 @@ function EditProfilePage() {
       firstName: profileData?.profile?.firstName ?? '',
       lastName: profileData?.profile?.lastName ?? '',
       keywords: profileData?.profile?.keywords?.map((k) => k.name || '') || [],
+      roleKeywords: profileData?.profile?.roleKeywords?.map((k) => k.name || '') || [],
+      skillKeywords: profileData?.profile?.skillKeywords?.map((k) => k.name || '') || [],
     },
   });
 
@@ -76,6 +80,8 @@ function EditProfilePage() {
     firstName: string;
     lastName: string;
     keywords: string[];
+    roleKeywords: string[];
+    skillKeywords: string[];
   }) => {
     const { isValid } = validateLinks(links);
     if (!isValid) {
@@ -94,10 +100,25 @@ function EditProfilePage() {
           firstName: data?.firstName,
           lastName: data?.lastName,
           about: content,
-          keywords: data.keywords,
+          // Only send keywords if they've changed
+          ...(JSON.stringify(profileData?.profile?.keywords?.map((k) => k.name || '') || []) !==
+          JSON.stringify(data.keywords || [])
+            ? { keywords: data.keywords }
+            : {}),
+          ...(JSON.stringify(profileData?.profile?.roleKeywords?.map((k) => k.name || '') || []) !==
+          JSON.stringify(data.roleKeywords || [])
+            ? { roleKeywords: data.roleKeywords }
+            : {}),
+          ...(JSON.stringify(
+            profileData?.profile?.skillKeywords?.map((k) => k.name || '') || [],
+          ) !== JSON.stringify(data.skillKeywords || [])
+            ? { skillKeywords: data.skillKeywords }
+            : {}),
           links: (() => {
             const { shouldSend } = validateLinks(links);
-            return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
+            return shouldSend
+              ? filterEmptyLinks(links).map((l) => ({ title: l, url: l }))
+              : undefined;
           })(),
         },
       },
@@ -125,30 +146,87 @@ function EditProfilePage() {
     profileData?.profile?.about === content &&
     JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links) &&
     JSON.stringify(profileData.profile.keywords?.map((k) => k.name || '') || []) ===
-    JSON.stringify(watch('keywords') || []);
+      JSON.stringify(watch('keywords') || []) &&
+    JSON.stringify(profileData.profile.roleKeywords?.map((k) => k.name || '') || []) ===
+      JSON.stringify(watch('roleKeywords') || []) &&
+    JSON.stringify(profileData.profile.skillKeywords?.map((k) => k.name || '') || []) ===
+      JSON.stringify(watch('skillKeywords') || []);
 
-  const [keywordInput, setKeywordInput] = useState<string>('');
+  // const [keywordInput, setKeywordInput] = useState<string>('');
+  const [roleKeywordInput, setRoleKeywordInput] = useState<string>('');
+  const [skillKeywordInput, setSkillKeywordInput] = useState<string>('');
 
-  const handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setKeywordInput(e.target.value);
+  // Unused functions - keeping for potential future use
+  // const _handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setKeywordInput(e.target.value);
+  // };
+
+  // const _handleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  //   if ((e.key === ' ' || e.key === 'Enter') && keywordInput.trim()) {
+  //     e.preventDefault();
+  //     const newKeyword = keywordInput.trim();
+  //     const currentKeywords = getValues('keywords') || [];
+  //     if (newKeyword && !currentKeywords.includes(newKeyword)) {
+  //       setValue('keywords', [...currentKeywords, newKeyword]);
+  //     }
+  //     setKeywordInput('');
+  //   }
+  // };
+
+  // const _removeKeyword = (keywordToRemove: string) => {
+  //   const currentKeywords = getValues('keywords') || [];
+  //   setValue(
+  //     'keywords',
+  //     currentKeywords.filter((keyword) => keyword !== keywordToRemove),
+  //   );
+  // };
+
+  // Role keywords handlers
+  const handleRoleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRoleKeywordInput(e.target.value);
   };
 
-  const handleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if ((e.key === ' ' || e.key === 'Enter') && keywordInput.trim()) {
+  const handleRoleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ((e.key === ' ' || e.key === 'Enter') && roleKeywordInput.trim()) {
       e.preventDefault();
-      const newKeyword = keywordInput.trim();
-      const currentKeywords = getValues('keywords') || [];
+      const newKeyword = roleKeywordInput.trim();
+      const currentKeywords = getValues('roleKeywords') || [];
       if (newKeyword && !currentKeywords.includes(newKeyword)) {
-        setValue('keywords', [...currentKeywords, newKeyword]);
+        setValue('roleKeywords', [...currentKeywords, newKeyword]);
       }
-      setKeywordInput('');
+      setRoleKeywordInput('');
     }
   };
 
-  const removeKeyword = (keywordToRemove: string) => {
-    const currentKeywords = getValues('keywords') || [];
+  const removeRoleKeyword = (keywordToRemove: string) => {
+    const currentKeywords = getValues('roleKeywords') || [];
     setValue(
-      'keywords',
+      'roleKeywords',
+      currentKeywords.filter((keyword) => keyword !== keywordToRemove),
+    );
+  };
+
+  // Skill keywords handlers
+  const handleSkillKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSkillKeywordInput(e.target.value);
+  };
+
+  const handleSkillKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ((e.key === ' ' || e.key === 'Enter') && skillKeywordInput.trim()) {
+      e.preventDefault();
+      const newKeyword = skillKeywordInput.trim();
+      const currentKeywords = getValues('skillKeywords') || [];
+      if (newKeyword && !currentKeywords.includes(newKeyword)) {
+        setValue('skillKeywords', [...currentKeywords, newKeyword]);
+      }
+      setSkillKeywordInput('');
+    }
+  };
+
+  const removeSkillKeyword = (keywordToRemove: string) => {
+    const currentKeywords = getValues('skillKeywords') || [];
+    setValue(
+      'skillKeywords',
       currentKeywords.filter((keyword) => keyword !== keywordToRemove),
     );
   };
@@ -265,23 +343,23 @@ function EditProfilePage() {
                 />
               </label>
 
-              <label htmlFor="keyword" className="space-y-2 block mb-10">
+              <label htmlFor="roleKeyword" className="space-y-2 block mb-10">
                 <p className="text-sm font-medium">
                   Roles <span className="text-primary">*</span>
                 </p>
                 <div className="space-y-3">
                   <Input
-                    id="keyword"
+                    id="roleKeyword"
                     type="text"
                     placeholder="Enter directly"
-                    value={keywordInput}
-                    onChange={handleKeywordInputChange}
-                    onKeyDown={handleKeywordInputKeyDown}
+                    value={roleKeywordInput}
+                    onChange={handleRoleKeywordInputChange}
+                    onKeyDown={handleRoleKeywordInputKeyDown}
                     className="h-10"
                   />
-                  {watch('keywords')?.length > 0 && (
+                  {watch('roleKeywords')?.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {watch('keywords')?.map((keyword: string) => (
+                      {watch('roleKeywords')?.map((keyword: string) => (
                         <Badge
                           key={keyword}
                           className="text-black bg-[#F4F4F5] border-0 px-2.5 py-0.5 text-xs font-semibold"
@@ -289,7 +367,57 @@ function EditProfilePage() {
                           {keyword}
                           <button
                             type="button"
-                            onClick={() => removeKeyword(keyword)}
+                            onClick={() => removeRoleKeyword(keyword)}
+                            className="ml-1 hover:cursor-pointer rounded-full p-0.5 transition-colors"
+                          >
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 12 12"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              aria-label="Remove keyword"
+                            >
+                              <title>Remove keyword</title>
+                              <path
+                                d="M9 3L3 9M3 3L9 9"
+                                stroke="currentColor"
+                                strokeWidth="1.4"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </label>
+
+              <label htmlFor="skillKeyword" className="space-y-2 block mb-10">
+                <p className="text-sm font-medium">Skills</p>
+                <div className="space-y-3">
+                  <Input
+                    id="skillKeyword"
+                    type="text"
+                    placeholder="Enter directly"
+                    value={skillKeywordInput}
+                    onChange={handleSkillKeywordInputChange}
+                    onKeyDown={handleSkillKeywordInputKeyDown}
+                    className="h-10"
+                  />
+                  {watch('skillKeywords')?.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {watch('skillKeywords')?.map((keyword: string) => (
+                        <Badge
+                          key={keyword}
+                          className="text-black bg-[#F4F4F5] border-0 px-2.5 py-0.5 text-xs font-semibold"
+                        >
+                          {keyword}
+                          <button
+                            type="button"
+                            onClick={() => removeSkillKeyword(keyword)}
                             className="ml-1 hover:cursor-pointer rounded-full p-0.5 transition-colors"
                           >
                             <svg
@@ -372,8 +500,8 @@ function EditProfilePage() {
                   return (
                     // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                     <div key={idx} className="flex items-center gap-2">
-                      <div className='bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center'>
-                        <SocialIcon value={l} className='w-4 h-4 text-secondary-foreground' />
+                      <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
+                        <SocialIcon value={l} className="w-4 h-4 text-secondary-foreground" />
                       </div>
                       <Input
                         className="h-10"
@@ -392,7 +520,7 @@ function EditProfilePage() {
                       />
                       {idx !== 0 && (
                         <X
-                          className='hover:cursor-pointer'
+                          className="hover:cursor-pointer"
                           onClick={() =>
                             setLinks((prev) => {
                               const newLinks = [

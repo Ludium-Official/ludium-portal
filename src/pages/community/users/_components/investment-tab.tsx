@@ -3,6 +3,7 @@ import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ProgramType } from '@/types/types.generated';
 import { ArrowRightIcon, ListFilter, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
@@ -27,7 +28,7 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
 
   const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
 
-  const { data: programData } = useProgramsQuery({
+  const { data: sponsorData } = useProgramsQuery({
     variables: {
       pagination: {
         limit: 2,
@@ -37,13 +38,17 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
             value: profileId,
             field: filterBasedOnRole.sponsor,
           },
+          {
+            value: ProgramType.Funding,
+            field: 'programType',
+          },
           ...(searchQuery
             ? [
-              {
-                field: 'name',
-                value: searchQuery,
-              },
-            ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
             : []),
         ],
       },
@@ -55,7 +60,6 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
     setSearchQuery(e.target.value);
   };
 
-
   const { data: applicationsData } = useApplicationsQuery({
     variables: {
       pagination: {
@@ -64,19 +68,19 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
         filter: [
           {
             value: profileId,
-            field: "applicantId",
+            field: 'applicantId',
           },
           {
-            value: "regular",
-            field: "programType",
+            value: ProgramType.Funding,
+            field: 'programType',
           },
           ...(searchQuery
             ? [
-              {
-                field: 'name',
-                value: searchQuery,
-              },
-            ]
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
             : []),
         ],
       },
@@ -108,7 +112,7 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
           <div className="flex flex-col justify-between py-2 px-4">
             <div className="flex items-center justify-between">
               <p className="font-bold text-xl text-muted-foreground">As Host</p>
-              {!!programData?.programs?.count && programData.programs.count > 2 && (
+              {!!sponsorData?.programs?.count && sponsorData.programs.count > 2 && (
                 <Link to={'host'} className="px-3 flex items-center gap-2">
                   <p className="font-medium text-sm text-gray-dark">View more</p>
                   <ArrowRightIcon width={16} height={16} />
@@ -118,10 +122,10 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
             <p className="text-xs text-muted-foreground">Please select what to show</p>
           </div>
           <div className="flex flex-col gap-3">
-            {programData?.programs?.data?.length === 0 ? (
+            {sponsorData?.programs?.data?.length === 0 ? (
               <p className="text-sm text-muted-foreground px-4">No programs found</p>
             ) : (
-              programData?.programs?.data?.map((program) => (
+              sponsorData?.programs?.data?.map((program) => (
                 <ProgramHostCard key={program.id} program={program} />
               ))
             )}
@@ -132,12 +136,13 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
           <div className="flex flex-col justify-between py-2 px-4">
             <div className="flex items-center justify-between">
               <p className="font-bold text-xl text-muted-foreground">As Project</p>
-              {!!programData?.programs?.count && programData.programs.count > 2 && (
-                <Link to={'project'} className="px-3 flex items-center gap-2">
-                  <p className="font-medium text-sm text-gray-dark">View more</p>
-                  <ArrowRightIcon width={16} height={16} />
-                </Link>
-              )}
+              {!!applicationsData?.applications?.count &&
+                applicationsData.applications.count > 2 && (
+                  <Link to={'project'} className="px-3 flex items-center gap-2">
+                    <p className="font-medium text-sm text-gray-dark">View more</p>
+                    <ArrowRightIcon width={16} height={16} />
+                  </Link>
+                )}
             </div>
             <p className="text-xs text-muted-foreground">Please select what to show</p>
           </div>
@@ -156,12 +161,13 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
           <div className="flex flex-col justify-between py-2 px-4">
             <div className="flex items-center justify-between">
               <p className="font-bold text-xl text-muted-foreground">As Supporter</p>
-              {!!programData?.programs?.count && programData.programs.count > 2 && (
-                <Link to={'supporter'} className="px-3 flex items-center gap-2">
-                  <p className="font-medium text-sm text-gray-dark">View more</p>
-                  <ArrowRightIcon width={16} height={16} />
-                </Link>
-              )}
+              {!!applicationsData?.applications?.count &&
+                applicationsData.applications.count > 2 && (
+                  <Link to={'supporter'} className="px-3 flex items-center gap-2">
+                    <p className="font-medium text-sm text-gray-dark">View more</p>
+                    <ArrowRightIcon width={16} height={16} />
+                  </Link>
+                )}
             </div>
             <p className="text-xs text-muted-foreground">Please select what to show</p>
           </div>

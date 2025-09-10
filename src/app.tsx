@@ -112,7 +112,10 @@ function App() {
               <Route path="overview" element={<UserOverviewTab />} />
               <Route path="description" element={<UserDescriptionTab myProfile />} />
               <Route path="program/recruitment" element={<UserRecruitmentTab myProfile />} />
-              <Route path="program/recruitment/builder" element={<UserRecruitmentBuilderTab myProfile />} />
+              <Route
+                path="program/recruitment/builder"
+                element={<UserRecruitmentBuilderTab myProfile />}
+              />
               <Route
                 path="program/recruitment/:role"
                 element={<UserRecruitmentRoleTab myProfile />}
@@ -123,9 +126,18 @@ function App() {
               />
               <Route path="program/investment" element={<UserInvestmentTab myProfile />} />
               <Route path="program/investment/host" element={<UserInvestmentHostTab myProfile />} />
-              <Route path="program/investment/project" element={<UserInvestmentProjectTab myProfile />} />
-              <Route path="program/investment/supporter" element={<UserInvestmentProjectTab myProfile />} />
-              <Route path="program/investment/reclaim" element={<UserInvestmentReclaimTab myProfile />} />
+              <Route
+                path="program/investment/project"
+                element={<UserInvestmentProjectTab myProfile />}
+              />
+              <Route
+                path="program/investment/supporter"
+                element={<UserInvestmentProjectTab myProfile />}
+              />
+              <Route
+                path="program/investment/reclaim"
+                element={<UserInvestmentReclaimTab myProfile />}
+              />
               <Route path="community" element={<UserCommunityTab />} />
 
               <Route path="admin">
