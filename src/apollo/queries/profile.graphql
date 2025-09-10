@@ -19,5 +19,13 @@ query profile {
       id
       name
     }
+    roleKeywords {
+      id
+      name
+    }
+    skillKeywords {
+      id
+      name
+    }
   }
 }

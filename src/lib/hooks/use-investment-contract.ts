@@ -68,8 +68,12 @@ export function useInvestmentContract(network: string | null = null) {
   const { wallets } = useWallets();
   const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
 
+  // Check if the user is using an external wallet (like MetaMask)
   const injectedWallet = user?.wallet?.connectorType !== 'embedded';
   let sendTx = sendTransaction;
+
+  // If no currentWallet found but user has a wallet, try to use the first available wallet
+  const activeWallet = currentWallet || (injectedWallet && wallets.length > 0 ? wallets[0] : null);
 
   const checkNetwork: Chain = (() => {
     if (network === 'sepolia') {
@@ -117,12 +121,14 @@ export function useInvestmentContract(network: string | null = null) {
     return eduChain;
   })();
 
-  if (injectedWallet && currentWallet) {
+  if (injectedWallet && activeWallet) {
     sendTx = async (input) => {
-      const signer = await getSigner(checkNetwork, currentWallet);
+      const signer = await getSigner(checkNetwork, activeWallet);
       const txResponse = await signer.sendTransaction(input);
       return { hash: txResponse.hash as `0x${string}` };
     };
+  } else if (injectedWallet && !activeWallet) {
+    console.warn('User has an external wallet but no active wallet found. Transactions may fail.');
   }
 
   const contractAddresses =
@@ -147,6 +153,7 @@ export function getInvestmentContract(
   network: string,
   sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'],
   client: PublicClient,
+  userAddress?: string,
 ) {
   const contractAddresses =
     CONTRACT_ADDRESSES[network || 'educhain-testnet'] || CONTRACT_ADDRESSES['educhain-testnet'];
@@ -161,5 +168,5 @@ export function getInvestmentContract(
 
   const chainId = chainIdMap[network] || chainIdMap['educhain-testnet'];
 
-  return new InvestmentContract(contractAddresses, sendTransaction, client, chainId);
+  return new InvestmentContract(contractAddresses, sendTransaction, client, chainId, userAddress);
 }

@@ -3,14 +3,14 @@ import * as ethers from 'ethers';
 import type { Abi, PublicClient } from 'viem';
 import { encodeFunctionData } from 'viem';
 
-import LdFundingArtifact from './abi/LdFunding.json';
-import LdInvestmentCoreArtifact from './abi/LdInvestmentCore.json';
-import LdMilestoneManagerArtifact from './abi/LdMilestoneManager.json';
+import LdFundingABI from './abi/LdFunding.json';
+import LdInvestmentCoreABI from './abi/LdInvestmentCore.json';
+import LdMilestoneManagerABI from './abi/LdMilestoneManager.json';
 
-// Extract ABIs from artifacts
-const INVESTMENT_CORE_ABI = LdInvestmentCoreArtifact.abi as Abi;
-const FUNDING_MODULE_ABI = LdFundingArtifact.abi as Abi;
-const MILESTONE_MANAGER_ABI = LdMilestoneManagerArtifact.abi as Abi;
+// Use ABIs directly as they are already ABI arrays
+const INVESTMENT_CORE_ABI = LdInvestmentCoreABI as Abi;
+const FUNDING_MODULE_ABI = LdFundingABI as Abi;
+const MILESTONE_MANAGER_ABI = LdMilestoneManagerABI as Abi;
 
 export interface InvestmentContractAddresses {
   core: string;
@@ -24,17 +24,20 @@ export class InvestmentContract {
   private sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'];
   private client: PublicClient;
   private chainId?: number;
+  private userAddress?: string;
 
   constructor(
     addresses: InvestmentContractAddresses,
     sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'],
     client: PublicClient,
     chainId?: number,
+    userAddress?: string,
   ) {
     this.addresses = addresses;
     this.sendTransaction = sendTransaction;
     this.client = client;
     this.chainId = chainId;
+    this.userAddress = userAddress;
   }
 
   private async waitForTransaction(hash: `0x${string}`) {
@@ -42,11 +45,26 @@ export class InvestmentContract {
     return receipt;
   }
 
+  private async getUserAddress(): Promise<string | null> {
+    try {
+      if (this.userAddress) {
+        console.log('Using provided user address:', this.userAddress);
+        return this.userAddress;
+      }
+      console.warn('No user address provided to InvestmentContract');
+      return null;
+    } catch (error) {
+      console.error('Failed to get user address:', error);
+      return null;
+    }
+  }
+
   async signValidate(params: {
     programId: number;
     projectOwner: string;
     projectName: string;
     targetFunding: string;
+    tokenDecimals?: number; // Optional token decimals, defaults to 18
     milestones: Array<{
       title: string;
       description: string;
@@ -63,8 +81,9 @@ export class InvestmentContract {
         deadline: Math.floor(new Date(m.deadline).getTime() / 1000),
       }));
 
-      // Convert target funding to wei
-      const targetFundingWei = ethers.utils.parseEther(params.targetFunding);
+      // Convert target funding to smallest unit (wei for ETH/EDU, or token's smallest unit)
+      const decimals = params.tokenDecimals ?? 18; // Default to 18 decimals for native tokens
+      const targetFundingWei = ethers.utils.parseUnits(params.targetFunding, decimals);
 
       const data = encodeFunctionData({
         abi: INVESTMENT_CORE_ABI,
@@ -135,6 +154,7 @@ export class InvestmentContract {
     description: string;
     fundingGoal: string;
     fundingToken: string;
+    tokenDecimals?: number; // Optional token decimals, defaults to 18
     applicationStartDate: string;
     applicationEndDate: string;
     fundingStartDate: string;
@@ -145,7 +165,9 @@ export class InvestmentContract {
     fundingCondition?: 'open' | 'tier';
   }) {
     try {
-      const fundingGoalWei = ethers.utils.parseEther(params.fundingGoal);
+      // Convert funding goal to smallest unit based on token decimals
+      const decimals = params.tokenDecimals ?? 18; // Default to 18 decimals
+      const fundingGoalWei = ethers.utils.parseUnits(params.fundingGoal, decimals);
 
       // Note: description is not used in the contract, only kept in params for future use
       const data = encodeFunctionData({
@@ -253,12 +275,126 @@ export class InvestmentContract {
     }
   }
 
+  // ERC20 token approval function
+  async approveTokenForInvestment(params: {
+    tokenAddress: string;
+    amount: string; // Amount in Wei
+    tokenName?: string;
+    tokenDecimals?: number;
+  }) {
+    try {
+      const ERC20_ABI = [
+        {
+          constant: false,
+          inputs: [
+            { name: 'spender', type: 'address' },
+            { name: 'amount', type: 'uint256' },
+          ],
+          name: 'approve',
+          outputs: [{ name: '', type: 'bool' }],
+          type: 'function',
+        },
+        {
+          constant: true,
+          inputs: [
+            { name: 'owner', type: 'address' },
+            { name: 'spender', type: 'address' },
+          ],
+          name: 'allowance',
+          outputs: [{ name: '', type: 'uint256' }],
+          type: 'function',
+        },
+      ];
+
+      const displayAmount =
+        params.tokenDecimals !== undefined
+          ? ethers.utils.formatUnits(params.amount, params.tokenDecimals)
+          : ethers.utils.formatUnits(params.amount, 18);
+
+      const data = encodeFunctionData({
+        abi: ERC20_ABI,
+        functionName: 'approve',
+        args: [this.addresses.funding, BigInt(params.amount)], // Approve the funding module
+      });
+
+      const txResult = await this.sendTransaction(
+        {
+          to: params.tokenAddress as `0x${string}`,
+          data,
+          value: BigInt(0),
+          chainId: this.chainId,
+        } as Parameters<typeof this.sendTransaction>[0],
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            transactionInfo: {
+              title: 'Approve Token',
+              action: 'Approve',
+            },
+            description: `Approve ${displayAmount} ${params.tokenName || 'tokens'} for investment`,
+            buttonText: 'Approve',
+            successHeader: 'Token Approved!',
+            successDescription: `You have approved ${displayAmount} ${params.tokenName || 'tokens'} for investment.`,
+          },
+        },
+      );
+
+      const receipt = await this.waitForTransaction(txResult.hash);
+      return {
+        txHash: receipt.transactionHash,
+        approved: true,
+      };
+    } catch (error) {
+      console.error('Failed to approve token:', error);
+      throw error;
+    }
+  }
+
+  // Check token allowance
+  async checkTokenAllowance(tokenAddress: string, userAddress: string): Promise<bigint> {
+    const ERC20_ABI = [
+      {
+        constant: true,
+        inputs: [
+          { name: 'owner', type: 'address' },
+          { name: 'spender', type: 'address' },
+        ],
+        name: 'allowance',
+        outputs: [{ name: '', type: 'uint256' }],
+        type: 'function',
+      },
+    ];
+
+    try {
+      const data = encodeFunctionData({
+        abi: ERC20_ABI,
+        functionName: 'allowance',
+        args: [userAddress, this.addresses.funding],
+      });
+
+      const result = await this.client.call({
+        to: tokenAddress as `0x${string}`,
+        data,
+      });
+
+      if (result.data) {
+        const decoded = ethers.utils.defaultAbiCoder.decode(['uint256'], result.data as string);
+        return BigInt(decoded[0].toString());
+      }
+      return BigInt(0);
+    } catch (error) {
+      console.error('Failed to check allowance:', error);
+      return BigInt(0);
+    }
+  }
+
   async investFund(params: {
     projectId: number;
     amount: string; // Amount in Wei (or smallest unit for tokens)
     token?: string; // Optional token address, if not provided uses native token
     tokenName?: string; // Token name for display (EDU, USDT, etc.)
     tokenDecimals?: number; // Token decimals for display formatting
+    userAddress?: string; // User address for checking allowance
   }) {
     try {
       // Validate amount before conversion
@@ -289,6 +425,16 @@ export class InvestmentContract {
           : ethers.utils.formatEther(params.amount);
       const tokenDisplay = params.tokenName || 'native token';
 
+      // For ERC20 tokens, check and handle approval
+      if (!isNative && params.userAddress && params.token) {
+        const allowance = await this.checkTokenAllowance(params.token, params.userAddress);
+
+        if (allowance < amountBigInt) {
+          // Need approval first
+          throw new Error('TOKEN_APPROVAL_REQUIRED');
+        }
+      }
+
       let data: `0x${string}`;
       let value: bigint;
 
@@ -302,18 +448,24 @@ export class InvestmentContract {
         });
         value = amountBigInt;
       } else {
-        // ERC20 token investment - use delegateInvestWithToken from core contract
+        // ERC20 token investment - call funding module directly
+        // Cannot use delegateInvestWithToken because it would make msg.sender the core contract
+        console.log('ERC20 investment: Calling funding module directly for', params.token);
+
         data = encodeFunctionData({
-          abi: INVESTMENT_CORE_ABI,
-          functionName: 'delegateInvestWithToken',
+          abi: FUNDING_MODULE_ABI,
+          functionName: 'investWithToken',
           args: [params.projectId, amountBigInt],
         });
         value = BigInt(0);
       }
 
+      // Determine target address based on investment type
+      const targetAddress = isNative ? this.addresses.core : this.addresses.funding;
+
       const txResult = await this.sendTransaction(
         {
-          to: this.addresses.core as `0x${string}`,
+          to: targetAddress as `0x${string}`,
           data,
           value,
           chainId: this.chainId,
@@ -364,15 +516,138 @@ export class InvestmentContract {
   }
 
   async reclaimFund(projectId: number) {
+    console.log('=== RECLAIM FUND DEBUG START ===');
+    console.log('Project ID:', projectId);
+    console.log('Contract addresses:', this.addresses);
+    console.log('Chain ID:', this.chainId);
+
     try {
-      // Use delegateReclaimFund from core contract
-      // This routes through the funding module with proper validation
+      // First, verify the project exists on-chain
+      try {
+        console.log('Checking if project exists on-chain...');
+        const projectDetails = await this.getProjectInvestmentDetails(projectId);
+        console.log('Project details from blockchain:', projectDetails);
+
+        if (!projectDetails || !projectDetails.targetAmount) {
+          throw new Error(
+            `Project ${projectId} does not exist on the blockchain. The project may not have been deployed yet.`,
+          );
+        }
+
+        // Log more details about the project
+        console.log('Project found on-chain with details:');
+        console.log('- Target Amount:', projectDetails.targetAmount);
+        console.log('- Total Raised:', projectDetails.totalRaised);
+        console.log('- Investor Count:', projectDetails.investorCount);
+        console.log('- Funding Successful:', projectDetails.fundingSuccessful);
+      } catch (projectCheckError) {
+        console.error('Project verification failed:', projectCheckError);
+        throw new Error(
+          `Cannot reclaim: Project ${projectId} not found on blockchain. Please ensure the project was properly deployed.`,
+        );
+      }
+
+      // Then, try to get user address and check investment
+      const userAddress = await this.getUserAddress();
+      console.log('User address:', userAddress);
+
+      if (!userAddress) {
+        throw new Error('No wallet address found. Please connect your wallet.');
+      }
+
+      // Check the user's investment amount in the Funding module
+      let hasInvestment = false;
+      try {
+        console.log('Checking user investment amount in Funding module...');
+        const investmentData = await this.client.readContract({
+          address: this.addresses.funding as `0x${string}`,
+          abi: FUNDING_MODULE_ABI,
+          functionName: 'getInvestmentAmount',
+          args: [projectId, userAddress as `0x${string}`],
+        });
+        console.log('User investment amount on-chain:', investmentData);
+
+        hasInvestment = Boolean(investmentData && Number(investmentData) > 0);
+
+        if (!hasInvestment) {
+          console.log('No investment found for user:', userAddress);
+          throw new Error(
+            `No investment found for your wallet address ${userAddress} in project ${projectId}`,
+          );
+        }
+
+        console.log('Investment confirmed! Amount:', investmentData, 'Proceeding with reclaim...');
+
+        // Check the actual reclaim eligibility to understand why it might fail
+        try {
+          console.log('Checking detailed reclaim eligibility...');
+          const eligibilityData = await this.client.readContract({
+            address: this.addresses.core as `0x${string}`,
+            abi: INVESTMENT_CORE_ABI,
+            functionName: 'checkReclaimEligibility',
+            args: [projectId, userAddress as `0x${string}`],
+          });
+
+          const [canReclaim, reason, reclaimAmount] = eligibilityData as [boolean, string, bigint];
+          console.log('Detailed eligibility check:');
+          console.log('- Can reclaim:', canReclaim);
+          console.log('- Reason:', reason);
+          console.log('- Reclaim amount:', reclaimAmount);
+
+          if (!canReclaim) {
+            console.error('RECLAIM NOT ALLOWED:', reason);
+            console.log('The contract says:', reason);
+            console.log('Possible reasons:');
+            console.log('1. "No investment found" - Investment not recorded on-chain');
+            console.log(
+              '2. "Cannot reclaim from successful project" - Project completed successfully',
+            );
+            console.log(
+              '3. "Project still active" - Project is ongoing, not failed or past funding deadline',
+            );
+
+            // Don't proceed with transaction - throw error immediately
+            if (reason === 'Project still active') {
+              throw new Error(
+                'The project is still active. Reclaim is only available if the project fails or the funding period ends without reaching the target.',
+              );
+            }
+            if (reason === 'Cannot reclaim from successful project') {
+              throw new Error(
+                'This project completed successfully. Funds have been or will be distributed according to milestones.',
+              );
+            }
+            if (reason === 'No investment found') {
+              throw new Error('No investment found on the blockchain for your wallet address.');
+            }
+            throw new Error(`Cannot reclaim: ${reason}`);
+          }
+
+          console.log('Reclaim eligibility confirmed! Can proceed with transaction.');
+        } catch (err) {
+          console.error('Eligibility check error:', err);
+          throw err; // Always re-throw to stop execution
+        }
+      } catch (e) {
+        console.error('Investment check error:', e);
+        // Re-throw any error to stop the transaction
+        throw e;
+      }
+
+      // Call delegateReclaimFund on Core, which will delegate to Funding module
+      // The Core contract orchestrates the reclaim process
+      console.log('Encoding function data for delegateReclaimFund on Core contract...');
+      console.log('Using Core contract at:', this.addresses.core);
+      console.log('This will delegate to Funding contract at:', this.addresses.funding);
       const data = encodeFunctionData({
         abi: INVESTMENT_CORE_ABI,
         functionName: 'delegateReclaimFund',
         args: [projectId],
       });
+      console.log('Encoded data:', data);
+      console.log('Target contract (core):', this.addresses.core);
 
+      console.log('Sending transaction...');
       const txResult = await this.sendTransaction(
         {
           to: this.addresses.core as `0x${string}`,
@@ -393,6 +668,7 @@ export class InvestmentContract {
           },
         },
       );
+      console.log('Transaction sent, hash:', txResult.hash);
 
       const receipt = await this.waitForTransaction(txResult.hash);
 
@@ -410,13 +686,52 @@ export class InvestmentContract {
         reclaimedAmount = ethers.utils.formatEther(decoded[0]);
       }
 
+      console.log('Transaction receipt:', receipt);
+      console.log('Transaction status:', receipt.status);
+
       return {
         txHash: receipt.transactionHash,
         amount: reclaimedAmount,
         projectId,
       };
     } catch (error) {
-      console.error('Failed to reclaim funds:', error);
+      console.error('=== RECLAIM FUND ERROR ===');
+      console.error('Error object:', error);
+
+      // Try to extract more detailed error information
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Error message:', errorMessage);
+
+      // Check if it's a contract revert error
+      if (errorMessage.includes('execution reverted')) {
+        // Try to extract the revert reason
+        const revertMatch = errorMessage.match(/execution reverted: (.*?)(?:\n|$)/);
+        if (revertMatch) {
+          console.error('Revert reason:', revertMatch[1]);
+          throw new Error(`Contract reverted: ${revertMatch[1]}`);
+        }
+
+        // Check for common revert reasons
+        if (errorMessage.includes('Project not found')) {
+          throw new Error('Project not found on blockchain');
+        }
+        if (errorMessage.includes('Not investor')) {
+          throw new Error('You are not an investor in this project');
+        }
+        if (errorMessage.includes('Cannot reclaim')) {
+          throw new Error(
+            'Project is not eligible for reclaim (may still be active or already completed successfully)',
+          );
+        }
+        if (errorMessage.includes('Already reclaimed')) {
+          throw new Error('You have already reclaimed your investment');
+        }
+        if (errorMessage.includes('No funds to reclaim')) {
+          throw new Error('No funds available to reclaim');
+        }
+      }
+
+      console.error('=== END RECLAIM FUND ERROR ===');
       throw error;
     }
   }
@@ -478,15 +793,106 @@ export class InvestmentContract {
     }
   }
 
+  async assignUserTier(params: {
+    projectId: number;
+    user: string;
+    tierName: string;
+    maxInvestment: string; // In smallest unit (wei)
+  }) {
+    try {
+      const data = encodeFunctionData({
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'assignUserTier',
+        args: [params.projectId, params.user, params.tierName, BigInt(params.maxInvestment)],
+      });
+
+      const txResult = await this.sendTransaction(
+        {
+          to: this.addresses.core as `0x${string}`,
+          data,
+          value: BigInt(0),
+          chainId: this.chainId,
+        } as Parameters<typeof this.sendTransaction>[0],
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            transactionInfo: {
+              title: 'Assign User Tier',
+              action: 'Assign',
+            },
+            description: `Assigning ${params.tierName} tier to user for project #${params.projectId}`,
+            successHeader: 'Tier Assigned!',
+            successDescription: 'User tier has been assigned successfully.',
+          },
+        },
+      );
+
+      const receipt = await this.waitForTransaction(txResult.hash);
+      return {
+        txHash: receipt.transactionHash,
+      };
+    } catch (error) {
+      console.error('Failed to assign user tier:', error);
+      throw error;
+    }
+  }
+
+  async assignUserTierToProgram(params: {
+    programId: number;
+    user: string;
+    tierName: string;
+    maxInvestment: string; // In smallest unit (wei)
+  }) {
+    try {
+      const data = encodeFunctionData({
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'assignUserTierToProgram',
+        args: [params.programId, params.user, params.tierName, BigInt(params.maxInvestment)],
+      });
+
+      const txResult = await this.sendTransaction(
+        {
+          to: this.addresses.core as `0x${string}`,
+          data,
+          value: BigInt(0),
+          chainId: this.chainId,
+        } as Parameters<typeof this.sendTransaction>[0],
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            transactionInfo: {
+              title: 'Assign User Tier to Program',
+              action: 'Assign',
+            },
+            description: `Assigning ${params.tierName} tier to user for program #${params.programId}`,
+            successHeader: 'Tier Assigned!',
+            successDescription: 'User tier has been assigned to the program successfully.',
+          },
+        },
+      );
+
+      const receipt = await this.waitForTransaction(txResult.hash);
+      return {
+        txHash: receipt.transactionHash,
+      };
+    } catch (error) {
+      console.error('Failed to assign user tier to program:', error);
+      throw error;
+    }
+  }
+
   async submitProjectApplication(params: {
     programId: number;
     projectName: string;
     description: string;
     targetFunding: string;
+    tokenDecimals?: number; // Optional token decimals, defaults to 18
     additionalData?: Record<string, unknown>;
   }) {
     try {
-      const targetFundingWei = ethers.utils.parseEther(params.targetFunding);
+      // Convert target funding to smallest unit based on token decimals
+      const decimals = params.tokenDecimals ?? 18; // Default to 18 decimals
+      const targetFundingWei = ethers.utils.parseUnits(params.targetFunding, decimals);
 
       // Encode additional data if provided
       const additionalDataBytes = params.additionalData
@@ -819,18 +1225,65 @@ export class InvestmentContract {
     investor: string,
   ): Promise<{ canReclaim: boolean; reason?: string }> {
     try {
+      console.log('Checking reclaim eligibility for project:', projectId, 'investor:', investor);
+      console.log('Using core contract at:', this.addresses.core);
+
       const data = await this.client.readContract({
-        address: this.addresses.funding as `0x${string}`,
-        abi: FUNDING_MODULE_ABI,
+        address: this.addresses.core as `0x${string}`,
+        abi: INVESTMENT_CORE_ABI,
         functionName: 'canReclaimFunds',
         args: [projectId, investor as `0x${string}`],
       });
 
       const [canReclaim, reason] = data as [boolean, string];
+      console.log('Eligibility result - canReclaim:', canReclaim, 'reason:', reason);
+
       return { canReclaim, reason };
     } catch (error) {
       console.error('Failed to check reclaim eligibility:', error);
-      return { canReclaim: false, reason: 'Failed to check eligibility' };
+
+      // Try to extract more info from the error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Eligibility check error details:', errorMessage);
+
+      return { canReclaim: false, reason: `Failed to check eligibility: ${errorMessage}` };
+    }
+  }
+
+  /**
+   * Mark a project as failed (admin/owner only) - useful for testing reclaim
+   */
+  async markProjectAsFailed(projectId: number, reason = 'Test failure for reclaim testing') {
+    try {
+      console.log('Marking project as failed:', projectId);
+      console.log('Reason:', reason);
+
+      const data = encodeFunctionData({
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'markProjectAsFailed',
+        args: [projectId, reason],
+      });
+
+      const txResult = await this.sendTransaction({
+        to: this.addresses.core as `0x${string}`,
+        data,
+        value: BigInt(0),
+        chainId: this.chainId,
+      } as Parameters<typeof this.sendTransaction>[0]);
+
+      console.log('Transaction hash:', txResult.hash);
+
+      // Wait for transaction confirmation
+      const receipt = await this.waitForTransaction(txResult.hash as `0x${string}`);
+      console.log('Project marked as failed successfully');
+
+      return {
+        txHash: receipt.transactionHash,
+        projectId,
+      };
+    } catch (error) {
+      console.error('Failed to mark project as failed:', error);
+      throw error;
     }
   }
 

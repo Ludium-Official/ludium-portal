@@ -3,7 +3,12 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "initialOwner",
+        "name": "_coreContract",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "_admin",
         "type": "address"
       }
     ],
@@ -15,18 +20,49 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "address",
-        "name": "previousOwner",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "programId",
+        "type": "uint256"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "newOwner",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "tierName",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "maxInvestment",
+        "type": "uint256"
+      }
+    ],
+    "name": "ProgramUserTierAssigned",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "programId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
         "type": "address"
       }
     ],
-    "name": "OwnershipTransferred",
+    "name": "ProgramUserTierRemoved",
     "type": "event"
   },
   {
@@ -109,12 +145,24 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "operationId",
-        "type": "bytes32"
+        "internalType": "uint256",
+        "name": "projectId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "programId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "userCount",
+        "type": "uint256"
       }
     ],
-    "name": "TimeLockOperationCancelled",
+    "name": "TiersInheritedFromProgram",
     "type": "event"
   },
   {
@@ -122,78 +170,67 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "operationId",
-        "type": "bytes32"
+        "internalType": "uint256",
+        "name": "projectId",
+        "type": "uint256"
       },
       {
         "indexed": true,
         "internalType": "address",
-        "name": "target",
+        "name": "user",
         "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "data",
-        "type": "bytes"
-      }
-    ],
-    "name": "TimeLockOperationExecuted",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "operationId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "target",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "data",
-        "type": "bytes"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "executeAfter",
-        "type": "uint256"
       },
       {
         "indexed": false,
         "internalType": "string",
-        "name": "description",
+        "name": "tierName",
         "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "maxInvestment",
+        "type": "uint256"
       }
     ],
-    "name": "TimeLockOperationQueued",
+    "name": "UserTierAssigned",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "projectId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "UserTierRemoved",
     "type": "event"
   },
   {
     "inputs": [],
     "name": "ADMIN_ROLE",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "CORE_CONTRACT_ROLE",
     "outputs": [
       {
         "internalType": "bytes32",
@@ -218,73 +255,152 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "EMERGENCY_ROLE",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "TIMELOCK_DURATION",
-    "outputs": [
+    "inputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "_projectId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "_tierName",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_maxInvestment",
         "type": "uint256"
       }
     ],
-    "stateMutability": "view",
+    "name": "assignUserTier",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "_programId",
+        "type": "uint256"
+      },
+      {
         "internalType": "address",
-        "name": "token",
+        "name": "_user",
+        "type": "address"
+      },
+      {
+        "internalType": "string",
+        "name": "_tierName",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_maxInvestment",
+        "type": "uint256"
+      }
+    ],
+    "name": "assignUserTierToProgram",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_projectId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_user",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "amount",
+        "name": "_currentInvestment",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_additionalInvestment",
         "type": "uint256"
       }
     ],
-    "name": "_executeEmergencyWithdraw",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "name": "checkTierInvestmentLimit",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "allowed",
+        "type": "bool"
+      },
+      {
+        "internalType": "string",
+        "name": "reason",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "coreContract",
+    "outputs": [
+      {
+        "internalType": "contract ILdInvestmentCore",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "_operationId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "cancelTimeLockOperation",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
+        "internalType": "uint256",
+        "name": "_programId",
+        "type": "uint256"
+      },
       {
-        "internalType": "bytes32",
-        "name": "_operationId",
-        "type": "bytes32"
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
       }
     ],
-    "name": "executeTimeLockOperation",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "name": "getProgramUserTier",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "tierName",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxInvestment",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isAssigned",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct ILdInvestmentCore.UserTier",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -309,47 +425,39 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "_operationId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "getTimeLockOperation",
-    "outputs": [
+        "internalType": "uint256",
+        "name": "_projectId",
+        "type": "uint256"
+      },
       {
         "internalType": "address",
-        "name": "target",
+        "name": "_user",
         "type": "address"
-      },
+      }
+    ],
+    "name": "getUserTier",
+    "outputs": [
       {
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bytes",
-        "name": "data",
-        "type": "bytes"
-      },
-      {
-        "internalType": "uint256",
-        "name": "executeAfter",
-        "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "executed",
-        "type": "bool"
-      },
-      {
-        "internalType": "bool",
-        "name": "cancelled",
-        "type": "bool"
-      },
-      {
-        "internalType": "string",
-        "name": "description",
-        "type": "string"
+        "components": [
+          {
+            "internalType": "string",
+            "name": "tierName",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxInvestment",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isAssigned",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct ILdInvestmentCore.UserTier",
+        "name": "",
+        "type": "tuple"
       }
     ],
     "stateMutability": "view",
@@ -398,92 +506,71 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "nextOperationId",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "token",
-        "type": "address"
-      },
-      {
         "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "queueEmergencyWithdraw",
-    "outputs": [
-      {
-        "internalType": "bytes32",
         "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_target",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_value",
         "type": "uint256"
       },
       {
-        "internalType": "bytes",
-        "name": "_data",
-        "type": "bytes"
-      },
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "programUserTiers",
+    "outputs": [
       {
         "internalType": "string",
-        "name": "_description",
+        "name": "tierName",
         "type": "string"
-      }
-    ],
-    "name": "queueTimeLockOperation",
-    "outputs": [
+      },
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
+        "internalType": "uint256",
+        "name": "maxInvestment",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isAssigned",
+        "type": "bool"
       }
     ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_projectId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "removeUserTier",
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "renounceOwnership",
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_programId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_user",
+        "type": "address"
+      }
+    ],
+    "name": "removeUserTierFromProgram",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -546,72 +633,35 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
+        "internalType": "uint256",
         "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "name": "timeLockOperations",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "operationId",
-        "type": "bytes32"
+        "type": "uint256"
       },
       {
         "internalType": "address",
-        "name": "target",
+        "name": "",
         "type": "address"
-      },
-      {
-        "internalType": "bool",
-        "name": "executed",
-        "type": "bool"
-      },
-      {
-        "internalType": "bool",
-        "name": "cancelled",
-        "type": "bool"
-      },
-      {
-        "internalType": "bytes",
-        "name": "data",
-        "type": "bytes"
-      },
-      {
-        "internalType": "uint256",
-        "name": "value",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "executeAfter",
-        "type": "uint256"
-      },
+      }
+    ],
+    "name": "userTiers",
+    "outputs": [
       {
         "internalType": "string",
-        "name": "description",
+        "name": "tierName",
         "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "maxInvestment",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "isAssigned",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
     "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "newOwner",
-        "type": "address"
-      }
-    ],
-    "name": "transferOwnership",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "stateMutability": "payable",
-    "type": "receive"
   }
 ]

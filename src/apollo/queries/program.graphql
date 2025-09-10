@@ -38,6 +38,7 @@ query program($id: ID!) {
       lastName
       organizationName
       summary
+      walletAddress
       links {
         title
         url
@@ -112,6 +113,7 @@ query program($id: ID!) {
       maxInvestmentAmount
       tier
       userId
+      walletAddress
     }
     userTierAssignment {
       userId

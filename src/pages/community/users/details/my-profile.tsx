@@ -265,14 +265,14 @@ function MyProfilePage() {
 
               <div className="space-y-2">
                 <p className="font-bold text-sm text-muted-foreground">ROLES</p>
-                <div className="flex gap-[6px]">
-                  {(!profileData?.profile?.keywords ||
-                    profileData.profile.keywords.length === 0) && (
+                <div className="flex gap-[6px] flex-wrap">
+                  {(!profileData?.profile?.roleKeywords ||
+                    profileData.profile.roleKeywords.length === 0) && (
                     <span className="text-xs text-muted-foreground font-normal">
                       There are no roles added yet.
                     </span>
                   )}
-                  {profileData?.profile?.keywords?.map((k) => (
+                  {profileData?.profile?.roleKeywords?.map((k) => (
                     <Badge
                       key={k.id}
                       className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs"
@@ -280,26 +280,25 @@ function MyProfilePage() {
                       {k.name}
                     </Badge>
                   ))}
-                  {/* <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    BD
-                  </Badge>
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    Develope
-                  </Badge> */}
                 </div>
               </div>
               <div className="space-y-2">
                 <p className="font-bold text-sm text-muted-foreground">SKILLS</p>
-                <div className="flex gap-[6px]">
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    Crypto
-                  </Badge>
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    BD
-                  </Badge>
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    Develope
-                  </Badge>
+                <div className="flex gap-[6px] flex-wrap">
+                  {(!profileData?.profile?.skillKeywords ||
+                    profileData.profile.skillKeywords.length === 0) && (
+                    <span className="text-xs text-muted-foreground font-normal">
+                      There are no skills added yet.
+                    </span>
+                  )}
+                  {profileData?.profile?.skillKeywords?.map((k) => (
+                    <Badge
+                      key={k.id}
+                      className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs"
+                    >
+                      {k.name}
+                    </Badge>
+                  ))}
                 </div>
               </div>
               <div className="space-y-3">

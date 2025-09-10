@@ -253,6 +253,16 @@ export type Investment = {
   txHash?: Maybe<Scalars['String']['output']>;
 };
 
+export type InvestmentStatsByStatus = {
+  __typename?: 'InvestmentStatsByStatus';
+  applicationOngoing?: Maybe<Scalars['Int']['output']>;
+  fundingOngoing?: Maybe<Scalars['Int']['output']>;
+  programCompleted?: Maybe<Scalars['Int']['output']>;
+  projectOngoing?: Maybe<Scalars['Int']['output']>;
+  ready?: Maybe<Scalars['Int']['output']>;
+  refund?: Maybe<Scalars['Int']['output']>;
+};
+
 export enum InvestmentStatus {
   Confirmed = 'confirmed',
   Failed = 'failed',
@@ -299,6 +309,11 @@ export type Keyword = {
   id?: Maybe<Scalars['ID']['output']>;
   name?: Maybe<Scalars['String']['output']>;
 };
+
+export enum KeywordType {
+  Role = 'role',
+  Skill = 'skill'
+}
 
 export type Link = {
   __typename?: 'Link';
@@ -397,6 +412,7 @@ export type Mutation = {
   reorderCarouselItems?: Maybe<Array<CarouselItem>>;
   submitMilestone?: Maybe<Milestone>;
   submitProgram?: Maybe<Program>;
+  syncApplicationTiers?: Maybe<TierSyncResult>;
   updateApplication?: Maybe<Application>;
   updateCarouselItem?: Maybe<CarouselItem>;
   updateComment?: Maybe<Comment>;
@@ -413,6 +429,7 @@ export type Mutation = {
 export type MutationAcceptApplicationArgs = {
   id: Scalars['ID']['input'];
   onChainProjectId?: InputMaybe<Scalars['Int']['input']>;
+  tierSyncInfo?: InputMaybe<TierSyncInfo>;
 };
 
 
@@ -429,6 +446,7 @@ export type MutationAddProgramKeywordArgs = {
 
 export type MutationAddUserKeywordArgs = {
   keyword: Scalars['String']['input'];
+  type?: InputMaybe<KeywordType>;
   userId: Scalars['ID']['input'];
 };
 
@@ -589,6 +607,7 @@ export type MutationRemoveUserFromProgramArgs = {
 
 export type MutationRemoveUserKeywordArgs = {
   keyword: Scalars['String']['input'];
+  type?: InputMaybe<KeywordType>;
   userId: Scalars['ID']['input'];
 };
 
@@ -619,6 +638,11 @@ export type MutationSubmitProgramArgs = {
   educhainProgramId: Scalars['Int']['input'];
   id: Scalars['ID']['input'];
   txHash: Scalars['String']['input'];
+};
+
+
+export type MutationSyncApplicationTiersArgs = {
+  applicationId: Scalars['ID']['input'];
 };
 
 
@@ -1035,6 +1059,29 @@ export type Supporter = {
   maxInvestmentAmount?: Maybe<Scalars['String']['output']>;
   tier?: Maybe<Scalars['String']['output']>;
   userId?: Maybe<Scalars['ID']['output']>;
+  walletAddress?: Maybe<Scalars['String']['output']>;
+};
+
+export type TierAssignmentData = {
+  __typename?: 'TierAssignmentData';
+  maxInvestmentAmount?: Maybe<Scalars['String']['output']>;
+  tier?: Maybe<Scalars['String']['output']>;
+  userId?: Maybe<Scalars['String']['output']>;
+  walletAddress?: Maybe<Scalars['String']['output']>;
+};
+
+export type TierSyncInfo = {
+  contractAddress: Scalars['String']['input'];
+  programOwnerAddress: Scalars['String']['input'];
+};
+
+export type TierSyncResult = {
+  __typename?: 'TierSyncResult';
+  contractAddress?: Maybe<Scalars['String']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  projectId?: Maybe<Scalars['Int']['output']>;
+  success?: Maybe<Scalars['Boolean']['output']>;
+  tierAssignments?: Maybe<Array<TierAssignmentData>>;
 };
 
 export type UpdateApplicationInput = {
@@ -1122,6 +1169,7 @@ export type User = {
   firstName?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   image?: Maybe<Scalars['String']['output']>;
+  investmentStatistics?: Maybe<UserInvestmentStatistics>;
   keywords?: Maybe<Array<Keyword>>;
   lastName?: Maybe<Scalars['String']['output']>;
   links?: Maybe<Array<Link>>;
@@ -1129,6 +1177,8 @@ export type User = {
   organizationName?: Maybe<Scalars['String']['output']>;
   programStatistics?: Maybe<UserProgramStatistics>;
   role?: Maybe<UserRole>;
+  roleKeywords?: Maybe<Array<Keyword>>;
+  skillKeywords?: Maybe<Array<Keyword>>;
   summary?: Maybe<Scalars['String']['output']>;
   walletAddress?: Maybe<Scalars['String']['output']>;
 };
@@ -1146,6 +1196,13 @@ export type UserInput = {
   password: Scalars['String']['input'];
   summary?: InputMaybe<Scalars['String']['input']>;
   walletAddress?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UserInvestmentStatistics = {
+  __typename?: 'UserInvestmentStatistics';
+  asHost?: Maybe<InvestmentStatsByStatus>;
+  asProject?: Maybe<InvestmentStatsByStatus>;
+  asSupporter?: Maybe<InvestmentStatsByStatus>;
 };
 
 export type UserProgramStatistics = {

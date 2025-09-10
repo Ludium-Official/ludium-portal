@@ -166,9 +166,10 @@ class ChainContract {
         console.warn('If the transaction fails, this is likely the cause.');
       }
 
-      const price = isNative
-        ? ethers.utils.parseEther(program.price || '0')
-        : ethers.utils.parseUnits(program.price || '0', program.token?.decimal ?? 18);
+      const price = ethers.utils.parseUnits(
+        program.price || '0',
+        isNative ? 18 : (program.token?.decimal ?? 18),
+      );
 
       if (!isNative) {
         const allowance = await this.getAllowance(useToken, program.ownerAddress);
@@ -180,7 +181,20 @@ class ChainContract {
       }
 
       const nowInSec = Math.floor(Date.now() / 1000);
-      const deadlineInSec = Math.floor(new Date(program.deadline).getTime() / 1000);
+
+      // For testing: Special keywords in program name
+      // - "TEST" in name: deadline in 30 seconds (very short for quick testing)
+      const programNameLower = program.name?.toLowerCase() || '';
+      let deadlineInSec: number;
+
+      if (programNameLower.includes('test')) {
+        // Expires in 30 seconds for quick testing
+        deadlineInSec = nowInSec + 30; // 30 seconds from now
+        console.warn('⚠️ Creating test program with 30 second deadline for testing');
+      } else {
+        // Normal deadline
+        deadlineInSec = Math.floor(new Date(program.deadline).getTime() / 1000);
+      }
 
       const data = encodeFunctionData({
         abi: contractJson.abi,
@@ -233,7 +247,13 @@ class ChainContract {
       // Return with programId 0 for now - the backend might need to handle this differently
       return { txHash: tx.hash, programId: 0 };
     } catch (error: unknown) {
-      console.error('Failed to create program:', error);
+      console.error('Failed to create program - Full error:', error);
+
+      // Log the full error details for debugging
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      }
 
       // Check for common revert reasons
       const errorMessage =
@@ -241,24 +261,21 @@ class ChainContract {
         (error as { reason?: string })?.reason ||
         '';
 
-      // Check for whitelist error (common cause)
+      // Check if user rejected/cancelled the transaction
+      // Privy typically sends these types of messages
       if (
-        errorMessage.includes('execution reverted') ||
-        errorMessage.includes('Execution reverted')
+        errorMessage.includes('User rejected') ||
+        errorMessage.includes('User denied') ||
+        errorMessage.includes('User cancelled') ||
+        errorMessage.includes('rejected the request') ||
+        errorMessage.includes('denied transaction') ||
+        errorMessage.includes('closed modal') ||
+        errorMessage.includes('Modal closed')
       ) {
-        const useToken = program.token?.address ?? NATIVE_TOKEN;
-        const isNative = useToken === NATIVE_TOKEN;
-
-        if (isNative) {
-          throw new Error(
-            'Transaction failed: The native EDU token (0x0000...0000) is not whitelisted in the smart contract. Please contact the contract administrator to whitelist the native token.',
-          );
-        }
-        throw new Error(
-          `Transaction failed: The ${program.token?.name || 'selected'} token may not be whitelisted in the smart contract. Please contact the contract administrator.`,
-        );
+        throw new Error('Transaction cancelled by user');
       }
 
+      // Check for specific contract revert messages first
       if (errorMessage.includes('Token not whitelisted')) {
         throw new Error(
           'The selected token is not whitelisted in the smart contract. Please contact the contract administrator to whitelist this token.',
@@ -274,6 +291,26 @@ class ChainContract {
         throw new Error('The amount of EDU sent does not match the program price');
       }
 
+      // Generic execution reverted - only show whitelist error if we're sure it's not a user cancellation
+      if (
+        (errorMessage.includes('execution reverted') ||
+          errorMessage.includes('Execution reverted')) &&
+        !errorMessage.includes('User') &&
+        !errorMessage.includes('user')
+      ) {
+        const useToken = program.token?.address ?? NATIVE_TOKEN;
+        const isNative = useToken === NATIVE_TOKEN;
+
+        if (isNative) {
+          throw new Error(
+            'Transaction failed: The native EDU token (0x0000...0000) may not be whitelisted in the smart contract. Please contact the contract administrator to whitelist the native token.',
+          );
+        }
+        throw new Error(
+          `Transaction failed: The ${program.token?.name || 'selected'} token may not be whitelisted in the smart contract. Please contact the contract administrator.`,
+        );
+      }
+
       throw error;
     }
   }
@@ -286,9 +323,7 @@ class ChainContract {
   ) {
     try {
       const isNative = token?.address === NATIVE_TOKEN;
-      const reward = isNative
-        ? ethers.utils.parseEther(amount || '0')
-        : ethers.utils.parseUnits(amount || '0', token?.decimal);
+      const reward = ethers.utils.parseUnits(amount || '0', isNative ? 18 : (token?.decimal ?? 18));
 
       const data = encodeFunctionData({
         abi: contractJson.abi,
@@ -332,6 +367,90 @@ class ChainContract {
       return null;
     } catch (error: unknown) {
       console.error('Failed to accept milestone:', error);
+      throw error;
+    }
+  }
+
+  async reclaimFunds(
+    programId: number,
+    amount: string,
+    token?: { name: string; address?: string; decimal?: number },
+  ) {
+    try {
+      const data = encodeFunctionData({
+        abi: contractJson.abi,
+        functionName: 'reclaimFunds',
+        args: [programId],
+      });
+
+      const tx = await this.sendTransaction(
+        {
+          to: this.contractAddress,
+          data,
+          value: BigInt(0), // Explicitly set value to 0 - no payment needed for reclaim
+          chainId: this.chainId,
+        },
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            description: `Withdraw your deposited ${amount} ${token?.name || 'tokens'} from program #${programId} (expired). You only pay gas fees, funds will be returned to your wallet.`,
+            buttonText: 'Withdraw Funds',
+            transactionInfo: {
+              title: 'Withdraw Program Funds',
+              action: 'Withdraw Deposited Funds',
+            },
+            successHeader: 'Funds Withdrawn Successfully!',
+            successDescription: `You have successfully withdrawn ${amount} ${token?.name || 'tokens'} from the program to your wallet.`,
+          },
+        },
+      );
+
+      const receiptResult = await this.findReceipt(
+        tx.hash,
+        'FundsReclaimed(uint256,address,uint256,address)',
+      );
+
+      if (receiptResult !== null) {
+        return { txHash: tx.hash, programId: receiptResult };
+      }
+
+      // Return with tx hash even if event not found
+      return { txHash: tx.hash, programId };
+    } catch (error: unknown) {
+      console.error('Failed to reclaim funds:', error);
+
+      const errorMessage =
+        (error instanceof Error ? error.message : '') ||
+        (error as { reason?: string })?.reason ||
+        '';
+
+      // Check if user rejected/cancelled the transaction
+      if (
+        errorMessage.includes('User rejected') ||
+        errorMessage.includes('User denied') ||
+        errorMessage.includes('User cancelled') ||
+        errorMessage.includes('rejected the request') ||
+        errorMessage.includes('denied transaction') ||
+        errorMessage.includes('closed modal') ||
+        errorMessage.includes('Modal closed')
+      ) {
+        throw new Error('Transaction cancelled by user');
+      }
+
+      // Check for specific revert reasons
+      if (errorMessage.includes('Program not ended yet')) {
+        throw new Error('Cannot reclaim funds: Program deadline has not passed yet');
+      }
+      if (errorMessage.includes('Not the program maker')) {
+        throw new Error('Only the program creator can reclaim funds');
+      }
+      if (errorMessage.includes('Already claimed')) {
+        throw new Error('Funds have already been reclaimed for this program');
+      }
+      if (errorMessage.includes('No funds to reclaim')) {
+        throw new Error('No funds available to reclaim (all funds have been paid out)');
+      }
+
       throw error;
     }
   }
