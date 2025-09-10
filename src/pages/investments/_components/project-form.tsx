@@ -291,11 +291,16 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
       hasErrors = true;
     }
 
-    // Validate funding amount
-    const maxFunding = Number.parseFloat(data?.program?.price ?? '0');
+    // Validate funding amount - each project can have up to maxFundingAmount
+    const maxFundingPerProject = Number.parseFloat(
+      data?.program?.maxFundingAmount || data?.program?.price || '0',
+    );
     const requestedFunding = Number.parseFloat(watch('fundingToBeRaised') ?? '0');
-    if (requestedFunding > maxFunding) {
-      notify('Funding to be raised cannot exceed maximum funding amount.', 'error');
+    if (requestedFunding > maxFundingPerProject) {
+      notify(
+        `Funding to be raised cannot exceed maximum funding amount per project (${maxFundingPerProject} ${data?.program?.currency || 'EDU'}).`,
+        'error',
+      );
       hasErrors = true;
     }
     if (requestedFunding <= 0) {
@@ -503,11 +508,14 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
               </p>
 
               <div className="flex items-center justify-between bg-secondary rounded-md p-3">
-                <p className="text-sm font-bold text-muted-foreground">Maximum funding amount</p>
+                <p className="text-sm font-bold text-muted-foreground">
+                  Maximum funding amount per project
+                </p>
                 <div className="flex items-center gap-2">
                   <span>{getCurrencyIcon(data?.program?.currency)}</span>{' '}
                   <span className="font-bold">
-                    {data?.program?.price} {data?.program?.currency}
+                    {data?.program?.maxFundingAmount || data?.program?.price}{' '}
+                    {data?.program?.currency}
                   </span>{' '}
                   <span className="text-muted-foreground text-sm text-bold">
                     {getCurrency(data?.program?.network)?.display}
@@ -699,7 +707,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                 </p>
 
                 <div className="flex items-center justify-between bg-secondary rounded-md p-3">
-                  <p className="text-sm font-bold text-muted-foreground">Maximum funding amount</p>
+                  <p className="text-sm font-bold text-muted-foreground">
+                    Your project funding target
+                  </p>
                   <div className="flex items-center gap-2">
                     <span>{getCurrencyIcon(data?.program?.currency)}</span>{' '}
                     <span className="font-bold">

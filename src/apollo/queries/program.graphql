@@ -133,5 +133,6 @@ query program($id: ID!) {
     tierSettings
     feePercentage
     customFeePercentage
+    maxFundingAmount
   }
 }
