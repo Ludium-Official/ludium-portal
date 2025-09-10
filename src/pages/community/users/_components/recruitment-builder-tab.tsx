@@ -3,6 +3,7 @@ import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import ApplicationBuilderCard from '@/pages/community/users/_components/application-builder-card';
+import { ProgramType } from '@/types/types.generated';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
@@ -34,7 +35,7 @@ export default function UserRecruitmentBuilderTab({ myProfile }: { myProfile?: b
             field: 'applicantId',
           },
           {
-            value: 'regular',
+            value: ProgramType.Regular,
             field: 'programType',
           },
           ...(searchQuery

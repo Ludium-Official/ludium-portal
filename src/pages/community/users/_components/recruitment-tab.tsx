@@ -7,6 +7,7 @@ import { useApplicationsQuery } from '@/apollo/queries/applications.generated';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import { ProgramType } from '@/types/types.generated';
 import { ArrowRightIcon, ListFilter, Search } from 'lucide-react';
 import { useState } from 'react';
 import ApplicationBuilderCard from './application-builder-card';
@@ -38,7 +39,7 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
         offset: 0,
         filter: [
           {
-            value: 'regular',
+            value: ProgramType.Regular,
             field: 'programType',
           },
           {
@@ -70,6 +71,10 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
               value: profileId,
               field: filterBasedOnRole.sponsor,
             },
+            {
+              field: 'type',
+              value: ProgramType.Regular,
+            },
             ...(searchQuery
               ? [
                   {
@@ -93,6 +98,10 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
               value: profileId,
               field: filterBasedOnRole.validator,
             },
+            {
+              field: 'type',
+              value: ProgramType.Regular,
+            },
             ...(searchQuery
               ? [
                   {
@@ -106,29 +115,6 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
       },
       skip: !profileId,
     }),
-    // builder: useProgramsQuery({
-    //   variables: {
-    //     pagination: {
-    //       limit: 2,
-    //       offset: 0,
-    //       filter: [
-    //         {
-    //           value: profileId,
-    //           field: filterBasedOnRole.builder,
-    //         },
-    //         ...(searchQuery
-    //           ? [
-    //               {
-    //                 field: 'name',
-    //                 value: searchQuery,
-    //               },
-    //             ]
-    //           : []),
-    //       ],
-    //     },
-    //   },
-    //   skip: !profileId,
-    // }),
   };
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);

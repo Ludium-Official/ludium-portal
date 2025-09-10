@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import ChainContract from '@/lib/contract';
 import notify from '@/lib/notify';
 import { getCurrencyIcon } from '@/lib/utils';
+import { ProgramType } from '@/types/types.generated';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import { Search } from 'lucide-react';
@@ -53,7 +54,11 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
         filter: [
           {
             value: profileId,
-            field: 'creator', // Get programs created by this user
+            field: 'creatorId', // Get programs created by this user
+          },
+          {
+            field: 'type',
+            value: ProgramType.Regular,
           },
           ...(searchQuery
             ? [

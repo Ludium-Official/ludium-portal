@@ -124,11 +124,13 @@ function Header() {
 
   const logout = async () => {
     try {
-      authLogout();
-      privyLogout();
+      await authLogout();
+      await privyLogout();
 
       notify('Successfully logged out', 'success');
-      navigate('/');
+      await navigate('/');
+
+      window.location.reload();
     } catch (error) {
       notify('Error logging out', 'error');
       console.error('Error logging out:', error);

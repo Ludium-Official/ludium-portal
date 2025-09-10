@@ -1017,9 +1017,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                                   {term.prize.charAt(0).toUpperCase() + term.prize.slice(1)}
                                 </span>
                               ) : (
-                                <span className="font-medium">
-                                  {prize} {data?.program?.currency}
-                                </span>
+                                <span className="font-medium">{term.title}</span>
                               )}
                             </div>
                             <div className="text-gray-600">{purchaseLimit}</div>
@@ -1050,7 +1048,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
                     return (
                       <>
-                        <div className="grid grid-cols-3 gap-4 p-4 border-t-2 border-foreground font-bold text-base bg-gray-50">
+                        <div className="grid grid-cols-3 gap-4 p-4 border-t-2 border-foreground font-bold text-base">
                           <div>Total</div>
                           <div />
                           <div
