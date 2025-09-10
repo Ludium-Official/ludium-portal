@@ -21,7 +21,6 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 export default function InvestmentsPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('newest');
-  const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
   const { userId } = useAuth();
@@ -58,12 +57,12 @@ export default function InvestmentsPage() {
             field: 'status',
             values: [
               ProgramStatus.Published,
-              ProgramStatus.Completed,
-              ProgramStatus.Pending,
-              ProgramStatus.PaymentRequired,
-              ProgramStatus.Cancelled,
-              ProgramStatus.Closed,
-              ProgramStatus.Rejected,
+              // ProgramStatus.Completed,
+              // ProgramStatus.Pending,
+              // ProgramStatus.PaymentRequired,
+              // ProgramStatus.Cancelled,
+              // ProgramStatus.Closed,
+              // ProgramStatus.Rejected,
             ],
           },
           {
@@ -127,16 +126,23 @@ export default function InvestmentsPage() {
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const filteredPrograms = useMemo(() => {
-    if (!searchQuery) return programs;
+    const searchValue = searchParams.get('search') ?? '';
+    if (!searchValue) return programs;
     return programs.filter(
       (program) =>
-        program.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        program.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+        program.name?.toLowerCase().includes(searchValue.toLowerCase()) ||
+        program.description?.toLowerCase().includes(searchValue.toLowerCase()),
     );
-  }, [programs, searchQuery]);
+  }, [programs, searchParams]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (e.target.value) {
+      newSearchParams.set('search', e.target.value);
+    } else {
+      newSearchParams.delete('search');
+    }
+    setSearchParams(newSearchParams);
     setCurrentPage(1);
   };
 
@@ -180,7 +186,7 @@ export default function InvestmentsPage() {
                   <Input
                     type="text"
                     placeholder="Search..."
-                    value={searchQuery}
+                    value={searchParams.get('search') ?? ''}
                     onChange={handleSearchChange}
                     className="pl-10 w-90 h-10 bg-gray-50 border-gray-200 focus:border-gray-300"
                   />

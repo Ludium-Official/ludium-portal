@@ -37,8 +37,8 @@ export const AuthContext = createContext<AuthValues>({
   isAuthed: false,
   isAdmin: false,
   isSuperadmin: false,
-  login: async () => { },
-  logout: async () => { },
+  login: async () => {},
+  logout: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -60,11 +60,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUserId(profileData?.profile?.id ?? '');
     setIsAdmin(
       profileData?.profile?.role === UserRole.Admin ||
-      profileData?.profile?.role === UserRole.Superadmin,
+        profileData?.profile?.role === UserRole.Superadmin,
     );
-    setIsSuperadmin(
-      profileData?.profile?.role === UserRole.Superadmin,
-    );
+    setIsSuperadmin(profileData?.profile?.role === UserRole.Superadmin);
   }, [profileData]);
 
   useEffect(() => {

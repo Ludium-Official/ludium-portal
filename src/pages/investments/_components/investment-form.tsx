@@ -277,7 +277,12 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   }) => {
     // For published programs, only validate editable fields
     if (isPublished) {
-      if (!submitData.programName || !submitData.summary || !content.length || !selectedKeywords?.length) {
+      if (
+        !submitData.programName ||
+        !submitData.summary ||
+        !content.length ||
+        !selectedKeywords?.length
+      ) {
         notify('Please fill in all required fields.', 'error');
         return;
       }
@@ -377,7 +382,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         validatorWalletAddresses,
         links: (() => {
           const { shouldSend } = validateLinks(links);
-          return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
+          return shouldSend
+            ? filterEmptyLinks(links).map((l) => ({ title: l, url: l }))
+            : undefined;
         })(),
         network:
           isEdit && data?.program?.status !== ProgramStatus.Pending
@@ -394,35 +401,35 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         tierSettings:
           conditionType === 'tier'
             ? {
-              bronze:
-                (tiers.find((t) => t.name === 'Bronze')?.enabled ?? false)
-                  ? {
-                    enabled: true,
-                    maxAmount: tiers.find((t) => t.name === 'Bronze')?.maxAmount || '',
-                  }
-                  : undefined,
-              silver:
-                (tiers.find((t) => t.name === 'Silver')?.enabled ?? false)
-                  ? {
-                    enabled: true,
-                    maxAmount: tiers.find((t) => t.name === 'Silver')?.maxAmount || '',
-                  }
-                  : undefined,
-              gold:
-                (tiers.find((t) => t.name === 'Gold')?.enabled ?? false)
-                  ? {
-                    enabled: true,
-                    maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '',
-                  }
-                  : undefined,
-              platinum:
-                (tiers.find((t) => t.name === 'Platinum')?.enabled ?? false)
-                  ? {
-                    enabled: true,
-                    maxAmount: tiers.find((t) => t.name === 'Platinum')?.maxAmount || '',
-                  }
-                  : undefined,
-            }
+                bronze:
+                  (tiers.find((t) => t.name === 'Bronze')?.enabled ?? false)
+                    ? {
+                        enabled: true,
+                        maxAmount: tiers.find((t) => t.name === 'Bronze')?.maxAmount || '',
+                      }
+                    : undefined,
+                silver:
+                  (tiers.find((t) => t.name === 'Silver')?.enabled ?? false)
+                    ? {
+                        enabled: true,
+                        maxAmount: tiers.find((t) => t.name === 'Silver')?.maxAmount || '',
+                      }
+                    : undefined,
+                gold:
+                  (tiers.find((t) => t.name === 'Gold')?.enabled ?? false)
+                    ? {
+                        enabled: true,
+                        maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '',
+                      }
+                    : undefined,
+                platinum:
+                  (tiers.find((t) => t.name === 'Platinum')?.enabled ?? false)
+                    ? {
+                        enabled: true,
+                        maxAmount: tiers.find((t) => t.name === 'Platinum')?.maxAmount || '',
+                      }
+                    : undefined,
+              }
             : undefined,
         feePercentage: feeType === 'default' ? 300 : undefined,
         customFeePercentage:
@@ -454,7 +461,10 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
       dispatchErrors({ type: ExtraErrorActionKind.SET_VALIDATOR_ERROR });
 
     // Only validate dates if not published
-    if (!isPublished && (!applicationStartDate || !applicationDueDate || !fundingStartDate || !fundingDueDate))
+    if (
+      !isPublished &&
+      (!applicationStartDate || !applicationDueDate || !fundingStartDate || !fundingDueDate)
+    )
       dispatchErrors({ type: ExtraErrorActionKind.SET_DATE_ERROR });
 
     // Only validate links if not published
@@ -805,7 +815,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                         }
                       }}
                       // Allow selecting today and future dates
-                      disabled={isPublished ? true : { before: new Date(new Date().setHours(0, 0, 0, 0)) }}
+                      disabled={
+                        isPublished ? true : { before: new Date(new Date().setHours(0, 0, 0, 0)) }
+                      }
                     />
                   </div>
                 </div>
@@ -827,12 +839,16 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                           setApplicationDueDate(date);
                         }
                       }}
-                      disabled={isPublished ? true : {
-                        // Application end must be same day or after application start
-                        before: applicationStartDate
-                          ? applicationStartDate
-                          : new Date(new Date().setHours(0, 0, 0, 0)),
-                      }}
+                      disabled={
+                        isPublished
+                          ? true
+                          : {
+                              // Application end must be same day or after application start
+                              before: applicationStartDate
+                                ? applicationStartDate
+                                : new Date(new Date().setHours(0, 0, 0, 0)),
+                            }
+                      }
                     />
                   </div>
                 </div>
@@ -864,7 +880,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                         }
                       }}
                       // Allow selecting today and future dates (can overlap with application period per PRD)
-                      disabled={isPublished ? true : { before: new Date(new Date().setHours(0, 0, 0, 0)) }}
+                      disabled={
+                        isPublished ? true : { before: new Date(new Date().setHours(0, 0, 0, 0)) }
+                      }
                     />
                   </div>
                 </div>
@@ -886,12 +904,16 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                           setFundingDueDate(date);
                         }
                       }}
-                      disabled={isPublished ? true : {
-                        // Funding end must be same day or after funding start
-                        before: fundingStartDate
-                          ? fundingStartDate
-                          : new Date(new Date().setHours(0, 0, 0, 0)),
-                      }}
+                      disabled={
+                        isPublished
+                          ? true
+                          : {
+                              // Funding end must be same day or after funding start
+                              before: fundingStartDate
+                                ? fundingStartDate
+                                : new Date(new Date().setHours(0, 0, 0, 0)),
+                            }
+                      }
                     />
                   </div>
                 </div>
@@ -1252,34 +1274,34 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     tierSettings:
                       conditionType === 'tier'
                         ? {
-                          bronze: tiers.find((t) => t.name === 'Bronze')?.enabled
-                            ? {
-                              enabled: true,
-                              maxAmount:
-                                tiers.find((t) => t.name === 'Bronze')?.maxAmount || '0',
-                            }
-                            : undefined,
-                          silver: tiers.find((t) => t.name === 'Silver')?.enabled
-                            ? {
-                              enabled: true,
-                              maxAmount:
-                                tiers.find((t) => t.name === 'Silver')?.maxAmount || '0',
-                            }
-                            : undefined,
-                          gold: tiers.find((t) => t.name === 'Gold')?.enabled
-                            ? {
-                              enabled: true,
-                              maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '0',
-                            }
-                            : undefined,
-                          platinum: tiers.find((t) => t.name === 'Platinum')?.enabled
-                            ? {
-                              enabled: true,
-                              maxAmount:
-                                tiers.find((t) => t.name === 'Platinum')?.maxAmount || '0',
-                            }
-                            : undefined,
-                        }
+                            bronze: tiers.find((t) => t.name === 'Bronze')?.enabled
+                              ? {
+                                  enabled: true,
+                                  maxAmount:
+                                    tiers.find((t) => t.name === 'Bronze')?.maxAmount || '0',
+                                }
+                              : undefined,
+                            silver: tiers.find((t) => t.name === 'Silver')?.enabled
+                              ? {
+                                  enabled: true,
+                                  maxAmount:
+                                    tiers.find((t) => t.name === 'Silver')?.maxAmount || '0',
+                                }
+                              : undefined,
+                            gold: tiers.find((t) => t.name === 'Gold')?.enabled
+                              ? {
+                                  enabled: true,
+                                  maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '0',
+                                }
+                              : undefined,
+                            platinum: tiers.find((t) => t.name === 'Platinum')?.enabled
+                              ? {
+                                  enabled: true,
+                                  maxAmount:
+                                    tiers.find((t) => t.name === 'Platinum')?.maxAmount || '0',
+                                }
+                              : undefined,
+                          }
                         : undefined,
                     feeType,
                     customFee,

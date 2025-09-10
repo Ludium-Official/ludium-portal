@@ -97,7 +97,9 @@ function EditProfilePage() {
           keywords: data.keywords,
           links: (() => {
             const { shouldSend } = validateLinks(links);
-            return shouldSend ? filterEmptyLinks(links).map((l) => ({ title: l, url: l })) : undefined;
+            return shouldSend
+              ? filterEmptyLinks(links).map((l) => ({ title: l, url: l }))
+              : undefined;
           })(),
         },
       },
@@ -125,7 +127,7 @@ function EditProfilePage() {
     profileData?.profile?.about === content &&
     JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links) &&
     JSON.stringify(profileData.profile.keywords?.map((k) => k.name || '') || []) ===
-    JSON.stringify(watch('keywords') || []);
+      JSON.stringify(watch('keywords') || []);
 
   const [keywordInput, setKeywordInput] = useState<string>('');
 
@@ -372,8 +374,8 @@ function EditProfilePage() {
                   return (
                     // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                     <div key={idx} className="flex items-center gap-2">
-                      <div className='bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center'>
-                        <SocialIcon value={l} className='w-4 h-4 text-secondary-foreground' />
+                      <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
+                        <SocialIcon value={l} className="w-4 h-4 text-secondary-foreground" />
                       </div>
                       <Input
                         className="h-10"
@@ -392,7 +394,7 @@ function EditProfilePage() {
                       />
                       {idx !== 0 && (
                         <X
-                          className='hover:cursor-pointer'
+                          className="hover:cursor-pointer"
                           onClick={() =>
                             setLinks((prev) => {
                               const newLinks = [

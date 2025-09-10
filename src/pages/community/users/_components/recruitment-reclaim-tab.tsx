@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import notify from '@/lib/notify';
 import { getCurrencyIcon } from '@/lib/utils';
+import { ProgramType } from '@/types/types.generated';
 import { Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
@@ -40,7 +41,11 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
         filter: [
           {
             value: profileId,
-            field: 'creator', // Get programs created by this user
+            field: 'creatorId', // Get programs created by this user
+          },
+          {
+            field: 'type',
+            value: ProgramType.Regular,
           },
           ...(searchQuery
             ? [
