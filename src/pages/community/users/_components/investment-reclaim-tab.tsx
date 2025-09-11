@@ -22,7 +22,7 @@ export default function UserInvestmentReclaimTab({ myProfile }: { myProfile?: bo
   const [searchParams, _setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const currentPage = Number(searchParams.get('page')) || 1;
-  const { sendTransaction } = usePrivy();
+  const { sendTransaction, user } = usePrivy();
   const { wallets } = useWallets();
 
   const { data: profileData } = useProfileQuery({
@@ -127,8 +127,47 @@ export default function UserInvestmentReclaimTab({ myProfile }: { myProfile?: bo
       transport: http(),
     }) as PublicClient;
 
+    // Check if user is using an external wallet and create custom sendTransaction
+    const isExternalWallet =
+      user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
+    const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
+
+    let customSendTransaction = sendTransaction;
+
+    if (isExternalWallet && currentWallet) {
+      // For external wallets, we need to handle transactions differently
+      // @ts-ignore - We're overriding the type to handle external wallets
+      customSendTransaction = async (input, _uiOptions) => {
+        try {
+          // Get the provider from the wallet
+          const eip1193Provider = await currentWallet.getEthereumProvider();
+          const { ethers } = await import('ethers');
+          const provider = new ethers.providers.Web3Provider(eip1193Provider);
+          const signer = provider.getSigner();
+
+          // Send the transaction directly
+          const txResponse = await signer.sendTransaction({
+            to: input.to,
+            data: input.data,
+            value: input.value?.toString() || '0',
+            chainId: input.chainId,
+          });
+
+          return { hash: txResponse.hash as `0x${string}` };
+        } catch (error) {
+          console.error('External wallet transaction error:', error);
+          throw error;
+        }
+      };
+    }
+
     // Get the investment contract for the correct network
-    const investmentContract = getInvestmentContract(network, sendTransaction, client, userAddress);
+    const investmentContract = getInvestmentContract(
+      network,
+      customSendTransaction,
+      client,
+      userAddress,
+    );
 
     setReclaimingId(investmentId);
     try {

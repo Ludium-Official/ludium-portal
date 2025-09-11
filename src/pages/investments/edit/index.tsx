@@ -10,7 +10,12 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import type { OnSubmitInvestmentFunc } from '@/pages/investments/_components/investment-form';
 import InvestmentForm from '@/pages/investments/_components/investment-form';
-import { FundingCondition, ProgramType, type ProgramVisibility } from '@/types/types.generated';
+import {
+  FundingCondition,
+  type ProgramStatus,
+  ProgramType,
+  type ProgramVisibility,
+} from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
@@ -92,6 +97,7 @@ const EditInvestmentPage: React.FC = () => {
           network: args.network,
           image: args.image,
           visibility: args.visibility as ProgramVisibility,
+          status: args.status as ProgramStatus,
           type: ProgramType.Funding,
           applicationStartDate: args.applicationStartDate,
           applicationEndDate: args.applicationEndDate,

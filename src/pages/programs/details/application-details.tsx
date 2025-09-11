@@ -312,10 +312,17 @@ function ApplicationDetails() {
               },
               onError: (error) => {
                 console.error('Failed to update milestone status in backend:', error);
-                notify(
-                  `Transaction succeeded (${result.txHash}) but failed to update status: ${error.message}`,
-                  'error',
-                );
+                if (result?.txHash && result.txHash !== '0x0') {
+                  notify(
+                    `Transaction succeeded (${result.txHash}) but failed to update status: ${error.message}`,
+                    'error',
+                  );
+                } else {
+                  notify(
+                    'Transaction may have been sent but failed to update status. Please check your wallet.',
+                    'error',
+                  );
+                }
               },
             });
           } else {

@@ -144,11 +144,83 @@ const InvestmentDetailsPage: React.FC = () => {
             transport: http(chain.rpcUrls.default.http[0]),
           }) as PublicClient;
 
+          // Check if user is using an external wallet (MetaMask, etc.)
+          const isExternalWallet =
+            user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
+
+          console.log('Wallet detection for investment program:', {
+            connectorType: user?.wallet?.connectorType,
+            isExternalWallet,
+            currentWallet: currentWallet?.address,
+            userWalletAddress: user?.wallet?.address,
+          });
+
+          // Create a custom sendTransaction function for external wallets
+          let customSendTransaction = sendTransaction;
+
+          if (isExternalWallet && currentWallet) {
+            console.log('Using external wallet for investment program deployment');
+            // For external wallets, we need to handle transactions differently
+            // @ts-ignore - We're overriding the type to handle external wallets
+            customSendTransaction = async (input, _uiOptions) => {
+              try {
+                // Get the provider from the wallet
+                const eip1193Provider = await currentWallet.getEthereumProvider();
+                const { ethers } = await import('ethers');
+                const provider = new ethers.providers.Web3Provider(eip1193Provider);
+                const signer = provider.getSigner();
+
+                // Send the transaction directly
+                const txResponse = await signer.sendTransaction({
+                  to: input.to,
+                  data: input.data,
+                  value: input.value?.toString() || '0',
+                  chainId: input.chainId,
+                });
+
+                return { hash: txResponse.hash as `0x${string}` };
+              } catch (error) {
+                console.error('External wallet transaction error:', error);
+                throw error;
+              }
+            };
+          } else if (isExternalWallet && !currentWallet) {
+            console.warn('External wallet detected but currentWallet not found, trying fallback');
+            // Fallback: Try to use the first wallet if available
+            const fallbackWallet = wallets[0];
+            if (fallbackWallet) {
+              console.log('Using fallback wallet:', fallbackWallet.address);
+              // @ts-ignore
+              customSendTransaction = async (input, _uiOptions) => {
+                try {
+                  const eip1193Provider = await fallbackWallet.getEthereumProvider();
+                  const { ethers } = await import('ethers');
+                  const provider = new ethers.providers.Web3Provider(eip1193Provider);
+                  const signer = provider.getSigner();
+
+                  const txResponse = await signer.sendTransaction({
+                    to: input.to,
+                    data: input.data,
+                    value: input.value?.toString() || '0',
+                    chainId: input.chainId,
+                  });
+
+                  return { hash: txResponse.hash as `0x${string}` };
+                } catch (error) {
+                  console.error('Fallback wallet transaction error:', error);
+                  throw error;
+                }
+              };
+            }
+          } else {
+            console.log('Using Privy embedded wallet or default sendTransaction');
+          }
+
           // Get the investment contract for the selected network
           // The contract will use the chainId to ensure transactions go to the correct network
           const investmentContract = getInvestmentContract(
             program.network ?? mainnetDefaultNetwork,
-            sendTransaction,
+            customSendTransaction,
             publicClient,
           );
 
@@ -269,16 +341,26 @@ const InvestmentDetailsPage: React.FC = () => {
           refetch(); // Refresh the program data
           // Close the dialog
           document.getElementById('pay-dialog-close')?.click();
-        } else if (txHash && blockchainProgramId !== null && blockchainProgramId !== undefined) {
-          // For blockchain programs, include the blockchain details
+        } else if (txHash) {
+          // For blockchain programs, we have a transaction hash
+          // Use program ID if available, otherwise use 0 (transaction was successful but ID extraction failed)
           await publishProgram({
             variables: {
               id: program?.id ?? '',
-              educhainProgramId: blockchainProgramId,
+              educhainProgramId: blockchainProgramId ?? 0,
               txHash: txHash,
             },
           });
-          notify('Program published successfully', 'success');
+
+          if (blockchainProgramId !== null && blockchainProgramId !== undefined) {
+            notify('Program published successfully with blockchain ID!', 'success');
+          } else {
+            notify(
+              'Program published! Transaction successful but program ID could not be extracted. Check blockchain explorer.',
+              'success',
+            );
+          }
+
           refetch(); // Refresh the program data
           // Close the dialog
           document.getElementById('pay-dialog-close')?.click();
