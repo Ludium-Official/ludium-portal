@@ -4,6 +4,7 @@ import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.gener
 import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
 
+import { AdminDropdown } from '@/components/admin-dropdown';
 import { MarkdownPreviewer } from '@/components/markdown';
 import { ProgramStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -30,7 +31,7 @@ import ProjectCard from '@/pages/investments/details/_components/project-card';
 import SupportersModal from '@/pages/investments/details/_components/supporters-modal';
 import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 // import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
-import { FundingCondition, ProgramStatus } from '@/types/types.generated';
+import { FundingCondition, ProgramStatus, ProgramVisibility } from '@/types/types.generated';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { format } from 'date-fns';
 import { CircleAlert, Settings, TriangleAlert } from 'lucide-react';
@@ -330,6 +331,13 @@ const InvestmentDetailsPage: React.FC = () => {
                   </>
                 )}
 
+              {isAdmin && (
+                <AdminDropdown
+                  entityId={program?.id || ''}
+                  entityType="program"
+                  entityVisibility={program?.visibility || ProgramVisibility.Public}
+                />
+              )}
               {(program?.creator?.id === userId || isAdmin) && (
                 <Link to={`/investments/${program?.id}/edit`}>
                   <Button variant="ghost" className="flex gap-2 items-center">

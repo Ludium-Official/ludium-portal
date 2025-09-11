@@ -22,6 +22,7 @@ import UserRecruitmentTab from '@/pages/community/users/_components/recruitment-
 import BannerAdminPage from '@/pages/community/users/admin/banner';
 import HiddenCommunitiesAdminPage from '@/pages/community/users/admin/hidden-communities';
 import HiddenProgramsAdminPage from '@/pages/community/users/admin/hidden-programs';
+import MasterAdminPage from '@/pages/community/users/admin/master-admin-page';
 import UserManagementAdminPage from '@/pages/community/users/admin/user-management';
 import UserDetailsPage from '@/pages/community/users/details';
 import EditProfilePage from '@/pages/community/users/details/edit-profile';
@@ -145,6 +146,7 @@ function App() {
                 <Route path="hidden-programs" element={<HiddenProgramsAdminPage />} />
                 <Route path="hidden-communities" element={<HiddenCommunitiesAdminPage />} />
                 <Route path="user-management" element={<UserManagementAdminPage />} />
+                <Route path="master-admin" element={<MasterAdminPage />} />
               </Route>
             </Route>
           </Route>

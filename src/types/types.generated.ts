@@ -378,6 +378,7 @@ export type Mutation = {
   addUserKeyword?: Maybe<Keyword>;
   assignUserTier?: Maybe<UserTierAssignment>;
   assignValidatorToProgram?: Maybe<Program>;
+  banUser?: Maybe<User>;
   checkMilestone?: Maybe<Milestone>;
   claimProgramFees?: Maybe<FeeClaim>;
   createApplication?: Maybe<Application>;
@@ -392,12 +393,16 @@ export type Mutation = {
   deleteInvestmentTerm?: Maybe<Scalars['Boolean']['output']>;
   deleteProgram?: Maybe<Scalars['Boolean']['output']>;
   deleteUser?: Maybe<User>;
+  demoteFromAdmin?: Maybe<User>;
+  hidePost?: Maybe<Post>;
+  hideProgram?: Maybe<Program>;
   incrementPostView?: Maybe<Scalars['Int']['output']>;
   inviteUserToProgram?: Maybe<Program>;
   login?: Maybe<Scalars['String']['output']>;
   markAllNotificationsAsRead?: Maybe<Scalars['Boolean']['output']>;
   markNotificationAsRead?: Maybe<Scalars['Boolean']['output']>;
   processMilestonePayouts?: Maybe<Array<MilestonePayout>>;
+  promoteToAdmin?: Maybe<User>;
   reclaimInvestment?: Maybe<Investment>;
   /** Reclaim funds from an unpaid milestone past its deadline */
   reclaimMilestone?: Maybe<Milestone>;
@@ -410,9 +415,12 @@ export type Mutation = {
   removeUserTier?: Maybe<Scalars['Boolean']['output']>;
   removeValidatorFromProgram?: Maybe<Program>;
   reorderCarouselItems?: Maybe<Array<CarouselItem>>;
+  showPost?: Maybe<Post>;
+  showProgram?: Maybe<Program>;
   submitMilestone?: Maybe<Milestone>;
   submitProgram?: Maybe<Program>;
   syncApplicationTiers?: Maybe<TierSyncResult>;
+  unbanUser?: Maybe<User>;
   updateApplication?: Maybe<Application>;
   updateCarouselItem?: Maybe<CarouselItem>;
   updateComment?: Maybe<Comment>;
@@ -459,6 +467,12 @@ export type MutationAssignUserTierArgs = {
 export type MutationAssignValidatorToProgramArgs = {
   programId: Scalars['ID']['input'];
   validatorId: Scalars['ID']['input'];
+};
+
+
+export type MutationBanUserArgs = {
+  reason?: InputMaybe<Scalars['String']['input']>;
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -534,6 +548,21 @@ export type MutationDeleteUserArgs = {
 };
 
 
+export type MutationDemoteFromAdminArgs = {
+  userId: Scalars['ID']['input'];
+};
+
+
+export type MutationHidePostArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationHideProgramArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationIncrementPostViewArgs = {
   postId: Scalars['ID']['input'];
 };
@@ -561,6 +590,11 @@ export type MutationMarkNotificationAsReadArgs = {
 
 export type MutationProcessMilestonePayoutsArgs = {
   input: ProcessPayoutsInput;
+};
+
+
+export type MutationPromoteToAdminArgs = {
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -629,6 +663,16 @@ export type MutationReorderCarouselItemsArgs = {
 };
 
 
+export type MutationShowPostArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationShowProgramArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationSubmitMilestoneArgs = {
   input: SubmitMilestoneInput;
 };
@@ -643,6 +687,11 @@ export type MutationSubmitProgramArgs = {
 
 export type MutationSyncApplicationTiersArgs = {
   applicationId: Scalars['ID']['input'];
+};
+
+
+export type MutationUnbanUserArgs = {
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -799,7 +848,14 @@ export type Post = {
   summary?: Maybe<Scalars['String']['output']>;
   title?: Maybe<Scalars['String']['output']>;
   viewCount?: Maybe<Scalars['Int']['output']>;
+  visibility?: Maybe<PostVisibility>;
 };
+
+export enum PostVisibility {
+  Private = 'private',
+  Public = 'public',
+  Restricted = 'restricted'
+}
 
 export type ProcessPayoutsInput = {
   contractAddress: Scalars['String']['input'];
@@ -882,6 +938,7 @@ export enum ProgramVisibility {
 
 export type Query = {
   __typename?: 'Query';
+  adminUsers?: Maybe<PaginatedUsers>;
   application?: Maybe<Application>;
   applications?: Maybe<PaginatedApplications>;
   carouselItems?: Maybe<Array<EnrichedCarouselItem>>;
@@ -907,6 +964,14 @@ export type Query = {
   programs?: Maybe<PaginatedPrograms>;
   user?: Maybe<User>;
   users?: Maybe<PaginatedUsers>;
+};
+
+
+export type QueryAdminUsersArgs = {
+  includesBanned?: InputMaybe<Scalars['Boolean']['input']>;
+  onlyBanned?: InputMaybe<Scalars['Boolean']['input']>;
+  pagination?: InputMaybe<PaginationInput>;
+  role?: InputMaybe<UserRole>;
 };
 
 
@@ -1165,6 +1230,9 @@ export type User = {
   __typename?: 'User';
   about?: Maybe<Scalars['String']['output']>;
   avatar?: Maybe<Scalars['Upload']['output']>;
+  banned?: Maybe<Scalars['Boolean']['output']>;
+  bannedAt?: Maybe<Scalars['Date']['output']>;
+  bannedReason?: Maybe<Scalars['String']['output']>;
   email?: Maybe<Scalars['String']['output']>;
   firstName?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
@@ -1239,6 +1307,8 @@ export type UserUpdateInput = {
   links?: InputMaybe<Array<LinkInput>>;
   loginType?: InputMaybe<Scalars['String']['input']>;
   organizationName?: InputMaybe<Scalars['String']['input']>;
+  roleKeywords?: InputMaybe<Array<Scalars['String']['input']>>;
+  skillKeywords?: InputMaybe<Array<Scalars['String']['input']>>;
   summary?: InputMaybe<Scalars['String']['input']>;
   walletAddress?: InputMaybe<Scalars['String']['input']>;
 };
