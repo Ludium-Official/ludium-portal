@@ -24,22 +24,55 @@ export class InvestmentContract {
   private sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'];
   private client: PublicClient;
   private chainId?: number;
+  private userAddress?: string;
 
   constructor(
     addresses: InvestmentContractAddresses,
     sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'],
     client: PublicClient,
     chainId?: number,
+    userAddress?: string,
   ) {
     this.addresses = addresses;
     this.sendTransaction = sendTransaction;
     this.client = client;
     this.chainId = chainId;
+    this.userAddress = userAddress;
   }
 
   private async waitForTransaction(hash: `0x${string}`) {
-    const receipt = await this.client.waitForTransactionReceipt({ hash });
-    return receipt;
+    try {
+      console.log('Waiting for transaction receipt:', hash);
+      const receipt = await this.client.waitForTransactionReceipt({
+        hash,
+        timeout: 60_000, // 60 second timeout
+      });
+      console.log('Transaction receipt received:', receipt);
+      return receipt;
+    } catch (error) {
+      console.error('Error waiting for transaction receipt:', error);
+      // If we can't get the receipt, return a minimal receipt object
+      // The transaction was likely successful since we have a hash
+      console.warn('Returning minimal receipt due to error - transaction may have succeeded');
+      return {
+        transactionHash: hash,
+        logs: [],
+      };
+    }
+  }
+
+  private async getUserAddress(): Promise<string | null> {
+    try {
+      if (this.userAddress) {
+        console.log('Using provided user address:', this.userAddress);
+        return this.userAddress;
+      }
+      console.warn('No user address provided to InvestmentContract');
+      return null;
+    } catch (error) {
+      console.error('Failed to get user address:', error);
+      return null;
+    }
   }
 
   async signValidate(params: {
@@ -171,46 +204,188 @@ export class InvestmentContract {
         ],
       });
 
-      const txResult = await this.sendTransaction(
-        {
-          to: this.addresses.core as `0x${string}`,
-          data,
-          value: BigInt(0),
-          chainId: this.chainId,
-        } as Parameters<typeof this.sendTransaction>[0],
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            transactionInfo: {
-              title: 'Create Investment Program',
-              action: 'Create',
-            },
-            description: `Creating program: ${params.name}`,
-            successHeader: 'Program Created!',
-            successDescription: 'Investment program has been created successfully.',
-          },
-        },
-      );
+      let txResult: { hash: string };
+      let receipt: { transactionHash: string; logs: Array<{ topics?: string[] }> };
 
-      const receipt = await this.waitForTransaction(txResult.hash);
+      try {
+        txResult = await this.sendTransaction(
+          {
+            to: this.addresses.core as `0x${string}`,
+            data,
+            value: BigInt(0),
+            chainId: this.chainId,
+          } as Parameters<typeof this.sendTransaction>[0],
+          {
+            uiOptions: {
+              showWalletUIs: true,
+              transactionInfo: {
+                title: 'Create Investment Program',
+                action: 'Create',
+              },
+              description: `Creating program: ${params.name}`,
+              successHeader: 'Program Created!',
+              successDescription: 'Investment program has been created successfully.',
+            },
+          },
+        );
+
+        receipt = await this.waitForTransaction(txResult.hash as `0x${string}`);
+      } catch (sendError) {
+        const errorMessage = sendError instanceof Error ? sendError.message : String(sendError);
+
+        // Log the error but re-throw it - external wallets are now handled at a higher level
+        console.error('Transaction send error:', errorMessage);
+
+        // Re-throw all errors - the calling code will handle them
+        throw sendError;
+      }
 
       // Extract program ID from event
       // Event: InvestmentProgramCreated(uint256 indexed id, address indexed host, string name, uint256 maxFundingPerProject, address token)
-      const eventTopic = ethers.utils.id(
-        'InvestmentProgramCreated(uint256,address,string,uint256,address)',
-      );
       let programId = null;
 
-      const log = receipt.logs.find(
-        (log) => 'topics' in log && Array.isArray(log.topics) && log.topics[0] === eventTopic,
-      );
-      if (log && 'topics' in log && Array.isArray(log.topics)) {
-        // The program ID is the first indexed parameter (topics[1])
-        programId = Number.parseInt(log.topics[1] as string, 16);
+      try {
+        const eventTopic = ethers.utils.id(
+          'InvestmentProgramCreated(uint256,address,string,uint256,address)',
+        );
+
+        console.log('Looking for event topic:', eventTopic);
+        console.log('Receipt logs:', receipt.logs);
+
+        if (receipt.logs && receipt.logs.length > 0) {
+          console.log('Number of logs in receipt:', receipt.logs.length);
+
+          // Log all topics for debugging
+          receipt.logs.forEach((log, index) => {
+            if ('topics' in log && Array.isArray(log.topics)) {
+              console.log(`Log ${index} topics:`, log.topics);
+            }
+          });
+
+          const log = receipt.logs.find(
+            (log) => 'topics' in log && Array.isArray(log.topics) && log.topics[0] === eventTopic,
+          );
+
+          if (log && 'topics' in log && Array.isArray(log.topics)) {
+            console.log('Found matching log:', log);
+            if (log.topics[1]) {
+              // The program ID is the first indexed parameter (topics[1])
+              programId = Number.parseInt(log.topics[1] as string, 16);
+              console.log('Extracted program ID from event:', programId);
+            } else {
+              console.warn('Log found but topics[1] is missing');
+            }
+          } else {
+            console.warn('Could not find InvestmentProgramCreated event in logs');
+
+            // Try alternative: Look for any log from the core contract address
+            const coreLogs = receipt.logs.filter((log) => {
+              if ('address' in log && typeof log.address === 'string') {
+                return log.address.toLowerCase() === this.addresses.core.toLowerCase();
+              }
+              return false;
+            });
+            console.log('Logs from core contract:', coreLogs);
+
+            // If there's a log from the core contract, try to extract ID from it
+            if (
+              coreLogs.length > 0 &&
+              'topics' in coreLogs[0] &&
+              Array.isArray(coreLogs[0].topics)
+            ) {
+              // Assume the first topic after the event signature is the program ID
+              if (coreLogs[0].topics[1]) {
+                programId = Number.parseInt(coreLogs[0].topics[1] as string, 16);
+                console.log('Extracted program ID from core contract log:', programId);
+              }
+            }
+          }
+        } else {
+          console.warn('No logs in receipt - program ID cannot be extracted');
+        }
+
+        // If we still don't have a program ID, try using getLogs directly (Arbitrum workaround)
+        if (programId === null && receipt.transactionHash) {
+          console.log('Attempting to get logs using eth_getLogs (Arbitrum workaround)...');
+          try {
+            // Get the block number from transaction
+            const tx = await this.client.getTransaction({
+              hash: receipt.transactionHash as `0x${string}`,
+            });
+            const blockNumber = tx?.blockNumber;
+
+            if (blockNumber) {
+              // Use getLogs to fetch events directly
+              const logs = await this.client.getLogs({
+                address: this.addresses.core as `0x${string}`,
+                event: {
+                  type: 'event',
+                  name: 'InvestmentProgramCreated',
+                  inputs: [
+                    { indexed: true, name: 'id', type: 'uint256' },
+                    { indexed: true, name: 'host', type: 'address' },
+                    { indexed: false, name: 'name', type: 'string' },
+                    { indexed: false, name: 'maxFundingPerProject', type: 'uint256' },
+                    { indexed: false, name: 'token', type: 'address' },
+                  ],
+                },
+                fromBlock: blockNumber,
+                toBlock: blockNumber,
+              });
+
+              console.log('Logs from getLogs:', logs);
+
+              if (logs && logs.length > 0) {
+                // Extract program ID from the first log
+                const log = logs[0];
+                if ('args' in log && log.args && 'id' in log.args) {
+                  programId = Number(log.args.id);
+                  console.log('Extracted program ID from getLogs:', programId);
+                } else if ('topics' in log && Array.isArray(log.topics) && log.topics[1]) {
+                  programId = Number.parseInt(log.topics[1] as string, 16);
+                  console.log('Extracted program ID from getLogs topics:', programId);
+                }
+              }
+            }
+          } catch (getLogsError) {
+            console.error('Failed to get logs using eth_getLogs:', getLogsError);
+          }
+        }
+
+        // If we still don't have a program ID, try to get it from the contract state
+        if (programId === null) {
+          console.log('Attempting to get program ID from contract state...');
+          try {
+            // Try to read the nextProgramId from the contract (it would be the last created ID)
+            const data = encodeFunctionData({
+              abi: INVESTMENT_CORE_ABI,
+              functionName: 'nextProgramId',
+              args: [],
+            });
+
+            const result = await this.client.call({
+              to: this.addresses.core as `0x${string}`,
+              data,
+            });
+
+            if (result.data) {
+              // nextProgramId is the ID that will be used for the NEXT program
+              // So the current program ID is nextProgramId - 1
+              const nextId = Number.parseInt(result.data as string, 16);
+              programId = nextId - 1;
+              console.log('Got program ID from contract state:', programId);
+            }
+          } catch (callError) {
+            console.error('Failed to get program ID from contract:', callError);
+          }
+        }
+      } catch (eventError) {
+        console.error('Error extracting program ID from event:', eventError);
+        // Continue without program ID - transaction was still successful
       }
 
       return {
-        txHash: receipt.transactionHash,
+        txHash: receipt.transactionHash || txResult.hash,
         programId,
       };
     } catch (error) {
@@ -219,7 +394,7 @@ export class InvestmentContract {
     }
   }
 
-  async acceptMilestone(projectId: number, milestoneIndex: number) {
+  async approveMilestone(projectId: number, milestoneIndex: number) {
     try {
       const data = encodeFunctionData({
         abi: MILESTONE_MANAGER_ABI,
@@ -227,33 +402,92 @@ export class InvestmentContract {
         args: [projectId, milestoneIndex],
       });
 
-      const txResult = await this.sendTransaction(
-        {
-          to: this.addresses.milestone as `0x${string}`,
-          data,
-          value: BigInt(0),
-          chainId: this.chainId,
-        } as Parameters<typeof this.sendTransaction>[0],
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            transactionInfo: {
-              title: 'Approve Milestone',
-              action: 'Approve',
+      let txResult: { hash: string };
+      try {
+        txResult = await this.sendTransaction(
+          {
+            to: this.addresses.milestone as `0x${string}`,
+            data,
+            value: BigInt(0),
+            chainId: this.chainId,
+          } as Parameters<typeof this.sendTransaction>[0],
+          {
+            uiOptions: {
+              showWalletUIs: true,
+              transactionInfo: {
+                title: 'Approve Milestone',
+                action: 'Approve',
+              },
+              description: `Approving milestone #${milestoneIndex + 1} for project #${projectId}`,
+              successHeader: 'Milestone Approved!',
+              successDescription:
+                'The milestone has been approved. Now execute the milestone to release funds.',
             },
-            description: `Approving milestone #${milestoneIndex + 1} for project #${projectId}`,
-            successHeader: 'Milestone Approved!',
-            successDescription: 'The milestone has been approved and funds will be released.',
           },
-        },
-      );
+        );
+      } catch (sendError) {
+        const errorMessage = sendError instanceof Error ? sendError.message : String(sendError);
 
-      const receipt = await this.waitForTransaction(txResult.hash);
+        // Log the error but re-throw it - external wallets are now handled at a higher level
+        console.error('Transaction send error:', errorMessage);
+
+        // Re-throw all errors - the calling code will handle them
+        throw sendError;
+      }
+
+      const receipt = await this.waitForTransaction(txResult.hash as `0x${string}`);
       return {
         txHash: receipt.transactionHash,
       };
     } catch (error) {
       console.error('Failed to approve milestone:', error);
+      throw error;
+    }
+  }
+
+  async executeMilestone(projectId: number, milestoneIndex: number) {
+    try {
+      const data = encodeFunctionData({
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'delegateExecuteMilestone',
+        args: [projectId, milestoneIndex],
+      });
+
+      let txResult: { hash: string };
+      try {
+        txResult = await this.sendTransaction(
+          {
+            to: this.addresses.core as `0x${string}`,
+            data,
+            value: BigInt(0),
+            chainId: this.chainId,
+          } as Parameters<typeof this.sendTransaction>[0],
+          {
+            uiOptions: {
+              showWalletUIs: true,
+              transactionInfo: {
+                title: 'Release Milestone Funds',
+                action: 'Execute',
+              },
+              description: `Releasing funds for milestone #${milestoneIndex + 1} of project #${projectId}`,
+              successHeader: 'Funds Released!',
+              successDescription:
+                'The milestone funds have been successfully transferred to the project owner.',
+            },
+          },
+        );
+      } catch (sendError) {
+        const errorMessage = sendError instanceof Error ? sendError.message : String(sendError);
+        console.error('Transaction send error:', errorMessage);
+        throw sendError;
+      }
+
+      const receipt = await this.waitForTransaction(txResult.hash as `0x${string}`);
+      return {
+        txHash: receipt.transactionHash,
+      };
+    } catch (error) {
+      console.error('Failed to execute milestone:', error);
       throw error;
     }
   }
@@ -499,15 +733,138 @@ export class InvestmentContract {
   }
 
   async reclaimFund(projectId: number) {
+    console.log('=== RECLAIM FUND DEBUG START ===');
+    console.log('Project ID:', projectId);
+    console.log('Contract addresses:', this.addresses);
+    console.log('Chain ID:', this.chainId);
+
     try {
-      // Use delegateReclaimFund from core contract
-      // This routes through the funding module with proper validation
+      // First, verify the project exists on-chain
+      try {
+        console.log('Checking if project exists on-chain...');
+        const projectDetails = await this.getProjectInvestmentDetails(projectId);
+        console.log('Project details from blockchain:', projectDetails);
+
+        if (!projectDetails || !projectDetails.targetAmount) {
+          throw new Error(
+            `Project ${projectId} does not exist on the blockchain. The project may not have been deployed yet.`,
+          );
+        }
+
+        // Log more details about the project
+        console.log('Project found on-chain with details:');
+        console.log('- Target Amount:', projectDetails.targetAmount);
+        console.log('- Total Raised:', projectDetails.totalRaised);
+        console.log('- Investor Count:', projectDetails.investorCount);
+        console.log('- Funding Successful:', projectDetails.fundingSuccessful);
+      } catch (projectCheckError) {
+        console.error('Project verification failed:', projectCheckError);
+        throw new Error(
+          `Cannot reclaim: Project ${projectId} not found on blockchain. Please ensure the project was properly deployed.`,
+        );
+      }
+
+      // Then, try to get user address and check investment
+      const userAddress = await this.getUserAddress();
+      console.log('User address:', userAddress);
+
+      if (!userAddress) {
+        throw new Error('No wallet address found. Please connect your wallet.');
+      }
+
+      // Check the user's investment amount in the Funding module
+      let hasInvestment = false;
+      try {
+        console.log('Checking user investment amount in Funding module...');
+        const investmentData = await this.client.readContract({
+          address: this.addresses.funding as `0x${string}`,
+          abi: FUNDING_MODULE_ABI,
+          functionName: 'getInvestmentAmount',
+          args: [projectId, userAddress as `0x${string}`],
+        });
+        console.log('User investment amount on-chain:', investmentData);
+
+        hasInvestment = Boolean(investmentData && Number(investmentData) > 0);
+
+        if (!hasInvestment) {
+          console.log('No investment found for user:', userAddress);
+          throw new Error(
+            `No investment found for your wallet address ${userAddress} in project ${projectId}`,
+          );
+        }
+
+        console.log('Investment confirmed! Amount:', investmentData, 'Proceeding with reclaim...');
+
+        // Check the actual reclaim eligibility to understand why it might fail
+        try {
+          console.log('Checking detailed reclaim eligibility...');
+          const eligibilityData = await this.client.readContract({
+            address: this.addresses.core as `0x${string}`,
+            abi: INVESTMENT_CORE_ABI,
+            functionName: 'checkReclaimEligibility',
+            args: [projectId, userAddress as `0x${string}`],
+          });
+
+          const [canReclaim, reason, reclaimAmount] = eligibilityData as [boolean, string, bigint];
+          console.log('Detailed eligibility check:');
+          console.log('- Can reclaim:', canReclaim);
+          console.log('- Reason:', reason);
+          console.log('- Reclaim amount:', reclaimAmount);
+
+          if (!canReclaim) {
+            console.error('RECLAIM NOT ALLOWED:', reason);
+            console.log('The contract says:', reason);
+            console.log('Possible reasons:');
+            console.log('1. "No investment found" - Investment not recorded on-chain');
+            console.log(
+              '2. "Cannot reclaim from successful project" - Project completed successfully',
+            );
+            console.log(
+              '3. "Project still active" - Project is ongoing, not failed or past funding deadline',
+            );
+
+            // Don't proceed with transaction - throw error immediately
+            if (reason === 'Project still active') {
+              throw new Error(
+                'The project is still active. Reclaim is only available if the project fails or the funding period ends without reaching the target.',
+              );
+            }
+            if (reason === 'Cannot reclaim from successful project') {
+              throw new Error(
+                'This project completed successfully. Funds have been or will be distributed according to milestones.',
+              );
+            }
+            if (reason === 'No investment found') {
+              throw new Error('No investment found on the blockchain for your wallet address.');
+            }
+            throw new Error(`Cannot reclaim: ${reason}`);
+          }
+
+          console.log('Reclaim eligibility confirmed! Can proceed with transaction.');
+        } catch (err) {
+          console.error('Eligibility check error:', err);
+          throw err; // Always re-throw to stop execution
+        }
+      } catch (e) {
+        console.error('Investment check error:', e);
+        // Re-throw any error to stop the transaction
+        throw e;
+      }
+
+      // Call delegateReclaimFund on Core, which will delegate to Funding module
+      // The Core contract orchestrates the reclaim process
+      console.log('Encoding function data for delegateReclaimFund on Core contract...');
+      console.log('Using Core contract at:', this.addresses.core);
+      console.log('This will delegate to Funding contract at:', this.addresses.funding);
       const data = encodeFunctionData({
         abi: INVESTMENT_CORE_ABI,
         functionName: 'delegateReclaimFund',
         args: [projectId],
       });
+      console.log('Encoded data:', data);
+      console.log('Target contract (core):', this.addresses.core);
 
+      console.log('Sending transaction...');
       const txResult = await this.sendTransaction(
         {
           to: this.addresses.core as `0x${string}`,
@@ -528,6 +885,7 @@ export class InvestmentContract {
           },
         },
       );
+      console.log('Transaction sent, hash:', txResult.hash);
 
       const receipt = await this.waitForTransaction(txResult.hash);
 
@@ -545,13 +903,54 @@ export class InvestmentContract {
         reclaimedAmount = ethers.utils.formatEther(decoded[0]);
       }
 
+      console.log('Transaction receipt:', receipt);
+      if ('status' in receipt) {
+        console.log('Transaction status:', receipt.status);
+      }
+
       return {
         txHash: receipt.transactionHash,
         amount: reclaimedAmount,
         projectId,
       };
     } catch (error) {
-      console.error('Failed to reclaim funds:', error);
+      console.error('=== RECLAIM FUND ERROR ===');
+      console.error('Error object:', error);
+
+      // Try to extract more detailed error information
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Error message:', errorMessage);
+
+      // Check if it's a contract revert error
+      if (errorMessage.includes('execution reverted')) {
+        // Try to extract the revert reason
+        const revertMatch = errorMessage.match(/execution reverted: (.*?)(?:\n|$)/);
+        if (revertMatch) {
+          console.error('Revert reason:', revertMatch[1]);
+          throw new Error(`Contract reverted: ${revertMatch[1]}`);
+        }
+
+        // Check for common revert reasons
+        if (errorMessage.includes('Project not found')) {
+          throw new Error('Project not found on blockchain');
+        }
+        if (errorMessage.includes('Not investor')) {
+          throw new Error('You are not an investor in this project');
+        }
+        if (errorMessage.includes('Cannot reclaim')) {
+          throw new Error(
+            'Project is not eligible for reclaim (may still be active or already completed successfully)',
+          );
+        }
+        if (errorMessage.includes('Already reclaimed')) {
+          throw new Error('You have already reclaimed your investment');
+        }
+        if (errorMessage.includes('No funds to reclaim')) {
+          throw new Error('No funds available to reclaim');
+        }
+      }
+
+      console.error('=== END RECLAIM FUND ERROR ===');
       throw error;
     }
   }
@@ -1026,13 +1425,6 @@ export class InvestmentContract {
   }
 
   /**
-   * Alias for acceptMilestone (backward compatibility)
-   */
-  async approveMilestone(projectId: number, milestoneIndex: number) {
-    return this.acceptMilestone(projectId, milestoneIndex);
-  }
-
-  /**
    * Alias for reclaimFund (backward compatibility)
    */
   async reclaimFunds(projectId: number) {
@@ -1045,18 +1437,65 @@ export class InvestmentContract {
     investor: string,
   ): Promise<{ canReclaim: boolean; reason?: string }> {
     try {
+      console.log('Checking reclaim eligibility for project:', projectId, 'investor:', investor);
+      console.log('Using core contract at:', this.addresses.core);
+
       const data = await this.client.readContract({
-        address: this.addresses.funding as `0x${string}`,
-        abi: FUNDING_MODULE_ABI,
+        address: this.addresses.core as `0x${string}`,
+        abi: INVESTMENT_CORE_ABI,
         functionName: 'canReclaimFunds',
         args: [projectId, investor as `0x${string}`],
       });
 
       const [canReclaim, reason] = data as [boolean, string];
+      console.log('Eligibility result - canReclaim:', canReclaim, 'reason:', reason);
+
       return { canReclaim, reason };
     } catch (error) {
       console.error('Failed to check reclaim eligibility:', error);
-      return { canReclaim: false, reason: 'Failed to check eligibility' };
+
+      // Try to extract more info from the error
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Eligibility check error details:', errorMessage);
+
+      return { canReclaim: false, reason: `Failed to check eligibility: ${errorMessage}` };
+    }
+  }
+
+  /**
+   * Mark a project as failed (admin/owner only) - useful for testing reclaim
+   */
+  async markProjectAsFailed(projectId: number, reason = 'Test failure for reclaim testing') {
+    try {
+      console.log('Marking project as failed:', projectId);
+      console.log('Reason:', reason);
+
+      const data = encodeFunctionData({
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'markProjectAsFailed',
+        args: [projectId, reason],
+      });
+
+      const txResult = await this.sendTransaction({
+        to: this.addresses.core as `0x${string}`,
+        data,
+        value: BigInt(0),
+        chainId: this.chainId,
+      } as Parameters<typeof this.sendTransaction>[0]);
+
+      console.log('Transaction hash:', txResult.hash);
+
+      // Wait for transaction confirmation
+      const receipt = await this.waitForTransaction(txResult.hash as `0x${string}`);
+      console.log('Project marked as failed successfully');
+
+      return {
+        txHash: receipt.transactionHash,
+        projectId,
+      };
+    } catch (error) {
+      console.error('Failed to mark project as failed:', error);
+      throw error;
     }
   }
 

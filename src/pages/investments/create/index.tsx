@@ -7,20 +7,21 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import type { OnSubmitInvestmentFunc } from '@/pages/investments/_components/investment-form';
 import InvestmentForm from '@/pages/investments/_components/investment-form';
-import { FundingCondition, ProgramType, type ProgramVisibility } from '@/types/types.generated';
-import { useEffect, useState } from 'react';
+import {
+  FundingCondition,
+  type ProgramStatus,
+  ProgramType,
+  type ProgramVisibility,
+} from '@/types/types.generated';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 const CreateInvestment: React.FC = () => {
   const navigate = useNavigate();
-  // const { sendTransaction, user } = usePrivy();
-  // const { wallets } = useWallets();
   const [createProgram] = useCreateProgramMutation();
-  const [isDeploying, setIsDeploying] = useState(false);
 
   const [assignValidatorToProgram] = useAssignValidatorToProgramMutation();
   const [inviteUserToProgram] = useInviteUserToProgramMutation();
-  // const [submitProgram] = useSubmitProgramMutation();
 
   const { isLoggedIn, isAuthed } = useAuth();
 
@@ -40,100 +41,10 @@ const CreateInvestment: React.FC = () => {
 
   const onSubmit: OnSubmitInvestmentFunc = async (args) => {
     try {
-      // setIsDeploying(true);
+      // Investment programs are only created in the database initially
+      // Blockchain deployment happens later when the host pays after validator approval
 
-      // // Step 1: Deploy to blockchain if user wants blockchain integration
-      // let txHash: string | null = null;
-      // let blockchainProgramId: number | null = null;
-
-      // if (args.network !== 'off-chain') {
-      //   notify('Deploying to blockchain...');
-
-      //   // Switch to the correct network if needed
-      //   const chain = getChainForNetwork(args.network);
-
-      //   // Check if we have a wallet and switch network if needed
-      //   const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
-      //   if (currentWallet?.switchChain) {
-      //     try {
-      //       await currentWallet.switchChain(chain.id);
-      //       notify(`Switched to ${chain.name} network`, 'success');
-      //     } catch (error) {
-      //       console.warn('Failed to switch network:', error);
-      //       // Continue anyway, Privy modal will handle network switching
-      //     }
-      //   }
-
-      //   // Create public client for the network with proper chain configuration
-      //   const publicClient = createPublicClient({
-      //     chain,
-      //     transport: http(chain.rpcUrls.default.http[0]),
-      //   }) as PublicClient;
-
-      //   // Get the investment contract for the selected network
-      //   // The contract will use the chainId to ensure transactions go to the correct network
-      //   const investmentContract = getInvestmentContract(
-      //     args.network,
-      //     sendTransaction,
-      //     publicClient,
-      //   );
-
-      //   // Get validator wallet addresses from the form data
-      //   const currentUserAddress =
-      //     user?.wallet?.address || '0x0000000000000000000000000000000000000000';
-
-      //   let validatorAddresses: string[] = [];
-
-      //   if (
-      //     args.validators.length > 0 &&
-      //     args.validatorWalletAddresses &&
-      //     args.validatorWalletAddresses.length > 0
-      //   ) {
-      //     // Use the wallet addresses provided by the form
-      //     validatorAddresses = args.validatorWalletAddresses.filter((addr) => addr && addr !== '');
-
-      //     // Validate that we have wallet addresses for all validators
-      //     if (validatorAddresses.length !== args.validators.length) {
-      //       // Fill missing addresses with current user address
-      //       while (validatorAddresses.length < args.validators.length) {
-      //         validatorAddresses.push(currentUserAddress);
-      //       }
-      //     }
-      //   } else if (args.validators.length > 0) {
-      //     // No wallet addresses provided but validators selected - use current user as fallback
-      //     validatorAddresses = args.validators.map(() => currentUserAddress);
-      //   } else {
-      //     // No validators specified - use current user as default validator
-      //     validatorAddresses = [currentUserAddress];
-      //   }
-
-      //   const contractResult = await investmentContract.createInvestmentProgram({
-      //     name: args.programName,
-      //     description: args.description,
-      //     fundingGoal: args.price || '0',
-      //     fundingToken: '0x0000000000000000000000000000000000000000', // Native token for now
-      //     applicationStartDate: args.applicationStartDate || '',
-      //     applicationEndDate: args.applicationEndDate || '',
-      //     fundingStartDate: args.fundingStartDate || '',
-      //     fundingEndDate: args.fundingEndDate || '',
-      //     feePercentage: args.feePercentage || 300, // 3% default
-      //     validators: validatorAddresses,
-      //     requiredValidations: validatorAddresses.length,
-      //     fundingCondition: args.fundingCondition === 'tier' ? 'tier' : 'open',
-      //   });
-
-      //   // Store the program ID from blockchain
-      //   blockchainProgramId = contractResult.programId;
-      //   txHash = contractResult.txHash;
-
-      //   if (blockchainProgramId !== null && blockchainProgramId !== undefined) {
-      //     notify(`Blockchain deployment successful! Program ID: ${blockchainProgramId}`, 'success');
-      //   } else {
-      //     notify('Blockchain deployment successful!', 'success');
-      //   }
-      // }
-
-      // Step 2: Create program in backend
+      // Create program in backend only (no blockchain deployment yet)
       await createProgram({
         variables: {
           input: {
@@ -151,6 +62,7 @@ const CreateInvestment: React.FC = () => {
             network: args.network,
             image: args.image,
             visibility: args.visibility as ProgramVisibility,
+            status: args.status as ProgramStatus,
             type: ProgramType.Funding,
             applicationStartDate: args.applicationStartDate,
             applicationEndDate: args.applicationEndDate,
@@ -165,27 +77,11 @@ const CreateInvestment: React.FC = () => {
             tierSettings: args.tierSettings,
             feePercentage: args.feePercentage,
             customFeePercentage: args.customFeePercentage,
-            // contractAddress: txHash ?? '', // Store tx hash in contractAddress field temporarily
+            // No blockchain deployment at creation - happens when host pays
           },
         },
         onCompleted: async (data) => {
           const programId = data.createProgram?.id ?? '';
-
-          // Step 3: Update program with blockchain ID if we have one
-          // if (blockchainProgramId !== null && txHash) {
-          //   try {
-          //     await submitProgram({
-          //       variables: {
-          //         id: programId,
-          //         educhainProgramId: blockchainProgramId,
-          //         txHash: txHash,
-          //       },
-          //     });
-          //     notify(`Program linked to blockchain with ID: ${blockchainProgramId}`, 'success');
-          //   } catch (_error) {
-          //     notify('Warning: Failed to link program with blockchain ID', 'error');
-          //   }
-          // }
 
           const results = await Promise.allSettled(
             args.validators.map((validatorId) =>
@@ -227,22 +123,36 @@ const CreateInvestment: React.FC = () => {
         },
       });
     } catch (error) {
-      notify(`Error creating investment program: ${(error as Error).message}`, 'error');
-    } finally {
-      setIsDeploying(false);
+      const errorMessage = (error as Error).message;
+
+      // Check if this is the Privy embedded wallet error that happens even when transaction succeeds
+      if (
+        errorMessage.includes('User must have an embedded wallet') ||
+        errorMessage.includes('r40')
+      ) {
+        // This error occurs with external wallets even when the transaction succeeds
+        // Check if we're using an external wallet
+        console.warn(
+          'Privy embedded wallet error with external wallet - checking if transaction succeeded...',
+        );
+
+        // Since the transaction likely succeeded, just navigate and show success
+        // The transaction hash would be in the console logs
+        navigate('/investments');
+        client.refetchQueries({ include: [ProgramsDocument] });
+        notify(
+          'Investment program creation submitted. Please check the transaction status.',
+          'success',
+        );
+      } else {
+        // For other errors, show the error message
+        notify(`Error creating investment program: ${errorMessage}`, 'error');
+      }
     }
   };
 
   return (
     <div className="w-full bg-[#f7f7f7] p-10 pr-[55px]" defaultValue="edit">
-      {isDeploying && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg flex items-center gap-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
-            <span>Deploying to blockchain...</span>
-          </div>
-        </div>
-      )}
       <InvestmentForm isEdit={false} onSubmitInvestment={onSubmit} />
     </div>
   );

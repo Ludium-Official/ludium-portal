@@ -53,6 +53,7 @@ import {
 } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
+import * as ethers from 'ethers';
 import { ArrowUpRight, Check, ChevronDown, CircleAlert, Settings } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
@@ -172,12 +173,35 @@ function ApplicationDetails() {
               );
             }
 
+            // Validate that applicant has a proper wallet address
+            const projectOwnerAddress = application.applicant?.walletAddress;
+
+            if (!projectOwnerAddress || !ethers.utils.isAddress(projectOwnerAddress)) {
+              notify(
+                'Error: The applicant must have a valid wallet address connected to their profile before the project can be validated on blockchain. Please ask the applicant to connect their wallet.',
+                'error',
+              );
+              console.error('Invalid or missing wallet address:', {
+                walletAddress: projectOwnerAddress,
+                applicantId: application.applicant?.id,
+                applicantEmail: application.applicant?.email,
+              });
+              return;
+            }
+
+            console.log('Validating project with owner address:', projectOwnerAddress);
+
+            // Determine token decimals based on currency
+            const tokenDecimals =
+              program.currency === 'USDT' || program.currency === 'USDC' ? 6 : 18;
+
             // Call signValidate to register the project on blockchain FIRST
             const result = await investmentContract.signValidate({
               programId: program.educhainProgramId,
-              projectOwner: application.applicant?.walletAddress || application.applicant?.id || '',
+              projectOwner: projectOwnerAddress,
               projectName: application.name || '',
               targetFunding: fundingAmount,
+              tokenDecimals, // Pass correct decimals for USDT/USDC
               milestones,
             });
 
@@ -251,26 +275,47 @@ function ApplicationDetails() {
             return;
           }
 
-          // This only records the approval, doesn't transfer funds
-          const result = await investmentContract.approveMilestone(
+          // Step 1: Approve the milestone (marks it as approved)
+          const approveResult = await investmentContract.approveMilestone(
             Number(data.application.onChainProjectId),
             milestoneIndex ?? 0,
           );
 
-          if (result?.txHash) {
-            await checkMilestone({
-              variables: {
-                input: {
-                  id: milestoneId ?? '',
-                  status: CheckMilestoneStatus.Completed,
-                },
-              },
-              onCompleted: () => {
-                refetch();
-                programRefetch();
-                notify('Milestone approved! Funds released from investment pool.', 'success');
-              },
-            });
+          if (approveResult?.txHash) {
+            notify('Milestone approved! Now executing to release funds...');
+
+            // Step 2: Execute the milestone to release funds
+            try {
+              const executeResult = await investmentContract.executeMilestone(
+                Number(data.application.onChainProjectId),
+                milestoneIndex ?? 0,
+              );
+
+              if (executeResult?.txHash) {
+                await checkMilestone({
+                  variables: {
+                    input: {
+                      id: milestoneId ?? '',
+                      status: CheckMilestoneStatus.Completed,
+                    },
+                  },
+                  onCompleted: () => {
+                    refetch();
+                    programRefetch();
+                    notify(
+                      'Milestone completed! Funds successfully released to project owner.',
+                      'success',
+                    );
+                  },
+                });
+              }
+            } catch (executeError) {
+              console.error('Failed to execute milestone:', executeError);
+              notify(
+                'Milestone approved but failed to release funds. Please try executing manually.',
+                'error',
+              );
+            }
           }
         } else {
           // For regular programs, use the old flow (validator pays)
@@ -278,14 +323,18 @@ function ApplicationDetails() {
           const tokens = tokenAddresses[network] || [];
           const targetToken = tokens.find((token) => token.name === program.currency);
 
-          const tx = await contract.acceptMilestone(
+          const result = await contract.acceptMilestone(
             Number(program?.educhainProgramId),
             data?.application?.applicant?.walletAddress ?? '',
             price ?? '',
             targetToken ?? { name: program.currency as string },
           );
 
-          if (tx) {
+          if (result?.txHash) {
+            // Transaction was sent successfully
+            console.log('Milestone acceptance result:', result);
+
+            // Update backend milestone status regardless of event detection
             await checkMilestone({
               variables: {
                 input: {
@@ -296,11 +345,33 @@ function ApplicationDetails() {
               onCompleted: () => {
                 refetch();
                 programRefetch();
-                notify('Milestone accepted successfully', 'success');
+
+                if (!result.eventFound) {
+                  notify(
+                    'Milestone accepted! Transaction succeeded but event log not found. Please verify on blockchain explorer.',
+                    'success',
+                  );
+                } else {
+                  notify('Milestone accepted successfully', 'success');
+                }
+              },
+              onError: (error) => {
+                console.error('Failed to update milestone status in backend:', error);
+                if (result?.txHash && result.txHash !== '0x0') {
+                  notify(
+                    `Transaction succeeded (${result.txHash}) but failed to update status: ${error.message}`,
+                    'error',
+                  );
+                } else {
+                  notify(
+                    'Transaction may have been sent but failed to update status. Please check your wallet.',
+                    'error',
+                  );
+                }
               },
             });
           } else {
-            notify("Can't found acceptMilestone event", 'error');
+            notify('Failed to accept milestone: No transaction hash returned', 'error');
           }
         }
       }

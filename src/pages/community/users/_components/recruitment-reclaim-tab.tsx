@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import ChainContract from '@/lib/contract';
 import notify from '@/lib/notify';
 import { getCurrencyIcon } from '@/lib/utils';
+import { ProgramType } from '@/types/types.generated';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import { Search } from 'lucide-react';
@@ -53,7 +54,11 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
         filter: [
           {
             value: profileId,
-            field: 'creator', // Get programs created by this user
+            field: 'creatorId', // Get programs created by this user
+          },
+          {
+            field: 'type',
+            value: ProgramType.Regular,
           },
           ...(searchQuery
             ? [
@@ -143,8 +148,13 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
               // Reclaimable amount is what wasn't paid out
               const reclaimableAmount = totalDeposited - totalPaidOut;
 
-              if (reclaimableAmount > 0.001) {
-                // Small tolerance for rounding
+              // Add debug logging to see what's happening
+              console.log(
+                `Program ${program?.name}: Deposited=${totalDeposited}, PaidOut=${totalPaidOut}, Reclaimable=${reclaimableAmount}`,
+              );
+
+              if (reclaimableAmount > 0) {
+                // Any amount greater than 0 can be reclaimed
                 items.push({
                   type: 'unused_program',
                   program,
@@ -155,6 +165,11 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
                   amount: reclaimableAmount.toFixed(4),
                   currency: program?.currency || 'ETH',
                 });
+              } else if (isPastDeadline && totalDeposited > 0) {
+                // Log when a program is past deadline but fully paid out
+                console.log(
+                  `Program ${program?.name} is past deadline but fully paid out (no funds to reclaim)`,
+                );
               }
             }
           }
@@ -188,8 +203,8 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
               // Reclaimable amount is what wasn't paid out
               const reclaimableAmount = totalDeposited - totalPaidOut;
 
-              if (reclaimableAmount > 0.001) {
-                // Small tolerance for rounding
+              if (reclaimableAmount > 0) {
+                // Any amount greater than 0 can be reclaimed
                 items.push({
                   type: 'unused_program',
                   program,
@@ -253,7 +268,19 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
   // Helper function to create contract with specific network
   const createContractForNetwork = (network: string) => {
     const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
-    const injectedWallet = user?.wallet?.connectorType !== 'embedded';
+    // Check if the user is using an external wallet (like MetaMask)
+    const isExternalWallet =
+      user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
+
+    // Log wallet type for debugging
+    console.log('Reclaim - Wallet info:', {
+      connectorType: user?.wallet?.connectorType,
+      isExternalWallet,
+      currentWallet: currentWallet?.address,
+      walletsCount: wallets.length,
+      userWalletAddress: user?.wallet?.address,
+    });
+
     let sendTx = sendTransaction;
 
     const checkNetwork: Chain = (() => {
@@ -309,12 +336,34 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
       return provider.getSigner();
     }
 
-    if (injectedWallet && currentWallet) {
-      sendTx = async (input: Parameters<typeof sendTransaction>[0]) => {
-        const signer = await getSigner(checkNetwork, currentWallet);
-        const txResponse = await signer.sendTransaction(input);
-        return { hash: txResponse.hash as `0x${string}` };
+    if (isExternalWallet && currentWallet) {
+      console.log('Using external wallet for reclaim transaction:', currentWallet.address);
+      sendTx = async (input: Parameters<typeof sendTransaction>[0], _uiOptions?: unknown) => {
+        // Note: _uiOptions is ignored for external wallets since they use their own UI
+        try {
+          console.log('Sending reclaim transaction with external wallet...', input);
+          const signer = await getSigner(checkNetwork, currentWallet);
+          const txResponse = await signer.sendTransaction(input);
+          console.log('Reclaim transaction sent successfully:', txResponse.hash);
+          return { hash: txResponse.hash as `0x${string}` };
+        } catch (error) {
+          console.error('Error sending reclaim transaction with external wallet:', error);
+          throw error;
+        }
       };
+    } else if (isExternalWallet && !currentWallet) {
+      console.warn('User has an external wallet but no active wallet found for reclaim.');
+      sendTx = async () => {
+        throw new Error(
+          'External wallet detected but not properly connected. Please reconnect your wallet.',
+        );
+      };
+    } else if (!user?.wallet) {
+      sendTx = async () => {
+        throw new Error('No wallet connected. Please connect a wallet to continue.');
+      };
+    } else {
+      console.log('Using Privy embedded wallet for reclaim transaction');
     }
 
     const checkContract = (() => {

@@ -1,0 +1,5 @@
+mutation showProgram($id: ID!) {
+  showProgram(id: $id) {
+    id
+  }
+}

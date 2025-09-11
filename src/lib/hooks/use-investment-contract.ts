@@ -48,6 +48,13 @@ const CONTRACT_ADDRESSES: Record<string, InvestmentContractAddresses> = {
     milestone: import.meta.env.VITE_SEPOLIA_INVESTMENT_MILESTONE_ADDRESS || '',
     timeLock: import.meta.env.VITE_SEPOLIA_INVESTMENT_TIMELOCK_ADDRESS || '',
   },
+  'arbitrum-sepolia': {
+    // Arbitrum Sepolia uses the same addresses as defined in .env
+    core: import.meta.env.VITE_ARBITRUM_INVESTMENT_CORE_ADDRESS || '',
+    funding: import.meta.env.VITE_ARBITRUM_INVESTMENT_FUNDING_ADDRESS || '',
+    milestone: import.meta.env.VITE_ARBITRUM_INVESTMENT_MILESTONE_ADDRESS || '',
+    timeLock: import.meta.env.VITE_ARBITRUM_INVESTMENT_TIMELOCK_ADDRESS || '',
+  },
   'educhain-testnet': {
     core: import.meta.env.VITE_EDUCHAIN_INVESTMENT_CORE_ADDRESS || '',
     funding: import.meta.env.VITE_EDUCHAIN_INVESTMENT_FUNDING_ADDRESS || '',
@@ -60,6 +67,19 @@ const CONTRACT_ADDRESSES: Record<string, InvestmentContractAddresses> = {
     milestone: import.meta.env.VITE_BASE_INVESTMENT_MILESTONE_ADDRESS || '',
     timeLock: import.meta.env.VITE_BASE_INVESTMENT_TIMELOCK_ADDRESS || '',
   },
+  arbitrum: {
+    core: import.meta.env.VITE_ARBITRUM_INVESTMENT_CORE_ADDRESS || '',
+    funding: import.meta.env.VITE_ARBITRUM_INVESTMENT_FUNDING_ADDRESS || '',
+    milestone: import.meta.env.VITE_ARBITRUM_INVESTMENT_MILESTONE_ADDRESS || '',
+    timeLock: import.meta.env.VITE_ARBITRUM_INVESTMENT_TIMELOCK_ADDRESS || '',
+  },
+  base: {
+    // Base mainnet - needs to be configured
+    core: import.meta.env.VITE_BASE_MAINNET_INVESTMENT_CORE_ADDRESS || '',
+    funding: import.meta.env.VITE_BASE_MAINNET_INVESTMENT_FUNDING_ADDRESS || '',
+    milestone: import.meta.env.VITE_BASE_MAINNET_INVESTMENT_MILESTONE_ADDRESS || '',
+    timeLock: import.meta.env.VITE_BASE_MAINNET_INVESTMENT_TIMELOCK_ADDRESS || '',
+  },
   // Add more networks as needed
 };
 
@@ -68,8 +88,25 @@ export function useInvestmentContract(network: string | null = null) {
   const { wallets } = useWallets();
   const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
 
-  const injectedWallet = user?.wallet?.connectorType !== 'embedded';
+  // Check if the user is using an external wallet (like MetaMask)
+  // External wallets have connectorType like 'injected', 'wallet_connect', etc.
+  // Only 'embedded' wallets are Privy's internal wallets
+  const isExternalWallet = user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
+
+  // Log wallet type for debugging
+  console.log('Investment Contract - Wallet info:', {
+    connectorType: user?.wallet?.connectorType,
+    isExternalWallet,
+    currentWallet: currentWallet?.address,
+    walletsCount: wallets.length,
+    userWalletAddress: user?.wallet?.address,
+  });
+
   let sendTx = sendTransaction;
+
+  // If no currentWallet found but user has a wallet, try to use the first available wallet
+  const activeWallet =
+    currentWallet || (isExternalWallet && wallets.length > 0 ? wallets[0] : null);
 
   const checkNetwork: Chain = (() => {
     if (network === 'sepolia') {
@@ -117,12 +154,35 @@ export function useInvestmentContract(network: string | null = null) {
     return eduChain;
   })();
 
-  if (injectedWallet && currentWallet) {
-    sendTx = async (input) => {
-      const signer = await getSigner(checkNetwork, currentWallet);
-      const txResponse = await signer.sendTransaction(input);
-      return { hash: txResponse.hash as `0x${string}` };
+  if (isExternalWallet && activeWallet) {
+    console.log('Using external wallet for investment transactions:', activeWallet.address);
+    sendTx = async (input, _uiOptions?: unknown) => {
+      // Note: _uiOptions is ignored for external wallets since they use their own UI
+      try {
+        console.log('Sending investment transaction with external wallet...', input);
+        const signer = await getSigner(checkNetwork, activeWallet);
+        const txResponse = await signer.sendTransaction(input);
+        console.log('Investment transaction sent successfully:', txResponse.hash);
+        return { hash: txResponse.hash as `0x${string}` };
+      } catch (error) {
+        console.error('Error sending investment transaction with external wallet:', error);
+        throw error;
+      }
     };
+  } else if (isExternalWallet && !activeWallet) {
+    console.warn('User has an external wallet but no active wallet found. Transactions may fail.');
+    // Throw a more helpful error
+    sendTx = async () => {
+      throw new Error(
+        'External wallet detected but not properly connected. Please reconnect your wallet.',
+      );
+    };
+  } else if (!user?.wallet) {
+    sendTx = async () => {
+      throw new Error('No wallet connected. Please connect a wallet to continue.');
+    };
+  } else {
+    console.log('Using Privy embedded wallet for investment transactions');
   }
 
   const contractAddresses =
@@ -147,6 +207,7 @@ export function getInvestmentContract(
   network: string,
   sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'],
   client: PublicClient,
+  userAddress?: string,
 ) {
   const contractAddresses =
     CONTRACT_ADDRESSES[network || 'educhain-testnet'] || CONTRACT_ADDRESSES['educhain-testnet'];
@@ -161,5 +222,5 @@ export function getInvestmentContract(
 
   const chainId = chainIdMap[network] || chainIdMap['educhain-testnet'];
 
-  return new InvestmentContract(contractAddresses, sendTransaction, client, chainId);
+  return new InvestmentContract(contractAddresses, sendTransaction, client, chainId, userAddress);
 }

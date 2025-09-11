@@ -1,18 +1,18 @@
-import { useProfileQuery } from '@/apollo/queries/profile.generated';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useForm } from 'react-hook-form';
+import { useProfileQuery } from "@/apollo/queries/profile.generated";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useForm } from "react-hook-form";
 
-import { useUpdateProfileMutation } from '@/apollo/mutation/updateProfile.generated';
-import { MarkdownEditor } from '@/components/markdown';
-import { Badge } from '@/components/ui/badge';
-import SocialIcon from '@/components/ui/social-icon';
-import notify from '@/lib/notify';
-import { filterEmptyLinks, validateLinks } from '@/lib/validation';
-import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useUpdateProfileMutation } from "@/apollo/mutation/updateProfile.generated";
+import { MarkdownEditor } from "@/components/markdown";
+import { Badge } from "@/components/ui/badge";
+import SocialIcon from "@/components/ui/social-icon";
+import notify from "@/lib/notify";
+import { filterEmptyLinks, validateLinks } from "@/lib/validation";
+import { ChevronRight, Image as ImageIcon, Plus, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 
 // Social icon logic moved to SocialIcon component
 
@@ -20,11 +20,11 @@ function EditProfilePage() {
   const navigate = useNavigate();
 
   const { data: profileData, refetch } = useProfileQuery({
-    fetchPolicy: 'network-only',
+    fetchPolicy: "network-only",
   });
 
-  const [content, setContent] = useState<string>('');
-  const [selectedTab, setSelectedTab] = useState<string>('overview');
+  const [content, setContent] = useState<string>("");
+  const [selectedTab, setSelectedTab] = useState<string>("overview");
 
   useEffect(() => {
     if (profileData?.profile?.about) {
@@ -38,11 +38,11 @@ function EditProfilePage() {
   useEffect(() => {
     const links = profileData?.profile?.links;
     if (links?.length) {
-      setLinks(links?.filter((l) => l)?.map((l) => l.url ?? ''));
+      setLinks(links?.filter((l) => l)?.map((l) => l.url ?? ""));
     }
   }, [profileData]);
 
-  const [links, setLinks] = useState<string[]>(['']);
+  const [links, setLinks] = useState<string[]>([""]);
 
   const [updateProfile] = useUpdateProfileMutation();
 
@@ -53,14 +53,20 @@ function EditProfilePage() {
     firstName: string;
     lastName: string;
     keywords: string[];
+    roleKeywords: string[];
+    skillKeywords: string[];
   }>({
     values: {
-      email: profileData?.profile?.email ?? '',
-      summary: profileData?.profile?.summary ?? '',
-      name: profileData?.profile?.organizationName ?? '',
-      firstName: profileData?.profile?.firstName ?? '',
-      lastName: profileData?.profile?.lastName ?? '',
-      keywords: profileData?.profile?.keywords?.map((k) => k.name || '') || [],
+      email: profileData?.profile?.email ?? "",
+      summary: profileData?.profile?.summary ?? "",
+      name: profileData?.profile?.organizationName ?? "",
+      firstName: profileData?.profile?.firstName ?? "",
+      lastName: profileData?.profile?.lastName ?? "",
+      keywords: profileData?.profile?.keywords?.map((k) => k.name || "") || [],
+      roleKeywords:
+        profileData?.profile?.roleKeywords?.map((k) => k.name || "") || [],
+      skillKeywords:
+        profileData?.profile?.skillKeywords?.map((k) => k.name || "") || [],
     },
   });
 
@@ -76,6 +82,8 @@ function EditProfilePage() {
     firstName: string;
     lastName: string;
     keywords: string[];
+    roleKeywords: string[];
+    skillKeywords: string[];
   }) => {
     const { isValid } = validateLinks(links);
     if (!isValid) {
@@ -86,7 +94,7 @@ function EditProfilePage() {
     updateProfile({
       variables: {
         input: {
-          id: profileData?.profile?.id ?? '',
+          id: profileData?.profile?.id ?? "",
           image: selectedAvatar,
           email: data.email,
           organizationName: data?.name,
@@ -94,7 +102,22 @@ function EditProfilePage() {
           firstName: data?.firstName,
           lastName: data?.lastName,
           about: content,
-          keywords: data.keywords,
+          // Only send keywords if they've changed
+          ...(JSON.stringify(
+            profileData?.profile?.keywords?.map((k) => k.name || "") || []
+          ) !== JSON.stringify(data.keywords || [])
+            ? { keywords: data.keywords }
+            : {}),
+          ...(JSON.stringify(
+            profileData?.profile?.roleKeywords?.map((k) => k.name || "") || []
+          ) !== JSON.stringify(data.roleKeywords || [])
+            ? { roleKeywords: data.roleKeywords }
+            : {}),
+          ...(JSON.stringify(
+            profileData?.profile?.skillKeywords?.map((k) => k.name || "") || []
+          ) !== JSON.stringify(data.skillKeywords || [])
+            ? { skillKeywords: data.skillKeywords }
+            : {}),
           links: (() => {
             const { shouldSend } = validateLinks(links);
             return shouldSend
@@ -104,54 +127,126 @@ function EditProfilePage() {
         },
       },
       onCompleted: () => {
-        notify('Profile successfully updated');
+        notify("Profile successfully updated");
         refetch();
-        navigate('/my-profile');
+        navigate("/my-profile");
       },
       onError: (e) => {
-        if (e.message === 'duplicate key value violates unique constraint "users_email_unique"') {
-          notify('This email is already taken.', 'error');
+        if (
+          e.message ===
+          'duplicate key value violates unique constraint "users_email_unique"'
+        ) {
+          notify("This email is already taken.", "error");
         } else {
-          notify(e.message, 'error');
+          notify(e.message, "error");
         }
       },
     });
   };
 
   const isNoChanges =
-    profileData?.profile?.summary === watch('summary') &&
-    profileData?.profile?.firstName === watch('firstName') &&
-    profileData?.profile?.lastName === watch('lastName') &&
-    profileData?.profile?.organizationName === watch('name') &&
-    profileData?.profile?.email === watch('email') &&
+    profileData?.profile?.summary === watch("summary") &&
+    profileData?.profile?.firstName === watch("firstName") &&
+    profileData?.profile?.lastName === watch("lastName") &&
+    profileData?.profile?.organizationName === watch("name") &&
+    profileData?.profile?.email === watch("email") &&
     profileData?.profile?.about === content &&
-    JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links) &&
-    JSON.stringify(profileData.profile.keywords?.map((k) => k.name || '') || []) ===
-      JSON.stringify(watch('keywords') || []);
+    JSON.stringify(profileData.profile.links?.map((l) => l.url)) ===
+      JSON.stringify(links) &&
+    JSON.stringify(
+      profileData.profile.keywords?.map((k) => k.name || "") || []
+    ) === JSON.stringify(watch("keywords") || []) &&
+    JSON.stringify(
+      profileData.profile.roleKeywords?.map((k) => k.name || "") || []
+    ) === JSON.stringify(watch("roleKeywords") || []) &&
+    JSON.stringify(
+      profileData.profile.skillKeywords?.map((k) => k.name || "") || []
+    ) === JSON.stringify(watch("skillKeywords") || []);
 
-  const [keywordInput, setKeywordInput] = useState<string>('');
+  // const [keywordInput, setKeywordInput] = useState<string>('');
+  const [roleKeywordInput, setRoleKeywordInput] = useState<string>("");
+  const [skillKeywordInput, setSkillKeywordInput] = useState<string>("");
 
-  const handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setKeywordInput(e.target.value);
+  // Unused functions - keeping for potential future use
+  // const _handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setKeywordInput(e.target.value);
+  // };
+
+  // const _handleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  //   if ((e.key === ' ' || e.key === 'Enter') && keywordInput.trim()) {
+  //     e.preventDefault();
+  //     const newKeyword = keywordInput.trim();
+  //     const currentKeywords = getValues('keywords') || [];
+  //     if (newKeyword && !currentKeywords.includes(newKeyword)) {
+  //       setValue('keywords', [...currentKeywords, newKeyword]);
+  //     }
+  //     setKeywordInput('');
+  //   }
+  // };
+
+  // const _removeKeyword = (keywordToRemove: string) => {
+  //   const currentKeywords = getValues('keywords') || [];
+  //   setValue(
+  //     'keywords',
+  //     currentKeywords.filter((keyword) => keyword !== keywordToRemove),
+  //   );
+  // };
+
+  // Role keywords handlers
+  const handleRoleKeywordInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setRoleKeywordInput(e.target.value);
   };
 
-  const handleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if ((e.key === ' ' || e.key === 'Enter') && keywordInput.trim()) {
+  const handleRoleKeywordInputKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if ((e.key === " " || e.key === "Enter") && roleKeywordInput.trim()) {
       e.preventDefault();
-      const newKeyword = keywordInput.trim();
-      const currentKeywords = getValues('keywords') || [];
+      const newKeyword = roleKeywordInput.trim();
+      const currentKeywords = getValues("roleKeywords") || [];
       if (newKeyword && !currentKeywords.includes(newKeyword)) {
-        setValue('keywords', [...currentKeywords, newKeyword]);
+        setValue("roleKeywords", [...currentKeywords, newKeyword]);
       }
-      setKeywordInput('');
+      setRoleKeywordInput("");
     }
   };
 
-  const removeKeyword = (keywordToRemove: string) => {
-    const currentKeywords = getValues('keywords') || [];
+  const removeRoleKeyword = (keywordToRemove: string) => {
+    const currentKeywords = getValues("roleKeywords") || [];
     setValue(
-      'keywords',
-      currentKeywords.filter((keyword) => keyword !== keywordToRemove),
+      "roleKeywords",
+      currentKeywords.filter((keyword) => keyword !== keywordToRemove)
+    );
+  };
+
+  // Skill keywords handlers
+  const handleSkillKeywordInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    setSkillKeywordInput(e.target.value);
+  };
+
+  const handleSkillKeywordInputKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if ((e.key === " " || e.key === "Enter") && skillKeywordInput.trim()) {
+      e.preventDefault();
+      const newKeyword = skillKeywordInput.trim();
+      const currentKeywords = getValues("skillKeywords") || [];
+      if (newKeyword && !currentKeywords.includes(newKeyword)) {
+        setValue("skillKeywords", [...currentKeywords, newKeyword]);
+      }
+      setSkillKeywordInput("");
+    }
+  };
+
+  const removeSkillKeyword = (keywordToRemove: string) => {
+    const currentKeywords = getValues("skillKeywords") || [];
+    setValue(
+      "skillKeywords",
+      currentKeywords.filter((keyword) => keyword !== keywordToRemove)
     );
   };
 
@@ -161,15 +256,15 @@ function EditProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
     // Validate type
-    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
-      setImageError('Only PNG, JPG, or JPEG files are allowed.');
+    if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
+      setImageError("Only PNG, JPG, or JPEG files are allowed.");
       setSelectedAvatar(undefined);
       setImagePreview(null);
       return;
     }
     // Validate size
     if (file.size > 2 * 1024 * 1024) {
-      setImageError('Image must be under 2MB.');
+      setImageError("Image must be under 2MB.");
       setSelectedAvatar(undefined);
       setImagePreview(null);
       return;
@@ -178,7 +273,7 @@ function EditProfilePage() {
     const img = new window.Image();
     img.onload = () => {
       if (img.width !== img.height) {
-        setImageError('Image must be square (1:1).');
+        setImageError("Image must be square (1:1).");
         setSelectedAvatar(undefined);
         setImagePreview(null);
       } else {
@@ -187,7 +282,7 @@ function EditProfilePage() {
       }
     };
     img.onerror = () => {
-      setImageError('Invalid image file.');
+      setImageError("Invalid image file.");
       setSelectedAvatar(undefined);
       setImagePreview(null);
     };
@@ -199,7 +294,11 @@ function EditProfilePage() {
       <h1 className="font-medium text-xl mb-6">Edit Profile</h1>
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Tabs defaultValue="overview" value={selectedTab} onValueChange={setSelectedTab}>
+        <Tabs
+          defaultValue="overview"
+          value={selectedTab}
+          onValueChange={setSelectedTab}
+        >
           <TabsList className="w-full px-0 mb-3">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="details">Details</TabsTrigger>
@@ -212,8 +311,8 @@ function EditProfilePage() {
                   First name <span className="text-primary">*</span>
                 </p>
                 <Input
-                  {...register('firstName', {
-                    required: 'First Name is required.',
+                  {...register("firstName", {
+                    required: "First Name is required.",
                   })}
                   id="firstName"
                   type="text"
@@ -227,8 +326,8 @@ function EditProfilePage() {
                   Last name <span className="text-primary">*</span>
                 </p>
                 <Input
-                  {...register('lastName', {
-                    required: 'Last Name is required.',
+                  {...register("lastName", {
+                    required: "Last Name is required.",
                   })}
                   id="lastName"
                   type="text"
@@ -242,8 +341,8 @@ function EditProfilePage() {
                   Email <span className="text-primary">*</span>
                 </p>
                 <Input
-                  {...register('email', {
-                    required: 'Email is required.',
+                  {...register("email", {
+                    required: "Email is required.",
                   })}
                   id="email"
                   type="email"
@@ -257,8 +356,8 @@ function EditProfilePage() {
                   Organization <span className="text-primary">*</span>
                 </p>
                 <Input
-                  {...register('name', {
-                    required: 'Organization Name is required.',
+                  {...register("name", {
+                    required: "Organization Name is required.",
                   })}
                   id="name"
                   type="text"
@@ -267,23 +366,23 @@ function EditProfilePage() {
                 />
               </label>
 
-              <label htmlFor="keyword" className="space-y-2 block mb-10">
+              <label htmlFor="roleKeyword" className="space-y-2 block mb-10">
                 <p className="text-sm font-medium">
                   Roles <span className="text-primary">*</span>
                 </p>
                 <div className="space-y-3">
                   <Input
-                    id="keyword"
+                    id="roleKeyword"
                     type="text"
                     placeholder="Enter directly"
-                    value={keywordInput}
-                    onChange={handleKeywordInputChange}
-                    onKeyDown={handleKeywordInputKeyDown}
+                    value={roleKeywordInput}
+                    onChange={handleRoleKeywordInputChange}
+                    onKeyDown={handleRoleKeywordInputKeyDown}
                     className="h-10"
                   />
-                  {watch('keywords')?.length > 0 && (
+                  {watch("roleKeywords")?.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {watch('keywords')?.map((keyword: string) => (
+                      {watch("roleKeywords")?.map((keyword: string) => (
                         <Badge
                           key={keyword}
                           className="text-black bg-[#F4F4F5] border-0 px-2.5 py-0.5 text-xs font-semibold"
@@ -291,7 +390,57 @@ function EditProfilePage() {
                           {keyword}
                           <button
                             type="button"
-                            onClick={() => removeKeyword(keyword)}
+                            onClick={() => removeRoleKeyword(keyword)}
+                            className="ml-1 hover:cursor-pointer rounded-full p-0.5 transition-colors"
+                          >
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 12 12"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              aria-label="Remove keyword"
+                            >
+                              <title>Remove keyword</title>
+                              <path
+                                d="M9 3L3 9M3 3L9 9"
+                                stroke="currentColor"
+                                strokeWidth="1.4"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </label>
+
+              <label htmlFor="skillKeyword" className="space-y-2 block mb-10">
+                <p className="text-sm font-medium">Skills</p>
+                <div className="space-y-3">
+                  <Input
+                    id="skillKeyword"
+                    type="text"
+                    placeholder="Enter directly"
+                    value={skillKeywordInput}
+                    onChange={handleSkillKeywordInputChange}
+                    onKeyDown={handleSkillKeywordInputKeyDown}
+                    className="h-10"
+                  />
+                  {watch("skillKeywords")?.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {watch("skillKeywords")?.map((keyword: string) => (
+                        <Badge
+                          key={keyword}
+                          className="text-black bg-[#F4F4F5] border-0 px-2.5 py-0.5 text-xs font-semibold"
+                        >
+                          {keyword}
+                          <button
+                            type="button"
+                            onClick={() => removeSkillKeyword(keyword)}
                             className="ml-1 hover:cursor-pointer rounded-full p-0.5 transition-colors"
                           >
                             <svg
@@ -351,12 +500,15 @@ function EditProfilePage() {
                       Profile image <span className="text-primary">*</span>
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Profile image must be square, under 2MB, and in PNG, JPG, or JPEG format.
+                      Profile image must be square, under 2MB, and in PNG, JPG,
+                      or JPEG format.
                       <br />
                       This image is used as your profile picture
                     </p>
                     {imageError && (
-                      <span className="text-destructive text-sm block mt-28">{imageError}</span>
+                      <span className="text-destructive text-sm block mt-28">
+                        {imageError}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -375,7 +527,10 @@ function EditProfilePage() {
                     // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                     <div key={idx} className="flex items-center gap-2">
                       <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
-                        <SocialIcon value={l} className="w-4 h-4 text-secondary-foreground" />
+                        <SocialIcon
+                          value={l}
+                          className="w-4 h-4 text-secondary-foreground"
+                        />
                       </div>
                       <Input
                         className="h-10"
@@ -411,7 +566,7 @@ function EditProfilePage() {
                   );
                 })}
                 <Button
-                  onClick={() => setLinks((prev) => [...prev, ''])}
+                  onClick={() => setLinks((prev) => [...prev, ""])}
                   type="button"
                   variant="outline"
                   size="sm"
@@ -421,7 +576,7 @@ function EditProfilePage() {
                 </Button>
                 {linksError && (
                   <span className="text-destructive text-sm block">
-                    The provided link is not valid. All links must begin with{' '}
+                    The provided link is not valid. All links must begin with{" "}
                     <span className="font-bold">https://</span>.
                   </span>
                 )}
@@ -436,8 +591,8 @@ function EditProfilePage() {
                   Summary <span className="text-primary">*</span>
                 </p>
                 <Input
-                  {...register('summary', {
-                    required: 'Summary is required.',
+                  {...register("summary", {
+                    required: "Summary is required.",
                   })}
                   id="summary"
                   type="text"
@@ -454,7 +609,9 @@ function EditProfilePage() {
                 </p>
                 <MarkdownEditor onChange={setContent} content={content} />
                 {!content.length && (
-                  <span className="text-red-400 text-sm block">Content is required</span>
+                  <span className="text-red-400 text-sm block">
+                    Content is required
+                  </span>
                 )}
               </label>
             </div>
@@ -462,7 +619,7 @@ function EditProfilePage() {
         </Tabs>
 
         <div className="py-3 flex justify-end gap-4">
-          {selectedTab === 'details' && (
+          {selectedTab === "details" && (
             <Button
               type="submit"
               disabled={isNoChanges}
@@ -473,12 +630,12 @@ function EditProfilePage() {
             </Button>
           )}
 
-          {selectedTab === 'overview' && (
+          {selectedTab === "overview" && (
             <Button
               type="button"
               size="lg"
               variant="outline"
-              onClick={() => setSelectedTab('details')}
+              onClick={() => setSelectedTab("details")}
             >
               Next to Details <ChevronRight />
             </Button>

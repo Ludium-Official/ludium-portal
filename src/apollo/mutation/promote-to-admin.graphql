@@ -1,0 +1,5 @@
+mutation promoteToAdmin($userId: ID!) {
+  promoteToAdmin(userId: $userId) {
+    id
+  }
+}

@@ -64,30 +64,34 @@ function UserDetailsPage() {
             <div className="flex flex-col gap-6">
               <div className="space-y-2">
                 <p className="font-bold text-sm text-muted-foreground">ROLES</p>
-                <div className="flex gap-[6px]">
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    Crypto
-                  </Badge>
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    BD
-                  </Badge>
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    Develope
-                  </Badge>
+                <div className="flex gap-[6px] flex-wrap">
+                  {userData?.user?.roleKeywords?.map((keyword) => (
+                    <Badge
+                      key={keyword.id}
+                      className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs"
+                    >
+                      {keyword.name}
+                    </Badge>
+                  ))}
+                  {!userData?.user?.roleKeywords?.length && (
+                    <p className="text-sm text-muted-foreground">No roles defined</p>
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
                 <p className="font-bold text-sm text-muted-foreground">SKILLS</p>
-                <div className="flex gap-[6px]">
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    Crypto
-                  </Badge>
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    BD
-                  </Badge>
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    Develope
-                  </Badge>
+                <div className="flex gap-[6px] flex-wrap">
+                  {userData?.user?.skillKeywords?.map((keyword) => (
+                    <Badge
+                      key={keyword.id}
+                      className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs"
+                    >
+                      {keyword.name}
+                    </Badge>
+                  ))}
+                  {!userData?.user?.skillKeywords?.length && (
+                    <p className="text-sm text-muted-foreground">No skills defined</p>
+                  )}
                 </div>
               </div>
               <div className="space-y-3">

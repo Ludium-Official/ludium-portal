@@ -2,6 +2,7 @@ import client from '@/apollo/client';
 import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
 import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
 import { ProgramDocument, useProgramQuery } from '@/apollo/queries/program.generated';
+import { AdminDropdown } from '@/components/admin-dropdown';
 import { MarkdownPreviewer } from '@/components/markdown';
 import { ProgramStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -34,7 +35,12 @@ import ApplicationCard from '@/pages/programs/details/_components/application-ca
 import CreateApplicationForm from '@/pages/programs/details/_components/create-application-form';
 import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 // import MainSection from '@/pages/programs/details/_components/main-section';
-import { ApplicationStatus, ProgramStatus, type User } from '@/types/types.generated';
+import {
+  ApplicationStatus,
+  ProgramStatus,
+  ProgramVisibility,
+  type User,
+} from '@/types/types.generated';
 import { useWallets } from '@privy-io/react-auth';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
@@ -203,6 +209,13 @@ const DetailsPage: React.FC = () => {
             <h1 className="text-xl font-bold">{program?.name}</h1>
 
             <div className="flex gap-2">
+              {isAdmin && (
+                <AdminDropdown
+                  entityId={program?.id || ''}
+                  entityType="program"
+                  entityVisibility={program?.visibility || ProgramVisibility.Public}
+                />
+              )}
               {(program?.creator?.id === userId || isAdmin) && (
                 <Link to={`/programs/${program?.id}/edit`}>
                   <Button variant="ghost" className="flex gap-2 items-center">

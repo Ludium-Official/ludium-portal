@@ -1,33 +1,38 @@
-import { useApplicationsQuery } from '@/apollo/queries/applications.generated';
-import { useProfileQuery } from '@/apollo/queries/profile.generated';
-import { useProgramsQuery } from '@/apollo/queries/programs.generated';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ArrowRightIcon, ListFilter, Search } from 'lucide-react';
-import { useState } from 'react';
-import { Link, useParams } from 'react-router';
-import { AgentBreadcrumbs } from './agent-breadcrumbs';
-import ProgramHostCard from './program-host-card';
-import ProgramProjectCard from './program-project-card';
+import { useApplicationsQuery } from "@/apollo/queries/applications.generated";
+import { useProfileQuery } from "@/apollo/queries/profile.generated";
+import { useProgramsQuery } from "@/apollo/queries/programs.generated";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ProgramType } from "@/types/types.generated";
+import { ArrowRightIcon, ListFilter, Search } from "lucide-react";
+import { useState } from "react";
+import { Link, useParams } from "react-router";
+import { AgentBreadcrumbs } from "./agent-breadcrumbs";
+import ProgramHostCard from "./program-host-card";
+import ProgramProjectCard from "./program-project-card";
 
 const filterBasedOnRole = {
-  sponsor: 'creatorId',
-  validator: 'validatorId',
-  builder: 'applicantId',
+  sponsor: "creatorId",
+  validator: "validatorId",
+  builder: "applicantId",
 };
 
-export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }) {
+export default function UserInvestmentTab({
+  myProfile,
+}: {
+  myProfile?: boolean;
+}) {
   const { id } = useParams();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: profileData } = useProfileQuery({
-    fetchPolicy: 'network-only',
+    fetchPolicy: "network-only",
     skip: !myProfile,
   });
 
-  const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
+  const profileId = myProfile ? profileData?.profile?.id ?? "" : id ?? "";
 
-  const { data: programData } = useProgramsQuery({
+  const { data: sponsorData } = useProgramsQuery({
     variables: {
       pagination: {
         limit: 2,
@@ -37,10 +42,14 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
             value: profileId,
             field: filterBasedOnRole.sponsor,
           },
+          {
+            value: ProgramType.Funding,
+            field: "programType",
+          },
           ...(searchQuery
             ? [
                 {
-                  field: 'name',
+                  field: "name",
                   value: searchQuery,
                 },
               ]
@@ -63,16 +72,16 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
         filter: [
           {
             value: profileId,
-            field: 'applicantId',
+            field: "applicantId",
           },
           {
-            value: 'regular',
-            field: 'programType',
+            value: ProgramType.Funding,
+            field: "programType",
           },
           ...(searchQuery
             ? [
                 {
-                  field: 'name',
+                  field: "name",
                   value: searchQuery,
                 },
               ]
@@ -107,20 +116,27 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
           <div className="flex flex-col justify-between py-2 px-4">
             <div className="flex items-center justify-between">
               <p className="font-bold text-xl text-muted-foreground">As Host</p>
-              {!!programData?.programs?.count && programData.programs.count > 2 && (
-                <Link to={'host'} className="px-3 flex items-center gap-2">
-                  <p className="font-medium text-sm text-gray-dark">View more</p>
-                  <ArrowRightIcon width={16} height={16} />
-                </Link>
-              )}
+              {!!sponsorData?.programs?.count &&
+                sponsorData.programs.count > 2 && (
+                  <Link to={"host"} className="px-3 flex items-center gap-2">
+                    <p className="font-medium text-sm text-gray-dark">
+                      View more
+                    </p>
+                    <ArrowRightIcon width={16} height={16} />
+                  </Link>
+                )}
             </div>
-            <p className="text-xs text-muted-foreground">Please select what to show</p>
+            <p className="text-xs text-muted-foreground">
+              Please select what to show
+            </p>
           </div>
           <div className="flex flex-col gap-3">
-            {programData?.programs?.data?.length === 0 ? (
-              <p className="text-sm text-muted-foreground px-4">No programs found</p>
+            {sponsorData?.programs?.data?.length === 0 ? (
+              <p className="text-sm text-muted-foreground px-4">
+                No programs found
+              </p>
             ) : (
-              programData?.programs?.data?.map((program) => (
+              sponsorData?.programs?.data?.map((program) => (
                 <ProgramHostCard key={program.id} program={program} />
               ))
             )}
@@ -130,22 +146,35 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
         <div className="flex flex-col gap-3">
           <div className="flex flex-col justify-between py-2 px-4">
             <div className="flex items-center justify-between">
-              <p className="font-bold text-xl text-muted-foreground">As Project</p>
-              {!!programData?.programs?.count && programData.programs.count > 2 && (
-                <Link to={'project'} className="px-3 flex items-center gap-2">
-                  <p className="font-medium text-sm text-gray-dark">View more</p>
-                  <ArrowRightIcon width={16} height={16} />
-                </Link>
-              )}
+              <p className="font-bold text-xl text-muted-foreground">
+                As Project
+              </p>
+              {!!applicationsData?.applications?.count &&
+                applicationsData.applications.count > 2 && (
+                  <Link to={"project"} className="px-3 flex items-center gap-2">
+                    <p className="font-medium text-sm text-gray-dark">
+                      View more
+                    </p>
+                    <ArrowRightIcon width={16} height={16} />
+                  </Link>
+                )}
             </div>
-            <p className="text-xs text-muted-foreground">Please select what to show</p>
+            <p className="text-xs text-muted-foreground">
+              Please select what to show
+            </p>
           </div>
           <div className="flex flex-col gap-3">
             {applicationsData?.applications?.data?.length === 0 ? (
-              <p className="text-sm text-muted-foreground px-4">No programs found</p>
+              <p className="text-sm text-muted-foreground px-4">
+                No programs found
+              </p>
             ) : (
               applicationsData?.applications?.data?.map((application) => (
-                <ProgramProjectCard key={application.id} application={application} isProject />
+                <ProgramProjectCard
+                  key={application.id}
+                  application={application}
+                  isProject
+                />
               ))
             )}
           </div>
@@ -154,22 +183,38 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
         <div className="flex flex-col gap-3">
           <div className="flex flex-col justify-between py-2 px-4">
             <div className="flex items-center justify-between">
-              <p className="font-bold text-xl text-muted-foreground">As Supporter</p>
-              {!!programData?.programs?.count && programData.programs.count > 2 && (
-                <Link to={'supporter'} className="px-3 flex items-center gap-2">
-                  <p className="font-medium text-sm text-gray-dark">View more</p>
-                  <ArrowRightIcon width={16} height={16} />
-                </Link>
-              )}
+              <p className="font-bold text-xl text-muted-foreground">
+                As Supporter
+              </p>
+              {!!applicationsData?.applications?.count &&
+                applicationsData.applications.count > 2 && (
+                  <Link
+                    to={"supporter"}
+                    className="px-3 flex items-center gap-2"
+                  >
+                    <p className="font-medium text-sm text-gray-dark">
+                      View more
+                    </p>
+                    <ArrowRightIcon width={16} height={16} />
+                  </Link>
+                )}
             </div>
-            <p className="text-xs text-muted-foreground">Please select what to show</p>
+            <p className="text-xs text-muted-foreground">
+              Please select what to show
+            </p>
           </div>
           <div className="flex flex-col gap-3">
             {applicationsData?.applications?.data?.length === 0 ? (
-              <p className="text-sm text-muted-foreground px-4">No programs found</p>
+              <p className="text-sm text-muted-foreground px-4">
+                No programs found
+              </p>
             ) : (
               applicationsData?.applications?.data?.map((application) => (
-                <ProgramProjectCard key={application.id} application={application} isSupporter />
+                <ProgramProjectCard
+                  key={application.id}
+                  application={application}
+                  isSupporter
+                />
               ))
             )}
           </div>

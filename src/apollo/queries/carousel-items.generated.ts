@@ -6,7 +6,7 @@ const defaultOptions = {} as const;
 export type CarouselItemsQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type CarouselItemsQuery = { __typename?: 'Query', carouselItems?: Array<{ __typename?: 'EnrichedCarouselItem', displayOrder?: number | null, id?: string | null, isActive?: boolean | null, itemId?: string | null, itemType?: Types.CarouselItemType | null, data?: { __typename: 'Post', title?: string | null, image?: string | null, summary?: string | null, keywords?: Array<{ __typename?: 'Keyword', name?: string | null }> | null } | { __typename: 'Program', name?: string | null, image?: string | null, summary?: string | null, keywords?: Array<{ __typename?: 'Keyword', name?: string | null }> | null } | null }> | null };
+export type CarouselItemsQuery = { __typename?: 'Query', carouselItems?: Array<{ __typename?: 'EnrichedCarouselItem', displayOrder?: number | null, id?: string | null, isActive?: boolean | null, itemId?: string | null, itemType?: Types.CarouselItemType | null, data?: { __typename: 'Post', title?: string | null, image?: string | null, createdAt?: any | null, viewCount?: number | null, summary?: string | null, keywords?: Array<{ __typename?: 'Keyword', name?: string | null }> | null, comments?: Array<{ __typename?: 'Comment', id?: string | null }> | null, author?: { __typename?: 'User', id?: string | null, firstName?: string | null, lastName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null } | { __typename: 'Program', name?: string | null, image?: string | null, status?: Types.ProgramStatus | null, type?: Types.ProgramType | null, price?: string | null, currency?: string | null, network?: string | null, deadline?: any | null, summary?: string | null, keywords?: Array<{ __typename?: 'Keyword', name?: string | null }> | null, creator?: { __typename?: 'User', firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null } | null } | null }> | null };
 
 
 export const CarouselItemsDocument = gql`
@@ -20,13 +20,40 @@ export const CarouselItemsDocument = gql`
         keywords {
           name
         }
+        comments {
+          id
+        }
+        createdAt
+        viewCount
+        author {
+          id
+          firstName
+          lastName
+          links {
+            title
+            url
+          }
+        }
         summary
       }
       ... on Program {
         name
         image
+        status
+        type
+        price
+        currency
+        network
+        deadline
         keywords {
           name
+        }
+        creator {
+          firstName
+          id
+          image
+          lastName
+          organizationName
         }
         summary
       }

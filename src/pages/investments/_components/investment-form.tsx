@@ -39,6 +39,7 @@ export type OnSubmitInvestmentFunc = (data: {
   validatorWalletAddresses?: string[];
   image?: File;
   visibility: 'public' | 'restricted' | 'private';
+  status: ProgramStatus;
   builders?: string[];
   applicationStartDate?: string;
   applicationEndDate?: string;
@@ -362,6 +363,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         network: data?.program?.network as string,
         validators: selectedValidators ?? [],
         visibility: data?.program?.visibility as 'public' | 'restricted' | 'private',
+        status: data?.program?.status ?? ProgramStatus.Pending,
       });
     } else {
       // For non-published programs, send all fields
@@ -392,6 +394,10 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
             : (network ?? mainnetDefaultNetwork),
         image: selectedImage,
         visibility: visibility,
+        status:
+          isEdit && data?.program?.status !== ProgramStatus.Pending
+            ? (data?.program?.status ?? ProgramStatus.Pending)
+            : ProgramStatus.Pending,
         builders: selectedBuilders,
         applicationStartDate: applicationStartDate ? applicationStartDate.toISOString() : undefined,
         applicationEndDate: applicationDueDate ? applicationDueDate.toISOString() : undefined,
