@@ -53,6 +53,7 @@ import {
 } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
+import * as ethers from 'ethers';
 import { ArrowUpRight, Check, ChevronDown, CircleAlert, Settings } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
@@ -172,10 +173,28 @@ function ApplicationDetails() {
               );
             }
 
+            // Validate that applicant has a proper wallet address
+            const projectOwnerAddress = application.applicant?.walletAddress;
+
+            if (!projectOwnerAddress || !ethers.utils.isAddress(projectOwnerAddress)) {
+              notify(
+                'Error: The applicant must have a valid wallet address connected to their profile before the project can be validated on blockchain. Please ask the applicant to connect their wallet.',
+                'error',
+              );
+              console.error('Invalid or missing wallet address:', {
+                walletAddress: projectOwnerAddress,
+                applicantId: application.applicant?.id,
+                applicantEmail: application.applicant?.email,
+              });
+              return;
+            }
+
+            console.log('Validating project with owner address:', projectOwnerAddress);
+
             // Call signValidate to register the project on blockchain FIRST
             const result = await investmentContract.signValidate({
               programId: program.educhainProgramId,
-              projectOwner: application.applicant?.walletAddress || application.applicant?.id || '',
+              projectOwner: projectOwnerAddress,
               projectName: application.name || '',
               targetFunding: fundingAmount,
               milestones,
@@ -251,26 +270,41 @@ function ApplicationDetails() {
             return;
           }
 
-          // This only records the approval, doesn't transfer funds
-          const result = await investmentContract.approveMilestone(
+          // Step 1: Approve the milestone (marks it as approved)
+          const approveResult = await investmentContract.approveMilestone(
             Number(data.application.onChainProjectId),
             milestoneIndex ?? 0,
           );
 
-          if (result?.txHash) {
-            await checkMilestone({
-              variables: {
-                input: {
-                  id: milestoneId ?? '',
-                  status: CheckMilestoneStatus.Completed,
-                },
-              },
-              onCompleted: () => {
-                refetch();
-                programRefetch();
-                notify('Milestone approved! Funds released from investment pool.', 'success');
-              },
-            });
+          if (approveResult?.txHash) {
+            notify('Milestone approved! Now executing to release funds...');
+            
+            // Step 2: Execute the milestone to release funds
+            try {
+              const executeResult = await investmentContract.executeMilestone(
+                Number(data.application.onChainProjectId),
+                milestoneIndex ?? 0,
+              );
+              
+              if (executeResult?.txHash) {
+                await checkMilestone({
+                  variables: {
+                    input: {
+                      id: milestoneId ?? '',
+                      status: CheckMilestoneStatus.Completed,
+                    },
+                  },
+                  onCompleted: () => {
+                    refetch();
+                    programRefetch();
+                    notify('Milestone completed! Funds successfully released to project owner.', 'success');
+                  },
+                });
+              }
+            } catch (executeError) {
+              console.error('Failed to execute milestone:', executeError);
+              notify('Milestone approved but failed to release funds. Please try executing manually.', 'error');
+            }
           }
         } else {
           // For regular programs, use the old flow (validator pays)
