@@ -1,7 +1,7 @@
-import { UnbanUsersTableActions } from "./components/unban-users-table-actions";
-import { UsersTable } from "./components/users-table";
-import { UsersTableActions } from "./components/users-table-actions";
-import { useUsersTable } from "./hooks/use-users-table";
+import { UnbanUsersTableActions } from './components/unban-users-table-actions';
+import { UsersTable } from './components/users-table';
+import { UsersTableActions } from './components/users-table-actions';
+import { useUsersTable } from './hooks/use-users-table';
 
 function UserManagementAdminPage() {
   // Table with active users (that can be banned)

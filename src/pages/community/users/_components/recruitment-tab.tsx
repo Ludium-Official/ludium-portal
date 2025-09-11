@@ -1,25 +1,25 @@
-import { useProfileQuery } from "@/apollo/queries/profile.generated";
-import { useProgramsQuery } from "@/apollo/queries/programs.generated";
-import { Link, useParams } from "react-router";
-import { AgentBreadcrumbs } from "./agent-breadcrumbs";
+import { useProfileQuery } from '@/apollo/queries/profile.generated';
+import { useProgramsQuery } from '@/apollo/queries/programs.generated';
+import { Link, useParams } from 'react-router';
+import { AgentBreadcrumbs } from './agent-breadcrumbs';
 
-import { useApplicationsQuery } from "@/apollo/queries/applications.generated";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { ProgramType } from "@/types/types.generated";
-import { ArrowRightIcon, ListFilter, Search } from "lucide-react";
-import { useState } from "react";
-import ApplicationBuilderCard from "./application-builder-card";
-import ProgramCard from "./program-card";
+import { useApplicationsQuery } from '@/apollo/queries/applications.generated';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { ProgramType } from '@/types/types.generated';
+import { ArrowRightIcon, ListFilter, Search } from 'lucide-react';
+import { useState } from 'react';
+import ApplicationBuilderCard from './application-builder-card';
+import ProgramCard from './program-card';
 
 const filterBasedOnRole = {
-  sponsor: "creatorId",
-  validator: "validatorId",
-  builder: "applicantId",
+  sponsor: 'creatorId',
+  validator: 'validatorId',
+  builder: 'applicantId',
 };
 
-const roles = ["sponsor", "validator" /*'builder'*/] as const;
+const roles = ['sponsor', 'validator' /*'builder'*/] as const;
 
 export default function UserRecruitmentTab({
   myProfile,
@@ -27,14 +27,14 @@ export default function UserRecruitmentTab({
   myProfile?: boolean;
 }) {
   const { id } = useParams();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: profileData } = useProfileQuery({
-    fetchPolicy: "network-only",
+    fetchPolicy: 'network-only',
     skip: !myProfile,
   });
 
-  const profileId = myProfile ? profileData?.profile?.id ?? "" : id ?? "";
+  const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
 
   const { data: applicationData } = useApplicationsQuery({
     variables: {
@@ -44,16 +44,16 @@ export default function UserRecruitmentTab({
         filter: [
           {
             value: ProgramType.Regular,
-            field: "programType",
+            field: 'programType',
           },
           {
             value: profileId,
-            field: "applicantId",
+            field: 'applicantId',
           },
           ...(searchQuery
             ? [
                 {
-                  field: "name",
+                  field: 'name',
                   value: searchQuery,
                 },
               ]
@@ -62,7 +62,7 @@ export default function UserRecruitmentTab({
       },
     },
   });
-  console.log("🚀 ~ UserRecruitmentTab ~ applicationData:", applicationData);
+  console.log('🚀 ~ UserRecruitmentTab ~ applicationData:', applicationData);
 
   const queries = {
     sponsor: useProgramsQuery({
@@ -76,13 +76,13 @@ export default function UserRecruitmentTab({
               field: filterBasedOnRole.sponsor,
             },
             {
-              field: "type",
+              field: 'type',
               value: ProgramType.Regular,
             },
             ...(searchQuery
               ? [
                   {
-                    field: "name",
+                    field: 'name',
                     value: searchQuery,
                   },
                 ]
@@ -103,13 +103,13 @@ export default function UserRecruitmentTab({
               field: filterBasedOnRole.validator,
             },
             {
-              field: "type",
+              field: 'type',
               value: ProgramType.Regular,
             },
             ...(searchQuery
               ? [
                   {
-                    field: "name",
+                    field: 'name',
                     value: searchQuery,
                   },
                 ]
@@ -159,22 +159,16 @@ export default function UserRecruitmentTab({
                 </p>
                 {count > 2 && (
                   <Link to={role} className="px-3 flex items-center gap-2">
-                    <p className="font-medium text-sm text-gray-dark">
-                      View more
-                    </p>
+                    <p className="font-medium text-sm text-gray-dark">View more</p>
                     <ArrowRightIcon width={16} height={16} />
                   </Link>
                 )}
               </div>
               <div className="flex flex-col gap-3 px-4">
                 {programs.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No programs found
-                  </p>
+                  <p className="text-sm text-muted-foreground">No programs found</p>
                 ) : (
-                  programs.map((program) => (
-                    <ProgramCard key={program.id} program={program} />
-                  ))
+                  programs.map((program) => <ProgramCard key={program.id} program={program} />)
                 )}
               </div>
             </div>
@@ -184,27 +178,19 @@ export default function UserRecruitmentTab({
           <Separator className="mt-3" />
           <div className="flex items-center justify-between h-12 px-4">
             <p className="font-bold text-lg text-gray-dark">As Builder</p>
-            {!!applicationData?.applications?.count &&
-              applicationData?.applications?.count > 2 && (
-                <Link to={"builder"} className="px-3 flex items-center gap-2">
-                  <p className="font-medium text-sm text-gray-dark">
-                    View more
-                  </p>
-                  <ArrowRightIcon width={16} height={16} />
-                </Link>
-              )}
+            {!!applicationData?.applications?.count && applicationData?.applications?.count > 2 && (
+              <Link to={'builder'} className="px-3 flex items-center gap-2">
+                <p className="font-medium text-sm text-gray-dark">View more</p>
+                <ArrowRightIcon width={16} height={16} />
+              </Link>
+            )}
           </div>
           <div className="flex flex-col gap-3 px-4">
             {applicationData?.applications?.data?.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No applications found
-              </p>
+              <p className="text-sm text-muted-foreground">No applications found</p>
             ) : (
               applicationData?.applications?.data?.map((application) => (
-                <ApplicationBuilderCard
-                  key={application.id}
-                  application={application}
-                />
+                <ApplicationBuilderCard key={application.id} application={application} />
               ))
             )}
           </div>

@@ -1,8 +1,8 @@
-import { PostVisibility } from "@/types/types.generated";
-import { PostsTable } from "./components/posts-table";
-import { PostsTableActions } from "./components/posts-table-actions";
-import { ShowPostsTableActions } from "./components/show-posts-table-actions";
-import { usePostsTable } from "./hooks/use-posts-table";
+import { PostVisibility } from '@/types/types.generated';
+import { PostsTable } from './components/posts-table';
+import { PostsTableActions } from './components/posts-table-actions';
+import { ShowPostsTableActions } from './components/show-posts-table-actions';
+import { usePostsTable } from './hooks/use-posts-table';
 
 function HiddenCommunitiesAdminPage() {
   // Table with public posts (that can be hidden)

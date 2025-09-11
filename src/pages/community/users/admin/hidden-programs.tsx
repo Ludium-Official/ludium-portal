@@ -1,8 +1,8 @@
-import { ProgramVisibility } from "@/types/types.generated";
-import { ProgramsTable } from "./components/programs-table";
-import { ProgramsTableActions } from "./components/programs-table-actions";
-import { ShowProgramsTableActions } from "./components/show-programs-table-actions";
-import { useProgramsTable } from "./hooks/use-programs-table";
+import { ProgramVisibility } from '@/types/types.generated';
+import { ProgramsTable } from './components/programs-table';
+import { ProgramsTableActions } from './components/programs-table-actions';
+import { ShowProgramsTableActions } from './components/show-programs-table-actions';
+import { useProgramsTable } from './hooks/use-programs-table';
 
 function HiddenProgramsAdminPage() {
   // Table with public programs (that can be hidden)

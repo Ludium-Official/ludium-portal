@@ -1,43 +1,31 @@
-import { useProfileQuery } from "@/apollo/queries/profile.generated";
+import { useProfileQuery } from '@/apollo/queries/profile.generated';
 // import { useUserQuery } from '@/apollo/queries/user.generated';
-import avatarPlaceholder from "@/assets/avatar-placeholder.png";
-import NetworkSelector from "@/components/network-selector";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { ShareButton } from "@/components/ui/share-button";
-import SocialIcon from "@/components/ui/social-icon";
-import { tokenAddresses } from "@/constant/token-address";
-import type ChainContract from "@/lib/contract";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { useContract } from "@/lib/hooks/use-contract";
-import notify from "@/lib/notify";
-import {
-  cn,
-  commaNumber,
-  mainnetDefaultNetwork,
-  reduceString,
-} from "@/lib/utils";
-import { usePrivy } from "@privy-io/react-auth";
-import { ethers } from "ethers";
+import avatarPlaceholder from '@/assets/avatar-placeholder.png';
+import NetworkSelector from '@/components/network-selector';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { ShareButton } from '@/components/ui/share-button';
+import SocialIcon from '@/components/ui/social-icon';
+import { tokenAddresses } from '@/constant/token-address';
+import type ChainContract from '@/lib/contract';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { useContract } from '@/lib/hooks/use-contract';
+import notify from '@/lib/notify';
+import { cn, commaNumber, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
+import { usePrivy } from '@privy-io/react-auth';
+import { ethers } from 'ethers';
 // import { Separator } from '@radix-ui/react-dropdown-menu';
-import {
-  ArrowUpRight,
-  Building2,
-  CircleCheck,
-  Settings,
-  Sparkle,
-  UserCog,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link, Outlet, useNavigate } from "react-router";
-import { SidebarLinks, sidebarLinks } from "../_components/sidebar-links";
+import { ArrowUpRight, Building2, CircleCheck, Settings, Sparkle, UserCog } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, Outlet, useNavigate } from 'react-router';
+import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
 
 const adminLinks = [
-  { label: "Banner", path: "admin/banner" },
-  { label: "Hidden programs", path: "admin/hidden-programs" },
-  { label: "Hidden communities", path: "admin/hidden-communities" },
-  { label: "User management", path: "admin/user-management" },
+  { label: 'Banner', path: 'admin/banner' },
+  { label: 'Hidden programs', path: 'admin/hidden-programs' },
+  { label: 'Hidden communities', path: 'admin/hidden-communities' },
+  { label: 'User management', path: 'admin/user-management' },
 ];
 
 function MyProfilePage() {
@@ -45,12 +33,12 @@ function MyProfilePage() {
   const { isAdmin, isLoggedIn, isSuperadmin } = useAuth();
   const { user: privyUser, exportWallet, authenticated } = usePrivy();
   const walletInfo = privyUser?.wallet;
-  const injectedWallet = privyUser?.wallet?.connectorType !== "embedded";
+  const injectedWallet = privyUser?.wallet?.connectorType !== 'embedded';
 
   const navigate = useNavigate();
   useEffect(() => {
     if (!isLoggedIn) {
-      navigate("/");
+      navigate('/');
     }
   }, [isLoggedIn]);
 
@@ -61,7 +49,7 @@ function MyProfilePage() {
   >([]);
 
   const { data: profileData } = useProfileQuery({
-    fetchPolicy: "network-only",
+    fetchPolicy: 'network-only',
   });
 
   // const { data: userData } = useUserQuery({
@@ -85,14 +73,14 @@ function MyProfilePage() {
   const callTokenBalance = async (
     contract: ChainContract,
     tokenAddress: string,
-    walletAddress: string
+    walletAddress: string,
   ): Promise<bigint | null> => {
     try {
       const balance = await contract.getAmount(tokenAddress, walletAddress);
 
       return balance as bigint;
     } catch (error) {
-      console.error("Error fetching token balance:", error);
+      console.error('Error fetching token balance:', error);
       return null;
     }
   };
@@ -102,35 +90,29 @@ function MyProfilePage() {
       if (!authenticated || !walletInfo?.address) return;
 
       try {
-        const tokens =
-          tokenAddresses[network as keyof typeof tokenAddresses] || [];
+        const tokens = tokenAddresses[network as keyof typeof tokenAddresses] || [];
 
         // Filter out native token (0x0000...0000) as it's not an ERC20 contract
         const erc20Tokens = tokens.filter(
           (token: { address: string }) =>
-            token.address !== "0x0000000000000000000000000000000000000000"
+            token.address !== '0x0000000000000000000000000000000000000000',
         );
 
         const balancesPromises = erc20Tokens.map(
           (token: { address: string; decimal: number; name: string }) =>
-            callTokenBalance(contract, token.address, walletInfo.address).then(
-              (balance) => ({
-                name: token.name,
-                amount: balance,
-                decimal: token.decimal,
-              })
-            )
+            callTokenBalance(contract, token.address, walletInfo.address).then((balance) => ({
+              name: token.name,
+              amount: balance,
+              decimal: token.decimal,
+            })),
         );
 
         const ercBalances = await Promise.all(balancesPromises);
         const nativeBalance = await contract.getBalance(walletInfo.address);
 
-        setBalances([
-          { name: "Native", amount: nativeBalance, decimal: 18 },
-          ...ercBalances,
-        ]);
+        setBalances([{ name: 'Native', amount: nativeBalance, decimal: 18 }, ...ercBalances]);
       } catch (error) {
-        console.error("Error fetching token balances:", error);
+        console.error('Error fetching token balances:', error);
       }
     };
 
@@ -156,35 +138,27 @@ function MyProfilePage() {
                     <p className="font-bold text-xl text-gray-dark">
                       {user?.firstName} {user?.lastName}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      {user?.email}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{user?.email}</p>
                   </div>
                   <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-muted-foreground" />{" "}
-                    {user?.organizationName?.length
-                      ? user?.organizationName
-                      : "-"}
+                    <Building2 className="w-4 h-4 text-muted-foreground" />{' '}
+                    {user?.organizationName?.length ? user?.organizationName : '-'}
                   </p>
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="font-bold text-sm text-muted-foreground">
-                  SUMMARY
-                </p>
+                <p className="font-bold text-sm text-muted-foreground">SUMMARY</p>
                 <p className="text-sm text-slate-600 line-clamp-4 font-inter">
-                  {user?.summary?.length
-                    ? user.summary
-                    : "There is no summary written."}
+                  {user?.summary?.length ? user.summary : 'There is no summary written.'}
                 </p>
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-11 flex-1",
+                    'h-11 flex-1',
                     isProfileIncomplete &&
-                      "bg-primary text-white hover:bg-primary/90 border-0 hover:text-white"
+                      'bg-primary text-white hover:bg-primary/90 border-0 hover:text-white',
                   )}
                   asChild
                 >
@@ -221,7 +195,7 @@ function MyProfilePage() {
                 <p className="text-sm px-2 gap-2 text-primary h-8 flex items-center select-none">
                   <UserCog className="w-4 h-4" /> Admin
                 </p>
-                <div className={"ml-4 pl-2 border-l border-gray-200 space-y-1"}>
+                <div className={'ml-4 pl-2 border-l border-gray-200 space-y-1'}>
                   {adminLinks.map((item) => (
                     <SidebarLinks key={item.label} item={item} myProfile />
                   ))}
@@ -233,9 +207,9 @@ function MyProfilePage() {
                 <Link
                   to="/my-profile/admin/master-admin"
                   className={cn(
-                    "text-sm px-2 gap-2 text-primary h-8 flex items-center select-none hover:bg-sidebar-accent",
-                    location.pathname === "/my-profile/admin/master-admin" &&
-                      "bg-sidebar-accent rounded-md"
+                    'text-sm px-2 gap-2 text-primary h-8 flex items-center select-none hover:bg-sidebar-accent',
+                    location.pathname === '/my-profile/admin/master-admin' &&
+                      'bg-sidebar-accent rounded-md',
                   )}
                 >
                   <Sparkle className="w-4 h-4" /> Master
@@ -268,18 +242,11 @@ function MyProfilePage() {
                         key={balance.name}
                         className="mb-1.5 last:mb-0 flex items-center justify-between"
                       >
-                        <p className="text-muted-foreground text-xs font-bold">
-                          {balance.name}
-                        </p>
+                        <p className="text-muted-foreground text-xs font-bold">{balance.name}</p>
                         <p className="text-sm font-bold text-foreground">
                           {balance.amount !== null
-                            ? commaNumber(
-                                ethers.utils.formatUnits(
-                                  balance.amount,
-                                  balance.decimal
-                                )
-                              )
-                            : "Fetching..."}
+                            ? commaNumber(ethers.utils.formatUnits(balance.amount, balance.decimal))
+                            : 'Fetching...'}
                         </p>
                         {/* {balance.name}:{' '}
                         {balance.amount !== null
@@ -296,11 +263,11 @@ function MyProfilePage() {
                   <div
                     className="cursor-pointer hover:underline"
                     onClick={() => {
-                      navigator.clipboard.writeText(walletInfo?.address || "");
-                      notify("Copied address!", "success");
+                      navigator.clipboard.writeText(walletInfo?.address || '');
+                      notify('Copied address!', 'success');
                     }}
                   >
-                    {reduceString(walletInfo?.address || "", 8, 8)}
+                    {reduceString(walletInfo?.address || '', 8, 8)}
                   </div>
                 ) : (
                   <Button className="h-10 w-full" onClick={exportWallet}>
@@ -330,9 +297,7 @@ function MyProfilePage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="font-bold text-sm text-muted-foreground">
-                  SKILLS
-                </p>
+                <p className="font-bold text-sm text-muted-foreground">SKILLS</p>
                 <div className="flex gap-[6px] flex-wrap">
                   {(!profileData?.profile?.skillKeywords ||
                     profileData.profile.skillKeywords.length === 0) && (
@@ -361,7 +326,7 @@ function MyProfilePage() {
                           <div key={index} className="flex items-center gap-2">
                             <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
                               <SocialIcon
-                                value={link.url ?? ""}
+                                value={link.url ?? ''}
                                 className="w-4 h-4 text-secondary-foreground"
                               />
                             </div>
@@ -377,19 +342,17 @@ function MyProfilePage() {
                             )} */}
                             <a
                               target="_blank"
-                              href={link.url || "#"}
+                              href={link.url || '#'}
                               className="text-sm text-slate-600 break-all"
                               rel="noreferrer"
                             >
-                              {link.url || "No link"}
+                              {link.url || 'No link'}
                             </a>
                           </div>
                         );
                       })
                     ) : (
-                      <p className="text-sm text-muted-foreground">
-                        No links available
-                      </p>
+                      <p className="text-sm text-muted-foreground">No links available</p>
                     )}
                   </div>
                 </div>
