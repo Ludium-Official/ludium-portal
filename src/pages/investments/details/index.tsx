@@ -295,11 +295,16 @@ const InvestmentDetailsPage: React.FC = () => {
             console.log(`Using native token for currency: ${program?.currency || 'default'}`);
           }
 
+          // Determine token decimals based on currency
+          const tokenDecimals =
+            program?.currency === 'USDT' || program?.currency === 'USDC' ? 6 : 18;
+
           const contractResult = await investmentContract.createInvestmentProgram({
             name: program?.name ?? '',
             description: program?.description ?? '',
             fundingGoal: program?.price || '0',
             fundingToken: fundingTokenAddress,
+            tokenDecimals, // Pass correct decimals for USDT/USDC
             applicationStartDate: program?.applicationStartDate || '',
             applicationEndDate: program?.applicationEndDate || '',
             fundingStartDate: program?.fundingStartDate || '',

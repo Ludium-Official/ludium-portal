@@ -420,7 +420,8 @@ export class InvestmentContract {
               },
               description: `Approving milestone #${milestoneIndex + 1} for project #${projectId}`,
               successHeader: 'Milestone Approved!',
-              successDescription: 'The milestone has been approved. Now execute the milestone to release funds.',
+              successDescription:
+                'The milestone has been approved. Now execute the milestone to release funds.',
             },
           },
         );
@@ -470,7 +471,8 @@ export class InvestmentContract {
               },
               description: `Releasing funds for milestone #${milestoneIndex + 1} of project #${projectId}`,
               successHeader: 'Funds Released!',
-              successDescription: 'The milestone funds have been successfully transferred to the project owner.',
+              successDescription:
+                'The milestone funds have been successfully transferred to the project owner.',
             },
           },
         );
