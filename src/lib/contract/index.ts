@@ -412,35 +412,43 @@ class ChainContract {
         args: [programId, builderAddress, reward],
       });
 
-      const tx = await this.sendTransaction(
-        {
-          to: this.contractAddress,
-          data,
-          chainId: this.chainId,
-        },
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            description: `Accept milestone and send ${amount} ${
-              token?.name
-            } to ${reduceString(builderAddress || '', 6, 6)}.`,
-            transactionInfo: {
-              title: 'Accept Milestone',
-              action: 'Accepted Milestone',
-            },
-            successHeader: 'Milestone Accepted Successfully!',
-            successDescription: `You have successfully accepted the milestone and sent ${amount} ${
-              token?.name
-            } to ${reduceString(builderAddress || '', 6, 6)}.`,
+      let tx: { hash: string };
+      try {
+        tx = await this.sendTransaction(
+          {
+            to: this.contractAddress,
+            data,
+            chainId: this.chainId,
           },
-        },
-      );
-
-      console.log('Transaction sent:', tx.hash);
+          {
+            uiOptions: {
+              showWalletUIs: true,
+              description: `Accept milestone and send ${amount} ${
+                token?.name
+              } to ${reduceString(builderAddress || '', 6, 6)}.`,
+              transactionInfo: {
+                title: 'Accept Milestone',
+                action: 'Accepted Milestone',
+              },
+              successHeader: 'Milestone Accepted Successfully!',
+              successDescription: `You have successfully accepted the milestone and sent ${amount} ${
+                token?.name
+              } to ${reduceString(builderAddress || '', 6, 6)}.`,
+            },
+          },
+        );
+        console.log('Transaction sent:', tx.hash);
+      } catch (sendError) {
+        const errorMessage = (sendError as Error).message;
+        // Log the error but re-throw it - external wallets are now handled at a higher level
+        console.error('Transaction send error:', errorMessage);
+        // Re-throw all errors - the calling code will handle them
+        throw sendError;
+      }
 
       try {
         const receiptResult = await this.findReceipt(
-          tx.hash,
+          tx.hash as `0x${string}`,
           'MilestoneAccepted(uint256,address,uint256,address)',
         );
 

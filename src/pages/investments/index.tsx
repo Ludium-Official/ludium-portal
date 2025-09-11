@@ -49,6 +49,7 @@ export default function InvestmentsPage() {
             field: 'userId',
             value: userId,
           },
+          // For "My Programs", show all statuses - don't filter by status or visibility
         ]
       : []),
     ...(activeTab === 'newest'
@@ -57,12 +58,8 @@ export default function InvestmentsPage() {
             field: 'status',
             values: [
               ProgramStatus.Published,
-              // ProgramStatus.Completed,
-              // ProgramStatus.Pending,
-              // ProgramStatus.PaymentRequired,
-              // ProgramStatus.Cancelled,
-              // ProgramStatus.Closed,
-              // ProgramStatus.Rejected,
+              ProgramStatus.Pending,
+              // Allow pending status for newest tab too
             ],
           },
           {
