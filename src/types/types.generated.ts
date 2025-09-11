@@ -394,6 +394,7 @@ export type Mutation = {
   deleteProgram?: Maybe<Scalars['Boolean']['output']>;
   deleteUser?: Maybe<User>;
   demoteFromAdmin?: Maybe<User>;
+  generateSwappedUrl?: Maybe<SwappedUrlResponse>;
   hidePost?: Maybe<Post>;
   hideProgram?: Maybe<Program>;
   incrementPostView?: Maybe<Scalars['Int']['output']>;
@@ -550,6 +551,13 @@ export type MutationDeleteUserArgs = {
 
 export type MutationDemoteFromAdminArgs = {
   userId: Scalars['ID']['input'];
+};
+
+
+export type MutationGenerateSwappedUrlArgs = {
+  amount: Scalars['String']['input'];
+  currencyCode: Scalars['String']['input'];
+  walletAddress: Scalars['String']['input'];
 };
 
 
@@ -1126,6 +1134,13 @@ export type Supporter = {
   tier?: Maybe<Scalars['String']['output']>;
   userId?: Maybe<Scalars['ID']['output']>;
   walletAddress?: Maybe<Scalars['String']['output']>;
+};
+
+export type SwappedUrlResponse = {
+  __typename?: 'SwappedUrlResponse';
+  originalUrl?: Maybe<Scalars['String']['output']>;
+  signature?: Maybe<Scalars['String']['output']>;
+  signedUrl?: Maybe<Scalars['String']['output']>;
 };
 
 export type TierAssignmentData = {

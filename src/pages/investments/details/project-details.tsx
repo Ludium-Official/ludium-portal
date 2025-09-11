@@ -10,6 +10,7 @@ import {
   MilestoneStatusBadge,
   ProgramStatusBadge,
 } from '@/components/status-badge';
+import { SwappedInvestment } from '@/components/swapped';
 import {
   Accordion,
   AccordionContent,
@@ -70,6 +71,7 @@ function ProjectDetailsPage() {
   const [mountKey, setMountKey] = useState(0);
   const [activeTab, setActiveTab] = useState<'project' | 'terms' | 'milestones'>('terms');
   const [isInvestDialogOpen, setIsInvestDialogOpen] = useState(false);
+  const [isInvestFiatDialogOpen, setIsInvestFiatDialogOpen] = useState(false);
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [selectedTier, setSelectedTier] = useState<string>('');
   const [_onChainFundingProgress, setOnChainFundingProgress] = useState<{
@@ -368,273 +370,21 @@ function ProjectDetailsPage() {
   }, [program?.educhainProgramId, data?.application?.onChainProjectId]);
 
   const [isInvesting, setIsInvesting] = useState(false);
+  const [showSwappedModal, setShowSwappedModal] = useState(false);
 
   const handleInvestThroughFiatonramp = async () => {
-    // Prevent double execution
-    if (isInvesting) {
-      console.log('Investment already in progress, skipping duplicate call');
+    // Show Swapped modal instead of directly calling handleInvest
+    if (!selectedTier || !projectId) {
+      notify('Please select a tier first', 'error');
       return;
     }
+    setShowSwappedModal(true);
+  };
 
-    try {
-      if (!selectedTier || !projectId) {
-        notify('Please select a tier first', 'error');
-        return;
-      }
-
-      setIsInvesting(true);
-
-      // Get investment amount based on funding condition
-      let rawAmount: string | undefined;
-      let selectedTerm: any;
-
-      if (program?.fundingCondition === 'tier') {
-        // For tier-based programs, use the tier's max investment amount
-        const userTierAssignment = program?.userTierAssignment;
-        rawAmount = userTierAssignment?.maxInvestmentAmount?.toString() ?? undefined;
-      } else {
-        // For non-tier programs, find the selected term to get the amount
-        selectedTerm = data?.application?.investmentTerms?.find(
-          (term) => term.price === selectedTier,
-        );
-        if (!selectedTerm) {
-          notify('Selected tier not found', 'error');
-          return;
-        }
-        rawAmount = selectedTerm?.price ?? undefined;
-      }
-
-      // Validate amount exists
-      if (!rawAmount || rawAmount === '0') {
-        notify('Invalid investment amount', 'error');
-        return;
-      }
-
-      // Get user wallet address
-      const userWalletAddress = privyUser?.wallet?.address;
-      if (!userWalletAddress) {
-        notify('Please connect your wallet first', 'error');
-        setIsInvesting(false);
-        return;
-      }
-
-      // Map currency and network to supported Swapped format
-      const getSwappedCurrency = (currency: string, network: string) => {
-        const networkMap: Record<string, string> = {
-          arbitrum: 'ARBITRUM',
-          ethereum: 'ETHEREUM',
-          polygon: 'POLYGON',
-          'educhain-testnet': 'ARBITRUM', // Fallback to Arbitrum for EDU testnet
-          educhain: 'ARBITRUM', // Fallback to Arbitrum for EDU mainnet
-        };
-
-        const swappedNetwork = networkMap[network] || 'ARBITRUM';
-
-        if (currency === 'USDC') {
-          return `USDC_${swappedNetwork}`;
-        } else if (currency === 'ETH') {
-          return `ETH_${swappedNetwork}`;
-        } else if (currency === 'EDU') {
-          // EDU not supported, use USDC as fallback
-          return `USDC_${swappedNetwork}`;
-        } else {
-          // Default fallback
-          return `USDC_ARBITRUM`;
-        }
-      };
-
-      const swappedCurrency = getSwappedCurrency(
-        program?.currency || 'USDC',
-        program?.network || 'arbitrum',
-      );
-
-      // Try to create order through backend API, fallback to direct widget
-      let popup: Window | null = null;
-
-      try {
-        // First try backend API approach
-        const orderResponse = await fetch('/api/swapped/create-order', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            currencyCode: swappedCurrency,
-            baseCurrencyCode: 'USD',
-            amount: rawAmount,
-            walletAddress: userWalletAddress,
-            programId: projectId,
-            tier: selectedTier,
-          }),
-        });
-
-        if (!orderResponse.ok) {
-          throw new Error(`Backend API failed: ${orderResponse.status}`);
-        }
-
-        const { orderId, paymentUrl } = await orderResponse.json();
-
-        console.log('🚀 Opening Swapped payment page:', {
-          orderId,
-          currency: swappedCurrency,
-          amount: rawAmount,
-          walletAddress: userWalletAddress,
-        });
-
-        // Open payment page in popup
-        popup = window.open(paymentUrl, 'swapped-payment', 'width=445,height=585,scrollbars=yes');
-
-        if (!popup) {
-          notify('Please allow popups and try again', 'error');
-          setIsInvesting(false);
-          return;
-        }
-
-        // Poll order status
-        const statusCheckInterval = setInterval(async () => {
-          try {
-            const statusResponse = await fetch(`/api/swapped/order-status/${orderId}`);
-
-            if (statusResponse.ok) {
-              const { status, transactionHash } = await statusResponse.json();
-
-              console.log('📋 Order status:', {
-                orderId,
-                status,
-                transactionHash,
-              });
-
-              if (status === 'order_completed') {
-                clearInterval(statusCheckInterval);
-
-                notify('Payment completed! Processing investment...', 'success');
-                await handleInvest();
-                notify('Investment successful! 🎉', 'success');
-
-                if (popup && !popup.closed) {
-                  popup.close();
-                }
-
-                if (refetch) {
-                  await refetch();
-                }
-
-                setIsInvesting(false);
-              } else if (status === 'order_cancelled') {
-                clearInterval(statusCheckInterval);
-                notify('Payment was cancelled', 'error');
-                setIsInvesting(false);
-              }
-            }
-          } catch (statusError) {
-            console.error('Status check error:', statusError);
-          }
-        }, 3000);
-
-        setTimeout(() => {
-          clearInterval(statusCheckInterval);
-          if (isInvesting) {
-            notify('Payment timeout. Please check your transaction status.', 'error');
-            setIsInvesting(false);
-          }
-        }, 600000);
-      } catch (orderError) {
-        console.error('Backend order creation failed, trying direct widget:', orderError);
-
-        // Fallback: Use direct widget approach (for testing)
-        const widgetUrl =
-          `https://widget.swapped.com/?` +
-          `currencyCode=${swappedCurrency}` +
-          `&baseCurrencyCode=USD` +
-          `&amount=${rawAmount}` +
-          `&walletAddress=${userWalletAddress}`;
-
-        console.log('🔄 Fallback: Opening direct widget:', widgetUrl);
-
-        popup = window.open(widgetUrl, 'swapped-widget', 'width=445,height=585,scrollbars=yes');
-
-        if (!popup) {
-          notify('Please allow popups and try again', 'error');
-          setIsInvesting(false);
-          return;
-        }
-
-        // For direct widget, we can't track status perfectly, so just simulate
-        notify('Please complete payment in the popup window', 'success');
-      }
-
-      // Listen for completion message
-      const messageHandler = async (event: MessageEvent) => {
-        // Verify origin for security
-        if (event.origin !== 'https://widget.swapped.com') {
-          return;
-        }
-
-        if (event.data.type === 'SWAPPED_ORDER_COMPLETED') {
-          const { transactionHash, amount } = event.data;
-
-          console.log('🎉 Swapped payment completed:', {
-            transactionHash,
-            amount,
-          });
-
-          try {
-            notify('Payment completed! Processing investment...', 'success');
-
-            // Execute investment contract
-            // Note: You'll need to implement the correct invest method based on your contract
-            await handleInvest(); // Use existing invest logic
-
-            notify('Investment successful! 🎉', 'success');
-
-            // Close popup
-            popup.close();
-
-            // Refresh data
-            if (refetch) {
-              await refetch();
-            }
-          } catch (contractError) {
-            console.error('Investment contract error:', contractError);
-            notify('Payment completed but investment failed. Please contact support.', 'error');
-          }
-
-          // Cleanup
-          window.removeEventListener('message', messageHandler);
-          setIsInvesting(false);
-        } else if (event.data.type === 'SWAPPED_ORDER_FAILED') {
-          notify('Payment failed. Please try again.', 'error');
-          popup.close();
-          window.removeEventListener('message', messageHandler);
-          setIsInvesting(false);
-        } else if (event.data.type === 'SWAPPED_ORDER_CANCELLED') {
-          notify('Payment was cancelled', 'error');
-          popup.close();
-          window.removeEventListener('message', messageHandler);
-          setIsInvesting(false);
-        }
-      };
-
-      // Add event listener
-      window.addEventListener('message', messageHandler);
-
-      // Handle popup close manually
-      const popupCheckInterval = setInterval(() => {
-        if (popup.closed) {
-          clearInterval(popupCheckInterval);
-          window.removeEventListener('message', messageHandler);
-          if (isInvesting) {
-            console.log('Payment window was closed by user');
-            setIsInvesting(false); // Reset processing state
-            // Don't show error notification when user closes window intentionally
-          }
-        }
-      }, 1000);
-    } catch (error) {
-      console.error('Fiat on-ramp error:', error);
-      notify((error as Error).message || 'Failed to open payment widget', 'error');
-      setIsInvesting(false);
-    }
+  const handleSwappedSuccess = async () => {
+    // This will be called after successful payment through Swapped
+    setShowSwappedModal(false);
+    await handleInvest();
   };
 
   const handleInvest = async () => {
@@ -1042,6 +792,7 @@ function ProjectDetailsPage() {
 
         // Close dialog immediately
         setIsInvestDialogOpen(false);
+        setIsInvestFiatDialogOpen(false);
         setSelectedTier('');
 
         // Give database a moment to update
@@ -1070,6 +821,7 @@ function ProjectDetailsPage() {
         );
         // Still close the dialog since blockchain transaction succeeded
         setIsInvestDialogOpen(false);
+        setIsInvestFiatDialogOpen(false);
       }
     } catch (error) {
       console.error('Investment error:', error);
@@ -1504,7 +1256,7 @@ function ProjectDetailsPage() {
                       </Dialog>
                     </div>
                     {/* Invest Button of Fiat on ramp */}
-                    <Dialog open={isInvestDialogOpen} onOpenChange={setIsInvestDialogOpen}>
+                    <Dialog open={isInvestFiatDialogOpen} onOpenChange={setIsInvestFiatDialogOpen}>
                       <DialogTrigger asChild>
                         <Button
                           disabled={
@@ -1539,7 +1291,7 @@ function ProjectDetailsPage() {
                           className="bg-foreground text-white"
                           disabled={isInvesting}
                         >
-                          {isInvesting ? 'Processing...' : 'Yes, Pay now'}
+                          {isInvesting ? 'Processing...' : 'Yes, Pay now!!'}
                         </Button>
                       </DialogContent>
                     </Dialog>
@@ -2617,6 +2369,20 @@ function ProjectDetailsPage() {
           </>
         )}
       </div>
+
+      {/* Swapped Investment Modal */}
+      <Dialog open={showSwappedModal} onOpenChange={setShowSwappedModal}>
+        <DialogContent className="max-w-4xl">
+          <SwappedInvestment
+            currencyCode={program?.currency || 'ETH'}
+            walletAddress={privyUser?.wallet?.address || ''}
+            amount={selectedTier}
+            onSuccess={handleSwappedSuccess}
+            onClose={() => setShowSwappedModal(false)}
+            disabled={isInvesting}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
