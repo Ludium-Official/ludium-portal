@@ -309,9 +309,10 @@ export class InvestmentContract {
           console.log('Attempting to get logs using eth_getLogs (Arbitrum workaround)...');
           try {
             // Get the block number from transaction
-            const tx = await this.client.getTransaction({ hash: receipt.transactionHash as `0x${string}` });
-            const blockNumber = tx
-                ?.blockNumber;
+            const tx = await this.client.getTransaction({
+              hash: receipt.transactionHash as `0x${string}`,
+            });
+            const blockNumber = tx?.blockNumber;
 
             if (blockNumber) {
               // Use getLogs to fetch events directly
@@ -419,7 +420,7 @@ export class InvestmentContract {
               },
               description: `Approving milestone #${milestoneIndex + 1} for project #${projectId}`,
               successHeader: 'Milestone Approved!',
-              successDescription: 'The milestone has been approved and funds will be released.',
+              successDescription: 'The milestone has been approved. Now execute the milestone to release funds.',
             },
           },
         );
@@ -439,6 +440,52 @@ export class InvestmentContract {
       };
     } catch (error) {
       console.error('Failed to approve milestone:', error);
+      throw error;
+    }
+  }
+
+  async executeMilestone(projectId: number, milestoneIndex: number) {
+    try {
+      const data = encodeFunctionData({
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'delegateExecuteMilestone',
+        args: [projectId, milestoneIndex],
+      });
+
+      let txResult: { hash: string };
+      try {
+        txResult = await this.sendTransaction(
+          {
+            to: this.addresses.core as `0x${string}`,
+            data,
+            value: BigInt(0),
+            chainId: this.chainId,
+          } as Parameters<typeof this.sendTransaction>[0],
+          {
+            uiOptions: {
+              showWalletUIs: true,
+              transactionInfo: {
+                title: 'Release Milestone Funds',
+                action: 'Execute',
+              },
+              description: `Releasing funds for milestone #${milestoneIndex + 1} of project #${projectId}`,
+              successHeader: 'Funds Released!',
+              successDescription: 'The milestone funds have been successfully transferred to the project owner.',
+            },
+          },
+        );
+      } catch (sendError) {
+        const errorMessage = sendError instanceof Error ? sendError.message : String(sendError);
+        console.error('Transaction send error:', errorMessage);
+        throw sendError;
+      }
+
+      const receipt = await this.waitForTransaction(txResult.hash as `0x${string}`);
+      return {
+        txHash: receipt.transactionHash,
+      };
+    } catch (error) {
+      console.error('Failed to execute milestone:', error);
       throw error;
     }
   }
