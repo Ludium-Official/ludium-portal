@@ -191,12 +191,17 @@ function ApplicationDetails() {
 
             console.log('Validating project with owner address:', projectOwnerAddress);
 
+            // Determine token decimals based on currency
+            const tokenDecimals =
+              program.currency === 'USDT' || program.currency === 'USDC' ? 6 : 18;
+
             // Call signValidate to register the project on blockchain FIRST
             const result = await investmentContract.signValidate({
               programId: program.educhainProgramId,
               projectOwner: projectOwnerAddress,
               projectName: application.name || '',
               targetFunding: fundingAmount,
+              tokenDecimals, // Pass correct decimals for USDT/USDC
               milestones,
             });
 
@@ -278,14 +283,14 @@ function ApplicationDetails() {
 
           if (approveResult?.txHash) {
             notify('Milestone approved! Now executing to release funds...');
-            
+
             // Step 2: Execute the milestone to release funds
             try {
               const executeResult = await investmentContract.executeMilestone(
                 Number(data.application.onChainProjectId),
                 milestoneIndex ?? 0,
               );
-              
+
               if (executeResult?.txHash) {
                 await checkMilestone({
                   variables: {
@@ -297,13 +302,19 @@ function ApplicationDetails() {
                   onCompleted: () => {
                     refetch();
                     programRefetch();
-                    notify('Milestone completed! Funds successfully released to project owner.', 'success');
+                    notify(
+                      'Milestone completed! Funds successfully released to project owner.',
+                      'success',
+                    );
                   },
                 });
               }
             } catch (executeError) {
               console.error('Failed to execute milestone:', executeError);
-              notify('Milestone approved but failed to release funds. Please try executing manually.', 'error');
+              notify(
+                'Milestone approved but failed to release funds. Please try executing manually.',
+                'error',
+              );
             }
           }
         } else {
