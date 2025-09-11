@@ -1,0 +1,5 @@
+mutation showPost($id: ID!) {
+  showPost(id: $id) {
+    id
+  }
+}
