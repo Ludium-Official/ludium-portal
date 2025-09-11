@@ -38,11 +38,11 @@ export default function ProgramHostCard({ program, isStatus }: Props) {
             <img
               src={program.creator.image}
               alt="Preview"
-              className="object-cover w-[100px] h-[100px] rounded-[6px]"
+              className="object-cover w-[144px] h-[144px] rounded-[6px]"
             />
           ) : (
-            <div className="flex flex-col items-center justify-center w-full h-full">
-              <ImageIcon className="w-[100px] h-[100px] text-[#666666] mb-2" />
+            <div className="flex flex-col items-center justify-center w-[144px] h-[144px]">
+              <ImageIcon className="w-[144px] h-[144px] text-[#666666] mb-2" />
             </div>
           )}
           <div className="flex flex-col gap-2">
@@ -79,7 +79,17 @@ export default function ProgramHostCard({ program, isStatus }: Props) {
                 </div>
               </div>
               <div className="h-5 px-[10px] flex items-center justify-center rounded-full bg-gray-dark">
-                <p className="font-semibold text-xs text-primary-foreground">D-7</p>
+                <p className="font-semibold text-xs text-primary-foreground w-full mx-auto whitespace-nowrap">
+                  {`D-${Math.max(
+                    0,
+                    program.deadline
+                      ? Math.ceil(
+                          (new Date(program.deadline).getTime() - Date.now()) /
+                            (1000 * 60 * 60 * 24),
+                        )
+                      : 0,
+                  )}`}
+                </p>
               </div>
             </div>
 
