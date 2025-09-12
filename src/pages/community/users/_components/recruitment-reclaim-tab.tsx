@@ -272,15 +272,6 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
     const isExternalWallet =
       user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
 
-    // Log wallet type for debugging
-    console.log('Reclaim - Wallet info:', {
-      connectorType: user?.wallet?.connectorType,
-      isExternalWallet,
-      currentWallet: currentWallet?.address,
-      walletsCount: wallets.length,
-      userWalletAddress: user?.wallet?.address,
-    });
-
     let sendTx = sendTransaction;
 
     const checkNetwork: Chain = (() => {
@@ -363,7 +354,6 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
         throw new Error('No wallet connected. Please connect a wallet to continue.');
       };
     } else {
-      console.log('Using Privy embedded wallet for reclaim transaction');
     }
 
     const checkContract = (() => {
