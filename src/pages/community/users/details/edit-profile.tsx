@@ -162,25 +162,6 @@ function EditProfilePage() {
   // };
 
   // const _handleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-  //   if ((e.key === ' ' || e.key === 'Enter') && keywordInput.trim()) {
-  //     e.preventDefault();
-  //     const newKeyword = keywordInput.trim();
-  //     const currentKeywords = getValues('keywords') || [];
-  //     if (newKeyword && !currentKeywords.includes(newKeyword)) {
-  //       setValue('keywords', [...currentKeywords, newKeyword]);
-  //     }
-  //     setKeywordInput('');
-  //   }
-  // };
-
-  // const _removeKeyword = (keywordToRemove: string) => {
-  //   const currentKeywords = getValues('keywords') || [];
-  //   setValue(
-  //     'keywords',
-  //     currentKeywords.filter((keyword) => keyword !== keywordToRemove),
-  //   );
-  // };
-
   // Role keywords handlers
   const handleRoleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRoleKeywordInput(e.target.value);

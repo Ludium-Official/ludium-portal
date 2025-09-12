@@ -28,7 +28,6 @@ function CommentableComment({
   const [createComment, { loading: submittingComment }] = useCreateCommentMutation();
 
   const handleSubmitReply = async (parentId: string) => {
-    // const replyContent = replyValues[parentId || ''];
     if (!replyValue?.trim() || !commentableId) return;
 
     try {

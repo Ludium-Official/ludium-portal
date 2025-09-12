@@ -43,7 +43,6 @@ import { handleInvestment } from '@/lib/investment-helpers';
 import notify from '@/lib/notify';
 import { cn, getCurrencyIcon, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
-// import ProgramStatusBadge from '@/pages/programs/_components/program-status-badge';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
 import EditMilestoneForm from '@/pages/programs/details/_components/edit-milestone-form';
 import RejectApplicationForm from '@/pages/programs/details/_components/reject-application-form';
@@ -156,7 +155,6 @@ function ProjectDetailsPage() {
 
   const [approveApplication] = useAcceptApplicationMutation(applicationMutationParams);
   const [createInvestment] = useCreateInvestmentMutation();
-  // const [denyApplication] = useRejectApplicationMutation(applicationMutationParams);
 
   const navigate = useNavigate();
 
@@ -1012,27 +1010,6 @@ function ProjectDetailsPage() {
       notify((error as Error).message, 'error');
     }
   };
-
-  // const acceptedPrice = useMemo(
-  //   () =>
-  //     program?.applications
-  //       ?.filter(
-  //         (a) =>
-  //           a.status === ApplicationStatus.Accepted || a.status === ApplicationStatus.Completed,
-  //       )
-  //       .reduce(
-  //         (mlPrev, mlCurr) => {
-  //           const mlPrice = mlCurr?.milestones?.reduce(
-  //             (prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)),
-  //             BigNumber(0, 10),
-  //           );
-  //           return mlPrev.plus(BigNumber(mlPrice ?? 0));
-  //         },
-  //         BigNumber(0, 10),
-  //       )
-  //       .toFixed() || '0',
-  //   [program],
-  // );
 
   if (appError?.message === 'You do not have access to this application') {
     return (
@@ -1942,7 +1919,8 @@ function ProjectDetailsPage() {
                           data?.application?.status !== ApplicationStatus.Accepted ||
                           (program?.fundingStartDate &&
                             new Date() < new Date(program.fundingStartDate)) ||
-                          (program?.fundingEndDate && new Date() > new Date(program.fundingEndDate)) ||
+                          (program?.fundingEndDate &&
+                            new Date() > new Date(program.fundingEndDate)) ||
                           // Disable if selected tier has no remaining purchases
                           (() => {
                             const selectedTerm = data?.application?.investmentTerms?.find(
@@ -1974,7 +1952,10 @@ function ProjectDetailsPage() {
                             typeof selectedTerm.remainingPurchases === 'number' &&
                             selectedTerm.remainingPurchases <= 0
                           ) {
-                            notify('This investment tier has no remaining slots available', 'error');
+                            notify(
+                              'This investment tier has no remaining slots available',
+                              'error',
+                            );
                             return;
                           }
                           if (

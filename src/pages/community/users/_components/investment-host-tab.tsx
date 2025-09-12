@@ -1,5 +1,6 @@
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
+import InvestmentCard from '@/components/investment-card';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import { ProgramType } from '@/types/types.generated';
@@ -7,8 +8,6 @@ import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import { AgentBreadcrumbs } from './agent-breadcrumbs';
-import ProgramHostCard from './program-host-card';
-// import { useProfileQuery } from '@/apollo/queries/profile.generated';
 
 const programPageSize = 6;
 
@@ -38,7 +37,7 @@ export default function UserInvestmentHostTab({ myProfile }: { myProfile?: boole
           },
           {
             value: ProgramType.Funding,
-            field: 'programType',
+            field: 'type',
           },
           ...(searchQuery
             ? [
@@ -51,7 +50,7 @@ export default function UserInvestmentHostTab({ myProfile }: { myProfile?: boole
         ],
       },
     },
-    skip: !id,
+    skip: !profileId,
   });
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -77,7 +76,7 @@ export default function UserInvestmentHostTab({ myProfile }: { myProfile?: boole
             <p className="text-sm text-muted-foreground">No programs found</p>
           )}
           {programData?.programs?.data?.map((program) => (
-            <ProgramHostCard key={program.id} program={program} isStatus />
+            <InvestmentCard key={program.id} program={program} />
           ))}
         </div>
       </div>

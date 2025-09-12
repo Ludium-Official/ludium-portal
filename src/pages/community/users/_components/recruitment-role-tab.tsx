@@ -2,12 +2,12 @@ import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
+import ProgramCard from '@/pages/programs/_components/program-card';
 import { ProgramType } from '@/types/types.generated';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import { AgentBreadcrumbs } from './agent-breadcrumbs';
-import ProgramCard from './program-card';
 
 const programPageSize = 6;
 

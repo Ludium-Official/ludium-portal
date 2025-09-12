@@ -64,15 +64,6 @@ function MainPage() {
     },
   });
 
-  // const { data: usersData, loading: usersLoading } = useUsersQuery({
-  //   variables: {
-  //     input: {
-  //       limit: 3,
-  //       offset: 0,
-  //     },
-  //   },
-  // });
-
   const { data: carouselItemsData, loading: carouselLoading } = useCarouselItemsQuery();
 
   return (
@@ -136,7 +127,6 @@ function MainPage() {
                           className="rounded-lg w-full h-full object-cover"
                         />
                       ) : (
-                        // <div className="rounded-lg w-full h-full" />
                         <img src={thumbnail} alt="main" className="rounded-lg" />
                       )}
                     </div>

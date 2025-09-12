@@ -9,7 +9,10 @@ import { Link } from 'react-router';
 
 function ApplicationBuilderCard({ application }: { application: Application }) {
   return (
-    <div className="border rounded-lg p-5 bg-white">
+    <Link
+      to={`/programs/${application.program?.id}/application/${application.id}`}
+      className="block border rounded-lg p-5 bg-white"
+    >
       <div className="flex items-center justify-between mb-3">
         <div className="flex gap-2">
           {application.program?.keywords?.map((keyword) => (
@@ -94,7 +97,7 @@ function ApplicationBuilderCard({ application }: { application: Application }) {
         </div>
       </div>
       {/* <h1>Application Builder Card {application.name}</h1> */}
-    </div>
+    </Link>
   );
 }
 

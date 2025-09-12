@@ -16,19 +16,6 @@ const CreateProjectPage: React.FC = () => {
 
   // const { isLoggedIn, isAuthed } = useAuth();
 
-  // useEffect(() => {
-  //   if (!isLoggedIn) {
-  //     navigate('/');
-  //     notify('Please login first', 'success');
-  //     return;
-  //   }
-  //   if (!isAuthed) {
-  //     navigate('/my-profile/edit');
-  //     notify('Please add your email', 'success');
-  //     return;
-  //   }
-  // }, [isLoggedIn, isAuthed]);
-
   const onSubmit: OnSubmitProjectFunc = (args) => {
     console.log('=== Investment Project Creation Debug ===');
     console.log('Funding to be raised:', args.fundingToBeRaised);

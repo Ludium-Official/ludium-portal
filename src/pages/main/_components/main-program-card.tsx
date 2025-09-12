@@ -74,7 +74,9 @@ function MainProgramCard({ program }: MainProgramCardProps) {
         </div>
 
         <div className="flex-1 flex flex-col">
-          <h3 className="text-lg font-bold text-gray-900 mb-2">{program?.name}</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-2 truncate max-w-[394px]">
+            {program?.name}
+          </h3>
 
           <div className="space-y-2 flex-1 mb-3">
             <div className="bg-[#0000000A] rounded px-2 py-1 flex justify-between items-center gap-3">
