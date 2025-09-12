@@ -213,7 +213,6 @@ const InvestmentDetailsPage: React.FC = () => {
               };
             }
           } else {
-            console.log('Using Privy embedded wallet or default sendTransaction');
           }
 
           // Get the investment contract for the selected network
@@ -308,7 +307,7 @@ const InvestmentDetailsPage: React.FC = () => {
             applicationEndDate: program?.applicationEndDate || '',
             fundingStartDate: program?.fundingStartDate || '',
             fundingEndDate: program?.fundingEndDate || '',
-            feePercentage: program?.feePercentage || 300, // 3% default
+            feePercentage: program?.customFeePercentage || program?.feePercentage || 300, // Use custom fee if set, otherwise default
             validators: validatorAddresses,
             requiredValidations: validatorAddresses.length,
             fundingCondition: program?.fundingCondition === 'tier' ? 'tier' : 'open',
@@ -908,10 +907,10 @@ const InvestmentDetailsPage: React.FC = () => {
                 <div className="mt-6">
                   <p className="text-muted-foreground text-sm font-bold mb-3">PLATFORM FEE</p>
                   <p className="text-slate-600 text-sm">
-                    {program.feePercentage
-                      ? `${(program.feePercentage / 100).toFixed(1)}% (Default)`
-                      : program.customFeePercentage
-                        ? `${(program.customFeePercentage / 100).toFixed(1)}% (Custom)`
+                    {program.customFeePercentage
+                      ? `${(program.customFeePercentage / 100).toFixed(1)}% (Custom)`
+                      : program.feePercentage
+                        ? `${(program.feePercentage / 100).toFixed(1)}% (Default)`
                         : 'Not Set'}
                   </p>
                 </div>

@@ -48,15 +48,6 @@ export function useContract(network: string) {
   // Only 'embedded' wallets are Privy's internal wallets
   const isExternalWallet = user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
 
-  // Log wallet type for debugging
-  console.log('Wallet info:', {
-    connectorType: user?.wallet?.connectorType,
-    isExternalWallet,
-    currentWallet: currentWallet?.address,
-    walletsCount: wallets.length,
-    userWalletAddress: user?.wallet?.address,
-  });
-
   let sendTx = sendTransaction;
 
   // If no currentWallet found but user has a wallet, try to use the first available wallet
@@ -111,7 +102,6 @@ export function useContract(network: string) {
       throw new Error('No wallet connected. Please connect a wallet to continue.');
     };
   } else {
-    console.log('Using Privy embedded wallet for transactions');
   }
 
   const checkContract = (() => {

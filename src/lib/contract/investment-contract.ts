@@ -656,11 +656,18 @@ export class InvestmentContract {
       let value: bigint;
 
       if (isNative) {
-        // Native token investment - use delegateInvestFund from core contract
-        // This routes through the funding module with proper validation
+        // Native token investment - call funding module directly (same as ERC20)
+        // This preserves msg.sender as the user for proper tier checking
+        console.log('=== Native Token Investment ===');
+        console.log('Calling funding module directly to preserve msg.sender');
+        console.log('Function: investFund');
+        console.log('Project ID:', params.projectId);
+        console.log('Amount (value):', amountBigInt.toString());
+        console.log('===============================');
+
         data = encodeFunctionData({
-          abi: INVESTMENT_CORE_ABI,
-          functionName: 'delegateInvestFund',
+          abi: FUNDING_MODULE_ABI,
+          functionName: 'investFund',
           args: [params.projectId],
         });
         value = amountBigInt;
@@ -677,8 +684,15 @@ export class InvestmentContract {
         value = BigInt(0);
       }
 
-      // Determine target address based on investment type
-      const targetAddress = isNative ? this.addresses.core : this.addresses.funding;
+      // Always use funding module directly to preserve msg.sender
+      const targetAddress = this.addresses.funding;
+
+      console.log('=== Transaction Construction ===');
+      console.log('Target Address:', targetAddress);
+      console.log('Data:', data);
+      console.log('Value:', value.toString());
+      console.log('Chain ID:', this.chainId);
+      console.log('================================');
 
       const txResult = await this.sendTransaction(
         {
@@ -1499,6 +1513,186 @@ export class InvestmentContract {
     }
   }
 
+  async getUserCurrentInvestment(projectId: number, user: string): Promise<string> {
+    try {
+      const data = await this.client.readContract({
+        address: this.addresses.funding as `0x${string}`,
+        abi: FUNDING_MODULE_ABI,
+        functionName: 'getInvestmentAmount',
+        args: [projectId, user as `0x${string}`],
+      });
+
+      return (data as bigint).toString();
+    } catch (error) {
+      console.error('Failed to get user investment:', error);
+      return '0';
+    }
+  }
+
+  async getTotalInvestment(projectId: number): Promise<string> {
+    try {
+      const result = await this.client.readContract({
+        address: this.addresses.funding as `0x${string}`,
+        abi: FUNDING_MODULE_ABI,
+        functionName: 'getTotalInvestment',
+        args: [projectId],
+      });
+      return (result as bigint).toString();
+    } catch (error) {
+      console.error('Failed to get total investment:', error);
+      return '0';
+    }
+  }
+
+  async getProgramStatus(programId: number): Promise<number> {
+    try {
+      const result = await this.client.readContract({
+        address: this.addresses.core as `0x${string}`,
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'getProgramStatus',
+        args: [programId],
+      });
+      return result as number;
+    } catch (error) {
+      console.error('Failed to get program status:', error);
+      return 0; // Return NotStarted as default
+    }
+  }
+
+  async getProjectDetails(projectId: number) {
+    try {
+      const result = await this.client.readContract({
+        address: this.addresses.core as `0x${string}`,
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'getProjectDetails',
+        args: [projectId],
+      });
+
+      // Parse the result tuple
+      const [creator, , targetFunding, raisedAmount, status, programId] = result as [
+        string,
+        unknown,
+        bigint,
+        bigint,
+        number,
+        number,
+      ];
+
+      return {
+        creator,
+        targetFunding: targetFunding.toString(),
+        raisedAmount: raisedAmount.toString(),
+        status,
+        programId: Number(programId),
+      };
+    } catch (error) {
+      console.error('Failed to get project details:', error);
+      return null;
+    }
+  }
+
+  async getProgramUserTier(
+    programId: number,
+    user: string,
+  ): Promise<{
+    tierName: string;
+    maxInvestment: string;
+    isAssigned: boolean;
+  } | null> {
+    try {
+      console.log('Checking program user tier:', { programId, user });
+
+      const data = await this.client.readContract({
+        address: this.addresses.core as `0x${string}`,
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'getProgramUserTier',
+        args: [programId, user as `0x${string}`],
+      });
+
+      const [tierName, maxInvestment, isAssigned] = data as [string, bigint, boolean];
+
+      console.log('Program user tier result:', {
+        tierName,
+        maxInvestment: maxInvestment.toString(),
+        isAssigned,
+      });
+
+      if (!isAssigned) {
+        console.log('User tier not assigned for program', programId);
+        return null;
+      }
+
+      return {
+        tierName,
+        maxInvestment: maxInvestment.toString(),
+        isAssigned,
+      };
+    } catch (error) {
+      console.error('Failed to get program user tier:', error);
+      // Check if it's a project-level tier instead
+      console.log('Will check for project-level tier assignment instead');
+      return null;
+    }
+  }
+
+  async syncUserTierToProgram(params: {
+    programId: number;
+    user: string;
+    tierName: string;
+    maxInvestment: string; // In human-readable format (e.g., "0.1" for 0.1 EDU)
+    tokenDecimals?: number;
+  }) {
+    try {
+      const decimals = params.tokenDecimals ?? 18;
+      const maxInvestmentWei = ethers.utils.parseUnits(params.maxInvestment, decimals);
+
+      console.log('Syncing user tier to program:', {
+        programId: params.programId,
+        user: params.user,
+        tierName: params.tierName,
+        maxInvestment: params.maxInvestment,
+        maxInvestmentWei: maxInvestmentWei.toString(),
+      });
+
+      const data = encodeFunctionData({
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'assignUserTierToProgram',
+        args: [params.programId, params.user as `0x${string}`, params.tierName, maxInvestmentWei],
+      });
+
+      const txResult = await this.sendTransaction(
+        {
+          to: this.addresses.core as `0x${string}`,
+          data,
+          value: BigInt(0),
+          chainId: this.chainId,
+        } as Parameters<typeof this.sendTransaction>[0],
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            transactionInfo: {
+              title: 'Sync Tier Assignment',
+              action: 'Sync',
+            },
+            description: `Syncing ${params.tierName} tier for user`,
+            successHeader: 'Tier Synced!',
+            successDescription: 'Your tier has been synced on-chain.',
+          },
+        },
+      );
+
+      await this.waitForTransaction(txResult.hash);
+
+      return {
+        txHash: txResult.hash,
+        success: true,
+      };
+    } catch (error) {
+      console.error('Failed to sync user tier:', error);
+      throw error;
+    }
+  }
+
   async checkInvestmentEligibility(
     projectId: number,
     investor: string,
@@ -1523,6 +1717,43 @@ export class InvestmentContract {
       if (amountBigInt === BigInt(0)) {
         return { eligible: false, reason: 'Investment amount must be greater than 0' };
       }
+
+      // First check the program status
+      const projectDetails = await this.client.readContract({
+        address: this.addresses.core as `0x${string}`,
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'getProjectDetails',
+        args: [projectId],
+      });
+
+      const programId = (
+        projectDetails as [unknown, unknown, unknown, unknown, unknown, bigint]
+      )[5]; // programId is at index 5
+
+      const programIdNumber = Number(programId);
+
+      console.log('=== Project to Program Mapping ===');
+      console.log('Project ID:', projectId);
+      console.log('Program ID from contract:', programIdNumber);
+      console.log('Expected Program ID:', 38);
+      console.log(
+        'Match:',
+        programIdNumber === 38 ? '✅ YES' : `❌ NO - Got ${programIdNumber} instead of 38`,
+      );
+      console.log('==================================');
+
+      const programStatus = await this.client.readContract({
+        address: this.addresses.core as `0x${string}`,
+        abi: INVESTMENT_CORE_ABI,
+        functionName: 'getProgramStatus',
+        args: [programIdNumber],
+      });
+
+      console.log('=== Program Status Check ===');
+      console.log('Program ID:', programIdNumber);
+      console.log('Program Status:', programStatus);
+      console.log('(0=NotStarted, 1=Active, 2=Ended)');
+      console.log('============================');
 
       const data = await this.client.readContract({
         address: this.addresses.funding as `0x${string}`,
