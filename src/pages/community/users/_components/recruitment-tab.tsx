@@ -7,11 +7,12 @@ import { useApplicationsQuery } from '@/apollo/queries/applications.generated';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
+import ProgramCard from '@/pages/programs/_components/program-card';
 import { ProgramType } from '@/types/types.generated';
 import { ArrowRightIcon, ListFilter, Search } from 'lucide-react';
 import { useState } from 'react';
 import ApplicationBuilderCard from './application-builder-card';
-import ProgramCard from './program-card';
+// import ProgramCard from './program-card';
 
 const filterBasedOnRole = {
   sponsor: 'creatorId',
@@ -150,7 +151,7 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
             <div key={role} className="flex flex-col gap-3">
               {index > 0 && <Separator className="mt-3" />}
               <div className="flex items-center justify-between h-12 px-4">
-                <p className="font-bold text-lg text-gray-dark">
+                <p className="font-bold text-xl text-muted-foreground">
                   As {role.charAt(0).toUpperCase() + role.slice(1)}
                 </p>
                 {count > 2 && (
@@ -173,7 +174,7 @@ export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean 
         <div className="flex flex-col gap-3">
           <Separator className="mt-3" />
           <div className="flex items-center justify-between h-12 px-4">
-            <p className="font-bold text-lg text-gray-dark">As Builder</p>
+            <p className="font-bold text-xl text-muted-foreground">As Builder</p>
             {!!applicationData?.applications?.count && applicationData?.applications?.count > 2 && (
               <Link to={'builder'} className="px-3 flex items-center gap-2">
                 <p className="font-medium text-sm text-gray-dark">View more</p>

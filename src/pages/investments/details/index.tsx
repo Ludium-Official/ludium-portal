@@ -69,27 +69,6 @@ const InvestmentDetailsPage: React.FC = () => {
 
   const program = data?.program;
 
-  // const acceptedPrice = useMemo(
-  //   () =>
-  //     program?.applications
-  //       ?.filter(
-  //         (a) =>
-  //           a.status === ApplicationStatus.Accepted || a.status === ApplicationStatus.Completed,
-  //       )
-  //       .reduce(
-  //         (mlPrev, mlCurr) => {
-  //           const mlPrice = mlCurr?.milestones?.reduce(
-  //             (prev, curr) => prev.plus(BigNumber(curr?.price ?? 0)),
-  //             BigNumber(0, 10),
-  //           );
-  //           return mlPrev.plus(BigNumber(mlPrice ?? 0));
-  //         },
-  //         BigNumber(0, 10),
-  //       )
-  //       .toFixed() || '0',
-  //   [program],
-  // );
-
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     if (hash) {

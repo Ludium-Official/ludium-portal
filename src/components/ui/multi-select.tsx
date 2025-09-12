@@ -162,7 +162,6 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
     },
     ref,
   ) => {
-    // const [selectedItems, setSelectedItems] = React.useState<{ label: string, value: string }[]>(defaultItems)
     const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
 

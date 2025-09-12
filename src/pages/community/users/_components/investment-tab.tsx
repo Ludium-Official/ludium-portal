@@ -1,6 +1,7 @@
 import { useApplicationsQuery } from '@/apollo/queries/applications.generated';
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
+import InvestmentCard from '@/components/investment-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ProgramType } from '@/types/types.generated';
@@ -8,7 +9,6 @@ import { ArrowRightIcon, ListFilter, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { AgentBreadcrumbs } from './agent-breadcrumbs';
-import ProgramHostCard from './program-host-card';
 import ProgramProjectCard from './program-project-card';
 
 const filterBasedOnRole = {
@@ -40,7 +40,7 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
           },
           {
             value: ProgramType.Funding,
-            field: 'programType',
+            field: 'type',
           },
           ...(searchQuery
             ? [
@@ -126,7 +126,7 @@ export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }
               <p className="text-sm text-muted-foreground px-4">No programs found</p>
             ) : (
               sponsorData?.programs?.data?.map((program) => (
-                <ProgramHostCard key={program.id} program={program} />
+                <InvestmentCard key={program.id} program={program} />
               ))
             )}
           </div>

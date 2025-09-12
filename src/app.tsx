@@ -1,7 +1,5 @@
 import AdminOutlet from '@/components/layout/admin-outlet';
 import Layout from '@/components/layout/layout';
-import { CustomDynamicTabsExample } from '@/components/ui/dynamic-tab-example';
-// import { DynamicTabsExample } from '@/components/ui/dynamic-tab-example';
 import AdminPage from '@/pages/admin';
 import CommunityPage from '@/pages/community';
 import CreateCommunityPage from '@/pages/community/create';
@@ -34,8 +32,6 @@ import InvestmentDetailsPage from '@/pages/investments/details';
 import ProjectDetailsPage from '@/pages/investments/details/project-details';
 import EditInvestmentPage from '@/pages/investments/edit';
 import MainPage from '@/pages/main';
-// import ProfilePage from '@/pages/profile';
-// import EditProfilePage from '@/pages/my-profile/edit';
 import ProgramsPage from '@/pages/programs';
 import CreateProgramPage from '@/pages/programs/create';
 import ProgramDetailsPage from '@/pages/programs/details';
@@ -49,12 +45,7 @@ function App() {
     <ScrollWrapper>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route path="test" element={<CustomDynamicTabsExample />} />
           <Route index element={<MainPage />} />
-          {/* <Route path="profile">
-            <Route index element={<ProfilePage />} />
-            <Route path="edit" element={<EditProfilePage />} />
-          </Route> */}
 
           <Route path="programs">
             <Route index element={<ProgramsPage />} />
@@ -78,8 +69,6 @@ function App() {
             <Route path="create" element={<CreateCommunityPage />} />
             <Route path="posts/:id" element={<CommunityDetailsPage />} />
             <Route path="posts/:id/edit" element={<EditCommunityPage />} />
-            {/* <Route path="users" element={<UsersPage />} />
-            <Route path="users/:id" element={<UserDetailsPage />} /> */}
           </Route>
 
           <Route path="users">
@@ -101,15 +90,11 @@ function App() {
             </Route>
           </Route>
           <Route path="my-profile">
-            {/* <Route index element={<MyProfilePage />} /> */}
-
             <Route path="edit" element={<EditProfilePage />} />
             <Route element={<MyProfilePage />}>
               <Route index element={<Navigate to="overview" />} />
             </Route>
             <Route element={<MyProfilePage />}>
-              {/* <Route index element={<Navigate to="overview" />} /> */}
-
               <Route path="overview" element={<UserOverviewTab />} />
               <Route path="description" element={<UserDescriptionTab myProfile />} />
               <Route path="program/recruitment" element={<UserRecruitmentTab myProfile />} />
