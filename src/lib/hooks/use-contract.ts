@@ -1,12 +1,13 @@
 import { type ConnectedWallet, usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import type { Chain, PublicClient } from 'viem';
-import { http, createPublicClient } from 'viem';
+import { createPublicClient, http } from 'viem';
 import {
   arbitrum,
   arbitrumSepolia,
   base,
   baseSepolia,
+  creditCoin3Mainnet,
   eduChain,
   eduChainTestnet,
 } from 'viem/chains';
@@ -48,15 +49,6 @@ export function useContract(network: string) {
   // Only 'embedded' wallets are Privy's internal wallets
   const isExternalWallet = user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
 
-  // Log wallet type for debugging
-  console.log('Wallet info:', {
-    connectorType: user?.wallet?.connectorType,
-    isExternalWallet,
-    currentWallet: currentWallet?.address,
-    walletsCount: wallets.length,
-    userWalletAddress: user?.wallet?.address,
-  });
-
   let sendTx = sendTransaction;
 
   // If no currentWallet found but user has a wallet, try to use the first available wallet
@@ -78,6 +70,9 @@ export function useContract(network: string) {
     }
     if (network === 'arbitrum-sepolia') {
       return arbitrumSepolia;
+    }
+    if (network === 'creditcoin') {
+      return creditCoin3Mainnet;
     }
 
     return eduChain;
@@ -111,7 +106,6 @@ export function useContract(network: string) {
       throw new Error('No wallet connected. Please connect a wallet to continue.');
     };
   } else {
-    console.log('Using Privy embedded wallet for transactions');
   }
 
   const checkContract = (() => {
@@ -120,6 +114,9 @@ export function useContract(network: string) {
     }
     if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
       return import.meta.env.VITE_ARBITRUM_CONTRACT_ADDRESS;
+    }
+    if (network === 'creditcoin') {
+      return import.meta.env.VITE_CREDITCOIN_CONTRACT_ADDRESS;
     }
 
     return import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS;

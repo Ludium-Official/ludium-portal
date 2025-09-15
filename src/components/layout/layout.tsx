@@ -1,12 +1,15 @@
-import loadingGif from '@/assets/icons/loading.gif';
-import Footer from '@/components/layout/footer';
-import Header from '@/components/layout/header';
-import Sidebar from '@/components/layout/sidebar';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useEffect, useState } from 'react';
-import { Toaster } from 'react-hot-toast';
-import { Outlet, useLocation } from 'react-router';
-import MobileWebView from '../mobile-web-view';
+import loadingGif from "@/assets/icons/loading.gif";
+import Footer from "@/components/layout/footer";
+import Header from "@/components/layout/header";
+import Sidebar from "@/components/layout/sidebar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useEffect, useState } from "react";
+import { Toaster } from "react-hot-toast";
+import { Outlet, useLocation } from "react-router";
+import MobileWebView from "../mobile-web-view";
+
+const MOBILE_USER_AGENT_REGEX =
+  /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
 
 function Layout() {
   const [isMobile, setIsMobile] = useState(false);
@@ -16,14 +19,16 @@ function Layout() {
   useEffect(() => {
     const currentPath = location.pathname;
     const userAgent = navigator.userAgent || navigator.vendor;
-    const isMobileDevice = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
-      userAgent,
-    );
+    const isMobileDevice =
+      /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+        userAgent
+      );
 
     // Only main page and pages starting with "investments" should NOT be mobile IF it's a mobile device
-    const isMainPage = currentPath === '/' || currentPath === '';
+    const isMainPage = currentPath === "/" || currentPath === "";
     const isInvestmentsPage =
-      currentPath.startsWith('/investments') || currentPath.startsWith('/my-profile');
+      currentPath.startsWith("/investments") ||
+      currentPath.startsWith("/my-profile");
 
     if ((isMainPage || isInvestmentsPage) && isMobileDevice) {
       setIsMobile(false);
@@ -61,10 +66,6 @@ function Layout() {
                     <Outlet />
                   </div>
                 </div>
-
-                {/* <main className="bg-white h-[calc(100dvh-24px)] overflow-y-auto rounded-2xl m-3 ml-[240px]">
-                <Header />
-                <Outlet /> */}
                 <Footer />
               </ScrollArea>
             </>

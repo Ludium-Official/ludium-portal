@@ -6,7 +6,6 @@ import {
   type LucideIcon,
   MessageCircle,
   Scroll,
-  ShieldCheck,
   UserRound,
   Users,
 } from 'lucide-react';
@@ -25,10 +24,11 @@ type SidebarLink = {
 };
 
 const Sidebar = () => {
-  const { isLoggedIn, isAdmin } = useAuth();
+  const { isLoggedIn } = useAuth();
   const location = useLocation();
   const [programMenuOpen, setProgramMenuOpen] = useState(false);
-  const links: SidebarLink[] = [
+
+  const baseLinks: SidebarLink[] = [
     {
       name: 'Program',
       path: '/programs',
@@ -46,9 +46,9 @@ const Sidebar = () => {
     { name: 'Agent', path: '/users', icon: Users },
   ];
 
-  if (isLoggedIn) {
-    links.unshift({ name: 'Profile', path: '/my-profile', icon: UserRound });
-  }
+  const links = isLoggedIn
+    ? [{ name: 'Profile', path: '/my-profile', icon: UserRound }, ...baseLinks]
+    : baseLinks;
 
   return (
     <aside className="fixed z-[2] left-0 w-[216px] h-[calc(100dvh-24px)] mx-3 mb-3 bg-white rounded-2xl">
@@ -131,17 +131,6 @@ const Sidebar = () => {
               About
             </a>
           </li>
-          {isAdmin && (
-            <li>
-              <NavLink
-                to="/admin"
-                className="group flex gap-4 items-center px-4 py-[14px] rounded-xl transition-all text-[18px] font-medium hover:bg-[#B331FF0A] hover:text-primary"
-              >
-                <ShieldCheck />
-                Admin
-              </NavLink>
-            </li>
-          )}
         </ul>
       </nav>
     </aside>

@@ -219,7 +219,7 @@ function MyProfilePage() {
             <Separator />
             <div className="flex flex-col gap-6">
               <div className="border border-[#E4B7FF] rounded-[10px] p-5">
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start justify-between gap-3 mb-3">
                   <div>
                     <p className="text-sm font-bold mb-1">My Wallet</p>
                     <p className="flex gap-1 line-clamp-1 items-center text-xs text-muted-foreground">
@@ -231,7 +231,7 @@ function MyProfilePage() {
                     <NetworkSelector
                       value={network}
                       onValueChange={setNetwork}
-                      className="min-w-[120px] h-9"
+                      className="w-[150px] h-9"
                     />
                   </div>
                 </div>

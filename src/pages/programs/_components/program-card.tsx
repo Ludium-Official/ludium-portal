@@ -10,7 +10,6 @@ import { Link } from 'react-router';
 function ProgramCard({ program }: { program: Program }) {
   const { isSponsor } = useAuth();
   const { id, name, keywords, summary } = program ?? {};
-  // const badgeVariants = ['teal', 'orange', 'pink'];
 
   return (
     <div className="block w-full border border-gray-border rounded-lg p-5 max-h-[292px]">
@@ -43,7 +42,7 @@ function ProgramCard({ program }: { program: Program }) {
           <div className="w-[104px] h-[104px] bg-slate-200 rounded-md " />
         )}
         <div className="flex flex-col justify-between">
-          <h2 className="text-lg font-bold text-[#18181B]">{name}</h2>
+          <h2 className="text-lg font-bold text-[#18181B] truncate max-w-[394px]">{name}</h2>
           <div className="inline-flex self-start text-sm bg-secondary py-1 px-2 items-center rounded-md">
             <span className="text-neutral-400 mr-3">PRICE</span>{' '}
             <span className="flex items-center text-muted-foreground gap-1 font-medium">

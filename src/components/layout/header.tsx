@@ -89,12 +89,15 @@ function Header() {
 
   // Calculate opacity and blur based on scroll position
   const getHeaderStyles = () => {
-    const maxScroll = 200;
-    const opacity = Math.min(scrollY / maxScroll, 1);
-    const blur = Math.min(scrollY / maxScroll, 1) * 20; // max blur of 12px
+    const MAX_SCROLL = 200;
+    const MAX_BLUR = 20;
+    const BACKGROUND_OPACITY_FACTOR = 0.9;
+
+    const opacity = Math.min(scrollY / MAX_SCROLL, 1);
+    const blur = Math.min(scrollY / MAX_SCROLL, 1) * MAX_BLUR;
 
     return {
-      backgroundColor: `rgba(255, 255, 255, ${1 - opacity * 0.9})`, // Начинаем с белого, становимся прозрачным
+      backgroundColor: `rgba(255, 255, 255, ${1 - opacity * BACKGROUND_OPACITY_FACTOR})`,
       backdropFilter: `blur(${blur}px)`,
       transform: isVisible ? 'translateY(0)' : 'translateY(-120%)',
       transition:
@@ -102,27 +105,23 @@ function Header() {
     };
   };
 
+  const getLoginType = () => {
+    const googleInfo = user?.google;
+    const farcasterInfo = user?.farcaster;
+
+    if (googleInfo) return 'google';
+    if (farcasterInfo) return 'farcaster';
+    return 'wallet';
+  };
+
   const login = async () => {
     try {
-      const googleInfo = user?.google;
-      const farcasterInfo = user?.farcaster;
-
-      const loginType = (() => {
-        const types = {
-          google: googleInfo,
-          farcaster: farcasterInfo,
-        };
-
-        return (
-          (Object.keys(types) as Array<keyof typeof types>).find((key) => types[key]) || 'wallet'
-        );
-      })();
-
+      const loginType = getLoginType();
       privyLogin({ disableSignup: false });
 
       if (user && walletInfo) {
         await authLogin({
-          email: googleInfo?.email || null,
+          email: user?.google?.email || null,
           walletAddress: walletInfo.address,
           loginType,
         });
@@ -148,15 +147,13 @@ function Header() {
     }
   };
 
-  const callTokenBalance = async (
+  const fetchTokenBalance = async (
     contract: ChainContract,
     tokenAddress: string,
     walletAddress: string,
   ): Promise<bigint | null> => {
     try {
-      const balance = await contract.getAmount(tokenAddress, walletAddress);
-
-      return balance as bigint;
+      return (await contract.getAmount(tokenAddress, walletAddress)) as bigint;
     } catch (error) {
       console.error('Error fetching token balance:', error);
       return null;
@@ -184,7 +181,7 @@ function Header() {
 
         const balancesPromises = erc20Tokens.map(
           (token: { address: string; decimal: number; name: string }) =>
-            callTokenBalance(contract, token.address, walletInfo.address).then((balance) => ({
+            fetchTokenBalance(contract, token.address, walletInfo.address).then((balance) => ({
               name: token.name,
               amount: balance,
               decimal: token.decimal,

@@ -13,7 +13,7 @@ export const sidebarLinks = [
           { label: 'Sponsor', path: 'program/recruitment/sponsor' },
           { label: 'Validator', path: 'program/recruitment/validator' },
           { label: 'Builder', path: 'program/recruitment/builder' },
-          { label: 'Reclaim', path: 'program/recruitment/reclaim' },
+          // { label: 'Reclaim', path: 'program/recruitment/reclaim' },
         ],
       },
       {
@@ -23,7 +23,7 @@ export const sidebarLinks = [
           { label: 'Host', path: 'program/investment/host' },
           { label: 'Project', path: 'program/investment/project' },
           { label: 'Supporter', path: 'program/investment/supporter' },
-          { label: 'Reclaim', path: 'program/investment/reclaim' },
+          // { label: 'Reclaim', path: 'program/investment/reclaim' },
         ],
       },
     ],
@@ -37,7 +37,13 @@ export type SidebarItemType = {
   children?: SidebarItemType[];
 };
 
-export function SidebarLinks({ item, myProfile }: { item: SidebarItemType; myProfile?: boolean }) {
+export function SidebarLinks({
+  item,
+  myProfile,
+}: {
+  item: SidebarItemType;
+  myProfile?: boolean;
+}) {
   const { id } = useParams();
   const location = useLocation();
 

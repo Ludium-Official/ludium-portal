@@ -278,16 +278,32 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
                 decimals: decimals,
               });
 
-              await investmentContract.assignUserTierToProgram({
+              const result = await investmentContract.assignUserTierToProgram({
                 programId: onChainProgramId,
                 user: walletAddress,
-                tierName: supporter.tier,
+                tierName: supporter.tier.toLowerCase(), // Ensure lowercase
                 maxInvestment: maxInvestmentWei,
               });
 
-              syncedCount++;
-              console.log(`✅ Successfully synced tier for ${supporter.name} (${walletAddress})`);
-              notify(`Tier synced for ${supporter.name}`, 'success');
+              console.log(`✅ Tier sync transaction hash: ${result.txHash}`);
+
+              // Verify the tier was actually synced
+              const verifyTier = await investmentContract.getProgramUserTier(
+                onChainProgramId,
+                walletAddress,
+              );
+
+              if (verifyTier?.isAssigned) {
+                syncedCount++;
+                console.log(
+                  `✅ Successfully synced and verified tier for ${supporter.name} (${walletAddress})`,
+                );
+                notify(`Tier synced for ${supporter.name}`, 'success');
+              } else {
+                throw new Error(
+                  'Tier sync verification failed - tier not found on chain after transaction',
+                );
+              }
             } catch (error) {
               console.error(`❌ Failed to sync tier for ${supporter.name}:`, error);
 

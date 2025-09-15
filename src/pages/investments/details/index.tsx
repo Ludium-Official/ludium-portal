@@ -1,15 +1,15 @@
 // import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
-import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
+import { useAcceptProgramMutation } from "@/apollo/mutation/accept-program.generated";
 
-import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
-import { useProgramQuery } from '@/apollo/queries/program.generated';
+import { useSubmitProgramMutation } from "@/apollo/mutation/submit-program.generated";
+import { useProgramQuery } from "@/apollo/queries/program.generated";
 
-import { AdminDropdown } from '@/components/admin-dropdown';
-import { MarkdownPreviewer } from '@/components/markdown';
-import { ProgramStatusBadge } from '@/components/status-badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { AdminDropdown } from "@/components/admin-dropdown";
+import { MarkdownPreviewer } from "@/components/markdown";
+import { ProgramStatusBadge } from "@/components/status-badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -17,35 +17,47 @@ import {
   DialogDescription,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { ShareButton } from '@/components/ui/share-button';
-import { Tabs } from '@/components/ui/tabs';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+} from "@/components/ui/dialog";
+import { ShareButton } from "@/components/ui/share-button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 // import { tokenAddresses } from '@/constant/token-address';
-import { useAuth } from '@/lib/hooks/use-auth';
-import { getInvestmentContract } from '@/lib/hooks/use-investment-contract';
-import { TOKEN_CONFIGS } from '@/lib/investment-helpers';
-import notify from '@/lib/notify';
-import { cn, getInitials, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
-import ProjectCard from '@/pages/investments/details/_components/project-card';
-import SupportersModal from '@/pages/investments/details/_components/supporters-modal';
-import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
+import { useAuth } from "@/lib/hooks/use-auth";
+import { getInvestmentContract } from "@/lib/hooks/use-investment-contract";
+import { TOKEN_CONFIGS } from "@/lib/investment-helpers";
+import notify from "@/lib/notify";
+import {
+  cn,
+  getInitials,
+  getUserName,
+  mainnetDefaultNetwork,
+} from "@/lib/utils";
+import ProjectCard from "@/pages/investments/details/_components/project-card";
+import SupportersModal from "@/pages/investments/details/_components/supporters-modal";
+import RejectProgramForm from "@/pages/programs/details/_components/reject-program-form";
 // import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
-import { FundingCondition, ProgramStatus, ProgramVisibility } from '@/types/types.generated';
-import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { format } from 'date-fns';
-import { CircleAlert, Settings, TriangleAlert } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import {
+  FundingCondition,
+  ProgramStatus,
+  ProgramVisibility,
+} from "@/types/types.generated";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { format } from "date-fns";
+import { CircleAlert, Settings, TriangleAlert } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router";
 
-import { http, type Chain, type PublicClient, createPublicClient } from 'viem';
-import { arbitrumSepolia, baseSepolia, eduChainTestnet } from 'viem/chains';
+import { http, type Chain, type PublicClient, createPublicClient } from "viem";
+import { arbitrumSepolia, baseSepolia, eduChainTestnet } from "viem/chains";
 
 function getChainForNetwork(network: string) {
   const chainMap: Record<string, Chain> = {
-    'educhain-testnet': eduChainTestnet,
-    'base-sepolia': baseSepolia,
-    'arbitrum-sepolia': arbitrumSepolia,
+    "educhain-testnet": eduChainTestnet,
+    "base-sepolia": baseSepolia,
+    "arbitrum-sepolia": arbitrumSepolia,
   };
   return chainMap[network] || eduChainTestnet;
 }
@@ -59,7 +71,10 @@ const InvestmentDetailsPage: React.FC = () => {
 
   useEffect(() => {
     const userAgent = navigator.userAgent;
-    const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    const isMobile =
+      /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+        userAgent
+      );
     setIsMobileDevice(isMobile);
   }, []);
 
@@ -69,9 +84,9 @@ const InvestmentDetailsPage: React.FC = () => {
     error: programError,
   } = useProgramQuery({
     variables: {
-      id: id ?? '',
+      id: id ?? "",
     },
-    fetchPolicy: 'network-only', // Force fresh data from server
+    fetchPolicy: "network-only", // Force fresh data from server
   });
 
   const program = data?.program;
@@ -111,14 +126,14 @@ const InvestmentDetailsPage: React.FC = () => {
     if (hash) {
       const element = document.getElementById(hash);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+        element.scrollIntoView({ behavior: "smooth" });
       }
     }
   }, []);
 
   const [acceptProgram] = useAcceptProgramMutation({
     variables: {
-      id: program?.id ?? '',
+      id: program?.id ?? "",
     },
     onCompleted: () => {
       refetch();
@@ -137,20 +152,24 @@ const InvestmentDetailsPage: React.FC = () => {
         let txHash: string | null = null;
         let blockchainProgramId: number | null = null;
 
-        if (program.network !== 'off-chain') {
-          notify('Deploying to blockchain...');
+        if (program.network !== "off-chain") {
+          notify("Deploying to blockchain...");
 
           // Switch to the correct network if needed
-          const chain = getChainForNetwork(program.network ?? mainnetDefaultNetwork);
+          const chain = getChainForNetwork(
+            program.network ?? mainnetDefaultNetwork
+          );
 
           // Check if we have a wallet and switch network if needed
-          const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
+          const currentWallet = wallets.find(
+            (wallet) => wallet.address === user?.wallet?.address
+          );
           if (currentWallet?.switchChain) {
             try {
               await currentWallet.switchChain(chain.id);
-              notify(`Switched to ${chain.name} network`, 'success');
+              notify(`Switched to ${chain.name} network`, "success");
             } catch (error) {
-              console.warn('Failed to switch network:', error);
+              console.warn("Failed to switch network:", error);
               // Continue anyway, Privy modal will handle network switching
             }
           }
@@ -163,9 +182,10 @@ const InvestmentDetailsPage: React.FC = () => {
 
           // Check if user is using an external wallet (MetaMask, etc.)
           const isExternalWallet =
-            user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
+            user?.wallet?.connectorType &&
+            user.wallet.connectorType !== "embedded";
 
-          console.log('Wallet detection for investment program:', {
+          console.log("Wallet detection for investment program:", {
             connectorType: user?.wallet?.connectorType,
             isExternalWallet,
             currentWallet: currentWallet?.address,
@@ -176,61 +196,70 @@ const InvestmentDetailsPage: React.FC = () => {
           let customSendTransaction = sendTransaction;
 
           if (isExternalWallet && currentWallet) {
-            console.log('Using external wallet for investment program deployment');
+            console.log(
+              "Using external wallet for investment program deployment"
+            );
             // For external wallets, we need to handle transactions differently
             // @ts-ignore - We're overriding the type to handle external wallets
             customSendTransaction = async (input, _uiOptions) => {
               try {
                 // Get the provider from the wallet
-                const eip1193Provider = await currentWallet.getEthereumProvider();
-                const { ethers } = await import('ethers');
-                const provider = new ethers.providers.Web3Provider(eip1193Provider);
+                const eip1193Provider =
+                  await currentWallet.getEthereumProvider();
+                const { ethers } = await import("ethers");
+                const provider = new ethers.providers.Web3Provider(
+                  eip1193Provider
+                );
                 const signer = provider.getSigner();
 
                 // Send the transaction directly
                 const txResponse = await signer.sendTransaction({
                   to: input.to,
                   data: input.data,
-                  value: input.value?.toString() || '0',
+                  value: input.value?.toString() || "0",
                   chainId: input.chainId,
                 });
 
                 return { hash: txResponse.hash as `0x${string}` };
               } catch (error) {
-                console.error('External wallet transaction error:', error);
+                console.error("External wallet transaction error:", error);
                 throw error;
               }
             };
           } else if (isExternalWallet && !currentWallet) {
-            console.warn('External wallet detected but currentWallet not found, trying fallback');
+            console.warn(
+              "External wallet detected but currentWallet not found, trying fallback"
+            );
             // Fallback: Try to use the first wallet if available
             const fallbackWallet = wallets[0];
             if (fallbackWallet) {
-              console.log('Using fallback wallet:', fallbackWallet.address);
+              console.log("Using fallback wallet:", fallbackWallet.address);
               // @ts-ignore
               customSendTransaction = async (input, _uiOptions) => {
                 try {
-                  const eip1193Provider = await fallbackWallet.getEthereumProvider();
-                  const { ethers } = await import('ethers');
-                  const provider = new ethers.providers.Web3Provider(eip1193Provider);
+                  const eip1193Provider =
+                    await fallbackWallet.getEthereumProvider();
+                  const { ethers } = await import("ethers");
+                  const provider = new ethers.providers.Web3Provider(
+                    eip1193Provider
+                  );
                   const signer = provider.getSigner();
 
                   const txResponse = await signer.sendTransaction({
                     to: input.to,
                     data: input.data,
-                    value: input.value?.toString() || '0',
+                    value: input.value?.toString() || "0",
                     chainId: input.chainId,
                   });
 
                   return { hash: txResponse.hash as `0x${string}` };
                 } catch (error) {
-                  console.error('Fallback wallet transaction error:', error);
+                  console.error("Fallback wallet transaction error:", error);
                   throw error;
                 }
               };
             }
           } else {
-            console.log('Using Privy embedded wallet or default sendTransaction');
           }
 
           // Get the investment contract for the selected network
@@ -238,12 +267,13 @@ const InvestmentDetailsPage: React.FC = () => {
           const investmentContract = getInvestmentContract(
             program.network ?? mainnetDefaultNetwork,
             customSendTransaction,
-            publicClient,
+            publicClient
           );
 
           // Get validator wallet addresses from the form data
           const currentUserAddress =
-            user?.wallet?.address || '0x0000000000000000000000000000000000000000';
+            user?.wallet?.address ||
+            "0x0000000000000000000000000000000000000000";
 
           let validatorAddresses: string[] = [];
 
@@ -251,155 +281,194 @@ const InvestmentDetailsPage: React.FC = () => {
             // Use the wallet addresses provided by the form
             // validatorAddresses = args.validatorWalletAddresses.filter((addr) => addr && addr !== '');
 
-            validatorAddresses = program?.validators?.map((v) => v.walletAddress ?? '') ?? [];
+            validatorAddresses =
+              program?.validators?.map((v) => v.walletAddress ?? "") ?? [];
 
             // Validate that we have wallet addresses for all validators
-            if (validatorAddresses.length !== (program?.validators?.length ?? 0)) {
+            if (
+              validatorAddresses.length !== (program?.validators?.length ?? 0)
+            ) {
               // Fill missing addresses with current user address
-              while (validatorAddresses.length < (program?.validators?.length ?? 0)) {
+              while (
+                validatorAddresses.length < (program?.validators?.length ?? 0)
+              ) {
                 validatorAddresses.push(currentUserAddress);
               }
             }
           } else if ((program?.validators?.length ?? 0) > 0) {
             // No wallet addresses provided but validators selected - use current user as fallback
-            validatorAddresses = program?.validators?.map(() => currentUserAddress) ?? [];
+            validatorAddresses =
+              program?.validators?.map(() => currentUserAddress) ?? [];
           } else {
             // No validators specified - use current user as default validator
             validatorAddresses = [currentUserAddress];
           }
 
           // Determine the funding token address based on the program's currency
-          let fundingTokenAddress = '0x0000000000000000000000000000000000000000'; // Default to native token
+          let fundingTokenAddress =
+            "0x0000000000000000000000000000000000000000"; // Default to native token
 
           // Check if it's not a native token (EDU, ETH)
-          if (program?.currency && program.currency !== 'EDU' && program.currency !== 'ETH') {
+          if (
+            program?.currency &&
+            program.currency !== "EDU" &&
+            program.currency !== "ETH"
+          ) {
             // Get the network key (convert to lowercase and replace spaces)
             const networkKey =
-              program?.network?.toLowerCase().replace(' ', '-') || 'educhain-testnet';
+              program?.network?.toLowerCase().replace(" ", "-") ||
+              "educhain-testnet";
             // Map network to TOKEN_CONFIGS key
             const tokenConfigKey =
-              networkKey === 'educhain-testnet'
-                ? 'educhain'
-                : networkKey === 'base-sepolia'
-                  ? 'base-sepolia'
-                  : networkKey === 'arbitrum-sepolia'
-                    ? 'arbitrum-sepolia'
-                    : networkKey === 'sepolia'
-                      ? 'sepolia'
-                      : 'educhain';
+              networkKey === "educhain-testnet"
+                ? "educhain"
+                : networkKey === "base-sepolia"
+                ? "base-sepolia"
+                : networkKey === "arbitrum-sepolia"
+                ? "arbitrum-sepolia"
+                : networkKey === "sepolia"
+                ? "sepolia"
+                : "educhain";
 
-            const networkConfig = TOKEN_CONFIGS[tokenConfigKey as keyof typeof TOKEN_CONFIGS];
+            const networkConfig =
+              TOKEN_CONFIGS[tokenConfigKey as keyof typeof TOKEN_CONFIGS];
             if (networkConfig) {
-              const tokenConfig = networkConfig[program.currency as keyof typeof networkConfig];
+              const tokenConfig =
+                networkConfig[program.currency as keyof typeof networkConfig];
               if (tokenConfig) {
                 fundingTokenAddress = tokenConfig.address;
                 console.log(
                   `Using ${program.currency} token address:`,
                   fundingTokenAddress,
-                  'on network:',
-                  tokenConfigKey,
+                  "on network:",
+                  tokenConfigKey
                 );
               } else {
                 console.warn(
-                  `Token ${program.currency} not found in TOKEN_CONFIGS for network ${tokenConfigKey}`,
+                  `Token ${program.currency} not found in TOKEN_CONFIGS for network ${tokenConfigKey}`
                 );
               }
             } else {
-              console.warn(`Network ${tokenConfigKey} not found in TOKEN_CONFIGS`);
+              console.warn(
+                `Network ${tokenConfigKey} not found in TOKEN_CONFIGS`
+              );
             }
           } else {
-            console.log(`Using native token for currency: ${program?.currency || 'default'}`);
+            console.log(
+              `Using native token for currency: ${
+                program?.currency || "default"
+              }`
+            );
           }
 
           // Determine token decimals based on currency
           const tokenDecimals =
-            program?.currency === 'USDT' || program?.currency === 'USDC' ? 6 : 18;
+            program?.currency === "USDT" || program?.currency === "USDC"
+              ? 6
+              : 18;
 
-          const contractResult = await investmentContract.createInvestmentProgram({
-            name: program?.name ?? '',
-            description: program?.description ?? '',
-            fundingGoal: program?.price || '0',
-            fundingToken: fundingTokenAddress,
-            tokenDecimals, // Pass correct decimals for USDT/USDC
-            applicationStartDate: program?.applicationStartDate || '',
-            applicationEndDate: program?.applicationEndDate || '',
-            fundingStartDate: program?.fundingStartDate || '',
-            fundingEndDate: program?.fundingEndDate || '',
-            feePercentage: program?.feePercentage || 300, // 3% default
-            validators: validatorAddresses,
-            requiredValidations: validatorAddresses.length,
-            fundingCondition: program?.fundingCondition === 'tier' ? 'tier' : 'open',
-          });
+          const contractResult =
+            await investmentContract.createInvestmentProgram({
+              name: program?.name ?? "",
+              description: program?.description ?? "",
+              fundingGoal: program?.price || "0",
+              fundingToken: fundingTokenAddress,
+              tokenDecimals, // Pass correct decimals for USDT/USDC
+              applicationStartDate: program?.applicationStartDate || "",
+              applicationEndDate: program?.applicationEndDate || "",
+              fundingStartDate: program?.fundingStartDate || "",
+              fundingEndDate: program?.fundingEndDate || "",
+              feePercentage:
+                program?.customFeePercentage || program?.feePercentage || 300, // Use custom fee if set, otherwise default
+              validators: validatorAddresses,
+              requiredValidations: validatorAddresses.length,
+              fundingCondition:
+                program?.fundingCondition === "tier" ? "tier" : "open",
+            });
 
           // Store the program ID from blockchain
           blockchainProgramId = contractResult.programId;
           txHash = contractResult.txHash;
 
-          console.log('Contract deployment result:', contractResult);
-          console.log('Program ID:', blockchainProgramId);
-          console.log('TX Hash:', txHash);
+          console.log("Contract deployment result:", contractResult);
+          console.log("Program ID:", blockchainProgramId);
+          console.log("TX Hash:", txHash);
 
-          if (blockchainProgramId !== null && blockchainProgramId !== undefined) {
+          if (
+            blockchainProgramId !== null &&
+            blockchainProgramId !== undefined
+          ) {
             notify(
               `Blockchain deployment successful! Program ID: ${blockchainProgramId}`,
-              'success',
+              "success"
             );
           } else {
-            notify('Blockchain deployment successful!', 'success');
+            notify("Blockchain deployment successful!", "success");
           }
         }
 
         // For off-chain programs or blockchain programs
-        if (program.network === 'off-chain') {
+        if (program.network === "off-chain") {
           // For off-chain programs, just publish without blockchain details
           await publishProgram({
             variables: {
-              id: program?.id ?? '',
+              id: program?.id ?? "",
               educhainProgramId: 0, // No blockchain ID for off-chain
-              txHash: '', // No tx hash for off-chain
+              txHash: "", // No tx hash for off-chain
             },
           });
-          notify('Program published successfully', 'success');
+          notify("Program published successfully", "success");
           refetch(); // Refresh the program data
           // Close the dialog
-          document.getElementById('pay-dialog-close')?.click();
+          document.getElementById("pay-dialog-close")?.click();
         } else if (txHash) {
           // For blockchain programs, we have a transaction hash
           // Use program ID if available, otherwise use 0 (transaction was successful but ID extraction failed)
           await publishProgram({
             variables: {
-              id: program?.id ?? '',
+              id: program?.id ?? "",
               educhainProgramId: blockchainProgramId ?? 0,
               txHash: txHash,
             },
           });
 
-          if (blockchainProgramId !== null && blockchainProgramId !== undefined) {
-            notify('Program published successfully with blockchain ID!', 'success');
+          if (
+            blockchainProgramId !== null &&
+            blockchainProgramId !== undefined
+          ) {
+            notify(
+              "Program published successfully with blockchain ID!",
+              "success"
+            );
           } else {
             notify(
-              'Program published! Transaction successful but program ID could not be extracted. Check blockchain explorer.',
-              'success',
+              "Program published! Transaction successful but program ID could not be extracted. Check blockchain explorer.",
+              "success"
             );
           }
 
           refetch(); // Refresh the program data
           // Close the dialog
-          document.getElementById('pay-dialog-close')?.click();
+          document.getElementById("pay-dialog-close")?.click();
         } else {
-          notify('Failed to deploy to blockchain. Please try again.', 'error');
+          notify("Failed to deploy to blockchain. Please try again.", "error");
         }
       }
     } catch (error) {
-      notify((error as Error).message, 'error');
+      notify((error as Error).message, "error");
     }
   };
 
-  if (programError?.message === 'You do not have access to this program') {
+  if (programError?.message === "You do not have access to this program") {
     return (
       <div className="text-center bg-white rounded-2xl p-10">
-        <p className="text-lg font-bold mb-10">You do not have access to this program</p>
-        <Link to="/investments" className="text-primary hover:underline font-semibold">
+        <p className="text-lg font-bold mb-10">
+          You do not have access to this program
+        </p>
+        <Link
+          to="/investments"
+          className="text-primary hover:underline font-semibold"
+        >
           Go back to investments
         </Link>
       </div>
@@ -413,7 +482,9 @@ const InvestmentDetailsPage: React.FC = () => {
         <h2 className="text-xl font-bold mb-4">Projects</h2>
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {!data?.program?.applications?.length && (
-            <div className="text-slate-600 text-sm col-span-full">No applications yet.</div>
+            <div className="text-slate-600 text-sm col-span-full">
+              No applications yet.
+            </div>
           )}
           {data?.program?.applications?.map((a) => (
             <ProjectCard key={a.id} application={a} program={data?.program} />
@@ -430,7 +501,7 @@ const InvestmentDetailsPage: React.FC = () => {
 
       <div
         className={`bg-white p-4 md:p-10 rounded-2xl ${
-          isMobileDevice && isFundingActive() ? 'mt-3' : ''
+          isMobileDevice && isFundingActive() ? "mt-3" : ""
         }`}
       >
         <section className="max-w-full md:max-w-[1440px] mx-auto">
@@ -452,7 +523,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       isOpen={isSupportersModalOpen}
                       onOpenChange={setIsSupportersModalOpen}
                       program={program}
-                      programId={id ?? ''}
+                      programId={id ?? ""}
                       onRefetch={refetch}
                     />
                   </>
@@ -460,9 +531,11 @@ const InvestmentDetailsPage: React.FC = () => {
 
               {isAdmin && (
                 <AdminDropdown
-                  entityId={program?.id || ''}
+                  entityId={program?.id || ""}
                   entityType="program"
-                  entityVisibility={program?.visibility || ProgramVisibility.Public}
+                  entityVisibility={
+                    program?.visibility || ProgramVisibility.Public
+                  }
                 />
               )}
               {(program?.creator?.id === userId || isAdmin) && (
@@ -481,7 +554,9 @@ const InvestmentDetailsPage: React.FC = () => {
             {/* Overview */}
             <div className="w-full lg:max-w-[360px]">
               <h3 className="flex items-end mb-3">
-                <span className="p-2 border-b border-b-primary font-medium text-sm">Overview</span>
+                <span className="p-2 border-b border-b-primary font-medium text-sm">
+                  Overview
+                </span>
                 <span className="block border-b w-full" />
               </h3>
 
@@ -569,34 +644,39 @@ const InvestmentDetailsPage: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <div
                           className={cn(
-                            'w-2 h-2 rounded-full flex-shrink-0',
-                            isApplicationActive ? 'bg-green-500' : 'bg-gray-400',
+                            "w-2 h-2 rounded-full flex-shrink-0",
+                            isApplicationActive ? "bg-green-500" : "bg-gray-400"
                           )}
                         />
                         <div className="flex items-center justify-between gap-4 flex-1">
                           <span
                             className={cn(
-                              'font-bold text-sm',
-                              isApplicationActive ? 'text-gray-900' : 'text-gray-400',
+                              "font-bold text-sm",
+                              isApplicationActive
+                                ? "text-gray-900"
+                                : "text-gray-400"
                             )}
                           >
                             APPLICATION
                           </span>
                           <span
                             className={cn(
-                              'font-bold text-sm',
-                              isApplicationActive ? 'text-gray-900' : 'text-gray-400',
+                              "font-bold text-sm",
+                              isApplicationActive
+                                ? "text-gray-900"
+                                : "text-gray-400"
                             )}
                           >
-                            {program?.applicationStartDate && program?.applicationEndDate
+                            {program?.applicationStartDate &&
+                            program?.applicationEndDate
                               ? `${format(
                                   new Date(program.applicationStartDate),
-                                  'dd. MMM. yyyy',
+                                  "dd. MMM. yyyy"
                                 ).toUpperCase()} – ${format(
                                   new Date(program.applicationEndDate),
-                                  'dd. MMM. yyyy',
+                                  "dd. MMM. yyyy"
                                 ).toUpperCase()}`
-                              : 'N/A'}
+                              : "N/A"}
                           </span>
                         </div>
                       </div>
@@ -615,34 +695,39 @@ const InvestmentDetailsPage: React.FC = () => {
                       <div className="flex items-center gap-3">
                         <div
                           className={cn(
-                            'w-2 h-2 rounded-full flex-shrink-0',
-                            isFundingActive ? 'bg-green-500' : 'bg-gray-400',
+                            "w-2 h-2 rounded-full flex-shrink-0",
+                            isFundingActive ? "bg-green-500" : "bg-gray-400"
                           )}
                         />
                         <div className="flex items-center justify-between gap-4 flex-1">
                           <span
                             className={cn(
-                              'font-bold text-sm',
-                              isFundingActive ? 'text-gray-900' : 'text-gray-400',
+                              "font-bold text-sm",
+                              isFundingActive
+                                ? "text-gray-900"
+                                : "text-gray-400"
                             )}
                           >
                             FUNDING
                           </span>
                           <span
                             className={cn(
-                              'font-bold text-sm',
-                              isFundingActive ? 'text-gray-900' : 'text-gray-400',
+                              "font-bold text-sm",
+                              isFundingActive
+                                ? "text-gray-900"
+                                : "text-gray-400"
                             )}
                           >
-                            {program?.fundingStartDate && program?.fundingEndDate
+                            {program?.fundingStartDate &&
+                            program?.fundingEndDate
                               ? `${format(
                                   new Date(program.fundingStartDate),
-                                  'dd. MMM. yyyy',
+                                  "dd. MMM. yyyy"
                                 ).toUpperCase()} – ${format(
                                   new Date(program.fundingEndDate),
-                                  'dd. MMM. yyyy',
+                                  "dd. MMM. yyyy"
                                 ).toUpperCase()}`
-                              : 'N/A'}
+                              : "N/A"}
                           </span>
                         </div>
                       </div>
@@ -652,7 +737,9 @@ const InvestmentDetailsPage: React.FC = () => {
               </div>
 
               <div className="mt-6">
-                <p className="text-muted-foreground text-sm font-bold mb-3">KEYWORDS</p>
+                <p className="text-muted-foreground text-sm font-bold mb-3">
+                  KEYWORDS
+                </p>
 
                 <div className="flex gap-2 flex-wrap">
                   {program?.keywords?.map((k) => (
@@ -664,17 +751,23 @@ const InvestmentDetailsPage: React.FC = () => {
               </div>
 
               <div className="mt-6">
-                <p className="text-muted-foreground text-sm font-bold mb-3">SUMMARY</p>
+                <p className="text-muted-foreground text-sm font-bold mb-3">
+                  SUMMARY
+                </p>
 
-                <p className="text-slate-600 text-sm whitespace-pre-wrap">{program?.summary}</p>
+                <p className="text-slate-600 text-sm whitespace-pre-wrap">
+                  {program?.summary}
+                </p>
               </div>
 
               {!!program?.links?.length && (
                 <div className="mt-6">
-                  <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM LINKS</p>
+                  <p className="text-muted-foreground text-sm font-bold mb-3">
+                    PROGRAM LINKS
+                  </p>
                   {program?.links?.map((l) => (
                     <a
-                      href={l?.url ?? ''}
+                      href={l?.url ?? ""}
                       key={l.url}
                       className="block hover:underline text-slate-600 text-sm"
                       target="_blank"
@@ -691,14 +784,19 @@ const InvestmentDetailsPage: React.FC = () => {
                 className="w-full mt-6"
                 disabled={
                   !isLoggedIn ||
-                  program?.status !== 'published' ||
+                  program?.status !== "published" ||
                   program?.creator?.id === userId ||
-                  program?.validators?.some((validator) => validator.id === userId) ||
+                  program?.validators?.some(
+                    (validator) => validator.id === userId
+                  ) ||
                   (program?.applicationStartDate &&
                     new Date() < new Date(program.applicationStartDate)) ||
-                  (program?.applicationEndDate && new Date() > new Date(program.applicationEndDate))
+                  (program?.applicationEndDate &&
+                    new Date() > new Date(program.applicationEndDate))
                 }
-                onClick={() => navigate(`/investments/${program?.id}/create-project`)}
+                onClick={() =>
+                  navigate(`/investments/${program?.id}/create-project`)
+                }
               >
                 Submit Project
               </Button>
@@ -713,13 +811,16 @@ const InvestmentDetailsPage: React.FC = () => {
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="min-w-[800px] p-0 max-h-screen overflow-y-auto">
-                        <RejectProgramForm programId={program.id} refetch={refetch} />
+                        <RejectProgramForm
+                          programId={program.id}
+                          refetch={refetch}
+                        />
                       </DialogContent>
                     </Dialog>
                     <Button
                       onClick={async () => {
                         await acceptProgram();
-                        notify('Program accepted', 'success');
+                        notify("Program accepted", "success");
                       }}
                       className="h-11 flex-1"
                     >
@@ -746,8 +847,8 @@ const InvestmentDetailsPage: React.FC = () => {
                           Are you sure to pay the settlement for the program?
                         </DialogTitle>
                         <DialogDescription className="text-muted-foreground text-sm mb-4">
-                          The amount will be securely stored until you will confirm the completion
-                          of the project.
+                          The amount will be securely stored until you will
+                          confirm the completion of the project.
                         </DialogDescription>
                         <Button onClick={callTx}>Yes, Pay now</Button>
                       </div>
@@ -755,13 +856,14 @@ const InvestmentDetailsPage: React.FC = () => {
                   </Dialog>
                 )}
 
-              {program?.status === ProgramStatus.Rejected && program.creator?.id === userId && (
-                <div className="flex justify-end gap-2 w-full mt-3">
-                  <Button disabled className="h-11 flex-1">
-                    Rejected
-                  </Button>
-                </div>
-              )}
+              {program?.status === ProgramStatus.Rejected &&
+                program.creator?.id === userId && (
+                  <div className="flex justify-end gap-2 w-full mt-3">
+                    <Button disabled className="h-11 flex-1">
+                      Rejected
+                    </Button>
+                  </div>
+                )}
 
               {program?.status === ProgramStatus.Rejected &&
                 program.validators?.some((v) => v.id === userId) && (
@@ -773,20 +875,25 @@ const InvestmentDetailsPage: React.FC = () => {
                 )}
 
               <div className="mt-6">
-                <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM HOST</p>
+                <p className="text-muted-foreground text-sm font-bold mb-3">
+                  PROGRAM HOST
+                </p>
                 <div className="border rounded-xl w-full p-4 mb-6">
                   <span className="items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex mb-3">
                     <span
-                      className={cn('bg-gray-400 w-[14px] h-[14px] rounded-full block', {
-                        'bg-green-400':
-                          program?.status === ProgramStatus.Published ||
-                          program?.status === ProgramStatus.Completed,
-                      })}
+                      className={cn(
+                        "bg-gray-400 w-[14px] h-[14px] rounded-full block",
+                        {
+                          "bg-green-400":
+                            program?.status === ProgramStatus.Published ||
+                            program?.status === ProgramStatus.Completed,
+                        }
+                      )}
                     />
                     {program?.status === ProgramStatus.Published ||
                     program?.status === ProgramStatus.Completed
-                      ? 'Confirmed'
-                      : 'Not confirmed'}
+                      ? "Confirmed"
+                      : "Not confirmed"}
                   </span>
 
                   <Link
@@ -797,18 +904,20 @@ const InvestmentDetailsPage: React.FC = () => {
 
                     <Avatar className="w-10 h-10">
                       <AvatarImage
-                        src={program?.creator?.image || ''}
+                        src={program?.creator?.image || ""}
                         alt={`${program?.creator?.firstName} ${program?.creator?.lastName}`}
                       />
                       <AvatarFallback>
                         {getInitials(
-                          `${program?.creator?.firstName || ''} ${
-                            program?.creator?.lastName || ''
-                          }`,
+                          `${program?.creator?.firstName || ""} ${
+                            program?.creator?.lastName || ""
+                          }`
                         )}
                       </AvatarFallback>
                     </Avatar>
-                    <p className="text-sm font-bold">{getUserName(program?.creator)}</p>
+                    <p className="text-sm font-bold">
+                      {getUserName(program?.creator)}
+                    </p>
                   </Link>
 
                   <div className="flex gap-3 mb-4">
@@ -825,7 +934,11 @@ const InvestmentDetailsPage: React.FC = () => {
 
                   <div className="flex gap-2 flex-wrap">
                     {program?.creator?.keywords?.map((k) => (
-                      <Badge key={k.id} variant="secondary" className="text-xs font-semibold">
+                      <Badge
+                        key={k.id}
+                        variant="secondary"
+                        className="text-xs font-semibold"
+                      >
                         {k.name}
                       </Badge>
                     ))}
@@ -835,46 +948,63 @@ const InvestmentDetailsPage: React.FC = () => {
 
               {!!program?.validators?.length && (
                 <div className="mt-6">
-                  <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM VALIDATOR</p>
+                  <p className="text-muted-foreground text-sm font-bold mb-3">
+                    PROGRAM VALIDATOR
+                  </p>
 
                   {program.validators.map((validator) => (
-                    <div className="border rounded-xl w-full p-6 mb-6" key={validator.id}>
+                    <div
+                      className="border rounded-xl w-full p-6 mb-6"
+                      key={validator.id}
+                    >
                       {/* <ProgramStatusBadge program={program} className='inline-flex mb-3' /> */}
                       <div className="flex justify-between items-center  mb-3">
                         <span className="items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm inline-flex">
                           <span
-                            className={cn('bg-gray-400 w-[14px] h-[14px] rounded-full block', {
-                              'bg-red-200': program.status === ProgramStatus.Rejected,
-                              'bg-green-400':
-                                program.status !== ProgramStatus.Pending &&
-                                program.status !== ProgramStatus.Rejected,
-                              'bg-gray-400': program.status === ProgramStatus.Pending,
-                            })}
+                            className={cn(
+                              "bg-gray-400 w-[14px] h-[14px] rounded-full block",
+                              {
+                                "bg-red-200":
+                                  program.status === ProgramStatus.Rejected,
+                                "bg-green-400":
+                                  program.status !== ProgramStatus.Pending &&
+                                  program.status !== ProgramStatus.Rejected,
+                                "bg-gray-400":
+                                  program.status === ProgramStatus.Pending,
+                              }
+                            )}
                           />
                           {program.status === ProgramStatus.Rejected
-                            ? 'Rejected'
+                            ? "Rejected"
                             : program.status === ProgramStatus.Pending
-                              ? 'Not confirmed'
-                              : 'Accepted'}
+                            ? "Not confirmed"
+                            : "Accepted"}
                         </span>
 
-                        {program.status === ProgramStatus.Rejected && program.rejectionReason && (
-                          <Tooltip>
-                            <TooltipTrigger className="text-destructive flex gap-2 items-center">
-                              <CircleAlert className="w-4 h-4" />{' '}
-                              <p className="text-sm font-medium underline">View reason</p>
-                            </TooltipTrigger>
-                            <TooltipContent className="text-destructive flex gap-2 items-start bg-white border shadow-[0px_4px_6px_-1px_#0000001A]">
-                              <div className="mt-1.5">
-                                <CircleAlert className="w-4 h-4" />
-                              </div>
-                              <div>
-                                <p className="font-medium text-base mb-1">Reason for rejection</p>
-                                <p className="text-sm">{program.rejectionReason}</p>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
+                        {program.status === ProgramStatus.Rejected &&
+                          program.rejectionReason && (
+                            <Tooltip>
+                              <TooltipTrigger className="text-destructive flex gap-2 items-center">
+                                <CircleAlert className="w-4 h-4" />{" "}
+                                <p className="text-sm font-medium underline">
+                                  View reason
+                                </p>
+                              </TooltipTrigger>
+                              <TooltipContent className="text-destructive flex gap-2 items-start bg-white border shadow-[0px_4px_6px_-1px_#0000001A]">
+                                <div className="mt-1.5">
+                                  <CircleAlert className="w-4 h-4" />
+                                </div>
+                                <div>
+                                  <p className="font-medium text-base mb-1">
+                                    Reason for rejection
+                                  </p>
+                                  <p className="text-sm">
+                                    {program.rejectionReason}
+                                  </p>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
                       </div>
                       <Link
                         to={`/users/${program?.creator?.id}`}
@@ -884,17 +1014,21 @@ const InvestmentDetailsPage: React.FC = () => {
 
                         <Avatar className="w-10 h-10">
                           <AvatarImage
-                            src={validator?.image || ''}
+                            src={validator?.image || ""}
                             alt={`${validator?.firstName} ${validator?.lastName}`}
                           />
                           <AvatarFallback>
                             {getInitials(
-                              `${validator?.firstName || ''} ${validator?.lastName || ''}`,
+                              `${validator?.firstName || ""} ${
+                                validator?.lastName || ""
+                              }`
                             )}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-sm mb-2">{getUserName(validator)}</p>
+                          <p className="text-sm mb-2">
+                            {getUserName(validator)}
+                          </p>
 
                           <div className="flex gap-2 flex-wrap">
                             {validator?.keywords?.map((k) => (
@@ -917,64 +1051,79 @@ const InvestmentDetailsPage: React.FC = () => {
               {/* Funding Condition */}
               {program?.fundingCondition && (
                 <div className="mt-6">
-                  <p className="text-muted-foreground text-sm font-bold mb-3">FUNDING CONDITION</p>
+                  <p className="text-muted-foreground text-sm font-bold mb-3">
+                    FUNDING CONDITION
+                  </p>
                   <p className="text-slate-600 text-sm capitalize">
-                    {program.fundingCondition === 'tier' ? 'Tier-based' : program.fundingCondition}
+                    {program.fundingCondition === "tier"
+                      ? "Tier-based"
+                      : program.fundingCondition}
                   </p>
                 </div>
               )}
 
               {/* Tier Settings */}
-              {program?.fundingCondition === 'tier' && program?.tierSettings && (
-                <div className="mt-6">
-                  <p className="text-muted-foreground text-sm font-bold mb-3">TIER SETTINGS</p>
-                  <div className="space-y-2">
-                    {program.tierSettings.bronze?.enabled && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Bronze</span>
-                        <span className="text-sm text-gray-600">
-                          Max: {program.tierSettings.bronze.maxAmount} {program.currency}
-                        </span>
-                      </div>
-                    )}
-                    {program.tierSettings.silver?.enabled && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Silver</span>
-                        <span className="text-sm text-gray-600">
-                          Max: {program.tierSettings.silver.maxAmount} {program.currency}
-                        </span>
-                      </div>
-                    )}
-                    {program.tierSettings.gold?.enabled && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Gold</span>
-                        <span className="text-sm text-gray-600">
-                          Max: {program.tierSettings.gold.maxAmount} {program.currency}
-                        </span>
-                      </div>
-                    )}
-                    {program.tierSettings.platinum?.enabled && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Platinum</span>
-                        <span className="text-sm text-gray-600">
-                          Max: {program.tierSettings.platinum.maxAmount} {program.currency}
-                        </span>
-                      </div>
-                    )}
+              {program?.fundingCondition === "tier" &&
+                program?.tierSettings && (
+                  <div className="mt-6">
+                    <p className="text-muted-foreground text-sm font-bold mb-3">
+                      TIER SETTINGS
+                    </p>
+                    <div className="space-y-2">
+                      {program.tierSettings.bronze?.enabled && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Bronze</span>
+                          <span className="text-sm text-gray-600">
+                            Max: {program.tierSettings.bronze.maxAmount}{" "}
+                            {program.currency}
+                          </span>
+                        </div>
+                      )}
+                      {program.tierSettings.silver?.enabled && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Silver</span>
+                          <span className="text-sm text-gray-600">
+                            Max: {program.tierSettings.silver.maxAmount}{" "}
+                            {program.currency}
+                          </span>
+                        </div>
+                      )}
+                      {program.tierSettings.gold?.enabled && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Gold</span>
+                          <span className="text-sm text-gray-600">
+                            Max: {program.tierSettings.gold.maxAmount}{" "}
+                            {program.currency}
+                          </span>
+                        </div>
+                      )}
+                      {program.tierSettings.platinum?.enabled && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">Platinum</span>
+                          <span className="text-sm text-gray-600">
+                            Max: {program.tierSettings.platinum.maxAmount}{" "}
+                            {program.currency}
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Fee Information */}
               {(program?.feePercentage || program?.customFeePercentage) && (
                 <div className="mt-6">
-                  <p className="text-muted-foreground text-sm font-bold mb-3">PLATFORM FEE</p>
+                  <p className="text-muted-foreground text-sm font-bold mb-3">
+                    PLATFORM FEE
+                  </p>
                   <p className="text-slate-600 text-sm">
-                    {program.feePercentage
+                    {program.customFeePercentage
+                      ? `${(program.customFeePercentage / 100).toFixed(
+                          1
+                        )}% (Custom)`
+                      : program.feePercentage
                       ? `${(program.feePercentage / 100).toFixed(1)}% (Default)`
-                      : program.customFeePercentage
-                        ? `${(program.customFeePercentage / 100).toFixed(1)}% (Custom)`
-                        : 'Not Set'}
+                      : "Not Set"}
                   </p>
                 </div>
               )}
@@ -983,12 +1132,16 @@ const InvestmentDetailsPage: React.FC = () => {
             {/* Details */}
             <div className="w-full">
               <h3 className="flex items-end">
-                <span className="p-2 border-b border-b-primary font-medium text-sm">Details</span>
+                <span className="p-2 border-b border-b-primary font-medium text-sm">
+                  Details
+                </span>
                 <span className="block border-b w-full" />
               </h3>
 
               <div className="mt-3">
-                {program?.description && <MarkdownPreviewer value={program?.description} />}
+                {program?.description && (
+                  <MarkdownPreviewer value={program?.description} />
+                )}
               </div>
             </div>
           </div>

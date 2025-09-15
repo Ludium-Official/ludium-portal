@@ -82,15 +82,6 @@ function ApplicationDetails() {
     },
   });
 
-  // const { data: comments } = useCommentsByCommentableQuery({
-  //   variables: {
-  //     commentableId: applicationId ?? '',
-  //     commentableType: CommentableTypeEnum.Application,
-  //   },
-  //   skip: !applicationId,
-  //   fetchPolicy: 'cache-and-network',
-  // });
-
   // const [createComment] = useCreateCommentMutation();
 
   const program = programData?.program;
@@ -817,21 +808,6 @@ function ApplicationDetails() {
                           })()}
                       </p>
                     </div>
-                    {/* <div className="mb-6">
-                    <p className="font-sans font-bold bg-primary-light text-primary leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
-                      <span className="inline-block mr-2">
-                        {m?.price} {program?.currency}
-                      </span>
-                      <span className="h-3 border-l border-primary inline-block" />
-                      <span className="inline-block ml-2">
-                        DEADLINE{' '}
-                        {format(
-                          new Date(program?.deadline ?? new Date()),
-                          'dd . MMM . yyyy',
-                        ).toUpperCase()}
-                      </span>
-                    </p>
-                  </div> */}
 
                     <div className="mb-6">
                       <h2 className="font-bold text-gray-dark text-sm mb-3">SUMMARY</h2>

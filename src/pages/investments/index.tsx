@@ -58,8 +58,7 @@ export default function InvestmentsPage() {
             field: 'status',
             values: [
               ProgramStatus.Published,
-              ProgramStatus.Pending,
-              // Allow pending status for newest tab too
+              // Only show published programs
             ],
           },
           {
