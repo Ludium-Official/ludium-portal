@@ -193,10 +193,6 @@ flowchart TB
     M0["/my-profile/edit"]
     M1["/my-profile/(overview|description|program/*|community|admin/*)"]
   end
-
-  subgraph ADMIN
-    A0["/admin"]
-  end
 ```
 
 Minimal example of nested routes in `app.tsx`:
@@ -299,25 +295,3 @@ Steps:
 2. Create `.env` with required variables.
 3. Run dev server: `pnpm dev`
 4. Open app at the printed local URL.
-
-## Extension and Scalability
-- Feature modularization: Group page components and related UI under `src/pages/<feature>` and `src/components/<feature>`.
-- Codegen discipline: Co-locate GraphQL operations near pages/components; enforce typed hooks.
-- Caching strategy: Introduce normalized cache policies or `typePolicies` if client-side merge needed.
-- Error boundaries and suspense: Add feature-level boundaries for resilience.
-- Access control: Guard admin or role-based routes using wrapper routes or `RequireAuth` components.
-- Theming: Centralize Tailwind design tokens; extend via `@tailwindcss/typography`.
-- Forms: Standardize with React Hook Form + UI primitives.
-
-## Best Practices
-- Prefer early returns in components and hooks to reduce nesting.
-- Keep components small, focused, and typed.
-- Use Tailwind utilities; avoid ad-hoc CSS files.
-- Derive state from props/context where possible; avoid duplication.
-- Handle loading, empty, and error states explicitly.
-- Keep GraphQL queries minimal; request only needed fields.
-- Persist only essential auth data (token) in `localStorage`.
-- Encapsulate cross-cutting concerns in providers.
-
-## Conclusion
-This document outlined the Ludium Frontend architecture, focusing on routing, providers, Apollo configuration, and the UI layer. With typed GraphQL operations, clear module boundaries, and Tailwind-based components, the project is ready for iterative feature growth. Future enhancements can add richer caching policies, role-based route guards, and standardized error boundaries for improved DX and UX.
