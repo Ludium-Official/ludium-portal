@@ -1,12 +1,13 @@
 import { type ConnectedWallet, usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import type { Chain, PublicClient } from 'viem';
-import { http, createPublicClient } from 'viem';
+import { createPublicClient, http } from 'viem';
 import {
   arbitrum,
   arbitrumSepolia,
   base,
   baseSepolia,
+  creditCoin3Mainnet,
   eduChain,
   eduChainTestnet,
 } from 'viem/chains';
@@ -70,6 +71,9 @@ export function useContract(network: string) {
     if (network === 'arbitrum-sepolia') {
       return arbitrumSepolia;
     }
+    if (network === 'creditcoin') {
+      return creditCoin3Mainnet;
+    }
 
     return eduChain;
   })();
@@ -110,6 +114,9 @@ export function useContract(network: string) {
     }
     if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
       return import.meta.env.VITE_ARBITRUM_CONTRACT_ADDRESS;
+    }
+    if (network === 'creditcoin') {
+      return import.meta.env.VITE_CREDITCOIN_CONTRACT_ADDRESS;
     }
 
     return import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS;

@@ -1,3 +1,4 @@
+import CreditCoinIcon from '@/assets/icons/crypto/creditcoin';
 import EduIcon from '@/assets/icons/crypto/edu';
 import EthIcon from '@/assets/icons/crypto/eth';
 import UsdcIcon from '@/assets/icons/crypto/usdc';
@@ -29,6 +30,8 @@ export const arbitrumCurrencies = [
   { code: 'USDC', icon: <UsdcIcon /> },
 ];
 
+export const creditcoinCurrencies = [{ code: 'CTC', icon: <CreditCoinIcon /> }];
+
 function CurrencySelector({
   className,
   value,
@@ -50,6 +53,9 @@ function CurrencySelector({
     }
     if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
       return arbitrumCurrencies;
+    }
+    if (network === 'creditcoin') {
+      return creditcoinCurrencies;
     }
 
     return eduCurrencies;

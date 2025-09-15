@@ -9,6 +9,7 @@ import {
   arbitrumSepolia,
   base,
   baseSepolia,
+  creditCoin3Mainnet,
   eduChain,
   eduChainTestnet,
   sepolia,
@@ -31,6 +32,7 @@ function Providers({ children }: { children: React.ReactNode }) {
                 arbitrum,
                 arbitrumSepolia,
                 sepolia,
+                creditCoin3Mainnet,
               ],
               embeddedWallets: {
                 createOnLogin: 'users-without-wallets',
