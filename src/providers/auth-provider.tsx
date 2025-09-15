@@ -15,6 +15,7 @@ interface AuthValues {
   isValidator?: boolean;
   isBuilder?: boolean;
   isAdmin?: boolean | null;
+  isSuperadmin?: boolean | null;
   login: ({
     email,
     walletAddress,
@@ -35,6 +36,7 @@ export const AuthContext = createContext<AuthValues>({
   isLoggedIn: false,
   isAuthed: false,
   isAdmin: false,
+  isSuperadmin: false,
   login: async () => {},
   logout: async () => {},
 });
@@ -44,6 +46,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [email, setEmail] = useState<string | null>();
   const [userId, setUserId] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState<boolean | null>();
+  const [isSuperadmin, setIsSuperadmin] = useState<boolean | null>();
   const navigate = useNavigate();
 
   const { data: profileData, error } = useProfileQuery({
@@ -59,6 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       profileData?.profile?.role === UserRole.Admin ||
         profileData?.profile?.role === UserRole.Superadmin,
     );
+    setIsSuperadmin(profileData?.profile?.role === UserRole.Superadmin);
   }, [profileData]);
 
   useEffect(() => {
@@ -114,6 +118,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         login,
         logout,
         isAdmin,
+        isSuperadmin,
       }}
     >
       {children}

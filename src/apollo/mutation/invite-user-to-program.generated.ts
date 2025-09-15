@@ -6,6 +6,8 @@ const defaultOptions = {} as const;
 export type InviteUserToProgramMutationVariables = Types.Exact<{
   programId: Types.Scalars['ID']['input'];
   userId: Types.Scalars['ID']['input'];
+  maxInvestmentAmount?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  tier?: Types.InputMaybe<Types.InvestmentTier>;
 }>;
 
 
@@ -13,8 +15,13 @@ export type InviteUserToProgramMutation = { __typename?: 'Mutation', inviteUserT
 
 
 export const InviteUserToProgramDocument = gql`
-    mutation inviteUserToProgram($programId: ID!, $userId: ID!) {
-  inviteUserToProgram(programId: $programId, userId: $userId) {
+    mutation inviteUserToProgram($programId: ID!, $userId: ID!, $maxInvestmentAmount: String, $tier: InvestmentTier) {
+  inviteUserToProgram(
+    programId: $programId
+    userId: $userId
+    maxInvestmentAmount: $maxInvestmentAmount
+    tier: $tier
+  ) {
     invitedBuilders {
       email
       firstName
@@ -42,6 +49,8 @@ export type InviteUserToProgramMutationFn = Apollo.MutationFunction<InviteUserTo
  *   variables: {
  *      programId: // value for 'programId'
  *      userId: // value for 'userId'
+ *      maxInvestmentAmount: // value for 'maxInvestmentAmount'
+ *      tier: // value for 'tier'
  *   },
  * });
  */

@@ -538,7 +538,19 @@ function ProgramForm({ onSubmitProgram, isEdit, createLoading }: ProgramFormProp
               <p className="text-sm font-medium">
                 Deadline <span className="text-primary">*</span>
               </p>
-              <DatePicker date={deadline} setDate={setDeadline} disabled={{ before: new Date() }} />
+              <DatePicker
+                date={deadline}
+                setDate={(date) => {
+                  if (date && typeof date === 'object' && 'getTime' in date) {
+                    const newDate = new Date(date.getTime());
+                    newDate.setHours(23, 59, 59, 999);
+                    setDeadline(newDate);
+                  } else {
+                    setDeadline(date);
+                  }
+                }}
+                disabled={{ before: new Date() }}
+              />
               {extraErrors.deadline && (
                 <span className="text-destructive text-sm block">Deadline is required</span>
               )}

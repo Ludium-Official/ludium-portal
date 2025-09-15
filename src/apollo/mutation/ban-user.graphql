@@ -1,0 +1,11 @@
+mutation banUser($reason: String, $userId: ID!) {
+  banUser(reason: $reason, userId: $userId) {
+    banned
+    bannedAt
+    bannedReason
+    email
+    firstName
+    id
+    organizationName
+  }
+}

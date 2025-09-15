@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import ProgramCard from '@/pages/programs/_components/program-card';
-import { ProgramStatus, SortEnum } from '@/types/types.generated';
+import { ProgramStatus, ProgramType, SortEnum } from '@/types/types.generated';
 import { CirclePlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
@@ -101,6 +101,10 @@ const ProgramsPage: React.FC = () => {
       field: 'name',
       value: debouncedSearch,
     },
+    {
+      field: 'type',
+      value: ProgramType.Regular,
+    },
   ];
 
   const { data } = useProgramsQuery({
@@ -150,7 +154,7 @@ const ProgramsPage: React.FC = () => {
                   onClick={() => {
                     if (!isAuthed) {
                       notify('Please add your email', 'success');
-                      navigate('/profile/edit');
+                      navigate('/my-profile/edit');
                       return;
                     }
 

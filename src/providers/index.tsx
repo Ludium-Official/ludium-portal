@@ -12,6 +12,7 @@ import {
   creditCoin3Mainnet,
   eduChain,
   eduChainTestnet,
+  sepolia,
 } from 'viem/chains';
 
 function Providers({ children }: { children: React.ReactNode }) {
@@ -30,6 +31,7 @@ function Providers({ children }: { children: React.ReactNode }) {
                 eduChainTestnet,
                 arbitrum,
                 arbitrumSepolia,
+                sepolia,
                 creditCoin3Mainnet,
               ],
               embeddedWallets: {

@@ -8,7 +8,7 @@ export type CreateProgramMutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateProgramMutation = { __typename?: 'Mutation', createProgram?: { __typename?: 'Program', currency?: string | null, deadline?: any | null, description?: string | null, id?: string | null, name?: string | null, price?: string | null, status?: Types.ProgramStatus | null, summary?: string | null, network?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null };
+export type CreateProgramMutation = { __typename?: 'Mutation', createProgram?: { __typename?: 'Program', currency?: string | null, deadline?: any | null, description?: string | null, id?: string | null, name?: string | null, price?: string | null, status?: Types.ProgramStatus | null, summary?: string | null, network?: string | null, type?: Types.ProgramType | null, applicationStartDate?: any | null, applicationEndDate?: any | null, fundingStartDate?: any | null, fundingEndDate?: any | null, fundingCondition?: Types.FundingCondition | null, feePercentage?: number | null, customFeePercentage?: number | null, visibility?: Types.ProgramVisibility | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null };
 
 
 export const CreateProgramDocument = gql`
@@ -27,6 +27,15 @@ export const CreateProgramDocument = gql`
     status
     summary
     network
+    type
+    applicationStartDate
+    applicationEndDate
+    fundingStartDate
+    fundingEndDate
+    fundingCondition
+    feePercentage
+    customFeePercentage
+    visibility
   }
 }
     `;

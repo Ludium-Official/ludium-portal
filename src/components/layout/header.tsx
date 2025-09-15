@@ -28,7 +28,7 @@ function Header() {
   const navigate = useNavigate();
   const { data: profileData } = useProfileQuery({
     fetchPolicy: 'cache-first',
-    // skip: !isLoggedIn
+    skip: !authenticated,
   });
 
   const [network, setNetwork] = useState(mainnetDefaultNetwork);
@@ -78,12 +78,15 @@ function Header() {
 
   // Calculate opacity and blur based on scroll position
   const getHeaderStyles = () => {
-    const maxScroll = 200;
-    const opacity = Math.min(scrollY / maxScroll, 1);
-    const blur = Math.min(scrollY / maxScroll, 1) * 20; // max blur of 12px
+    const MAX_SCROLL = 200;
+    const MAX_BLUR = 20;
+    const BACKGROUND_OPACITY_FACTOR = 0.9;
+
+    const opacity = Math.min(scrollY / MAX_SCROLL, 1);
+    const blur = Math.min(scrollY / MAX_SCROLL, 1) * MAX_BLUR;
 
     return {
-      backgroundColor: `rgba(255, 255, 255, ${1 - opacity * 0.9})`, // Начинаем с белого, становимся прозрачным
+      backgroundColor: `rgba(255, 255, 255, ${1 - opacity * BACKGROUND_OPACITY_FACTOR})`,
       backdropFilter: `blur(${blur}px)`,
       transform: isVisible ? 'translateY(0)' : 'translateY(-120%)',
       transition:
@@ -91,27 +94,23 @@ function Header() {
     };
   };
 
+  const getLoginType = () => {
+    const googleInfo = user?.google;
+    const farcasterInfo = user?.farcaster;
+
+    if (googleInfo) return 'google';
+    if (farcasterInfo) return 'farcaster';
+    return 'wallet';
+  };
+
   const login = async () => {
     try {
-      const googleInfo = user?.google;
-      const farcasterInfo = user?.farcaster;
-
-      const loginType = (() => {
-        const types = {
-          google: googleInfo,
-          farcaster: farcasterInfo,
-        };
-
-        return (
-          (Object.keys(types) as Array<keyof typeof types>).find((key) => types[key]) || 'wallet'
-        );
-      })();
-
+      const loginType = getLoginType();
       privyLogin({ disableSignup: false });
 
       if (user && walletInfo) {
         await authLogin({
-          email: googleInfo?.email || null,
+          email: user?.google?.email || null,
           walletAddress: walletInfo.address,
           loginType,
         });
@@ -124,26 +123,26 @@ function Header() {
 
   const logout = async () => {
     try {
-      authLogout();
-      privyLogout();
+      await authLogout();
+      await privyLogout();
 
       notify('Successfully logged out', 'success');
-      navigate('/');
+      await navigate('/');
+
+      window.location.reload();
     } catch (error) {
       notify('Error logging out', 'error');
       console.error('Error logging out:', error);
     }
   };
 
-  const callTokenBalance = async (
+  const fetchTokenBalance = async (
     contract: ChainContract,
     tokenAddress: string,
     walletAddress: string,
   ): Promise<bigint | null> => {
     try {
-      const balance = await contract.getAmount(tokenAddress, walletAddress);
-
-      return balance as bigint;
+      return (await contract.getAmount(tokenAddress, walletAddress)) as bigint;
     } catch (error) {
       console.error('Error fetching token balance:', error);
       return null;
@@ -161,12 +160,17 @@ function Header() {
       if (!authenticated || !walletInfo?.address) return;
 
       try {
-        // @ts-ignore
-        const tokens = tokenAddresses[network] || [];
+        const tokens = tokenAddresses[network as keyof typeof tokenAddresses] || [];
 
-        const balancesPromises = tokens.map(
+        // Filter out native token (0x0000...0000) as it's not an ERC20 contract
+        const erc20Tokens = tokens.filter(
+          (token: { address: string }) =>
+            token.address !== '0x0000000000000000000000000000000000000000',
+        );
+
+        const balancesPromises = erc20Tokens.map(
           (token: { address: string; decimal: number; name: string }) =>
-            callTokenBalance(contract, token.address, walletInfo.address).then((balance) => ({
+            fetchTokenBalance(contract, token.address, walletInfo.address).then((balance) => ({
               name: token.name,
               amount: balance,
               decimal: token.decimal,

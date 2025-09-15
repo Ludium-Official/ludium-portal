@@ -1,5 +1,5 @@
-mutation acceptApplication($id: ID!) {
-  acceptApplication(id: $id) {
+mutation acceptApplication($id: ID!, $onChainProjectId: Int, $tierSyncInfo: TierSyncInfo) {
+  acceptApplication(id: $id, onChainProjectId: $onChainProjectId, tierSyncInfo: $tierSyncInfo) {
     applicant {
       about
       email
@@ -26,5 +26,6 @@ mutation acceptApplication($id: ID!) {
     }
     name
     status
+    onChainProjectId
   }
 }

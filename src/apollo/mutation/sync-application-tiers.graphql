@@ -1,0 +1,14 @@
+mutation syncApplicationTiers($applicationId: ID!) {
+  syncApplicationTiers(applicationId: $applicationId) {
+    success
+    message
+    projectId
+    contractAddress
+    tierAssignments {
+      userId
+      walletAddress
+      tier
+      maxInvestmentAmount
+    }
+  }
+}

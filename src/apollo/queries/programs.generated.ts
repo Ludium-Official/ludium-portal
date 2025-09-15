@@ -8,7 +8,7 @@ export type ProgramsQueryVariables = Types.Exact<{
 }>;
 
 
-export type ProgramsQuery = { __typename?: 'Query', programs?: { __typename?: 'PaginatedPrograms', count?: number | null, data?: Array<{ __typename?: 'Program', currency?: string | null, deadline?: any | null, description?: string | null, image?: string | null, id?: string | null, name?: string | null, price?: string | null, status?: Types.ProgramStatus | null, summary?: string | null, network?: string | null, applications?: Array<{ __typename?: 'Application', content?: string | null, id?: string | null, metadata?: any | null, name?: string | null, price?: string | null, status?: Types.ApplicationStatus | null, applicant?: { __typename?: 'User', about?: string | null, avatar?: any | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, milestones?: Array<{ __typename?: 'Milestone', currency?: string | null, description?: string | null, id?: string | null, price?: string | null, status?: Types.MilestoneStatus | null, title?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null }> | null }> | null, creator?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null, keywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, validators?: Array<{ __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null }> | null }> | null } | null };
+export type ProgramsQuery = { __typename?: 'Query', programs?: { __typename?: 'PaginatedPrograms', count?: number | null, data?: Array<{ __typename?: 'Program', currency?: string | null, deadline?: any | null, description?: string | null, image?: string | null, id?: string | null, educhainProgramId?: number | null, name?: string | null, price?: string | null, status?: Types.ProgramStatus | null, summary?: string | null, network?: string | null, type?: Types.ProgramType | null, applicationStartDate?: any | null, applicationEndDate?: any | null, fundingStartDate?: any | null, fundingEndDate?: any | null, fundingCondition?: Types.FundingCondition | null, tierSettings?: any | null, feePercentage?: number | null, customFeePercentage?: number | null, reclaimed?: boolean | null, reclaimTxHash?: string | null, reclaimedAt?: any | null, canReclaim?: boolean | null, applications?: Array<{ __typename?: 'Application', content?: string | null, id?: string | null, metadata?: any | null, name?: string | null, price?: string | null, status?: Types.ApplicationStatus | null, fundingTarget?: string | null, fundingSuccessful?: boolean | null, currentFundingAmount?: string | null, applicant?: { __typename?: 'User', about?: string | null, avatar?: any | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, milestones?: Array<{ __typename?: 'Milestone', currency?: string | null, description?: string | null, id?: string | null, price?: string | null, status?: Types.MilestoneStatus | null, title?: string | null, deadline?: any | null, reclaimed?: boolean | null, reclaimTxHash?: string | null, reclaimedAt?: any | null, canReclaim?: boolean | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null }> | null }> | null, creator?: { __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null } | null, keywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, validators?: Array<{ __typename?: 'User', about?: string | null, email?: string | null, firstName?: string | null, id?: string | null, image?: string | null, lastName?: string | null, organizationName?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null }> | null }> | null } | null };
 
 
 export const ProgramsDocument = gql`
@@ -49,10 +49,18 @@ export const ProgramsDocument = gql`
           price
           status
           title
+          deadline
+          reclaimed
+          reclaimTxHash
+          reclaimedAt
+          canReclaim
         }
         name
         price
         status
+        fundingTarget
+        fundingSuccessful
+        currentFundingAmount
       }
       creator {
         about
@@ -72,6 +80,7 @@ export const ProgramsDocument = gql`
       description
       image
       id
+      educhainProgramId
       keywords {
         id
         name
@@ -85,6 +94,20 @@ export const ProgramsDocument = gql`
       status
       summary
       network
+      type
+      applicationStartDate
+      applicationEndDate
+      fundingStartDate
+      fundingEndDate
+      fundingCondition
+      tierSettings
+      feePercentage
+      customFeePercentage
+      image
+      reclaimed
+      reclaimTxHash
+      reclaimedAt
+      canReclaim
       validators {
         about
         email

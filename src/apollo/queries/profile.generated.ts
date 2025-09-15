@@ -6,7 +6,7 @@ const defaultOptions = {} as const;
 export type ProfileQueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type ProfileQuery = { __typename?: 'Query', profile?: { __typename?: 'User', about?: string | null, summary?: string | null, email?: string | null, firstName?: string | null, id?: string | null, role?: Types.UserRole | null, image?: string | null, lastName?: string | null, organizationName?: string | null, walletAddress?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, keywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null } | null };
+export type ProfileQuery = { __typename?: 'Query', profile?: { __typename?: 'User', about?: string | null, summary?: string | null, email?: string | null, firstName?: string | null, id?: string | null, role?: Types.UserRole | null, image?: string | null, lastName?: string | null, organizationName?: string | null, walletAddress?: string | null, links?: Array<{ __typename?: 'Link', title?: string | null, url?: string | null }> | null, keywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null, roleKeywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null, skillKeywords?: Array<{ __typename?: 'Keyword', id?: string | null, name?: string | null }> | null } | null };
 
 
 export const ProfileDocument = gql`
@@ -27,6 +27,14 @@ export const ProfileDocument = gql`
     organizationName
     walletAddress
     keywords {
+      id
+      name
+    }
+    roleKeywords {
+      id
+      name
+    }
+    skillKeywords {
       id
       name
     }

@@ -2,6 +2,7 @@ import client from '@/apollo/client';
 import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
 import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
 import { ProgramDocument, useProgramQuery } from '@/apollo/queries/program.generated';
+import { AdminDropdown } from '@/components/admin-dropdown';
 import { MarkdownPreviewer } from '@/components/markdown';
 import { ProgramStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -34,7 +35,13 @@ import ApplicationCard from '@/pages/programs/details/_components/application-ca
 import CreateApplicationForm from '@/pages/programs/details/_components/create-application-form';
 import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 // import MainSection from '@/pages/programs/details/_components/main-section';
-import { ApplicationStatus, ProgramStatus, type User } from '@/types/types.generated';
+import {
+  ApplicationStatus,
+  ProgramStatus,
+  ProgramVisibility,
+  type User,
+} from '@/types/types.generated';
+import { useWallets } from '@privy-io/react-auth';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
 import { CircleAlert, Settings, TriangleAlert } from 'lucide-react';
@@ -44,6 +51,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 const DetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const { userId, isAdmin, isLoggedIn, isAuthed } = useAuth();
+  const { wallets } = useWallets();
   const { id } = useParams();
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
@@ -115,9 +123,36 @@ const DetailsPage: React.FC = () => {
   const callTx = async () => {
     try {
       if (program) {
+        // Check if program is already on blockchain
+        if (program.educhainProgramId !== null && program.educhainProgramId !== undefined) {
+          notify('This program has already been registered on blockchain', 'error');
+          console.error('Program already on blockchain with ID:', program.educhainProgramId);
+          return;
+        }
+
         const network = program.network as keyof typeof tokenAddresses;
         const tokens = tokenAddresses[network] || [];
         const targetToken = tokens.find((token) => token.name === program.currency);
+
+        // Get the current user's wallet address (sponsor who is paying)
+        const currentWallet = wallets?.[0];
+        if (!currentWallet) {
+          notify('Please connect your wallet first', 'error');
+          return;
+        }
+        const sponsorAddress = currentWallet.address;
+
+        console.log('Creating program with params:', {
+          name: program.name,
+          price: program.price,
+          deadline: program.deadline,
+          validatorAddress: program?.validators?.[0]?.walletAddress,
+          token: targetToken,
+          ownerAddress: sponsorAddress,
+          network,
+          currency: program.currency,
+          existingEduchainId: program.educhainProgramId,
+        });
 
         const result = await contract.createProgram({
           name: program.name as string | undefined,
@@ -125,21 +160,26 @@ const DetailsPage: React.FC = () => {
           deadline: program.deadline,
           validatorAddress: program?.validators?.[0] as User | undefined,
           token: targetToken ?? { name: program.currency as string },
-          ownerAddress: program?.validators?.[0]?.walletAddress || '',
+          ownerAddress: sponsorAddress,
         });
 
-        if (result) {
+        if (result?.txHash) {
+          console.log('Publishing program with result:', result);
+
           await publishProgram({
             variables: {
               id: program?.id ?? '',
-              educhainProgramId: result.programId,
+              educhainProgramId: result.programId || 0,
               txHash: result.txHash,
             },
           });
 
           notify('Program published successfully', 'success');
+
+          // Refetch to update the UI
+          await refetch();
         } else {
-          notify('Program published failed', 'error');
+          notify('Program published failed - no transaction hash', 'error');
         }
       }
     } catch (error) {
@@ -169,6 +209,13 @@ const DetailsPage: React.FC = () => {
             <h1 className="text-xl font-bold">{program?.name}</h1>
 
             <div className="flex gap-2">
+              {isAdmin && (
+                <AdminDropdown
+                  entityId={program?.id || ''}
+                  entityType="program"
+                  entityVisibility={program?.visibility || ProgramVisibility.Public}
+                />
+              )}
               {(program?.creator?.id === userId || isAdmin) && (
                 <Link to={`/programs/${program?.id}/edit`}>
                   <Button variant="ghost" className="flex gap-2 items-center">
@@ -242,12 +289,19 @@ const DetailsPage: React.FC = () => {
                       !isLoggedIn ||
                       program?.status !== 'published' ||
                       program.creator?.id === userId ||
-                      program?.validators?.some((validator) => validator.id === userId)
+                      program?.validators?.some((validator) => validator.id === userId) ||
+                      (program?.applicationStartDate &&
+                        new Date() < new Date(program.applicationStartDate)) ||
+                      (program?.applicationEndDate &&
+                        new Date() > new Date(program.applicationEndDate)) ||
+                      (program?.price &&
+                        acceptedPrice &&
+                        BigNumber(acceptedPrice).isGreaterThanOrEqualTo(BigNumber(program.price)))
                     }
                     onClick={(e) => {
                       if (!isAuthed) {
                         notify('Please add your email', 'success');
-                        navigate('/profile/edit');
+                        navigate('/my-profile/edit');
                         return;
                       }
 

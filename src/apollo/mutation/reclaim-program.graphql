@@ -1,0 +1,10 @@
+mutation reclaimProgram($programId: ID!, $txHash: String) {
+  reclaimProgram(programId: $programId, txHash: $txHash) {
+    id
+    name
+    reclaimed
+    reclaimTxHash
+    reclaimedAt
+    canReclaim
+  }
+}

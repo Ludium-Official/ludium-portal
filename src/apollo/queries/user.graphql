@@ -14,5 +14,13 @@ query user($id: ID!) {
     }
     organizationName
     walletAddress
+    roleKeywords {
+      id
+      name
+    }
+    skillKeywords {
+      id
+      name
+    }
   }
 }

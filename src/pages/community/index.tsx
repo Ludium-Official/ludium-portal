@@ -239,7 +239,7 @@ const CommunityPage: React.FC = () => {
                 onClick={() => {
                   if (!isAuthed) {
                     notify('Please add your email', 'success');
-                    navigate('/profile/edit');
+                    navigate('/my-profile/edit');
                     return;
                   }
                   navigate('create');

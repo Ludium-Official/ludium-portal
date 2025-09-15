@@ -164,36 +164,72 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
       return;
     }
     setLinksError(false);
+
+    // Validate milestone deadlines for funding programs
+    if (program?.type === 'funding' && program?.fundingEndDate) {
+      const fundingEndDate = new Date(program.fundingEndDate);
+      const invalidMilestones = formData.milestones.filter((m) => {
+        const milestoneDeadline = m.deadline ? new Date(m.deadline) : new Date();
+        return milestoneDeadline <= fundingEndDate;
+      });
+
+      if (invalidMilestones.length > 0) {
+        notify(
+          `Milestone deadlines must be after the funding period ends (${fundingEndDate.toLocaleDateString()}). Please adjust the following milestones: ${invalidMilestones.map((m) => m.title || 'Untitled').join(', ')}`,
+          'error',
+        );
+        return;
+      }
+    }
+
     try {
+      console.log('=== Creating Application Debug ===');
+      console.log('Form data price:', formData.overview.price);
+      console.log('Program type:', program?.type);
+
+      const mutationInput = {
+        programId: program?.id ?? '',
+        status: ApplicationStatus.Pending,
+        content: formData.description.content,
+        name: formData.overview.name,
+        summary: formData.description.summary,
+        milestones: formData.milestones.map((m) => ({
+          percentage: m.price,
+          // price: m.price,
+          title: m.title,
+          description: m.description,
+          summary: m.summary,
+          currency: program?.currency ?? 'EDU',
+          deadline: m.deadline || new Date().toISOString(),
+        })),
+        price: formData.overview.price,
+        fundingTarget: formData.overview.price, // Set funding target same as price for funding programs
+      };
+
+      console.log('Mutation input:', mutationInput);
+      console.log('Specifically fundingTarget:', mutationInput.fundingTarget);
+
+      const finalInput = {
+        ...mutationInput,
+        fundingTarget: formData.overview.price, // Explicitly set fundingTarget
+        // price: formData.milestones
+        //   .reduce((prev, curr) => BigNumber(curr?.price ?? '0').plus(prev), BigNumber(0))
+        //   .toFixed(18),
+        links: (() => {
+          const { shouldSend } = validateLinks(formData.overview.links);
+          return shouldSend
+            ? filterEmptyLinks(formData.overview.links).map((l) => ({ title: l, url: l }))
+            : undefined;
+        })(),
+        // formData.overview.links.filter(Boolean).map((l) => ({ title: l, url: l })),
+      };
+
+      console.log('Final input being sent:', finalInput);
+      console.log('Final fundingTarget:', finalInput.fundingTarget);
+
       await createApplication({
         variables: {
-          input: {
-            programId: program?.id ?? '',
-            status: ApplicationStatus.Pending,
-            content: formData.description.content,
-            name: formData.overview.name,
-            summary: formData.description.summary,
-            milestones: formData.milestones.map((m) => ({
-              percentage: m.price,
-              // price: m.price,
-              title: m.title,
-              description: m.description,
-              summary: m.summary,
-              currency: program?.currency ?? 'EDU',
-              deadline: m.deadline || new Date().toISOString(),
-            })),
-            price: formData.overview.price,
-            // price: formData.milestones
-            //   .reduce((prev, curr) => BigNumber(curr?.price ?? '0').plus(prev), BigNumber(0))
-            //   .toFixed(18),
-            links: (() => {
-              const { shouldSend } = validateLinks(formData.overview.links);
-              return shouldSend
-                ? filterEmptyLinks(formData.overview.links).map((l) => ({ title: l, url: l }))
-                : undefined;
-            })(),
-            // formData.overview.links.filter(Boolean).map((l) => ({ title: l, url: l })),
-          },
+          input: finalInput,
         },
         onCompleted: async () => {
           client.refetchQueries({ include: [ProgramDocument] });
@@ -351,17 +387,38 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             <label htmlFor="deadline0" className="w-full block">
               <p className="text-sm font-medium mb-2">
                 Deadline <span className="text-primary">*</span>
+                {program?.type === 'funding' && program?.fundingEndDate && (
+                  <span className="text-xs text-muted-foreground ml-2">
+                    (Must be after {new Date(program.fundingEndDate).toLocaleDateString()})
+                  </span>
+                )}
               </p>
               <DatePicker
-                disabled={{ before: new Date() }}
+                disabled={{
+                  before:
+                    program?.type === 'funding' && program?.fundingEndDate
+                      ? new Date(
+                          Math.max(
+                            new Date().getTime(),
+                            new Date(program.fundingEndDate).getTime() + 24 * 60 * 60 * 1000, // 1 day after funding ends
+                          ),
+                        )
+                      : new Date(),
+                }}
                 date={
                   formData.milestones[0]?.deadline
                     ? new Date(formData.milestones[0]?.deadline)
                     : undefined
                 }
-                setDate={(date) =>
-                  handleMilestoneChange(0, 'deadline', date ? (date as Date)?.toISOString() : '')
-                }
+                setDate={(date) => {
+                  if (date && typeof date === 'object' && 'getTime' in date) {
+                    const newDate = new Date(date.getTime());
+                    newDate.setHours(23, 59, 59, 999);
+                    handleMilestoneChange(0, 'deadline', newDate.toISOString());
+                  } else {
+                    handleMilestoneChange(0, 'deadline', '');
+                  }
+                }}
               />
             </label>
           </div>
@@ -425,16 +482,33 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             <label htmlFor={`deadline${idx + 1}`} className="w-full block">
               <p className="text-sm font-medium mb-2">
                 Deadline <span className="text-primary">*</span>
+                {program?.type === 'funding' && program?.fundingEndDate && (
+                  <span className="text-xs text-muted-foreground ml-2">
+                    (Must be after {new Date(program.fundingEndDate).toLocaleDateString()})
+                  </span>
+                )}
               </p>
               <DatePicker
-                disabled={{ before: new Date() }}
+                disabled={{
+                  before:
+                    program?.type === 'funding' && program?.fundingEndDate
+                      ? new Date(
+                          Math.max(
+                            new Date().getTime(),
+                            new Date(program.fundingEndDate).getTime() + 24 * 60 * 60 * 1000, // 1 day after funding ends
+                          ),
+                        )
+                      : new Date(),
+                }}
                 date={m.deadline ? new Date(m.deadline) : undefined}
                 setDate={(date) => {
-                  handleMilestoneChange(
-                    idx + 1,
-                    'deadline',
-                    date ? (date as Date)?.toISOString() : '',
-                  );
+                  if (date && typeof date === 'object' && 'getTime' in date) {
+                    const newDate = new Date(date.getTime());
+                    newDate.setHours(23, 59, 59, 999);
+                    handleMilestoneChange(idx + 1, 'deadline', newDate.toISOString());
+                  } else {
+                    handleMilestoneChange(idx + 1, 'deadline', '');
+                  }
                 }}
               />
             </label>

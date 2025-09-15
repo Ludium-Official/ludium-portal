@@ -1,7 +1,8 @@
 import { Badge } from '@/components/ui/badge';
-import type { Program } from '@/types/types.generated';
+import { ApplicationStatus, type Program } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronRight } from 'lucide-react';
+import { useMemo } from 'react';
 import { Link } from 'react-router';
 
 interface MainProgramCardProps {
@@ -17,10 +18,29 @@ function MainProgramCard({ program }: MainProgramCardProps) {
     Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)),
   );
 
+  // Find the latest active application and get its funding progress
+  const latestActiveApplication = useMemo(() => {
+    if (!program?.applications?.length) return null;
+
+    // Filter for active applications (Accepted or Completed status)
+    const activeApplications = program.applications.filter(
+      (app) =>
+        app.status === ApplicationStatus.Accepted || app.status === ApplicationStatus.Completed,
+    );
+
+    if (!activeApplications.length) return null;
+
+    // Return the first one (assuming they're ordered by latest first, or we can sort by creation date if needed)
+    return activeApplications[0];
+  }, [program?.applications]);
+
+  // Use the funding progress from the latest active application, fallback to 0
+  const fundingProgress = latestActiveApplication?.fundingProgress ?? 0;
+
   return (
     <Link
-      to={`/programs/${program.id}`}
-      className="bg-white border border-gray-200 min-w-[624px] w-[624px] h-[272px] p-6 rounded-lg hover:shadow-md transition-shadow flex flex-col"
+      to={`/investments/${program.id}`}
+      className="bg-white border border-gray-200 min-w-[624px] w-[624px] h-[292px] p-6 rounded-lg hover:shadow-md transition-shadow flex flex-col"
     >
       <div className="flex justify-between mb-2">
         <div className="flex gap-2">
@@ -54,17 +74,23 @@ function MainProgramCard({ program }: MainProgramCardProps) {
         </div>
 
         <div className="flex-1 flex flex-col">
-          <h3 className="text-lg font-bold text-gray-900 mb-2">{program?.name}</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-2 truncate max-w-[394px]">
+            {program?.name}
+          </h3>
 
           <div className="space-y-2 flex-1 mb-3">
             <div className="bg-[#0000000A] rounded px-2 py-1 flex justify-between items-center gap-3">
               <span className="text-sm text-neutral-400 font-semibold">STATUS</span>
 
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-purple-600 h-2 rounded-full" style={{ width: '25%' }} />
+                <div
+                  className="bg-purple-600 h-2 rounded-full"
+                  style={{ width: `${fundingProgress}%` }}
+                />
               </div>
               <span className="text-xl text-primary font-bold flex items-center">
-                25<span className="text-sm text-muted-foreground">%</span>
+                {fundingProgress}
+                <span className="text-sm text-muted-foreground">%</span>
               </span>
             </div>
 

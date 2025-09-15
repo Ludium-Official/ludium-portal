@@ -1,5 +1,15 @@
-mutation inviteUserToProgram($programId: ID!, $userId: ID!) {
-  inviteUserToProgram(programId: $programId, userId: $userId) {
+mutation inviteUserToProgram(
+  $programId: ID!
+  $userId: ID!
+  $maxInvestmentAmount: String
+  $tier: InvestmentTier
+) {
+  inviteUserToProgram(
+    programId: $programId
+    userId: $userId
+    maxInvestmentAmount: $maxInvestmentAmount
+    tier: $tier
+  ) {
     invitedBuilders {
       email
       firstName

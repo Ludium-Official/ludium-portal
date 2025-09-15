@@ -1,0 +1,44 @@
+query applications($pagination: PaginationInput) {
+  applications(pagination: $pagination) {
+    count
+    data {
+      applicant {
+        firstName
+        lastName
+        organizationName
+      }
+      content
+      currentFundingAmount
+      fundingProgress
+      fundingSuccessful
+      fundingTarget
+      id
+      investmentCount
+      metadata
+      name
+      onChainProjectId
+      price
+      program {
+        id
+        price
+        currency
+        network
+        status
+        image
+        keywords {
+          name
+          id
+        }
+        name
+      }
+      rejectionReason
+      status
+      summary
+      walletAddress
+
+      milestones {
+        price
+      }
+    }
+  }
+}
