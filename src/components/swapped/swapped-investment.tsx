@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { Button } from "../ui/button";
-import { Loader2, CheckCircle } from "lucide-react";
-import notify from "@/lib/notify";
-import { useGenerateSwappedUrlMutation } from "@/apollo/mutation/generate-swapped-url.generated";
+import React, { useState, useEffect } from 'react';
+import { Button } from '../ui/button';
+import { Loader2, CheckCircle } from 'lucide-react';
+import notify from '@/lib/notify';
+import { useGenerateSwappedUrlMutation } from '@/apollo/mutation/generate-swapped-url.generated';
 
 interface SwappedInvestmentProps {
   currencyCode?: string;
@@ -15,17 +15,17 @@ interface SwappedInvestmentProps {
 }
 
 const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
-  currencyCode = "ETH",
+  currencyCode = 'ETH',
   walletAddress,
   amount,
   onSuccess,
   onClose,
   disabled = false,
 }) => {
-  const [signedUrl, setSignedUrl] = useState("");
+  const [signedUrl, setSignedUrl] = useState('');
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [processingInvestment, setProcessingInvestment] = useState(false);
-  
+
   const [generateSwappedUrl, { loading, error }] = useGenerateSwappedUrlMutation({
     onCompleted: (data) => {
       if (data?.generateSwappedUrl?.signedUrl) {
@@ -33,13 +33,13 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
       }
     },
     onError: (error) => {
-      notify(error.message || "Failed to generate signed URL", "error");
-    }
+      notify(error.message || 'Failed to generate signed URL', 'error');
+    },
   });
 
   const handleGenerateUrl = async () => {
     if (!amount || !walletAddress) {
-      notify("Amount and wallet address are required", "error");
+      notify('Amount and wallet address are required', 'error');
       return;
     }
 
@@ -49,10 +49,10 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
           currencyCode,
           walletAddress,
           amount,
-        }
+        },
       });
     } catch (err) {
-      console.error("Failed to generate URL:", err);
+      console.error('Failed to generate URL:', err);
     }
   };
 
@@ -68,12 +68,12 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
 
     try {
       await onSuccess();
-      notify("Investment completed successfully!", "success");
+      notify('Investment completed successfully!', 'success');
       if (onClose) {
         onClose();
       }
     } catch (error) {
-      notify("Investment failed. Please try again.", "error");
+      notify('Investment failed. Please try again.', 'error');
       setPaymentCompleted(false);
     } finally {
       setProcessingInvestment(false);
@@ -85,15 +85,15 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
     if (signedUrl) {
       const handleMessage = (event: MessageEvent) => {
         // Listen for messages from the iframe
-        if (event.origin === "https://widget.swapped.com") {
-          if (event.data.type === "PAYMENT_SUCCESS") {
+        if (event.origin === 'https://widget.swapped.com') {
+          if (event.data.type === 'PAYMENT_SUCCESS') {
             handlePaymentComplete();
           }
         }
       };
 
-      window.addEventListener("message", handleMessage);
-      return () => window.removeEventListener("message", handleMessage);
+      window.addEventListener('message', handleMessage);
+      return () => window.removeEventListener('message', handleMessage);
     }
   }, [signedUrl]);
 
@@ -108,9 +108,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
         ) : !signedUrl && !paymentCompleted ? (
           <div className="space-y-4">
             {error && (
-              <div className="text-red-500 text-sm p-2 bg-red-50 rounded">
-                {error.message}
-              </div>
+              <div className="text-red-500 text-sm p-2 bg-red-50 rounded">{error.message}</div>
             )}
             <Button
               onClick={handleGenerateUrl}
@@ -123,7 +121,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
                   Generating Payment Link...
                 </>
               ) : (
-                "Continue to Payment"
+                'Continue to Payment'
               )}
             </Button>
           </div>
@@ -131,9 +129,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
           <div className="space-y-4 text-center">
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
             <h3 className="text-lg font-semibold">
-              {processingInvestment
-                ? "Processing Investment..."
-                : "Investment Complete!"}
+              {processingInvestment ? 'Processing Investment...' : 'Investment Complete!'}
             </h3>
             {processingInvestment && (
               <div className="flex items-center justify-center">
@@ -147,7 +143,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
             src={signedUrl}
             width="100%"
             height="600"
-            style={{ border: "none" }}
+            style={{ border: 'none' }}
             title="Swapped Investment Payment"
             className="block"
             sandbox="allow-scripts allow-same-origin allow-forms allow-top-navigation"

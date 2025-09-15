@@ -2374,7 +2374,8 @@ function ProjectDetailsPage() {
       <Dialog open={showSwappedModal} onOpenChange={setShowSwappedModal}>
         <DialogContent className="max-w-4xl">
           <SwappedInvestment
-            currencyCode={program?.currency || 'ETH'}
+            // currencyCode={program?.currency || 'ETH'}
+            currencyCode={'ETH'}
             walletAddress={privyUser?.wallet?.address || ''}
             amount={selectedTier}
             onSuccess={handleSwappedSuccess}
