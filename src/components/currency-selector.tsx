@@ -12,6 +12,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useEffect, useMemo, useState } from 'react';
 
+export const sepoliaCurrencies = [{ code: 'ETH', icon: <EthIcon /> }];
+
 export const eduCurrencies = [
   { code: 'EDU', icon: <EduIcon /> },
   { code: 'USDT', icon: <UsdtIcon /> },
@@ -48,6 +50,9 @@ function CurrencySelector({
   const [selectedCurrency, setSelectedCurrency] = useState(value ?? '');
 
   const displayCurrencies = useMemo(() => {
+    if (network === 'sepolia') {
+      return sepoliaCurrencies;
+    }
     if (network === 'base' || network === 'base-sepolia') {
       return baseCurrencies;
     }
