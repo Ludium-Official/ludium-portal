@@ -1,23 +1,20 @@
-import { useReclaimMilestoneMutation } from "@/apollo/mutation/reclaim-milestone.generated";
-import { useReclaimProgramMutation } from "@/apollo/mutation/reclaim-program.generated";
-import { useProfileQuery } from "@/apollo/queries/profile.generated";
-import {
-  type ProgramsQuery,
-  useProgramsQuery,
-} from "@/apollo/queries/programs.generated";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import ChainContract from "@/lib/contract";
-import notify from "@/lib/notify";
-import { getCurrencyIcon } from "@/lib/utils";
-import { ProgramType } from "@/types/types.generated";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
-import { ethers } from "ethers";
-import { Search } from "lucide-react";
-import { useMemo, useState } from "react";
-import { useParams, useSearchParams } from "react-router";
-import type { Chain, PublicClient } from "viem";
-import { http, createPublicClient } from "viem";
+import { useReclaimMilestoneMutation } from '@/apollo/mutation/reclaim-milestone.generated';
+import { useReclaimProgramMutation } from '@/apollo/mutation/reclaim-program.generated';
+import { useProfileQuery } from '@/apollo/queries/profile.generated';
+import { type ProgramsQuery, useProgramsQuery } from '@/apollo/queries/programs.generated';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import ChainContract from '@/lib/contract';
+import notify from '@/lib/notify';
+import { getCurrencyIcon } from '@/lib/utils';
+import { ProgramType } from '@/types/types.generated';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { ethers } from 'ethers';
+import { Search } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { useParams, useSearchParams } from 'react-router';
+import type { Chain, PublicClient } from 'viem';
+import { http, createPublicClient } from 'viem';
 import {
   arbitrum,
   arbitrumSepolia,
@@ -26,8 +23,8 @@ import {
   creditCoin3Mainnet,
   eduChain,
   eduChainTestnet,
-} from "viem/chains";
-import { AgentBreadcrumbs } from "./agent-breadcrumbs";
+} from 'viem/chains';
+import { AgentBreadcrumbs } from './agent-breadcrumbs';
 
 const programPageSize = 6;
 
@@ -41,76 +38,72 @@ export default function UserRecruitmentReclaimTab({
 }) {
   const { id } = useParams();
   const [searchParams, _setSearchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState("");
-  const currentPage = Number(searchParams.get("page")) || 1;
+  const [searchQuery, setSearchQuery] = useState('');
+  const currentPage = Number(searchParams.get('page')) || 1;
 
   const { data: profileData } = useProfileQuery({
-    fetchPolicy: "network-only",
+    fetchPolicy: 'network-only',
     skip: !myProfile,
   });
 
-  const profileId = myProfile ? profileData?.profile?.id ?? "" : id ?? "";
+  const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
 
   // For reclaim, we need to fetch ALL programs where user is involved
   // We'll fetch programs created by the user (sponsor) and determine builder role from applications
-  const { data: programData, refetch: refetchSponsorPrograms } =
-    useProgramsQuery({
-      variables: {
-        pagination: {
-          limit: 50, // Increase limit to get more programs
-          offset: (currentPage - 1) * programPageSize,
+  const { data: programData, refetch: refetchSponsorPrograms } = useProgramsQuery({
+    variables: {
+      pagination: {
+        limit: 50, // Increase limit to get more programs
+        offset: (currentPage - 1) * programPageSize,
 
-          filter: [
-            {
-              value: profileId,
-              field: "creatorId", // Get programs created by this user
-            },
-            {
-              field: "type",
-              value: ProgramType.Regular,
-            },
-            ...(searchQuery
-              ? [
-                  {
-                    field: "name",
-                    value: searchQuery,
-                  },
-                ]
-              : []),
-          ],
-        },
+        filter: [
+          {
+            value: profileId,
+            field: 'creatorId', // Get programs created by this user
+          },
+          {
+            field: 'type',
+            value: ProgramType.Regular,
+          },
+          ...(searchQuery
+            ? [
+                {
+                  field: 'name',
+                  value: searchQuery,
+                },
+              ]
+            : []),
+        ],
       },
-      skip: !profileId,
-    });
+    },
+    skip: !profileId,
+  });
 
   // Also fetch programs where user is a builder (has applications)
-  const { data: builderProgramData, refetch: refetchBuilderPrograms } =
-    useProgramsQuery({
-      variables: {
-        pagination: {
-          limit: 50,
-          offset: 0,
-          filter: [
-            {
-              value: profileId,
-              field: "applicantId", // Get programs where user has applied
-            },
-          ],
-        },
+  const { data: builderProgramData, refetch: refetchBuilderPrograms } = useProgramsQuery({
+    variables: {
+      pagination: {
+        limit: 50,
+        offset: 0,
+        filter: [
+          {
+            value: profileId,
+            field: 'applicantId', // Get programs where user has applied
+          },
+        ],
       },
-      skip: !profileId,
-    });
+    },
+    skip: !profileId,
+  });
 
   // Calculate reclaimable items based on business rules
   const reclaimableItems = useMemo(() => {
-    type Program = NonNullable<
-      NonNullable<ProgramsQuery["programs"]>["data"]
-    >[number];
-    type Application = NonNullable<Program["applications"]>[number];
-    type Milestone = NonNullable<Application["milestones"]>[number];
+    type Program = NonNullable<NonNullable<ProgramsQuery['programs']>['data']>[number];
+    type Application = NonNullable<Program['applications']>[number];
+    type Milestone = NonNullable<Application['milestones']>[number];
 
     type ReclaimableItem = {
-      type: "unused_program" | "unpaid_milestone";
+      type: 'unused_program' | 'unpaid_milestone';
       program?: Program;
       application?: Application;
       milestone?: Milestone;
@@ -126,9 +119,7 @@ export default function UserRecruitmentReclaimTab({
     if (programData?.programs?.data) {
       for (const program of programData.programs.data) {
         // Check if program is past deadline
-        const programDeadline = program?.deadline
-          ? new Date(program.deadline)
-          : null;
+        const programDeadline = program?.deadline ? new Date(program.deadline) : null;
         const isPastDeadline = programDeadline && programDeadline < now;
 
         // Case 1: Unused program past deadline (sponsor can reclaim)
@@ -136,7 +127,7 @@ export default function UserRecruitmentReclaimTab({
 
         if (isCreator && !program?.reclaimed) {
           // For regular programs: check if expired and has unused funds
-          if (program?.type === "regular") {
+          if (program?.type === 'regular') {
             if (isPastDeadline) {
               // Calculate total actually paid out through completed milestones
               let totalPaidOut = 0;
@@ -144,13 +135,10 @@ export default function UserRecruitmentReclaimTab({
               if (program?.applications) {
                 for (const app of program.applications) {
                   // Only consider accepted applications
-                  if (app?.status === "accepted" && app?.milestones) {
+                  if (app?.status === 'accepted' && app?.milestones) {
                     for (const milestone of app.milestones) {
                       // Only count completed (paid) milestones
-                      if (
-                        milestone?.status === "completed" &&
-                        milestone?.price
-                      ) {
+                      if (milestone?.status === 'completed' && milestone?.price) {
                         const paidAmount = Number.parseFloat(milestone.price);
                         totalPaidOut += paidAmount;
                       }
@@ -160,42 +148,40 @@ export default function UserRecruitmentReclaimTab({
               }
 
               // Program price is total deposited by sponsor
-              const totalDeposited = Number.parseFloat(program?.price || "0");
+              const totalDeposited = Number.parseFloat(program?.price || '0');
 
               // Reclaimable amount is what wasn't paid out
               const reclaimableAmount = totalDeposited - totalPaidOut;
 
               // Add debug logging to see what's happening
               console.log(
-                `Program ${program?.name}: Deposited=${totalDeposited}, PaidOut=${totalPaidOut}, Reclaimable=${reclaimableAmount}`
+                `Program ${program?.name}: Deposited=${totalDeposited}, PaidOut=${totalPaidOut}, Reclaimable=${reclaimableAmount}`,
               );
 
               if (reclaimableAmount > 0) {
                 // Any amount greater than 0 can be reclaimed
                 items.push({
-                  type: "unused_program",
+                  type: 'unused_program',
                   program,
                   reason:
                     totalPaidOut > 0
                       ? `Unused funds after deadline (${totalPaidOut.toFixed(
-                          2
-                        )}/${totalDeposited.toFixed(2)} ${
-                          program?.currency || "ETH"
-                        } paid out)`
-                      : "Program expired without any payments",
+                          2,
+                        )}/${totalDeposited.toFixed(2)} ${program?.currency || 'ETH'} paid out)`
+                      : 'Program expired without any payments',
                   amount: reclaimableAmount.toFixed(4),
-                  currency: program?.currency || "ETH",
+                  currency: program?.currency || 'ETH',
                 });
               } else if (isPastDeadline && totalDeposited > 0) {
                 // Log when a program is past deadline but fully paid out
                 console.log(
-                  `Program ${program?.name} is past deadline but fully paid out (no funds to reclaim)`
+                  `Program ${program?.name} is past deadline but fully paid out (no funds to reclaim)`,
                 );
               }
             }
           }
           // For funding programs: check if there's unused funding
-          else if (program?.type === "funding") {
+          else if (program?.type === 'funding') {
             const fundingEndDate = program?.fundingEndDate
               ? new Date(program.fundingEndDate)
               : null;
@@ -207,10 +193,10 @@ export default function UserRecruitmentReclaimTab({
 
               for (const app of program.applications) {
                 // Only consider accepted applications
-                if (app?.status === "accepted" && app?.milestones) {
+                if (app?.status === 'accepted' && app?.milestones) {
                   for (const milestone of app.milestones) {
                     // Only count completed (paid) milestones
-                    if (milestone?.status === "completed" && milestone?.price) {
+                    if (milestone?.status === 'completed' && milestone?.price) {
                       const paidAmount = Number.parseFloat(milestone.price);
                       totalPaidOut += paidAmount;
                     }
@@ -219,7 +205,7 @@ export default function UserRecruitmentReclaimTab({
               }
 
               // Program price is total deposited by sponsor
-              const totalDeposited = Number.parseFloat(program?.price || "0");
+              const totalDeposited = Number.parseFloat(program?.price || '0');
 
               // Reclaimable amount is what wasn't paid out
               const reclaimableAmount = totalDeposited - totalPaidOut;
@@ -227,15 +213,13 @@ export default function UserRecruitmentReclaimTab({
               if (reclaimableAmount > 0) {
                 // Any amount greater than 0 can be reclaimed
                 items.push({
-                  type: "unused_program",
+                  type: 'unused_program',
                   program,
                   reason: `Unused funding after deadline (${totalPaidOut.toFixed(
-                    2
-                  )}/${totalDeposited.toFixed(2)} ${
-                    program?.currency || "ETH"
-                  } paid out)`,
+                    2,
+                  )}/${totalDeposited.toFixed(2)} ${program?.currency || 'ETH'} paid out)`,
                   amount: reclaimableAmount.toFixed(4),
-                  currency: program?.currency || "ETH",
+                  currency: program?.currency || 'ETH',
                 });
               }
             }
@@ -251,23 +235,20 @@ export default function UserRecruitmentReclaimTab({
         if (program?.applications) {
           for (const application of program.applications) {
             // Only check applications from this user
-            if (
-              application?.applicant?.id === profileId &&
-              application?.milestones
-            ) {
+            if (application?.applicant?.id === profileId && application?.milestones) {
               for (const milestone of application.milestones) {
                 // Check if milestone has passed deadline and is unpaid
 
                 // Check if milestone can be reclaimed (unpaid and past deadline)
                 if (milestone?.canReclaim && !milestone?.reclaimed) {
                   items.push({
-                    type: "unpaid_milestone",
+                    type: 'unpaid_milestone',
                     program,
                     application,
                     milestone,
-                    reason: "Milestone past deadline without payment",
-                    amount: milestone?.price || "0",
-                    currency: milestone?.currency || program?.currency || "ETH",
+                    reason: 'Milestone past deadline without payment',
+                    amount: milestone?.price || '0',
+                    currency: milestone?.currency || program?.currency || 'ETH',
                   });
                 }
               }
@@ -295,32 +276,30 @@ export default function UserRecruitmentReclaimTab({
 
   // Helper function to create contract with specific network
   const createContractForNetwork = (network: string) => {
-    const currentWallet = wallets.find(
-      (wallet) => wallet.address === user?.wallet?.address
-    );
+    const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
     // Check if the user is using an external wallet (like MetaMask)
     const isExternalWallet =
-      user?.wallet?.connectorType && user.wallet.connectorType !== "embedded";
+      user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
 
     let sendTx = sendTransaction;
 
     const checkNetwork: Chain = (() => {
-      if (network === "base") {
+      if (network === 'base') {
         return base;
       }
-      if (network === "base-sepolia") {
+      if (network === 'base-sepolia') {
         return baseSepolia;
       }
-      if (network === "educhain-testnet") {
+      if (network === 'educhain-testnet') {
         return eduChainTestnet;
       }
-      if (network === "arbitrum") {
+      if (network === 'arbitrum') {
         return arbitrum;
       }
-      if (network === "arbitrum-sepolia") {
+      if (network === 'arbitrum-sepolia') {
         return arbitrumSepolia;
       }
-      if (network === "creditcoin") {
+      if (network === 'creditcoin') {
         return creditCoin3Mainnet;
       }
       return eduChain;
@@ -331,11 +310,11 @@ export default function UserRecruitmentReclaimTab({
       checkNetwork: Chain,
       currentWallet: {
         getEthereumProvider: () => Promise<ethers.providers.ExternalProvider>;
-      }
+      },
     ) {
       const eip1193Provider = await currentWallet.getEthereumProvider();
       if (!eip1193Provider) {
-        throw new Error("No Ethereum provider found");
+        throw new Error('No Ethereum provider found');
       }
       const provider = new ethers.providers.Web3Provider(eip1193Provider);
 
@@ -346,17 +325,14 @@ export default function UserRecruitmentReclaimTab({
         nativeCurrency: checkNetwork.nativeCurrency,
       };
 
-      if (
-        "request" in eip1193Provider &&
-        typeof eip1193Provider.request === "function"
-      ) {
+      if ('request' in eip1193Provider && typeof eip1193Provider.request === 'function') {
         const currentChainId = await eip1193Provider.request({
-          method: "eth_chainId",
+          method: 'eth_chainId',
         });
 
         if (currentChainId !== targetNetwork.chainId) {
           await eip1193Provider.request({
-            method: "wallet_addEthereumChain",
+            method: 'wallet_addEthereumChain',
             params: [targetNetwork],
           });
         }
@@ -366,58 +342,39 @@ export default function UserRecruitmentReclaimTab({
     }
 
     if (isExternalWallet && currentWallet) {
-      console.log(
-        "Using external wallet for reclaim transaction:",
-        currentWallet.address
-      );
-      sendTx = async (
-        input: Parameters<typeof sendTransaction>[0],
-        _uiOptions?: unknown
-      ) => {
+      console.log('Using external wallet for reclaim transaction:', currentWallet.address);
+      sendTx = async (input: Parameters<typeof sendTransaction>[0], _uiOptions?: unknown) => {
         // Note: _uiOptions is ignored for external wallets since they use their own UI
         try {
-          console.log(
-            "Sending reclaim transaction with external wallet...",
-            input
-          );
+          console.log('Sending reclaim transaction with external wallet...', input);
           const signer = await getSigner(checkNetwork, currentWallet);
           const txResponse = await signer.sendTransaction(input);
-          console.log(
-            "Reclaim transaction sent successfully:",
-            txResponse.hash
-          );
+          console.log('Reclaim transaction sent successfully:', txResponse.hash);
           return { hash: txResponse.hash as `0x${string}` };
         } catch (error) {
-          console.error(
-            "Error sending reclaim transaction with external wallet:",
-            error
-          );
+          console.error('Error sending reclaim transaction with external wallet:', error);
           throw error;
         }
       };
     } else if (isExternalWallet && !currentWallet) {
-      console.warn(
-        "User has an external wallet but no active wallet found for reclaim."
-      );
+      console.warn('User has an external wallet but no active wallet found for reclaim.');
       sendTx = async () => {
         throw new Error(
-          "External wallet detected but not properly connected. Please reconnect your wallet."
+          'External wallet detected but not properly connected. Please reconnect your wallet.',
         );
       };
     } else if (!user?.wallet) {
       sendTx = async () => {
-        throw new Error(
-          "No wallet connected. Please connect a wallet to continue."
-        );
+        throw new Error('No wallet connected. Please connect a wallet to continue.');
       };
     } else {
     }
 
     const checkContract = (() => {
-      if (network === "base" || network === "base-sepolia") {
+      if (network === 'base' || network === 'base-sepolia') {
         return import.meta.env.VITE_BASE_CONTRACT_ADDRESS;
       }
-      if (network === "arbitrum" || network === "arbitrum-sepolia") {
+      if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
         return import.meta.env.VITE_ARBITRUM_CONTRACT_ADDRESS;
       }
       return import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS;
@@ -436,21 +393,21 @@ export default function UserRecruitmentReclaimTab({
     educhainProgramId?: number,
     amount?: string,
     currency?: string,
-    network?: string
+    network?: string,
   ) => {
     if (!programId) {
-      console.error("Program ID is empty or undefined!");
-      notify("Invalid program ID", "error");
+      console.error('Program ID is empty or undefined!');
+      notify('Invalid program ID', 'error');
       return;
     }
 
     if (!educhainProgramId && educhainProgramId !== 0) {
-      notify("Program not deployed on chain", "error");
+      notify('Program not deployed on chain', 'error');
       return;
     }
 
     if (!network) {
-      notify("Program network not specified", "error");
+      notify('Program network not specified', 'error');
       return;
     }
 
@@ -459,22 +416,16 @@ export default function UserRecruitmentReclaimTab({
       // Create contract instance for the specific network
       const contract = createContractForNetwork(network);
       if (!contract) {
-        throw new Error(
-          `Failed to initialize contract for network: ${network}`
-        );
+        throw new Error(`Failed to initialize contract for network: ${network}`);
       }
 
       // First call the smart contract to reclaim funds
-      const contractResult = await contract.reclaimFunds(
-        educhainProgramId,
-        amount || "0",
-        {
-          name: currency || "ETH",
-        }
-      );
+      const contractResult = await contract.reclaimFunds(educhainProgramId, amount || '0', {
+        name: currency || 'ETH',
+      });
 
       if (!contractResult?.txHash) {
-        throw new Error("Contract transaction failed");
+        throw new Error('Contract transaction failed');
       }
 
       // Then update the database with the transaction hash
@@ -486,22 +437,20 @@ export default function UserRecruitmentReclaimTab({
       });
 
       if (result.data?.reclaimProgram) {
-        notify("Program funds reclaimed successfully!", "success");
+        notify('Program funds reclaimed successfully!', 'success');
         // Refetch programs to update the list
         await refetchSponsorPrograms();
         await refetchBuilderPrograms();
       }
     } catch (error) {
-      console.error("Reclaim error details:", {
+      console.error('Reclaim error details:', {
         error,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
       });
       notify(
-        `Failed to reclaim: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
-        "error"
+        `Failed to reclaim: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'error',
       );
     } finally {
       setReclaimingId(null);
@@ -521,22 +470,20 @@ export default function UserRecruitmentReclaimTab({
       });
 
       if (result.data?.reclaimMilestone) {
-        notify("Milestone funds reclaimed successfully!", "success");
+        notify('Milestone funds reclaimed successfully!', 'success');
         // Refetch programs to update the list
         await refetchSponsorPrograms();
         await refetchBuilderPrograms();
       }
     } catch (error) {
-      console.error("Milestone reclaim error details:", {
+      console.error('Milestone reclaim error details:', {
         error,
-        message: error instanceof Error ? error.message : "Unknown error",
+        message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
       });
       notify(
-        `Failed to reclaim: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
-        "error"
+        `Failed to reclaim: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'error',
       );
     } finally {
       setReclaimingId(null);
@@ -562,12 +509,10 @@ export default function UserRecruitmentReclaimTab({
         <div className="flex flex-col gap-3">
           {reclaimableItems.length === 0 ? (
             <div className="p-8 border rounded-lg w-full text-center">
-              <p className="text-muted-foreground mb-2">
-                No reclaimable items found
-              </p>
+              <p className="text-muted-foreground mb-2">No reclaimable items found</p>
               <p className="text-sm text-muted-foreground">
-                Reclaim is available for expired programs without applications
-                and unpaid milestones past deadline.
+                Reclaim is available for expired programs without applications and unpaid milestones
+                past deadline.
               </p>
             </div>
           ) : (
@@ -575,18 +520,14 @@ export default function UserRecruitmentReclaimTab({
             reclaimableItems.map((item) => (
               <div
                 key={`${item.type}-${
-                  item.type === "unused_program"
-                    ? item.program?.id
-                    : item.milestone?.id
+                  item.type === 'unused_program' ? item.program?.id : item.milestone?.id
                 }`}
                 className="p-5 border rounded-lg w-full"
               >
                 <div className="bg-[#18181B0A] rounded-full px-[10px] inline-flex items-center gap-2 mb-4">
                   <span className="w-[14px] h-[14px] rounded-full bg-orange-500 block" />
                   <p className="text-secondary-foreground text-sm font-semibold">
-                    {item.type === "unused_program"
-                      ? "Unused Program"
-                      : "Unpaid Milestone"}
+                    {item.type === 'unused_program' ? 'Unused Program' : 'Unpaid Milestone'}
                   </p>
                 </div>
 
@@ -594,41 +535,29 @@ export default function UserRecruitmentReclaimTab({
                   <div className="w-8 h-8 rounded-full bg-gray-200" />
                   <div className="flex flex-col gap-1">
                     <p className="text-sm font-semibold">
-                      {item.type === "unused_program"
+                      {item.type === 'unused_program'
                         ? item.program?.name
                         : `${item.milestone?.title} - ${item.application?.name}`}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.reason}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{item.reason}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between px-2 py-1.5 bg-[#18181B0A] rounded-lg mb-2">
-                  <p className="text-sm font-medium text-neutral-400">
-                    ALLOCATED
-                  </p>
+                  <p className="text-sm font-medium text-neutral-400">ALLOCATED</p>
                   <div className="flex items-center gap-2">
-                    <p className="text-sm text-muted-foreground font-bold">
-                      {item.amount}
-                    </p>
+                    <p className="text-sm text-muted-foreground font-bold">{item.amount}</p>
                     {getCurrencyIcon(item.currency)}
-                    <p className="text-sm text-muted-foreground font-medium">
-                      {item.currency}
-                    </p>
+                    <p className="text-sm text-muted-foreground font-medium">{item.currency}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between px-2 py-2.5 bg-[#18181B0A] rounded-lg mb-4">
                   <p className="text-sm font-bold text-foreground">RECLAIM</p>
                   <div className="flex items-center gap-2">
-                    <p className="text-xl text-primary font-bold">
-                      {item.amount}
-                    </p>
+                    <p className="text-xl text-primary font-bold">{item.amount}</p>
                     {getCurrencyIcon(item.currency)}
-                    <p className="text-sm text-muted-foreground font-medium">
-                      {item.currency}
-                    </p>
+                    <p className="text-sm text-muted-foreground font-medium">{item.currency}</p>
                   </div>
                 </div>
 
@@ -638,12 +567,10 @@ export default function UserRecruitmentReclaimTab({
                     className="px-6"
                     disabled={
                       reclaimingId ===
-                      (item.type === "unused_program"
-                        ? item.program?.id
-                        : item.milestone?.id)
+                      (item.type === 'unused_program' ? item.program?.id : item.milestone?.id)
                     }
                     onClick={() => {
-                      if (item.type === "unused_program" && item.program?.id) {
+                      if (item.type === 'unused_program' && item.program?.id) {
                         // For funding programs, we might need different logic in future
                         // but for now, both use the same reclaim function
                         handleReclaimProgram(
@@ -651,24 +578,19 @@ export default function UserRecruitmentReclaimTab({
                           item.program.educhainProgramId || 0,
                           item.amount,
                           item.currency,
-                          item.program.network || "educhain" // Use the program's network
+                          item.program.network || 'educhain', // Use the program's network
                         );
-                      } else if (
-                        item.type === "unpaid_milestone" &&
-                        item.milestone?.id
-                      ) {
+                      } else if (item.type === 'unpaid_milestone' && item.milestone?.id) {
                         handleReclaimMilestone(item.milestone.id);
                       } else {
-                        console.error("Invalid item for reclaim:", item);
+                        console.error('Invalid item for reclaim:', item);
                       }
                     }}
                   >
                     {reclaimingId ===
-                    (item.type === "unused_program"
-                      ? item.program?.id
-                      : item.milestone?.id)
-                      ? "Processing..."
-                      : "Reclaim now"}
+                    (item.type === 'unused_program' ? item.program?.id : item.milestone?.id)
+                      ? 'Processing...'
+                      : 'Reclaim now'}
                   </Button>
                 </div>
               </div>

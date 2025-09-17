@@ -1,20 +1,17 @@
-import { useReclaimInvestmentMutation } from "@/apollo/mutation/reclaim-investment.generated";
-import {
-  type InvestmentsQuery,
-  useInvestmentsQuery,
-} from "@/apollo/queries/investments.generated";
-import { useProfileQuery } from "@/apollo/queries/profile.generated";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Pagination } from "@/components/ui/pagination";
-import { getInvestmentContract } from "@/lib/hooks/use-investment-contract";
-import notify from "@/lib/notify";
-import { getCurrencyIcon } from "@/lib/utils";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
-import { Search } from "lucide-react";
-import { useState } from "react";
-import { useParams, useSearchParams } from "react-router";
-import { http, type PublicClient, createPublicClient } from "viem";
+import { useReclaimInvestmentMutation } from '@/apollo/mutation/reclaim-investment.generated';
+import { type InvestmentsQuery, useInvestmentsQuery } from '@/apollo/queries/investments.generated';
+import { useProfileQuery } from '@/apollo/queries/profile.generated';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Pagination } from '@/components/ui/pagination';
+import { getInvestmentContract } from '@/lib/hooks/use-investment-contract';
+import notify from '@/lib/notify';
+import { getCurrencyIcon } from '@/lib/utils';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { Search } from 'lucide-react';
+import { useState } from 'react';
+import { useParams, useSearchParams } from 'react-router';
+import { http, type PublicClient, createPublicClient } from 'viem';
 import {
   arbitrum,
   arbitrumSepolia,
@@ -23,8 +20,8 @@ import {
   creditCoin3Mainnet,
   eduChain,
   eduChainTestnet,
-} from "viem/chains";
-import { AgentBreadcrumbs } from "./agent-breadcrumbs";
+} from 'viem/chains';
+import { AgentBreadcrumbs } from './agent-breadcrumbs';
 
 const programPageSize = 6;
 
@@ -35,17 +32,17 @@ export default function UserInvestmentReclaimTab({
 }) {
   const { id } = useParams();
   const [searchParams, _setSearchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState("");
-  const currentPage = Number(searchParams.get("page")) || 1;
+  const [searchQuery, setSearchQuery] = useState('');
+  const currentPage = Number(searchParams.get('page')) || 1;
   const { sendTransaction, user } = usePrivy();
   const { wallets } = useWallets();
 
   const { data: profileData } = useProfileQuery({
-    fetchPolicy: "network-only",
+    fetchPolicy: 'network-only',
     skip: !myProfile,
   });
 
-  const profileId = myProfile ? profileData?.profile?.id ?? "" : id ?? "";
+  const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
 
   const { data: investmentData, refetch } = useInvestmentsQuery({
     variables: {
@@ -60,78 +57,75 @@ export default function UserInvestmentReclaimTab({
   const [reclaimInvestment] = useReclaimInvestmentMutation();
   const [reclaimingId, setReclaimingId] = useState<string | null>(null);
 
-  type Investment = NonNullable<
-    NonNullable<InvestmentsQuery["investments"]>["data"]
-  >[0];
+  type Investment = NonNullable<NonNullable<InvestmentsQuery['investments']>['data']>[0];
 
   const handleReclaimInvestment = async (investment: Investment) => {
-    console.log("=== HANDLE RECLAIM INVESTMENT START ===");
-    console.log("Full investment object:", investment);
-    console.log("Investment ID:", investment?.id);
-    console.log("Project:", investment?.project);
-    console.log("On-chain project ID:", investment?.project?.onChainProjectId);
-    console.log("Program:", investment?.project?.program);
-    console.log("Network:", investment?.project?.program?.network);
-    console.log("Can reclaim:", investment?.canReclaim);
-    console.log("Already reclaimed:", investment?.reclaimed);
-    console.log("Investment amount:", investment?.amount);
-    console.log("Investor ID from DB:", investment?.supporter?.id);
-    console.log("Investor email from DB:", investment?.supporter?.email);
-    console.log("Investment transaction hash from DB:", investment?.txHash);
-    console.log("Reclaim transaction hash from DB:", investment?.reclaimTxHash);
+    console.log('=== HANDLE RECLAIM INVESTMENT START ===');
+    console.log('Full investment object:', investment);
+    console.log('Investment ID:', investment?.id);
+    console.log('Project:', investment?.project);
+    console.log('On-chain project ID:', investment?.project?.onChainProjectId);
+    console.log('Program:', investment?.project?.program);
+    console.log('Network:', investment?.project?.program?.network);
+    console.log('Can reclaim:', investment?.canReclaim);
+    console.log('Already reclaimed:', investment?.reclaimed);
+    console.log('Investment amount:', investment?.amount);
+    console.log('Investor ID from DB:', investment?.supporter?.id);
+    console.log('Investor email from DB:', investment?.supporter?.email);
+    console.log('Investment transaction hash from DB:', investment?.txHash);
+    console.log('Reclaim transaction hash from DB:', investment?.reclaimTxHash);
 
     // If there's a transaction hash, provide a link to check it
     if (investment?.txHash) {
-      const network =
-        investment?.project?.program?.network || "educhain-testnet";
-      let explorerUrl = "";
-      if (network === "educhain-testnet") {
+      const network = investment?.project?.program?.network || 'educhain-testnet';
+      let explorerUrl = '';
+      if (network === 'educhain-testnet') {
         explorerUrl = `${eduChainTestnet.blockExplorers.default.url}/tx/${investment.txHash}`;
-      } else if (network === "base-sepolia") {
+      } else if (network === 'base-sepolia') {
         explorerUrl = `${baseSepolia.blockExplorers.default.url}/tx/${investment.txHash}`;
-      } else if (network === "arbitrum-sepolia") {
+      } else if (network === 'arbitrum-sepolia') {
         explorerUrl = `${arbitrumSepolia.blockExplorers.default.url}/tx/${investment.txHash}`;
-      } else if (network === "educhain") {
+      } else if (network === 'educhain') {
         explorerUrl = `${eduChain.blockExplorers.default.url}/tx/${investment.txHash}`;
-      } else if (network === "base") {
+      } else if (network === 'base') {
         explorerUrl = `${base.blockExplorers.default.url}/tx/${investment.txHash}`;
-      } else if (network === "arbitrum") {
+      } else if (network === 'arbitrum') {
         explorerUrl = `${arbitrum.blockExplorers.default.url}/tx/${investment.txHash}`;
-      } else if (network === "creditcoin") {
+      } else if (network === 'creditcoin') {
         explorerUrl = `${creditCoin3Mainnet.blockExplorers.default.url}/tx/${investment.txHash}`;
       }
-      console.log("Check investment transaction on explorer:", explorerUrl);
+      console.log('Check investment transaction on explorer:', explorerUrl);
     }
 
-    console.log("=== END INVESTMENT DATA ===");
+    console.log('=== END INVESTMENT DATA ===');
 
     const investmentId = investment?.id;
     const onChainProjectId = investment?.project?.onChainProjectId;
-    const network = investment?.project?.program?.network || "educhain-testnet";
+    const network = investment?.project?.program?.network || 'educhain-testnet';
 
     if (!investmentId) {
-      notify("Cannot reclaim: Missing investment ID", "error");
+      notify('Cannot reclaim: Missing investment ID', 'error');
       return;
     }
 
     // Get user's wallet address
     const userAddress = wallets?.[0]?.address;
     if (!userAddress) {
-      notify("Please connect your wallet first", "error");
+      notify('Please connect your wallet first', 'error');
       return;
     }
-    console.log("User wallet address:", userAddress);
+    console.log('User wallet address:', userAddress);
 
     if (onChainProjectId === null || onChainProjectId === undefined) {
       // For now, we'll use a mock ID for testing since projects aren't being validated on chain
-      console.error("No on-chain project ID found");
-      console.log("Project data:", investment?.project);
+      console.error('No on-chain project ID found');
+      console.log('Project data:', investment?.project);
 
       // You can either:
       // 1. Show an error (current behavior)
       notify(
-        "Cannot reclaim: This project has not been validated on blockchain yet. Please contact an administrator to validate the project first.",
-        "error"
+        'Cannot reclaim: This project has not been validated on blockchain yet. Please contact an administrator to validate the project first.',
+        'error',
       );
       return;
 
@@ -142,9 +136,9 @@ export default function UserInvestmentReclaimTab({
 
     // Create public client for the network
     const chainMap = {
-      "educhain-testnet": eduChainTestnet,
-      "base-sepolia": baseSepolia,
-      "arbitrum-sepolia": arbitrumSepolia,
+      'educhain-testnet': eduChainTestnet,
+      'base-sepolia': baseSepolia,
+      'arbitrum-sepolia': arbitrumSepolia,
       eduChain,
       base,
       arbitrum,
@@ -158,10 +152,8 @@ export default function UserInvestmentReclaimTab({
 
     // Check if user is using an external wallet and create custom sendTransaction
     const isExternalWallet =
-      user?.wallet?.connectorType && user.wallet.connectorType !== "embedded";
-    const currentWallet = wallets.find(
-      (wallet) => wallet.address === user?.wallet?.address
-    );
+      user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
+    const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
 
     let customSendTransaction = sendTransaction;
 
@@ -172,7 +164,7 @@ export default function UserInvestmentReclaimTab({
         try {
           // Get the provider from the wallet
           const eip1193Provider = await currentWallet.getEthereumProvider();
-          const { ethers } = await import("ethers");
+          const { ethers } = await import('ethers');
           const provider = new ethers.providers.Web3Provider(eip1193Provider);
           const signer = provider.getSigner();
 
@@ -180,13 +172,13 @@ export default function UserInvestmentReclaimTab({
           const txResponse = await signer.sendTransaction({
             to: input.to,
             data: input.data,
-            value: input.value?.toString() || "0",
+            value: input.value?.toString() || '0',
             chainId: input.chainId,
           });
 
           return { hash: txResponse.hash as `0x${string}` };
         } catch (error) {
-          console.error("External wallet transaction error:", error);
+          console.error('External wallet transaction error:', error);
           throw error;
         }
       };
@@ -197,29 +189,21 @@ export default function UserInvestmentReclaimTab({
       network,
       customSendTransaction,
       client,
-      userAddress
+      userAddress,
     );
 
     setReclaimingId(investmentId);
     try {
       // Step 1: Call blockchain reclaimFund function
-      notify(
-        "Please approve the reclaim transaction in your wallet",
-        "loading"
-      );
+      notify('Please approve the reclaim transaction in your wallet', 'loading');
 
-      const result = await investmentContract.reclaimFund(
-        Number(onChainProjectId)
-      );
+      const result = await investmentContract.reclaimFund(Number(onChainProjectId));
 
       if (!result.txHash) {
-        throw new Error("No transaction hash received from blockchain");
+        throw new Error('No transaction hash received from blockchain');
       }
 
-      notify(
-        "Blockchain transaction confirmed! Updating database...",
-        "success"
-      );
+      notify('Blockchain transaction confirmed! Updating database...', 'success');
 
       // Step 2: Update backend with the new reclaim transaction hash
       await reclaimInvestment({
@@ -230,45 +214,38 @@ export default function UserInvestmentReclaimTab({
           },
         },
         onCompleted: () => {
-          notify("Investment reclaimed successfully!", "success");
+          notify('Investment reclaimed successfully!', 'success');
           refetch();
         },
         onError: (error) => {
-          notify(`Failed to update reclaim status: ${error.message}`, "error");
+          notify(`Failed to update reclaim status: ${error.message}`, 'error');
         },
       });
     } catch (error) {
       // Check if user rejected the transaction
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       const errorCode = (error as { code?: number })?.code;
 
       if (
         errorCode === 4001 ||
-        errorMessage?.includes("User rejected") ||
-        errorMessage?.includes("User denied")
+        errorMessage?.includes('User rejected') ||
+        errorMessage?.includes('User denied')
       ) {
-        notify("Transaction cancelled by user", "error");
-      } else if (errorMessage?.includes("still active")) {
+        notify('Transaction cancelled by user', 'error');
+      } else if (errorMessage?.includes('still active')) {
         notify(
-          "Cannot reclaim: The project is still active. Reclaim is only available when the project fails or funding period ends.",
-          "error"
+          'Cannot reclaim: The project is still active. Reclaim is only available when the project fails or funding period ends.',
+          'error',
         );
-      } else if (errorMessage?.includes("completed successfully")) {
+      } else if (errorMessage?.includes('completed successfully')) {
         notify(
-          "Cannot reclaim: This project completed successfully. Funds are distributed via milestones.",
-          "error"
+          'Cannot reclaim: This project completed successfully. Funds are distributed via milestones.',
+          'error',
         );
-      } else if (errorMessage?.includes("No investment found")) {
-        notify(
-          "Cannot reclaim: No investment found for your wallet on the blockchain.",
-          "error"
-        );
+      } else if (errorMessage?.includes('No investment found')) {
+        notify('Cannot reclaim: No investment found for your wallet on the blockchain.', 'error');
       } else {
-        notify(
-          `Failed to reclaim: ${errorMessage || "Unknown error"}`,
-          "error"
-        );
+        notify(`Failed to reclaim: ${errorMessage || 'Unknown error'}`, 'error');
       }
     } finally {
       setReclaimingId(null);
@@ -297,53 +274,38 @@ export default function UserInvestmentReclaimTab({
         <div className="flex flex-col gap-3">
           {!investmentData?.investments?.data ||
           investmentData.investments.data.filter(
-            (investment) => investment?.canReclaim || investment?.reclaimed
+            (investment) => investment?.canReclaim || investment?.reclaimed,
           ).length === 0 ? (
             <div className="p-8 border rounded-lg w-full text-center">
-              <p className="text-muted-foreground mb-2">
-                No reclaimable items found
-              </p>
+              <p className="text-muted-foreground mb-2">No reclaimable items found</p>
               <p className="text-sm text-muted-foreground">
                 Reclaim is available for failed investment projects.
               </p>
             </div>
           ) : (
             investmentData.investments.data
-              .filter(
-                (investment) => investment?.canReclaim || investment?.reclaimed
-              )
+              .filter((investment) => investment?.canReclaim || investment?.reclaimed)
               .map((investment) => (
-                <div
-                  className="p-5 border rounded-lg w-full"
-                  key={investment?.id}
-                >
+                <div className="p-5 border rounded-lg w-full" key={investment?.id}>
                   <div className="bg-[#18181B0A] rounded-full px-[10px] inline-flex items-center gap-2 mb-4">
                     <span className="w-[14px] h-[14px] rounded-full bg-red-500 block" />
-                    <p className="text-secondary-foreground text-sm font-semibold">
-                      Refund
-                    </p>
+                    <p className="text-secondary-foreground text-sm font-semibold">Refund</p>
                   </div>
 
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 rounded-full bg-gray-200" />
                     <div className="flex flex-col gap-1">
-                      <p className="text-sm font-semibold">
-                        {investment?.project?.name}
-                      </p>
+                      <p className="text-sm font-semibold">{investment?.project?.name}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between px-2 py-1.5 bg-[#18181B0A] rounded-lg mb-2">
-                    <p className="text-sm font-medium text-neutral-400">
-                      PAYED
-                    </p>
+                    <p className="text-sm font-medium text-neutral-400">PAYED</p>
                     <div className="flex items-center gap-2">
                       <p className="text-sm text-muted-foreground font-bold">
                         {investment?.amount}
                       </p>
-                      {getCurrencyIcon(
-                        investment?.project?.program?.currency ?? ""
-                      )}
+                      {getCurrencyIcon(investment?.project?.program?.currency ?? '')}
                       <p className="text-sm text-muted-foreground font-medium">
                         {investment?.project?.program?.currency}
                       </p>
@@ -353,12 +315,8 @@ export default function UserInvestmentReclaimTab({
                   <div className="flex items-center justify-between px-2 py-2.5 bg-[#18181B0A] rounded-lg mb-4">
                     <p className="text-sm font-bold text-foreground">RECLAIM</p>
                     <div className="flex items-center gap-2">
-                      <p className="text-xl text-primary font-bold">
-                        {investment?.amount}
-                      </p>
-                      {getCurrencyIcon(
-                        investment?.project?.program?.currency ?? ""
-                      )}
+                      <p className="text-xl text-primary font-bold">{investment?.amount}</p>
+                      {getCurrencyIcon(investment?.project?.program?.currency ?? '')}
                       <p className="text-sm text-muted-foreground font-medium">
                         {investment?.project?.program?.currency}
                       </p>
@@ -373,14 +331,10 @@ export default function UserInvestmentReclaimTab({
                         disabled={reclaimingId === investment?.id}
                         onClick={() => handleReclaimInvestment(investment)}
                       >
-                        {reclaimingId === investment?.id
-                          ? "Processing..."
-                          : "Reclaim now"}
+                        {reclaimingId === investment?.id ? 'Processing...' : 'Reclaim now'}
                       </Button>
                     ) : investment?.reclaimed ? (
-                      <span className="text-sm text-muted-foreground">
-                        Already reclaimed
-                      </span>
+                      <span className="text-sm text-muted-foreground">Already reclaimed</span>
                     ) : (
                       <span className="text-sm text-muted-foreground">
                         Not eligible for reclaim
@@ -392,10 +346,7 @@ export default function UserInvestmentReclaimTab({
           )}
         </div>
       </div>
-      <Pagination
-        totalCount={investmentData?.investments?.count ?? 0}
-        pageSize={programPageSize}
-      />
+      <Pagination totalCount={investmentData?.investments?.count ?? 0} pageSize={programPageSize} />
     </div>
   );
 }
