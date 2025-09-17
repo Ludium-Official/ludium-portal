@@ -20,6 +20,7 @@ import {
   arbitrumSepolia,
   base,
   baseSepolia,
+  creditCoin3Mainnet,
   eduChain,
   eduChainTestnet,
 } from 'viem/chains';
@@ -30,7 +31,11 @@ const programPageSize = 6;
 // Recruitment reclaim functionality:
 // 1. Unused programs past deadline (sponsor can reclaim)
 // 2. Unpaid milestones past deadline (builder can reclaim)
-export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: boolean }) {
+export default function UserRecruitmentReclaimTab({
+  myProfile,
+}: {
+  myProfile?: boolean;
+}) {
   const { id } = useParams();
   const [searchParams, _setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
@@ -160,7 +165,9 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
                   program,
                   reason:
                     totalPaidOut > 0
-                      ? `Unused funds after deadline (${totalPaidOut.toFixed(2)}/${totalDeposited.toFixed(2)} ${program?.currency || 'ETH'} paid out)`
+                      ? `Unused funds after deadline (${totalPaidOut.toFixed(
+                          2,
+                        )}/${totalDeposited.toFixed(2)} ${program?.currency || 'ETH'} paid out)`
                       : 'Program expired without any payments',
                   amount: reclaimableAmount.toFixed(4),
                   currency: program?.currency || 'ETH',
@@ -208,7 +215,9 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
                 items.push({
                   type: 'unused_program',
                   program,
-                  reason: `Unused funding after deadline (${totalPaidOut.toFixed(2)}/${totalDeposited.toFixed(2)} ${program?.currency || 'ETH'} paid out)`,
+                  reason: `Unused funding after deadline (${totalPaidOut.toFixed(
+                    2,
+                  )}/${totalDeposited.toFixed(2)} ${program?.currency || 'ETH'} paid out)`,
                   amount: reclaimableAmount.toFixed(4),
                   currency: program?.currency || 'ETH',
                 });
@@ -290,13 +299,18 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
       if (network === 'arbitrum-sepolia') {
         return arbitrumSepolia;
       }
+      if (network === 'creditcoin') {
+        return creditCoin3Mainnet;
+      }
       return eduChain;
     })();
 
     // Helper function to get signer for injected wallet
     async function getSigner(
       checkNetwork: Chain,
-      currentWallet: { getEthereumProvider: () => Promise<ethers.providers.ExternalProvider> },
+      currentWallet: {
+        getEthereumProvider: () => Promise<ethers.providers.ExternalProvider>;
+      },
     ) {
       const eip1193Provider = await currentWallet.getEthereumProvider();
       if (!eip1193Provider) {
@@ -505,7 +519,9 @@ export default function UserRecruitmentReclaimTab({ myProfile }: { myProfile?: b
             // Display reclaimable items
             reclaimableItems.map((item) => (
               <div
-                key={`${item.type}-${item.type === 'unused_program' ? item.program?.id : item.milestone?.id}`}
+                key={`${item.type}-${
+                  item.type === 'unused_program' ? item.program?.id : item.milestone?.id
+                }`}
                 className="p-5 border rounded-lg w-full"
               >
                 <div className="bg-[#18181B0A] rounded-full px-[10px] inline-flex items-center gap-2 mb-4">

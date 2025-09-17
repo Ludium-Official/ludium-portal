@@ -12,12 +12,24 @@ import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import { http, type PublicClient, createPublicClient } from 'viem';
-import { arbitrumSepolia, baseSepolia, eduChainTestnet } from 'viem/chains';
+import {
+  arbitrum,
+  arbitrumSepolia,
+  base,
+  baseSepolia,
+  creditCoin3Mainnet,
+  eduChain,
+  eduChainTestnet,
+} from 'viem/chains';
 import { AgentBreadcrumbs } from './agent-breadcrumbs';
 
 const programPageSize = 6;
 
-export default function UserInvestmentReclaimTab({ myProfile }: { myProfile?: boolean }) {
+export default function UserInvestmentReclaimTab({
+  myProfile,
+}: {
+  myProfile?: boolean;
+}) {
   const { id } = useParams();
   const [searchParams, _setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,11 +80,19 @@ export default function UserInvestmentReclaimTab({ myProfile }: { myProfile?: bo
       const network = investment?.project?.program?.network || 'educhain-testnet';
       let explorerUrl = '';
       if (network === 'educhain-testnet') {
-        explorerUrl = `https://explorer.open-campus-codex.gelato.digital/tx/${investment.txHash}`;
+        explorerUrl = `${eduChainTestnet.blockExplorers.default.url}/tx/${investment.txHash}`;
       } else if (network === 'base-sepolia') {
-        explorerUrl = `https://sepolia.basescan.org/tx/${investment.txHash}`;
+        explorerUrl = `${baseSepolia.blockExplorers.default.url}/tx/${investment.txHash}`;
       } else if (network === 'arbitrum-sepolia') {
-        explorerUrl = `https://sepolia.arbiscan.io/tx/${investment.txHash}`;
+        explorerUrl = `${arbitrumSepolia.blockExplorers.default.url}/tx/${investment.txHash}`;
+      } else if (network === 'educhain') {
+        explorerUrl = `${eduChain.blockExplorers.default.url}/tx/${investment.txHash}`;
+      } else if (network === 'base') {
+        explorerUrl = `${base.blockExplorers.default.url}/tx/${investment.txHash}`;
+      } else if (network === 'arbitrum') {
+        explorerUrl = `${arbitrum.blockExplorers.default.url}/tx/${investment.txHash}`;
+      } else if (network === 'creditcoin') {
+        explorerUrl = `${creditCoin3Mainnet.blockExplorers.default.url}/tx/${investment.txHash}`;
       }
       console.log('Check investment transaction on explorer:', explorerUrl);
     }
@@ -119,6 +139,9 @@ export default function UserInvestmentReclaimTab({ myProfile }: { myProfile?: bo
       'educhain-testnet': eduChainTestnet,
       'base-sepolia': baseSepolia,
       'arbitrum-sepolia': arbitrumSepolia,
+      eduChain,
+      base,
+      arbitrum,
     };
 
     const chain = chainMap[network as keyof typeof chainMap] || eduChainTestnet;

@@ -19,12 +19,12 @@ export const TOKEN_CONFIGS = {
   },
   educhain: {
     USDC: {
-      address: '0x19EeaDcBA1801Afec43e87Cefcd4239E13fc294d', // USDC on EDUChain testnet
+      address: '0x836d275563bab5e93fd6ca62a95db7065da94342',
       decimals: 6,
       name: 'USDC',
     },
     USDT: {
-      address: '0x3BfB66999C22c0189B0D837D12D5A4004844EC12', // USDT on EDUChain testnet
+      address: '0x7277cc818e3f3ffbb169c6da9cc77fc2d2a34895',
       decimals: 6,
       name: 'USDT',
     },
@@ -36,11 +36,35 @@ export const TOKEN_CONFIGS = {
       name: 'USDC',
     },
   },
+  base: {
+    USDC: {
+      address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+      decimals: 6,
+      name: 'USDC',
+    },
+    USDT: {
+      address: '0xfde4c96c8593536e31f229ea8f37b2ada2699bb2',
+      decimals: 6,
+      name: 'USDT',
+    },
+  },
   'arbitrum-sepolia': {
     USDC: {
       address: '0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d',
       decimals: 6,
       name: 'USDC',
+    },
+  },
+  arbitrum: {
+    USDC: {
+      address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+      decimals: 6,
+      name: 'USDC',
+    },
+    USDT: {
+      address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+      decimals: 6,
+      name: 'USDT',
     },
   },
   sepolia: {
