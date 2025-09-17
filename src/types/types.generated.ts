@@ -957,6 +957,7 @@ export type Query = {
   comments?: Maybe<PaginatedComments>;
   commentsByCommentable?: Maybe<Array<Comment>>;
   countNotifications?: Maybe<Scalars['Int']['output']>;
+  getSwappedStatus?: Maybe<SwappedStatusResponse>;
   investment?: Maybe<Investment>;
   investmentTerm?: Maybe<InvestmentTerm>;
   investmentTermsByApplicationId?: Maybe<Array<InvestmentTerm>>;
@@ -1014,6 +1015,11 @@ export type QueryCommentsArgs = {
 export type QueryCommentsByCommentableArgs = {
   commentableId: Scalars['ID']['input'];
   commentableType: CommentableTypeEnum;
+};
+
+
+export type QueryGetSwappedStatusArgs = {
+  userId: Scalars['String']['input'];
 };
 
 
@@ -1135,6 +1141,14 @@ export type Supporter = {
   tier?: Maybe<Scalars['String']['output']>;
   userId?: Maybe<Scalars['ID']['output']>;
   walletAddress?: Maybe<Scalars['String']['output']>;
+};
+
+export type SwappedStatusResponse = {
+  __typename?: 'SwappedStatusResponse';
+  data?: Maybe<Scalars['JSON']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  orderId?: Maybe<Scalars['String']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
 };
 
 export type SwappedUrlResponse = {
