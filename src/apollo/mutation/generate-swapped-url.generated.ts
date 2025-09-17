@@ -7,6 +7,7 @@ export type GenerateSwappedUrlMutationVariables = Types.Exact<{
   currencyCode: Types.Scalars['String']['input'];
   walletAddress: Types.Scalars['String']['input'];
   amount: Types.Scalars['String']['input'];
+  userId: Types.Scalars['String']['input'];
 }>;
 
 
@@ -14,11 +15,12 @@ export type GenerateSwappedUrlMutation = { __typename?: 'Mutation', generateSwap
 
 
 export const GenerateSwappedUrlDocument = gql`
-    mutation GenerateSwappedUrl($currencyCode: String!, $walletAddress: String!, $amount: String!) {
+    mutation GenerateSwappedUrl($currencyCode: String!, $walletAddress: String!, $amount: String!, $userId: String!) {
   generateSwappedUrl(
     currencyCode: $currencyCode
     walletAddress: $walletAddress
     amount: $amount
+    userId: $userId
   ) {
     signedUrl
     originalUrl
@@ -44,6 +46,7 @@ export type GenerateSwappedUrlMutationFn = Apollo.MutationFunction<GenerateSwapp
  *      currencyCode: // value for 'currencyCode'
  *      walletAddress: // value for 'walletAddress'
  *      amount: // value for 'amount'
+ *      userId: // value for 'userId'
  *   },
  * });
  */

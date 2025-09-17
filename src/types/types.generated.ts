@@ -557,6 +557,7 @@ export type MutationDemoteFromAdminArgs = {
 export type MutationGenerateSwappedUrlArgs = {
   amount: Scalars['String']['input'];
   currencyCode: Scalars['String']['input'];
+  userId: Scalars['String']['input'];
   walletAddress: Scalars['String']['input'];
 };
 
