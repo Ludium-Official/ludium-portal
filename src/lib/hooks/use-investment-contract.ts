@@ -7,6 +7,7 @@ import {
   arbitrumSepolia,
   base,
   baseSepolia,
+  creditCoin3Mainnet,
   eduChain,
   eduChainTestnet,
 } from 'viem/chains';
@@ -74,11 +75,16 @@ const CONTRACT_ADDRESSES: Record<string, InvestmentContractAddresses> = {
     timeLock: import.meta.env.VITE_ARBITRUM_INVESTMENT_TIMELOCK_ADDRESS || '',
   },
   base: {
-    // Base mainnet - needs to be configured
-    core: import.meta.env.VITE_BASE_MAINNET_INVESTMENT_CORE_ADDRESS || '',
-    funding: import.meta.env.VITE_BASE_MAINNET_INVESTMENT_FUNDING_ADDRESS || '',
-    milestone: import.meta.env.VITE_BASE_MAINNET_INVESTMENT_MILESTONE_ADDRESS || '',
-    timeLock: import.meta.env.VITE_BASE_MAINNET_INVESTMENT_TIMELOCK_ADDRESS || '',
+    core: import.meta.env.VITE_BASE_INVESTMENT_CORE_ADDRESS || '',
+    funding: import.meta.env.VITE_BASE_INVESTMENT_FUNDING_ADDRESS || '',
+    milestone: import.meta.env.VITE_BASE_INVESTMENT_MILESTONE_ADDRESS || '',
+    timeLock: import.meta.env.VITE_BASE_INVESTMENT_TIMELOCK_ADDRESS || '',
+  },
+  creditcoin: {
+    core: import.meta.env.VITE_CREDITCOIN_INVESTMENT_CORE_ADDRESS || '',
+    funding: import.meta.env.VITE_CREDITCOIN_INVESTMENT_FUNDING_ADDRESS || '',
+    milestone: import.meta.env.VITE_CREDITCOIN_INVESTMENT_MILESTONE_ADDRESS || '',
+    timeLock: import.meta.env.VITE_CREDITCOIN_INVESTMENT_TIMELOCK_ADDRESS || '',
   },
   // Add more networks as needed
 };
@@ -142,6 +148,9 @@ export function useInvestmentContract(network: string | null = null) {
     if (network === 'arbitrum-sepolia') {
       return arbitrumSepolia;
     }
+    if (network === 'creditcoin') {
+      return creditCoin3Mainnet;
+    }
     return eduChain;
   })();
 
@@ -204,10 +213,14 @@ export function getInvestmentContract(
 
   // Get chain ID for the network
   const chainIdMap: Record<string, number> = {
-    'educhain-testnet': 656476,
-    'base-sepolia': 84532,
-    'arbitrum-sepolia': 421614,
+    'educhain-testnet': eduChainTestnet.id,
+    'base-sepolia': baseSepolia.id,
+    'arbitrum-sepolia': arbitrumSepolia.id,
     sepolia: 11155111,
+    educhain: eduChain.id,
+    arbitrum: arbitrum.id,
+    base: base.id,
+    creditcoin: creditCoin3Mainnet.id,
   };
 
   const chainId = chainIdMap[network] || chainIdMap['educhain-testnet'];
