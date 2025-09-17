@@ -39,13 +39,25 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
 import { http, type Chain, type PublicClient, createPublicClient } from 'viem';
-import { arbitrumSepolia, baseSepolia, eduChainTestnet } from 'viem/chains';
+import {
+  arbitrum,
+  arbitrumSepolia,
+  base,
+  baseSepolia,
+  creditCoin3Mainnet,
+  eduChain,
+  eduChainTestnet,
+} from 'viem/chains';
 
 function getChainForNetwork(network: string) {
   const chainMap: Record<string, Chain> = {
     'educhain-testnet': eduChainTestnet,
     'base-sepolia': baseSepolia,
     'arbitrum-sepolia': arbitrumSepolia,
+    educhain: eduChain,
+    base: base,
+    arbitrum: arbitrum,
+    creditcoin: creditCoin3Mainnet,
   };
   return chainMap[network] || eduChainTestnet;
 }
@@ -239,18 +251,20 @@ const InvestmentDetailsPage: React.FC = () => {
             const networkKey =
               program?.network?.toLowerCase().replace(' ', '-') || 'educhain-testnet';
             // Map network to TOKEN_CONFIGS key
-            const tokenConfigKey =
-              networkKey === 'educhain-testnet'
-                ? 'educhain'
-                : networkKey === 'base-sepolia'
-                  ? 'base-sepolia'
-                  : networkKey === 'arbitrum-sepolia'
-                    ? 'arbitrum-sepolia'
-                    : networkKey === 'sepolia'
-                      ? 'sepolia'
-                      : 'educhain';
+            // const tokenConfigKey =
+            //   networkKey === 'educhain-testnet'
+            //     ? 'educhain-testnet'
+            //     : networkKey === 'base-sepolia'
+            //       ? 'base-sepolia'
+            //       : networkKey === 'arbitrum-sepolia'
+            //         ? 'arbitrum-sepolia'
+            //         : networkKey === 'sepolia'
+            //           ? 'sepolia'
+            //           : networkKey === 'base'
+            //           ? 'base'
+            //           : 'educhain';
 
-            const networkConfig = TOKEN_CONFIGS[tokenConfigKey as keyof typeof TOKEN_CONFIGS];
+            const networkConfig = TOKEN_CONFIGS[networkKey as keyof typeof TOKEN_CONFIGS];
             if (networkConfig) {
               const tokenConfig = networkConfig[program.currency as keyof typeof networkConfig];
               if (tokenConfig) {
@@ -259,15 +273,15 @@ const InvestmentDetailsPage: React.FC = () => {
                   `Using ${program.currency} token address:`,
                   fundingTokenAddress,
                   'on network:',
-                  tokenConfigKey,
+                  networkKey,
                 );
               } else {
                 console.warn(
-                  `Token ${program.currency} not found in TOKEN_CONFIGS for network ${tokenConfigKey}`,
+                  `Token ${program.currency} not found in TOKEN_CONFIGS for network ${networkKey}`,
                 );
               }
             } else {
-              console.warn(`Network ${tokenConfigKey} not found in TOKEN_CONFIGS`);
+              console.warn(`Network ${networkKey} not found in TOKEN_CONFIGS`);
             }
           } else {
             console.log(`Using native token for currency: ${program?.currency || 'default'}`);
@@ -527,7 +541,13 @@ const InvestmentDetailsPage: React.FC = () => {
                             )}
                           >
                             {program?.applicationStartDate && program?.applicationEndDate
-                              ? `${format(new Date(program.applicationStartDate), 'dd. MMM. yyyy').toUpperCase()} – ${format(new Date(program.applicationEndDate), 'dd. MMM. yyyy').toUpperCase()}`
+                              ? `${format(
+                                  new Date(program.applicationStartDate),
+                                  'dd. MMM. yyyy',
+                                ).toUpperCase()} – ${format(
+                                  new Date(program.applicationEndDate),
+                                  'dd. MMM. yyyy',
+                                ).toUpperCase()}`
                               : 'N/A'}
                           </span>
                         </div>
@@ -567,7 +587,13 @@ const InvestmentDetailsPage: React.FC = () => {
                             )}
                           >
                             {program?.fundingStartDate && program?.fundingEndDate
-                              ? `${format(new Date(program.fundingStartDate), 'dd. MMM. yyyy').toUpperCase()} – ${format(new Date(program.fundingEndDate), 'dd. MMM. yyyy').toUpperCase()}`
+                              ? `${format(
+                                  new Date(program.fundingStartDate),
+                                  'dd. MMM. yyyy',
+                                ).toUpperCase()} – ${format(
+                                  new Date(program.fundingEndDate),
+                                  'dd. MMM. yyyy',
+                                ).toUpperCase()}`
                               : 'N/A'}
                           </span>
                         </div>
@@ -728,7 +754,9 @@ const InvestmentDetailsPage: React.FC = () => {
                       />
                       <AvatarFallback>
                         {getInitials(
-                          `${program?.creator?.firstName || ''} ${program?.creator?.lastName || ''}`,
+                          `${program?.creator?.firstName || ''} ${
+                            program?.creator?.lastName || ''
+                          }`,
                         )}
                       </AvatarFallback>
                     </Avatar>
