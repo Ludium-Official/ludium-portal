@@ -250,19 +250,6 @@ const InvestmentDetailsPage: React.FC = () => {
             // Get the network key (convert to lowercase and replace spaces)
             const networkKey =
               program?.network?.toLowerCase().replace(' ', '-') || 'educhain-testnet';
-            // Map network to TOKEN_CONFIGS key
-            // const tokenConfigKey =
-            //   networkKey === 'educhain-testnet'
-            //     ? 'educhain-testnet'
-            //     : networkKey === 'base-sepolia'
-            //       ? 'base-sepolia'
-            //       : networkKey === 'arbitrum-sepolia'
-            //         ? 'arbitrum-sepolia'
-            //         : networkKey === 'sepolia'
-            //           ? 'sepolia'
-            //           : networkKey === 'base'
-            //           ? 'base'
-            //           : 'educhain';
 
             const networkConfig = TOKEN_CONFIGS[networkKey as keyof typeof TOKEN_CONFIGS];
             if (networkConfig) {
