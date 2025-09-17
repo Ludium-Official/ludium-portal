@@ -1374,7 +1374,7 @@ function ProjectDetailsPage() {
                       </Dialog>
                     </div>
                     {/* Invest Button of Fiat on ramp */}
-                    {!fiatNetwork.isWorkFiat && (
+                    {fiatNetwork.isWorkFiat && (
                       <Dialog
                         open={isInvestFiatDialogOpen}
                         onOpenChange={setIsInvestFiatDialogOpen}
@@ -2525,7 +2525,7 @@ function ProjectDetailsPage() {
                           </Button>
                         </DialogContent>
                       </Dialog>
-                      {!fiatNetwork.isWorkFiat && (
+                      {fiatNetwork.isWorkFiat && (
                         <Dialog
                           open={isInvestFiatDialogOpen}
                           onOpenChange={setIsInvestFiatDialogOpen}
@@ -2631,10 +2631,9 @@ function ProjectDetailsPage() {
 
       {/* Swapped Investment Modal */}
       <Dialog open={showSwappedModal} onOpenChange={setShowSwappedModal}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="p-1">
           <SwappedInvestment
-            // currencyCode={fiatNetwork.currencyCode}
-            currencyCode={'ETH'}
+            currencyCode={fiatNetwork.currencyCode}
             walletAddress={privyUser?.wallet?.address || ''}
             amount={selectedTier}
             onSuccess={handleSwappedSuccess}

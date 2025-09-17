@@ -28,7 +28,6 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
   const [signedUrl, setSignedUrl] = useState('');
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [processingInvestment, setProcessingInvestment] = useState(false);
-  const [isPolling, setIsPolling] = useState(false);
 
   const [generateSwappedUrl, { loading, error }] = useGenerateSwappedUrlMutation({
     onCompleted: (data) => {
@@ -75,7 +74,6 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
   const handlePaymentComplete = async () => {
     setPaymentCompleted(true);
     setProcessingInvestment(true);
-    setIsPolling(false);
 
     try {
       await onSuccess();
@@ -105,8 +103,6 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
   useEffect(() => {
     if (paymentCompleted || !user?.id) return;
 
-    setIsPolling(true);
-
     // Start polling after iframe loads
     const startDelay = setTimeout(() => {
       startPolling(5000); // Poll every 5 seconds
@@ -115,7 +111,6 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
     return () => {
       clearTimeout(startDelay);
       stopPolling();
-      setIsPolling(false);
     };
   }, [paymentCompleted, user?.id, startPolling, stopPolling]);
 
@@ -135,11 +130,9 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
 
     if (success && orderData?.order_status === 'order_broadcasted') {
       stopPolling();
-      setIsPolling(false);
       handlePaymentComplete();
     } else if (orderData?.order_status === 'order_cancelled') {
       stopPolling();
-      setIsPolling(false);
       notify(`Payment ${orderData?.order_status}. Please try again.`, 'error');
     } else if (orderData?.order_status === 'payment_pending') {
       console.log('⏳ Order Pending:', orderData);
@@ -190,18 +183,6 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
         </div>
       ) : (
         <div className="space-y-4">
-          {isPolling && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-              <div className="flex items-center gap-2 text-blue-700">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="text-sm">
-                  🔗 Connected to real-time payment updates. Your investment will proceed
-                  automatically when payment completes.
-                </span>
-              </div>
-            </div>
-          )}
-
           <iframe
             src={signedUrl}
             width="100%"
