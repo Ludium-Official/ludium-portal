@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent } from '../ui/card';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Loader2 } from 'lucide-react';
+import React, { useState } from "react";
+import { Card, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Loader2 } from "lucide-react";
 
 interface SwappedFiatOnrampProps {
   currencyCode?: string;
@@ -12,45 +12,48 @@ interface SwappedFiatOnrampProps {
 }
 
 const SwappedFiatOnramp: React.FC<SwappedFiatOnrampProps> = ({
-  currencyCode = 'ETH',
+  currencyCode = "ETH",
   walletAddress,
   onClose,
 }) => {
-  const [amount, setAmount] = useState('');
-  const [signedUrl, setSignedUrl] = useState('');
+  const [amount, setAmount] = useState("");
+  const [signedUrl, setSignedUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const generateSignedUrl = async () => {
     if (!amount || !walletAddress) {
-      setError('Amount and wallet address are required');
+      setError("Amount and wallet address are required");
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
-      const response = await fetch('http://localhost:4000/generate-swapped-sign', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          currencyCode,
-          walletAddress,
-          amount,
-        }),
-      });
+      const response = await fetch(
+        "http://localhost:4000/generate-swapped-sign",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            currencyCode,
+            walletAddress,
+            amount,
+          }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to generate signed URL');
+        throw new Error("Failed to generate signed URL");
       }
 
       const data = await response.json();
       setSignedUrl(data.signedUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred');
+      setError(err instanceof Error ? err.message : "Unknown error occurred");
     } finally {
       setLoading(false);
     }
@@ -58,15 +61,15 @@ const SwappedFiatOnramp: React.FC<SwappedFiatOnrampProps> = ({
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
       setAmount(value);
     }
   };
 
   const resetForm = () => {
-    setAmount('');
-    setSignedUrl('');
-    setError('');
+    setAmount("");
+    setSignedUrl("");
+    setError("");
   };
 
   return (
@@ -87,7 +90,12 @@ const SwappedFiatOnramp: React.FC<SwappedFiatOnrampProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="currency">Currency</Label>
-                  <Input id="currency" value={currencyCode} disabled className="bg-gray-100" />
+                  <Input
+                    id="currency"
+                    value={currencyCode}
+                    disabled
+                    className="bg-gray-100"
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="amount">Amount (USD)</Label>
@@ -103,10 +111,19 @@ const SwappedFiatOnramp: React.FC<SwappedFiatOnrampProps> = ({
 
               <div className="space-y-2">
                 <Label htmlFor="wallet">Wallet Address</Label>
-                <Input id="wallet" value={walletAddress} disabled className="bg-gray-100 text-sm" />
+                <Input
+                  id="wallet"
+                  value={walletAddress}
+                  disabled
+                  className="bg-gray-100 text-sm"
+                />
               </div>
 
-              {error && <div className="text-red-500 text-sm p-2 bg-red-50 rounded">{error}</div>}
+              {error && (
+                <div className="text-red-500 text-sm p-2 bg-red-50 rounded">
+                  {error}
+                </div>
+              )}
 
               <Button
                 onClick={generateSignedUrl}
@@ -119,14 +136,16 @@ const SwappedFiatOnramp: React.FC<SwappedFiatOnrampProps> = ({
                     Generating...
                   </>
                 ) : (
-                  'Continue to Payment'
+                  "Continue to Payment"
                 )}
               </Button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Complete Your Purchase</h3>
+                <h3 className="text-lg font-semibold">
+                  Complete Your Purchase
+                </h3>
                 <Button variant="outline" onClick={resetForm}>
                   Back
                 </Button>
