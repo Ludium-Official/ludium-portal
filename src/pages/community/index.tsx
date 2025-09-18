@@ -197,7 +197,7 @@ const CommunityPage: React.FC = () => {
 
   return (
     <div className="bg-white rounded-2xl pb-[60px] px-10" id="scrollableDiv">
-      <div className="max-w-1440 mx-auto">
+      <div className="max-w-full md:max-w-1440 mx-auto">
         <div className="flex justify-between items-center pt-9 pb-4">
           <h1 className="text-3xl font-bold">Community</h1>
         </div>

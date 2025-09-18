@@ -1,8 +1,8 @@
+import { ProgramStatusBadge } from '@/components/status-badge';
 import { Badge } from '@/components/ui/badge';
-import { ApplicationStatus, type Program } from '@/types/types.generated';
+import { type Program } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronRight } from 'lucide-react';
-import { useMemo } from 'react';
 import { Link } from 'react-router';
 
 interface MainProgramCardProps {
@@ -17,25 +17,6 @@ function MainProgramCard({ program }: MainProgramCardProps) {
     0,
     Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)),
   );
-
-  // Find the latest active application and get its funding progress
-  const latestActiveApplication = useMemo(() => {
-    if (!program?.applications?.length) return null;
-
-    // Filter for active applications (Accepted or Completed status)
-    const activeApplications = program.applications.filter(
-      (app) =>
-        app.status === ApplicationStatus.Accepted || app.status === ApplicationStatus.Completed,
-    );
-
-    if (!activeApplications.length) return null;
-
-    // Return the first one (assuming they're ordered by latest first, or we can sort by creation date if needed)
-    return activeApplications[0];
-  }, [program?.applications]);
-
-  // Use the funding progress from the latest active application, fallback to 0
-  const fundingProgress = latestActiveApplication?.fundingProgress ?? 0;
 
   return (
     <Link
@@ -54,10 +35,7 @@ function MainProgramCard({ program }: MainProgramCardProps) {
             </Badge>
           ))}
         </div>
-        <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
-          <div className="w-[14px] h-[14px] bg-purple-500 rounded-full" />
-          <span className="text-sm text-gray-700 font-semibold">Completed</span>
-        </div>
+        <ProgramStatusBadge program={program} />
       </div>
 
       <div className="flex gap-6 flex-1">
@@ -79,21 +57,6 @@ function MainProgramCard({ program }: MainProgramCardProps) {
           </h3>
 
           <div className="space-y-2 flex-1 mb-3">
-            <div className="bg-[#0000000A] rounded px-2 py-1 flex justify-between items-center gap-3">
-              <span className="text-sm text-neutral-400 font-semibold">STATUS</span>
-
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-purple-600 h-2 rounded-full"
-                  style={{ width: `${fundingProgress}%` }}
-                />
-              </div>
-              <span className="text-xl text-primary font-bold flex items-center">
-                {fundingProgress}
-                <span className="text-sm text-muted-foreground">%</span>
-              </span>
-            </div>
-
             <div className="inline-flex gap-2 justify-between items-center bg-[#0000000A] rounded px-2 py-1">
               <span className="text-sm text-neutral-400 font-semibold">DATE</span>
               <span className="text-sm font-medium text-muted-foreground">
@@ -114,7 +77,9 @@ function MainProgramCard({ program }: MainProgramCardProps) {
               Project Management
             </span>
             <div className="flex items-center gap-1">
-              <span className="text-sm text-primary font-bold">6</span>
+              <span className="text-sm text-primary font-bold">
+                {program.applications?.length || 0}
+              </span>
               <ChevronRight className="w-4 h-4 text-secondary-foreground" />
             </div>
           </div>

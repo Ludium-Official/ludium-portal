@@ -18,7 +18,7 @@ function UserDetailsPage() {
 
   return (
     <div className="bg-white rounded-2xl">
-      <div className="max-w-1440 mx-auto p-10">
+      <div className="max-w-full md:max-w-1440 mx-auto p-10">
         <div className="flex gap-6">
           <section className="max-w-[360px] flex flex-col gap-5">
             <div className="flex flex-col gap-6">

@@ -35,6 +35,11 @@ function MobileWebView() {
               ABOUT LUDIUM
             </Button>
           </Link>
+          <Link to={window.location.origin}>
+            <Button className="w-full text-gray-light leading-[20px] rounded-lg">
+              GO BACK MAIN
+            </Button>
+          </Link>
         </div>
       </body>
     </main>

@@ -17,7 +17,10 @@ import {
 function ProgramStatusBadge({
   program,
   className,
-}: { program?: Maybe<Program>; className?: string }) {
+}: {
+  program?: Maybe<Program>;
+  className?: string;
+}) {
   if (!program) return null;
 
   let statusColor = <span className={'bg-gray-400 w-[14px] h-[14px] rounded-full block'} />;
@@ -42,7 +45,7 @@ function ProgramStatusBadge({
   return (
     <span
       className={cn(
-        'flex items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold text-sm',
+        'flex items-center text-secondary-foreground gap-2 bg-gray-light px-2.5 py-0.5 rounded-full font-semibold md:text-sm text-xs',
         className,
       )}
     >
@@ -55,7 +58,10 @@ function ProgramStatusBadge({
 function ApplicationStatusBadge({
   application,
   className,
-}: { application?: Maybe<Application>; className?: string }) {
+}: {
+  application?: Maybe<Application>;
+  className?: string;
+}) {
   if (!application) return null;
 
   let statusColor = <span className={'bg-gray-400 w-[14px] h-[14px] rounded-full block'} />;
@@ -94,7 +100,10 @@ function ApplicationStatusBadge({
 function MilestoneStatusBadge({
   milestone,
   className,
-}: { milestone?: Maybe<Milestone>; className?: string }) {
+}: {
+  milestone?: Maybe<Milestone>;
+  className?: string;
+}) {
   if (!milestone) return null;
 
   let statusColor = <span className={'bg-gray-400 w-[14px] h-[14px] rounded-full block'} />;

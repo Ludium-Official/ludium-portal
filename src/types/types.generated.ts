@@ -394,6 +394,7 @@ export type Mutation = {
   deleteProgram?: Maybe<Scalars['Boolean']['output']>;
   deleteUser?: Maybe<User>;
   demoteFromAdmin?: Maybe<User>;
+  generateSwappedUrl?: Maybe<SwappedUrlResponse>;
   hidePost?: Maybe<Post>;
   hideProgram?: Maybe<Program>;
   incrementPostView?: Maybe<Scalars['Int']['output']>;
@@ -550,6 +551,14 @@ export type MutationDeleteUserArgs = {
 
 export type MutationDemoteFromAdminArgs = {
   userId: Scalars['ID']['input'];
+};
+
+
+export type MutationGenerateSwappedUrlArgs = {
+  amount: Scalars['String']['input'];
+  currencyCode: Scalars['String']['input'];
+  userId: Scalars['String']['input'];
+  walletAddress: Scalars['String']['input'];
 };
 
 
@@ -948,6 +957,7 @@ export type Query = {
   comments?: Maybe<PaginatedComments>;
   commentsByCommentable?: Maybe<Array<Comment>>;
   countNotifications?: Maybe<Scalars['Int']['output']>;
+  getSwappedStatus?: Maybe<SwappedStatusResponse>;
   investment?: Maybe<Investment>;
   investmentTerm?: Maybe<InvestmentTerm>;
   investmentTermsByApplicationId?: Maybe<Array<InvestmentTerm>>;
@@ -1005,6 +1015,11 @@ export type QueryCommentsArgs = {
 export type QueryCommentsByCommentableArgs = {
   commentableId: Scalars['ID']['input'];
   commentableType: CommentableTypeEnum;
+};
+
+
+export type QueryGetSwappedStatusArgs = {
+  userId: Scalars['String']['input'];
 };
 
 
@@ -1126,6 +1141,21 @@ export type Supporter = {
   tier?: Maybe<Scalars['String']['output']>;
   userId?: Maybe<Scalars['ID']['output']>;
   walletAddress?: Maybe<Scalars['String']['output']>;
+};
+
+export type SwappedStatusResponse = {
+  __typename?: 'SwappedStatusResponse';
+  data?: Maybe<Scalars['JSON']['output']>;
+  message?: Maybe<Scalars['String']['output']>;
+  orderId?: Maybe<Scalars['String']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+};
+
+export type SwappedUrlResponse = {
+  __typename?: 'SwappedUrlResponse';
+  originalUrl?: Maybe<Scalars['String']['output']>;
+  signature?: Maybe<Scalars['String']['output']>;
+  signedUrl?: Maybe<Scalars['String']['output']>;
 };
 
 export type TierAssignmentData = {

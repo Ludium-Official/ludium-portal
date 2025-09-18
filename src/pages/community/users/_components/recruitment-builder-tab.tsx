@@ -11,7 +11,11 @@ import { AgentBreadcrumbs } from './agent-breadcrumbs';
 
 const programPageSize = 6;
 
-export default function UserRecruitmentBuilderTab({ myProfile }: { myProfile?: boolean }) {
+export default function UserRecruitmentBuilderTab({
+  myProfile,
+}: {
+  myProfile?: boolean;
+}) {
   const { id } = useParams();
   const [searchParams, _setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
