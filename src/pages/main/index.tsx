@@ -50,6 +50,10 @@ function MainPage() {
             field: 'status',
             value: 'published',
           },
+          {
+            field: 'visibility',
+            value: 'public',
+          },
         ],
       },
     },
