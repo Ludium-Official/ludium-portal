@@ -1398,13 +1398,15 @@ function ProjectDetailsPage() {
                           <DialogDescription className="text-sm text-muted-foreground text-center">
                             The amount will be securely stored until you will confirm the completion
                             of the project.
+                            <br />
+                            It will be executed in the investment contract after the payment.
                           </DialogDescription>
                           <Button
                             onClick={handleInvestThroughFiatonramp}
                             className="bg-foreground text-white"
                             disabled={isInvesting}
                           >
-                            {isInvesting ? 'Processing...' : 'Yes, Pay now!!'}
+                            {isInvesting ? 'Processing...' : 'Yes, Pay now'}
                           </Button>
                         </DialogContent>
                       </Dialog>
@@ -2600,13 +2602,15 @@ function ProjectDetailsPage() {
                             <DialogDescription className="text-sm text-muted-foreground text-center">
                               The amount will be securely stored until you will confirm the
                               completion of the project.
+                              <br />
+                              It will be executed in the investment contract after the payment.
                             </DialogDescription>
                             <Button
                               onClick={handleInvestThroughFiatonramp}
                               className="bg-foreground text-white"
                               disabled={isInvesting}
                             >
-                              {isInvesting ? 'Processing...' : 'Yes, Pay now!!'}
+                              {isInvesting ? 'Processing...' : 'Yes, Pay now'}
                             </Button>
                           </DialogContent>
                         </Dialog>
