@@ -152,22 +152,22 @@ export default function InvestmentsPage() {
   // };
 
   return (
-    <div className="bg-white rounded-2xl">
-      <div className="max-w-[1440px] mx-auto">
+    <div className="bg-white rounded-2xl overflow-hidden">
+      <div className="max-w-full md:max-w-[1440px] mx-auto">
         {/* Header */}
         <div className="bg-white">
-          <div className="w-full mx-auto px-10 py-9">
-            <h1 className="text-3xl font-bold text-gray-900">Investment</h1>
+          <div className="w-full mx-auto px-4 md:px-10 py-6 md:py-9">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Investment</h1>
           </div>
         </div>
 
         {/* Navigation and Search */}
         <div className="bg-white">
-          <div className="w-full  mx-auto px-10">
-            <div className="flex items-center justify-between gap-20">
+          <div className="w-full mx-auto px-4 md:px-10">
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 lg:gap-20">
               {/* Tabs */}
-              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-auto">
-                <TabsList className="w-auto bg-gray-100 p-1">
+              <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full lg:w-auto">
+                <TabsList className="w-full lg:w-auto bg-gray-100 p-1 grid grid-cols-2 lg:flex lg:grid-cols-none gap-0">
                   <TabsTrigger value="newest">Newest</TabsTrigger>
                   <TabsTrigger value="imminent">Imminent</TabsTrigger>
                   <TabsTrigger value="my-programs">My programs</TabsTrigger>
@@ -176,7 +176,7 @@ export default function InvestmentsPage() {
               </Tabs>
 
               {/* Search and Create */}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
@@ -184,14 +184,14 @@ export default function InvestmentsPage() {
                     placeholder="Search..."
                     value={searchParams.get('search') ?? ''}
                     onChange={handleSearchChange}
-                    className="pl-10 w-90 h-10 bg-gray-50 border-gray-200 focus:border-gray-300"
+                    className="pl-10 w-full sm:w-90 h-10 bg-gray-50 border-gray-200 focus:border-gray-300"
                   />
                 </div>
                 <Button
-                  className="bg-gray-900 text-white hover:bg-gray-800 px-3 py-2 text-sm"
+                  className="hidden md:flex bg-gray-900 text-white hover:bg-gray-800 px-3 py-2 text-sm whitespace-nowrap items-center gap-2"
                   onClick={() => navigate('/investments/create')}
                 >
-                  <CirclePlus />
+                  <CirclePlus className="w-4 h-4" />
                   Create Investment
                 </Button>
               </div>
@@ -200,10 +200,10 @@ export default function InvestmentsPage() {
         </div>
 
         {/* Content */}
-        <div className="w-full mx-auto px-10 py-5 bg-white">
+        <div className="w-full mx-auto px-4 md:px-10 py-5 bg-white">
           <div className="space-y-6">
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {Array.from({ length: 12 }).map((_, i) => (
                   <Card
                     key={`investment-skeleton-${
@@ -240,7 +240,7 @@ export default function InvestmentsPage() {
                 <p className="text-gray-500">No programs found</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {filteredPrograms.map((program) => (
                   <InvestmentCard key={program.id} program={program} />
                 ))}
@@ -311,74 +311,80 @@ function InvestmentCard({ program }: InvestmentCardProps) {
         </div>
 
         {/* Content */}
-        <Link to={`/investments/${program?.id}`} className="flex gap-4">
+        <Link to={`/investments/${program?.id}`} className="flex flex-col sm:flex-row gap-4">
           {/* Thumbnail */}
           {program.image ? (
-            <img src={program.image} className="w-29 h-29 rounded-md" alt="Program" />
+            <img
+              src={program.image}
+              className="w-full sm:w-29 h-48 sm:h-29 rounded-md object-cover"
+              alt="Program"
+            />
           ) : (
-            <div className="w-29 h-29 bg-slate-200 rounded-md " />
+            <div className="w-full sm:w-29 h-48 sm:h-29 bg-slate-200 rounded-md" />
           )}
 
           {/* Title and details */}
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-1">
+            <h3 className="font-bold text-base md:text-lg text-gray-900 mb-2 line-clamp-1">
               {program.name || ''}
             </h3>
 
             {/* Deadline and amount */}
             <div className="space-y-3">
-              <div className="bg-[#0000000A] rounded-md py-1 px-2 gap-2 inline-flex items-center">
-                <div className="text-sm font-semibold text-neutral-400">DATE</div>
-                <div className="flex items-center gap-2">
-                  {(() => {
-                    const formatDate = (dateString: string) => {
-                      return new Date(dateString)
-                        .toLocaleDateString('en-US', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric',
-                        })
-                        .toUpperCase()
-                        .split(' ')
-                        .join(' . ');
-                    };
+              <div className="flex flex-wrap items-center justify-between gap-2 bg-[#0000000A] rounded-md py-1 px-2">
+                <div className="flex items-center text-sm">
+                  <div className="mr-3 font-semibold text-neutral-400">DATE</div>
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const formatDate = (dateString: string) => {
+                        return new Date(dateString)
+                          .toLocaleDateString('en-US', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                          })
+                          .toUpperCase()
+                          .split(' ')
+                          .join(' . ');
+                      };
 
-                    const renderDateRange = (startDate: string, endDate: string) => (
-                      <>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground font-medium">
-                          {formatDate(startDate)}
-                        </div>
-                        <div className="w-2 h-px bg-muted-foreground" />
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground font-medium">
-                          {formatDate(endDate)}
-                        </div>
-                      </>
-                    );
-
-                    const now = new Date();
-                    const fundingHasStarted =
-                      program.fundingStartDate && now >= new Date(program.fundingStartDate);
-
-                    // Show funding dates if funding has started and dates are available
-                    if (fundingHasStarted && program.fundingStartDate && program.fundingEndDate) {
-                      return renderDateRange(program.fundingStartDate, program.fundingEndDate);
-                    }
-
-                    // Show application dates if available
-                    if (program.applicationStartDate && program.applicationEndDate) {
-                      return renderDateRange(
-                        program.applicationStartDate,
-                        program.applicationEndDate,
+                      const renderDateRange = (startDate: string, endDate: string) => (
+                        <>
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground font-medium">
+                            {formatDate(startDate)}
+                          </div>
+                          <div className="w-2 h-px bg-muted-foreground" />
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground font-medium">
+                            {formatDate(endDate)}
+                          </div>
+                        </>
                       );
-                    }
 
-                    // Fallback when no dates are available
-                    return (
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        No dates set
-                      </div>
-                    );
-                  })()}
+                      const now = new Date();
+                      const fundingHasStarted =
+                        program.fundingStartDate && now >= new Date(program.fundingStartDate);
+
+                      // Show funding dates if funding has started and dates are available
+                      if (fundingHasStarted && program.fundingStartDate && program.fundingEndDate) {
+                        return renderDateRange(program.fundingStartDate, program.fundingEndDate);
+                      }
+
+                      // Show application dates if available
+                      if (program.applicationStartDate && program.applicationEndDate) {
+                        return renderDateRange(
+                          program.applicationStartDate,
+                          program.applicationEndDate,
+                        );
+                      }
+
+                      // Fallback when no dates are available
+                      return (
+                        <div className="flex items-center gap-1 text-sm text-gray-600">
+                          No dates set
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
                 <Badge className="bg-gray-900 text-white text-xs font-semibold">
                   D-{daysUntilDeadline || 0}
@@ -395,7 +401,7 @@ function InvestmentCard({ program }: InvestmentCardProps) {
         </Link>
 
         {/* Footer buttons */}
-        <div className="flex justify-between mt-6">
+        <div className="flex flex-col sm:flex-row justify-between gap-2 sm:gap-0 mt-6">
           <Link
             to={`/investments/${program?.id}#applications`}
             className="text-xs font-semibold bg-gray-light rounded-md px-3 py-2 leading-4"

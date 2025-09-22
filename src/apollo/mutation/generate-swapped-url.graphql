@@ -1,0 +1,17 @@
+mutation GenerateSwappedUrl(
+  $currencyCode: String!
+  $walletAddress: String!
+  $amount: String!
+  $userId: String!
+) {
+  generateSwappedUrl(
+    currencyCode: $currencyCode
+    walletAddress: $walletAddress
+    amount: $amount
+    userId: $userId
+  ) {
+    signedUrl
+    originalUrl
+    signature
+  }
+}

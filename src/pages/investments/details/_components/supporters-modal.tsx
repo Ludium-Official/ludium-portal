@@ -225,7 +225,10 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
       }
 
       // Send invitations to all stored supporters
-      const invitedSupporters: Array<{ supporter: StoredSupporter; walletAddress?: string }> = [];
+      const invitedSupporters: Array<{
+        supporter: StoredSupporter;
+        walletAddress?: string;
+      }> = [];
       let syncedCount = 0;
       let failedCount = 0;
 
@@ -576,7 +579,7 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
                 </div>
                 <div className="text-sm font-medium flex items-center gap-2">
                   <span className={`font-bold text-lg ${isAmountExceeded() ? 'text-red-600' : ''}`}>
-                    {calculateStoredSupportersTotal().toLocaleString()}
+                    {calculateStoredSupportersTotal()}
                   </span>
                   <span>{getCurrencyIcon(program?.currency)}</span>
                   <span>{program?.currency}</span>

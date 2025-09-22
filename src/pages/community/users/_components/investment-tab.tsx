@@ -17,7 +17,11 @@ const filterBasedOnRole = {
   builder: 'applicantId',
 };
 
-export default function UserInvestmentTab({ myProfile }: { myProfile?: boolean }) {
+export default function UserInvestmentTab({
+  myProfile,
+}: {
+  myProfile?: boolean;
+}) {
   const { id } = useParams();
   const [searchQuery, setSearchQuery] = useState('');
 

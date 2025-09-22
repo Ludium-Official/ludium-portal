@@ -22,7 +22,11 @@ const filterBasedOnRole = {
 
 const roles = ['sponsor', 'validator' /*'builder'*/] as const;
 
-export default function UserRecruitmentTab({ myProfile }: { myProfile?: boolean }) {
+export default function UserRecruitmentTab({
+  myProfile,
+}: {
+  myProfile?: boolean;
+}) {
   const { id } = useParams();
   const [searchQuery, setSearchQuery] = useState('');
 

@@ -58,7 +58,7 @@ function UsersPage() {
   return (
     <div className="bg-white rounded-[16px] pb-[60px] flex flex-col gap-10">
       <div className="px-10">
-        <div className="max-w-1440 mx-auto">
+        <div className="max-w-full md:max-w-1440 mx-auto">
           <div className="flex justify-between items-center pt-9 pb-4">
             <h3 className="text-gray-dark font-bold text-3xl">Agent</h3>
           </div>
