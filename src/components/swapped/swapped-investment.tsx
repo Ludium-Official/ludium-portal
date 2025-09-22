@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '../ui/button';
 import { Loader2, CheckCircle } from 'lucide-react';
 import notify from '@/lib/notify';
@@ -29,6 +29,14 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [processingInvestment, setProcessingInvestment] = useState(false);
 
+  const realAmount = useMemo(() => {
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount)) return amount;
+
+    const amountWithFee = numericAmount * 1.01;
+    return amountWithFee.toFixed(2);
+  }, [amount]);
+
   const [generateSwappedUrl, { loading, error }] = useGenerateSwappedUrlMutation({
     onCompleted: (data) => {
       if (data?.generateSwappedUrl?.signedUrl) {
@@ -56,7 +64,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
         variables: {
           currencyCode,
           walletAddress,
-          amount,
+          amount: realAmount,
           userId: user.id,
         },
       });
