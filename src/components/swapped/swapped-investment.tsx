@@ -125,6 +125,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
 
   // Handle status updates
   useEffect(() => {
+    console.log(statusData);
     if (!statusData?.getSwappedStatus) return;
 
     const { status, data, message } = statusData.getSwappedStatus;
@@ -136,7 +137,6 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
 
     const responseData = data as any;
     const { data: orderData, success } = responseData || {};
-    console.log("Order Status: ", success, orderData?.order_status);
 
     if (success && orderData?.order_status === "order_completed") {
       stopPolling();
