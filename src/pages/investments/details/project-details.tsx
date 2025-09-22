@@ -1264,10 +1264,14 @@ function ProjectDetailsPage() {
                           !program?.userTierAssignment ||
                           program.userTierAssignment.tier === t.price;
 
+                        const purchaseLimitReached =
+                          typeof t.remainingPurchases === 'number' && t.remainingPurchases <= 0;
+
                         return (
                           <button
                             disabled={
                               !canSelectTier ||
+                              purchaseLimitReached ||
                               data?.application?.status !== ApplicationStatus.Accepted ||
                               (program?.fundingStartDate &&
                                 new Date() < new Date(program.fundingStartDate)) ||
@@ -1276,8 +1280,9 @@ function ProjectDetailsPage() {
                             }
                             type="button"
                             className={cn(
-                              'group block w-full text-left border rounded-lg p-3 shadow-sm cursor-pointer transition-all disabled:opacity-60',
+                              'group block w-full text-left border rounded-lg p-4 shadow-sm transition-all disabled:opacity-60',
                               selectedTier === t.price ? 'bg-[#F4F4F5]' : 'bg-white',
+                              !isLoggedIn ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
                             )}
                             key={t.id}
                             onClick={() => setSelectedTier(t.price || '')}
