@@ -136,7 +136,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
     const responseData = data as any;
     const { data: orderData, success } = responseData || {};
 
-    if (success && orderData?.order_status === 'order_broadcasted') {
+    if (success && orderData?.order_status === 'order_completed') {
       stopPolling();
       handlePaymentComplete();
     } else if (orderData?.order_status === 'order_cancelled') {
