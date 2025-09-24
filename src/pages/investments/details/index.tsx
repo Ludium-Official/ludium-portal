@@ -176,7 +176,7 @@ const InvestmentDetailsPage: React.FC = () => {
           const isExternalWallet =
             user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
 
-          console.log('Wallet detection for investment program:', {
+          console.log('Wallet detection for funding program:', {
             connectorType: user?.wallet?.connectorType,
             isExternalWallet,
             currentWallet: currentWallet?.address,
@@ -187,7 +187,7 @@ const InvestmentDetailsPage: React.FC = () => {
           let customSendTransaction = sendTransaction;
 
           if (isExternalWallet && currentWallet) {
-            console.log('Using external wallet for investment program deployment');
+            console.log('Using external wallet for funding program deployment');
             // For external wallets, we need to handle transactions differently
             // @ts-ignore - We're overriding the type to handle external wallets
             customSendTransaction = async (input, _uiOptions) => {
@@ -399,7 +399,7 @@ const InvestmentDetailsPage: React.FC = () => {
       <div className="text-center bg-white rounded-2xl p-10">
         <p className="text-lg font-bold mb-10">You do not have access to this program</p>
         <Link to="/investments" className="text-primary hover:underline font-semibold">
-          Go back to investments
+          Go back to Funding
         </Link>
       </div>
     );

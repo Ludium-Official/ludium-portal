@@ -2,9 +2,9 @@
 
 # Overview
 
-The digital native world opens new doors for the great opportunity for the workforce. For one, it is **geographically agnostic** for anyone to work from anywhere. Two, it allows **asynchronous** project management that fosters innovation. And finally, it promotes **pluralistic contribution** where anyone can choose to work for the task that fits them. However, under the current system of work, we are still bounded to work in a place at the designated time for one organization. 
+The digital native world opens new doors for the great opportunity for the workforce. For one, it is **geographically agnostic** for anyone to work from anywhere. Two, it allows **asynchronous** project management that fosters innovation. And finally, it promotes **pluralistic contribution** where anyone can choose to work for the task that fits them. However, under the current system of work, we are still bounded to work in a place at the designated time for one organization.
 
-Ludium believes that the new world begs for a new system. For this, we develop a system that is **accessible, collaborative and trustless** for the liberty of the builders.  
+Ludium believes that the new world begs for a new system. For this, we develop a system that is **accessible, collaborative and trustless** for the liberty of the builders.
 
 # System Architecture
 
@@ -18,7 +18,8 @@ Ludium v2 is the system updated from the [**previous version**](https://github.c
 - **Settlement**: When a milestone is completed, builders are allocated resources as specified by the project milestone. If the program include the onchain fund under contract, the payment will be settled from the fund. If there is no fund, it will be outside the system
 
 # System Components
-- [Portal Frontend](): 
+
+- [Portal Frontend]():
 - [Portal Backend](https://github.com/Ludium-Official/ludium-portal-backend/blob/main/README.md): GraphQL API that offers Role Based Access Control (ex. Sponsors, Validators, and Builders)
 - [Portal Contract](https://github.com/Ludium-Official/ludium-portal-contract): Solidity based escrow contract that sponsors create program, validators accept milestones, and builders receive payment
 - [Ludium Farcaster](https://github.com/Ludium-Official/ludium-farcaster): Farcaster frame creator for the Ludium programs on the portal
@@ -28,7 +29,7 @@ Ludium v2 is the system updated from the [**previous version**](https://github.c
 - **Contest Payment**: Anyone can set up a contest program (eg. hackathons, airdrop events) for the marketing exposure or incentivization
 - **Project Hiring**: Projects and organizations can announce a program to hire individual teams required for the task
 - **Grant Management**: Web3 foundations and other non profit organizations can run grants program to manage projects
-- **Investment**: VCs and other for profit organizations can run programs to select qualified candidates for the further investment
+- **Funding**: VCs and other for profit organizations can run programs to select qualified candidates for the further funding
 - **Organization Resource Allocation**: Any organization can run programs to assign and manage tasks for the internal resource management
 
 # Contribution

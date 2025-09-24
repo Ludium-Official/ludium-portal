@@ -381,7 +381,7 @@ function ProjectDetailsPage() {
   const handleInvest = async () => {
     // Prevent double execution
     if (isInvesting) {
-      console.log('Investment already in progress, skipping duplicate call');
+      console.log('Funding already in progress, skipping duplicate call');
       return;
     }
 
@@ -419,7 +419,7 @@ function ProjectDetailsPage() {
 
         if (!userTierAssignment.maxInvestmentAmount) {
           notify(
-            'Your tier does not have a valid investment amount. Please contact the program administrator.',
+            'Your tier does not have a valid funding amount. Please contact the program administrator.',
             'error',
           );
           return;
@@ -431,7 +431,7 @@ function ProjectDetailsPage() {
         const selected = selectedTier.toLowerCase();
 
         if (selected !== userTier) {
-          notify(`You can only invest in your assigned tier: ${userTierAssignment.tier}`, 'error');
+          notify(`You can only support in your assigned tier: ${userTierAssignment.tier}`, 'error');
           console.error('Tier mismatch:', {
             selectedTier,
             userTier: userTierAssignment.tier,
@@ -457,7 +457,7 @@ function ProjectDetailsPage() {
 
       // Validate amount exists
       if (!rawAmount || rawAmount === '0') {
-        notify('Invalid investment amount', 'error');
+        notify('Invalid funding amount', 'error');
         console.error('No valid amount found:', {
           rawAmount,
           fundingCondition: program?.fundingCondition,
@@ -470,7 +470,7 @@ function ProjectDetailsPage() {
 
       // Log the raw amount for tier-based investments
       if (program?.fundingCondition === 'tier') {
-        console.log('Tier investment amount details:', {
+        console.log('Tier funding amount details:', {
           rawAmount,
           type: typeof rawAmount,
           userTierAssignment: program?.userTierAssignment,
@@ -496,7 +496,7 @@ function ProjectDetailsPage() {
           humanReadableAmount = amountStr;
           amountInWei = ethers.utils.parseUnits(amountStr, decimals).toString();
 
-          console.log('Tier investment amount conversion:', {
+          console.log('Tier funding amount conversion:', {
             original: amountStr,
             humanReadable: humanReadableAmount,
             weiAmount: amountInWei,
@@ -519,7 +519,7 @@ function ProjectDetailsPage() {
         // Validate it's a valid BigInt
         BigInt(amountInWei);
       } catch {
-        notify('Invalid investment amount format', 'error');
+        notify('Invalid funding amount format', 'error');
         return;
       }
 
@@ -535,7 +535,7 @@ function ProjectDetailsPage() {
         const epsilon = 0.000001;
         if (investmentAmount > remainingCapacity + epsilon) {
           notify(
-            `Investment exceeds your remaining capacity of ${remainingCapacity} ${program?.currency}. Your tier (${userTierAssignment.tier}) has a max of ${userTierAssignment.maxInvestmentAmount} ${program?.currency} and you've already invested ${userTierAssignment.currentInvestment} ${program?.currency}`,
+            `Funding exceeds your remaining capacity of ${remainingCapacity} ${program?.currency}. Your tier (${userTierAssignment.tier}) has a max of ${userTierAssignment.maxInvestmentAmount} ${program?.currency} and you've already funded ${userTierAssignment.currentInvestment} ${program?.currency}`,
             'error',
           );
           return;
@@ -552,7 +552,7 @@ function ProjectDetailsPage() {
         // Check if project is registered (0 is a valid project ID)
         if (onChainProjectId === null || onChainProjectId === undefined) {
           notify(
-            'This project needs to be registered on the blockchain before investments can be made. Please contact the program administrator.',
+            'This project needs to be registered on the blockchain before funding can be made. Please contact the program administrator.',
             'error',
           );
           return; // Don't continue with investment
@@ -579,7 +579,7 @@ function ProjectDetailsPage() {
           // Check if program is in funding period
           if (!programStatus.isInFundingPeriod) {
             notify(
-              `Investment failed: Program is not in funding period. Current status: ${programStatus.status}`,
+              `Funding failed: Program is not in funding period. Current status: ${programStatus.status}`,
               'error',
             );
             return;
@@ -589,7 +589,7 @@ function ProjectDetailsPage() {
           // This happens only once when the first person tries to invest
           if (programStatus.status === 'Ready' && programStatus.isInFundingPeriod) {
             notify(
-              'This is the first investment. Program activation required (one-time setup).',
+              'This is the first funding. Program activation required (one-time setup).',
               'blank',
             );
 
@@ -604,7 +604,7 @@ function ProjectDetailsPage() {
             }
           } else if (programStatus.status !== 'Active') {
             notify(
-              `Investment failed: Program is not active. Current status: ${programStatus.status}`,
+              `Funding failed: Program is not active. Current status: ${programStatus.status}`,
               'error',
             );
             return;
@@ -613,7 +613,7 @@ function ProjectDetailsPage() {
           const userAddress = privyUser?.wallet?.address || '';
 
           if (!userAddress) {
-            notify('Please connect your wallet to invest', 'error');
+            notify('Please connect your wallet to support', 'error');
             return;
           }
 
@@ -634,7 +634,7 @@ function ProjectDetailsPage() {
 
               // Only show error if tier check explicitly returns null AND we know there should be a tier
               if (!onChainTier && program.userTierAssignment) {
-                console.warn('Tier might be at project level, continuing with investment...');
+                console.warn('Tier might be at project level, continuing with funding...');
                 // Don't return here - let the smart contract handle the validation
                 // The contract will revert if the tier is truly not assigned
               } else if (onChainTier) {
@@ -656,9 +656,9 @@ function ProjectDetailsPage() {
 
             if (currentInvestment !== '0') {
               const currentInHuman = ethers.utils.formatUnits(currentInvestment, decimals);
-              console.log(`User has already invested: ${currentInHuman} ${program?.currency}`);
+              console.log(`User has already supported: ${currentInHuman} ${program?.currency}`);
               console.log(
-                `Trying to invest additional: ${humanReadableAmount} ${program?.currency}`,
+                `Trying to support additional: ${humanReadableAmount} ${program?.currency}`,
               );
               console.log(
                 `Total would be: ${
@@ -677,15 +677,15 @@ function ProjectDetailsPage() {
             const programStatus = await investmentContract.getProgramStatus(
               projectDetailsForStatus.programId,
             );
-            console.log('Program Status before investment:', programStatus);
+            console.log('Program Status before funding:', programStatus);
 
             if (programStatus !== 1) {
               // 1 = Active
               const statusNames = ['NotStarted', 'Active', 'Ended'];
               notify(
-                `Investment failed: The program is currently "${
+                `Funding failed: The program is currently "${
                   statusNames[programStatus] || 'Unknown'
-                }". Only active programs can accept investments.`,
+                }". Only active programs can accept funding.`,
                 'error',
               );
               return;
@@ -723,23 +723,23 @@ function ProjectDetailsPage() {
 
                 // If the investment amount matches the remaining capacity OR it's the known contract bug
                 if (Math.abs(remaining - investmentAmount) < 0.0001 || isContractBug) {
-                  notify('Completing final investment (contract state override).', 'success');
+                  notify('Completing final funding (contract state override).', 'success');
                   // Don't return, continue with investment
                 } else if (Math.abs(remaining - investmentAmount) < 0.0001) {
-                  notify('Completing final investment.', 'success');
+                  notify('Completing final funding.', 'success');
                 } else {
                   notify(
-                    `Investment failed: This would exceed the funding target. Current: ${fundingStatus.totalRaised} / Target: ${fundingStatus.targetAmount} ${program?.currency}`,
+                    `Funding failed: This would exceed the funding target. Current: ${fundingStatus.totalRaised} / Target: ${fundingStatus.targetAmount} ${program?.currency}`,
                     'error',
                   );
                   return;
                 }
               } catch {
-                notify(`Investment failed: ${eligibility.reason}`, 'error');
+                notify(`Funding failed: ${eligibility.reason}`, 'error');
                 return;
               }
             } else {
-              notify(`Investment failed: ${eligibility.reason}`, 'error');
+              notify(`Funding failed: ${eligibility.reason}`, 'error');
               return;
             }
           }
@@ -773,26 +773,26 @@ function ProjectDetailsPage() {
             notify('Transaction cancelled by user', 'error');
           } else if (errorMessage.includes('Project not in funding period')) {
             notify(
-              'Investment failed: The program is not currently accepting investments. Please check the funding period.',
+              'Funding failed: The program is not currently accepting funding. Please check the funding period.',
               'error',
             );
           } else if (errorMessage.includes('InvalidProjectId')) {
             notify(
-              `Investment failed: Project #${onChainProjectId} not found on blockchain.`,
+              `Funding failed: Project #${onChainProjectId} not found on blockchain.`,
               'error',
             );
           } else if (errorMessage.includes('InvestmentTooSmall')) {
-            notify('Investment failed: Amount is below minimum requirement.', 'error');
+            notify('Funding failed: Amount is below minimum requirement.', 'error');
           } else if (errorMessage.includes('InvestmentExceedsTarget')) {
-            notify('Investment failed: Amount would exceed the funding target.', 'error');
+            notify('Funding failed: Amount would exceed the funding target.', 'error');
           } else if (errorMessage.includes('User has no tier assigned')) {
             notify(
-              `Investment failed: Your tier needs to be assigned on the blockchain for this project. Please use the "Sync My Tier to Blockchain" button above if you're an admin, or contact the program owner.`,
+              `Funding failed: Your tier needs to be assigned on the blockchain for this project. Please use the "Sync My Tier to Blockchain" button above if you're an admin, or contact the program owner.`,
               'error',
             );
           } else if (errorMessage.includes('Token not whitelisted')) {
             notify(
-              `Investment failed: ${tokenSymbol} is not whitelisted for investments. Please contact the administrator to whitelist this token.`,
+              `Funding failed: ${tokenSymbol} is not whitelisted for funding. Please contact the administrator to whitelist this token.`,
               'error',
             );
           } else if (
@@ -811,17 +811,17 @@ function ProjectDetailsPage() {
             // Check for common tier-based investment issues
             if (program?.fundingCondition === 'tier') {
               notify(
-                'Investment failed: The transaction was rejected. This often happens when: (1) Your tier is not synced on-chain for this project, (2) Investment amount exceeds your tier limit, or (3) The funding period has ended. Check the browser console for details.',
+                'Funding failed: The transaction was rejected. This often happens when: (1) Your tier is not synced on-chain for this project, (2) Funding amount exceeds your tier limit, or (3) The funding period has ended. Check the browser console for details.',
                 'error',
               );
             } else {
               notify(
-                'Investment failed: Transaction was rejected by the smart contract. Check console for details.',
+                'Funding failed: Transaction was rejected by the smart contract. Check console for details.',
                 'error',
               );
             }
           } else {
-            console.error('Investment failed with error:', errorMessage);
+            console.error('Funding failed with error:', errorMessage);
             notify(`Blockchain transaction failed: ${errorMessage}`, 'error');
           }
           return;
@@ -837,7 +837,7 @@ function ProjectDetailsPage() {
 
       // Only record investment in database if we have a successful blockchain transaction
       if (!txHash) {
-        notify('Error: Investment requires blockchain transaction for published programs', 'error');
+        notify('Error: Funding requires blockchain transaction for published programs', 'error');
         return;
       }
 
@@ -866,7 +866,7 @@ function ProjectDetailsPage() {
           matchingTerm = data?.application?.investmentTerms?.find(
             (term) => term.price?.toLowerCase() === userTierAssignment.tier?.toLowerCase(),
           );
-          console.log('Finding investment term for tier:', {
+          console.log('Finding funding term for tier:', {
             userTier: userTierAssignment.tier,
             foundTerm: matchingTerm,
             allTerms: data?.application?.investmentTerms,
@@ -878,7 +878,7 @@ function ProjectDetailsPage() {
           ? { ...baseInput, investmentTermId: matchingTerm.id }
           : baseInput;
 
-        console.log('Step 6 - Saving investment to database:', {
+        console.log('Step 6 - Saving funding to database:', {
           investmentInput,
           isTierBased,
           matchingTerm: matchingTerm ? { id: matchingTerm.id, price: matchingTerm.price } : null,
@@ -898,8 +898,8 @@ function ProjectDetailsPage() {
 
         notify(
           txHash
-            ? 'Investment successfully recorded on blockchain and database!'
-            : 'Investment created successfully',
+            ? 'Funding successfully recorded on blockchain and database!'
+            : 'Funding created successfully',
           'success',
         );
 
@@ -926,9 +926,9 @@ function ProjectDetailsPage() {
         }, 5000);
       } catch (dbError) {
         const errorMessage = dbError instanceof Error ? dbError.message : 'Unknown error';
-        notify(`Failed to save investment to database: ${errorMessage}`, 'error');
+        notify(`Failed to save funding to database: ${errorMessage}`, 'error');
         notify(
-          `Investment was successful on blockchain (tx: ${txHash}) but failed to save to database. Please contact support with the transaction hash.`,
+          `Funding was successful on blockchain (tx: ${txHash}) but failed to save to database. Please contact support with the transaction hash.`,
           'error',
         );
         // Still close the dialog since blockchain transaction succeeded
@@ -936,8 +936,8 @@ function ProjectDetailsPage() {
         setIsInvestFiatDialogOpen(false);
       }
     } catch (error) {
-      console.error('Investment error:', error);
-      notify((error as Error).message || 'Investment failed', 'error');
+      console.error('Funding error:', error);
+      notify((error as Error).message || 'Funding failed', 'error');
     } finally {
       // Always reset the investing flag
       setIsInvesting(false);
@@ -1067,7 +1067,7 @@ function ProjectDetailsPage() {
       <div className="text-center bg-white rounded-2xl p-10">
         <p className="text-lg font-bold mb-10">You do not have access to this application</p>
         <Link to="/investments" className="text-primary hover:underline font-semibold">
-          Go back to investments
+          Go back to funding
         </Link>
       </div>
     );
@@ -1204,13 +1204,13 @@ function ProjectDetailsPage() {
                         </div>
                         <div className="space-y-1">
                           <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Max Investment:</span>
+                            <span className="text-muted-foreground">Max Funding:</span>
                             <span className="font-semibold">
                               {program.userTierAssignment.maxInvestmentAmount} {program?.currency}
                             </span>
                           </div>
                           <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Already Invested:</span>
+                            <span className="text-muted-foreground">Already Funding:</span>
                             <span className="font-semibold">
                               {program.userTierAssignment.currentInvestment} {program?.currency}
                             </span>
@@ -1249,7 +1249,7 @@ function ProjectDetailsPage() {
                                 price: tier,
                                 description: `${
                                   tier.charAt(0).toUpperCase() + tier.slice(1)
-                                } tier investment`,
+                                } tier funding`,
                                 remainingPurchases: null,
                               });
                             }
@@ -1343,7 +1343,7 @@ function ProjectDetailsPage() {
                             className="w-full h-10 bg-primary hover:bg-primary/90 text-white font-medium flex items-center justify-center gap-2"
                           >
                             <TrendingUp className="w-4 h-4" />
-                            Invest
+                            Support
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[400px]">
@@ -1388,7 +1388,7 @@ function ProjectDetailsPage() {
                             className="w-full h-10 bg-primary hover:bg-primary/90 text-white font-medium flex items-center justify-center gap-2"
                           >
                             <TrendingUp className="w-4 h-4" />
-                            Invest through fiat on-ramp
+                            Support through fiat on-ramp
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[400px]">
@@ -1404,7 +1404,7 @@ function ProjectDetailsPage() {
                             The amount will be securely stored until you will confirm the completion
                             of the project.
                             <br />
-                            It will be executed in the investment contract after the payment.
+                            It will be executed in the funding contract after the payment.
                           </DialogDescription>
                           <Button
                             onClick={handleInvestThroughFiatonramp}
@@ -2000,13 +2000,13 @@ function ProjectDetailsPage() {
                           </div>
                           <div className="space-y-2">
                             <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Max Investment:</span>
+                              <span className="text-muted-foreground">Max Funding:</span>
                               <span className="font-semibold">
                                 {program.userTierAssignment.maxInvestmentAmount} {program?.currency}
                               </span>
                             </div>
                             <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Already Invested:</span>
+                              <span className="text-muted-foreground">Already Supported:</span>
                               <span className="font-semibold">
                                 {program.userTierAssignment.currentInvestment} {program?.currency}
                               </span>
@@ -2085,7 +2085,7 @@ function ProjectDetailsPage() {
                             key={t.id}
                             onClick={() => {
                               if (!isLoggedIn) {
-                                notify('Please log in to select an investment tier', 'error');
+                                notify('Please log in to select an funding tier', 'error');
                                 return;
                               }
                               setSelectedTier(t.price || '');
@@ -2358,7 +2358,7 @@ function ProjectDetailsPage() {
                                                   data?.application?.fundingProgress ?? 0
                                                 ).toFixed(
                                                   2,
-                                                )}% of target). Supporters can reclaim their investments.`
+                                                )}% of target). Supporters can reclaim their fundings.`
                                               : undefined
                                         }
                                       >
@@ -2413,7 +2413,7 @@ function ProjectDetailsPage() {
                             className="w-full h-10 bg-primary hover:bg-primary/90 text-white font-medium flex items-center justify-center gap-2"
                             onClick={() => {
                               if (!isLoggedIn) {
-                                notify('Please log in to invest', 'error');
+                                notify('Please log in to support', 'error');
                                 return;
                               }
                               if (!selectedTier) {
@@ -2453,7 +2453,7 @@ function ProjectDetailsPage() {
                           >
                             <TrendingUp className="w-5 h-5" />
                             {!isLoggedIn
-                              ? 'Log in to Invest'
+                              ? 'Log in to Support'
                               : (() => {
                                   const selectedTerm = data?.application?.investmentTerms?.find(
                                     (t) => t.price === selectedTier,
@@ -2465,7 +2465,7 @@ function ProjectDetailsPage() {
                                   ) {
                                     return 'No Slots Available';
                                   }
-                                  return 'Invest';
+                                  return 'Support';
                                 })()}
                           </Button>
                         </DialogTrigger>
@@ -2476,7 +2476,7 @@ function ProjectDetailsPage() {
                             </span>
                           </div>
                           <DialogTitle className="text-center font-semibold text-lg">
-                            Are you sure you want to invest in this project?
+                            Are you sure you want to support in this project?
                           </DialogTitle>
                           {selectedTier && (
                             <div className="text-center mb-4">
@@ -2484,7 +2484,7 @@ function ProjectDetailsPage() {
                               program?.userTierAssignment ? (
                                 <>
                                   <p className="text-sm text-muted-foreground mb-2">
-                                    Your Investment:
+                                    Your funding:
                                   </p>
                                   <p className="text-lg font-semibold">
                                     {selectedTier} {program?.currency}
@@ -2553,7 +2553,7 @@ function ProjectDetailsPage() {
                               className="w-full h-10 bg-primary hover:bg-primary/90 text-white font-medium flex items-center justify-center gap-2"
                               onClick={() => {
                                 if (!isLoggedIn) {
-                                  notify('Please log in to invest', 'error');
+                                  notify('Please log in to funding', 'error');
                                   return;
                                 }
                                 if (!selectedTier) {
@@ -2570,7 +2570,7 @@ function ProjectDetailsPage() {
                                   selectedTerm.remainingPurchases <= 0
                                 ) {
                                   notify(
-                                    'This investment tier has no remaining slots available',
+                                    'This funding tier has no remaining slots available',
                                     'error',
                                   );
                                   return;
@@ -2592,7 +2592,7 @@ function ProjectDetailsPage() {
                               }}
                             >
                               <TrendingUp className="w-4 h-4" />
-                              Invest through fiat on-ramp
+                              Support through fiat on-ramp
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="sm:max-w-[400px]">
@@ -2608,7 +2608,7 @@ function ProjectDetailsPage() {
                               The amount will be securely stored until you will confirm the
                               completion of the project.
                               <br />
-                              It will be executed in the investment contract after the payment.
+                              It will be executed in the funding contract after the payment.
                             </DialogDescription>
                             <Button
                               onClick={handleInvestThroughFiatonramp}

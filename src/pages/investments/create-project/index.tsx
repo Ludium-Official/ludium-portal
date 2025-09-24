@@ -17,7 +17,7 @@ const CreateProjectPage: React.FC = () => {
   // const { isLoggedIn, isAuthed } = useAuth();
 
   const onSubmit: OnSubmitProjectFunc = (args) => {
-    console.log('=== Investment Project Creation Debug ===');
+    console.log('=== Funding Project Creation Debug ===');
     console.log('Funding to be raised:', args.fundingToBeRaised);
 
     const applicationInput = {

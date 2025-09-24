@@ -85,12 +85,12 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
 
     try {
       await onSuccess();
-      notify('Investment completed successfully!', 'success');
+      notify('Funding completed successfully!', 'success');
       if (onClose) {
         onClose();
       }
     } catch (error) {
-      notify('Investment failed. Please try again.', 'error');
+      notify('Funding failed. Please try again.', 'error');
       setPaymentCompleted(false);
     } finally {
       setProcessingInvestment(false);
@@ -187,12 +187,12 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
         <div className="space-y-4 text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
           <h3 className="text-lg font-semibold">
-            {processingInvestment ? 'Processing Investment...' : 'Investment Complete!'}
+            {processingInvestment ? 'Processing Funding...' : 'Funding Complete!'}
           </h3>
           {processingInvestment && (
             <div className="flex items-center justify-center">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing your investment on the blockchain...
+              Processing your funding on the blockchain...
             </div>
           )}
         </div>
@@ -203,7 +203,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
             width="100%"
             height="600"
             style={{ border: 'none' }}
-            title="Swapped Investment Payment"
+            title="Swapped Funding Payment"
             className="block"
           />
         </div>

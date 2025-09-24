@@ -116,7 +116,7 @@ const CreateInvestment: React.FC = () => {
           }
           navigate('/investments');
           client.refetchQueries({ include: [ProgramsDocument] });
-          notify('Investment program created successfully!', 'success');
+          notify('Funding program created successfully!', 'success');
         },
         onError: (error) => {
           notify(`Failed to create program: ${error.message}`, 'error');
@@ -141,12 +141,12 @@ const CreateInvestment: React.FC = () => {
         navigate('/investments');
         client.refetchQueries({ include: [ProgramsDocument] });
         notify(
-          'Investment program creation submitted. Please check the transaction status.',
+          'Funding program creation submitted. Please check the transaction status.',
           'success',
         );
       } else {
         // For other errors, show the error message
-        notify(`Error creating investment program: ${errorMessage}`, 'error');
+        notify(`Error creating funding program: ${errorMessage}`, 'error');
       }
     }
   };

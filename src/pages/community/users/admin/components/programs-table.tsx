@@ -82,7 +82,7 @@ export const ProgramsTable = ({
       case ProgramType.Regular:
         return 'Recruitment (regular)';
       case ProgramType.Funding:
-        return 'Investment (funding)';
+        return 'Funding';
       default:
         return 'All Types';
     }
@@ -125,7 +125,7 @@ export const ProgramsTable = ({
                 Recruitment (regular)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onTypeChange?.(ProgramType.Funding)}>
-                Investment (funding)
+                Funding
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
