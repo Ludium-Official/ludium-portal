@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '../ui/button';
 import { Loader2, CheckCircle } from 'lucide-react';
 import notify from '@/lib/notify';
@@ -29,6 +29,14 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [processingInvestment, setProcessingInvestment] = useState(false);
 
+  const realAmount = useMemo(() => {
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount)) return amount;
+
+    const amountWithFee = numericAmount * 1.01;
+    return amountWithFee.toFixed(2);
+  }, [amount]);
+
   const [generateSwappedUrl, { loading, error }] = useGenerateSwappedUrlMutation({
     onCompleted: (data) => {
       if (data?.generateSwappedUrl?.signedUrl) {
@@ -56,7 +64,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
         variables: {
           currencyCode,
           walletAddress,
-          amount,
+          amount: realAmount,
           userId: user.id,
         },
       });
@@ -77,12 +85,12 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
 
     try {
       await onSuccess();
-      notify('Investment completed successfully!', 'success');
+      notify('Funding completed successfully!', 'success');
       if (onClose) {
         onClose();
       }
     } catch (error) {
-      notify('Investment failed. Please try again.', 'error');
+      notify('Funding failed. Please try again.', 'error');
       setPaymentCompleted(false);
     } finally {
       setProcessingInvestment(false);
@@ -114,7 +122,6 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
     };
   }, [paymentCompleted, user?.id, startPolling, stopPolling]);
 
-  // Handle status updates
   useEffect(() => {
     if (!statusData?.getSwappedStatus) return;
 
@@ -125,19 +132,27 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
       return;
     }
 
-    const responseData = data as any;
-    const { data: orderData, success } = responseData || {};
+    try {
+      const responseData = typeof data === 'string' ? JSON.parse(data) : data;
+      const { data: orderData, success } = responseData || {};
 
-    if (success && orderData?.order_status === 'order_broadcasted') {
-      stopPolling();
-      handlePaymentComplete();
-    } else if (orderData?.order_status === 'order_cancelled') {
-      stopPolling();
-      notify(`Payment ${orderData?.order_status}. Please try again.`, 'error');
-    } else if (orderData?.order_status === 'payment_pending') {
-      console.log('⏳ Order Pending:', orderData);
-    } else if (status === 'waiting') {
-      console.log('⏳ Order Waiting:', message);
+      console.log('📡 Parsed data:', { success, orderData, message });
+
+      if (success && orderData?.order_status === 'order_broadcasted') {
+        stopPolling();
+        handlePaymentComplete();
+      } else if (orderData?.order_status === 'order_cancelled') {
+        stopPolling();
+        notify(`Payment ${orderData?.order_status}. Please try again.`, 'error');
+      } else if (orderData?.order_status === 'payment_pending') {
+        console.log('⏳ Order Pending:', orderData);
+      } else if (status === 'waiting') {
+        console.log('⏳ Order Waiting:', message);
+      } else if (!success) {
+        console.log('❌ API Error:', responseData?.message);
+      }
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError, 'Raw data:', data);
     }
   }, [statusData, stopPolling, handlePaymentComplete]);
 
@@ -172,12 +187,12 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
         <div className="space-y-4 text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
           <h3 className="text-lg font-semibold">
-            {processingInvestment ? 'Processing Investment...' : 'Investment Complete!'}
+            {processingInvestment ? 'Processing Funding...' : 'Funding Complete!'}
           </h3>
           {processingInvestment && (
             <div className="flex items-center justify-center">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Processing your investment on the blockchain...
+              Processing your funding on the blockchain...
             </div>
           )}
         </div>
@@ -188,7 +203,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
             width="100%"
             height="600"
             style={{ border: 'none' }}
-            title="Swapped Investment Payment"
+            title="Swapped Funding Payment"
             className="block"
           />
         </div>

@@ -205,7 +205,10 @@ export class InvestmentContract {
       });
 
       let txResult: { hash: string };
-      let receipt: { transactionHash: string; logs: Array<{ topics?: string[] }> };
+      let receipt: {
+        transactionHash: string;
+        logs: Array<{ topics?: string[] }>;
+      };
 
       try {
         txResult = await this.sendTransaction(
@@ -219,12 +222,12 @@ export class InvestmentContract {
             uiOptions: {
               showWalletUIs: true,
               transactionInfo: {
-                title: 'Create Investment Program',
+                title: 'Create Funding Program',
                 action: 'Create',
               },
               description: `Creating program: ${params.name}`,
               successHeader: 'Program Created!',
-              successDescription: 'Investment program has been created successfully.',
+              successDescription: 'Funding program has been created successfully.',
             },
           },
         );
@@ -325,7 +328,11 @@ export class InvestmentContract {
                     { indexed: true, name: 'id', type: 'uint256' },
                     { indexed: true, name: 'host', type: 'address' },
                     { indexed: false, name: 'name', type: 'string' },
-                    { indexed: false, name: 'maxFundingPerProject', type: 'uint256' },
+                    {
+                      indexed: false,
+                      name: 'maxFundingPerProject',
+                      type: 'uint256',
+                    },
                     { indexed: false, name: 'token', type: 'address' },
                   ],
                 },
@@ -389,7 +396,7 @@ export class InvestmentContract {
         programId,
       };
     } catch (error) {
-      console.error('Failed to create investment program:', error);
+      console.error('Failed to create funding program:', error);
       throw error;
     }
   }
@@ -469,7 +476,9 @@ export class InvestmentContract {
                 title: 'Release Milestone Funds',
                 action: 'Execute',
               },
-              description: `Releasing funds for milestone #${milestoneIndex + 1} of project #${projectId}`,
+              description: `Releasing funds for milestone #${
+                milestoneIndex + 1
+              } of project #${projectId}`,
               successHeader: 'Funds Released!',
               successDescription:
                 'The milestone funds have been successfully transferred to the project owner.',
@@ -551,7 +560,9 @@ export class InvestmentContract {
             description: `Approve ${displayAmount} ${params.tokenName || 'tokens'} for investment`,
             buttonText: 'Approve',
             successHeader: 'Token Approved!',
-            successDescription: `You have approved ${displayAmount} ${params.tokenName || 'tokens'} for investment.`,
+            successDescription: `You have approved ${displayAmount} ${
+              params.tokenName || 'tokens'
+            } for investment.`,
           },
         },
       );
@@ -616,7 +627,7 @@ export class InvestmentContract {
     try {
       // Validate amount before conversion
       if (!params.amount || params.amount === '') {
-        throw new Error('Investment amount is required');
+        throw new Error('Funding amount is required');
       }
 
       // Amount is already in Wei as a string, convert directly to BigInt
@@ -625,12 +636,12 @@ export class InvestmentContract {
         amountBigInt = BigInt(params.amount);
       } catch (error) {
         console.error('Invalid amount for BigInt conversion:', params.amount, error);
-        throw new Error('Invalid investment amount format');
+        throw new Error('Invalid funding amount format');
       }
 
       // Check for zero amount
       if (amountBigInt === BigInt(0)) {
-        throw new Error('Investment amount must be greater than 0');
+        throw new Error('Funding amount must be greater than 0');
       }
 
       const isNative = !params.token || params.token === ethers.constants.AddressZero;
@@ -658,7 +669,7 @@ export class InvestmentContract {
       if (isNative) {
         // Native token investment - call funding module directly (same as ERC20)
         // This preserves msg.sender as the user for proper tier checking
-        console.log('=== Native Token Investment ===');
+        console.log('=== Native Token Funding ===');
         console.log('Calling funding module directly to preserve msg.sender');
         console.log('Function: investFund');
         console.log('Project ID:', params.projectId);
@@ -709,8 +720,8 @@ export class InvestmentContract {
               action: 'Invest',
             },
             description: `Investing ${displayAmount} ${tokenDisplay} in project #${params.projectId}`,
-            successHeader: 'Investment Successful!',
-            successDescription: 'Your investment has been confirmed.',
+            successHeader: 'Funding Successful!',
+            successDescription: 'Your funding has been confirmed.',
           },
         },
       );
@@ -796,18 +807,18 @@ export class InvestmentContract {
           functionName: 'getInvestmentAmount',
           args: [projectId, userAddress as `0x${string}`],
         });
-        console.log('User investment amount on-chain:', investmentData);
+        console.log('User funding amount on-chain:', investmentData);
 
         hasInvestment = Boolean(investmentData && Number(investmentData) > 0);
 
         if (!hasInvestment) {
-          console.log('No investment found for user:', userAddress);
+          console.log('No funding found for user:', userAddress);
           throw new Error(
-            `No investment found for your wallet address ${userAddress} in project ${projectId}`,
+            `No funding found for your wallet address ${userAddress} in project ${projectId}`,
           );
         }
 
-        console.log('Investment confirmed! Amount:', investmentData, 'Proceeding with reclaim...');
+        console.log('Funding confirmed! Amount:', investmentData, 'Proceeding with reclaim...');
 
         // Check the actual reclaim eligibility to understand why it might fail
         try {
@@ -829,7 +840,7 @@ export class InvestmentContract {
             console.error('RECLAIM NOT ALLOWED:', reason);
             console.log('The contract says:', reason);
             console.log('Possible reasons:');
-            console.log('1. "No investment found" - Investment not recorded on-chain');
+            console.log('1. "No funding found" - Funding not recorded on-chain');
             console.log(
               '2. "Cannot reclaim from successful project" - Project completed successfully',
             );
@@ -849,7 +860,7 @@ export class InvestmentContract {
               );
             }
             if (reason === 'No investment found') {
-              throw new Error('No investment found on the blockchain for your wallet address.');
+              throw new Error('No funding found on the blockchain for your wallet address.');
             }
             throw new Error(`Cannot reclaim: ${reason}`);
           }
@@ -860,7 +871,7 @@ export class InvestmentContract {
           throw err; // Always re-throw to stop execution
         }
       } catch (e) {
-        console.error('Investment check error:', e);
+        console.error('Funding check error:', e);
         // Re-throw any error to stop the transaction
         throw e;
       }
@@ -890,12 +901,12 @@ export class InvestmentContract {
           uiOptions: {
             showWalletUIs: true,
             transactionInfo: {
-              title: 'Reclaim Investment',
+              title: 'Reclaim Funding',
               action: 'Reclaim',
             },
             description: `Reclaiming funds from project #${projectId}`,
             successHeader: 'Funds Reclaimed!',
-            successDescription: 'Your investment has been returned.',
+            successDescription: 'Your funding has been returned.',
           },
         },
       );
@@ -957,7 +968,7 @@ export class InvestmentContract {
           );
         }
         if (errorMessage.includes('Already reclaimed')) {
-          throw new Error('You have already reclaimed your investment');
+          throw new Error('You have already reclaimed your funding');
         }
         if (errorMessage.includes('No funds to reclaim')) {
           throw new Error('No funds available to reclaim');
@@ -1472,7 +1483,10 @@ export class InvestmentContract {
       const errorMessage = error instanceof Error ? error.message : String(error);
       console.error('Eligibility check error details:', errorMessage);
 
-      return { canReclaim: false, reason: `Failed to check eligibility: ${errorMessage}` };
+      return {
+        canReclaim: false,
+        reason: `Failed to check eligibility: ${errorMessage}`,
+      };
     }
   }
 
@@ -1524,7 +1538,7 @@ export class InvestmentContract {
 
       return (data as bigint).toString();
     } catch (error) {
-      console.error('Failed to get user investment:', error);
+      console.error('Failed to get user funding:', error);
       return '0';
     }
   }
@@ -1539,7 +1553,7 @@ export class InvestmentContract {
       });
       return (result as bigint).toString();
     } catch (error) {
-      console.error('Failed to get total investment:', error);
+      console.error('Failed to get total funding:', error);
       return '0';
     }
   }
@@ -1701,7 +1715,7 @@ export class InvestmentContract {
     try {
       // Validate amount before conversion
       if (!amount || amount === '') {
-        return { eligible: false, reason: 'Investment amount is required' };
+        return { eligible: false, reason: 'Funding amount is required' };
       }
 
       // Convert amount string (in Wei) directly to BigInt
@@ -1710,12 +1724,15 @@ export class InvestmentContract {
         amountBigInt = BigInt(amount);
       } catch (error) {
         console.error('Invalid amount for BigInt conversion:', amount, error);
-        return { eligible: false, reason: 'Invalid investment amount format' };
+        return { eligible: false, reason: 'Invalid funding amount format' };
       }
 
       // Check for zero amount
       if (amountBigInt === BigInt(0)) {
-        return { eligible: false, reason: 'Investment amount must be greater than 0' };
+        return {
+          eligible: false,
+          reason: 'Investment amount must be greater than 0',
+        };
       }
 
       // First check the program status
@@ -1765,13 +1782,16 @@ export class InvestmentContract {
       const [eligible, reason] = data as [boolean, string];
       return { eligible, reason: reason || 'Eligible to invest' };
     } catch (error) {
-      console.error('Failed to check investment eligibility:', error);
+      console.error('Failed to check funding eligibility:', error);
 
       // Try to extract more specific error message
       const errorMessage = error instanceof Error ? error.message : String(error);
 
       if (errorMessage.includes('InvalidProjectId') || errorMessage.includes('project')) {
-        return { eligible: false, reason: `Project #${projectId} not found on blockchain` };
+        return {
+          eligible: false,
+          reason: `Project #${projectId} not found on blockchain`,
+        };
       }
 
       if (errorMessage.includes('execution reverted')) {
@@ -1781,7 +1801,10 @@ export class InvestmentContract {
         };
       }
 
-      return { eligible: false, reason: `Failed to check eligibility: ${errorMessage}` };
+      return {
+        eligible: false,
+        reason: `Failed to check eligibility: ${errorMessage}`,
+      };
     }
   }
 

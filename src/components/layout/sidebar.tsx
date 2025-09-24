@@ -35,7 +35,7 @@ const Sidebar = () => {
       icon: Scroll,
       submenu: [
         { name: 'Recruitment', path: '/programs', icon: Scroll },
-        { name: 'Investment', path: '/investments', icon: Scroll },
+        { name: 'Funding', path: '/investments', icon: Scroll },
       ],
     },
     {

@@ -60,19 +60,19 @@ export default function UserInvestmentReclaimTab({
   type Investment = NonNullable<NonNullable<InvestmentsQuery['investments']>['data']>[0];
 
   const handleReclaimInvestment = async (investment: Investment) => {
-    console.log('=== HANDLE RECLAIM INVESTMENT START ===');
-    console.log('Full investment object:', investment);
-    console.log('Investment ID:', investment?.id);
+    console.log('=== HANDLE RECLAIM FUNDING START ===');
+    console.log('Full funding object:', investment);
+    console.log('Funding ID:', investment?.id);
     console.log('Project:', investment?.project);
     console.log('On-chain project ID:', investment?.project?.onChainProjectId);
     console.log('Program:', investment?.project?.program);
     console.log('Network:', investment?.project?.program?.network);
     console.log('Can reclaim:', investment?.canReclaim);
     console.log('Already reclaimed:', investment?.reclaimed);
-    console.log('Investment amount:', investment?.amount);
+    console.log('Funding amount:', investment?.amount);
     console.log('Investor ID from DB:', investment?.supporter?.id);
     console.log('Investor email from DB:', investment?.supporter?.email);
-    console.log('Investment transaction hash from DB:', investment?.txHash);
+    console.log('Funding transaction hash from DB:', investment?.txHash);
     console.log('Reclaim transaction hash from DB:', investment?.reclaimTxHash);
 
     // If there's a transaction hash, provide a link to check it
@@ -94,17 +94,17 @@ export default function UserInvestmentReclaimTab({
       } else if (network === 'creditcoin') {
         explorerUrl = `${creditCoin3Mainnet.blockExplorers.default.url}/tx/${investment.txHash}`;
       }
-      console.log('Check investment transaction on explorer:', explorerUrl);
+      console.log('Check funding transaction on explorer:', explorerUrl);
     }
 
-    console.log('=== END INVESTMENT DATA ===');
+    console.log('=== END FUNDING DATA ===');
 
     const investmentId = investment?.id;
     const onChainProjectId = investment?.project?.onChainProjectId;
     const network = investment?.project?.program?.network || 'educhain-testnet';
 
     if (!investmentId) {
-      notify('Cannot reclaim: Missing investment ID', 'error');
+      notify('Cannot reclaim: Missing funding ID', 'error');
       return;
     }
 
@@ -214,7 +214,7 @@ export default function UserInvestmentReclaimTab({
           },
         },
         onCompleted: () => {
-          notify('Investment reclaimed successfully!', 'success');
+          notify('Funding reclaimed successfully!', 'success');
           refetch();
         },
         onError: (error) => {
@@ -242,8 +242,8 @@ export default function UserInvestmentReclaimTab({
           'Cannot reclaim: This project completed successfully. Funds are distributed via milestones.',
           'error',
         );
-      } else if (errorMessage?.includes('No investment found')) {
-        notify('Cannot reclaim: No investment found for your wallet on the blockchain.', 'error');
+      } else if (errorMessage?.includes('No funding found')) {
+        notify('Cannot reclaim: No funding found for your wallet on the blockchain.', 'error');
       } else {
         notify(`Failed to reclaim: ${errorMessage || 'Unknown error'}`, 'error');
       }
@@ -279,7 +279,7 @@ export default function UserInvestmentReclaimTab({
             <div className="p-8 border rounded-lg w-full text-center">
               <p className="text-muted-foreground mb-2">No reclaimable items found</p>
               <p className="text-sm text-muted-foreground">
-                Reclaim is available for failed investment projects.
+                Reclaim is available for failed funding projects.
               </p>
             </div>
           ) : (

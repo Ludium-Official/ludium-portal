@@ -48,7 +48,7 @@ export const useInvestmentDraft = () => {
         localStorage.setItem(storageKey, JSON.stringify(draft));
       } catch (err) {
         // Intentionally swallow storage errors. Consumer may notify user.
-        console.error('Failed to save investment draft', err);
+        console.error('Failed to save funding draft', err);
       }
     },
     [storageKey],
@@ -61,7 +61,7 @@ export const useInvestmentDraft = () => {
       if (!raw) return null;
       return JSON.parse(raw) as InvestmentDraft;
     } catch (err) {
-      console.error('Failed to load investment draft', err);
+      console.error('Failed to load funding draft', err);
       return null;
     }
   }, [storageKey]);
@@ -71,7 +71,7 @@ export const useInvestmentDraft = () => {
     try {
       localStorage.removeItem(storageKey);
     } catch (err) {
-      console.error('Failed to clear investment draft', err);
+      console.error('Failed to clear funding draft', err);
     }
   }, [storageKey]);
 
