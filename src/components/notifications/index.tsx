@@ -1,7 +1,11 @@
 import { useMarkAllNotificationsAsReadMutation } from '@/apollo/mutation/mark-all-notifications-as-read.generated';
 import { useCountNotificationsSubscription } from '@/apollo/subscriptions/count-notifications.generated';
 import { useNotificationsSubscription } from '@/apollo/subscriptions/notifications.generated';
+import ConditionCard from '@/components/notifications/condition-card';
 import NotificationCard from '@/components/notifications/notification-card';
+// import NotificationCard from '@/components/notifications/notification-card';
+import ProgressCard from '@/components/notifications/progress-card';
+import ReclaimCard from '@/components/notifications/reclaim-card';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -44,18 +48,17 @@ function Notifications() {
             // !data?.notifications?.length ? 'min-w-none' : 'min-w-[348px]',
           )}
         >
-
-          <div className='flex justify-end mb-[14px]'>
-            <PopoverClose className='cursor-pointer'>
-              <X className='text-foreground w-4 h-4' />
+          <div className="flex justify-end mb-[14px]">
+            <PopoverClose className="cursor-pointer">
+              <X className="text-foreground w-4 h-4" />
             </PopoverClose>
           </div>
 
-          <div className='flex justify-between items-center mb-3'>
-            <h3 className='text-lg font-bold'>Notifications</h3>
-            <div className='flex items-center gap-2'>
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="text-lg font-bold">Notifications</h3>
+            <div className="flex items-center gap-2">
               <Switch />
-              <p className='text-sm'>Unread</p>
+              <p className="text-sm">Unread</p>
             </div>
           </div>
 
@@ -66,9 +69,25 @@ function Notifications() {
               <TabsTrigger value="investment-condition">Ivestment Condition</TabsTrigger>
               <TabsTrigger value="progress">Progress</TabsTrigger>
             </TabsList>
+
+            {/* <TabsContent value="all">
+              <div className="space-y-4 mb-10">
+                {data?.notifications?.map((n) => (
+                  <NotificationCard notification={n} key={n.id} />
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="progress">
+              <div className="space-y-4 mb-10">
+                {data?.notifications?.map((n) => (
+                  <NotificationCard notification={n} key={n.id} />
+                ))}
+              </div>
+            </TabsContent> */}
           </Tabs>
 
-          <ScrollArea className='relative overflow-auto h-[calc(100vh-235px)] pb-5'>
+          <ScrollArea className="relative overflow-auto h-[calc(100vh-235px)] pb-5">
             {/* 
             <div className="space-y-4 mb-10">
 
@@ -101,9 +120,32 @@ function Notifications() {
             {data?.notifications?.length ? (
               <div>
                 <div className="space-y-4 mb-10">
-                  {data?.notifications?.map((n) => (
-                    <NotificationCard notification={n} key={n.id} />
-                  ))}
+                  {activeTab === 'progress' &&
+                    data?.notifications?.map((n) => <ProgressCard notification={n} key={n.id} />)}
+
+                  {activeTab === 'all' &&
+                    data?.notifications?.map((n) => (
+                      <NotificationCard notification={n} key={n.id} />
+                    ))}
+
+                  {activeTab === 'investment-condition' && (
+                    <>
+                      <ConditionCard />
+                      <ConditionCard />
+                      <ConditionCard />
+                      <ConditionCard />
+                      <ConditionCard />
+                    </>
+                  )}
+
+                  {activeTab === 'reclaim' && (
+                    <>
+                      <ReclaimCard />
+                      <ReclaimCard />
+                      <ReclaimCard />
+                      <ReclaimCard />
+                    </>
+                  )}
                 </div>
                 <Button
                   onClick={() => markAllAsRead()}
