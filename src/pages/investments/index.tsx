@@ -157,7 +157,7 @@ export default function InvestmentsPage() {
         {/* Header */}
         <div className="bg-white">
           <div className="w-full mx-auto px-4 md:px-10 py-6 md:py-9">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Investment</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Funding</h1>
           </div>
         </div>
 
@@ -192,7 +192,7 @@ export default function InvestmentsPage() {
                   onClick={() => navigate('/investments/create')}
                 >
                   <CirclePlus className="w-4 h-4" />
-                  Create Investment
+                  Create Funding
                 </Button>
               </div>
             </div>

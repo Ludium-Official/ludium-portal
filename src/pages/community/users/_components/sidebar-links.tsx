@@ -17,7 +17,7 @@ export const sidebarLinks = [
         ],
       },
       {
-        label: 'Investment',
+        label: 'Funding',
         path: 'program/investment',
         children: [
           { label: 'Host', path: 'program/investment/host' },

@@ -184,7 +184,7 @@ function UsersPage() {
                     </div>
 
                     <div className="p-3 flex flex-col gap-1 min-w-[132px]">
-                      <p className="font-bold text-xs text-gray-dark">Investment</p>
+                      <p className="font-bold text-xs text-gray-dark">Funding</p>
                       <Separator />
                       <div className="flex justify-between">
                         <p className="font-bold text-xs text-zinc-500">Host</p>

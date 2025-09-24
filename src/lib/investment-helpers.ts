@@ -110,7 +110,7 @@ export async function handleInvestment({
         tokenName: tokenSymbol || 'EDU',
       });
 
-      notify('Investment successful!', 'success');
+      notify('Funding successful!', 'success');
       return result;
     }
 
@@ -139,7 +139,7 @@ export async function handleInvestment({
         userAddress,
       });
 
-      notify('Investment successful!', 'success');
+      notify('Funding successful!', 'success');
       return investResult;
     } catch (error) {
       // Check if approval is required
@@ -155,7 +155,7 @@ export async function handleInvestment({
         });
 
         if (approvalResult.approved) {
-          notify('Token approved! Now processing investment...');
+          notify('Token approved! Now processing funding...');
 
           // Retry investment after approval
           const investResult = await investmentContract.investFund({
@@ -167,7 +167,7 @@ export async function handleInvestment({
             userAddress,
           });
 
-          notify('Investment successful!', 'success');
+          notify('Funding successful!', 'success');
           return investResult;
         }
         throw new Error('Token approval failed');
@@ -176,7 +176,7 @@ export async function handleInvestment({
       throw error;
     }
   } catch (error) {
-    console.error('Investment failed:', error);
+    console.error('Funding failed:', error);
 
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
@@ -186,9 +186,9 @@ export async function handleInvestment({
     } else if (errorMessage.includes('insufficient funds')) {
       notify('Insufficient funds in your wallet', 'error');
     } else if (errorMessage.includes('Token not whitelisted')) {
-      notify('This token is not whitelisted for investments', 'error');
+      notify('This token is not whitelisted for funding', 'error');
     } else {
-      notify(`Investment failed: ${errorMessage}`, 'error');
+      notify(`Funding failed: ${errorMessage}`, 'error');
     }
 
     throw error;

@@ -214,7 +214,7 @@ function Header() {
             onClick={() => navigate('/investments')}
             className="text-sm font-medium text-gray-700 hover:text-primary transition-colors px-3 py-1 rounded-md hover:bg-gray-50"
           >
-            Investment
+            Funding
           </button>
         </div>
       )}
