@@ -47,11 +47,11 @@ function findBreadcrumbTrail(
   return null;
 }
 
-export function AgentBreadcrumbs() {
+export function AgentBreadcrumbs({ myProfile }: { myProfile?: boolean }) {
   const { id } = useParams();
   const location = useLocation();
 
-  const prefix = `/users/${id}/`;
+  const prefix = myProfile ? '/my-profile/' : `/users/${id}/`;
   const relativePath = location.pathname.startsWith(prefix)
     ? location.pathname.slice(prefix.length)
     : '';
@@ -81,7 +81,7 @@ export function AgentBreadcrumbs() {
       <BreadcrumbList>
         {trail.map((item, idx) => {
           const isLast = idx === trail.length - 1;
-          const fullPath = `/users/${id}/${item.path}`;
+          const fullPath = `${myProfile ? '/my-profile/' : `/users/${id}/`}${item.path}`;
 
           if (!item.path) {
             return (

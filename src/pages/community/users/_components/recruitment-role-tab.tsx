@@ -1,19 +1,35 @@
+import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
+import ProgramCard from '@/pages/programs/_components/program-card';
+import { ProgramType } from '@/types/types.generated';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import { AgentBreadcrumbs } from './agent-breadcrumbs';
-import ProgramCard from './program-card';
 
 const programPageSize = 6;
 
-export default function UserRecruitmentRoleTab() {
+const roleBasedOnRole = {
+  builder: 'builderId',
+  validator: 'validatorId',
+  sponsor: 'creatorId',
+};
+
+export default function UserRecruitmentRoleTab({ myProfile }: { myProfile?: boolean }) {
   const { id, role } = useParams();
+  console.log('🚀 ~ UserRecruitmentRoleTab ~ role:', role);
   const [searchParams, _setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const currentPage = Number(searchParams.get('page')) || 1;
+
+  const { data: profileData } = useProfileQuery({
+    fetchPolicy: 'network-only',
+    skip: !myProfile,
+  });
+
+  const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
 
   const { data: programData } = useProgramsQuery({
     variables: {
@@ -23,8 +39,12 @@ export default function UserRecruitmentRoleTab() {
 
         filter: [
           {
-            value: id ?? '',
-            field: role ?? '',
+            value: profileId,
+            field: roleBasedOnRole[role as 'builder' | 'validator' | 'sponsor'],
+          },
+          {
+            field: 'type',
+            value: ProgramType.Regular,
           },
           ...(searchQuery
             ? [
@@ -37,7 +57,7 @@ export default function UserRecruitmentRoleTab() {
         ],
       },
     },
-    skip: !id,
+    skip: !profileId,
   });
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -46,7 +66,7 @@ export default function UserRecruitmentRoleTab() {
     <div className="flex flex-col gap-10">
       <div className="flex flex-col gap-3">
         <div className="flex h-12 items-center justify-between pl-4">
-          <AgentBreadcrumbs />
+          <AgentBreadcrumbs myProfile={myProfile} />
           <div className="relative w-[360px]">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input

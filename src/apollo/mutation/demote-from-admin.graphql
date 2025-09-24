@@ -1,0 +1,5 @@
+mutation demoteFromAdmin($userId: ID!) {
+  demoteFromAdmin(userId: $userId) {
+    id
+  }
+}

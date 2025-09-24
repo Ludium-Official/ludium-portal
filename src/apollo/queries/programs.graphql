@@ -35,10 +35,18 @@ query programs($pagination: PaginationInput) {
           price
           status
           title
+          deadline
+          reclaimed
+          reclaimTxHash
+          reclaimedAt
+          canReclaim
         }
         name
         price
         status
+        fundingTarget
+        fundingSuccessful
+        currentFundingAmount
       }
 
       creator {
@@ -59,6 +67,7 @@ query programs($pagination: PaginationInput) {
       description
       image
       id
+      educhainProgramId
       keywords {
         id
         name
@@ -82,6 +91,10 @@ query programs($pagination: PaginationInput) {
       feePercentage
       customFeePercentage
       image
+      reclaimed
+      reclaimTxHash
+      reclaimedAt
+      canReclaim
       validators {
         about
         email

@@ -4,6 +4,7 @@ import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -14,10 +15,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useProjectDraft } from '@/lib/hooks/use-project-draft';
 import notify from '@/lib/notify';
-import { cn, getCurrency } from '@/lib/utils';
+import { cn, getCurrency, getCurrencyIcon, sortTierSettings } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { type LinkInput, ProgramStatus } from '@/types/types.generated';
-import { Check, ChevronRight, X } from 'lucide-react';
+import { Check, ChevronRight, TriangleAlert, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
@@ -97,6 +98,12 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
   const [nextTermId, setNextTermId] = useState<number>(2); // Start from 2 since Term 1 has id 1
   const [selectedTiers, setSelectedTiers] = useState<string[]>(['']);
   const [popoverStates, setPopoverStates] = useState<boolean[]>([false]);
+
+  // Confirmation modal states
+  const [deleteTermModalOpen, setDeleteTermModalOpen] = useState<boolean>(false);
+  const [deleteMilestoneModalOpen, setDeleteMilestoneModalOpen] = useState<boolean>(false);
+  const [termToDelete, setTermToDelete] = useState<number | null>(null);
+  const [milestoneToDelete, setMilestoneToDelete] = useState<number | null>(null);
 
   const [terms, setTerms] = useState<Term[]>([
     {
@@ -248,7 +255,10 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     });
 
     if (termsErrors.some((error) => error)) {
-      dispatchErrors({ type: ExtraErrorActionKind.SET_TERMS_ERROR, payload: termsErrors });
+      dispatchErrors({
+        type: ExtraErrorActionKind.SET_TERMS_ERROR,
+        payload: termsErrors,
+      });
       hasErrors = true;
     }
 
@@ -284,11 +294,22 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
       hasErrors = true;
     }
 
-    // Validate funding amount
-    const maxFunding = Number.parseFloat(data?.program?.price ?? '0');
+    // Validate funding amount - each project can have up to maxFundingAmount
+    const maxFundingPerProject = Number.parseFloat(
+      data?.program?.maxFundingAmount || data?.program?.price || '0',
+    );
     const requestedFunding = Number.parseFloat(watch('fundingToBeRaised') ?? '0');
-    if (requestedFunding > maxFunding) {
-      notify('Funding to be raised cannot exceed maximum funding amount.', 'error');
+    if (requestedFunding > maxFundingPerProject) {
+      notify(
+        `Funding to be raised cannot exceed maximum funding amount per project (${maxFundingPerProject} ${
+          data?.program?.currency || 'EDU'
+        }).`,
+        'error',
+      );
+      hasErrors = true;
+    }
+    if (requestedFunding <= 0) {
+      notify('Funding to be raised cannot be zero.', 'error');
       hasErrors = true;
     }
 
@@ -325,7 +346,8 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
   };
 
   const isTermsTabValid = () => {
-    return terms.every((term) => {
+    // Check if all terms have required fields
+    const allTermsValid = terms.every((term) => {
       const hasError = !term.title || !term.prize || !term.purchaseLimit || !term.description;
       if (hasError) {
         const purchaseLimit = Number.parseInt(term.purchaseLimit, 10);
@@ -335,6 +357,25 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
       }
       return !hasError;
     });
+
+    if (!allTermsValid) {
+      return false;
+    }
+
+    // Check if total sum of terms doesn't exceed funding to be raised
+    const fundingToBeRaised = Number.parseFloat(watch('fundingToBeRaised') ?? '0');
+    const totalSum = terms
+      .filter((term) => term.title && term.prize && term.purchaseLimit)
+      .reduce((sum, term) => {
+        const prize = data?.program?.tierSettings
+          ? (data.program.tierSettings as Record<string, { maxAmount?: number }>)[term.prize]
+              ?.maxAmount || 0
+          : Number.parseFloat(term.prize) || 0;
+        const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
+        return sum + prize * purchaseLimit;
+      }, 0);
+
+    return totalSum <= fundingToBeRaised;
   };
 
   // Prefill from draft on mount when creating (not editing)
@@ -372,11 +413,20 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     setNextTermId((prev) => prev + 1);
   };
 
-  const removeTerm = (index: number) => {
+  const handleDeleteTermClick = (index: number) => {
     if (index === 0) return; // Term 1 cannot be deleted
-    setTerms((prevTerms) => prevTerms.filter((_, i) => i !== index));
-    setSelectedTiers((prev) => prev.filter((_, i) => i !== index));
-    setPopoverStates((prev) => prev.filter((_, i) => i !== index));
+    setTermToDelete(index);
+    setDeleteTermModalOpen(true);
+  };
+
+  const confirmDeleteTerm = () => {
+    if (termToDelete !== null) {
+      setTerms((prevTerms) => prevTerms.filter((_, i) => i !== termToDelete));
+      setSelectedTiers((prev) => prev.filter((_, i) => i !== termToDelete));
+      setPopoverStates((prev) => prev.filter((_, i) => i !== termToDelete));
+      setDeleteTermModalOpen(false);
+      setTermToDelete(null);
+    }
   };
 
   const updateTerm = (index: number, field: keyof Term, value: string) => {
@@ -401,9 +451,18 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     setNextMilestoneId((prev) => prev + 1);
   };
 
-  const removeMilestone = (index: number) => {
+  const handleDeleteMilestoneClick = (index: number) => {
     if (index === 0) return; // Milestone 1 cannot be deleted
-    setMilestones((prevMilestones) => prevMilestones.filter((_, i) => i !== index));
+    setMilestoneToDelete(index);
+    setDeleteMilestoneModalOpen(true);
+  };
+
+  const confirmDeleteMilestone = () => {
+    if (milestoneToDelete !== null) {
+      setMilestones((prevMilestones) => prevMilestones.filter((_, i) => i !== milestoneToDelete));
+      setDeleteMilestoneModalOpen(false);
+      setMilestoneToDelete(null);
+    }
   };
 
   const updateMilestone = (
@@ -454,11 +513,14 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
               </p>
 
               <div className="flex items-center justify-between bg-secondary rounded-md p-3">
-                <p className="text-sm font-bold text-muted-foreground">Maximum funding amount</p>
+                <p className="text-sm font-bold text-muted-foreground">
+                  Maximum funding amount per project
+                </p>
                 <div className="flex items-center gap-2">
-                  <span>{getCurrency(data?.program?.network)?.icon}</span>{' '}
+                  <span>{getCurrencyIcon(data?.program?.currency)}</span>{' '}
                   <span className="font-bold">
-                    {data?.program?.price} {data?.program?.currency}
+                    {data?.program?.maxFundingAmount || data?.program?.price}{' '}
+                    {data?.program?.currency}
                   </span>{' '}
                   <span className="text-muted-foreground text-sm text-bold">
                     {getCurrency(data?.program?.network)?.display}
@@ -469,6 +531,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
               <Input
                 id="fundingToBeRaised"
                 type="number"
+                min="0"
                 placeholder="0"
                 className="h-10"
                 {...register('fundingToBeRaised', { required: true })}
@@ -495,13 +558,15 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                   {data?.program?.tierSettings ? (
                     <div className="flex items-center gap-2">
                       {data?.program?.tierSettings &&
-                        Object.entries(data.program.tierSettings).map(([key, value]) => {
+                        sortTierSettings(data.program.tierSettings, false).map(([key, value]) => {
                           if (!(value as { enabled: boolean })?.enabled) return null;
 
                           return (
                             <span
                               key={key}
-                              className={`${tierColors[key as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}
+                              className={`${
+                                tierColors[key as keyof typeof tierColors]
+                              } px-2 py-0.5 rounded-full text-sm font-semibold`}
                             >
                               {key.charAt(0).toUpperCase() + key.slice(1)}
                             </span>
@@ -514,12 +579,12 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                 </div>
                 {!!data?.program?.tierSettings && (
                   <div className="flex flex-col items-end space-y-1">
-                    {Object.entries(data?.program?.tierSettings).map(
+                    {sortTierSettings(data?.program?.tierSettings, false).map(
                       ([key, value]) =>
                         (value as { enabled: boolean })?.enabled && (
                           <div className="text-sm text-gray-600">
                             {key.charAt(0).toUpperCase() + key.slice(1)}{' '}
-                            {(value as { maxAmount: string })?.maxAmount}
+                            {(value as { maxAmount?: number })?.maxAmount} {data?.program?.currency}
                           </div>
                         ),
                     )}
@@ -642,6 +707,95 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
         <TabsContent value="terms">
           <div className="space-y-4">
+            <div className="bg-white rounded-lg p-6">
+              <label htmlFor="price" className="space-y-2 block">
+                <p className="text-sm font-medium">
+                  Funding to be raised <span className="text-primary">*</span>
+                </p>
+
+                <div className="flex items-center justify-between bg-secondary rounded-md p-3">
+                  <p className="text-sm font-bold text-muted-foreground">
+                    Your project funding target
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span>{getCurrencyIcon(data?.program?.currency)}</span>{' '}
+                    <span className="font-bold">
+                      {watch('fundingToBeRaised')} {data?.program?.currency}
+                    </span>{' '}
+                    <span className="text-muted-foreground text-sm text-bold">
+                      {getCurrency(data?.program?.network)?.display}
+                    </span>
+                  </div>
+                </div>
+
+                {/* <Input
+                  id="fundingToBeRaised"
+                  type="number"
+                  placeholder="0"
+                  className="h-10"
+                  {...register('fundingToBeRaised', { required: true })}
+                />
+                {errors.fundingToBeRaised && (
+                  <span className="text-destructive text-sm block">Amount is required</span>
+                )} */}
+              </label>
+
+              <label htmlFor="supporterTier" className="space-y-2 block mt-10">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Supporter Tier <span className="text-primary">*</span>
+                </p>
+
+                {/* Program Tier Condition Box */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div
+                    className={cn(
+                      'flex items-center justify-between border-b pb-2 mb-2',
+                      !data?.program?.tierSettings && 'border-none pb-0 mb-0',
+                    )}
+                  >
+                    <p className="text-sm font-medium text-gray-700">Program Tier Condition</p>
+                    {data?.program?.tierSettings ? (
+                      <div className="flex items-center gap-2">
+                        {data?.program?.tierSettings &&
+                          sortTierSettings(data.program.tierSettings, false).map(([key, value]) => {
+                            if (!(value as { enabled: boolean })?.enabled) return null;
+
+                            return (
+                              <span
+                                key={key}
+                                className={`${
+                                  tierColors[key as keyof typeof tierColors]
+                                } px-2 py-0.5 rounded-full text-sm font-semibold`}
+                              >
+                                {key.charAt(0).toUpperCase() + key.slice(1)}
+                              </span>
+                            );
+                          })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-foreground font-bold">Open</p>
+                    )}
+                  </div>
+                  {!!data?.program?.tierSettings && (
+                    <div className="flex flex-col items-end space-y-1">
+                      {sortTierSettings(data?.program?.tierSettings, false).map(
+                        ([key, value]) =>
+                          (value as { enabled: boolean })?.enabled && (
+                            <div className="text-sm text-gray-600">
+                              {key.charAt(0).toUpperCase() + key.slice(1)}{' '}
+                              {(value as { maxAmount?: number })?.maxAmount}{' '}
+                              {data?.program?.currency}
+                            </div>
+                          ),
+                      )}
+
+                      {/* <div className="text-sm text-gray-600">Gold 10,000</div>
+                  <div className="text-sm text-gray-600">Platinum 20,000</div> */}
+                    </div>
+                  )}
+                </div>
+              </label>
+            </div>
             {terms.map((term, index) => (
               <div key={term.id} className="bg-white rounded-lg p-6">
                 <div className="flex items-center justify-between mb-6">
@@ -651,7 +805,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeTerm(index)}
+                      onClick={() => handleDeleteTermClick(index)}
                       className="bg-secondary"
                     >
                       Delete
@@ -701,11 +855,22 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                               {selectedTiers[index] ? (
                                 <span className="flex items-center gap-2">
                                   <span
-                                    className={`${tierColors[selectedTiers[index] as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}
+                                    className={`${
+                                      tierColors[selectedTiers[index] as keyof typeof tierColors]
+                                    } px-2 py-0.5 rounded-full text-sm font-semibold`}
                                   >
                                     {selectedTiers[index].charAt(0).toUpperCase() +
                                       selectedTiers[index].slice(1)}
                                   </span>
+                                  {
+                                    (
+                                      data?.program?.tierSettings as Record<
+                                        string,
+                                        { maxAmount?: number }
+                                      >
+                                    )[selectedTiers[index]]?.maxAmount
+                                  }{' '}
+                                  {data?.program?.currency}
                                 </span>
                               ) : (
                                 'Select tier'
@@ -715,39 +880,45 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                           </PopoverTrigger>
                           <PopoverContent className="w-full p-2" align="start">
                             <div className="">
-                              {Object.entries(data.program.tierSettings).map(([key, value]) => {
-                                if (!(value as { enabled: boolean })?.enabled) return null;
+                              {sortTierSettings(data.program.tierSettings, false).map(
+                                ([key, value]) => {
+                                  if (!(value as { enabled: boolean })?.enabled) return null;
 
-                                return (
-                                  <Button
-                                    key={key}
-                                    variant="ghost"
-                                    className="w-full justify-start pl-1"
-                                    onClick={() => {
-                                      setSelectedTiers((prev) =>
-                                        prev.map((tier, i) => (i === index ? key : tier)),
-                                      );
-                                      updateTerm(index, 'prize', key);
-                                      setPopoverStates((prev) =>
-                                        prev.map((state, i) => (i === index ? false : state)),
-                                      );
-                                    }}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      {selectedTiers[index] === key ? (
-                                        <Check className="h-4 w-4 text-foreground" />
-                                      ) : (
-                                        <div className="w-4 h-4" />
-                                      )}
-                                      <span
-                                        className={`${tierColors[key as keyof typeof tierColors]} px-2 py-0.5 rounded-full text-sm font-semibold`}
-                                      >
-                                        {key.charAt(0).toUpperCase() + key.slice(1)}
-                                      </span>
-                                    </div>
-                                  </Button>
-                                );
-                              })}
+                                  return (
+                                    <Button
+                                      key={key}
+                                      variant="ghost"
+                                      className="w-full justify-start pl-1"
+                                      onClick={() => {
+                                        setSelectedTiers((prev) =>
+                                          prev.map((tier, i) => (i === index ? key : tier)),
+                                        );
+                                        updateTerm(index, 'prize', key);
+                                        setPopoverStates((prev) =>
+                                          prev.map((state, i) => (i === index ? false : state)),
+                                        );
+                                      }}
+                                    >
+                                      <div className="flex items-center gap-2">
+                                        {selectedTiers[index] === key ? (
+                                          <Check className="h-4 w-4 text-foreground" />
+                                        ) : (
+                                          <div className="w-4 h-4" />
+                                        )}
+                                        <span
+                                          className={`${
+                                            tierColors[key as keyof typeof tierColors]
+                                          } px-2 py-0.5 rounded-full text-sm font-semibold`}
+                                        >
+                                          {key.charAt(0).toUpperCase() + key.slice(1)}
+                                        </span>
+                                        {(value as { maxAmount?: number })?.maxAmount}{' '}
+                                        {data?.program?.currency}
+                                      </div>
+                                    </Button>
+                                  );
+                                },
+                              )}
                             </div>
                           </PopoverContent>
                         </Popover>
@@ -755,6 +926,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         <Input
                           id={`prize-${index}`}
                           type="number"
+                          min="0"
                           placeholder="0"
                           value={term.prize}
                           onChange={(e) => updateTerm(index, 'prize', e.target.value)}
@@ -774,6 +946,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       <Input
                         id={`purchaseLimit-${index}`}
                         type="number"
+                        min="0"
                         placeholder="0"
                         value={term.purchaseLimit}
                         onChange={(e) => updateTerm(index, 'purchaseLimit', e.target.value)}
@@ -828,6 +1001,98 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                 </div>
               </div>
             ))}
+            <div className="bg-[#FAF5FF] rounded-lg py-6 px-10 border border-primary">
+              {terms.length > 0 &&
+              terms.some((term) => term.title && term.prize && term.purchaseLimit) ? (
+                <div className="space-y-4">
+                  <div className="">
+                    {terms
+                      .filter((term) => term.title && term.prize && term.purchaseLimit)
+                      .map((term) => {
+                        const prize = data?.program?.tierSettings
+                          ? (data.program.tierSettings as Record<string, { maxAmount?: number }>)[
+                              term.prize
+                            ]?.maxAmount || 0
+                          : Number.parseFloat(term.prize) || 0;
+                        const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
+                        const totalPrice = prize * purchaseLimit;
+
+                        return (
+                          <div
+                            key={term.id}
+                            className="grid grid-cols-3 gap-4 p-4 border-b border-gray-100 text-sm last:border-b-0"
+                          >
+                            <div className="flex items-center">
+                              {data?.program?.tierSettings ? (
+                                <span
+                                  className={`${
+                                    tierColors[term.prize as keyof typeof tierColors]
+                                  } px-2 py-1 rounded-full text-xs font-semibold`}
+                                >
+                                  {term.prize.charAt(0).toUpperCase() + term.prize.slice(1)}
+                                </span>
+                              ) : (
+                                <span className="font-medium">{term.title}</span>
+                              )}
+                            </div>
+                            <div className="text-gray-600">{purchaseLimit}</div>
+                            <div className="font-medium  justify-self-end text-right">
+                              {totalPrice} {data?.program?.currency}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+
+                  {/* Total Row */}
+                  {(() => {
+                    const totalSum = terms
+                      .filter((term) => term.title && term.prize && term.purchaseLimit)
+                      .reduce((sum, term) => {
+                        const prize = data?.program?.tierSettings
+                          ? (data.program.tierSettings as Record<string, { maxAmount?: number }>)[
+                              term.prize
+                            ]?.maxAmount || 0
+                          : Number.parseFloat(term.prize) || 0;
+                        const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
+                        return sum + prize * purchaseLimit;
+                      }, 0);
+
+                    const fundingToBeRaised = Number.parseFloat(watch('fundingToBeRaised') ?? '0');
+                    const exceedsFunding = totalSum > fundingToBeRaised;
+
+                    return (
+                      <>
+                        <div className="grid grid-cols-3 gap-4 p-4 border-t-2 border-foreground font-bold text-base">
+                          <div>Total</div>
+                          <div />
+                          <div
+                            className={`justify-self-end text-right ${
+                              exceedsFunding ? 'text-destructive' : 'text-primary'
+                            }`}
+                          >
+                            {totalSum.toLocaleString()} {data?.program?.currency}
+                          </div>
+                        </div>
+                        {exceedsFunding && (
+                          <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                            <p className="text-destructive text-sm font-medium">
+                              Total terms amount ({totalSum.toLocaleString()}{' '}
+                              {data?.program?.currency}) exceeds funding to be raised (
+                              {fundingToBeRaised.toLocaleString()} {data?.program?.currency})
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <div className="text-center text-gray-500 py-8">
+                  <p className="text-sm">No terms added yet. Add terms above to see the summary.</p>
+                </div>
+              )}
+            </div>
           </div>
         </TabsContent>
 
@@ -842,7 +1107,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => removeMilestone(index)}
+                      onClick={() => handleDeleteMilestoneClick(index)}
                       className="bg-secondary"
                     >
                       Delete
@@ -877,6 +1142,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       <Input
                         id={`milestone-payout-${index}`}
                         type="number"
+                        min="0"
                         placeholder="0"
                         value={milestone.payoutPercentage}
                         onChange={(e) => updateMilestone(index, 'payoutPercentage', e.target.value)}
@@ -899,7 +1165,15 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                       <div className="mt-2">
                         <DatePicker
                           date={milestone.endDate}
-                          setDate={(date) => updateMilestone(index, 'endDate', date as Date)}
+                          setDate={(date) => {
+                            if (date && typeof date === 'object' && 'getTime' in date) {
+                              const newDate = new Date(date.getTime());
+                              newDate.setHours(23, 59, 59, 999);
+                              updateMilestone(index, 'endDate', newDate);
+                            } else {
+                              updateMilestone(index, 'endDate', undefined);
+                            }
+                          }}
                           disabled={{ before: new Date() }}
                         />
                       </div>
@@ -1132,6 +1406,87 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
           </Button>
         )}
       </div>
+
+      {/* Confirmation Modals */}
+      <Dialog open={deleteTermModalOpen} onOpenChange={setDeleteTermModalOpen}>
+        <DialogContent className="text-center w-[410px]">
+          <div className="flex flex-col items-center space-y-4">
+            {/* Warning Icon */}
+            <div className="w-[42px] h-[42px] bg-purple-100 rounded-full flex items-center justify-center">
+              <TriangleAlert className="w-6 h-6 text-primary" />
+            </div>
+
+            {/* Main Question */}
+            <DialogTitle className="text-xl font-bold text-gray-900">
+              Are you sure you want to delete it?
+            </DialogTitle>
+
+            {/* Warning Text */}
+            <DialogDescription className="text-gray-500 text-sm">
+              Once deleted, it cannot be recovered.
+            </DialogDescription>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col space-y-3 mt-3">
+            <Button
+              type="button"
+              className="w-full bg-black hover:bg-gray-800 text-white"
+              onClick={confirmDeleteTerm}
+            >
+              Continue
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+              onClick={() => setDeleteTermModalOpen(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={deleteMilestoneModalOpen} onOpenChange={setDeleteMilestoneModalOpen}>
+        <DialogContent className="text-center w-[410px]">
+          <div className="flex flex-col items-center space-y-4">
+            {/* Warning Icon */}
+            <div className="w-[42px] h-[42px] bg-purple-100 rounded-full flex items-center justify-center">
+              <TriangleAlert className="w-6 h-6 text-primary" />
+            </div>
+
+            {/* Main Question */}
+            <DialogTitle className="text-xl font-bold text-gray-900">
+              Are you sure you want to delete it?
+            </DialogTitle>
+
+            {/* Warning Text */}
+            <DialogDescription className="text-gray-500 text-sm">
+              Once deleted, it cannot be recovered.
+            </DialogDescription>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col space-y-3 mt-3">
+            <Button
+              type="button"
+              className="w-full bg-black hover:bg-gray-800 text-white"
+              onClick={confirmDeleteMilestone}
+            >
+              Continue
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+              onClick={() => setDeleteMilestoneModalOpen(false)}
+            >
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }

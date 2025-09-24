@@ -1,5 +1,6 @@
+import { ProgramStatusBadge } from '@/components/status-badge';
 import { Badge } from '@/components/ui/badge';
-import type { Program } from '@/types/types.generated';
+import { type Program } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronRight } from 'lucide-react';
 import { Link } from 'react-router';
@@ -19,8 +20,8 @@ function MainProgramCard({ program }: MainProgramCardProps) {
 
   return (
     <Link
-      to={`/programs/${program.id}`}
-      className="bg-white border border-gray-200 min-w-[624px] w-[624px] h-[272px] p-6 rounded-lg hover:shadow-md transition-shadow flex flex-col"
+      to={`/investments/${program.id}`}
+      className="bg-white border border-gray-200 min-w-[624px] w-[624px] h-[292px] p-6 rounded-lg hover:shadow-md transition-shadow flex flex-col"
     >
       <div className="flex justify-between mb-2">
         <div className="flex gap-2">
@@ -34,10 +35,7 @@ function MainProgramCard({ program }: MainProgramCardProps) {
             </Badge>
           ))}
         </div>
-        <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
-          <div className="w-[14px] h-[14px] bg-purple-500 rounded-full" />
-          <span className="text-sm text-gray-700 font-semibold">Completed</span>
-        </div>
+        <ProgramStatusBadge program={program} />
       </div>
 
       <div className="flex gap-6 flex-1">
@@ -54,20 +52,11 @@ function MainProgramCard({ program }: MainProgramCardProps) {
         </div>
 
         <div className="flex-1 flex flex-col">
-          <h3 className="text-lg font-bold text-gray-900 mb-2">{program?.name}</h3>
+          <h3 className="text-lg font-bold text-gray-900 mb-2 truncate max-w-[394px]">
+            {program?.name}
+          </h3>
 
           <div className="space-y-2 flex-1 mb-3">
-            <div className="bg-[#0000000A] rounded px-2 py-1 flex justify-between items-center gap-3">
-              <span className="text-sm text-neutral-400 font-semibold">STATUS</span>
-
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div className="bg-purple-600 h-2 rounded-full" style={{ width: '25%' }} />
-              </div>
-              <span className="text-xl text-primary font-bold flex items-center">
-                25<span className="text-sm text-muted-foreground">%</span>
-              </span>
-            </div>
-
             <div className="inline-flex gap-2 justify-between items-center bg-[#0000000A] rounded px-2 py-1">
               <span className="text-sm text-neutral-400 font-semibold">DATE</span>
               <span className="text-sm font-medium text-muted-foreground">
@@ -88,7 +77,9 @@ function MainProgramCard({ program }: MainProgramCardProps) {
               Project Management
             </span>
             <div className="flex items-center gap-1">
-              <span className="text-sm text-primary font-bold">6</span>
+              <span className="text-sm text-primary font-bold">
+                {program.applications?.length || 0}
+              </span>
               <ChevronRight className="w-4 h-4 text-secondary-foreground" />
             </div>
           </div>

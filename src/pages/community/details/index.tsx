@@ -2,6 +2,7 @@ import { useIncrementPostViewMutation } from '@/apollo/mutation/incerement-post-
 import { useCommentsByCommentableQuery } from '@/apollo/queries/comments-by-commentable.generated';
 import { usePostQuery } from '@/apollo/queries/post.generated';
 import { usePostsQuery } from '@/apollo/queries/posts.generated';
+import { AdminDropdown } from '@/components/admin-dropdown';
 import { CommentSection } from '@/components/comments/comment-section';
 import { MarkdownPreviewer } from '@/components/markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,7 +11,7 @@ import { ShareButton } from '@/components/ui/share-button';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { getInitials, getUserName } from '@/lib/utils';
 
-import { CommentableTypeEnum, type Post, SortEnum } from '@/types/types.generated';
+import { CommentableTypeEnum, type Post, PostVisibility, SortEnum } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -124,13 +125,20 @@ const CommunityDetailsPage: React.FC = () => {
 
   return (
     <div className="bg-white rounded-2xl">
-      <div className="max-w-1440 mx-auto">
+      <div className="max-w-full md:max-w-1440 mx-auto">
         <div className="flex">
           <div className="w-[70%] p-10 flex flex-col gap-20">
             <div className="flex flex-col gap-6">
               <div className="flex items-center justify-between">
                 <h1 className="text-xl font-bold">{post?.title}</h1>
                 <div className="flex items-center gap-2">
+                  {isAdmin && (
+                    <AdminDropdown
+                      entityId={data?.post?.id || ''}
+                      entityType="post"
+                      entityVisibility={data?.post?.visibility || PostVisibility.Public}
+                    />
+                  )}
                   {(data?.post?.author?.id === userId || isAdmin) && (
                     <Link
                       to={`/community/posts/${data?.post?.id}/edit`}

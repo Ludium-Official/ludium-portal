@@ -1,0 +1,31 @@
+query adminUsers(
+  $includesBanned: Boolean
+  $onlyBanned: Boolean
+  $pagination: PaginationInput
+  $role: UserRole
+) {
+  adminUsers(
+    includesBanned: $includesBanned
+    onlyBanned: $onlyBanned
+    pagination: $pagination
+    role: $role
+  ) {
+    count
+    data {
+      about
+      avatar
+      banned
+      bannedAt
+      bannedReason
+      email
+      firstName
+      id
+      image
+      lastName
+      loginType
+      organizationName
+      summary
+      walletAddress
+    }
+  }
+}

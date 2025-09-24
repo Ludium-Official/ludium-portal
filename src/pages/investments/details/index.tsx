@@ -1,171 +1,99 @@
 // import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
-import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
+import { useAcceptProgramMutation } from '@/apollo/mutation/accept-program.generated';
+
+import { useSubmitProgramMutation } from '@/apollo/mutation/submit-program.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
-import { useUsersQuery } from '@/apollo/queries/users.generated';
+
+import { AdminDropdown } from '@/components/admin-dropdown';
 import { MarkdownPreviewer } from '@/components/markdown';
 import { ProgramStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { MultiSelect } from '@/components/ui/multi-select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { ShareButton } from '@/components/ui/share-button';
-import { Tabs } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+// import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { getInvestmentContract } from '@/lib/hooks/use-investment-contract';
+import { TOKEN_CONFIGS } from '@/lib/investment-helpers';
 import notify from '@/lib/notify';
-import { cn, getCurrencyIcon, getInitials, getUserName } from '@/lib/utils';
-import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
+import { cn, getInitials, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import ProjectCard from '@/pages/investments/details/_components/project-card';
+import SupportersModal from '@/pages/investments/details/_components/supporters-modal';
+import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 // import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
-import { type InvestmentTier, ProgramStatus } from '@/types/types.generated';
+import { FundingCondition, ProgramStatus, ProgramVisibility } from '@/types/types.generated';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { format } from 'date-fns';
-import { ChevronDown, CircleAlert, Settings, X } from 'lucide-react';
+import { CircleAlert, Settings, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
+import { http, type Chain, type PublicClient, createPublicClient } from 'viem';
+import {
+  arbitrum,
+  arbitrumSepolia,
+  base,
+  baseSepolia,
+  creditCoin3Mainnet,
+  eduChain,
+  eduChainTestnet,
+} from 'viem/chains';
+
+function getChainForNetwork(network: string) {
+  const chainMap: Record<string, Chain> = {
+    'educhain-testnet': eduChainTestnet,
+    'base-sepolia': baseSepolia,
+    'arbitrum-sepolia': arbitrumSepolia,
+    educhain: eduChain,
+    base: base,
+    arbitrum: arbitrum,
+    creditcoin: creditCoin3Mainnet,
+  };
+  return chainMap[network] || eduChainTestnet;
+}
+
 const InvestmentDetailsPage: React.FC = () => {
-  const { userId, isAdmin } = useAuth();
+  const { userId, isAdmin, isLoggedIn } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [isSupportersModalOpen, setIsSupportersModalOpen] = useState(false);
-  const [supportersTab, setSupportersTab] = useState<'invite' | 'supporters'>('invite');
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
 
-  const [selectedSupporter, setSelectedSupporter] = useState<string[]>([]);
-  const [selectedSupporterItems, setSelectedSupporterItems] = useState<
-    { label: string; value: string }[]
-  >([]);
-  const [supporterInput, setSupporterInput] = useState<string>();
-  const [debouncedSupporterInput, setDebouncedSupporterInput] = useState<string>();
-  const [selectedTier, setSelectedTier] = useState<string | undefined>(undefined);
-  const [storedSupporters, setStoredSupporters] = useState<
-    Array<{
-      id: string;
-      name: string;
-      email: string;
-      tier: string;
-    }>
-  >([]);
+  useEffect(() => {
+    const userAgent = navigator.userAgent;
+    const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+    setIsMobileDevice(isMobile);
+  }, []);
 
-  const { data, refetch } = useProgramQuery({
+  const {
+    data,
+    refetch,
+    error: programError,
+  } = useProgramQuery({
     variables: {
       id: id ?? '',
     },
+    fetchPolicy: 'network-only', // Force fresh data from server
   });
-
-  const [inviteUserToProgram] = useInviteUserToProgramMutation();
-
-  // Debounce supporter input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSupporterInput(supporterInput);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [supporterInput]);
-
-  // Query for supporters/users
-  const { data: supportersData, loading: supportersLoading } = useUsersQuery({
-    variables: {
-      input: {
-        limit: 5,
-        offset: 0,
-        filter: [
-          {
-            field: 'search',
-            value: debouncedSupporterInput ?? '',
-          },
-        ],
-      },
-    },
-    skip: !supporterInput,
-  });
-
-  const supporterOptions = supportersData?.users?.data?.map((v) => ({
-    value: v.id ?? '',
-    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
-  }));
 
   const program = data?.program;
 
-  // Set initial tier when tierSettings are available
-  useEffect(() => {
-    if (program?.tierSettings && !selectedTier) {
-      const enabledTiers = Object.entries(program.tierSettings).filter(
-        ([_, value]) => (value as { enabled: boolean })?.enabled,
-      );
-      if (enabledTiers.length > 0) {
-        setSelectedTier(enabledTiers[0][0]);
-      }
-    }
-  }, [program?.tierSettings, selectedTier]);
-
-  const handleInviteSupporter = () => {
-    if (!selectedSupporter.length) {
-      console.error('Please select a supporter');
-      return;
-    }
-
-    const supporterId = selectedSupporter[0];
-    const supporterItem = selectedSupporterItems[0];
-
-    // Check if supporter is already in the list
-    const isAlreadyAdded = storedSupporters.some((supporter) => supporter.id === supporterId);
-    if (isAlreadyAdded) {
-      console.error('Supporter is already in the list');
-      return;
-    }
-
-    // Add supporter to stored list
-    const newSupporter = {
-      id: supporterId,
-      name: supporterItem?.label || 'Unknown User',
-      email: supporterItem?.label.split(' ')[0] || 'unknown@email.com', // Extract email from label
-      tier: selectedTier || 'gold',
-    };
-
-    setStoredSupporters((prev) => [...prev, newSupporter]);
-
-    // Reset selection
-    setSelectedSupporter([]);
-    setSelectedSupporterItems([]);
-    setSupporterInput('');
-  };
-
-  const removeSupporter = (supporterId: string) => {
-    setStoredSupporters((prev) => prev.filter((supporter) => supporter.id !== supporterId));
-  };
-
-  const handleSendInvitation = async () => {
-    try {
-      if (!storedSupporters.length || !id) {
-        console.error('Please add at least one supporter');
-        return;
-      }
-
-      // Send invitations to all stored supporters
-      for (const supporter of storedSupporters) {
-        await inviteUserToProgram({
-          variables: {
-            programId: id,
-            userId: supporter.id,
-            tier: supporter.tier as InvestmentTier,
-            maxInvestmentAmount:
-              program?.tierSettings?.[supporter.tier as keyof typeof program.tierSettings]
-                ?.maxAmount,
-          },
-          onError: (error) => {
-            notify(`Failed to invite ${supporter.name}: ${error.message}`, 'error');
-          },
-        });
-      }
-
-      notify('All invitations sent successfully', 'success');
-      setStoredSupporters([]);
-      refetch();
-    } catch (error) {
-      console.error((error as Error).message);
-    }
+  // Check if funding is currently active
+  const isFundingActive = () => {
+    if (!program?.fundingStartDate || !program?.fundingEndDate) return false;
+    const now = new Date();
+    const fundingStart = new Date(program.fundingStartDate);
+    const fundingEnd = new Date(program.fundingEndDate);
+    return now >= fundingStart && now <= fundingEnd;
   };
 
   // const acceptedPrice = useMemo(
@@ -199,387 +127,343 @@ const InvestmentDetailsPage: React.FC = () => {
     }
   }, []);
 
-  // const [acceptProgram] = useAcceptProgramMutation({
-  //   variables: {
-  //     id: program?.id ?? '',
-  //   },
-  //   onCompleted: () => {
-  //     refetch();
-  //   },
-  // });
+  const [acceptProgram] = useAcceptProgramMutation({
+    variables: {
+      id: program?.id ?? '',
+    },
+    onCompleted: () => {
+      refetch();
+    },
+  });
+  const [publishProgram] = useSubmitProgramMutation();
+
+  // const contract = useContract(program?.network || mainnetDefaultNetwork);
+  const { sendTransaction, user } = usePrivy();
+  const { wallets } = useWallets();
+
+  const callTx = async () => {
+    try {
+      if (program) {
+        // Step 1: Deploy to blockchain if user wants blockchain integration
+        let txHash: string | null = null;
+        let blockchainProgramId: number | null = null;
+
+        if (program.network !== 'off-chain') {
+          notify('Deploying to blockchain...');
+
+          // Switch to the correct network if needed
+          const chain = getChainForNetwork(program.network ?? mainnetDefaultNetwork);
+
+          // Check if we have a wallet and switch network if needed
+          const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
+          if (currentWallet?.switchChain) {
+            try {
+              await currentWallet.switchChain(chain.id);
+              notify(`Switched to ${chain.name} network`, 'success');
+            } catch (error) {
+              console.warn('Failed to switch network:', error);
+              // Continue anyway, Privy modal will handle network switching
+            }
+          }
+
+          // Create public client for the network with proper chain configuration
+          const publicClient = createPublicClient({
+            chain,
+            transport: http(chain.rpcUrls.default.http[0]),
+          }) as PublicClient;
+
+          // Check if user is using an external wallet (MetaMask, etc.)
+          const isExternalWallet =
+            user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
+
+          console.log('Wallet detection for funding program:', {
+            connectorType: user?.wallet?.connectorType,
+            isExternalWallet,
+            currentWallet: currentWallet?.address,
+            userWalletAddress: user?.wallet?.address,
+          });
+
+          // Create a custom sendTransaction function for external wallets
+          let customSendTransaction = sendTransaction;
+
+          if (isExternalWallet && currentWallet) {
+            console.log('Using external wallet for funding program deployment');
+            // For external wallets, we need to handle transactions differently
+            // @ts-ignore - We're overriding the type to handle external wallets
+            customSendTransaction = async (input, _uiOptions) => {
+              try {
+                // Get the provider from the wallet
+                const eip1193Provider = await currentWallet.getEthereumProvider();
+                const { ethers } = await import('ethers');
+                const provider = new ethers.providers.Web3Provider(eip1193Provider);
+                const signer = provider.getSigner();
+
+                // Send the transaction directly
+                const txResponse = await signer.sendTransaction({
+                  to: input.to,
+                  data: input.data,
+                  value: input.value?.toString() || '0',
+                  chainId: input.chainId,
+                });
+
+                return { hash: txResponse.hash as `0x${string}` };
+              } catch (error) {
+                console.error('External wallet transaction error:', error);
+                throw error;
+              }
+            };
+          } else if (isExternalWallet && !currentWallet) {
+            console.warn('External wallet detected but currentWallet not found, trying fallback');
+            // Fallback: Try to use the first wallet if available
+            const fallbackWallet = wallets[0];
+            if (fallbackWallet) {
+              console.log('Using fallback wallet:', fallbackWallet.address);
+              // @ts-ignore
+              customSendTransaction = async (input, _uiOptions) => {
+                try {
+                  const eip1193Provider = await fallbackWallet.getEthereumProvider();
+                  const { ethers } = await import('ethers');
+                  const provider = new ethers.providers.Web3Provider(eip1193Provider);
+                  const signer = provider.getSigner();
+
+                  const txResponse = await signer.sendTransaction({
+                    to: input.to,
+                    data: input.data,
+                    value: input.value?.toString() || '0',
+                    chainId: input.chainId,
+                  });
+
+                  return { hash: txResponse.hash as `0x${string}` };
+                } catch (error) {
+                  console.error('Fallback wallet transaction error:', error);
+                  throw error;
+                }
+              };
+            }
+          } else {
+          }
+
+          // Get the investment contract for the selected network
+          // The contract will use the chainId to ensure transactions go to the correct network
+          const investmentContract = getInvestmentContract(
+            program.network ?? mainnetDefaultNetwork,
+            customSendTransaction,
+            publicClient,
+          );
+
+          // Get validator wallet addresses from the form data
+          const currentUserAddress =
+            user?.wallet?.address || '0x0000000000000000000000000000000000000000';
+
+          let validatorAddresses: string[] = [];
+
+          if ((program?.validators?.length ?? 0) > 0) {
+            // Use the wallet addresses provided by the form
+            // validatorAddresses = args.validatorWalletAddresses.filter((addr) => addr && addr !== '');
+
+            validatorAddresses = program?.validators?.map((v) => v.walletAddress ?? '') ?? [];
+
+            // Validate that we have wallet addresses for all validators
+            if (validatorAddresses.length !== (program?.validators?.length ?? 0)) {
+              // Fill missing addresses with current user address
+              while (validatorAddresses.length < (program?.validators?.length ?? 0)) {
+                validatorAddresses.push(currentUserAddress);
+              }
+            }
+          } else if ((program?.validators?.length ?? 0) > 0) {
+            // No wallet addresses provided but validators selected - use current user as fallback
+            validatorAddresses = program?.validators?.map(() => currentUserAddress) ?? [];
+          } else {
+            // No validators specified - use current user as default validator
+            validatorAddresses = [currentUserAddress];
+          }
+
+          // Determine the funding token address based on the program's currency
+          let fundingTokenAddress = '0x0000000000000000000000000000000000000000'; // Default to native token
+
+          // Check if it's not a native token (EDU, ETH)
+          if (program?.currency && program.currency !== 'EDU' && program.currency !== 'ETH') {
+            // Get the network key (convert to lowercase and replace spaces)
+            const networkKey =
+              program?.network?.toLowerCase().replace(' ', '-') || 'educhain-testnet';
+
+            const networkConfig = TOKEN_CONFIGS[networkKey as keyof typeof TOKEN_CONFIGS];
+            if (networkConfig) {
+              const tokenConfig = networkConfig[program.currency as keyof typeof networkConfig];
+              if (tokenConfig) {
+                fundingTokenAddress = tokenConfig.address;
+                console.log(
+                  `Using ${program.currency} token address:`,
+                  fundingTokenAddress,
+                  'on network:',
+                  networkKey,
+                );
+              } else {
+                console.warn(
+                  `Token ${program.currency} not found in TOKEN_CONFIGS for network ${networkKey}`,
+                );
+              }
+            } else {
+              console.warn(`Network ${networkKey} not found in TOKEN_CONFIGS`);
+            }
+          } else {
+            console.log(`Using native token for currency: ${program?.currency || 'default'}`);
+          }
+
+          // Determine token decimals based on currency
+          const tokenDecimals =
+            program?.currency === 'USDT' || program?.currency === 'USDC' ? 6 : 18;
+
+          const contractResult = await investmentContract.createInvestmentProgram({
+            name: program?.name ?? '',
+            description: program?.description ?? '',
+            fundingGoal: program?.price || '0',
+            fundingToken: fundingTokenAddress,
+            tokenDecimals, // Pass correct decimals for USDT/USDC
+            applicationStartDate: program?.applicationStartDate || '',
+            applicationEndDate: program?.applicationEndDate || '',
+            fundingStartDate: program?.fundingStartDate || '',
+            fundingEndDate: program?.fundingEndDate || '',
+            feePercentage: program?.customFeePercentage || program?.feePercentage || 300, // Use custom fee if set, otherwise default
+            validators: validatorAddresses,
+            requiredValidations: validatorAddresses.length,
+            fundingCondition: program?.fundingCondition === 'tier' ? 'tier' : 'open',
+          });
+
+          // Store the program ID from blockchain
+          blockchainProgramId = contractResult.programId;
+          txHash = contractResult.txHash;
+
+          console.log('Contract deployment result:', contractResult);
+          console.log('Program ID:', blockchainProgramId);
+          console.log('TX Hash:', txHash);
+
+          if (blockchainProgramId !== null && blockchainProgramId !== undefined) {
+            notify(
+              `Blockchain deployment successful! Program ID: ${blockchainProgramId}`,
+              'success',
+            );
+          } else {
+            notify('Blockchain deployment successful!', 'success');
+          }
+        }
+
+        // For off-chain programs or blockchain programs
+        if (program.network === 'off-chain') {
+          // For off-chain programs, just publish without blockchain details
+          await publishProgram({
+            variables: {
+              id: program?.id ?? '',
+              educhainProgramId: 0, // No blockchain ID for off-chain
+              txHash: '', // No tx hash for off-chain
+            },
+          });
+          notify('Program published successfully', 'success');
+          refetch(); // Refresh the program data
+          // Close the dialog
+          document.getElementById('pay-dialog-close')?.click();
+        } else if (txHash) {
+          // For blockchain programs, we have a transaction hash
+          // Use program ID if available, otherwise use 0 (transaction was successful but ID extraction failed)
+          await publishProgram({
+            variables: {
+              id: program?.id ?? '',
+              educhainProgramId: blockchainProgramId ?? 0,
+              txHash: txHash,
+            },
+          });
+
+          if (blockchainProgramId !== null && blockchainProgramId !== undefined) {
+            notify('Program published successfully with blockchain ID!', 'success');
+          } else {
+            notify(
+              'Program published! Transaction successful but program ID could not be extracted. Check blockchain explorer.',
+              'success',
+            );
+          }
+
+          refetch(); // Refresh the program data
+          // Close the dialog
+          document.getElementById('pay-dialog-close')?.click();
+        } else {
+          notify('Failed to deploy to blockchain. Please try again.', 'error');
+        }
+      }
+    } catch (error) {
+      notify((error as Error).message, 'error');
+    }
+  };
+
+  if (programError?.message === 'You do not have access to this program') {
+    return (
+      <div className="text-center bg-white rounded-2xl p-10">
+        <p className="text-lg font-bold mb-10">You do not have access to this program</p>
+        <Link to="/investments" className="text-primary hover:underline font-semibold">
+          Go back to Funding
+        </Link>
+      </div>
+    );
+  }
+
+  // Projects section component
+  const ProjectsSection = () => (
+    <div className="bg-white rounded-2xl p-4 md:p-10 mt-0 md:mt-3">
+      <div className="max-w-full md:max-w-[1440px] mx-auto" id="applications">
+        <h2 className="text-xl font-bold mb-4">Projects</h2>
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {!data?.program?.applications?.length && (
+            <div className="text-slate-600 text-sm col-span-full">No applications yet.</div>
+          )}
+          {data?.program?.applications?.map((a) => (
+            <ProjectCard key={a.id} application={a} program={data?.program} />
+          ))}
+        </section>
+      </div>
+    </div>
+  );
 
   return (
     <div className="bg-[#F7F7F7]">
-      <div className="bg-white p-10 rounded-2xl">
-        <section className="max-w-[1440px] mx-auto">
+      {/* Show Projects first on mobile when funding is active */}
+      {isMobileDevice && isFundingActive() && <ProjectsSection />}
+
+      <div
+        className={`bg-white p-4 md:p-10 rounded-2xl ${
+          isMobileDevice && isFundingActive() ? 'mt-3' : ''
+        }`}
+      >
+        <section className="max-w-full md:max-w-[1440px] mx-auto">
           <ProgramStatusBadge program={program} className="inline-flex mb-2" />
 
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-xl font-bold">{program?.name}</h1>
-            <div className="flex justify-between items-center mb-2 gap-2">
-              {(program?.creator?.id === userId || isAdmin) && (
-                <Dialog open={isSupportersModalOpen} onOpenChange={setIsSupportersModalOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="flex gap-2 items-center bg-primary hover:bg-primary/90 text-white">
-                      {/* <Users className="w-4 h-4" /> */}
+          <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
+            <h1 className="text-xl md:text-2xl font-bold">{program?.name}</h1>
+            <div className="flex flex-wrap justify-start md:justify-end items-center gap-2">
+              {(program?.creator?.id === userId || isAdmin) &&
+                program?.fundingCondition === FundingCondition.Tier && (
+                  <>
+                    <Button
+                      className="flex gap-2 items-center bg-primary hover:bg-primary/90 text-white"
+                      onClick={() => setIsSupportersModalOpen(true)}
+                    >
                       Manage Supporters
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[800px]">
-                    <DialogTitle className="text-2xl font-semibold">Invite Supporter</DialogTitle>
+                    <SupportersModal
+                      isOpen={isSupportersModalOpen}
+                      onOpenChange={setIsSupportersModalOpen}
+                      program={program}
+                      programId={id ?? ''}
+                      onRefetch={refetch}
+                    />
+                  </>
+                )}
 
-                    {/* Tabs */}
-                    <div className="flex border-b mb-6">
-                      <button
-                        type="button"
-                        className={`px-4 py-2 text-sm font-medium border-b transition-colors ${
-                          supportersTab === 'invite'
-                            ? 'border-primary text-primary'
-                            : 'border- text-muted-foreground hover:text-foreground'
-                        }`}
-                        onClick={() => setSupportersTab('invite')}
-                      >
-                        Invite supporter
-                      </button>
-                      <button
-                        type="button"
-                        className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                          supportersTab === 'supporters'
-                            ? 'border-primary text-primary'
-                            : 'border-transparent text-muted-foreground hover:text-foreground'
-                        }`}
-                        onClick={() => setSupportersTab('supporters')}
-                      >
-                        Supporters
-                      </button>
-                    </div>
-
-                    {/* Invite Tab */}
-                    {supportersTab === 'invite' && (
-                      <div className="space-y-6">
-                        {/* Supporter Tier Management */}
-                        <div>
-                          <h3 className="text-sm font-medium mb-3">Supporter Tier Management</h3>
-                          <div className="space-y-3 bg-secondary rounded-md p-3">
-                            <div
-                              className={cn(
-                                'flex items-center justify-between',
-                                !!program?.tierSettings && 'border-b pb-3',
-                              )}
-                            >
-                              <span className="text-sm text-muted-foreground font-bold">
-                                Program Tier Condition
-                              </span>
-                              {program?.tierSettings ? (
-                                <div className="flex gap-2">
-                                  {Object.entries(program.tierSettings).map(([key, value]) => {
-                                    if (!(value as { enabled: boolean })?.enabled) return null;
-                                    return <TierBadge key={key} tier={key as TierType} />;
-                                  })}
-                                </div>
-                              ) : (
-                                <Badge className="font-semibold text-gray-600 bg-gray-200">
-                                  Open
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="space-y-2">
-                              {program?.tierSettings &&
-                                Object.entries(program.tierSettings).map(([key, value]) => {
-                                  if (!(value as { enabled: boolean })?.enabled) return null;
-
-                                  return (
-                                    <div
-                                      key={key}
-                                      className="flex items-center justify-end gap-2 text-muted-foreground"
-                                    >
-                                      <span className="text-sm">
-                                        {key.charAt(0).toUpperCase() + key.slice(1)}
-                                      </span>
-                                      <span className="text-sm font-bold">
-                                        {(
-                                          value as { maxAmount?: number }
-                                        )?.maxAmount?.toLocaleString() || 'N/A'}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Invite Supporter Input */}
-                        <div className="">
-                          <div className="flex items-center gap-2 mt-2">
-                            <MultiSelect
-                              options={supporterOptions ?? []}
-                              value={selectedSupporter}
-                              onValueChange={setSelectedSupporter}
-                              placeholder="Select supporter"
-                              animation={2}
-                              maxCount={1}
-                              inputValue={supporterInput}
-                              setInputValue={setSupporterInput}
-                              selectedItems={selectedSupporterItems}
-                              setSelectedItems={setSelectedSupporterItems}
-                              emptyText="Enter supporter email or organization name"
-                              loading={supportersLoading}
-                              singleSelect={true}
-                              className="flex-1"
-                            />
-                            {program?.tierSettings ? (
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    className="h-10 px-3 justify-between min-w-[120px]"
-                                  >
-                                    {selectedTier ? (
-                                      <TierBadge tier={selectedTier as TierType} />
-                                    ) : (
-                                      <span className="text-sm text-muted-foreground">
-                                        Select tier
-                                      </span>
-                                    )}
-                                    <ChevronDown className="h-4 w-4 opacity-50" />
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-[120px] p-1" align="end">
-                                  <div className="space-y-1">
-                                    {Object.entries(program.tierSettings).map(([key, value]) => {
-                                      if (!(value as { enabled: boolean })?.enabled) return null;
-
-                                      return (
-                                        <Button
-                                          key={key}
-                                          variant="ghost"
-                                          className="w-full justify-start h-8 px-2"
-                                          onClick={() => setSelectedTier(key)}
-                                        >
-                                          <TierBadge tier={key as TierType} />
-                                        </Button>
-                                      );
-                                    })}
-                                  </div>
-                                </PopoverContent>
-                              </Popover>
-                            ) : (
-                              <div className="h-10 px-3 flex items-center text-sm text-muted-foreground">
-                                Open
-                              </div>
-                            )}
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={handleInviteSupporter}
-                              disabled={!selectedSupporter.length}
-                            >
-                              OK
-                            </Button>
-                          </div>
-                        </div>
-
-                        <div className="min-h-[200px]">
-                          {/* Stored Supporters List */}
-                          {storedSupporters.length > 0 && (
-                            <div className="mt-6">
-                              <h3 className="text-sm font-semibold mb-3">Added Supporters</h3>
-                              <div className="">
-                                <div className="grid grid-cols-3 gap-4 p-3 border-b text-sm font-medium">
-                                  <div className="text-muted-foreground">Tier</div>
-                                  <div className="text-muted-foreground">User name</div>
-                                  <div />
-                                </div>
-                                <div className="max-h-[200px] overflow-y-auto">
-                                  {storedSupporters.map((supporter) => (
-                                    <div
-                                      key={supporter.id}
-                                      className="grid grid-cols-3 gap-4 p-3 border-b last:border-b-0 items-center hover:bg-muted"
-                                    >
-                                      <div>
-                                        <TierBadge tier={supporter.tier as TierType} />
-                                      </div>
-                                      <div className="text-sm">{supporter.name}</div>
-                                      <div className="flex justify-end">
-                                        <Button
-                                          size="sm"
-                                          variant="ghost"
-                                          onClick={() => removeSupporter(supporter.id)}
-                                          className="h-6 w-6 p-0"
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Summary Section */}
-                        {storedSupporters.length > 0 && (
-                          <div className="mt-6 flex justify-between items-center bg-muted p-4">
-                            <div className="text-sm flex items-center gap-8">
-                              <span className="">Total</span>{' '}
-                              <span className="font-bold text-lg">{storedSupporters.length}</span>
-                            </div>
-                            <div className="text-sm font-medium flex items-center gap-2">
-                              <span className="font-bold text-lg">
-                                {storedSupporters
-                                  .reduce((total, supporter) => {
-                                    const tierSettings = program?.tierSettings;
-                                    if (!tierSettings) return total;
-
-                                    const tierValue = (
-                                      tierSettings as Record<string, { maxAmount?: number }>
-                                    )[supporter.tier];
-                                    const amount = Number(tierValue?.maxAmount) || 0;
-                                    return total + amount;
-                                  }, 0)
-                                  .toLocaleString()}
-                              </span>
-                              <span>{getCurrencyIcon(program?.currency)}</span>
-                              <span>{program?.currency}</span>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Send Invitation Button */}
-                        <div className="flex justify-end mt-6">
-                          <Button
-                            onClick={handleSendInvitation}
-                            disabled={!storedSupporters.length}
-                            className="bg-foreground text-white"
-                          >
-                            Send Invitation
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* <div className="mt-6">
-                      <h3 className="text-sm font-semibold mb-3">Added Supporters</h3>
-                      <div className="">
-                        <div className="grid grid-cols-3 gap-4 p-3 border-b text-sm font-medium">
-                          <div className='text-muted-foreground'>Tier</div>
-                          <div className='text-muted-foreground'>User name</div>
-                          <div />
-                        </div>
-                        <div className='max-h-[200px] overflow-y-auto'>
-
-                          {storedSupporters.map((supporter) => (
-                            <div key={supporter.id} className="grid grid-cols-3 gap-4 p-3 border-b last:border-b-0 items-center hover:bg-muted">
-                              <div>
-                                <TierBadge tier={supporter.tier as TierType} />
-                              </div>
-                              <div className="text-sm">{supporter.name}</div>
-                              <div className="flex justify-end">
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => removeSupporter(supporter.id)}
-                                  className="h-6 w-6 p-0"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div> */}
-                    {/* Supporters Tab */}
-                    {supportersTab === 'supporters' && (
-                      <div className="">
-                        {/* <h3 className="text-sm font-semibold">Current Supporters</h3> */}
-                        <div className="grid grid-cols-3 gap-4 p-3 border-b text-sm font-medium">
-                          <div className="text-muted-foreground">Tier</div>
-                          <div className="text-muted-foreground">User name</div>
-                          <div />
-                        </div>
-                        {program?.supporters && program.supporters.length > 0 ? (
-                          <div className="">
-                            {program.supporters.map((supporter) => (
-                              <div
-                                key={supporter.userId}
-                                className="grid grid-cols-3 gap-4 p-3 min-h-[64px] border-b last:border-b-0 items-center hover:bg-muted"
-                              >
-                                <div>
-                                  <TierBadge tier={supporter.tier as TierType} />
-                                </div>
-                                <div className="text-sm">
-                                  {supporter.firstName} {supporter.lastName} {supporter.email}
-                                </div>
-                                <div className="flex justify-end">
-                                  {/* <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={() => removeSupporter(supporter.id)}
-                                  className="h-6 w-6 p-0"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button> */}
-                                </div>
-                              </div>
-
-                              // <div
-                              //   key={supporter.email || index}
-                              //   className="flex items-center justify-between p-3 border rounded-lg"
-                              // >
-                              //   <div className="flex items-center gap-3">
-                              //     <div className="w-8 h-8 bg-gray-200 rounded-full" />
-                              //     <div>
-                              //       <p className="text-sm font-medium">
-                              //         {supporter.firstName} {supporter.lastName}
-                              //       </p>
-                              //       <p className="text-xs text-muted-foreground">{supporter.email}</p>
-                              //     </div>
-                              //   </div>
-                              //   <Badge variant="secondary">Invited</Badge>
-                              // </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground text-center py-4">
-                            No supporters invited yet
-                          </p>
-                        )}
-
-                        <div className="mt-6 flex justify-between items-center bg-muted p-4">
-                          <div className="text-sm flex items-center gap-8">
-                            <span className="">Total</span>{' '}
-                            <span className="font-bold text-lg">
-                              {program?.invitedBuilders?.length}
-                            </span>
-                          </div>
-                          <div className="text-sm font-medium flex items-center gap-2">
-                            <span className="font-bold text-lg">
-                              {program?.invitedBuilders
-                                ?.reduce((total) => {
-                                  const tierSettings = program?.tierSettings;
-                                  if (!tierSettings) return total;
-
-                                  // hardcoded, dont forget to change
-                                  const tierValue = (
-                                    tierSettings as Record<string, { maxAmount?: number }>
-                                  ).gold;
-                                  const amount = Number(tierValue?.maxAmount) || 0;
-                                  return total + amount;
-                                }, 0)
-                                .toLocaleString()}
-                            </span>
-                            <span>{getCurrencyIcon(program?.currency)}</span>
-                            <span>{program?.currency}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </DialogContent>
-                </Dialog>
+              {isAdmin && (
+                <AdminDropdown
+                  entityId={program?.id || ''}
+                  entityType="program"
+                  entityVisibility={program?.visibility || ProgramVisibility.Public}
+                />
               )}
-
               {(program?.creator?.id === userId || isAdmin) && (
                 <Link to={`/investments/${program?.id}/edit`}>
                   <Button variant="ghost" className="flex gap-2 items-center">
@@ -592,9 +476,9 @@ const InvestmentDetailsPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex gap-6">
+          <div className="flex flex-col lg:flex-row gap-6">
             {/* Overview */}
-            <div className="w-full max-w-[360px]">
+            <div className="w-full lg:max-w-[360px]">
               <h3 className="flex items-end mb-3">
                 <span className="p-2 border-b border-b-primary font-medium text-sm">Overview</span>
                 <span className="block border-b w-full" />
@@ -606,7 +490,7 @@ const InvestmentDetailsPage: React.FC = () => {
                 <img
                   src={program?.image}
                   alt="program"
-                  className="w-full aspect-square rounded-xl"
+                  className="w-full aspect-square rounded-xl mb-6"
                 />
               ) : (
                 <div className="bg-[#eaeaea] w-full rounded-xl aspect-square mb-6" />
@@ -653,7 +537,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       onClick={(e) => {
                         if (!isAuthed) {
                           notify('Please add your email', 'success');
-                          navigate('/profile/edit');
+                          navigate('/my-profile/edit');
                           return;
                         }
 
@@ -664,7 +548,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       Submit application
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="min-w-[800px] min-h-[760px] z-50 w-full max-w-[1440px] p-6 max-h-screen overflow-y-auto">
+                  <DialogContent className="min-w-[800px] min-h-[760px] z-50 w-full max-w-full md:max-w-[1440px] p-6 max-h-screen overflow-y-auto">
                     <CreateApplicationForm program={program} />
                   </DialogContent>
                 </Dialog>
@@ -704,7 +588,13 @@ const InvestmentDetailsPage: React.FC = () => {
                             )}
                           >
                             {program?.applicationStartDate && program?.applicationEndDate
-                              ? `${format(new Date(program.applicationStartDate), 'dd. MMM. yyyy').toUpperCase()} – ${format(new Date(program.applicationEndDate), 'dd. MMM. yyyy').toUpperCase()}`
+                              ? `${format(
+                                  new Date(program.applicationStartDate),
+                                  'dd. MMM. yyyy',
+                                ).toUpperCase()} – ${format(
+                                  new Date(program.applicationEndDate),
+                                  'dd. MMM. yyyy',
+                                ).toUpperCase()}`
                               : 'N/A'}
                           </span>
                         </div>
@@ -744,7 +634,13 @@ const InvestmentDetailsPage: React.FC = () => {
                             )}
                           >
                             {program?.fundingStartDate && program?.fundingEndDate
-                              ? `${format(new Date(program.fundingStartDate), 'dd. MMM. yyyy').toUpperCase()} – ${format(new Date(program.fundingEndDate), 'dd. MMM. yyyy').toUpperCase()}`
+                              ? `${format(
+                                  new Date(program.fundingStartDate),
+                                  'dd. MMM. yyyy',
+                                ).toUpperCase()} – ${format(
+                                  new Date(program.fundingEndDate),
+                                  'dd. MMM. yyyy',
+                                ).toUpperCase()}`
                               : 'N/A'}
                           </span>
                         </div>
@@ -793,6 +689,8 @@ const InvestmentDetailsPage: React.FC = () => {
                 size="lg"
                 className="w-full mt-6"
                 disabled={
+                  !isLoggedIn ||
+                  program?.status !== 'published' ||
                   program?.creator?.id === userId ||
                   program?.validators?.some((validator) => validator.id === userId) ||
                   (program?.applicationStartDate &&
@@ -804,45 +702,74 @@ const InvestmentDetailsPage: React.FC = () => {
                 Submit Project
               </Button>
 
-              {/* {program?.validators?.some((v) => v.id === userId) && program.status === ProgramStatus.Pending && (
-                <div className="flex justify-end gap-2 w-full mt-3">
+              {program?.validators?.some((v) => v.id === userId) &&
+                program.status === ProgramStatus.Pending && (
+                  <div className="flex justify-end gap-2 w-full mt-3">
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="h-11 flex-1">
+                          Reject
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="min-w-[800px] p-0 max-h-screen overflow-y-auto">
+                        <RejectProgramForm programId={program.id} refetch={refetch} />
+                      </DialogContent>
+                    </Dialog>
+                    <Button
+                      onClick={async () => {
+                        await acceptProgram();
+                        notify('Program accepted', 'success');
+                      }}
+                      className="h-11 flex-1"
+                    >
+                      Confirm
+                    </Button>
+                  </div>
+                )}
+
+              {program?.creator?.id === userId &&
+                program.status === ProgramStatus.PaymentRequired && (
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button variant="outline" className="h-11 flex-1">
-                        Reject
+                      <Button className="mt-3 text-sm font-medium bg-black hover:bg-black/85 rounded-[6px] ml-auto block py-2.5 px-[66px] w-full h-11">
+                        Pay
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="min-w-[800px] p-0 max-h-screen overflow-y-auto">
-                      <RejectProgramForm programId={program.id} refetch={refetch} />
+                    <DialogContent className="w-[400px] p-6 max-h-screen overflow-y-auto">
+                      <DialogClose id="pay-dialog-close" />
+                      <div className="text-center">
+                        <span className="text-red-600 w-[42px] h-[42px] rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                          <TriangleAlert />
+                        </span>
+                        <DialogTitle className="font-semibold text-lg text-[#18181B] mb-2">
+                          Are you sure to pay the settlement for the program?
+                        </DialogTitle>
+                        <DialogDescription className="text-muted-foreground text-sm mb-4">
+                          The amount will be securely stored until you will confirm the completion
+                          of the project.
+                        </DialogDescription>
+                        <Button onClick={callTx}>Yes, Pay now</Button>
+                      </div>
                     </DialogContent>
                   </Dialog>
-                  <Button
-                    onClick={async () => {
-                      await acceptProgram();
-                      notify('Program accepted', 'success');
-                    }}
-                    className="h-11 flex-1"
-                  >
-                    Confirm
-                  </Button>
-                </div>
-              )} */}
+                )}
 
-              {/* {program?.status === ProgramStatus.Rejected && program.creator?.id === userId && (
+              {program?.status === ProgramStatus.Rejected && program.creator?.id === userId && (
                 <div className="flex justify-end gap-2 w-full mt-3">
                   <Button disabled className="h-11 flex-1">
                     Rejected
                   </Button>
                 </div>
-              )} */}
+              )}
 
-              {/* {program?.status === ProgramStatus.Rejected && program.validators?.some((v) => v.id === userId) && (
-                <div className="flex justify-end gap-2 w-full mt-3">
-                  <Button disabled variant='outline' className="h-11 flex-1">
-                    Rejection Reason Submitted
-                  </Button>
-                </div>
-              )} */}
+              {program?.status === ProgramStatus.Rejected &&
+                program.validators?.some((v) => v.id === userId) && (
+                  <div className="flex justify-end gap-2 w-full mt-3">
+                    <Button disabled variant="outline" className="h-11 flex-1">
+                      Rejection Reason Submitted
+                    </Button>
+                  </div>
+                )}
 
               <div className="mt-6">
                 <p className="text-muted-foreground text-sm font-bold mb-3">PROGRAM HOST</p>
@@ -874,7 +801,9 @@ const InvestmentDetailsPage: React.FC = () => {
                       />
                       <AvatarFallback>
                         {getInitials(
-                          `${program?.creator?.firstName || ''} ${program?.creator?.lastName || ''}`,
+                          `${program?.creator?.firstName || ''} ${
+                            program?.creator?.lastName || ''
+                          }`,
                         )}
                       </AvatarFallback>
                     </Avatar>
@@ -1003,7 +932,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">Bronze</span>
                         <span className="text-sm text-gray-600">
-                          Max: ${program.tierSettings.bronze.maxAmount}
+                          Max: {program.tierSettings.bronze.maxAmount} {program.currency}
                         </span>
                       </div>
                     )}
@@ -1011,7 +940,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">Silver</span>
                         <span className="text-sm text-gray-600">
-                          Max: ${program.tierSettings.silver.maxAmount}
+                          Max: {program.tierSettings.silver.maxAmount} {program.currency}
                         </span>
                       </div>
                     )}
@@ -1019,7 +948,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">Gold</span>
                         <span className="text-sm text-gray-600">
-                          Max: ${program.tierSettings.gold.maxAmount}
+                          Max: {program.tierSettings.gold.maxAmount} {program.currency}
                         </span>
                       </div>
                     )}
@@ -1027,7 +956,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">Platinum</span>
                         <span className="text-sm text-gray-600">
-                          Max: ${program.tierSettings.platinum.maxAmount}
+                          Max: {program.tierSettings.platinum.maxAmount} {program.currency}
                         </span>
                       </div>
                     )}
@@ -1040,10 +969,10 @@ const InvestmentDetailsPage: React.FC = () => {
                 <div className="mt-6">
                   <p className="text-muted-foreground text-sm font-bold mb-3">PLATFORM FEE</p>
                   <p className="text-slate-600 text-sm">
-                    {program.feePercentage
-                      ? `${(program.feePercentage / 100).toFixed(1)}% (Default)`
-                      : program.customFeePercentage
-                        ? `${(program.customFeePercentage / 100).toFixed(1)}% (Custom)`
+                    {program.customFeePercentage
+                      ? `${(program.customFeePercentage / 100).toFixed(1)}% (Custom)`
+                      : program.feePercentage
+                        ? `${(program.feePercentage / 100).toFixed(1)}% (Default)`
                         : 'Not Set'}
                   </p>
                 </div>
@@ -1065,23 +994,8 @@ const InvestmentDetailsPage: React.FC = () => {
         </section>
       </div>
 
-      {/* <MainSection program={program} refetch={() => refetch} /> */}
-
-      <div className="bg-white rounded-2xl p-10 mt-3">
-        <Tabs className="mt-3 max-w-[1440px] mx-auto" id="applications">
-          <h2 className="text-xl font-bold mb-4">Projects</h2>
-          <section className="" />
-
-          <section className="grid grid-cols-3 gap-5">
-            {!data?.program?.applications?.length && (
-              <div className="text-slate-600 text-sm">No applications yet.</div>
-            )}
-            {data?.program?.applications?.map((a) => (
-              <ProjectCard key={a.id} application={a} program={data?.program} />
-            ))}
-          </section>
-        </Tabs>
-      </div>
+      {/* Show Projects section normally when not mobile or funding is not active */}
+      {(!isMobileDevice || !isFundingActive()) && <ProjectsSection />}
     </div>
   );
 };

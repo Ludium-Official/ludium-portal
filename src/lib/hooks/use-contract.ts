@@ -1,12 +1,13 @@
 import { type ConnectedWallet, usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import type { Chain, PublicClient } from 'viem';
-import { http, createPublicClient } from 'viem';
+import { createPublicClient, http } from 'viem';
 import {
   arbitrum,
   arbitrumSepolia,
   base,
   baseSepolia,
+  creditCoin3Mainnet,
   eduChain,
   eduChainTestnet,
 } from 'viem/chains';
@@ -43,8 +44,16 @@ export function useContract(network: string) {
   const { wallets } = useWallets();
   const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
 
-  const injectedWallet = user?.wallet?.connectorType !== 'embedded';
+  // Check if the user is using an external wallet (like MetaMask)
+  // External wallets have connectorType like 'injected', 'wallet_connect', etc.
+  // Only 'embedded' wallets are Privy's internal wallets
+  const isExternalWallet = user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
+
   let sendTx = sendTransaction;
+
+  // If no currentWallet found but user has a wallet, try to use the first available wallet
+  const activeWallet =
+    currentWallet || (isExternalWallet && wallets.length > 0 ? wallets[0] : null);
 
   const checkNetwork: Chain = (() => {
     if (network === 'base') {
@@ -62,16 +71,41 @@ export function useContract(network: string) {
     if (network === 'arbitrum-sepolia') {
       return arbitrumSepolia;
     }
+    if (network === 'creditcoin') {
+      return creditCoin3Mainnet;
+    }
 
     return eduChain;
   })();
 
-  if (injectedWallet && currentWallet) {
-    sendTx = async (input) => {
-      const signer = await getSigner(checkNetwork, currentWallet);
-      const txResponse = await signer.sendTransaction(input);
-      return { hash: txResponse.hash as `0x${string}` };
+  if (isExternalWallet && activeWallet) {
+    console.log('Using external wallet for transactions:', activeWallet.address);
+    sendTx = async (input, _uiOptions?: unknown) => {
+      // Note: _uiOptions is ignored for external wallets since they use their own UI
+      try {
+        console.log('Sending transaction with external wallet...', input);
+        const signer = await getSigner(checkNetwork, activeWallet);
+        const txResponse = await signer.sendTransaction(input);
+        console.log('Transaction sent successfully:', txResponse.hash);
+        return { hash: txResponse.hash as `0x${string}` };
+      } catch (error) {
+        console.error('Error sending transaction with external wallet:', error);
+        throw error;
+      }
     };
+  } else if (isExternalWallet && !activeWallet) {
+    console.warn('User has an external wallet but no active wallet found. Transactions may fail.');
+    // Throw a more helpful error
+    sendTx = async () => {
+      throw new Error(
+        'External wallet detected but not properly connected. Please reconnect your wallet.',
+      );
+    };
+  } else if (!user?.wallet) {
+    sendTx = async () => {
+      throw new Error('No wallet connected. Please connect a wallet to continue.');
+    };
+  } else {
   }
 
   const checkContract = (() => {
@@ -80,6 +114,9 @@ export function useContract(network: string) {
     }
     if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
       return import.meta.env.VITE_ARBITRUM_CONTRACT_ADDRESS;
+    }
+    if (network === 'creditcoin') {
+      return import.meta.env.VITE_CREDITCOIN_CONTRACT_ADDRESS;
     }
 
     return import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS;

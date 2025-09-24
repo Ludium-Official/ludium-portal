@@ -4,12 +4,18 @@ import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to
 import { useRemoveValidatorFromProgramMutation } from '@/apollo/mutation/remove-validator-from-program.generated';
 import { useUpdateProgramMutation } from '@/apollo/mutation/update-program.generated';
 import { ProgramDocument } from '@/apollo/queries/program.generated';
+import { useProgramQuery } from '@/apollo/queries/program.generated';
 import { ProgramsDocument } from '@/apollo/queries/programs.generated';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import type { OnSubmitInvestmentFunc } from '@/pages/investments/_components/investment-form';
 import InvestmentForm from '@/pages/investments/_components/investment-form';
-import { FundingCondition, ProgramType, type ProgramVisibility } from '@/types/types.generated';
+import {
+  FundingCondition,
+  type ProgramStatus,
+  ProgramType,
+  type ProgramVisibility,
+} from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
@@ -24,6 +30,12 @@ const EditInvestmentPage: React.FC = () => {
   const [inviteUserToProgram] = useInviteUserToProgramMutation();
   const { isLoggedIn, isAuthed } = useAuth();
 
+  // Fetch current program data to check if it's published
+  const { data: programData } = useProgramQuery({
+    variables: { id: id ?? '' },
+    skip: !id,
+  });
+
   // Temporarily disabled for testing
   useEffect(() => {
     if (!isLoggedIn) {
@@ -32,13 +44,41 @@ const EditInvestmentPage: React.FC = () => {
       return;
     }
     if (!isAuthed) {
-      navigate('/profile/edit');
+      navigate('/my-profile/edit');
       notify('Please add your email', 'success');
       return;
     }
   }, [isLoggedIn, isAuthed]);
 
   const onSubmit: OnSubmitInvestmentFunc = async (args) => {
+    const program = programData?.program;
+
+    // Check if program is already published to blockchain (host has signed)
+    if (program?.educhainProgramId !== null && program?.educhainProgramId !== undefined) {
+      // Program is already on blockchain, validators cannot be changed
+      if (args.validators && args.validators.length > 0) {
+        const currentValidatorIds =
+          program?.validators
+            ?.map((v) => v.id)
+            .filter((id): id is string => id !== null && id !== undefined)
+            .sort() || [];
+        const newValidatorIds = args.validators.sort();
+
+        // Check if validators have changed
+        const validatorsChanged =
+          currentValidatorIds.length !== newValidatorIds.length ||
+          !currentValidatorIds.every((id, index) => id === newValidatorIds[index]);
+
+        if (validatorsChanged) {
+          notify(
+            'Validators cannot be changed after the program has been published to blockchain',
+            'error',
+          );
+          return;
+        }
+      }
+    }
+
     updateProgram({
       variables: {
         input: {
@@ -57,6 +97,7 @@ const EditInvestmentPage: React.FC = () => {
           network: args.network,
           image: args.image,
           visibility: args.visibility as ProgramVisibility,
+          status: args.status as ProgramStatus,
           type: ProgramType.Funding,
           applicationStartDate: args.applicationStartDate,
           applicationEndDate: args.applicationEndDate,
@@ -87,9 +128,11 @@ const EditInvestmentPage: React.FC = () => {
         }
 
         // Filter out invalid validator IDs
-        const validTargetValidators = targetValidators.filter((id) => id && typeof id === 'string');
+        const validTargetValidators = targetValidators.filter(
+          (id): id is string => id !== null && id !== undefined && typeof id === 'string',
+        );
         const validCurrentValidators = currentValidators.filter(
-          (id) => id && typeof id === 'string',
+          (id): id is string => id !== null && id !== undefined && typeof id === 'string',
         );
 
         if (validTargetValidators.length !== targetValidators.length) {
@@ -142,10 +185,10 @@ const EditInvestmentPage: React.FC = () => {
           );
           // Remove conflicting validators from both arrays
           const finalValidatorsToAssign = uniqueValidatorsToAssign.filter(
-            (id) => !conflictingValidators.includes(id ?? ''),
+            (id) => !conflictingValidators.includes(id),
           );
           const finalValidatorsToUnassign = uniqueValidatorsToUnassign.filter(
-            (id) => !conflictingValidators.includes(id ?? ''),
+            (id) => !conflictingValidators.includes(id),
           );
 
           // Process unassignments first
@@ -153,7 +196,7 @@ const EditInvestmentPage: React.FC = () => {
             const unassignResults = await Promise.allSettled(
               finalValidatorsToUnassign.map((validatorId) =>
                 removeValidatorFromProgram({
-                  variables: { programId, validatorId: validatorId ?? '' },
+                  variables: { programId, validatorId },
                 }),
               ),
             );
@@ -196,7 +239,7 @@ const EditInvestmentPage: React.FC = () => {
             const unassignResults = await Promise.allSettled(
               uniqueValidatorsToUnassign.map((validatorId) =>
                 removeValidatorFromProgram({
-                  variables: { programId, validatorId: validatorId ?? '' },
+                  variables: { programId, validatorId },
                 }),
               ),
             );
@@ -233,34 +276,42 @@ const EditInvestmentPage: React.FC = () => {
             }
           }
         }
-        // Invite builders if private
-        if (
-          args.visibility === 'private' &&
-          Array.isArray(args.builders) &&
-          args.builders.length > 0
-        ) {
-          const inviteResults = await Promise.allSettled(
+
+        // Edge case: Check for builders being handled
+        if (args.builders && args.builders.length > 0) {
+          // Invite builders to program
+          const builderInviteResults = await Promise.allSettled(
             args.builders.map((userId) =>
-              inviteUserToProgram({
-                variables: { programId: data.updateProgram?.id ?? '', userId },
-              }),
+              inviteUserToProgram({ variables: { programId, userId } }),
             ),
           );
-          if (inviteResults.some((r) => r.status === 'rejected')) {
-            notify('Failed to invite some builders to the program.', 'error');
+
+          const failedBuilderInvites = builderInviteResults
+            .map((result, index) => (result.status === 'rejected' ? args.builders?.[index] : null))
+            .filter((id): id is string => id !== null && id !== undefined);
+
+          if (failedBuilderInvites.length > 0) {
+            notify(`Failed to invite builders: ${failedBuilderInvites.join(', ')}`, 'error');
           }
         }
 
-        notify('Program successfully updated.');
-        client.refetchQueries({ include: [ProgramsDocument, ProgramDocument] });
-        navigate(`/investments/${id}`);
+        await client.refetchQueries({
+          include: [ProgramDocument, ProgramsDocument],
+        });
+
+        notify('Program updated successfully', 'success');
+        navigate(`/investments/${programId ?? id}`);
+      },
+      onError: (error) => {
+        console.error('Failed to update program', error);
+        notify('Failed to update program', 'error');
       },
     });
   };
 
   return (
-    <div className="w-full bg-[#f7f7f7] p-10 pr-[55px]" defaultValue="edit">
-      <InvestmentForm isEdit={true} onSubmitInvestment={onSubmit} />
+    <div className="p-10 min-h-screen">
+      <InvestmentForm isEdit onSubmitInvestment={onSubmit} />
     </div>
   );
 };

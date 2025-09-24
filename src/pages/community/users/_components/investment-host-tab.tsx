@@ -1,19 +1,28 @@
+import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { useProgramsQuery } from '@/apollo/queries/programs.generated';
+import InvestmentCard from '@/components/investment-card';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
+import { ProgramType } from '@/types/types.generated';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import { AgentBreadcrumbs } from './agent-breadcrumbs';
-import ProgramHostCard from './program-host-card';
 
 const programPageSize = 6;
 
-export default function UserInvestmentHostTab() {
+export default function UserInvestmentHostTab({ myProfile }: { myProfile?: boolean }) {
   const { id } = useParams();
   const [searchParams, _setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const currentPage = Number(searchParams.get('page')) || 1;
+
+  const { data: profileData } = useProfileQuery({
+    fetchPolicy: 'network-only',
+    skip: !myProfile,
+  });
+
+  const profileId = myProfile ? (profileData?.profile?.id ?? '') : (id ?? '');
 
   const { data: programData } = useProgramsQuery({
     variables: {
@@ -22,6 +31,14 @@ export default function UserInvestmentHostTab() {
         offset: (currentPage - 1) * programPageSize,
 
         filter: [
+          {
+            value: profileId,
+            field: 'creatorId',
+          },
+          {
+            value: ProgramType.Funding,
+            field: 'type',
+          },
           ...(searchQuery
             ? [
                 {
@@ -33,7 +50,7 @@ export default function UserInvestmentHostTab() {
         ],
       },
     },
-    skip: !id,
+    skip: !profileId,
   });
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -42,7 +59,7 @@ export default function UserInvestmentHostTab() {
     <div className="flex flex-col gap-10">
       <div className="flex flex-col gap-3">
         <div className="flex h-12 items-center justify-between pl-4">
-          <AgentBreadcrumbs />
+          <AgentBreadcrumbs myProfile={myProfile} />
           <div className="relative w-[360px]">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
@@ -59,7 +76,7 @@ export default function UserInvestmentHostTab() {
             <p className="text-sm text-muted-foreground">No programs found</p>
           )}
           {programData?.programs?.data?.map((program) => (
-            <ProgramHostCard key={program.id} program={program} isStatus />
+            <InvestmentCard key={program.id} program={program} />
           ))}
         </div>
       </div>

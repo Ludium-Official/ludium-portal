@@ -53,6 +53,7 @@ import {
 } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
+import * as ethers from 'ethers';
 import { ArrowUpRight, Check, ChevronDown, CircleAlert, Settings } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
@@ -80,15 +81,6 @@ function ApplicationDetails() {
       id: id ?? '',
     },
   });
-
-  // const { data: comments } = useCommentsByCommentableQuery({
-  //   variables: {
-  //     commentableId: applicationId ?? '',
-  //     commentableType: CommentableTypeEnum.Application,
-  //   },
-  //   skip: !applicationId,
-  //   fetchPolicy: 'cache-and-network',
-  // });
 
   // const [createComment] = useCreateCommentMutation();
 
@@ -137,7 +129,7 @@ function ApplicationDetails() {
           notify('This project is already registered on the blockchain', 'error');
           onChainProjectId = application.onChainProjectId as number;
         } else {
-          notify('Registering project on blockchain...', 'success');
+          notify('Registering project on blockchain...', 'loading');
 
           try {
             // Prepare milestones for blockchain
@@ -149,11 +141,58 @@ function ApplicationDetails() {
                 deadline: m.deadline || new Date().toISOString(),
               })) || [];
 
-            // Call signValidate to register the project on blockchain
-            // Note: signValidate expects applicationId, not programId
-            // We need to get the application ID from the database first
+            // Debug logging for funding target
+            console.log('=== Application Accept Debug ===');
+            console.log('Full application object:', application);
+            console.log('Application data:', {
+              fundingTarget: application.fundingTarget,
+              price: application.price,
+              name: application.name,
+            });
+
+            // Use price as funding target since that's what's set in the form
+            const fundingAmount = application.fundingTarget || application.price || '0';
+            console.log('Using funding amount:', fundingAmount);
+
+            if (fundingAmount === '0' || !fundingAmount) {
+              console.warn(
+                'WARNING: Funding amount is 0 or undefined. This application may have been created before the fundingTarget fix.',
+              );
+              notify(
+                'Warning: This application has no funding target set. It may have been created before the recent fix.',
+                'error',
+              );
+            }
+
+            // Validate that applicant has a proper wallet address
+            const projectOwnerAddress = application.applicant?.walletAddress;
+
+            if (!projectOwnerAddress || !ethers.utils.isAddress(projectOwnerAddress)) {
+              notify(
+                'Error: The applicant must have a valid wallet address connected to their profile before the project can be validated on blockchain. Please ask the applicant to connect their wallet.',
+                'error',
+              );
+              console.error('Invalid or missing wallet address:', {
+                walletAddress: projectOwnerAddress,
+                applicantId: application.applicant?.id,
+                applicantEmail: application.applicant?.email,
+              });
+              return;
+            }
+
+            console.log('Validating project with owner address:', projectOwnerAddress);
+
+            // Determine token decimals based on currency
+            const tokenDecimals =
+              program.currency === 'USDT' || program.currency === 'USDC' ? 6 : 18;
+
+            // Call signValidate to register the project on blockchain FIRST
             const result = await investmentContract.signValidate({
-              applicationId: Number(applicationId), // Use the application ID from params
+              programId: program.educhainProgramId,
+              projectOwner: projectOwnerAddress,
+              projectName: application.name || '',
+              targetFunding: fundingAmount,
+              tokenDecimals, // Pass correct decimals for USDT/USDC
               milestones,
             });
 
@@ -161,19 +200,31 @@ function ApplicationDetails() {
               onChainProjectId = result.projectId;
               notify(`Project registered on blockchain with ID: ${onChainProjectId}`, 'success');
             } else {
-              notify('Project registered but could not extract ID from blockchain', 'error');
+              notify('Failed to extract project ID from blockchain transaction', 'error');
+              return; // Don't save to DB if we couldn't get the project ID
             }
           } catch (blockchainError) {
             console.error('Blockchain registration failed:', blockchainError);
-            notify(
-              'Failed to register project on blockchain. Continuing with off-chain approval.',
-              'error',
-            );
+            // Check if user rejected the transaction
+            const errorMessage =
+              blockchainError instanceof Error ? blockchainError.message : String(blockchainError);
+            const errorCode = (blockchainError as { code?: number })?.code;
+
+            if (
+              errorMessage.includes('User rejected') ||
+              errorMessage.includes('User denied') ||
+              errorCode === 4001
+            ) {
+              notify('Transaction canceled by user', 'error');
+            } else {
+              notify('Failed to register project on blockchain', 'error');
+            }
+            return; // Exit without saving to database
           }
         }
       }
 
-      // Accept the application in the database
+      // Only save to database AFTER successful blockchain transaction (or if off-chain)
       await approveApplication({
         variables: {
           id: applicationId ?? '',
@@ -215,26 +266,47 @@ function ApplicationDetails() {
             return;
           }
 
-          // This only records the approval, doesn't transfer funds
-          const result = await investmentContract.approveMilestone(
+          // Step 1: Approve the milestone (marks it as approved)
+          const approveResult = await investmentContract.approveMilestone(
             Number(data.application.onChainProjectId),
             milestoneIndex ?? 0,
           );
 
-          if (result?.txHash) {
-            await checkMilestone({
-              variables: {
-                input: {
-                  id: milestoneId ?? '',
-                  status: CheckMilestoneStatus.Completed,
-                },
-              },
-              onCompleted: () => {
-                refetch();
-                programRefetch();
-                notify('Milestone approved! Funds released from investment pool.', 'success');
-              },
-            });
+          if (approveResult?.txHash) {
+            notify('Milestone approved! Now executing to release funds...');
+
+            // Step 2: Execute the milestone to release funds
+            try {
+              const executeResult = await investmentContract.executeMilestone(
+                Number(data.application.onChainProjectId),
+                milestoneIndex ?? 0,
+              );
+
+              if (executeResult?.txHash) {
+                await checkMilestone({
+                  variables: {
+                    input: {
+                      id: milestoneId ?? '',
+                      status: CheckMilestoneStatus.Completed,
+                    },
+                  },
+                  onCompleted: () => {
+                    refetch();
+                    programRefetch();
+                    notify(
+                      'Milestone completed! Funds successfully released to project owner.',
+                      'success',
+                    );
+                  },
+                });
+              }
+            } catch (executeError) {
+              console.error('Failed to execute milestone:', executeError);
+              notify(
+                'Milestone approved but failed to release funds. Please try executing manually.',
+                'error',
+              );
+            }
           }
         } else {
           // For regular programs, use the old flow (validator pays)
@@ -242,14 +314,18 @@ function ApplicationDetails() {
           const tokens = tokenAddresses[network] || [];
           const targetToken = tokens.find((token) => token.name === program.currency);
 
-          const tx = await contract.acceptMilestone(
+          const result = await contract.acceptMilestone(
             Number(program?.educhainProgramId),
             data?.application?.applicant?.walletAddress ?? '',
             price ?? '',
             targetToken ?? { name: program.currency as string },
           );
 
-          if (tx) {
+          if (result?.txHash) {
+            // Transaction was sent successfully
+            console.log('Milestone acceptance result:', result);
+
+            // Update backend milestone status regardless of event detection
             await checkMilestone({
               variables: {
                 input: {
@@ -260,11 +336,33 @@ function ApplicationDetails() {
               onCompleted: () => {
                 refetch();
                 programRefetch();
-                notify('Milestone accepted successfully', 'success');
+
+                if (!result.eventFound) {
+                  notify(
+                    'Milestone accepted! Transaction succeeded but event log not found. Please verify on blockchain explorer.',
+                    'success',
+                  );
+                } else {
+                  notify('Milestone accepted successfully', 'success');
+                }
+              },
+              onError: (error) => {
+                console.error('Failed to update milestone status in backend:', error);
+                if (result?.txHash && result.txHash !== '0x0') {
+                  notify(
+                    `Transaction succeeded (${result.txHash}) but failed to update status: ${error.message}`,
+                    'error',
+                  );
+                } else {
+                  notify(
+                    'Transaction may have been sent but failed to update status. Please check your wallet.',
+                    'error',
+                  );
+                }
               },
             });
           } else {
-            notify("Can't found acceptMilestone event", 'error');
+            notify('Failed to accept milestone: No transaction hash returned', 'error');
           }
         }
       }
@@ -308,7 +406,7 @@ function ApplicationDetails() {
   return (
     <div className="bg-[#F7F7F7]">
       <section className="bg-white p-10 pb-0 rounded-b-2xl">
-        <div className="max-w-1440 mx-auto">
+        <div className="max-w-full md:max-w-1440 mx-auto">
           <ProgramStatusBadge program={program} className="inline-flex mb-4" />
           <div className="flex justify-between mb-5">
             <Link to={`/programs/${id}`} className="flex items-center gap-4 mb-4">
@@ -710,21 +808,6 @@ function ApplicationDetails() {
                           })()}
                       </p>
                     </div>
-                    {/* <div className="mb-6">
-                    <p className="font-sans font-bold bg-primary-light text-primary leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
-                      <span className="inline-block mr-2">
-                        {m?.price} {program?.currency}
-                      </span>
-                      <span className="h-3 border-l border-primary inline-block" />
-                      <span className="inline-block ml-2">
-                        DEADLINE{' '}
-                        {format(
-                          new Date(program?.deadline ?? new Date()),
-                          'dd . MMM . yyyy',
-                        ).toUpperCase()}
-                      </span>
-                    </p>
-                  </div> */}
 
                     <div className="mb-6">
                       <h2 className="font-bold text-gray-dark text-sm mb-3">SUMMARY</h2>
@@ -816,18 +899,35 @@ function ApplicationDetails() {
                           <DialogTrigger
                             asChild
                             disabled={
-                              idx !== 0 &&
-                              data?.application?.milestones?.[idx - 1]?.status !==
-                                MilestoneStatus.Completed
+                              (idx !== 0 &&
+                                data?.application?.milestones?.[idx - 1]?.status !==
+                                  MilestoneStatus.Completed) ||
+                              // Prevent milestone submission before funding ends
+                              (program?.fundingEndDate &&
+                                new Date() <= new Date(program.fundingEndDate))
                             }
                           >
-                            <Button className="h-10 block ml-auto">Submit Milestone</Button>
+                            <Button
+                              className="h-10 block ml-auto"
+                              title={
+                                program?.fundingEndDate &&
+                                new Date() <= new Date(program.fundingEndDate)
+                                  ? `Milestones can only be submitted after funding ends on ${new Date(program.fundingEndDate).toLocaleDateString()}`
+                                  : undefined
+                              }
+                            >
+                              Submit Milestone
+                            </Button>
                           </DialogTrigger>
                           <DialogContent>
                             <DialogTitle />
                             <DialogDescription />
                             <DialogClose id="submit-milestone-dialog-close" />
-                            <SubmitMilestoneForm milestone={m} refetch={refetch} />
+                            <SubmitMilestoneForm
+                              milestone={m}
+                              refetch={refetch}
+                              program={program}
+                            />
                           </DialogContent>
                         </Dialog>
                       )}

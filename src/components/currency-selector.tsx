@@ -1,3 +1,4 @@
+import CreditCoinIcon from '@/assets/icons/crypto/creditcoin';
 import EduIcon from '@/assets/icons/crypto/edu';
 import EthIcon from '@/assets/icons/crypto/eth';
 import UsdcIcon from '@/assets/icons/crypto/usdc';
@@ -10,6 +11,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useEffect, useMemo, useState } from 'react';
+
+export const sepoliaCurrencies = [{ code: 'ETH', icon: <EthIcon /> }];
 
 export const eduCurrencies = [
   { code: 'EDU', icon: <EduIcon /> },
@@ -29,6 +32,8 @@ export const arbitrumCurrencies = [
   { code: 'USDC', icon: <UsdcIcon /> },
 ];
 
+export const creditcoinCurrencies = [{ code: 'CTC', icon: <CreditCoinIcon /> }];
+
 function CurrencySelector({
   className,
   value,
@@ -45,11 +50,17 @@ function CurrencySelector({
   const [selectedCurrency, setSelectedCurrency] = useState(value ?? '');
 
   const displayCurrencies = useMemo(() => {
+    if (network === 'sepolia') {
+      return sepoliaCurrencies;
+    }
     if (network === 'base' || network === 'base-sepolia') {
       return baseCurrencies;
     }
     if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
       return arbitrumCurrencies;
+    }
+    if (network === 'creditcoin') {
+      return creditcoinCurrencies;
     }
 
     return eduCurrencies;

@@ -1,0 +1,9 @@
+mutation updateCarouselItem($input: UpdateCarouselItemInput!) {
+  updateCarouselItem(input: $input) {
+    displayOrder
+    id
+    isActive
+    itemId
+    itemType
+  }
+}

@@ -9,6 +9,7 @@ query investments($supporterId: ID, $projectId: ID, $pagination: PaginationInput
       reclaimed
       reclaimTxHash
       reclaimedAt
+      canReclaim
       project {
         id
         name

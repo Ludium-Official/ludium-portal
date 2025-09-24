@@ -10,7 +10,7 @@ export type InvestmentsQueryVariables = Types.Exact<{
 }>;
 
 
-export type InvestmentsQuery = { __typename?: 'Query', investments?: { __typename?: 'PaginatedInvestments', count?: number | null, data?: Array<{ __typename?: 'Investment', id?: string | null, amount?: string | null, tier?: string | null, txHash?: string | null, status?: Types.InvestmentStatus | null, reclaimed?: boolean | null, reclaimTxHash?: string | null, reclaimedAt?: any | null, project?: { __typename?: 'Application', id?: string | null, name?: string | null, onChainProjectId?: number | null, program?: { __typename?: 'Program', id?: string | null, name?: string | null, network?: string | null, currency?: string | null, educhainProgramId?: number | null } | null } | null, supporter?: { __typename?: 'User', id?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null } | null }> | null } | null };
+export type InvestmentsQuery = { __typename?: 'Query', investments?: { __typename?: 'PaginatedInvestments', count?: number | null, data?: Array<{ __typename?: 'Investment', id?: string | null, amount?: string | null, tier?: string | null, txHash?: string | null, status?: Types.InvestmentStatus | null, reclaimed?: boolean | null, reclaimTxHash?: string | null, reclaimedAt?: any | null, canReclaim?: boolean | null, project?: { __typename?: 'Application', id?: string | null, name?: string | null, onChainProjectId?: number | null, program?: { __typename?: 'Program', id?: string | null, name?: string | null, network?: string | null, currency?: string | null, educhainProgramId?: number | null } | null } | null, supporter?: { __typename?: 'User', id?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null } | null }> | null } | null };
 
 
 export const InvestmentsDocument = gql`
@@ -29,6 +29,7 @@ export const InvestmentsDocument = gql`
       reclaimed
       reclaimTxHash
       reclaimedAt
+      canReclaim
       project {
         id
         name
