@@ -18,6 +18,7 @@ import notify from '@/lib/notify';
 import { cn, getCurrency, getCurrencyIcon, sortTierSettings } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { type LinkInput, ProgramStatus } from '@/types/types.generated';
+import BigNumber from 'bignumber.js';
 import { Check, ChevronRight, TriangleAlert, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -364,7 +365,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
     // Check if total sum of terms doesn't exceed funding to be raised
     const fundingToBeRaised = Number.parseFloat(watch('fundingToBeRaised') ?? '0');
-    const totalSum = terms
+    const totalSumBN = terms
       .filter((term) => term.title && term.prize && term.purchaseLimit)
       .reduce((sum, term) => {
         const prize = data?.program?.tierSettings
@@ -372,10 +373,11 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
               ?.maxAmount || 0
           : Number.parseFloat(term.prize) || 0;
         const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
-        return sum + prize * purchaseLimit;
-      }, 0);
+        const termTotal = new BigNumber(prize).times(purchaseLimit);
+        return sum.plus(termTotal);
+      }, new BigNumber(0));
 
-    return totalSum <= fundingToBeRaised;
+    return totalSumBN.lte(new BigNumber(fundingToBeRaised));
   };
 
   // Prefill from draft on mount when creating (not editing)
@@ -1015,7 +1017,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                             ]?.maxAmount || 0
                           : Number.parseFloat(term.prize) || 0;
                         const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
-                        const totalPrice = prize * purchaseLimit;
+                        const totalPrice = new BigNumber(prize).times(purchaseLimit);
 
                         return (
                           <div
@@ -1037,7 +1039,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                             </div>
                             <div className="text-gray-600">{purchaseLimit}</div>
                             <div className="font-medium  justify-self-end text-right">
-                              {totalPrice} {data?.program?.currency}
+                              {totalPrice.toString()} {data?.program?.currency}
                             </div>
                           </div>
                         );
@@ -1046,7 +1048,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
                   {/* Total Row */}
                   {(() => {
-                    const totalSum = terms
+                    const totalSumBN = terms
                       .filter((term) => term.title && term.prize && term.purchaseLimit)
                       .reduce((sum, term) => {
                         const prize = data?.program?.tierSettings
@@ -1055,11 +1057,12 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                             ]?.maxAmount || 0
                           : Number.parseFloat(term.prize) || 0;
                         const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
-                        return sum + prize * purchaseLimit;
-                      }, 0);
+                        const termTotal = new BigNumber(prize).times(purchaseLimit);
+                        return sum.plus(termTotal);
+                      }, new BigNumber(0));
 
-                    const fundingToBeRaised = Number.parseFloat(watch('fundingToBeRaised') ?? '0');
-                    const exceedsFunding = totalSum > fundingToBeRaised;
+                    const fundingToBeRaisedBN = new BigNumber(watch('fundingToBeRaised') ?? '0');
+                    const exceedsFunding = totalSumBN.gt(fundingToBeRaisedBN);
 
                     return (
                       <>
@@ -1071,15 +1074,15 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                               exceedsFunding ? 'text-destructive' : 'text-primary'
                             }`}
                           >
-                            {totalSum.toLocaleString()} {data?.program?.currency}
+                            {totalSumBN.toString()} {data?.program?.currency}
                           </div>
                         </div>
                         {exceedsFunding && (
                           <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
                             <p className="text-destructive text-sm font-medium">
-                              Total terms amount ({totalSum.toLocaleString()}{' '}
-                              {data?.program?.currency}) exceeds funding to be raised (
-                              {fundingToBeRaised.toLocaleString()} {data?.program?.currency})
+                              Total terms amount ({totalSumBN.toString()} {data?.program?.currency})
+                              exceeds funding to be raised ({fundingToBeRaisedBN.toString()}{' '}
+                              {data?.program?.currency})
                             </p>
                           </div>
                         )}

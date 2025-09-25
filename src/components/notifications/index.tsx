@@ -1,8 +1,7 @@
 import { useMarkAllNotificationsAsReadMutation } from '@/apollo/mutation/mark-all-notifications-as-read.generated';
+import { useGetNotificationsQuery } from '@/apollo/queries/notifications.generated';
 import { useCountNotificationsSubscription } from '@/apollo/subscriptions/count-notifications.generated';
-import { useNotificationsSubscription } from '@/apollo/subscriptions/notifications.generated';
 import ConditionCard from '@/components/notifications/condition-card';
-import NotificationCard from '@/components/notifications/notification-card';
 // import NotificationCard from '@/components/notifications/notification-card';
 import ProgressCard from '@/components/notifications/progress-card';
 import ReclaimCard from '@/components/notifications/reclaim-card';
@@ -18,10 +17,32 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router';
 
 function Notifications() {
+  const [unreadOnly, setUnreadOnly] = useState(false);
+
   const location = useLocation();
   const [openNotifications, setOpenNotifications] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
-  const { data } = useNotificationsSubscription();
+  // const { data } = useNotificationsSubscription();
+
+  const { data } = useGetNotificationsQuery({
+    variables: {
+      input: {
+        limit: 10,
+        offset: 0,
+        filter: [
+          {
+            field: 'tab',
+            value: activeTab,
+          },
+          {
+            field: 'unread',
+            value: unreadOnly ? 'true' : 'false',
+          },
+        ],
+      },
+    },
+  });
+  console.log('🚀 ~ Notifications ~ data:', data);
   const { data: countData } = useCountNotificationsSubscription();
 
   const [markAllAsRead] = useMarkAllNotificationsAsReadMutation();
@@ -29,6 +50,7 @@ function Notifications() {
   useEffect(() => {
     setOpenNotifications(false);
   }, [location]);
+
   return (
     <div>
       <Popover open={openNotifications} onOpenChange={setOpenNotifications}>
@@ -57,7 +79,7 @@ function Notifications() {
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-lg font-bold">Notifications</h3>
             <div className="flex items-center gap-2">
-              <Switch />
+              <Switch checked={unreadOnly} onCheckedChange={setUnreadOnly} />
               <p className="text-sm">Unread</p>
             </div>
           </div>
@@ -66,97 +88,54 @@ function Notifications() {
             <TabsList className="w-auto bg-gray-100 p-1">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="reclaim">Reclaim</TabsTrigger>
-              <TabsTrigger value="investment-condition">Ivestment Condition</TabsTrigger>
+              <TabsTrigger value="investment_condition">Investment Condition</TabsTrigger>
               <TabsTrigger value="progress">Progress</TabsTrigger>
             </TabsList>
-
-            {/* <TabsContent value="all">
-              <div className="space-y-4 mb-10">
-                {data?.notifications?.map((n) => (
-                  <NotificationCard notification={n} key={n.id} />
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="progress">
-              <div className="space-y-4 mb-10">
-                {data?.notifications?.map((n) => (
-                  <NotificationCard notification={n} key={n.id} />
-                ))}
-              </div>
-            </TabsContent> */}
           </Tabs>
 
           <ScrollArea className="relative overflow-auto h-[calc(100vh-235px)] pb-5">
-            {/* 
-            <div className="space-y-4 mb-10">
-
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-              <NotificationCard notification={data?.notifications?.[0]} key={data?.notifications?.[0]?.id} />
-            </div>
-            <Button
-              onClick={() => markAllAsRead()}
-              className="w-[calc(100%-32px)] fixed bottom-4 bg-red-500"
-              variant="destructive"
-            >
-              Delete All
-            </Button> */}
-            {data?.notifications?.length ? (
+            {data?.notifications?.data?.length ? (
               <div>
                 <div className="space-y-4 mb-10">
-                  {activeTab === 'progress' &&
-                    data?.notifications?.map((n) => <ProgressCard notification={n} key={n.id} />)}
-
                   {activeTab === 'all' &&
-                    data?.notifications?.map((n) => (
-                      <NotificationCard notification={n} key={n.id} />
+                    data?.notifications?.data?.map((n) => {
+                      if (n.metadata?.category === 'progress') {
+                        return <ProgressCard notification={n} key={n.id} />;
+                      }
+                      if (n.metadata?.category === 'investment') {
+                        return <ConditionCard notification={n} key={n.id} />;
+                      }
+                      if (n.metadata?.category === 'reclaim') {
+                        return <ReclaimCard notification={n} key={n.id} />;
+                      }
+
+                      return <ProgressCard notification={n} key={n.id} />;
+                    })}
+
+                  {activeTab === 'progress' &&
+                    data?.notifications?.data?.map((n) => (
+                      <ProgressCard notification={n} key={n.id} />
                     ))}
 
-                  {activeTab === 'investment-condition' && (
-                    <>
-                      <ConditionCard />
-                      <ConditionCard />
-                      <ConditionCard />
-                      <ConditionCard />
-                      <ConditionCard />
-                    </>
-                  )}
+                  {activeTab === 'investment_condition' &&
+                    data?.notifications?.data?.map((n) => (
+                      <ConditionCard notification={n} key={n.id} />
+                    ))}
 
-                  {activeTab === 'reclaim' && (
-                    <>
-                      <ReclaimCard />
-                      <ReclaimCard />
-                      <ReclaimCard />
-                      <ReclaimCard />
-                    </>
-                  )}
+                  {activeTab === 'reclaim' &&
+                    data?.notifications?.data?.map((n) => (
+                      <ReclaimCard notification={n} key={n.id} />
+                    ))}
                 </div>
                 <Button
                   onClick={() => markAllAsRead()}
-                  className="w-[calc(100%-32px)] fixed bottom-4 bg-red-500 z-20"
-                  variant="destructive"
+                  className="w-[calc(100%-32px)] fixed bottom-4 z-20"
                 >
-                  Delete All
+                  Read All
                 </Button>
               </div>
             ) : (
-              <p className="text-sm text-center">No notifications yet.</p>
+              <p className="text-sm text-center mt-3">No notifications yet.</p>
             )}
           </ScrollArea>
         </PopoverContent>

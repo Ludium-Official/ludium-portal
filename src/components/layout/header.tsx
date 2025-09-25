@@ -207,10 +207,15 @@ function Header() {
     >
       {isMobileDevice && (
         <div className="flex items-center gap-4">
-          <div onClick={() => navigate('/')} className="cursor-pointer flex items-center w-[50px]">
-            <img src={logo} alt="Logo" className="h-8 w-auto" />
-          </div>
           <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="cursor-pointer flex items-center w-[50px]"
+          >
+            <img src={logo} alt="Logo" className="h-8 w-auto" />
+          </button>
+          <button
+            type="button"
             onClick={() => navigate('/investments')}
             className="text-sm font-medium text-gray-700 hover:text-primary transition-colors px-3 py-1 rounded-md hover:bg-gray-50"
           >
@@ -219,7 +224,7 @@ function Header() {
         </div>
       )}
 
-      {!isMobileDevice && <div></div>}
+      {!isMobileDevice && <div />}
 
       <div className="flex gap-2 items-center ml-auto">
         {authenticated && <Notifications />}

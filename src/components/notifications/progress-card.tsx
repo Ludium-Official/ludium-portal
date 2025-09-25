@@ -1,11 +1,15 @@
+import client from '@/apollo/client';
+import { useMarkNotificationAsReadMutation } from '@/apollo/mutation/mark-notification-as-read.generated';
+import { GetNotificationsDocument } from '@/apollo/queries/notifications.generated';
+import { cn } from '@/lib/utils';
 import { type Notification, NotificationAction, NotificationType } from '@/types/types.generated';
 import { Check } from 'lucide-react';
 import { Link } from 'react-router';
 
 function ProgressCard({ notification }: { notification: Notification }) {
-  const { type, action } = notification;
+  const { type, action, readAt } = notification;
 
-  // const [markAsRead] = useMarkNotificationAsReadMutation();
+  const [markAsRead] = useMarkNotificationAsReadMutation();
 
   // let text = '';
   let link = null;
@@ -16,7 +20,7 @@ function ProgressCard({ notification }: { notification: Notification }) {
   );
 
   const icon =
-    action !== NotificationAction.Submitted ? (
+    action !== NotificationAction.Rejected ? (
       <span className="bg-green-400 text-white flex items-center justify-center rounded-full w-4 h-4">
         <Check className="w-3 h-3" />
       </span>
@@ -39,7 +43,20 @@ function ProgressCard({ notification }: { notification: Notification }) {
   }
 
   return (
-    <Link to={link ?? ''} className="flex gap-2 items-center border rounded-md py-4 px-3">
+    <Link
+      to={link ?? ''}
+      onClick={() =>
+        markAsRead({
+          variables: {
+            id: notification.id ?? '',
+          },
+          onCompleted: () => {
+            client.refetchQueries({ include: [GetNotificationsDocument] });
+          },
+        })
+      }
+      className={cn('flex gap-2 items-center border rounded-md py-4 px-3', readAt && 'opacity-50')}
+    >
       {/* <p className="text-sm">{text}</p> */}
       {icon} {content}
     </Link>

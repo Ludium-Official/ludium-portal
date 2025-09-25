@@ -1,27 +1,73 @@
-function ConditionCard() {
+import client from '@/apollo/client';
+import { useMarkNotificationAsReadMutation } from '@/apollo/mutation/mark-notification-as-read.generated';
+import { GetNotificationsDocument } from '@/apollo/queries/notifications.generated';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getInitials } from '@/lib/utils';
+import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
+import type { Notification } from '@/types/types.generated';
+import { formatDistanceToNow } from 'date-fns';
+import { Link } from 'react-router';
+
+function ConditionCard({ notification }: { notification: Notification }) {
+  const [markAsRead] = useMarkNotificationAsReadMutation();
+
+  const getTimeDisplay = (createdAt: string) => {
+    const notificationDate = new Date(createdAt);
+    const now = new Date();
+    const diffInHours = (now.getTime() - notificationDate.getTime()) / (1000 * 60 * 60);
+
+    if (diffInHours < 24) {
+      return 'today';
+    }
+
+    return formatDistanceToNow(notificationDate, { addSuffix: true });
+  };
+
   return (
-    <div className="border rounded-lg p-3 space-y-2">
+    <Link
+      to={`/investments/${notification.metadata?.investmentId}/project/${notification.entityId}`}
+      onClick={() => {
+        markAsRead({
+          variables: {
+            id: notification.id ?? '',
+          },
+          onCompleted: () => {
+            client.refetchQueries({ include: [GetNotificationsDocument] });
+          },
+        });
+      }}
+      className="block border rounded-lg p-3 space-y-2"
+    >
       <header className="flex justify-between items-center">
         <div className="flex items-center gap-2">
           {/* Avatar placeholder */}
-          <div className="w-8 h-8 bg-gray-200 rounded-full" />
+          <Avatar className="w-8 h-8">
+            <AvatarImage src={notification.metadata?.avatar || ''} />
+            <AvatarFallback>
+              {getInitials(notification.metadata?.applicantName || '')}
+            </AvatarFallback>
+          </Avatar>
 
-          <p className="font-bold text-sm">BUILDER NAME</p>
+          <p className="font-bold text-sm">{notification.metadata?.applicantName}</p>
         </div>
 
-        <p className="text-xs text-muted-foreground">about 5 days ago</p>
+        <p className="text-xs text-muted-foreground">
+          {getTimeDisplay(notification.createdAt ?? '')}
+        </p>
       </header>
       <p className="text-xs text-muted-foreground">
-        <span className="font-bold">Project name</span> has given you a tier
+        <span className="font-bold">{notification.metadata?.applicantName}</span> has given you a
+        tier
       </p>
 
       <div className="flex items-center justify-between px-2 py-1 bg-[#0000000A] rounded-md">
         <p className="text-xs text-neutral-400 font-medium">TIER</p>
-        <span className=" block bg-[#FFDEA1] rounded-full px-2 py-0.5 text-xs text-[#CA8A04] font-bold">
-          GOLD
-        </span>
+        {<TierBadge tier={notification.metadata?.tier as TierType} />}
+        {/* <span className=" block bg-[#FFDEA1] rounded-full px-2 py-0.5 text-xs text-[#CA8A04] font-bold">
+          {notification.metadata?.tier}
+        </span> */}
       </div>
-    </div>
+    </Link>
   );
 }
 
