@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
 import { getCurrencyIcon, sortTierSettings } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
 import type { InvestmentTier, Program, Supporter } from '@/types/types.generated';
+import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import { ChevronDown, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -50,7 +50,6 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
 
   const [inviteUserToProgram] = useInviteUserToProgramMutation();
   const [removeUserFromProgram] = useRemoveUserFromProgramMutation();
-  const investmentContract = useInvestmentContract(program?.network || null);
 
   // Debounce supporter input
   useEffect(() => {
@@ -169,14 +168,14 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
       const tierValue = (tierSettings as Record<string, { maxAmount?: number }>)[
         supporter.tier ?? ''
       ];
-      const amount = Number(tierValue?.maxAmount) || 0;
-      return total + amount;
-    }, 0);
+      const amount = new BigNumber(tierValue?.maxAmount ?? 0);
+      return total.plus(amount);
+    }, new BigNumber(0));
   };
 
   // Helper function to calculate total amount for existing supporters
   const calculateExistingSupportersTotal = () => {
-    if (!program?.supporters) return 0;
+    if (!program?.supporters) return new BigNumber(0);
 
     return program.supporters.reduce((total, supporter) => {
       const tierSettings = program?.tierSettings;
@@ -185,19 +184,19 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
       const tierValue = (tierSettings as Record<string, { maxAmount?: number }>)[
         supporter.tier ?? ''
       ];
-      const amount = Number(tierValue?.maxAmount) || 0;
-      return total + amount;
-    }, 0);
+      const amount = new BigNumber(tierValue?.maxAmount ?? 0);
+      return total.plus(amount);
+    }, new BigNumber(0));
   };
 
   // Helper function to check if total amount exceeds program price
   const isAmountExceeded = () => {
     const storedTotal = calculateStoredSupportersTotal();
     const existingTotal = calculateExistingSupportersTotal();
-    const totalAmount = storedTotal + existingTotal;
-    const programPrice = Number(program?.price) || 0;
+    const totalAmount = storedTotal.plus(existingTotal);
+    const programPrice = new BigNumber(program?.price ?? 0);
 
-    return totalAmount > programPrice;
+    return totalAmount.gt(programPrice);
   };
 
   const handleSendInvitation = async () => {
@@ -229,7 +228,7 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
         supporter: StoredSupporter;
         walletAddress?: string;
       }> = [];
-      let syncedCount = 0;
+      const syncedCount = 0;
       let failedCount = 0;
 
       for (const supporter of storedSupporters) {
@@ -278,32 +277,32 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
                 decimals: decimals,
               });
 
-              const result = await investmentContract.assignUserTierToProgram({
-                programId: onChainProgramId,
-                user: walletAddress,
-                tierName: supporter.tier.toLowerCase(), // Ensure lowercase
-                maxInvestment: maxInvestmentWei,
-              });
+              // const result = await investmentContract.assignUserTierToProgram({
+              //   programId: onChainProgramId,
+              //   user: walletAddress,
+              //   tierName: supporter.tier.toLowerCase(), // Ensure lowercase
+              //   maxInvestment: maxInvestmentWei,
+              // });
 
-              console.log(`✅ Tier sync transaction hash: ${result.txHash}`);
+              // console.log(`✅ Tier sync transaction hash: ${result.txHash}`);
 
-              // Verify the tier was actually synced
-              const verifyTier = await investmentContract.getProgramUserTier(
-                onChainProgramId,
-                walletAddress,
-              );
+              // // Verify the tier was actually synced
+              // const verifyTier = await investmentContract.getProgramUserTier(
+              //   onChainProgramId,
+              //   walletAddress,
+              // );
 
-              if (verifyTier?.isAssigned) {
-                syncedCount++;
-                console.log(
-                  `✅ Successfully synced and verified tier for ${supporter.name} (${walletAddress})`,
-                );
-                notify(`Tier synced for ${supporter.name}`, 'success');
-              } else {
-                throw new Error(
-                  'Tier sync verification failed - tier not found on chain after transaction',
-                );
-              }
+              // if (verifyTier?.isAssigned) {
+              //   syncedCount++;
+              //   console.log(
+              //     `✅ Successfully synced and verified tier for ${supporter.name} (${walletAddress})`,
+              //   );
+              //   notify(`Tier synced for ${supporter.name}`, 'success');
+              // } else {
+              //   throw new Error(
+              //     'Tier sync verification failed - tier not found on chain after transaction',
+              //   );
+              // }
             } catch (error) {
               console.error(`❌ Failed to sync tier for ${supporter.name}:`, error);
 
@@ -579,7 +578,7 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
                 </div>
                 <div className="text-sm font-medium flex items-center gap-2">
                   <span className={`font-bold text-lg ${isAmountExceeded() ? 'text-red-600' : ''}`}>
-                    {calculateStoredSupportersTotal()}
+                    {calculateStoredSupportersTotal().toString()}
                   </span>
                   <span>{getCurrencyIcon(program?.currency)}</span>
                   <span>{program?.currency}</span>
@@ -653,18 +652,7 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
               </div>
               <div className="text-sm font-medium flex items-center gap-2">
                 <span className="font-bold text-lg">
-                  {(
-                    program?.supporters?.reduce((total: number, supporter) => {
-                      const tierSettings = program?.tierSettings;
-                      if (!tierSettings) return total;
-
-                      const tierValue = (tierSettings as Record<string, { maxAmount?: number }>)[
-                        supporter.tier ?? ''
-                      ];
-                      const amount = Number(tierValue?.maxAmount) || 0;
-                      return total + amount;
-                    }, 0) || 0
-                  ).toLocaleString()}
+                  {calculateExistingSupportersTotal().toString()}
                 </span>
                 <span>{getCurrencyIcon(program?.currency)}</span>
                 <span>{program?.currency}</span>

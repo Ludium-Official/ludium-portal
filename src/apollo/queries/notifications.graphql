@@ -1,4 +1,4 @@
-subscription notifications($input: PaginationInput) {
+query getNotifications($input: PaginationInput) {
   notifications(pagination: $input) {
     count
     data {
@@ -10,6 +10,7 @@ subscription notifications($input: PaginationInput) {
       readAt
       title
       type
+      createdAt
     }
   }
 }

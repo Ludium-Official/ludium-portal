@@ -8,7 +8,7 @@ export type GetSwappedStatusQueryVariables = Types.Exact<{
 }>;
 
 
-export type GetSwappedStatusQuery = { __typename?: 'Query', getSwappedStatus?: { __typename?: 'SwappedStatusResponse', status?: string | null, message?: string | null, orderId?: string | null, data?: any | null } | null };
+export type GetSwappedStatusQuery = { __typename?: 'Query', getSwappedStatus?: { __typename?: 'SwappedStatusResponse', status?: string | null, message?: string | null, orderId?: string | null, data?: string | null } | null };
 
 
 export const GetSwappedStatusDocument = gql`

@@ -376,7 +376,6 @@ export type Mutation = {
   acceptProgram?: Maybe<Program>;
   addProgramKeyword?: Maybe<Keyword>;
   addUserKeyword?: Maybe<Keyword>;
-  assignUserTier?: Maybe<UserTierAssignment>;
   assignValidatorToProgram?: Maybe<Program>;
   banUser?: Maybe<User>;
   checkMilestone?: Maybe<Milestone>;
@@ -413,7 +412,6 @@ export type Mutation = {
   removeProgramKeyword?: Maybe<Scalars['Boolean']['output']>;
   removeUserFromProgram?: Maybe<Program>;
   removeUserKeyword?: Maybe<Scalars['Boolean']['output']>;
-  removeUserTier?: Maybe<Scalars['Boolean']['output']>;
   removeValidatorFromProgram?: Maybe<Program>;
   reorderCarouselItems?: Maybe<Array<CarouselItem>>;
   showPost?: Maybe<Post>;
@@ -431,7 +429,6 @@ export type Mutation = {
   updateProfile?: Maybe<User>;
   updateProgram?: Maybe<Program>;
   updateUser?: Maybe<User>;
-  updateUserTier?: Maybe<UserTierAssignment>;
 };
 
 
@@ -457,11 +454,6 @@ export type MutationAddUserKeywordArgs = {
   keyword: Scalars['String']['input'];
   type?: InputMaybe<KeywordType>;
   userId: Scalars['ID']['input'];
-};
-
-
-export type MutationAssignUserTierArgs = {
-  input: AssignUserTierInput;
 };
 
 
@@ -655,12 +647,6 @@ export type MutationRemoveUserKeywordArgs = {
 };
 
 
-export type MutationRemoveUserTierArgs = {
-  programId: Scalars['ID']['input'];
-  userId: Scalars['ID']['input'];
-};
-
-
 export type MutationRemoveValidatorFromProgramArgs = {
   programId: Scalars['ID']['input'];
   validatorId: Scalars['ID']['input'];
@@ -748,15 +734,11 @@ export type MutationUpdateUserArgs = {
   input: UserUpdateInput;
 };
 
-
-export type MutationUpdateUserTierArgs = {
-  input: AssignUserTierInput;
-};
-
 export type Notification = {
   __typename?: 'Notification';
   action?: Maybe<NotificationAction>;
   content?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['Date']['output']>;
   entityId?: Maybe<Scalars['ID']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   metadata?: Maybe<Scalars['JSON']['output']>;
@@ -774,6 +756,12 @@ export enum NotificationAction {
   Rejected = 'rejected',
   Submitted = 'submitted'
 }
+
+export type NotificationResult = {
+  __typename?: 'NotificationResult';
+  count?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<Notification>>;
+};
 
 export enum NotificationType {
   Application = 'application',
@@ -967,7 +955,7 @@ export type Query = {
   milestonePayout?: Maybe<MilestonePayout>;
   milestonePayouts?: Maybe<PaginatedMilestonePayouts>;
   milestones?: Maybe<PaginatedMilestones>;
-  notifications?: Maybe<Array<Notification>>;
+  notifications?: Maybe<NotificationResult>;
   post?: Maybe<Post>;
   posts?: Maybe<PaginatedPosts>;
   profile?: Maybe<User>;
@@ -1069,6 +1057,11 @@ export type QueryMilestonesArgs = {
 };
 
 
+export type QueryNotificationsArgs = {
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+
 export type QueryPostArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1129,7 +1122,12 @@ export enum SubmitMilestoneStatus {
 export type Subscription = {
   __typename?: 'Subscription';
   countNotifications?: Maybe<Scalars['Int']['output']>;
-  notifications?: Maybe<Array<Notification>>;
+  notifications?: Maybe<NotificationResult>;
+};
+
+
+export type SubscriptionNotificationsArgs = {
+  pagination?: InputMaybe<PaginationInput>;
 };
 
 export type Supporter = {
@@ -1145,7 +1143,7 @@ export type Supporter = {
 
 export type SwappedStatusResponse = {
   __typename?: 'SwappedStatusResponse';
-  data?: Maybe<Scalars['JSON']['output']>;
+  data?: Maybe<Scalars['String']['output']>;
   message?: Maybe<Scalars['String']['output']>;
   orderId?: Maybe<Scalars['String']['output']>;
   status?: Maybe<Scalars['String']['output']>;
