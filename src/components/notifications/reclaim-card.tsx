@@ -4,8 +4,8 @@ import { GetNotificationsDocument } from '@/apollo/queries/notifications.generat
 import { ApplicationStatusBadge } from '@/components/status-badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { getCurrency, getCurrencyIcon, getInitials } from '@/lib/utils';
-import type { Notification } from '@/types/types.generated';
+import { cn, getCurrency, getCurrencyIcon, getInitials } from '@/lib/utils';
+import { type Notification, NotificationType } from '@/types/types.generated';
 import { formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router';
 
@@ -24,9 +24,23 @@ function ReclaimCard({ notification }: { notification: Notification }) {
     return formatDistanceToNow(notificationDate, { addSuffix: true });
   };
 
+  const programOrInvestment =
+    notification.metadata?.programType === 'funding' ? 'investments' : 'programs';
+  const applicationOrProject =
+    notification.metadata?.programType === 'funding' ? 'project' : 'application';
+
+  const link =
+    notification.type === NotificationType.Program
+      ? `/${programOrInvestment}/${notification.entityId}`
+      : notification.type === NotificationType.Milestone
+        ? `/${programOrInvestment}/${notification.metadata?.programId}/${applicationOrProject}/${notification?.metadata.applicationId}`
+        : notification.type === NotificationType.Application
+          ? `/${programOrInvestment}/${notification.metadata?.programId}/${applicationOrProject}/${notification.entityId}`
+          : '';
+
   return (
     <Link
-      to={`/investments/${notification.entityId}`}
+      to={link}
       onClick={() => {
         markAsRead({
           variables: {
@@ -37,7 +51,7 @@ function ReclaimCard({ notification }: { notification: Notification }) {
           },
         });
       }}
-      className="block border rounded-lg p-3 space-y-2"
+      className={cn('block border rounded-lg p-3 space-y-2', notification?.readAt && 'opacity-50')}
     >
       <header className="flex justify-between items-center mb-3">
         <span className="block px-2 py-0.5 bg-[#0000000A] rounded-full font-semibold text-xs">
@@ -78,7 +92,7 @@ function ReclaimCard({ notification }: { notification: Notification }) {
             <span className="text-neutral-400">STATUS</span>{' '}
             {/* <div className="flex items-center"> */}
             <Progress
-              value={25}
+              value={notification.metadata?.fundingProgress?.percentage ?? 0}
               rootClassName="w-full bg-gray-200"
               indicatorClassName="bg-primary"
             />

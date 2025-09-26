@@ -2,7 +2,7 @@ import client from '@/apollo/client';
 import { useMarkNotificationAsReadMutation } from '@/apollo/mutation/mark-notification-as-read.generated';
 import { GetNotificationsDocument } from '@/apollo/queries/notifications.generated';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getInitials } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
 import type { Notification } from '@/types/types.generated';
 import { formatDistanceToNow } from 'date-fns';
@@ -25,7 +25,7 @@ function ConditionCard({ notification }: { notification: Notification }) {
 
   return (
     <Link
-      to={`/investments/${notification.metadata?.investmentId}/project/${notification.entityId}`}
+      to={`/${notification.metadata?.programType === 'funding' ? 'investments' : 'programs'}/${notification.entityId}`}
       onClick={() => {
         markAsRead({
           variables: {
@@ -36,7 +36,7 @@ function ConditionCard({ notification }: { notification: Notification }) {
           },
         });
       }}
-      className="block border rounded-lg p-3 space-y-2"
+      className={cn('block border rounded-lg p-3 space-y-2', notification?.readAt && 'opacity-50')}
     >
       <header className="flex justify-between items-center">
         <div className="flex items-center gap-2">
@@ -55,18 +55,28 @@ function ConditionCard({ notification }: { notification: Notification }) {
           {getTimeDisplay(notification.createdAt ?? '')}
         </p>
       </header>
-      <p className="text-xs text-muted-foreground">
-        <span className="font-bold">{notification.metadata?.applicantName}</span> has given you a
-        tier
-      </p>
+      {notification.metadata?.programType !== 'funding' && (
+        <p className="text-xs text-muted-foreground">
+          You are invited to <span className="font-bold">{notification.metadata?.programName}</span>
+        </p>
+      )}
 
-      <div className="flex items-center justify-between px-2 py-1 bg-[#0000000A] rounded-md">
-        <p className="text-xs text-neutral-400 font-medium">TIER</p>
-        {<TierBadge tier={notification.metadata?.tier as TierType} />}
-        {/* <span className=" block bg-[#FFDEA1] rounded-full px-2 py-0.5 text-xs text-[#CA8A04] font-bold">
+      {notification.metadata?.programType === 'funding' && (
+        <p className="text-xs text-muted-foreground">
+          <span className="font-bold">{notification.metadata?.programName}</span> has given you a
+          tier
+        </p>
+      )}
+
+      {notification.metadata?.programType === 'funding' && (
+        <div className="flex items-center justify-between px-2 py-1 bg-[#0000000A] rounded-md">
+          <p className="text-xs text-neutral-400 font-medium">TIER</p>
+          {<TierBadge tier={notification.metadata?.tier as TierType} />}
+          {/* <span className=" block bg-[#FFDEA1] rounded-full px-2 py-0.5 text-xs text-[#CA8A04] font-bold">
           {notification.metadata?.tier}
         </span> */}
-      </div>
+        </div>
+      )}
     </Link>
   );
 }
