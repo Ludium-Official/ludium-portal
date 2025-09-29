@@ -12,10 +12,26 @@ function ProgressCard({ notification }: { notification: Notification }) {
   const [markAsRead] = useMarkNotificationAsReadMutation();
 
   // let text = '';
+
+  let actionBy = '';
+
+  switch (action) {
+    case NotificationAction.Accepted:
+    case NotificationAction.Rejected:
+      actionBy = 'by the Validators';
+      break;
+    case NotificationAction.Invited:
+      actionBy = 'by the Host';
+      break;
+    case NotificationAction.Submitted:
+      actionBy = 'by the Applicant';
+      break;
+  }
+
   let link = null;
   const content = (
     <p className="text-sm font-medium text-secondary-foreground">
-      <span className="font-bold">Your {type}</span> is {action}
+      <span className="font-bold">Your {type}</span> is {action} {actionBy}
     </p>
   );
 
