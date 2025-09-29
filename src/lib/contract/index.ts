@@ -7,7 +7,6 @@ import type { PublicClient } from 'viem';
 import { encodeFunctionData } from 'viem';
 import { reduceString } from '../utils';
 
-const NATIVE_TOKEN = '0x0000000000000000000000000000000000000000';
 const ERC20_ABI = [
   {
     constant: true,
@@ -177,8 +176,8 @@ class ChainContract {
     ownerAddress: string;
   }) {
     try {
-      const useToken = program.token?.address ?? NATIVE_TOKEN;
-      const isNative = useToken === NATIVE_TOKEN;
+      const useToken = program.token?.address ?? ethers.constants.AddressZero;
+      const isNative = useToken === ethers.constants.AddressZero;
 
       // Log warning about native token whitelist issue (non-blocking)
       if (isNative) {
@@ -206,7 +205,11 @@ class ChainContract {
           );
           const formattedPrice = ethers.utils.formatUnits(price, program.token?.decimal ?? 18);
           throw new Error(
-            `Insufficient ${program.token?.name || 'token'} balance. You have ${formattedBalance} ${program.token?.name || 'tokens'} but need ${formattedPrice} ${program.token?.name || 'tokens'} to create this program.`,
+            `Insufficient ${program.token?.name || 'token'} balance. You have ${formattedBalance} ${
+              program.token?.name || 'tokens'
+            } but need ${formattedPrice} ${
+              program.token?.name || 'tokens'
+            } to create this program.`,
           );
         }
 
@@ -348,7 +351,9 @@ class ChainContract {
         errorMessage.includes('ERC20: transfer amount exceeds balance')
       ) {
         throw new Error(
-          `Insufficient ${program.token?.name || 'token'} balance. Please ensure you have enough ${program.token?.name || 'tokens'} in your wallet to create this program.`,
+          `Insufficient ${program.token?.name || 'token'} balance. Please ensure you have enough ${
+            program.token?.name || 'tokens'
+          } in your wallet to create this program.`,
         );
       }
 
@@ -359,7 +364,9 @@ class ChainContract {
         errorMessage.includes('ERC20: insufficient allowance')
       ) {
         throw new Error(
-          `Token approval failed. Please approve the contract to spend your ${program.token?.name || 'tokens'} and try again.`,
+          `Token approval failed. Please approve the contract to spend your ${
+            program.token?.name || 'tokens'
+          } and try again.`,
         );
       }
 
@@ -370,12 +377,14 @@ class ChainContract {
         !errorMessage.includes('User') &&
         !errorMessage.includes('user')
       ) {
-        const useToken = program.token?.address ?? NATIVE_TOKEN;
-        const isNative = useToken === NATIVE_TOKEN;
+        const useToken = program.token?.address ?? ethers.constants.AddressZero;
+        const isNative = useToken === ethers.constants.AddressZero;
 
         // Try to provide more specific error for common cases
         throw new Error(
-          `Transaction failed: This could be due to insufficient funds, token not whitelisted, or other contract requirements not being met. Please check your ${isNative ? 'EDU' : program.token?.name || 'token'} balance and try again.`,
+          `Transaction failed: This could be due to insufficient funds, token not whitelisted, or other contract requirements not being met. Please check your ${
+            isNative ? 'EDU' : program.token?.name || 'token'
+          } balance and try again.`,
         );
       }
 
@@ -390,7 +399,7 @@ class ChainContract {
     token?: { name: string; address?: string; decimal?: number },
   ) {
     try {
-      const isNative = token?.address === NATIVE_TOKEN;
+      const isNative = token?.address === ethers.constants.AddressZero;
       const reward = ethers.utils.parseUnits(amount || '0', isNative ? 18 : (token?.decimal ?? 18));
 
       console.log('Accepting milestone with params:', {
@@ -501,14 +510,18 @@ class ChainContract {
         {
           uiOptions: {
             showWalletUIs: true,
-            description: `Withdraw your deposited ${amount} ${token?.name || 'tokens'} from program #${programId} (expired). You only pay gas fees, funds will be returned to your wallet.`,
+            description: `Withdraw your deposited ${amount} ${
+              token?.name || 'tokens'
+            } from program #${programId} (expired). You only pay gas fees, funds will be returned to your wallet.`,
             buttonText: 'Withdraw Funds',
             transactionInfo: {
               title: 'Withdraw Program Funds',
               action: 'Withdraw Deposited Funds',
             },
             successHeader: 'Funds Withdrawn Successfully!',
-            successDescription: `You have successfully withdrawn ${amount} ${token?.name || 'tokens'} from the program to your wallet.`,
+            successDescription: `You have successfully withdrawn ${amount} ${
+              token?.name || 'tokens'
+            } from the program to your wallet.`,
           },
         },
       );

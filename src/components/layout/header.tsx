@@ -7,13 +7,13 @@ import type ChainContract from '@/lib/contract';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
-import { commaNumber, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
+import { commaNumber, isMobileDevice, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
 import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import NetworkSelector from '../network-selector';
-import { Button } from '../ui/button';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -21,39 +21,99 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '../ui/dialog';
+} from '@/components/ui/dialog';
+import { BalanceProps } from '@/types/asset';
 
 function Header() {
-  const { user, authenticated, login: privyLogin, logout: privyLogout, exportWallet } = usePrivy();
-  const { login: authLogin, logout: authLogout } = useAuth();
   const navigate = useNavigate();
 
-  const [isMobileDevice, setIsMobileDevice] = useState(false);
+  const { user, authenticated, login: privyLogin, logout: privyLogout, exportWallet } = usePrivy();
+  const { login: authLogin, logout: authLogout } = useAuth();
 
-  useEffect(() => {
-    const userAgent = navigator.userAgent;
-    const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
-    setIsMobileDevice(isMobile);
-  }, []);
-  const { data: profileData } = useProfileQuery({
-    fetchPolicy: 'cache-first',
-    skip: !authenticated,
-  });
-
+  const [isMobile, setIsMobile] = useState(false);
   const [network, setNetwork] = useState(mainnetDefaultNetwork);
-  const [balances, setBalances] = useState<
-    { name: string; amount: bigint | null; decimal: number }[]
-  >([]);
-
-  // Scroll state management
+  const [balances, setBalances] = useState<BalanceProps[]>([]);
   const [isVisible, setIsVisible] = useState(true);
   const [scrollY, setScrollY] = useState(0);
   const lastScrollY = useRef(0);
 
   const contract = useContract(network);
 
+  const { data: profileData } = useProfileQuery({
+    fetchPolicy: 'cache-first',
+    skip: !authenticated,
+  });
+
+  const fetchTokenBalance = async (
+    contract: ChainContract,
+    tokenAddress: string,
+    walletAddress: string,
+  ): Promise<bigint | null> => {
+    try {
+      return (await contract.getAmount(tokenAddress, walletAddress)) as bigint;
+    } catch (error) {
+      console.error('Error fetching token balance:', error);
+      return null;
+    }
+  };
+
   const walletInfo = user?.wallet;
   const injectedWallet = user?.wallet?.connectorType !== 'embedded';
+
+  const login = async () => {
+    try {
+      const loginType = user?.google ? 'google' : user?.farcaster ? 'farcaster' : 'wallet';
+
+      privyLogin({ disableSignup: false });
+
+      if (user && walletInfo) {
+        await authLogin({
+          email: user?.google?.email || null,
+          walletAddress: walletInfo.address,
+          loginType,
+        });
+      }
+    } catch (error) {
+      notify('Failed to login', 'error');
+      console.error('Failed to login:', error);
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await authLogout();
+      await privyLogout();
+
+      notify('Successfully logged out', 'success');
+      await navigate('/');
+
+      window.location.reload();
+    } catch (error) {
+      notify('Error logging out', 'error');
+      console.error('Error logging out:', error);
+    }
+  };
+
+  const getHeaderStyles = () => {
+    const MAX_SCROLL = 200;
+    const MAX_BLUR = 20;
+    const BACKGROUND_OPACITY_FACTOR = 0.9;
+
+    const opacity = Math.min(scrollY / MAX_SCROLL, 1);
+    const blur = Math.min(scrollY / MAX_SCROLL, 1) * MAX_BLUR;
+
+    return {
+      backgroundColor: `rgba(255, 255, 255, ${1 - opacity * BACKGROUND_OPACITY_FACTOR})`,
+      backdropFilter: `blur(${blur}px)`,
+      transform: isVisible ? 'translateY(0)' : 'translateY(-120%)',
+      transition:
+        'transform 0.3s ease-in-out, background-color 0.3s ease-in-out, backdrop-filter 0.3s ease-in-out',
+    };
+  };
+
+  useEffect(() => {
+    setIsMobile(isMobileDevice);
+  }, []);
 
   // Scroll handler
   useEffect(() => {
@@ -87,79 +147,6 @@ function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Calculate opacity and blur based on scroll position
-  const getHeaderStyles = () => {
-    const MAX_SCROLL = 200;
-    const MAX_BLUR = 20;
-    const BACKGROUND_OPACITY_FACTOR = 0.9;
-
-    const opacity = Math.min(scrollY / MAX_SCROLL, 1);
-    const blur = Math.min(scrollY / MAX_SCROLL, 1) * MAX_BLUR;
-
-    return {
-      backgroundColor: `rgba(255, 255, 255, ${1 - opacity * BACKGROUND_OPACITY_FACTOR})`,
-      backdropFilter: `blur(${blur}px)`,
-      transform: isVisible ? 'translateY(0)' : 'translateY(-120%)',
-      transition:
-        'transform 0.3s ease-in-out, background-color 0.3s ease-in-out, backdrop-filter 0.3s ease-in-out',
-    };
-  };
-
-  const getLoginType = () => {
-    const googleInfo = user?.google;
-    const farcasterInfo = user?.farcaster;
-
-    if (googleInfo) return 'google';
-    if (farcasterInfo) return 'farcaster';
-    return 'wallet';
-  };
-
-  const login = async () => {
-    try {
-      const loginType = getLoginType();
-      privyLogin({ disableSignup: false });
-
-      if (user && walletInfo) {
-        await authLogin({
-          email: user?.google?.email || null,
-          walletAddress: walletInfo.address,
-          loginType,
-        });
-      }
-    } catch (error) {
-      notify('Failed to login', 'error');
-      console.error('Failed to login:', error);
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await authLogout();
-      await privyLogout();
-
-      notify('Successfully logged out', 'success');
-      await navigate('/');
-
-      window.location.reload();
-    } catch (error) {
-      notify('Error logging out', 'error');
-      console.error('Error logging out:', error);
-    }
-  };
-
-  const fetchTokenBalance = async (
-    contract: ChainContract,
-    tokenAddress: string,
-    walletAddress: string,
-  ): Promise<bigint | null> => {
-    try {
-      return (await contract.getAmount(tokenAddress, walletAddress)) as bigint;
-    } catch (error) {
-      console.error('Error fetching token balance:', error);
-      return null;
-    }
-  };
-
   useEffect(() => {
     if (authenticated && user) {
       login();
@@ -175,8 +162,7 @@ function Header() {
 
         // Filter out native token (0x0000...0000) as it's not an ERC20 contract
         const erc20Tokens = tokens.filter(
-          (token: { address: string }) =>
-            token.address !== '0x0000000000000000000000000000000000000000',
+          (token: { address: string }) => token.address !== ethers.constants.AddressZero,
         );
 
         const balancesPromises = erc20Tokens.map(
@@ -202,10 +188,10 @@ function Header() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-[1] bg-white rounded-2xl flex justify-between items-center px-4 md:px-10 py-[14px] md:ml-[240px] ml-4 mr-4 mt-3"
+      className="fixed top-0 left-0 right-0 z-[1] flex justify-between items-centerbg-white rounded-2xl px-4 md:px-10 py-[14px] md:ml-[240px] mx-4 mt-3"
       style={getHeaderStyles()}
     >
-      {isMobileDevice && (
+      {isMobile && (
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -217,112 +203,115 @@ function Header() {
           <button
             type="button"
             onClick={() => navigate('/investments')}
-            className="text-sm font-medium text-gray-700 hover:text-primary transition-colors px-3 py-1 rounded-md hover:bg-gray-50"
+            className="hover:bg-gray-50 transition-colors px-3 py-1 rounded-md text-sm font-medium text-gray-700 hover:text-primary"
           >
             Funding
           </button>
         </div>
       )}
 
-      {!isMobileDevice && <div />}
-
       <div className="flex gap-2 items-center ml-auto">
-        {authenticated && <Notifications />}
+        {/* {authenticated && <Notifications />} */}
         <div>
           {!authenticated && (
             <Button
-              className="bg-primary hover:bg-primary/90 h-fit text-sm md:text-base px-3 md:px-4"
+              className="bg-primary hover:bg-primary/90 h-fit px-3 md:px-4 text-sm md:text-base"
               onClick={login}
             >
               Login
             </Button>
           )}
           {authenticated && (
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90 h-fit">
-                  <span className="hidden sm:inline">
-                    {profileData?.profile?.firstName && profileData?.profile?.lastName
-                      ? `${profileData.profile.firstName} ${profileData.profile.lastName}`
-                      : reduceString(walletInfo?.address || '', 6, 6)}
-                  </span>
-                  <span className="sm:hidden">
-                    {profileData?.profile?.firstName && profileData?.profile?.lastName
-                      ? `${profileData.profile.firstName.charAt(
-                          0,
-                        )}${profileData.profile.lastName.charAt(0)}`
-                      : reduceString(walletInfo?.address || '', 4, 4)}
-                  </span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-[95vw] md:max-w-[425px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="text-center text-lg md:text-[20px] font-bold">
-                    Profile
-                  </DialogTitle>
-                  <DialogDescription className="flex flex-col gap-4 mt-5">
-                    <div className="border border-gray-border rounded-[10px] p-3 md:p-5">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 text-sm md:text-[16px] font-bold gap-2">
-                        <span>Balance</span>
-                        <div>
-                          <NetworkSelector
-                            value={network}
-                            onValueChange={setNetwork}
-                            className="min-w-[120px] h-10 w-full sm:w-auto"
-                          />
+            <div className="flex items-center gap-3">
+              <Notifications />
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="bg-primary hover:bg-primary/90 h-fit">
+                    <span className="hidden sm:inline">
+                      {profileData?.profile?.firstName && profileData?.profile?.lastName
+                        ? `${profileData.profile.firstName} ${profileData.profile.lastName}`
+                        : reduceString(walletInfo?.address || '', 6, 6)}
+                    </span>
+                    <span className="sm:hidden">
+                      {profileData?.profile?.firstName && profileData?.profile?.lastName
+                        ? `${profileData.profile.firstName.charAt(
+                            0,
+                          )}${profileData.profile.lastName.charAt(0)}`
+                        : reduceString(walletInfo?.address || '', 4, 4)}
+                    </span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-[95vw] md:max-w-[425px] max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle className="text-center text-lg md:text-[20px] font-bold">
+                      Profile
+                    </DialogTitle>
+                    <DialogDescription className="flex flex-col gap-4 mt-5">
+                      <div className="border border-gray-border rounded-[10px] p-3 md:p-5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 text-sm md:text-[16px] font-bold gap-2">
+                          <span>Balance</span>
+                          <div>
+                            <NetworkSelector
+                              value={network}
+                              onValueChange={setNetwork}
+                              className="min-w-[120px] h-10 w-full sm:w-auto"
+                            />
+                          </div>
+                        </div>
+                        <div className="text-sm md:text-base">
+                          {balances.map((balance) => {
+                            return (
+                              <div
+                                key={balance.name}
+                                className="mb-2 flex flex-col sm:flex-row sm:justify-between"
+                              >
+                                <span className="font-medium">{balance.name}:</span>
+                                <span className="break-all">
+                                  {balance.amount !== null
+                                    ? commaNumber(
+                                        ethers.utils.formatUnits(balance.amount, balance.decimal),
+                                      )
+                                    : 'Fetching...'}
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
-                      <div className="text-sm md:text-base">
-                        {balances.map((balance) => {
-                          return (
-                            <div
-                              key={balance.name}
-                              className="mb-2 flex flex-col sm:flex-row sm:justify-between"
-                            >
-                              <span className="font-medium">{balance.name}:</span>
-                              <span className="break-all">
-                                {balance.amount !== null
-                                  ? commaNumber(
-                                      ethers.utils.formatUnits(balance.amount, balance.decimal),
-                                    )
-                                  : 'Fetching...'}
-                              </span>
-                            </div>
-                          );
-                        })}
+                      <div className="border border-gray-border rounded-[10px] p-3 md:p-5">
+                        <div className="mb-3 text-sm md:text-[16px] font-bold">Account</div>
+                        {injectedWallet ? (
+                          <div
+                            className="cursor-pointer hover:underline text-sm md:text-base break-all"
+                            onClick={() => {
+                              navigator.clipboard.writeText(walletInfo?.address || '');
+                              notify('Copied address!', 'success');
+                            }}
+                          >
+                            <span className="hidden sm:inline">
+                              {reduceString(walletInfo?.address || '', 8, 8)}
+                            </span>
+                            <span className="sm:hidden">
+                              {reduceString(walletInfo?.address || '', 6, 6)}
+                            </span>
+                          </div>
+                        ) : (
+                          <Button
+                            className="h-10 w-full text-sm md:text-base"
+                            onClick={exportWallet}
+                          >
+                            See Wallet Detail
+                          </Button>
+                        )}
                       </div>
-                    </div>
-                    <div className="border border-gray-border rounded-[10px] p-3 md:p-5">
-                      <div className="mb-3 text-sm md:text-[16px] font-bold">Account</div>
-                      {injectedWallet ? (
-                        // biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
-                        <div
-                          className="cursor-pointer hover:underline text-sm md:text-base break-all"
-                          onClick={() => {
-                            navigator.clipboard.writeText(walletInfo?.address || '');
-                            notify('Copied address!', 'success');
-                          }}
-                        >
-                          <span className="hidden sm:inline">
-                            {reduceString(walletInfo?.address || '', 8, 8)}
-                          </span>
-                          <span className="sm:hidden">
-                            {reduceString(walletInfo?.address || '', 6, 6)}
-                          </span>
-                        </div>
-                      ) : (
-                        <Button className="h-10 w-full text-sm md:text-base" onClick={exportWallet}>
-                          See Wallet Detail
-                        </Button>
-                      )}
-                    </div>
-                    <Button className="w-full text-sm md:text-base" onClick={logout}>
-                      Logout
-                    </Button>
-                  </DialogDescription>
-                </DialogHeader>
-              </DialogContent>
-            </Dialog>
+                      <Button className="w-full text-sm md:text-base" onClick={logout}>
+                        Logout
+                      </Button>
+                    </DialogDescription>
+                  </DialogHeader>
+                </DialogContent>
+              </Dialog>
+            </div>
           )}
         </div>
       </div>

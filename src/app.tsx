@@ -73,7 +73,6 @@ function App() {
 
           <Route path="users">
             <Route index element={<UsersPage />} />
-
             <Route path=":id" element={<UserDetailsPage />}>
               <Route index element={<Navigate to="overview" />} />
               <Route path="overview" element={<UserOverviewTab />} />
@@ -89,6 +88,7 @@ function App() {
               <Route path="community" element={<UserCommunityTab />} />
             </Route>
           </Route>
+
           <Route path="my-profile">
             <Route path="edit" element={<EditProfilePage />} />
             <Route element={<MyProfilePage />}>

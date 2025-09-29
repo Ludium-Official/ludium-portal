@@ -6,35 +6,30 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Outlet, useLocation } from 'react-router';
-import MobileWebView from '../mobile-web-view';
+import { isMobileDevice } from '@/lib/utils';
+import MobileWebView from '@/components/mobile-web-view';
 
 function Layout() {
+  const location = useLocation();
+
   const [isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(true);
-  const location = useLocation();
 
   useEffect(() => {
     const currentPath = location.pathname;
-    const userAgent = navigator.userAgent || navigator.vendor;
-    const isMobileDevice = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
-      userAgent,
-    );
 
-    // Only main page and pages starting with "investments" should NOT be mobile IF it's a mobile device
     const isMainPage = currentPath === '/' || currentPath === '';
-    const isInvestmentsPage =
+    const isOnlyMobilePage =
       currentPath.startsWith('/investments') || currentPath.startsWith('/my-profile');
 
-    if ((isMainPage || isInvestmentsPage) && isMobileDevice) {
+    if ((isMainPage || isOnlyMobilePage) && isMobileDevice) {
       setIsMobile(false);
     } else if (isMobileDevice) {
       setIsMobile(true);
-    } else {
-      setIsMobile(false);
     }
 
     setLoading(false);
-  }, [location.pathname]);
+  }, [location]);
 
   return (
     <>

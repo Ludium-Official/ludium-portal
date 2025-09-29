@@ -20,6 +20,7 @@ import { ArrowUpRight, Building2, CircleCheck, Settings, Sparkle, UserCog } from
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router';
 import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
+import { BalanceProps } from '@/types/asset';
 
 const adminLinks = [
   { label: 'Banner', path: 'admin/banner' },
@@ -44,9 +45,7 @@ function MyProfilePage() {
 
   const [network, setNetwork] = useState(mainnetDefaultNetwork);
 
-  const [balances, setBalances] = useState<
-    { name: string; amount: bigint | null; decimal: number }[]
-  >([]);
+  const [balances, setBalances] = useState<BalanceProps[]>([]);
 
   const { data: profileData } = useProfileQuery({
     fetchPolicy: 'network-only',
@@ -94,8 +93,7 @@ function MyProfilePage() {
 
         // Filter out native token (0x0000...0000) as it's not an ERC20 contract
         const erc20Tokens = tokens.filter(
-          (token: { address: string }) =>
-            token.address !== '0x0000000000000000000000000000000000000000',
+          (token: { address: string }) => token.address !== ethers.constants.AddressZero,
         );
 
         const balancesPromises = erc20Tokens.map(

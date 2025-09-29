@@ -90,3 +90,8 @@ export const sortTierSettings = (
     return indexA - indexB;
   });
 };
+
+const userAgent = navigator.userAgent || navigator.vendor;
+export const isMobileDevice = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+  userAgent,
+);
