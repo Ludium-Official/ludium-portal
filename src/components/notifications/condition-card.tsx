@@ -69,7 +69,7 @@ function ConditionCard({ notification }: { notification: Notification }) {
       )}
 
       {notification.metadata?.programType === 'funding' && (
-        <div className="flex items-center justify-between px-2 py-1 bg-[#0000000A] rounded-md">
+        <div className="flex items-center justify-between px-2 py-1.5 bg-[#0000000A] rounded-md">
           <p className="text-xs text-neutral-400 font-medium">TIER</p>
           {<TierBadge tier={notification.metadata?.tier as TierType} />}
           {/* <span className=" block bg-[#FFDEA1] rounded-full px-2 py-0.5 text-xs text-[#CA8A04] font-bold">

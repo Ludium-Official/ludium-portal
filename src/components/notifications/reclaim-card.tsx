@@ -33,9 +33,9 @@ function ReclaimCard({ notification }: { notification: Notification }) {
     notification.type === NotificationType.Program
       ? `/${programOrInvestment}/${notification.entityId}`
       : notification.type === NotificationType.Milestone
-        ? `/${programOrInvestment}/${notification.metadata?.programId}/${applicationOrProject}/${notification?.metadata.applicationId}`
+        ? `/${programOrInvestment}/${notification.metadata?.programId}/${applicationOrProject}/${notification?.metadata?.applicationId}`
         : notification.type === NotificationType.Application
-          ? `/${programOrInvestment}/${notification.metadata?.programId}/${applicationOrProject}/${notification.entityId}`
+          ? `/${programOrInvestment}/${notification.metadata?.programId}/${applicationOrProject}/${notification?.entityId}`
           : '';
 
   return (
@@ -72,13 +72,17 @@ function ReclaimCard({ notification }: { notification: Notification }) {
         <p className="font-bold text-sm">{notification.metadata?.applicantName}</p>
       </div>
 
-      <div className="text-sm bg-secondary py-1 px-2 items-center rounded-md">
+      <div className="text-sm bg-secondary py-1.5 px-2.5 items-center rounded-md">
         <div className="flex justify-between self-start">
-          <span className="text-neutral-400 mr-3">PRICE</span>{' '}
+          <span className="text-neutral-400 mr-3">
+            {notification.metadata?.programType === 'funding' ? 'PRIZE' : 'PRICE'}
+          </span>{' '}
           <div className="flex items-center">
             <span className="flex items-center text-muted-foreground gap-1 font-medium">
-              {notification.metadata?.price ??
-                notification.metadata?.fundingProgress?.currentAmount}{' '}
+              <span className="font-bold">
+                {notification.metadata?.price ??
+                  notification.metadata?.fundingProgress?.currentAmount}{' '}
+              </span>
               {getCurrencyIcon(notification.metadata?.currency)} {notification.metadata?.currency}
             </span>
             <span className="block ml-2 border-l pl-2 text-muted-foreground font-medium">

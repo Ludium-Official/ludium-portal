@@ -138,11 +138,11 @@ function Notifications() {
     <div>
       <Popover open={openNotifications} onOpenChange={setOpenNotifications}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" className="h-10 relative">
+          <Button variant="ghost" className="group h-10 relative">
             <Bell />
             {!!countData?.countNotifications && (
-              <span className="flex justify-center items-center w-4 h-4 text-xs rounded-full bg-red-500 absolute -top-[5px] -right-[5px] text-white">
-                {countData.countNotifications}
+              <span className="flex justify-center items-center w-[8px] h-[8px] rounded-full bg-red-400 absolute top-3 right-3 border-2 border-white text-white group-hover:border-accent transition-all">
+                {/* {countData.countNotifications} */}
               </span>
             )}
           </Button>
