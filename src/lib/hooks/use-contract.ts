@@ -79,7 +79,6 @@ export function useContract(network: string) {
   })();
 
   if (isExternalWallet && activeWallet) {
-    console.log('Using external wallet for transactions:', activeWallet.address);
     sendTx = async (input, _uiOptions?: unknown) => {
       // Note: _uiOptions is ignored for external wallets since they use their own UI
       try {

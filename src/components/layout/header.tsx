@@ -38,6 +38,8 @@ function Header() {
   const lastScrollY = useRef(0);
 
   const contract = useContract(network);
+  const walletInfo = user?.wallet;
+  const injectedWallet = user?.wallet?.connectorType !== 'embedded';
 
   const { data: profileData } = useProfileQuery({
     fetchPolicy: 'cache-first',
@@ -56,9 +58,6 @@ function Header() {
       return null;
     }
   };
-
-  const walletInfo = user?.wallet;
-  const injectedWallet = user?.wallet?.connectorType !== 'embedded';
 
   const login = async () => {
     try {
@@ -94,11 +93,11 @@ function Header() {
     }
   };
 
-  const getHeaderStyles = () => {
-    const MAX_SCROLL = 200;
-    const MAX_BLUR = 20;
-    const BACKGROUND_OPACITY_FACTOR = 0.9;
+  const MAX_SCROLL = 200;
+  const MAX_BLUR = 20;
+  const BACKGROUND_OPACITY_FACTOR = 0.9;
 
+  const getHeaderStyles = () => {
     const opacity = Math.min(scrollY / MAX_SCROLL, 1);
     const blur = Math.min(scrollY / MAX_SCROLL, 1) * MAX_BLUR;
 
@@ -115,13 +114,11 @@ function Header() {
     setIsMobile(isMobileDevice);
   }, []);
 
-  // Scroll handler
   useEffect(() => {
     const handleScroll = (e: Event) => {
       const target = e.target as Element;
       const currentScrollY = target.scrollTop || window.scrollY;
 
-      // Show header when scrolling up, hide when scrolling down
       if (currentScrollY > lastScrollY.current && currentScrollY > 50) {
         setIsVisible(false);
       } else {
@@ -132,7 +129,6 @@ function Header() {
       lastScrollY.current = currentScrollY;
     };
 
-    // Listen to scroll on the ScrollArea viewport element
     const scrollAreaViewport = document.getElementById('scroll-area-main-viewport');
 
     if (scrollAreaViewport) {
@@ -142,7 +138,6 @@ function Header() {
       return () => scrollAreaViewport.removeEventListener('scroll', handleScroll);
     }
 
-    // Fallback to window scroll
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -160,7 +155,6 @@ function Header() {
       try {
         const tokens = tokenAddresses[network as keyof typeof tokenAddresses] || [];
 
-        // Filter out native token (0x0000...0000) as it's not an ERC20 contract
         const erc20Tokens = tokens.filter(
           (token: { address: string }) => token.address !== ethers.constants.AddressZero,
         );
@@ -188,7 +182,7 @@ function Header() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-[1] flex justify-between items-centerbg-white rounded-2xl px-4 md:px-10 py-[14px] md:ml-[240px] mx-4 mt-3"
+      className="fixed top-0 left-0 right-0 z-[1] flex justify-between items-center bg-white rounded-2xl px-4 md:px-10 py-4 md:ml-[240px] mx-4 mt-3"
       style={getHeaderStyles()}
     >
       {isMobile && (
@@ -211,7 +205,6 @@ function Header() {
       )}
 
       <div className="flex gap-2 items-center ml-auto">
-        {/* {authenticated && <Notifications />} */}
         <div>
           {!authenticated && (
             <Button
@@ -243,12 +236,12 @@ function Header() {
                 </DialogTrigger>
                 <DialogContent className="max-w-[95vw] md:max-w-[425px] max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle className="text-center text-lg md:text-[20px] font-bold">
+                    <DialogTitle className="text-center text-lg md:text-xl font-bold">
                       Profile
                     </DialogTitle>
                     <DialogDescription className="flex flex-col gap-4 mt-5">
                       <div className="border border-gray-border rounded-[10px] p-3 md:p-5">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 text-sm md:text-[16px] font-bold gap-2">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 text-sm md:text-base font-bold gap-2">
                           <span>Balance</span>
                           <div>
                             <NetworkSelector
@@ -279,7 +272,7 @@ function Header() {
                         </div>
                       </div>
                       <div className="border border-gray-border rounded-[10px] p-3 md:p-5">
-                        <div className="mb-3 text-sm md:text-[16px] font-bold">Account</div>
+                        <div className="mb-3 text-sm md:text-base font-bold">Account</div>
                         {injectedWallet ? (
                           <div
                             className="cursor-pointer hover:underline text-sm md:text-base break-all"

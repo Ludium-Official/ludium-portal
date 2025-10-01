@@ -95,3 +95,16 @@ const userAgent = navigator.userAgent || navigator.vendor;
 export const isMobileDevice = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
   userAgent,
 );
+
+export const dDay = (deadline: Date) => {
+  const deadlineDate = new Date(deadline);
+  const today = new Date();
+
+  deadlineDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  const diffTime = deadlineDate.getTime() - today.getTime();
+  const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+  return `D-${daysRemaining}`;
+};
