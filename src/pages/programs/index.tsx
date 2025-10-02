@@ -1,15 +1,15 @@
-import { useProgramsQuery } from "@/apollo/queries/programs.generated";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Pagination } from "@/components/ui/pagination";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/lib/hooks/use-auth";
-import notify from "@/lib/notify";
-import ProgramCard from "@/pages/programs/_components/program-card";
-import { ProgramStatus, ProgramType, SortEnum } from "@/types/types.generated";
-import { CirclePlus } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useProgramsQuery } from '@/apollo/queries/programs.generated';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Pagination } from '@/components/ui/pagination';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/lib/hooks/use-auth';
+import notify from '@/lib/notify';
+import ProgramCard from '@/pages/programs/_components/program-card';
+import { ProgramStatus, ProgramType, SortEnum } from '@/types/types.generated';
+import { CirclePlus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 
 const PageSize = 12;
 
@@ -19,19 +19,17 @@ const ProgramsPage: React.FC = () => {
   const { isLoggedIn, isAuthed, userId } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const [selectedTab, setSelectedTab] = useState("newest");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [selectedTab, setSelectedTab] = useState('newest');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  const currentPage = Number(searchParams.get("page")) || 1;
+  const currentPage = Number(searchParams.get('page')) || 1;
 
   const createFilter = (tab: string, search: string, userId?: string) => [
-    ...(tab === "my-programs" && userId
-      ? [{ field: "userId", value: userId }]
-      : []),
-    ...(tab === "newest"
+    ...(tab === 'my-programs' && userId ? [{ field: 'userId', value: userId }] : []),
+    ...(tab === 'newest'
       ? [
           {
-            field: "status",
+            field: 'status',
             values: [
               ProgramStatus.Published,
               ProgramStatus.Completed,
@@ -42,24 +40,24 @@ const ProgramsPage: React.FC = () => {
               ProgramStatus.Rejected,
             ],
           },
-          { field: "visibility", value: "public" },
+          { field: 'visibility', value: 'public' },
         ]
       : []),
-    ...(tab === "imminent"
+    ...(tab === 'imminent'
       ? [
-          { field: "status", value: "published" },
-          { field: "visibility", value: "public" },
-          { field: "imminent", value: "true" },
+          { field: 'status', value: 'published' },
+          { field: 'visibility', value: 'public' },
+          { field: 'imminent', value: 'true' },
         ]
       : []),
-    ...(tab === "completed"
+    ...(tab === 'completed'
       ? [
-          { field: "status", value: "completed" },
-          { field: "visibility", value: "public" },
+          { field: 'status', value: 'completed' },
+          { field: 'visibility', value: 'public' },
         ]
       : []),
-    { field: "name", value: search },
-    { field: "type", value: ProgramType.Regular },
+    { field: 'name', value: search },
+    { field: 'type', value: ProgramType.Regular },
   ];
 
   const filter = createFilter(selectedTab, debouncedSearch, userId);
@@ -76,20 +74,20 @@ const ProgramsPage: React.FC = () => {
   });
 
   if (error) {
-    console.error("Error fetching programs:", error);
+    console.error('Error fetching programs:', error);
   }
 
   const totalCount = data?.programs?.count ?? 0;
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedSearch(searchParams.get("search") ?? "");
+      setDebouncedSearch(searchParams.get('search') ?? '');
     }, 300);
 
     return () => {
       clearTimeout(handler);
     };
-  }, [searchParams.get("search")]);
+  }, [searchParams.get('search')]);
 
   return (
     <div className="bg-white rounded-2xl p-10 pr-[55px]">
@@ -109,17 +107,17 @@ const ProgramsPage: React.FC = () => {
               <Input
                 className="h-full w-[432px]"
                 placeholder="Search..."
-                value={searchParams.get("search") ?? ""}
+                value={searchParams.get('search') ?? ''}
                 onChange={(e) => {
                   const value = e.target.value;
                   const newSP = new URLSearchParams(searchParams);
 
                   if (value) {
-                    newSP.set("search", value);
+                    newSP.set('search', value);
                   } else {
-                    newSP.delete("search");
+                    newSP.delete('search');
                   }
-                  newSP.delete("page");
+                  newSP.delete('page');
                   setSearchParams(newSP);
                 }}
               />
@@ -129,12 +127,12 @@ const ProgramsPage: React.FC = () => {
                   className="gap-2 rounded-[6px] px-3"
                   onClick={() => {
                     if (!isAuthed) {
-                      notify("Please add your email", "success");
-                      navigate("/my-profile/edit");
+                      notify('Please add your email', 'success');
+                      navigate('/my-profile/edit');
                       return;
                     }
 
-                    navigate("create");
+                    navigate('create');
                   }}
                 >
                   <CirclePlus />
@@ -146,9 +144,7 @@ const ProgramsPage: React.FC = () => {
 
           <section className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full space-y-4 my-5">
             {loading ? (
-              <div className="col-span-full py-8 text-center">
-                Loading programs...
-              </div>
+              <div className="col-span-full py-8 text-center">Loading programs...</div>
             ) : error ? (
               <div className="col-span-full py-8 text-center text-red-500">
                 Error loading programs. Please try again.
@@ -158,9 +154,7 @@ const ProgramsPage: React.FC = () => {
                 <ProgramCard key={program.id} program={program} />
               ))
             ) : (
-              <div className="col-span-full text-center py-8 text-gray-500">
-                No programs found.
-              </div>
+              <div className="col-span-full text-center py-8 text-gray-500">No programs found.</div>
             )}
           </section>
 

@@ -5,10 +5,10 @@ import { useRemoveValidatorFromProgramMutation } from '@/apollo/mutation/remove-
 import { useUpdateProgramMutation } from '@/apollo/mutation/update-program.generated';
 import { ProgramDocument } from '@/apollo/queries/program.generated';
 import { ProgramsDocument } from '@/apollo/queries/programs.generated';
-import type { OnSubmitProgramFunc } from '@/components/program-form';
 import ProgramForm from '@/components/program-form';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
+import { OnSubmitProgramFunc } from '@/types/recruitment';
 import type { ProgramStatus, ProgramVisibility } from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
@@ -99,14 +99,18 @@ const EditProgram: React.FC = () => {
 
         if (duplicateAssigns.length > 0) {
           notify(
-            `Duplicate validators found in assign list: ${duplicateAssigns.join(', ')}. Duplicates will be skipped.`,
+            `Duplicate validators found in assign list: ${duplicateAssigns.join(
+              ', ',
+            )}. Duplicates will be skipped.`,
             'error',
           );
         }
 
         if (duplicateUnassigns.length > 0) {
           notify(
-            `Duplicate validators found in unassign list: ${duplicateUnassigns.join(', ')}. Duplicates will be skipped.`,
+            `Duplicate validators found in unassign list: ${duplicateUnassigns.join(
+              ', ',
+            )}. Duplicates will be skipped.`,
             'error',
           );
         }
@@ -121,7 +125,9 @@ const EditProgram: React.FC = () => {
         );
         if (conflictingValidators.length > 0) {
           notify(
-            `Validators found in both assign and unassign lists: ${conflictingValidators.join(', ')}. These will be skipped.`,
+            `Validators found in both assign and unassign lists: ${conflictingValidators.join(
+              ', ',
+            )}. These will be skipped.`,
             'error',
           );
           // Remove conflicting validators from both arrays

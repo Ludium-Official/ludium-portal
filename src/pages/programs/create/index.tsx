@@ -3,37 +3,25 @@ import { useAssignValidatorToProgramMutation } from '@/apollo/mutation/assign-va
 import { useCreateProgramMutation } from '@/apollo/mutation/create-program.generated';
 import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
 import { ProgramsDocument } from '@/apollo/queries/programs.generated';
-import type { OnSubmitProgramFunc } from '@/components/program-form';
 import ProgramForm from '@/components/program-form';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useProgramDraft } from '@/lib/hooks/use-program-draft';
 import notify from '@/lib/notify';
+import { OnSubmitProgramFunc } from '@/types/recruitment';
 import { type ProgramStatus, ProgramType, type ProgramVisibility } from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 const CreateProgram: React.FC = () => {
   const navigate = useNavigate();
-  const [createProgram, { loading }] = useCreateProgramMutation();
 
+  const { isLoggedIn, isAuthed } = useAuth();
+
+  const [createProgram, { loading }] = useCreateProgramMutation();
   const [assignValidatorToProgram] = useAssignValidatorToProgramMutation();
   const [inviteUserToProgram] = useInviteUserToProgramMutation();
 
-  const { isLoggedIn, isAuthed } = useAuth();
   const { clearDraft: clearProgramDraft } = useProgramDraft();
-
-  useEffect(() => {
-    if (!isLoggedIn) {
-      navigate('/');
-      notify('Please login first', 'success');
-      return;
-    }
-    if (!isAuthed) {
-      navigate('/my-profile/edit');
-      notify('Please add your email', 'success');
-      return;
-    }
-  }, [isLoggedIn, isAuthed]);
 
   const onSubmit: OnSubmitProgramFunc = (args) => {
     createProgram({
@@ -59,7 +47,10 @@ const CreateProgram: React.FC = () => {
         const results = await Promise.allSettled(
           args.validators.map((validatorId) =>
             assignValidatorToProgram({
-              variables: { validatorId, programId: data.createProgram?.id ?? '' },
+              variables: {
+                validatorId,
+                programId: data.createProgram?.id ?? '',
+              },
             }),
           ),
         );
@@ -67,7 +58,6 @@ const CreateProgram: React.FC = () => {
         if (results.some((r) => r.status === 'rejected')) {
           notify('Failed to assign validators to the program due to an unexpected error.', 'error');
         }
-        // Invite builders if private
         if (
           args.visibility === 'private' &&
           Array.isArray(args.builders) &&
@@ -86,15 +76,27 @@ const CreateProgram: React.FC = () => {
         }
         navigate('/programs');
         client.refetchQueries({ include: [ProgramsDocument] });
-        // Clear local program draft after successful creation
         clearProgramDraft();
       },
     });
   };
 
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate('/');
+      notify('Please login first', 'success');
+      return;
+    }
+    if (!isAuthed) {
+      navigate('/my-profile/edit');
+      notify('Please add your email', 'success');
+      return;
+    }
+  }, [isLoggedIn, isAuthed]);
+
   return (
     <div className="w-full bg-[#f7f7f7] p-10 pr-[55px]" defaultValue="edit">
-      <ProgramForm isEdit={false} onSubmitProgram={onSubmit} createLoading={loading} />
+      <ProgramForm onSubmitProgram={onSubmit} createLoading={loading} />
     </div>
   );
 };
