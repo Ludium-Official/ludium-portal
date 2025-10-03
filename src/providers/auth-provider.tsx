@@ -1,6 +1,6 @@
 import { useLoginMutation } from '@/apollo/mutation/login.generated';
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
-import { AuthProps, LoginProps } from '@/types/auth';
+import type { AuthProps, LoginProps } from '@/types/auth';
 import { UserRole } from '@/types/types.generated';
 import { createContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';

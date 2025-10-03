@@ -1,6 +1,6 @@
 import { ProgramStatusBadge } from '@/components/status-badge';
 import { Badge } from '@/components/ui/badge';
-import { type Program } from '@/types/types.generated';
+import type { Program } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { ChevronRight } from 'lucide-react';
 import { Link } from 'react-router';

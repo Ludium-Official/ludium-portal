@@ -1,20 +1,5 @@
 import { Input } from '@/components/ui/input';
-import { HTMLInputTypeAttribute } from 'react';
-import { FieldError, UseFormRegister } from 'react-hook-form';
-
-interface InputLabelProps {
-  labelId: string;
-  title: string;
-  isPrimary: boolean;
-  isError?: FieldError | boolean;
-  placeholder: string;
-  type?: HTMLInputTypeAttribute;
-  register?: UseFormRegister<any>;
-  className?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  children?: any;
-}
+import type { InputLabelProps } from '@/types/input';
 
 const InputLabel: React.FC<InputLabelProps> = ({
   labelId,
@@ -25,22 +10,28 @@ const InputLabel: React.FC<InputLabelProps> = ({
   type = 'text',
   register,
   children,
+  inputWrapperClassName,
+  inputClassName,
   className,
   onChange,
   onKeyDown,
+  disabled,
 }) => {
   return (
-    <label htmlFor={labelId} className={`space-y-2 block mb-10 ${className}`}>
-      <p className="text-sm font-medium">
-        {title}
-        {isPrimary && <span className="ml-1 text-primary">*</span>}
-      </p>
-      <div>
+    <label htmlFor={labelId} className={`space-y-2 block ${className}`}>
+      {title && (
+        <p className="text-sm font-medium">
+          {title}
+          {isPrimary && <span className="ml-1 text-primary">*</span>}
+        </p>
+      )}
+      <div className={inputWrapperClassName}>
         <Input
+          disabled={disabled}
           id={labelId}
           type={type}
           placeholder={placeholder}
-          className="h-10"
+          className={`h-10 ${inputClassName}`}
           onKeyDown={onKeyDown}
           {...(register
             ? register(labelId, {

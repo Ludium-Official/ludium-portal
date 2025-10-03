@@ -111,6 +111,10 @@ body {
   --color-gray-border: #e9e9e9;
   --color-gray-text: #a3a3a3;
   --color-gray-dark: #18181b;
+  --color-gray-mid-dark: #666666;
+
+  --color-gray1: #f4f4f5;
+  --color-gray2: #eaeaea;
 }
 
 @layer base {

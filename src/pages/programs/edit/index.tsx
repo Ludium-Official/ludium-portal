@@ -5,10 +5,10 @@ import { useRemoveValidatorFromProgramMutation } from '@/apollo/mutation/remove-
 import { useUpdateProgramMutation } from '@/apollo/mutation/update-program.generated';
 import { ProgramDocument } from '@/apollo/queries/program.generated';
 import { ProgramsDocument } from '@/apollo/queries/programs.generated';
-import ProgramForm from '@/components/program-form';
+import ProgramForm from '@/components/program/program-form/program-form';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
-import { OnSubmitProgramFunc } from '@/types/recruitment';
+import type { OnSubmitProgramFunc } from '@/types/recruitment';
 import type { ProgramStatus, ProgramVisibility } from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';

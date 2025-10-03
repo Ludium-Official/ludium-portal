@@ -3,11 +3,11 @@ import { useAssignValidatorToProgramMutation } from '@/apollo/mutation/assign-va
 import { useCreateProgramMutation } from '@/apollo/mutation/create-program.generated';
 import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
 import { ProgramsDocument } from '@/apollo/queries/programs.generated';
-import ProgramForm from '@/components/program-form';
+import ProgramForm from '@/components/program/program-form/program-form';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useProgramDraft } from '@/lib/hooks/use-program-draft';
 import notify from '@/lib/notify';
-import { OnSubmitProgramFunc } from '@/types/recruitment';
+import type { OnSubmitProgramFunc } from '@/types/recruitment';
 import { type ProgramStatus, ProgramType, type ProgramVisibility } from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';

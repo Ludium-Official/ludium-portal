@@ -3,8 +3,8 @@ import * as React from 'react';
 
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import type { PaginationLinkProps, PaginationProps } from '@/types/pagination';
 import { useSearchParams } from 'react-router';
-import { PaginationLinkProps, PaginationProps } from '@/types/pagination';
 
 export const PageSize = 5;
 const maxVisible = 4;
@@ -113,7 +113,7 @@ const Pagination = ({ totalCount, pageSize }: PaginationProps) => {
     }
 
     let start = Math.max(1, currentPage - halfVisible);
-    let end = Math.min(totalPages, start + maxVisible - 1);
+    const end = Math.min(totalPages, start + maxVisible - 1);
 
     if (end - start + 1 < maxVisible) {
       start = Math.max(1, end - maxVisible + 1);

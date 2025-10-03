@@ -2,12 +2,12 @@ import loadingGif from '@/assets/icons/loading.gif';
 import Footer from '@/components/layout/footer';
 import Header from '@/components/layout/header';
 import Sidebar from '@/components/layout/sidebar';
+import MobileWebView from '@/components/mobile-web-view';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { isMobileDevice } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Outlet, useLocation } from 'react-router';
-import { isMobileDevice } from '@/lib/utils';
-import MobileWebView from '@/components/mobile-web-view';
 
 function Layout() {
   const location = useLocation();

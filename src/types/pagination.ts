@@ -3,7 +3,7 @@
 //   } & Pick<ButtonProps, 'size'> &
 //     React.ComponentProps<'button'>
 
-import { type ButtonProps } from '@/components/ui/button';
+import type { ButtonProps } from '@/components/ui/button';
 
 export interface PaginationLinkProps
   extends Pick<ButtonProps, 'size'>,

@@ -2,17 +2,6 @@ import logo from '@/assets/logo.svg';
 import Notifications from '@/components/notifications';
 
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
-import { tokenAddresses } from '@/constant/token-address';
-import type ChainContract from '@/lib/contract';
-import { useAuth } from '@/lib/hooks/use-auth';
-import { useContract } from '@/lib/hooks/use-contract';
-import notify from '@/lib/notify';
-import { commaNumber, isMobileDevice, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
-import { usePrivy } from '@privy-io/react-auth';
-import { ethers } from 'ethers';
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router';
-import NetworkSelector from '../network-selector';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -22,7 +11,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { BalanceProps } from '@/types/asset';
+import { tokenAddresses } from '@/constant/token-address';
+import type ChainContract from '@/lib/contract';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { useContract } from '@/lib/hooks/use-contract';
+import notify from '@/lib/notify';
+import { commaNumber, isMobileDevice, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
+import type { BalanceProps } from '@/types/asset';
+import { usePrivy } from '@privy-io/react-auth';
+import { ethers } from 'ethers';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
+import NetworkSelector from '../network-selector';
 
 function Header() {
   const navigate = useNavigate();

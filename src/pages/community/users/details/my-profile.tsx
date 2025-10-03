@@ -13,6 +13,7 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import { cn, commaNumber, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
+import type { BalanceProps } from '@/types/asset';
 import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 // import { Separator } from '@radix-ui/react-dropdown-menu';
@@ -20,7 +21,6 @@ import { ArrowUpRight, Building2, CircleCheck, Settings, Sparkle, UserCog } from
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router';
 import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
-import { BalanceProps } from '@/types/asset';
 
 const adminLinks = [
   { label: 'Banner', path: 'admin/banner' },

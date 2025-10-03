@@ -1,7 +1,7 @@
 import logo from '@/assets/logo.svg';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { cn } from '@/lib/utils';
-import { PathLinkProps } from '@/types/pathLink';
+import type { PathLinkProps } from '@/types/pathLink';
 import { CircleAlert, MessageCircle, Scroll, UserRound, Users } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';

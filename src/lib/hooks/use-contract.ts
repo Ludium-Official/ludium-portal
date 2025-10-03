@@ -1,7 +1,7 @@
 import { type ConnectedWallet, usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import type { Chain, PublicClient } from 'viem';
-import { createPublicClient, http } from 'viem';
+import { http, createPublicClient } from 'viem';
 import {
   arbitrum,
   arbitrumSepolia,

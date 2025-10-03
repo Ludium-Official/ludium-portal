@@ -45,7 +45,7 @@ function NetworkSelector({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild disabled={disabled}>
-        <Button className={className}>
+        <Button className={`${className} hover:bg-white`}>
           <span className="flex items-center gap-2">
             {currWithIcon?.icon} {currWithIcon?.display}
           </span>
