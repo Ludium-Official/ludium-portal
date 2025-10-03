@@ -50,7 +50,12 @@ const EditProgram: React.FC = () => {
           deadline: args.deadline,
           keywords: args.keywords,
           // validatorId: args.validatorId,
-          links: args.links,
+          links:
+            Array.isArray(args.links) && args.links.length > 0 && typeof args.links[0] === 'string'
+              ? ((args.links as string[]).map((link) => ({ url: link })) as {
+                  url: string;
+                }[])
+              : (args.links as { url: string }[] | undefined),
           network: args.network,
 
           visibility: args.visibility as ProgramVisibility,

@@ -1,7 +1,5 @@
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import type * as React from 'react';
-
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -15,7 +13,7 @@ export function DatePicker({
   align = 'start',
 }: {
   date?: Date;
-  setDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
+  setDate: (date: Date) => void;
   disabled?: Matcher | Matcher[] | undefined;
   align?: 'center' | 'start' | 'end' | undefined;
 }) {
@@ -38,7 +36,9 @@ export function DatePicker({
           disabled={disabled}
           mode="single"
           selected={date}
-          onSelect={setDate}
+          onSelect={(day) => {
+            if (day) setDate(day);
+          }}
           initialFocus
         />
       </PopoverContent>

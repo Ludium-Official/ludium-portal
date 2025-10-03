@@ -76,7 +76,7 @@ function MarkdownEditor({
   onChange,
   content,
 }: {
-  onChange: React.Dispatch<React.SetStateAction<string>>;
+  onChange: (value: string) => void;
   content: string;
 }) {
   const mdxRef = useRef<MDXEditorMethods>(null);

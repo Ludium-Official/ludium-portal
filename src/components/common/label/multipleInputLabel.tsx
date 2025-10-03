@@ -32,7 +32,7 @@ const MultipleInputLabel: React.FC<InputLabelProps> = ({
     if (fields.length === 0) {
       append('');
     }
-  }, [fields.length, append]);
+  }, []);
 
   return (
     <label htmlFor={labelId} className={`space-y-2 block ${className}`}>

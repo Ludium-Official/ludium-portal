@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import notify from '@/lib/notify';
 import { getCurrencyIcon, sortTierSettings } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
+import { LabelValueProps } from '@/types/common';
 import type { InvestmentTier, Program, Supporter } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
@@ -40,9 +41,7 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
 }) => {
   const [supportersTab, setSupportersTab] = useState<'invite' | 'supporters'>('invite');
   const [selectedSupporter, setSelectedSupporter] = useState<string[]>([]);
-  const [selectedSupporterItems, setSelectedSupporterItems] = useState<
-    { label: string; value: string }[]
-  >([]);
+  const [selectedSupporterItems, setSelectedSupporterItems] = useState<LabelValueProps[]>([]);
   const [supporterInput, setSupporterInput] = useState<string>();
   const [debouncedSupporterInput, setDebouncedSupporterInput] = useState<string>();
   const [selectedTier, setSelectedTier] = useState<string | undefined>(undefined);

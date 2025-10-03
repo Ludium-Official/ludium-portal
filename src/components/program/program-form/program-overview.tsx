@@ -19,22 +19,17 @@ import { ProgramOverviewProps } from '@/types/recruitment';
 const ProgramOverview: React.FC<ProgramOverviewProps> = ({
   register,
   errors,
-  extraErrors,
   keywords,
+  deadline,
+  selectedImage,
   setValue,
   imageError,
   setImageError,
   network,
-  setNetwork,
   currency,
-  setCurrency,
-  deadline,
-  setDeadline,
-  selectedValidators,
-  setSelectedValidators,
+  validators,
   selectedValidatorItems,
   setSelectedValidatorItems,
-  selectedImage,
   isEdit,
   control,
 }) => {
@@ -50,7 +45,7 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
     skip: !isEdit,
   });
 
-  const { data: validators, loading } = useUsersQuery({
+  const { data: usersData, loading } = useUsersQuery({
     variables: {
       input: {
         limit: 5,
@@ -87,7 +82,7 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
     );
   };
 
-  const validatorOptions = validators?.users?.data?.map((v) => ({
+  const validatorOptions = usersData?.users?.data?.map((v) => ({
     value: v.id ?? '',
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
   }));
@@ -107,7 +102,7 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
           labelId="programName"
           title="Program title"
           className="mb-10"
-          isPrimary={true}
+          isPrimary
           isError={errors.programName}
           placeholder="Type name"
           register={register}
@@ -117,8 +112,8 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
           labelId="keywords"
           title="Keywords"
           className="mb-10"
-          isPrimary={true}
-          isError={extraErrors.keyword}
+          isPrimary
+          isError={!!errors.keywords}
           placeholder="Enter directly"
           onKeyDown={addKeyword}
         >
@@ -200,12 +195,14 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
               title="Network"
               className="w-1/2"
               inputClassName="hidden"
-              isPrimary={true}
+              isPrimary
             >
               <NetworkSelector
                 disabled={isEdit && programData?.program?.status !== ProgramStatus.Pending}
                 value={network}
-                onValueChange={setNetwork}
+                onValueChange={(value: string) => {
+                  setValue('network', value);
+                }}
                 className="flex justify-between min-w-[120px] h-10 w-full bg-white border border-input text-gray-dark"
               />
             </InputLabel>
@@ -214,22 +211,20 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
                 labelId="price"
                 type="number"
                 title="Price"
-                isPrimary={true}
+                isPrimary
                 isError={errors.price}
                 className="w-full"
                 disabled={isEdit && programData?.program?.status !== ProgramStatus.Pending}
                 register={register}
                 placeholder="Enter price"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  handleImage({ file, setImageError, setValue });
-                }}
               />
               {!!network && (
                 <CurrencySelector
                   disabled={isEdit && programData?.program?.status !== ProgramStatus.Pending}
                   value={currency}
-                  onValueChange={setCurrency}
+                  onValueChange={(value: string) => {
+                    setValue('currency', value);
+                  }}
                   network={network ?? mainnetDefaultNetwork}
                   className="w-[108px] h-10"
                 />
@@ -248,8 +243,8 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
           title="Deadline"
           className="mb-10"
           inputClassName="hidden"
-          isPrimary={true}
-          isError={extraErrors.deadline}
+          isPrimary
+          isError={errors.deadline}
         >
           <DatePicker
             date={deadline}
@@ -257,9 +252,9 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
               if (date && typeof date === 'object' && 'getTime' in date) {
                 const newDate = new Date(date.getTime());
                 newDate.setHours(23, 59, 59, 999);
-                setDeadline(newDate);
+                setValue('deadline', newDate);
               } else {
-                setDeadline(date);
+                setValue('deadline', date);
               }
             }}
             disabled={{ before: new Date() }}
@@ -270,13 +265,15 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
           labelId="validator"
           title="Validator"
           inputClassName="hidden"
-          isPrimary={true}
-          isError={extraErrors.validator}
+          isPrimary
+          isError={!!errors.validators}
         >
           <MultiSelect
             options={validatorOptions ?? []}
-            value={selectedValidators}
-            onValueChange={setSelectedValidators}
+            value={validators}
+            onValueChange={(value: string[]) => {
+              setValue('validators', value);
+            }}
             placeholder="Select validator"
             animation={2}
             maxCount={20}
@@ -296,17 +293,17 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
           labelId="links"
           title="Links"
           subTitle="Add links to your website, blog, or social media profiles."
-          isError={extraErrors.links}
+          isError={!!errors.links}
           control={control}
           placeholder="https://example.com/ludium"
           register={register}
         />
-        {extraErrors.invalidLink && (
+        {/* {extraErrors.invalidLink && (
           <span className="text-destructive text-sm block">
             The provided link is not valid. All links must begin with{' '}
             <span className="font-bold">https://</span>.
           </span>
-        )}
+        )} */}
       </div>
     </>
   );

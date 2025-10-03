@@ -32,10 +32,12 @@ const CreateProgram: React.FC = () => {
           price: args.price ?? '0',
           description: args.description,
           summary: args.summary,
-          deadline: args.deadline ?? '',
-          keywords: args.keywords,
-          links: args.links,
-          network: args.network,
+          deadline: args.deadline?.toISOString() ?? '',
+          keywords: Array.isArray(args.keywords) ? args.keywords : [],
+          links: Array.isArray(args.links)
+            ? (args.links as any[]).filter((link) => typeof link !== 'string')
+            : [],
+          network: args.network ?? '',
           image: args.image,
           type: ProgramType.Regular,
 
@@ -95,7 +97,7 @@ const CreateProgram: React.FC = () => {
   }, [isLoggedIn, isAuthed]);
 
   return (
-    <div className="w-full bg-[#f7f7f7] p-10 pr-[55px]" defaultValue="edit">
+    <div className="w-full bg-gray-light p-10 pr-[55px]" defaultValue="edit">
       <ProgramForm onSubmitProgram={onSubmit} createLoading={loading} />
     </div>
   );

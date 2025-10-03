@@ -18,6 +18,7 @@ export interface InputLabelProps {
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   children?: ReactNode;
   disabled?: boolean;
+  isTextarea?: boolean;
 }
 
 export interface handleImageProps {

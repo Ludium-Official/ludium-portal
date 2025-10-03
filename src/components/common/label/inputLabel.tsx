@@ -1,4 +1,5 @@
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import type { InputLabelProps } from '@/types/input';
 
 const InputLabel: React.FC<InputLabelProps> = ({
@@ -16,6 +17,7 @@ const InputLabel: React.FC<InputLabelProps> = ({
   onChange,
   onKeyDown,
   disabled,
+  isTextarea,
 }) => {
   return (
     <label htmlFor={labelId} className={`space-y-2 block ${className}`}>
@@ -26,20 +28,35 @@ const InputLabel: React.FC<InputLabelProps> = ({
         </p>
       )}
       <div className={inputWrapperClassName}>
-        <Input
-          disabled={disabled}
-          id={labelId}
-          type={type}
-          placeholder={placeholder}
-          className={`h-10 ${inputClassName}`}
-          onKeyDown={onKeyDown}
-          {...(register
-            ? register(labelId, {
-                required: true,
-                onChange: onChange,
-              })
-            : {})}
-        />
+        {isTextarea ? (
+          <Textarea
+            disabled={disabled}
+            id={labelId}
+            placeholder={placeholder}
+            className={`h-10 ${inputClassName}`}
+            {...(register
+              ? register(labelId, {
+                  required: true,
+                  onChange: onChange,
+                })
+              : {})}
+          />
+        ) : (
+          <Input
+            disabled={disabled}
+            id={labelId}
+            type={type}
+            placeholder={placeholder}
+            className={`h-10 ${inputClassName}`}
+            onKeyDown={onKeyDown}
+            {...(type === 'file' || !register
+              ? { onChange }
+              : register(labelId, {
+                  required: true,
+                  onChange: onChange,
+                }))}
+          />
+        )}
         {children}
       </div>
       {isError && <span className="text-destructive text-sm block">{title} is required</span>}

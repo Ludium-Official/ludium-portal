@@ -14,9 +14,10 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { LabelValueProps } from '@/types/common';
 
 interface SearchSelectProps {
-  options: { value: string; label: string }[];
+  options: LabelValueProps[];
   placeholder?: string;
   value?: string;
   setValue: React.Dispatch<React.SetStateAction<string | undefined>>;

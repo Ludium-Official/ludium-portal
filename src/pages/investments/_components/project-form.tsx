@@ -17,6 +17,7 @@ import { useProjectDraft } from '@/lib/hooks/use-project-draft';
 import notify from '@/lib/notify';
 import { cn, getCurrency, getCurrencyIcon, sortTierSettings } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
+import { LabelValueProps, VisibilityProps } from '@/types/common';
 import { type LinkInput, ProgramStatus } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { Check, ChevronRight, TriangleAlert, X } from 'lucide-react';
@@ -59,7 +60,7 @@ export type OnSubmitProjectFunc = (data: {
   links?: LinkInput[];
   // isPublish?: boolean;
   image?: File;
-  visibility: 'public' | 'restricted' | 'private';
+  visibility: VisibilityProps;
   builders?: string[];
   milestones?: Milestone[];
   investmentTerms?: Term[];
@@ -85,11 +86,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
   const [content, setContent] = useState<string>('');
   const [links, setLinks] = useState<string[]>(['']);
-  const [visibility, setVisibility] = useState<'public' | 'restricted' | 'private'>('public');
+  const [visibility, setVisibility] = useState<VisibilityProps>('public');
   const [selectedBuilders, setSelectedBuilders] = useState<string[]>([]);
-  const [selectedBuilderItems, setSelectedBuilderItems] = useState<
-    { label: string; value: string }[]
-  >([]);
+  const [selectedBuilderItems, setSelectedBuilderItems] = useState<LabelValueProps[]>([]);
   const [builderInput, setBuilderInput] = useState<string>();
   const [debouncedBuilderInput, setDebouncedBuilderInput] = useState<string>();
 
@@ -974,9 +973,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         onChange={(value) => {
                           if (typeof value === 'string') {
                             updateTerm(index, 'description', value);
-                          } else if (typeof value === 'function') {
-                            const newValue = value(term.description);
-                            updateTerm(index, 'description', newValue);
                           }
                         }}
                       />
@@ -1221,9 +1217,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         onChange={(value) => {
                           if (typeof value === 'string') {
                             updateMilestone(index, 'description', value);
-                          } else if (typeof value === 'function') {
-                            const newValue = value(milestone.description);
-                            updateMilestone(index, 'description', newValue);
                           }
                         }}
                       />

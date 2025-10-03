@@ -1,4 +1,5 @@
 import { useAuth } from '@/lib/hooks/use-auth';
+import { VisibilityProps } from '@/types/common';
 import { useCallback, useMemo } from 'react';
 
 // Terms state
@@ -26,7 +27,7 @@ export type ProjectDraft = {
   description?: string;
   summary?: string;
   links?: string[];
-  visibility?: 'public' | 'restricted' | 'private';
+  visibility?: VisibilityProps;
   builders?: string[];
   selectedBuilderItems?: Array<{ label: string; value: string }>;
   supporterTierConfirmed?: boolean;

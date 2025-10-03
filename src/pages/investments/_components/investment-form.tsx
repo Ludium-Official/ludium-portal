@@ -18,6 +18,7 @@ import { useInvestmentDraft } from '@/lib/hooks/use-investment-draft';
 import notify from '@/lib/notify';
 import { cn, mainnetDefaultNetwork } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
+import { LabelValueProps, VisibilityProps } from '@/types/common';
 import { type LinkInput, ProgramStatus } from '@/types/types.generated';
 import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';
@@ -38,7 +39,7 @@ export type OnSubmitInvestmentFunc = (data: {
   validators: string[];
   validatorWalletAddresses?: string[];
   image?: File;
-  visibility: 'public' | 'restricted' | 'private';
+  visibility: VisibilityProps;
   status: ProgramStatus;
   builders?: string[];
   applicationStartDate?: string;
@@ -89,23 +90,37 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   const [network, setNetwork] = useState(isEdit ? undefined : mainnetDefaultNetwork);
   const [currency, setCurrency] = useState('');
   const [selectedImage, setSelectedImage] = useState<File>();
-  const [visibility, setVisibility] = useState<'public' | 'restricted' | 'private'>('public');
+  const [visibility, setVisibility] = useState<VisibilityProps>('public');
   const [imageError, setImageError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedBuilders, setSelectedBuilders] = useState<string[]>([]);
-  const [selectedBuilderItems, setSelectedBuilderItems] = useState<
-    { label: string; value: string }[]
-  >([]);
+  const [selectedBuilderItems, setSelectedBuilderItems] = useState<LabelValueProps[]>([]);
   const [builderInput, setBuilderInput] = useState<string>();
   const [debouncedBuilderInput, setDebouncedBuilderInput] = useState<string>();
 
   // Condition tab state
   const [conditionType, setConditionType] = useState<'open' | 'tier'>('open');
   const [tiers, setTiers] = useState([
-    { name: 'Bronze', enabled: false, maxAmount: undefined as string | undefined },
-    { name: 'Silver', enabled: false, maxAmount: undefined as string | undefined },
-    { name: 'Gold', enabled: false, maxAmount: undefined as string | undefined },
-    { name: 'Platinum', enabled: false, maxAmount: undefined as string | undefined },
+    {
+      name: 'Bronze',
+      enabled: false,
+      maxAmount: undefined as string | undefined,
+    },
+    {
+      name: 'Silver',
+      enabled: false,
+      maxAmount: undefined as string | undefined,
+    },
+    {
+      name: 'Gold',
+      enabled: false,
+      maxAmount: undefined as string | undefined,
+    },
+    {
+      name: 'Platinum',
+      enabled: false,
+      maxAmount: undefined as string | undefined,
+    },
   ]);
   const [feeType, setFeeType] = useState<'default' | 'custom'>('default');
   const [customFee, setCustomFee] = useState<string | undefined>(undefined);
@@ -822,7 +837,11 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                       }}
                       // Allow selecting today and future dates
                       disabled={
-                        isPublished ? true : { before: new Date(new Date().setHours(0, 0, 0, 0)) }
+                        isPublished
+                          ? true
+                          : {
+                              before: new Date(new Date().setHours(0, 0, 0, 0)),
+                            }
                       }
                     />
                   </div>
@@ -887,7 +906,11 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                       }}
                       // Allow selecting today and future dates (can overlap with application period per PRD)
                       disabled={
-                        isPublished ? true : { before: new Date(new Date().setHours(0, 0, 0, 0)) }
+                        isPublished
+                          ? true
+                          : {
+                              before: new Date(new Date().setHours(0, 0, 0, 0)),
+                            }
                       }
                     />
                   </div>
