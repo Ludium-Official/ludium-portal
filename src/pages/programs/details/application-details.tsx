@@ -912,7 +912,9 @@ function ApplicationDetails() {
                               title={
                                 program?.fundingEndDate &&
                                 new Date() <= new Date(program.fundingEndDate)
-                                  ? `Milestones can only be submitted after funding ends on ${new Date(program.fundingEndDate).toLocaleDateString()}`
+                                  ? `Milestones can only be submitted after funding ends on ${new Date(
+                                      program.fundingEndDate,
+                                    ).toLocaleDateString()}`
                                   : undefined
                               }
                             >

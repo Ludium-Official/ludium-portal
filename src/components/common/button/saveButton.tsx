@@ -1,17 +1,13 @@
-import { useUsersQuery } from "@/apollo/queries/users.generated";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { MultiSelect } from "@/components/ui/multi-select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import notify from "@/lib/notify";
-import { LabelValueProps, VisibilityProps } from "@/types/common";
-import { useEffect, useState } from "react";
-import { UseFormSetValue } from "react-hook-form";
+import { useUsersQuery } from '@/apollo/queries/users.generated';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import notify from '@/lib/notify';
+import { LabelValueProps, VisibilityProps } from '@/types/common';
+import { useEffect, useState } from 'react';
+import { UseFormSetValue } from 'react-hook-form';
 
 interface SaveButtonProps {
   isAllFill: boolean;
@@ -21,9 +17,7 @@ interface SaveButtonProps {
   selectedInviters: string[];
   setSelectedInviters: React.Dispatch<React.SetStateAction<string[]>>;
   selectedInviterItems: LabelValueProps[];
-  setSelectedInviterItems: React.Dispatch<
-    React.SetStateAction<LabelValueProps[]>
-  >;
+  setSelectedInviterItems: React.Dispatch<React.SetStateAction<LabelValueProps[]>>;
   formRef: React.RefObject<HTMLFormElement | null>;
 }
 
@@ -48,8 +42,8 @@ const SaveButton: React.FC<SaveButtonProps> = ({
         offset: 0,
         filter: [
           {
-            field: "search",
-            value: debouncedInviterInput ?? "",
+            field: 'search',
+            value: debouncedInviterInput ?? '',
           },
         ],
       },
@@ -58,18 +52,16 @@ const SaveButton: React.FC<SaveButtonProps> = ({
   });
 
   const InviterOptions = invitersData?.users?.data?.map((v) => ({
-    value: v.id ?? "",
-    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ""}`,
+    value: v.id ?? '',
+    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
   }));
 
   const extraValidation = () => {
     if (isAllFill) {
-      notify("Please fill in all required fields.", "error");
+      notify('Please fill in all required fields.', 'error');
     }
 
-    formRef?.current?.dispatchEvent(
-      new Event("submit", { cancelable: true, bubbles: true })
-    );
+    formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
   };
 
   useEffect(() => {
@@ -92,9 +84,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="min-w-[440px]">
-        <h2 className="text-foreground font-semibold text-center text-lg">
-          Visibility
-        </h2>
+        <h2 className="text-foreground font-semibold text-center text-lg">Visibility</h2>
         <p className="text-center text-muted-foreground text-sm mb-4">
           Choose when to publish and who can see your program.
         </p>
@@ -104,15 +94,11 @@ const SaveButton: React.FC<SaveButtonProps> = ({
           className="space-y-2 mb-8"
           value={visibility}
           onValueChange={(value: VisibilityProps) => {
-            setValue("visibility", value);
+            setValue('visibility', value);
           }}
         >
           <div className="flex items-start gap-3">
-            <RadioGroupItem
-              value="private"
-              id="r1"
-              className="border-foreground"
-            />
+            <RadioGroupItem value="private" id="r1" className="border-foreground" />
             <div className="flex-1">
               <Label htmlFor="r1" className="font-medium mb-[6px]">
                 Private
@@ -120,7 +106,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({
               <p className="text-sm text-muted-foreground mb-2">
                 Only invited users can view this program.
               </p>
-              {visibility === "private" && (
+              {visibility === 'private' && (
                 <MultiSelect
                   options={InviterOptions ?? []}
                   value={selectedInviters}
@@ -140,29 +126,17 @@ const SaveButton: React.FC<SaveButtonProps> = ({
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <RadioGroupItem
-              value="restricted"
-              id="r2"
-              className="border-foreground"
-            />
+            <RadioGroupItem value="restricted" id="r2" className="border-foreground" />
             <div>
               <Label htmlFor="r2">Restricted</Label>
-              <p className="text-sm text-muted-foreground">
-                Only users with links can view.
-              </p>
+              <p className="text-sm text-muted-foreground">Only users with links can view.</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
-            <RadioGroupItem
-              value="public"
-              id="r3"
-              className="border-foreground"
-            />
+            <RadioGroupItem value="public" id="r3" className="border-foreground" />
             <div>
               <Label htmlFor="r3">Public</Label>
-              <p className="text-sm text-muted-foreground">
-                Anyone can view this program.
-              </p>
+              <p className="text-sm text-muted-foreground">Anyone can view this program.</p>
             </div>
           </div>
         </RadioGroup>

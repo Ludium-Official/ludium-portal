@@ -39,6 +39,7 @@ import ApplicationDetailsPage from '@/pages/programs/details/application-details
 import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Navigate, Route, Routes } from 'react-router';
+import ApplicationChat from './pages/programs/details/application-chat';
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
             <Route path=":id" element={<ProgramDetailsPage />} />
             <Route path=":id/edit" element={<EditProgramPage />} />
             <Route path=":id/application/:applicationId" element={<ApplicationDetailsPage />} />
+            <Route path=":id/application-chat/:applicationId" element={<ApplicationChat />} />
           </Route>
 
           <Route path="investments">
