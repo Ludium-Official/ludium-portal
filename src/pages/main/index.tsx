@@ -186,6 +186,7 @@ function MainPage() {
                     <Link
                       to={`/programs/${program.id}`}
                       className="min-w-[280px] md:min-w-[624px] hover:shadow-md transition-shadow"
+                      key={program.id}
                     >
                       <ProgramCard key={program.id} program={program} />
                     </Link>

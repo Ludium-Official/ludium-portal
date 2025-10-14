@@ -182,7 +182,7 @@ function Header() {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-[1] flex justify-between items-center bg-white rounded-2xl px-4 md:px-10 py-4 md:ml-[240px] mx-4 mt-3"
+      className="sticky top-0 z-[1] flex justify-between items-center bg-white rounded-2xl px-4 md:px-10 py-4"
       style={getHeaderStyles()}
     >
       {isMobile && (
@@ -208,7 +208,7 @@ function Header() {
         <div>
           {!authenticated && (
             <Button
-              className="bg-primary hover:bg-primary/90 h-fit px-3 md:px-4 text-sm md:text-base"
+              className="bg-primary hover:bg-primary/90 h-fit px-3 md:px-4 text-sm"
               onClick={login}
             >
               Login

@@ -14,6 +14,7 @@ function Layout() {
 
   const [isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const currentPath = location.pathname;
@@ -42,23 +43,30 @@ function Layout() {
           {isMobile ? (
             <MobileWebView />
           ) : (
-            <>
-              <div className="hidden md:block">
-                <Sidebar />
+            <div className="md:max-w-[1920px] md:mx-auto md:flex md:gap-3 md:p-3">
+              <div
+                className={`hidden md:block md:flex-shrink-0 transition-all duration-300 ${
+                  sidebarCollapsed ? 'md:w-[72px]' : 'md:w-[216px]'
+                }`}
+              >
+                <Sidebar
+                  isCollapsed={sidebarCollapsed}
+                  onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+                />
               </div>
               <ScrollArea
                 id="scroll-area-main"
-                className="bg-gray-light h-[calc(100dvh-24px)] rounded-2xl m-3 md:ml-[240px] flex flex-col gap-3 relative"
+                className="bg-gray-light h-[calc(100dvh-24px)] rounded-2xl m-3 md:m-0 md:flex-1 flex flex-col gap-3 relative"
               >
                 <div className="relative">
                   <Header />
-                  <div className="pt-20 pb-3 rounded-2xl overflow-hidden">
+                  <div className="pt-3 pb-3 rounded-2xl overflow-hidden">
                     <Outlet />
                   </div>
                 </div>
                 <Footer />
               </ScrollArea>
-            </>
+            </div>
           )}
           <Toaster />
         </>
