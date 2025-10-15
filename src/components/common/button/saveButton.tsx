@@ -80,7 +80,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({
           size="lg"
           disabled={loading}
         >
-          Save and Upload
+          Publish
         </Button>
       </PopoverTrigger>
       <PopoverContent className="min-w-[440px]">

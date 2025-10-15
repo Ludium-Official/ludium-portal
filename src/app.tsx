@@ -33,13 +33,13 @@ import ProjectDetailsPage from '@/pages/investments/details/project-details';
 import EditInvestmentPage from '@/pages/investments/edit';
 import MainPage from '@/pages/main';
 import ProgramsPage from '@/pages/programs';
-import CreateProgramPage from '@/pages/programs/create';
 import ProgramDetailsPage from '@/pages/programs/details';
 import ApplicationDetailsPage from '@/pages/programs/details/application-details';
 import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Navigate, Route, Routes } from 'react-router';
 import ApplicationChat from './pages/programs/details/application-chat';
+import CreateProgram from './pages/programs/new-create';
 
 function App() {
   return (
@@ -50,7 +50,7 @@ function App() {
 
           <Route path="programs">
             <Route index element={<ProgramsPage />} />
-            <Route path="create" element={<CreateProgramPage />} />
+            <Route path="create" element={<CreateProgram />} />
             <Route path=":id" element={<ProgramDetailsPage />} />
             <Route path=":id/edit" element={<EditProgramPage />} />
             <Route path=":id/application/:applicationId" element={<ApplicationDetailsPage />} />
