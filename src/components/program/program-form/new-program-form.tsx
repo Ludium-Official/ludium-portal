@@ -1,6 +1,4 @@
 import { useProgramQuery } from "@/apollo/queries/program.generated";
-import { Button } from "@/components/ui/button";
-import CloseIcon from "@/assets/icons/common/CloseIcon.svg";
 import { useProgramDraft } from "@/lib/hooks/use-program-draft";
 import notify from "@/lib/notify";
 import { mainnetDefaultNetwork } from "@/lib/utils";
@@ -8,7 +6,6 @@ import type {
   ProgramFormData,
   RecruitmentFormProps,
 } from "@/types/recruitment";
-import { ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router";
@@ -19,14 +16,13 @@ import SaveButton from "@/components/common/button/saveButton";
 import { validateLinks } from "@/lib/validation";
 import InputLabel from "@/components/common/label/inputLabel";
 import { MarkdownEditor } from "@/components/markdown";
-import { Badge } from "@/components/ui/badge";
 import { DatePicker } from "@/components/ui/date-picker";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import NetworkSelector from "@/components/network-selector";
 import CurrencySelector from "@/components/currency-selector";
 import { MultiSelect } from "@/components/ui/multi-select";
-import { useUsersQuery } from "@/apollo/queries/users.generated";
+import { fetchSkills } from "@/lib/api/skills";
 
 function ProgramForm({
   onSubmitProgram,
@@ -45,6 +41,8 @@ function ProgramForm({
   >([]);
   const [skillInput, setSkillInput] = useState<string>();
   const [debouncedSkillInput, setDebouncedSkillInput] = useState<string>();
+  const [skills, setSkills] = useState<{ name: string }[]>([]);
+  const [skillsLoading, setSkillsLoading] = useState(false);
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -88,19 +86,20 @@ function ProgramForm({
     },
   });
 
-  const programName = watch("programName") ?? "";
+  //   const programName = watch("programName") ?? "";
+  const programTitle = watch("programTitle") ?? "";
   const price = watch("price") ?? "";
-  const summary = watch("summary") ?? "";
-  const keywords = (watch("keywords") || []).filter((k): k is string =>
-    Boolean(k)
-  );
-  const selectedImage = watch("image");
+  //   const summary = watch("summary") ?? "";
+  //   const keywords = (watch("keywords") || []).filter((k): k is string =>
+  //     Boolean(k)
+  //   );
+  //   const selectedImage = watch("image");
   const deadline = watch("deadline");
   const description = watch("description");
-  const links = (watch("links") || []).filter((l): l is string => Boolean(l));
+  // const skills = (watch("skills") || []).filter((l): l is string => Boolean(l));
   const network = watch("network");
   const currency = watch("currency");
-  const validators = watch("validators");
+  //   const validators = watch("validators");
   const visibility = watch("visibility");
 
   const isAllFill =
@@ -180,111 +179,7 @@ function ProgramForm({
     notify("Successfully created the program", "success");
   };
 
-  const skills = [
-    { id: "0", name: "React" },
-    { id: "1", name: "NextJS" },
-    { id: "2", name: "TypeScript" },
-    { id: "3", name: "JavaScript" },
-    { id: "4", name: "HTML" },
-    { id: "5", name: "CSS" },
-    { id: "6", name: "Sass" },
-    { id: "7", name: "TailwindCSS" },
-    { id: "8", name: "Redux" },
-    { id: "9", name: "Zustand" },
-    { id: "10", name: "VueJS" },
-    { id: "11", name: "NuxtJS" },
-    { id: "12", name: "Angular" },
-    { id: "13", name: "Svelte" },
-    { id: "14", name: "NodeJS" },
-    { id: "15", name: "Express" },
-    { id: "16", name: "NestJS" },
-    { id: "17", name: "GraphQL" },
-    { id: "18", name: "Apollo" },
-    { id: "19", name: "tRPC" },
-    { id: "20", name: "MongoDB" },
-    { id: "21", name: "PostgreSQL" },
-    { id: "22", name: "MySQL" },
-    { id: "23", name: "SQLite" },
-    { id: "24", name: "Prisma" },
-    { id: "25", name: "Sequelize" },
-    { id: "26", name: "Mongoose" },
-    { id: "27", name: "Docker" },
-    { id: "28", name: "Kubernetes" },
-    { id: "29", name: "AWS" },
-    { id: "30", name: "GCP" },
-    { id: "31", name: "Azure" },
-    { id: "32", name: "Firebase" },
-    { id: "33", name: "Supabase" },
-    { id: "34", name: "PocketBase" },
-    { id: "35", name: "PlanetScale" },
-    { id: "36", name: "Vercel" },
-    { id: "37", name: "Netlify" },
-    { id: "38", name: "Render" },
-    { id: "39", name: "Git" },
-    { id: "40", name: "GitHub" },
-    { id: "41", name: "GitLab" },
-    { id: "42", name: "Bitbucket" },
-    { id: "43", name: "Jira" },
-    { id: "44", name: "Confluence" },
-    { id: "45", name: "Figma" },
-    { id: "46", name: "Adobe XD" },
-    { id: "47", name: "Sketch" },
-    { id: "48", name: "Photoshop" },
-    { id: "49", name: "Illustrator" },
-    { id: "50", name: "Framer" },
-    { id: "51", name: "Bootstrap" },
-    { id: "52", name: "Material UI" },
-    { id: "53", name: "Chakra UI" },
-    { id: "54", name: "shadcn/ui" },
-    { id: "55", name: "Storybook" },
-    { id: "56", name: "Testing Library" },
-    { id: "57", name: "Jest" },
-    { id: "58", name: "Cypress" },
-    { id: "59", name: "Playwright" },
-    { id: "60", name: "Python" },
-    { id: "61", name: "Django" },
-    { id: "62", name: "Flask" },
-    { id: "63", name: "FastAPI" },
-    { id: "64", name: "PHP" },
-    { id: "65", name: "Laravel" },
-    { id: "66", name: "Ruby" },
-    { id: "67", name: "Rails" },
-    { id: "68", name: "Go" },
-    { id: "69", name: "Rust" },
-    { id: "70", name: "Java" },
-    { id: "71", name: "Spring Boot" },
-    { id: "72", name: "Kotlin" },
-    { id: "73", name: "Swift" },
-    { id: "74", name: "Objective-C" },
-    { id: "75", name: "C#" },
-    { id: "76", name: ".NET" },
-    { id: "77", name: "C++" },
-    { id: "78", name: "C" },
-    { id: "79", name: "Solidity" },
-    { id: "80", name: "Web3.js" },
-    { id: "81", name: "Ethers.js" },
-    { id: "82", name: "Wagmi" },
-    { id: "83", name: "Viem" },
-    { id: "84", name: "Hardhat" },
-    { id: "85", name: "Foundry" },
-    { id: "86", name: "Truffle" },
-    { id: "87", name: "IPFS" },
-    { id: "88", name: "The Graph" },
-    { id: "89", name: "Chainlink" },
-    { id: "90", name: "Polygon" },
-    { id: "91", name: "Ethereum" },
-    { id: "92", name: "Solana" },
-    { id: "93", name: "Sui" },
-    { id: "94", name: "Aptos" },
-    { id: "95", name: "Cosmos SDK" },
-    { id: "96", name: "Substrate" },
-    { id: "97", name: "Kafka" },
-    { id: "98", name: "Redis" },
-    { id: "99", name: "ElasticSearch" },
-  ];
-
   const skillOptions = skills.map((v) => ({
-    value: v.id ?? "",
     label: v.name,
   }));
 
@@ -295,6 +190,23 @@ function ProgramForm({
 
     return () => clearTimeout(timer);
   }, [skillInput]);
+
+  useEffect(() => {
+    const loadSkills = async () => {
+      setSkillsLoading(true);
+      try {
+        const skillsData = await fetchSkills();
+        setSkills(skillsData);
+      } catch (error) {
+        console.error("Failed to load skills:", error);
+        notify("Failed to load skills. Please try again.", "error");
+      } finally {
+        setSkillsLoading(false);
+      }
+    };
+
+    loadSkills();
+  }, []);
 
   useEffect(() => {
     if (programData?.program?.validators?.length) {
@@ -397,7 +309,7 @@ function ProgramForm({
               options={skillOptions ?? []}
               value={validators}
               onValueChange={(value: string[]) => {
-                setValue("validators", value);
+                setValue("skills", value);
               }}
               placeholder="ex. React, NodeJS"
               animation={2}
@@ -407,7 +319,7 @@ function ProgramForm({
               selectedItems={selectedSkillItems}
               setSelectedItems={setSelectedSkillItems}
               emptyText="Search keywords"
-              //   loading={loading}
+              loading={skillsLoading}
             />
           </InputLabel>
         </div>

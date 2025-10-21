@@ -317,32 +317,37 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                   </CommandItem>
                 )}
 
-                {selectedItems?.map((option) => {
-                  // const option = options.find(o => o.value === opt)
-                  // const isSelected = selectedValues?.includes(option.value);
-                  return (
-                    <CommandItem
-                      value={option?.value}
-                      key={option?.value}
-                      onSelect={() => toggleOption(option?.value ?? '', option?.label ?? '')}
-                      className="cursor-pointer"
-                    >
-                      <div
-                        className={cn(
-                          'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
-                          // isSelected
-                          //   ?
-                          'bg-gray-dark text-primary-foreground',
-                          // :
-                          // 'opacity-50 [&_svg]:invisible',
-                        )}
+                {selectedItems
+                  ?.filter((option) => {
+                    if (!inputValue) return true;
+                    return option?.label?.toLowerCase().includes(inputValue.toLowerCase());
+                  })
+                  .map((option) => {
+                    // const option = options.find(o => o.value === opt)
+                    // const isSelected = selectedValues?.includes(option.value);
+                    return (
+                      <CommandItem
+                        value={option?.value}
+                        key={option?.value}
+                        onSelect={() => toggleOption(option?.value ?? '', option?.label ?? '')}
+                        className="cursor-pointer"
                       >
-                        <CheckIcon className="h-4 w-4" />
-                      </div>
-                      <span>{option?.label}</span>
-                    </CommandItem>
-                  );
-                })}
+                        <div
+                          className={cn(
+                            'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
+                            // isSelected
+                            //   ?
+                            'bg-gray-dark text-primary-foreground',
+                            // :
+                            // 'opacity-50 [&_svg]:invisible',
+                          )}
+                        >
+                          <CheckIcon className="h-4 w-4" />
+                        </div>
+                        <span>{option?.label}</span>
+                      </CommandItem>
+                    );
+                  })}
                 {options
                   .filter((o) => !selectedValues.includes(o.value))
                   .map((option) => {
