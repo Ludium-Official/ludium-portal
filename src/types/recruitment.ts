@@ -1,23 +1,20 @@
 import { Control, FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
-import type { LinkInput, ProgramStatus } from './types.generated';
+import type { RecruitmentStatus } from './types.generated';
 import { LabelValueProps, VisibilityProps } from './common';
 
 export interface ProgramFormData {
   id?: string;
-  programName: string;
+  programTitle: string;
   price?: string;
   description: string;
-  summary: string;
   currency: string;
   deadline?: Date;
-  keywords: string[];
-  links?: LinkInput[] | string[];
+  skills: string[];
   network?: string;
-  validators: string[];
-  image?: File;
   visibility?: VisibilityProps;
   builders?: string[];
-  status?: ProgramStatus;
+  status?: RecruitmentStatus;
+  budget?: string;
 }
 
 export type OnSubmitProgramFunc = (data: ProgramFormData) => void;
@@ -50,4 +47,22 @@ export interface ProgramOverviewProps extends programFormProps {
 
 export interface ProgramDetailProps extends programFormProps {
   description: string;
+}
+
+export interface RecruitmentProgram {
+  id: string;
+  title?: string;
+  description?: string;
+  skills?: string[];
+  deadline?: string;
+  createdAt?: string;
+  budgetType?: string;
+  network?: string | null;
+  price?: string | null;
+  currency?: string | null;
+  visibility?: string;
+  builders?: string[];
+  status?: string;
+  applicantCount?: string;
+  sponser?: string;
 }

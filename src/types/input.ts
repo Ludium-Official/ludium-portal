@@ -1,5 +1,5 @@
-import type { HTMLInputTypeAttribute, ReactNode } from "react";
-import type { Control, FieldError, UseFormRegister } from "react-hook-form";
+import type { HTMLInputTypeAttribute, ReactNode } from 'react';
+import type { Control, FieldError, UseFormRegister } from 'react-hook-form';
 
 export interface InputLabelProps {
   labelId: string;
@@ -25,5 +25,5 @@ export interface InputLabelProps {
 export interface handleImageProps {
   file?: File;
   setImageError: (value: string | null) => void;
-  setValue: (name: "image", value: File | undefined) => void;
+  setValue: (name: 'image', value: File | undefined) => void;
 }

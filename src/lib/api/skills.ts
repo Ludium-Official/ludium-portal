@@ -7,7 +7,7 @@ export interface Skill {
 }
 
 const SKILLS_URL =
-  "https://raw.githubusercontent.com/Ludium-Official/ludium-skills/refs/heads/main/skills.json";
+  'https://raw.githubusercontent.com/Ludium-Official/ludium-skills/refs/heads/main/skills.json';
 
 export async function fetchSkills(): Promise<Skill[]> {
   try {
@@ -22,7 +22,7 @@ export async function fetchSkills(): Promise<Skill[]> {
       name: skill.name,
     }));
   } catch (error) {
-    console.error("Error fetching skills:", error);
+    console.error('Error fetching skills:', error);
     throw error;
   }
 }

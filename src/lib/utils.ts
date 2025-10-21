@@ -8,6 +8,7 @@ import {
 } from '@/types/types.generated';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { format } from 'date-fns';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -107,4 +108,13 @@ export const dDay = (deadline: Date) => {
   const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
   return `D-${daysRemaining}`;
+};
+
+export const formatDate = (date: Date | string) => {
+  return format(new Date(date), 'MMMM d, yyyy');
+};
+
+// Format price with thousands separator
+export const formatPrice = (price: string | number) => {
+  return parseInt(price.toString()).toLocaleString('en-US');
 };

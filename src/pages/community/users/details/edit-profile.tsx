@@ -14,8 +14,6 @@ import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-// Social icon logic moved to SocialIcon component
-
 function EditProfilePage() {
   const navigate = useNavigate();
 
@@ -152,16 +150,9 @@ function EditProfilePage() {
     JSON.stringify(profileData.profile.skillKeywords?.map((k) => k.name || '') || []) ===
       JSON.stringify(watch('skillKeywords') || []);
 
-  // const [keywordInput, setKeywordInput] = useState<string>('');
   const [roleKeywordInput, setRoleKeywordInput] = useState<string>('');
   const [skillKeywordInput, setSkillKeywordInput] = useState<string>('');
 
-  // Unused functions - keeping for potential future use
-  // const _handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   setKeywordInput(e.target.value);
-  // };
-
-  // const _handleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
   // Role keywords handlers
   const handleRoleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRoleKeywordInput(e.target.value);

@@ -1,6 +1,6 @@
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import type { InputLabelProps } from "@/types/input";
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import type { InputLabelProps } from '@/types/input';
 
 const InputLabel: React.FC<InputLabelProps> = ({
   labelId,
@@ -8,7 +8,7 @@ const InputLabel: React.FC<InputLabelProps> = ({
   isPrimary = false,
   isError,
   placeholder,
-  type = "text",
+  type = 'text',
   register,
   children,
   inputWrapperClassName,
@@ -50,7 +50,7 @@ const InputLabel: React.FC<InputLabelProps> = ({
             placeholder={placeholder}
             className={`h-10 ${inputClassName}`}
             onKeyDown={onKeyDown}
-            {...(type === "file" || !register
+            {...(type === 'file' || !register
               ? { onChange }
               : register(labelId, {
                   required: true,
@@ -60,11 +60,7 @@ const InputLabel: React.FC<InputLabelProps> = ({
         )}
         {children}
       </div>
-      {isError && (
-        <span className="text-destructive text-sm block">
-          {title} is required
-        </span>
-      )}
+      {isError && <span className="text-destructive text-sm block">{title} is required</span>}
     </label>
   );
 };

@@ -29,7 +29,7 @@ const CreditCoinIcon = ({ size = 24, className = '' }) => {
           <rect width={size} height={size} fill="white" />
         </clipPath>
         <clipPath id="clip1_2941_194091">
-          <rect width="19" height="18" fill="white" transform="translate(3 3.19336)" />
+          <rect width={size} height={size} fill="white" transform="translate(3 3.19336)" />
         </clipPath>
       </defs>
     </svg>

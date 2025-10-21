@@ -3,20 +3,19 @@ import { LabelValueProps, VisibilityProps } from '@/types/common';
 import { useCallback, useMemo } from 'react';
 
 export type ProgramDraft = {
-  programName?: string;
+  programTitle?: string;
   price?: string;
   description?: string;
-  summary?: string;
   currency?: string;
   deadline?: Date;
-  keywords?: string[];
-  validators?: string[];
-  selectedValidatorItems?: Array<LabelValueProps>;
+  skills?: string[];
+  selectedSkillItems?: Array<LabelValueProps>;
   links?: string[];
   network?: string;
   visibility?: VisibilityProps;
   builders?: string[];
   selectedBuilderItems?: Array<LabelValueProps>;
+  budget?: string;
 };
 
 const PROGRAM_DRAFT_KEY_PREFIX = 'programDraft';

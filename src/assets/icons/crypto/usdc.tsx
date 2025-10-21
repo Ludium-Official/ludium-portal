@@ -1,23 +1,21 @@
 import type React from 'react';
 
 interface SvgIconProps {
-  width?: number;
-  height?: number;
+  size?: number;
   fill?: string;
   secondaryFill?: string;
 }
 
 const UsdcIcon: React.FC<SvgIconProps> = ({
-  width = 24,
-  height = 24,
+  size = 24,
   fill = '#2775CA',
   secondaryFill = 'white',
 }) => {
   return (
     // biome-ignore lint/a11y/noSvgWithoutTitle: <explanation>
     <svg
-      width={width}
-      height={height}
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

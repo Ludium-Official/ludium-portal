@@ -39,7 +39,9 @@ import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Navigate, Route, Routes } from 'react-router';
 import ApplicationChat from './pages/programs/details/application-chat';
-import CreateProgram from './pages/programs/new-create';
+import CreateProgram from './pages/programs/create';
+import ProfileRecruitment from './pages/profile/recruitment';
+import ProfileRecuitmentDetail from './pages/profile/recruitment/detail';
 
 function App() {
   return (
@@ -136,6 +138,12 @@ function App() {
                 <Route path="master-admin" element={<MasterAdminPage />} />
               </Route>
             </Route>
+          </Route>
+
+          <Route path="profile-recruitment" element={<ProfileRecruitment />}></Route>
+          <Route path="profile-recruitment">
+            <Route index element={<ProfileRecruitment />} />
+            <Route path=":id" element={<ProfileRecuitmentDetail />} />
           </Route>
 
           <Route path="admin" element={<AdminOutlet />}>

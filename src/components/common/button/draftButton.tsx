@@ -1,9 +1,5 @@
-import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface DraftButtonProps {
   loading?: boolean;
@@ -14,7 +10,7 @@ interface DraftButtonProps {
 const DraftButton: React.FC<DraftButtonProps> = ({
   loading,
   saveFunc,
-  tooltipDescription = "Image file will not be saved in the draft.",
+  tooltipDescription = 'Image file will not be saved in the draft.',
 }) => {
   return (
     <Tooltip>
