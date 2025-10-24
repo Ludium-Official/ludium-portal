@@ -1,34 +1,40 @@
-import { Link, useLocation, useParams } from 'react-router';
+import { Link, useLocation, useParams } from "react-router";
 
 export const sidebarLinks = [
-  { label: 'Overview', path: 'overview' },
-  { label: 'Description', path: 'description' },
+  { label: "Overview", path: "overview" },
+  { label: "Description", path: "description" },
   {
-    label: 'Program',
+    label: "Program",
     children: [
       {
-        label: 'Recruitment',
-        path: 'program/recruitment',
+        label: "Recruitment",
+        // path: "program/recruitment",
         children: [
-          { label: 'Sponsor', path: 'program/recruitment/sponsor' },
-          { label: 'Validator', path: 'program/recruitment/validator' },
-          { label: 'Builder', path: 'program/recruitment/builder' },
-          // { label: 'Reclaim', path: 'program/recruitment/reclaim' },
+          { label: "Sponsor", path: "profile/recruitment/sponser" },
+          {
+            label: "Validator",
+            path: "my-profile/program/recruitment/validator",
+          },
+          { label: "Builder", path: "my-profile/program/recruitment/builder" },
+          // { label: 'Reclaim', path: 'my-profile/program/recruitment/reclaim' },
         ],
       },
       {
-        label: 'Funding',
-        path: 'program/investment',
+        label: "Funding",
+        path: "my-profile/program/investment",
         children: [
-          { label: 'Host', path: 'program/investment/host' },
-          { label: 'Project', path: 'program/investment/project' },
-          { label: 'Supporter', path: 'program/investment/supporter' },
-          // { label: 'Reclaim', path: 'program/investment/reclaim' },
+          { label: "Host", path: "my-profile/program/investment/host" },
+          { label: "Project", path: "my-profile/program/investment/project" },
+          {
+            label: "Supporter",
+            path: "my-profile/program/investment/supporter",
+          },
+          // { label: 'Reclaim', path: 'my-profile/program/investment/reclaim' },
         ],
       },
     ],
   },
-  { label: 'Community', path: 'community' },
+  { label: "Community", path: "community" },
 ];
 
 export type SidebarItemType = {
@@ -48,10 +54,10 @@ export function SidebarLinks({
   const location = useLocation();
 
   const fullPath = myProfile
-    ? `/my-profile/${item.path}`
+    ? `/${item.path}`
     : item.path
-      ? `/users/${id}/${item.path}`
-      : '';
+    ? `/users/${id}/${item.path}`
+    : "";
 
   const isActive = location.pathname === fullPath;
 
@@ -62,8 +68,8 @@ export function SidebarLinks({
           to={fullPath}
           className={`px-2 h-8 flex items-center text-sm ${
             isActive
-              ? 'font-medium text-gray-dark bg-sidebar-accent rounded-md'
-              : 'text-gray-asphalt font-normal'
+              ? "font-medium text-gray-dark bg-sidebar-accent rounded-md"
+              : "text-gray-asphalt font-normal"
           }`}
         >
           {item.label}
@@ -74,11 +80,19 @@ export function SidebarLinks({
         </div>
       )}
       {item.children && (
-        <div className={`ml-4 pl-2 ${item.path && 'border-l'} border-gray-200 space-y-1`}>
+        <div
+          className={`ml-4 pl-2 ${
+            item.path && "border-l"
+          } border-gray-200 space-y-1`}
+        >
           {item.children
-            .filter((child) => myProfile || child.label !== 'Reclaim')
+            .filter((child) => myProfile || child.label !== "Reclaim")
             .map((child) => (
-              <SidebarLinks key={child.label} item={child} myProfile={myProfile} />
+              <SidebarLinks
+                key={child.label}
+                item={child}
+                myProfile={myProfile}
+              />
             ))}
         </div>
       )}

@@ -269,7 +269,7 @@ const ProfileRecruitment: React.FC = () => {
     <div className="flex flex-col justify-between bg-white px-10 py-7 rounded-2xl">
       <div>
         <Link
-          to={`/profile-dashboard`}
+          to={`/my-profile`}
           className="flex items-center mb-3 text-xs font-semibold text-gray-text"
         >
           <ChevronLeft className="w-4" />
@@ -314,7 +314,7 @@ const ProfileRecruitment: React.FC = () => {
                   data-state={row.getIsSelected() && "selected"}
                   className="cursor-pointer hover:bg-gray-50 border-b border-[#E4E4E7] last:border-b-0 text-[#4B5563]"
                   onClick={() =>
-                    navigate(`/profile-recruitment/${row.original.id}`)
+                    navigate(`/profile/recruitment/sponser/${row.original.id}`)
                   }
                 >
                   {row.getVisibleCells().map((cell) => (

@@ -5,6 +5,7 @@ import {
   formatPrice,
   getCurrency,
   getCurrencyIcon,
+  reduceString,
 } from "@/lib/utils";
 import { MarkdownPreviewer } from "@/components/markdown";
 import { ShareButton } from "@/components/ui/share-button";
@@ -76,7 +77,9 @@ const RecruitmentOverview: React.FC = () => {
         <div className="lg:col-span-1">
           <div className="p-6 space-y-6">
             <div className="flex items-center justify-between pb-5 border-b">
-              <div className="text-muted-foreground text-sm">PRICE</div>
+              <div className="text-muted-foreground text-sm font-medium">
+                Price
+              </div>
               <div>
                 <div className="text-sm text-right">
                   {getCurrency(recruitment.network)?.display}
@@ -100,7 +103,9 @@ const RecruitmentOverview: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="text-muted-foreground text-sm">DEADLINE</div>
+              <div className="text-muted-foreground text-sm font-medium">
+                Deadline
+              </div>
               <div>
                 <div className="font-bold text-xl">{formattedDeadline}</div>
               </div>
@@ -130,7 +135,10 @@ const RecruitmentOverview: React.FC = () => {
                   </Button>
                 ) : (
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger
+                      asChild
+                      disabled={recruitment.status !== "open"}
+                    >
                       <Button
                         variant="outline"
                         className="border h-11 flex-1 gap-2"
@@ -159,7 +167,9 @@ const RecruitmentOverview: React.FC = () => {
             </div>
 
             <div>
-              <div className="text-sm text-gray-500 mb-2">SKILLS</div>
+              <div className="mb-2 text-muted-foreground text-sm font-medium">
+                Skills
+              </div>
               <div className="flex gap-3 text-sm">
                 {recruitment.skills?.map((skill) => (
                   <Badge
@@ -174,16 +184,48 @@ const RecruitmentOverview: React.FC = () => {
             </div>
 
             <div>
-              <div className="text-sm text-gray-500 mb-2">SPONSER</div>
-              <div className="flex gap-3 text-sm">{recruitment.sponser}</div>
+              <div className="mb-2 text-muted-foreground text-sm font-medium">
+                Sponser
+              </div>
+              <div className="flex gap-3 text-sm text-muted-foreground">
+                {recruitment.sponser?.first_name &&
+                recruitment.sponser?.last_name
+                  ? `${recruitment.sponser?.first_name} ${recruitment.sponser?.last_name}`
+                  : reduceString(
+                      recruitment.sponser?.wallet_address || "",
+                      6,
+                      6
+                    )}
+              </div>
             </div>
 
-            <div>Applicant: {recruitment.applicantCount}</div>
+            <div className="text-sm font-medium">
+              <span className="mr-2 text-muted-foreground">Applicants</span>{" "}
+              <span className="text-primary">{recruitment.applicantCount}</span>
+            </div>
 
             <div>
-              <div className="text-sm text-gray-500 mb-2">Visibility</div>
-              <div className="font-bold text-lg capitalize">
-                {recruitment.visibility}
+              <div className="flex items-center mb-2 text-muted-foreground text-sm font-medium">
+                Visibility
+                <div className="ml-3 font-bold capitalize">
+                  <Badge variant="purple" className="text-xs font-semibold">
+                    {recruitment.visibility}
+                  </Badge>
+                </div>
+              </div>
+              <div className="flex items-center">
+                {recruitment.builders &&
+                  recruitment.builders.map((builder) => (
+                    <Badge
+                      key={builder.email}
+                      variant="secondary"
+                      className="text-xs font-semibold"
+                    >
+                      {builder?.first_name && builder?.last_name
+                        ? `${builder?.first_name} ${builder?.last_name}`
+                        : builder.email}
+                    </Badge>
+                  ))}
               </div>
             </div>
           </div>

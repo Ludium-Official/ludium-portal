@@ -1,6 +1,11 @@
-import { Control, FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
-import type { RecruitmentStatus } from './types.generated';
-import { LabelValueProps, VisibilityProps } from './common';
+import {
+  Control,
+  FieldErrors,
+  UseFormRegister,
+  UseFormSetValue,
+} from "react-hook-form";
+import type { RecruitmentStatus } from "./types.generated";
+import { LabelValueProps, VisibilityProps } from "./common";
 
 export interface ProgramFormData {
   id?: string;
@@ -39,7 +44,9 @@ export interface ProgramOverviewProps extends programFormProps {
   deadline?: Date;
   validators: string[];
   selectedValidatorItems: LabelValueProps[];
-  setSelectedValidatorItems: React.Dispatch<React.SetStateAction<LabelValueProps[]>>;
+  setSelectedValidatorItems: React.Dispatch<
+    React.SetStateAction<LabelValueProps[]>
+  >;
   selectedImage?: File;
   isEdit?: boolean;
   control: Control<ProgramFormData, any, any>;
@@ -47,6 +54,14 @@ export interface ProgramOverviewProps extends programFormProps {
 
 export interface ProgramDetailProps extends programFormProps {
   description: string;
+}
+
+export interface builderProps {
+  first_name?: string | null;
+  last_name?: string | null;
+  wallet_address?: string;
+  image?: string | null;
+  email?: string | null;
 }
 
 export interface RecruitmentProgram {
@@ -61,8 +76,8 @@ export interface RecruitmentProgram {
   price?: string | null;
   currency?: string | null;
   visibility?: string;
-  builders?: string[];
+  builders?: builderProps[];
   status?: string;
   applicantCount?: string;
-  sponser?: string;
+  sponser?: builderProps;
 }
