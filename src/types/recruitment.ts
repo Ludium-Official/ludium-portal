@@ -57,9 +57,9 @@ export interface ProgramDetailProps extends programFormProps {
 }
 
 export interface builderProps {
-  first_name?: string | null;
-  last_name?: string | null;
-  wallet_address?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  walletAddress?: string;
   image?: string | null;
   email?: string | null;
 }
@@ -80,4 +80,23 @@ export interface RecruitmentProgram {
   status?: string;
   applicantCount?: string;
   sponser?: builderProps;
+}
+
+export interface RecruitmentApplicant {
+  id: string;
+  appliedDate?: string;
+  picked?: boolean;
+  userInfo: {
+    userId?: string | null;
+    image?: string | null;
+    firstName?: string | null;
+    lastName?: string | null;
+    summary?: string | null;
+    location?: string | null;
+    hourlyRate?: string | null;
+    star?: string | null;
+    role?: string | null;
+    skills?: string[] | null;
+    tools?: string[] | null;
+  };
 }

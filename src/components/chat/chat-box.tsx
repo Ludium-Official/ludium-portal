@@ -1,22 +1,22 @@
-import { useAuth } from '@/lib/hooks/use-auth';
-import { Button } from '@/components/ui/button';
-import { getUserName } from '@/lib/utils';
-import type { User } from '@/types/types.generated';
+import { useAuth } from "@/lib/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import { getUserName } from "@/lib/utils";
+import type { User } from "@/types/types.generated";
 import {
   loadInitialMessages,
   loadMoreMessages as loadMoreMessagesFromFirebase,
   sendMessage,
   subscribeToNewMessages,
   type ChatMessage,
-} from '@/lib/firebase-chat';
+} from "@/lib/firebase-chat";
 import {
   type QueryDocumentSnapshot,
   type DocumentData,
   type Timestamp,
   Timestamp as FirestoreTimestamp,
-} from 'firebase/firestore';
-import { Loader2, Send } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+} from "firebase/firestore";
+import { Loader2, Send } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 interface ChatBoxProps {
   applicationId: string;
@@ -29,13 +29,16 @@ export function ChatBox({ applicationId, sponsor, builder }: ChatBoxProps) {
 
   const { userId } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [newMessage, setNewMessage] = useState('');
+  const [newMessage, setNewMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [oldestDoc, setOldestDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
-  const [newestTimestamp, setNewestTimestamp] = useState<Timestamp | null>(null);
+  const [oldestDoc, setOldestDoc] =
+    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [newestTimestamp, setNewestTimestamp] = useState<Timestamp | null>(
+    null
+  );
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isInitialLoad = useRef(true);
@@ -67,7 +70,7 @@ export function ChatBox({ applicationId, sponsor, builder }: ChatBoxProps) {
         isInitialLoad.current = false;
       })
       .catch((error) => {
-        console.error('❌ Error loading initial messages:', error);
+        console.error("❌ Error loading initial messages:", error);
       })
       .finally(() => {
         setIsLoading(false);
@@ -88,8 +91,8 @@ export function ChatBox({ applicationId, sponsor, builder }: ChatBoxProps) {
         setNewestTimestamp(newMsg.timestamp);
       },
       (error) => {
-        console.error('❌ Realtime subscription error:', error);
-      },
+        console.error("❌ Realtime subscription error:", error);
+      }
     );
 
     return () => unsubscribe();
@@ -102,7 +105,11 @@ export function ChatBox({ applicationId, sponsor, builder }: ChatBoxProps) {
 
     try {
       const { messages: olderMessages, oldestDoc: newOldestDoc } =
-        await loadMoreMessagesFromFirebase(applicationId, oldestDoc, totalMessages);
+        await loadMoreMessagesFromFirebase(
+          applicationId,
+          oldestDoc,
+          totalMessages
+        );
 
       if (olderMessages.length === 0) {
         setHasMore(false);
@@ -119,7 +126,7 @@ export function ChatBox({ applicationId, sponsor, builder }: ChatBoxProps) {
         setHasMore(false);
       }
     } catch (error) {
-      console.error('❌ Error loading more messages:', error);
+      console.error("❌ Error loading more messages:", error);
     } finally {
       setLoadingMore(false);
     }
@@ -136,19 +143,19 @@ export function ChatBox({ applicationId, sponsor, builder }: ChatBoxProps) {
 
     try {
       await sendMessage(applicationId, newMessage, userId);
-      setNewMessage('');
+      setNewMessage("");
     } catch (error) {
-      console.error('❌ Error sending message:', error);
+      console.error("❌ Error sending message:", error);
     } finally {
       setIsSending(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && e.shiftKey) {
+    if (e.key === "Enter" && e.shiftKey) {
       return;
     }
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage(e as unknown as React.FormEvent);
     }
@@ -168,21 +175,22 @@ export function ChatBox({ applicationId, sponsor, builder }: ChatBoxProps) {
       date1.getDate() === date2.getDate();
 
     if (isSameDay(messageDate, today)) {
-      return 'Today';
+      return "Today";
     } else if (isSameDay(messageDate, yesterday)) {
-      return 'Yesterday';
+      return "Yesterday";
     } else {
       return messageDate.toLocaleDateString([], {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       });
     }
   };
 
   const shouldShowDateLabel = (index: number) => {
     if (index === 0) return true;
-    if (!messages[index].timestamp || !messages[index - 1].timestamp) return false;
+    if (!messages[index].timestamp || !messages[index - 1].timestamp)
+      return false;
 
     const currentDate = messages[index].timestamp.toDate();
     const prevDate = messages[index - 1].timestamp.toDate();
@@ -195,7 +203,7 @@ export function ChatBox({ applicationId, sponsor, builder }: ChatBoxProps) {
   };
 
   return (
-    <div className="flex flex-col h-[600px] border rounded-lg bg-white">
+    <div className="flex flex-col min-h-[600px] h-full border rounded-lg bg-white">
       <div className="p-4 border-b bg-slate-3">
         <h3 className="font-bold text-lg">Chat</h3>
         <p className="text-sm text-muted-foreground">
@@ -230,7 +238,7 @@ export function ChatBox({ applicationId, sponsor, builder }: ChatBoxProps) {
                   Loading...
                 </span>
               ) : (
-                'Load older messages'
+                "Load older messages"
               )}
             </Button>
           </div>
@@ -256,12 +264,12 @@ export function ChatBox({ applicationId, sponsor, builder }: ChatBoxProps) {
 
             <div
               className={`flex gap-2 ${
-                isMyMessage(message.senderId) ? 'flex-row-reverse' : 'flex-row'
+                isMyMessage(message.senderId) ? "flex-row-reverse" : "flex-row"
               }`}
             >
               <div
                 className={`flex flex-col ${
-                  isMyMessage(message.senderId) ? 'items-end' : 'items-start'
+                  isMyMessage(message.senderId) ? "items-end" : "items-start"
                 } max-w-[70%]`}
               >
                 <div className="flex items-center gap-2 mb-1">
@@ -269,21 +277,23 @@ export function ChatBox({ applicationId, sponsor, builder }: ChatBoxProps) {
                   <span className="text-xs text-slate-400">
                     {message.timestamp
                       ? message.timestamp.toDate().toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
+                          hour: "2-digit",
+                          minute: "2-digit",
                         })
-                      : ''}
+                      : ""}
                   </span>
                 </div>
 
                 <div
                   className={`rounded-lg px-4 py-2 ${
                     isMyMessage(message.senderId)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-slate-100 text-slate-900'
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-slate-100 text-slate-900"
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+                  <p className="text-sm whitespace-pre-wrap break-words">
+                    {message.text}
+                  </p>
                 </div>
               </div>
             </div>
@@ -304,16 +314,20 @@ export function ChatBox({ applicationId, sponsor, builder }: ChatBoxProps) {
             rows={1}
             className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px] overflow-y-auto"
             style={{
-              height: 'auto',
-              minHeight: '40px',
+              height: "auto",
+              minHeight: "40px",
             }}
             onInput={(e) => {
               const target = e.target as HTMLTextAreaElement;
-              target.style.height = 'auto';
+              target.style.height = "auto";
               target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
             }}
           />
-          <Button type="submit" disabled={isSending || !newMessage.trim()} size="icon">
+          <Button
+            type="submit"
+            disabled={isSending || !newMessage.trim()}
+            size="icon"
+          >
             {isSending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (

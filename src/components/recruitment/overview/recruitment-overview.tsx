@@ -188,11 +188,10 @@ const RecruitmentOverview: React.FC = () => {
                 Sponser
               </div>
               <div className="flex gap-3 text-sm text-muted-foreground">
-                {recruitment.sponser?.first_name &&
-                recruitment.sponser?.last_name
-                  ? `${recruitment.sponser?.first_name} ${recruitment.sponser?.last_name}`
+                {recruitment.sponser?.firstName && recruitment.sponser?.lastName
+                  ? `${recruitment.sponser?.firstName} ${recruitment.sponser?.lastName}`
                   : reduceString(
-                      recruitment.sponser?.wallet_address || "",
+                      recruitment.sponser?.walletAddress || "",
                       6,
                       6
                     )}
@@ -221,8 +220,8 @@ const RecruitmentOverview: React.FC = () => {
                       variant="secondary"
                       className="text-xs font-semibold"
                     >
-                      {builder?.first_name && builder?.last_name
-                        ? `${builder?.first_name} ${builder?.last_name}`
+                      {builder?.firstName && builder?.lastName
+                        ? `${builder?.firstName} ${builder?.lastName}`
                         : builder.email}
                     </Badge>
                   ))}
