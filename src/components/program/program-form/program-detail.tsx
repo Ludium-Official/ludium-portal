@@ -1,6 +1,6 @@
 import InputLabel from '@/components/common/label/inputLabel';
 import { MarkdownEditor } from '@/components/markdown';
-import { ProgramDetailProps } from '@/types/recruitment';
+import type { ProgramDetailProps } from '@/types/recruitment';
 
 const ProgramDetail: React.FC<ProgramDetailProps> = ({
   register,

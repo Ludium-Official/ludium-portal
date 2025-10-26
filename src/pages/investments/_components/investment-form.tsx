@@ -18,7 +18,7 @@ import { useInvestmentDraft } from '@/lib/hooks/use-investment-draft';
 import notify from '@/lib/notify';
 import { cn, mainnetDefaultNetwork } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
-import { LabelValueProps, VisibilityProps } from '@/types/common';
+import type { LabelValueProps, VisibilityProps } from '@/types/common';
 import { type LinkInput, ProgramStatus } from '@/types/types.generated';
 import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';

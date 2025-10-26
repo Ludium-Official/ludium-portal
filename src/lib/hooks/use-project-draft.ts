@@ -1,5 +1,5 @@
 import { useAuth } from '@/lib/hooks/use-auth';
-import { VisibilityProps } from '@/types/common';
+import type { VisibilityProps } from '@/types/common';
 import { useCallback, useMemo } from 'react';
 
 // Terms state

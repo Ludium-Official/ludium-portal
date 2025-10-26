@@ -1,4 +1,4 @@
-import { handleImageProps } from '@/types/input';
+import type { handleImageProps } from '@/types/input';
 
 export const handleImage = ({ file, setImageError, setValue }: handleImageProps) => {
   if (!file) return;

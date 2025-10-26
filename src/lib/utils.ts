@@ -7,8 +7,8 @@ import {
   type User,
 } from '@/types/types.generated';
 import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
 import { format } from 'date-fns';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -116,5 +116,5 @@ export const formatDate = (date: Date | string) => {
 
 // Format price with thousands separator
 export const formatPrice = (price: string | number) => {
-  return parseInt(price.toString()).toLocaleString('en-US');
+  return Number.parseInt(price.toString()).toLocaleString('en-US');
 };

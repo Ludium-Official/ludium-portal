@@ -1,13 +1,12 @@
-import { mockRecruitmentPrograms } from '@/mock/recruitment-programs';
-import { RecruitmentProgram } from '@/types/recruitment';
-import EduIcon from '@/assets/icons/crypto/edu';
-import UsdtIcon from '@/assets/icons/crypto/usdt';
-import UsdcIcon from '@/assets/icons/crypto/usdc';
-import EthIcon from '@/assets/icons/crypto/eth';
 import ArbitrumIcon from '@/assets/icons/crypto/arbitrum';
 import BaseIcon from '@/assets/icons/crypto/base';
 import CreditcoinIcon from '@/assets/icons/crypto/creditcoin';
+import EduIcon from '@/assets/icons/crypto/edu';
 import EtcIcon from '@/assets/icons/crypto/etc';
+import EthIcon from '@/assets/icons/crypto/eth';
+import UsdcIcon from '@/assets/icons/crypto/usdc';
+import UsdtIcon from '@/assets/icons/crypto/usdt';
+import { mockRecruitmentPrograms } from '@/mock/recruitment-programs';
 
 interface RecruitmentDetailProps {
   id: string;
@@ -60,7 +59,8 @@ const RecruitmentDetail: React.FC<RecruitmentDetailProps> = ({ id }) => {
 
   const TokenIcon = recruitment.currency ? tokenIcons[recruitment.currency.toUpperCase()] : null;
 
-  const formattedPrice = recruitment.price && parseInt(recruitment.price).toLocaleString('en-US');
+  const formattedPrice =
+    recruitment.price && Number.parseInt(recruitment.price).toLocaleString('en-US');
 
   return (
     <div className="bg-white rounded-2xl p-10">

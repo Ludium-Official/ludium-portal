@@ -1,24 +1,24 @@
 import { useProgramQuery } from '@/apollo/queries/program.generated';
-import { useProgramDraft } from '@/lib/hooks/use-program-draft';
-import notify from '@/lib/notify';
-import { mainnetDefaultNetwork } from '@/lib/utils';
-import type { ProgramFormData, RecruitmentFormProps } from '@/types/recruitment';
-import { useEffect, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router';
-import { LabelValueProps } from '@/types/common';
-import { ProgramStatus, RecruitmentStatus } from '@/types/types.generated';
 import DraftButton from '@/components/common/button/draftButton';
 import SaveButton from '@/components/common/button/saveButton';
 import InputLabel from '@/components/common/label/inputLabel';
-import { MarkdownEditor } from '@/components/markdown';
-import { DatePicker } from '@/components/ui/date-picker';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import NetworkSelector from '@/components/network-selector';
 import CurrencySelector from '@/components/currency-selector';
+import { MarkdownEditor } from '@/components/markdown';
+import NetworkSelector from '@/components/network-selector';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { fetchSkills } from '@/lib/api/skills';
+import { useProgramDraft } from '@/lib/hooks/use-program-draft';
+import notify from '@/lib/notify';
+import { mainnetDefaultNetwork } from '@/lib/utils';
+import type { LabelValueProps } from '@/types/common';
+import type { ProgramFormData, RecruitmentFormProps } from '@/types/recruitment';
+import { ProgramStatus, RecruitmentStatus } from '@/types/types.generated';
+import { useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useParams } from 'react-router';
 
 function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: RecruitmentFormProps) {
   const { id } = useParams();

@@ -1,11 +1,6 @@
-import {
-  Control,
-  FieldErrors,
-  UseFormRegister,
-  UseFormSetValue,
-} from "react-hook-form";
-import type { RecruitmentStatus } from "./types.generated";
-import { LabelValueProps, VisibilityProps } from "./common";
+import type { Control, FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
+import type { LabelValueProps, VisibilityProps } from './common';
+import type { RecruitmentStatus } from './types.generated';
 
 export interface ProgramFormData {
   id?: string;
@@ -44,9 +39,7 @@ export interface ProgramOverviewProps extends programFormProps {
   deadline?: Date;
   validators: string[];
   selectedValidatorItems: LabelValueProps[];
-  setSelectedValidatorItems: React.Dispatch<
-    React.SetStateAction<LabelValueProps[]>
-  >;
+  setSelectedValidatorItems: React.Dispatch<React.SetStateAction<LabelValueProps[]>>;
   selectedImage?: File;
   isEdit?: boolean;
   control: Control<ProgramFormData, any, any>;

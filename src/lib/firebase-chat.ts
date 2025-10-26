@@ -1,42 +1,42 @@
-import { db } from '@/lib/firebase';
+import { db } from "@/lib/firebase";
 import {
-  collection,
-  addDoc,
-  query,
-  orderBy,
-  where,
-  limit,
-  getDocs,
-  onSnapshot,
-  serverTimestamp,
-  startAfter,
-  type QueryDocumentSnapshot,
   type DocumentData,
+  type QueryDocumentSnapshot,
   type Timestamp,
   type Unsubscribe,
-} from 'firebase/firestore';
+  addDoc,
+  collection,
+  getDocs,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  startAfter,
+  where,
+} from "firebase/firestore";
 
 export interface ChatMessage {
   id: string;
-  applicationId: string;
+  chatRoomId: string;
   text: string;
   senderId: string;
   timestamp: Timestamp;
 }
 
 export async function loadInitialMessages(
-  applicationId: string,
-  limitCount: number = 50,
+  chatRoomId: string,
+  limitCount = 50
 ): Promise<{
   messages: ChatMessage[];
   oldestDoc: QueryDocumentSnapshot<DocumentData> | null;
 }> {
-  const messagesRef = collection(db, 'chats');
+  const messagesRef = collection(db, "chats");
   const q = query(
     messagesRef,
-    where('applicationId', '==', applicationId),
-    orderBy('timestamp', 'desc'),
-    limit(limitCount),
+    where("chatRoomId", "==", chatRoomId),
+    orderBy("timestamp", "desc"),
+    limit(limitCount)
   );
 
   const snapshot = await getDocs(q);
@@ -48,26 +48,27 @@ export async function loadInitialMessages(
     }))
     .reverse() as ChatMessage[];
 
-  const oldestDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
+  const oldestDoc =
+    snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
 
   return { messages, oldestDoc };
 }
 
 export async function loadMoreMessages(
-  applicationId: string,
+  chatRoomId: string,
   oldestDoc: QueryDocumentSnapshot<DocumentData>,
-  limitCount: number = 50,
+  limitCount = 50
 ): Promise<{
   messages: ChatMessage[];
   oldestDoc: QueryDocumentSnapshot<DocumentData> | null;
 }> {
-  const messagesRef = collection(db, 'chats');
+  const messagesRef = collection(db, "chats");
   const q = query(
     messagesRef,
-    where('applicationId', '==', applicationId),
-    orderBy('timestamp', 'desc'),
+    where("chatRoomId", "==", chatRoomId),
+    orderBy("timestamp", "desc"),
     startAfter(oldestDoc),
-    limit(limitCount),
+    limit(limitCount)
   );
 
   const snapshot = await getDocs(q);
@@ -79,46 +80,47 @@ export async function loadMoreMessages(
     }))
     .reverse() as ChatMessage[];
 
-  const newOldestDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
+  const newOldestDoc =
+    snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
 
   return { messages, oldestDoc: newOldestDoc };
 }
 
 export async function sendMessage(
-  applicationId: string,
+  chatRoomId: string,
   text: string,
-  senderId: string,
+  senderId: string
 ): Promise<string> {
   const messageData = {
-    applicationId,
+    chatRoomId,
     text: text.trim(),
     senderId,
     timestamp: serverTimestamp(),
   };
 
-  const docRef = await addDoc(collection(db, 'chats'), messageData);
+  const docRef = await addDoc(collection(db, "chats"), messageData);
   return docRef.id;
 }
 
 export function subscribeToNewMessages(
-  applicationId: string,
+  chatRoomId: string,
   afterTimestamp: Timestamp,
   onNewMessage: (message: ChatMessage) => void,
-  onError?: (error: Error) => void,
+  onError?: (error: Error) => void
 ): Unsubscribe {
-  const messagesRef = collection(db, 'chats');
+  const messagesRef = collection(db, "chats");
   const q = query(
     messagesRef,
-    where('applicationId', '==', applicationId),
-    where('timestamp', '>', afterTimestamp),
-    orderBy('timestamp', 'asc'),
+    where("chatRoomId", "==", chatRoomId),
+    where("timestamp", ">", afterTimestamp),
+    orderBy("timestamp", "asc")
   );
 
   const unsubscribe = onSnapshot(
     q,
     (snapshot) => {
       snapshot.docChanges().forEach((change) => {
-        if (change.type === 'added') {
+        if (change.type === "added") {
           const newMsg = {
             id: change.doc.id,
             ...change.doc.data(),
@@ -131,9 +133,9 @@ export function subscribeToNewMessages(
       if (onError) {
         onError(error);
       } else {
-        console.error('❌ Snapshot error:', error);
+        console.error("❌ Snapshot error:", error);
       }
-    },
+    }
   );
 
   return unsubscribe;

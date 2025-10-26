@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { LabelValueProps } from '@/types/common';
+import type { LabelValueProps } from '@/types/common';
 
 interface SearchSelectProps {
   options: LabelValueProps[];

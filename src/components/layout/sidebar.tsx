@@ -5,11 +5,11 @@ import type { PathLinkProps } from '@/types/pathLink';
 import {
   CircleAlert,
   MessageCircle,
+  PanelRightClose,
+  PanelRightOpen,
   Scroll,
   UserRound,
   Users,
-  PanelRightOpen,
-  PanelRightClose,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';

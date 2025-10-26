@@ -1,10 +1,10 @@
-import { RecruitmentApplicant } from "@/types/recruitment";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Star, Heart } from "lucide-react";
-import { formatDate } from "@/lib/utils";
-import { Link } from "react-router";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { formatDate } from '@/lib/utils';
+import type { RecruitmentApplicant } from '@/types/recruitment';
+import { Heart, MapPin, Star } from 'lucide-react';
+import { Link } from 'react-router';
 
 interface ApplicantCardProps {
   applicant: RecruitmentApplicant;
@@ -18,12 +18,8 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
   onTogglePick,
 }) => {
   const { userInfo, appliedDate, picked } = applicant;
-  const fullName = `${userInfo.firstName || ""} ${
-    userInfo.lastName || ""
-  }`.trim();
-  const initials = `${userInfo.firstName?.[0] || ""}${
-    userInfo.lastName?.[0] || ""
-  }`.toUpperCase();
+  const fullName = `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim();
+  const initials = `${userInfo.firstName?.[0] || ''}${userInfo.lastName?.[0] || ''}`.toUpperCase();
 
   return (
     <div className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow">
@@ -32,9 +28,9 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-cetner gap-3">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={userInfo.image || ""} alt={fullName} />
+                <AvatarImage src={userInfo.image || ''} alt={fullName} />
                 <AvatarFallback className="text-lg font-semibold">
-                  {initials || "??"}
+                  {initials || '??'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col justify-around">
@@ -43,9 +39,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
                     {fullName}
                   </Link>
                   {userInfo.role && (
-                    <p className="text-sm text-muted-foreground">
-                      {userInfo.role}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{userInfo.role}</p>
                   )}
                 </div>
                 <div className="flex items-center text-slate-500 text-sm">
@@ -82,15 +76,8 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                onClick={() => onTogglePick?.(userInfo.userId, picked)}
-              >
-                {picked ? (
-                  <Heart className="fill-red-500 text-red-500" />
-                ) : (
-                  <Heart />
-                )}
+              <Button variant="ghost" onClick={() => onTogglePick?.(userInfo.userId, picked)}>
+                {picked ? <Heart className="fill-red-500 text-red-500" /> : <Heart />}
               </Button>
               <Button>Message</Button>
             </div>

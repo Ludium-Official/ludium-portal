@@ -1,20 +1,20 @@
-import InputLabel from '@/components/common/label/inputLabel';
-import CloseIcon from '@/assets/icons/common/CloseIcon.svg';
-import { Badge } from '@/components/ui/badge';
-import { handleImage } from '@/lib/functions/inputForm';
-import { ImageIcon, Plus } from 'lucide-react';
-import NetworkSelector from '@/components/network-selector';
-import { ProgramStatus } from '@/types/types.generated';
 import { useProgramQuery } from '@/apollo/queries/program.generated';
+import { useUsersQuery } from '@/apollo/queries/users.generated';
+import CloseIcon from '@/assets/icons/common/CloseIcon.svg';
+import InputLabel from '@/components/common/label/inputLabel';
+import MultipleInputLabel from '@/components/common/label/multipleInputLabel';
 import CurrencySelector from '@/components/currency-selector';
-import { mainnetDefaultNetwork } from '@/lib/utils';
+import NetworkSelector from '@/components/network-selector';
+import { Badge } from '@/components/ui/badge';
 import { DatePicker } from '@/components/ui/date-picker';
 import { MultiSelect } from '@/components/ui/multi-select';
-import MultipleInputLabel from '@/components/common/label/multipleInputLabel';
-import { useParams } from 'react-router';
-import { useUsersQuery } from '@/apollo/queries/users.generated';
+import { handleImage } from '@/lib/functions/inputForm';
+import { mainnetDefaultNetwork } from '@/lib/utils';
+import type { ProgramOverviewProps } from '@/types/recruitment';
+import { ProgramStatus } from '@/types/types.generated';
+import { ImageIcon, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { ProgramOverviewProps } from '@/types/recruitment';
+import { useParams } from 'react-router';
 
 const ProgramOverview: React.FC<ProgramOverviewProps> = ({
   register,

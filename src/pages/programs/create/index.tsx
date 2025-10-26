@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { useProgramDraft } from '@/lib/hooks/use-program-draft';
 import notify from '@/lib/notify';
 import type { OnSubmitProgramFunc } from '@/types/recruitment';
-import { type ProgramVisibility, RecruitmentStatus } from '@/types/types.generated';
+import type { ProgramVisibility, RecruitmentStatus } from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 

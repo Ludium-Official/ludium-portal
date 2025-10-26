@@ -1,9 +1,9 @@
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { InputLabelProps } from '@/types/input';
-import { useFieldArray } from 'react-hook-form';
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { useFieldArray } from 'react-hook-form';
 
 const MultipleInputLabel: React.FC<InputLabelProps> = ({
   labelId,

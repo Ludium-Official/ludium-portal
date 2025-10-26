@@ -5,9 +5,9 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import notify from '@/lib/notify';
-import { LabelValueProps, VisibilityProps } from '@/types/common';
+import type { LabelValueProps, VisibilityProps } from '@/types/common';
 import { useEffect, useState } from 'react';
-import { UseFormSetValue } from 'react-hook-form';
+import type { UseFormSetValue } from 'react-hook-form';
 
 interface SaveButtonProps {
   isAllFill: boolean;

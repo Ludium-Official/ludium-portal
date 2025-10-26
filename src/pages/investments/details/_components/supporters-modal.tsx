@@ -9,7 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import notify from '@/lib/notify';
 import { getCurrencyIcon, sortTierSettings } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
-import { LabelValueProps } from '@/types/common';
+import type { LabelValueProps } from '@/types/common';
 import type { InvestmentTier, Program, Supporter } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';

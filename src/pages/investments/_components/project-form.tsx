@@ -17,7 +17,7 @@ import { useProjectDraft } from '@/lib/hooks/use-project-draft';
 import notify from '@/lib/notify';
 import { cn, getCurrency, getCurrencyIcon, sortTierSettings } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
-import { LabelValueProps, VisibilityProps } from '@/types/common';
+import type { LabelValueProps, VisibilityProps } from '@/types/common';
 import { type LinkInput, ProgramStatus } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { Check, ChevronRight, TriangleAlert, X } from 'lucide-react';

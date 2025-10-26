@@ -1,31 +1,25 @@
-import { useParams } from "react-router";
-import { mockRecruitmentPrograms } from "@/mock/recruitment-programs";
-import {
-  formatDate,
-  formatPrice,
-  getCurrency,
-  getCurrencyIcon,
-  reduceString,
-} from "@/lib/utils";
-import { MarkdownPreviewer } from "@/components/markdown";
-import { ShareButton } from "@/components/ui/share-button";
-import { Button } from "@/components/ui/button";
+import { MarkdownPreviewer } from '@/components/markdown';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
-import { useState } from "react";
-import StatusBadge from "../statusBadge/statusBadge";
-import { Badge } from "@/components/ui/badge";
+} from '@/components/ui/dropdown-menu';
+import { ShareButton } from '@/components/ui/share-button';
+import { formatDate, formatPrice, getCurrency, getCurrencyIcon, reduceString } from '@/lib/utils';
+import { mockRecruitmentPrograms } from '@/mock/recruitment-programs';
+import { ChevronDown } from 'lucide-react';
+import { useState } from 'react';
+import { useParams } from 'react-router';
+import StatusBadge from '../statusBadge/statusBadge';
 
 const RecruitmentOverview: React.FC = () => {
   const { id } = useParams();
 
   const recruitment = mockRecruitmentPrograms.find((item) => item.id === id);
-  const [status, setStatus] = useState<string>(recruitment?.status || "");
+  const [status, setStatus] = useState<string>(recruitment?.status || '');
 
   if (!recruitment) {
     return (
@@ -35,12 +29,9 @@ const RecruitmentOverview: React.FC = () => {
     );
   }
 
-  const formattedCreatedAt =
-    recruitment.createdAt && formatDate(recruitment.createdAt);
-  const formattedDeadline =
-    recruitment.deadline && formatDate(recruitment.deadline);
-  const formattedPriceValue =
-    recruitment.price && formatPrice(recruitment.price);
+  const formattedCreatedAt = recruitment.createdAt && formatDate(recruitment.createdAt);
+  const formattedDeadline = recruitment.deadline && formatDate(recruitment.deadline);
+  const formattedPriceValue = recruitment.price && formatPrice(recruitment.price);
 
   return (
     <div className="bg-white rounded-2xl p-10">
@@ -48,9 +39,7 @@ const RecruitmentOverview: React.FC = () => {
         <div className="mr-5">
           <StatusBadge status={recruitment.status} />
         </div>
-        <div className="text-sm text-gray-500">
-          Posted: {formattedCreatedAt}
-        </div>
+        <div className="text-sm text-gray-500">Posted: {formattedCreatedAt}</div>
       </div>
 
       <h1 className="flex justify-between mb-8 text-3xl font-bold text-gray-900">
@@ -61,35 +50,29 @@ const RecruitmentOverview: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <h3 className="flex items-end">
-            <span className="p-2 border-b border-b-primary font-medium text-sm">
-              Details
-            </span>
+            <span className="p-2 border-b border-b-primary font-medium text-sm">Details</span>
             <span className="block border-b w-full" />
           </h3>
 
           <div className="mt-3">
-            {recruitment.description && (
-              <MarkdownPreviewer value={recruitment.description} />
-            )}
+            {recruitment.description && <MarkdownPreviewer value={recruitment.description} />}
           </div>
         </div>
 
         <div className="lg:col-span-1">
           <div className="p-6 space-y-6">
             <div className="flex items-center justify-between pb-5 border-b">
-              <div className="text-muted-foreground text-sm font-medium">
-                Price
-              </div>
+              <div className="text-muted-foreground text-sm font-medium">Price</div>
               <div>
                 <div className="text-sm text-right">
                   {getCurrency(recruitment.network)?.display}
                 </div>
                 <div className="font-bold text-xl">
-                  {recruitment.budgetType === "negotiable" ? (
-                    "Negotiable"
+                  {recruitment.budgetType === 'negotiable' ? (
+                    'Negotiable'
                   ) : recruitment.price && recruitment.currency ? (
                     <div className="flex items-center gap-3">
-                      {formattedPriceValue}{" "}
+                      {formattedPriceValue}{' '}
                       <div className="flex items-center gap-2">
                         {getCurrencyIcon(recruitment.currency)}
                         {recruitment.currency}
@@ -103,9 +86,7 @@ const RecruitmentOverview: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="text-muted-foreground text-sm font-medium">
-                Deadline
-              </div>
+              <div className="text-muted-foreground text-sm font-medium">Deadline</div>
               <div>
                 <div className="font-bold text-xl">{formattedDeadline}</div>
               </div>
@@ -116,46 +97,36 @@ const RecruitmentOverview: React.FC = () => {
                 <Button
                   variant="secondary"
                   className="h-11 flex-1"
-                  disabled={recruitment.status !== "open"}
+                  disabled={recruitment.status !== 'open'}
                 >
                   Edit
                 </Button>
-                {recruitment.status === "under_review" ? (
+                {recruitment.status === 'under_review' ? (
                   <Button disabled className="h-11 flex-1">
                     Under Review
                   </Button>
-                ) : status === "closed" ? (
-                  <Button
-                    variant="outline"
-                    disabled
-                    className="border h-11 flex-1 gap-2"
-                  >
+                ) : status === 'closed' ? (
+                  <Button variant="outline" disabled className="border h-11 flex-1 gap-2">
                     <StatusBadge status="closed" />
                     <ChevronDown className="ml-auto h-4 w-4" />
                   </Button>
                 ) : (
                   <DropdownMenu>
-                    <DropdownMenuTrigger
-                      asChild
-                      disabled={recruitment.status !== "open"}
-                    >
-                      <Button
-                        variant="outline"
-                        className="border h-11 flex-1 gap-2"
-                      >
+                    <DropdownMenuTrigger asChild disabled={recruitment.status !== 'open'}>
+                      <Button variant="outline" className="border h-11 flex-1 gap-2">
                         <StatusBadge status={status} />
                         <ChevronDown className="ml-auto h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-[180px]">
                       <DropdownMenuItem
-                        onClick={() => setStatus("open")}
+                        onClick={() => setStatus('open')}
                         className="cursor-pointer"
                       >
                         <StatusBadge status="open" />
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => setStatus("closed")}
+                        onClick={() => setStatus('closed')}
                         className="cursor-pointer"
                       >
                         <StatusBadge status="closed" />
@@ -167,16 +138,10 @@ const RecruitmentOverview: React.FC = () => {
             </div>
 
             <div>
-              <div className="mb-2 text-muted-foreground text-sm font-medium">
-                Skills
-              </div>
+              <div className="mb-2 text-muted-foreground text-sm font-medium">Skills</div>
               <div className="flex gap-3 text-sm">
                 {recruitment.skills?.map((skill) => (
-                  <Badge
-                    key={skill}
-                    variant="secondary"
-                    className="text-xs font-semibold"
-                  >
+                  <Badge key={skill} variant="secondary" className="text-xs font-semibold">
                     {skill.toUpperCase()}
                   </Badge>
                 ))}
@@ -184,22 +149,16 @@ const RecruitmentOverview: React.FC = () => {
             </div>
 
             <div>
-              <div className="mb-2 text-muted-foreground text-sm font-medium">
-                Sponser
-              </div>
+              <div className="mb-2 text-muted-foreground text-sm font-medium">Sponser</div>
               <div className="flex gap-3 text-sm text-muted-foreground">
                 {recruitment.sponser?.firstName && recruitment.sponser?.lastName
                   ? `${recruitment.sponser?.firstName} ${recruitment.sponser?.lastName}`
-                  : reduceString(
-                      recruitment.sponser?.walletAddress || "",
-                      6,
-                      6
-                    )}
+                  : reduceString(recruitment.sponser?.walletAddress || '', 6, 6)}
               </div>
             </div>
 
             <div className="text-sm font-medium">
-              <span className="mr-2 text-muted-foreground">Applicants</span>{" "}
+              <span className="mr-2 text-muted-foreground">Applicants</span>{' '}
               <span className="text-primary">{recruitment.applicantCount}</span>
             </div>
 

@@ -1,25 +1,20 @@
-import { mockRecruitmentPrograms } from "@/mock/recruitment-applicants";
-import ApplicantCard from "./applicant-card/applicant-card";
-import { useState } from "react";
+import { mockRecruitmentPrograms } from '@/mock/recruitment-applicants';
+import { useState } from 'react';
+import ApplicantCard from './applicant-card/applicant-card';
 
 const RecruitmentApplicants: React.FC = () => {
   const [applicants, setApplicants] = useState(mockRecruitmentPrograms);
 
   const handlePickApplicant = (userId?: string | null) => {
-    console.log("Pick applicant:", userId);
+    console.log('Pick applicant:', userId);
     // TODO: Implement pick applicant logic
   };
 
-  const handleTogglePick = (
-    userId?: string | null,
-    currentPicked?: boolean
-  ) => {
+  const handleTogglePick = (userId?: string | null, currentPicked?: boolean) => {
     setApplicants((prev) =>
       prev.map((applicant) =>
-        applicant.userInfo.userId === userId
-          ? { ...applicant, picked: !currentPicked }
-          : applicant
-      )
+        applicant.userInfo.userId === userId ? { ...applicant, picked: !currentPicked } : applicant,
+      ),
     );
   };
 
@@ -36,9 +31,7 @@ const RecruitmentApplicants: React.FC = () => {
             />
           ))
         ) : (
-          <div className="text-center py-12 text-muted-foreground">
-            No applicants yet
-          </div>
+          <div className="text-center py-12 text-muted-foreground">No applicants yet</div>
         )}
       </div>
     </div>

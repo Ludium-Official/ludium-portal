@@ -1,33 +1,13 @@
-import { useApplicationQuery } from "@/apollo/queries/application.generated";
-import { useProgramQuery } from "@/apollo/queries/program.generated";
-import { ChatBox } from "@/components/chat/chat-box";
-import { useParams } from "react-router";
+import { ChatBox } from '@/components/chat/chat-box';
 
-function ApplicationChat() {
-  const { id, applicationId } = useParams();
+interface ApplicationChatProps {
+  messageId?: string;
+}
 
-  const { data } = useApplicationQuery({
-    variables: {
-      id: applicationId ?? "",
-    },
-    skip: !applicationId,
-  });
+function ApplicationChat({ messageId }: ApplicationChatProps = {}) {
+  const chatRoomId = messageId || '';
 
-  const { data: programData } = useProgramQuery({
-    variables: {
-      id: id ?? "",
-    },
-  });
-
-  const program = programData?.program;
-
-  return (
-    <ChatBox
-      applicationId={applicationId ?? ""}
-      sponsor={program?.creator}
-      builder={data?.application?.applicant}
-    />
-  );
+  return <ChatBox chatRoomId={chatRoomId} />;
 }
 
 export default ApplicationChat;

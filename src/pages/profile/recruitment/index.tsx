@@ -1,3 +1,11 @@
+import StatusBadge from '@/components/recruitment/statusBadge/statusBadge';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   Table,
   TableBody,
@@ -5,33 +13,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { mockRecruitmentPrograms } from "@/mock/recruitment-programs";
+} from '@/components/ui/table';
+import { formatDate, formatPrice, getCurrencyIcon } from '@/lib/utils';
+import { mockRecruitmentPrograms } from '@/mock/recruitment-programs';
+import type { RecruitmentProgram } from '@/types/recruitment';
 import {
-  ColumnDef,
-  ColumnFiltersState,
+  type ColumnDef,
+  type ColumnFiltersState,
+  type SortingState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  SortingState,
   useReactTable,
-} from "@tanstack/react-table";
-import { ChevronDown, ChevronLeft, ChevronsUpDown } from "lucide-react";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { RecruitmentProgram } from "@/types/recruitment";
-import { recruitmentStatusColors } from "@/constant/status";
-import { formatDate, formatPrice, getCurrencyIcon } from "@/lib/utils";
-import StatusBadge from "@/components/recruitment/statusBadge/statusBadge";
+} from '@tanstack/react-table';
+import { ChevronDown, ChevronLeft, ChevronsUpDown } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
 
 const ProfileRecruitment: React.FC = () => {
   const navigate = useNavigate();
@@ -41,17 +40,17 @@ const ProfileRecruitment: React.FC = () => {
 
   const columns: ColumnDef<RecruitmentProgram>[] = [
     {
-      accessorKey: "title",
-      header: "Title",
+      accessorKey: 'title',
+      header: 'Title',
       cell: ({ row }) => (
         <div className="font-bold overflow-hidden text-ellipsis whitespace-nowrap">
-          {row.getValue("title")}
+          {row.getValue('title')}
         </div>
       ),
       size: 200,
     },
     {
-      accessorKey: "status",
+      accessorKey: 'status',
       header: ({ column }) => {
         const filterValue = (column.getFilterValue() as string[]) || [];
         const isAllSelected = filterValue.length === 0;
@@ -81,50 +80,37 @@ const ProfileRecruitment: React.FC = () => {
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              <DropdownMenuCheckboxItem
-                checked={isAllSelected}
-                onCheckedChange={handleAllChange}
-              >
+              <DropdownMenuCheckboxItem checked={isAllSelected} onCheckedChange={handleAllChange}>
                 All
               </DropdownMenuCheckboxItem>
               <DropdownMenuSeparator />
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes("open")}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("open", checked)
-                }
+                checked={filterValue.includes('open')}
+                onCheckedChange={(checked) => handleStatusChange('open', checked)}
               >
                 Open
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes("closed")}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("closed", checked)
-                }
+                checked={filterValue.includes('closed')}
+                onCheckedChange={(checked) => handleStatusChange('closed', checked)}
               >
                 Closed
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes("draft")}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("draft", checked)
-                }
+                checked={filterValue.includes('draft')}
+                onCheckedChange={(checked) => handleStatusChange('draft', checked)}
               >
                 Draft
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes("under_review")}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("under_review", checked)
-                }
+                checked={filterValue.includes('under_review')}
+                onCheckedChange={(checked) => handleStatusChange('under_review', checked)}
               >
                 Under Review
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes("declined")}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("declined", checked)
-                }
+                checked={filterValue.includes('declined')}
+                onCheckedChange={(checked) => handleStatusChange('declined', checked)}
               >
                 Declined
               </DropdownMenuCheckboxItem>
@@ -133,7 +119,7 @@ const ProfileRecruitment: React.FC = () => {
         );
       },
       cell: ({ row }) => {
-        return <StatusBadge status={row.getValue("status")} />;
+        return <StatusBadge status={row.getValue('status')} />;
       },
       filterFn: (row, id, value) => {
         return value.includes(row.getValue(id));
@@ -141,12 +127,12 @@ const ProfileRecruitment: React.FC = () => {
       size: 100,
     },
     {
-      accessorKey: "deadline",
+      accessorKey: 'deadline',
       header: ({ column }) => {
         return (
           <div
             className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Deadline
             <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -154,22 +140,18 @@ const ProfileRecruitment: React.FC = () => {
         );
       },
       cell: ({ row }) => {
-        return (
-          <div className="font-bold">
-            {formatDate(row.getValue("deadline"))}
-          </div>
-        );
+        return <div className="font-bold">{formatDate(row.getValue('deadline'))}</div>;
       },
-      sortingFn: "datetime",
+      sortingFn: 'datetime',
       size: 100,
     },
     {
-      accessorKey: "price",
+      accessorKey: 'price',
       header: ({ column }) => {
         return (
           <div
             className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Price
             <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -181,7 +163,7 @@ const ProfileRecruitment: React.FC = () => {
         const price = row.original.price;
         const currency = row.original.currency;
 
-        if (budgetType === "negotiable") {
+        if (budgetType === 'negotiable') {
           return <div className="font-bold">Negotiable</div>;
         }
 
@@ -191,7 +173,7 @@ const ProfileRecruitment: React.FC = () => {
 
         return (
           <div className="flex items-center gap-3 font-bold">
-            {formatPrice(price)}{" "}
+            {formatPrice(price)}{' '}
             <div className="flex items-center gap-2">
               {getCurrencyIcon(currency)}
               {currency}
@@ -203,25 +185,23 @@ const ProfileRecruitment: React.FC = () => {
         const a = rowA.original;
         const b = rowB.original;
 
-        if (a.budgetType === "negotiable" && b.budgetType !== "negotiable")
-          return 1;
-        if (a.budgetType !== "negotiable" && b.budgetType === "negotiable")
-          return -1;
+        if (a.budgetType === 'negotiable' && b.budgetType !== 'negotiable') return 1;
+        if (a.budgetType !== 'negotiable' && b.budgetType === 'negotiable') return -1;
 
-        const priceA = parseFloat(a.price || "0");
-        const priceB = parseFloat(b.price || "0");
+        const priceA = Number.parseFloat(a.price || '0');
+        const priceB = Number.parseFloat(b.price || '0');
 
         return priceA - priceB;
       },
       size: 100,
     },
     {
-      accessorKey: "createdAt",
+      accessorKey: 'createdAt',
       header: ({ column }) => {
         return (
           <div
             className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Post Date
             <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -229,22 +209,16 @@ const ProfileRecruitment: React.FC = () => {
         );
       },
       cell: ({ row }) => {
-        return (
-          <div className="font-bold">
-            {formatDate(row.getValue("createdAt"))}
-          </div>
-        );
+        return <div className="font-bold">{formatDate(row.getValue('createdAt'))}</div>;
       },
-      sortingFn: "datetime",
+      sortingFn: 'datetime',
       size: 100,
     },
     {
-      accessorKey: "applicantCount",
-      header: "Applicants",
+      accessorKey: 'applicantCount',
+      header: 'Applicants',
       cell: ({ row }) => {
-        return (
-          <div className="font-bold">{row.getValue("applicantCount")}</div>
-        );
+        return <div className="font-bold">{row.getValue('applicantCount')}</div>;
       },
       size: 100,
     },
@@ -275,18 +249,13 @@ const ProfileRecruitment: React.FC = () => {
           <ChevronLeft className="w-4" />
           Dashboard
         </Link>
-        <div className="mb-6 font-bold text-2xl text-gray-mid-dark">
-          My Job Posts
-        </div>
+        <div className="mb-6 font-bold text-2xl text-gray-mid-dark">My Job Posts</div>
       </div>
       <div className="border border-[#E4E4E7] rounded-2xl overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow
-                key={headerGroup.id}
-                className="border-b border-[#E4E4E7]"
-              >
+              <TableRow key={headerGroup.id} className="border-b border-[#E4E4E7]">
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
@@ -296,10 +265,7 @@ const ProfileRecruitment: React.FC = () => {
                     >
                       {header.isPlaceholder
                         ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                        : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
                   );
                 })}
@@ -311,11 +277,9 @@ const ProfileRecruitment: React.FC = () => {
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
+                  data-state={row.getIsSelected() && 'selected'}
                   className="cursor-pointer hover:bg-gray-50 border-b border-[#E4E4E7] last:border-b-0 text-[#4B5563]"
-                  onClick={() =>
-                    navigate(`/profile/recruitment/sponser/${row.original.id}`)
-                  }
+                  onClick={() => navigate(`/profile/recruitment/sponser/${row.original.id}`)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
@@ -326,20 +290,14 @@ const ProfileRecruitment: React.FC = () => {
                       }}
                       className="px-4 py-[30px]"
                     >
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center px-4 py-[30px]"
-                >
+                <TableCell colSpan={columns.length} className="h-24 text-center px-4 py-[30px]">
                   No results.
                 </TableCell>
               </TableRow>

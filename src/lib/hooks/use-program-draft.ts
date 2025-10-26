@@ -1,5 +1,5 @@
 import { useAuth } from '@/lib/hooks/use-auth';
-import { LabelValueProps, VisibilityProps } from '@/types/common';
+import type { LabelValueProps, VisibilityProps } from '@/types/common';
 import { useCallback, useMemo } from 'react';
 
 export type ProgramDraft = {
