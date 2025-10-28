@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { useProgramDraft } from '@/lib/hooks/use-program-draft';
 import notify from '@/lib/notify';
 import type { OnSubmitProgramFunc } from '@/types/recruitment';
-import type { ProgramVisibility, RecruitmentStatus } from '@/types/types.generated';
+import type { ProgramVisibility } from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -30,12 +30,9 @@ const CreateProgram: React.FC = () => {
           price: args.price ?? '0',
           description: args.description,
           deadline: args.deadline?.toISOString() ?? '',
-          skills: Array.isArray(args.skills) ? args.skills : [],
+          keywords: Array.isArray(args.skills) ? args.skills : [],
           network: args.network ?? '',
-          budget: args.budget,
-
           visibility: args.visibility as ProgramVisibility,
-          status: args.status as RecruitmentStatus,
         },
       },
       onCompleted: async (data) => {

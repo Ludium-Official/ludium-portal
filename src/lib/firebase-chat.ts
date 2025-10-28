@@ -1,4 +1,4 @@
-import { db } from "@/lib/firebase";
+import { db } from '@/lib/firebase';
 import {
   type DocumentData,
   type QueryDocumentSnapshot,
@@ -14,7 +14,7 @@ import {
   serverTimestamp,
   startAfter,
   where,
-} from "firebase/firestore";
+} from 'firebase/firestore';
 
 export interface ChatMessage {
   id: string;
@@ -26,17 +26,17 @@ export interface ChatMessage {
 
 export async function loadInitialMessages(
   chatRoomId: string,
-  limitCount = 50
+  limitCount = 50,
 ): Promise<{
   messages: ChatMessage[];
   oldestDoc: QueryDocumentSnapshot<DocumentData> | null;
 }> {
-  const messagesRef = collection(db, "chats");
+  const messagesRef = collection(db, 'chats');
   const q = query(
     messagesRef,
-    where("chatRoomId", "==", chatRoomId),
-    orderBy("timestamp", "desc"),
-    limit(limitCount)
+    where('chatRoomId', '==', chatRoomId),
+    orderBy('timestamp', 'desc'),
+    limit(limitCount),
   );
 
   const snapshot = await getDocs(q);
@@ -48,8 +48,7 @@ export async function loadInitialMessages(
     }))
     .reverse() as ChatMessage[];
 
-  const oldestDoc =
-    snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
+  const oldestDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
 
   return { messages, oldestDoc };
 }
@@ -57,18 +56,18 @@ export async function loadInitialMessages(
 export async function loadMoreMessages(
   chatRoomId: string,
   oldestDoc: QueryDocumentSnapshot<DocumentData>,
-  limitCount = 50
+  limitCount = 50,
 ): Promise<{
   messages: ChatMessage[];
   oldestDoc: QueryDocumentSnapshot<DocumentData> | null;
 }> {
-  const messagesRef = collection(db, "chats");
+  const messagesRef = collection(db, 'chats');
   const q = query(
     messagesRef,
-    where("chatRoomId", "==", chatRoomId),
-    orderBy("timestamp", "desc"),
+    where('chatRoomId', '==', chatRoomId),
+    orderBy('timestamp', 'desc'),
     startAfter(oldestDoc),
-    limit(limitCount)
+    limit(limitCount),
   );
 
   const snapshot = await getDocs(q);
@@ -80,8 +79,7 @@ export async function loadMoreMessages(
     }))
     .reverse() as ChatMessage[];
 
-  const newOldestDoc =
-    snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
+  const newOldestDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
 
   return { messages, oldestDoc: newOldestDoc };
 }
@@ -89,7 +87,7 @@ export async function loadMoreMessages(
 export async function sendMessage(
   chatRoomId: string,
   text: string,
-  senderId: string
+  senderId: string,
 ): Promise<string> {
   const messageData = {
     chatRoomId,
@@ -98,7 +96,7 @@ export async function sendMessage(
     timestamp: serverTimestamp(),
   };
 
-  const docRef = await addDoc(collection(db, "chats"), messageData);
+  const docRef = await addDoc(collection(db, 'chats'), messageData);
   return docRef.id;
 }
 
@@ -106,21 +104,21 @@ export function subscribeToNewMessages(
   chatRoomId: string,
   afterTimestamp: Timestamp,
   onNewMessage: (message: ChatMessage) => void,
-  onError?: (error: Error) => void
+  onError?: (error: Error) => void,
 ): Unsubscribe {
-  const messagesRef = collection(db, "chats");
+  const messagesRef = collection(db, 'chats');
   const q = query(
     messagesRef,
-    where("chatRoomId", "==", chatRoomId),
-    where("timestamp", ">", afterTimestamp),
-    orderBy("timestamp", "asc")
+    where('chatRoomId', '==', chatRoomId),
+    where('timestamp', '>', afterTimestamp),
+    orderBy('timestamp', 'asc'),
   );
 
   const unsubscribe = onSnapshot(
     q,
     (snapshot) => {
       snapshot.docChanges().forEach((change) => {
-        if (change.type === "added") {
+        if (change.type === 'added') {
           const newMsg = {
             id: change.doc.id,
             ...change.doc.data(),
@@ -133,9 +131,9 @@ export function subscribeToNewMessages(
       if (onError) {
         onError(error);
       } else {
-        console.error("❌ Snapshot error:", error);
+        console.error('❌ Snapshot error:', error);
       }
-    }
+    },
   );
 
   return unsubscribe;

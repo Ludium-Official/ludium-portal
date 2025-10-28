@@ -1,5 +1,5 @@
 import { useProgramQuery } from '@/apollo/queries/program.generated';
-import { useUsersQuery } from '@/apollo/queries/users.generated';
+import { useUsersV2Query } from '@/apollo/queries/users-v2.generated';
 import CloseIcon from '@/assets/icons/common/CloseIcon.svg';
 import InputLabel from '@/components/common/label/inputLabel';
 import MultipleInputLabel from '@/components/common/label/multipleInputLabel';
@@ -45,17 +45,11 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
     skip: !isEdit,
   });
 
-  const { data: usersData, loading } = useUsersQuery({
+  const { data: usersData, loading } = useUsersV2Query({
     variables: {
-      input: {
+      query: {
         limit: 5,
-        offset: 0,
-        filter: [
-          {
-            field: 'search',
-            value: debouncedValidatorInput ?? '',
-          },
-        ],
+        search: debouncedValidatorInput ?? '',
       },
     },
     skip: !validatorInput,
@@ -82,7 +76,7 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
     );
   };
 
-  const validatorOptions = usersData?.users?.data?.map((v) => ({
+  const validatorOptions = usersData?.usersV2?.users?.map((v) => ({
     value: v.id ?? '',
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
   }));

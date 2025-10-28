@@ -1,5 +1,5 @@
 import { useProgramQuery } from '@/apollo/queries/program.generated';
-import { useUsersQuery } from '@/apollo/queries/users.generated';
+import { useUsersV2Query } from '@/apollo/queries/users-v2.generated';
 import CurrencySelector from '@/components/currency-selector';
 import { MarkdownEditor } from '@/components/markdown';
 import NetworkSelector from '@/components/network-selector';
@@ -136,17 +136,11 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     return () => clearTimeout(timer);
   }, [validatorInput]);
 
-  const { data: validators, loading } = useUsersQuery({
+  const { data: validators, loading } = useUsersV2Query({
     variables: {
-      input: {
+      query: {
         limit: 5,
-        offset: 0,
-        filter: [
-          {
-            field: 'search',
-            value: debouncedValidatorInput ?? '',
-          },
-        ],
+        search: debouncedValidatorInput ?? '',
       },
     },
     skip: !validatorInput,
@@ -160,7 +154,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     dates: false,
   });
 
-  const validatorOptions = validators?.users?.data?.map((v) => ({
+  const validatorOptions = validators?.usersV2?.users?.map((v) => ({
     value: v.id ?? '',
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
   }));
@@ -251,23 +245,17 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     return () => clearTimeout(timer);
   }, [builderInput]);
 
-  const { data: buildersData, loading: buildersLoading } = useUsersQuery({
+  const { data: buildersData, loading: buildersLoading } = useUsersV2Query({
     variables: {
-      input: {
+      query: {
         limit: 5,
-        offset: 0,
-        filter: [
-          {
-            field: 'search',
-            value: debouncedBuilderInput ?? '',
-          },
-        ],
+        search: debouncedBuilderInput ?? '',
       },
     },
     skip: !builderInput,
   });
 
-  const builderOptions = buildersData?.users?.data?.map((v) => ({
+  const builderOptions = buildersData?.usersV2?.users?.map((v) => ({
     value: v.id ?? '',
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
   }));
@@ -360,7 +348,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     const validatorWalletAddresses = selectedValidatorItems
       .map((item) => {
         // Find the validator in the data
-        const validator = validators?.users?.data?.find((u) => u.id === item.value);
+        const validator = validators?.usersV2?.users?.find((u) => u.id === item.value);
         return validator?.walletAddress || null;
       })
       .filter((address) => address !== null) as string[];

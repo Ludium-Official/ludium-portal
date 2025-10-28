@@ -1,6 +1,6 @@
 import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
 import { useRemoveUserFromProgramMutation } from '@/apollo/mutation/remove-user-from-program.generated';
-import { useUsersQuery } from '@/apollo/queries/users.generated';
+import { useUsersV2Query } from '@/apollo/queries/users-v2.generated';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
@@ -59,23 +59,17 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
   }, [supporterInput]);
 
   // Query for supporters/users
-  const { data: supportersData, loading: supportersLoading } = useUsersQuery({
+  const { data: supportersData, loading: supportersLoading } = useUsersV2Query({
     variables: {
-      input: {
+      query: {
         limit: 5,
-        offset: 0,
-        filter: [
-          {
-            field: 'search',
-            value: debouncedSupporterInput ?? '',
-          },
-        ],
+        search: debouncedSupporterInput ?? '',
       },
     },
     skip: !supporterInput,
   });
 
-  const supporterOptions = supportersData?.users?.data?.map((v) => ({
+  const supporterOptions = supportersData?.usersV2?.users?.map((v) => ({
     value: v.id ?? '',
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
   }));

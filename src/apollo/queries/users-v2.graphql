@@ -1,0 +1,25 @@
+query usersV2($query: UsersV2QueryInput) {
+  usersV2(query: $query) {
+    users {
+      id
+      role
+      loginType
+      walletAddress
+      email
+      firstName
+      lastName
+      organizationName
+      profileImage
+      bio
+      skills
+      links
+      createdAt
+      updatedAt
+    }
+    totalCount
+    totalPages
+    currentPage
+    hasNextPage
+    hasPreviousPage
+  }
+}

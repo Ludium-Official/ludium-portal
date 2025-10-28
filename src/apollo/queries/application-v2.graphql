@@ -1,0 +1,26 @@
+query applicationV2($id: ID!) {
+  applicationV2(id: $id) {
+    id
+    status
+    content
+    picked
+    rejectedReason
+    createdAt
+    updatedAt
+    applicant {
+      id
+      email
+      firstName
+      lastName
+      profileImage
+      organizationName
+      bio
+      skills
+    }
+    program {
+      id
+      title
+      description
+    }
+  }
+}

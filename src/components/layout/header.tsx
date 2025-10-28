@@ -18,6 +18,7 @@ import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import { commaNumber, isMobileDevice, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
 import type { BalanceProps } from '@/types/asset';
+import { LoginTypeEnum } from '@/types/types.generated';
 import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import { useEffect, useRef, useState } from 'react';
@@ -61,7 +62,11 @@ function Header() {
 
   const login = async () => {
     try {
-      const loginType = user?.google ? 'google' : user?.farcaster ? 'farcaster' : 'wallet';
+      const loginType = user?.google
+        ? LoginTypeEnum.Google
+        : user?.farcaster
+        ? LoginTypeEnum.Farcaster
+        : LoginTypeEnum.Wallet;
 
       privyLogin({ disableSignup: false });
 

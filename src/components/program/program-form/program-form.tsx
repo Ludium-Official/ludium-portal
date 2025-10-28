@@ -15,7 +15,7 @@ import notify from '@/lib/notify';
 import { mainnetDefaultNetwork } from '@/lib/utils';
 import type { LabelValueProps } from '@/types/common';
 import type { ProgramFormData, RecruitmentFormProps } from '@/types/recruitment';
-import { ProgramStatus, RecruitmentStatus } from '@/types/types.generated';
+import { ProgramStatus } from '@/types/types.generated';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
@@ -103,27 +103,14 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
     onSubmitProgram({
       id: programData?.program?.id ?? id,
       programTitle: submitData.programTitle,
-      price:
-        isEdit && programData?.program?.status !== RecruitmentStatus.UnderReview
-          ? undefined
-          : submitData.price,
+      price: submitData.price,
       description,
-      currency:
-        isEdit && programData?.program?.status !== RecruitmentStatus.UnderReview
-          ? (programData?.program?.currency as string)
-          : currency,
+      currency,
       deadline,
       skills: submitData.skills,
-      network:
-        isEdit && programData?.program?.status !== RecruitmentStatus.UnderReview
-          ? (programData?.program?.network as string)
-          : (network ?? mainnetDefaultNetwork),
+      network: network ?? mainnetDefaultNetwork,
       visibility,
       builders: selectedBuilders,
-      status:
-        isEdit && programData?.program?.status !== RecruitmentStatus.UnderReview
-          ? programData?.program?.status
-          : RecruitmentStatus.UnderReview,
       budget: submitData.budget,
     });
 

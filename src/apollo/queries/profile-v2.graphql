@@ -1,0 +1,18 @@
+query profileV2 {
+  profileV2 {
+    id
+    email
+    firstName
+    lastName
+    role
+    loginType
+    walletAddress
+    organizationName
+    profileImage
+    bio
+    skills
+    links
+    createdAt
+    updatedAt
+  }
+}

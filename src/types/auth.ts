@@ -1,3 +1,5 @@
+import type { LoginTypeEnum } from './types.generated';
+
 export interface AuthProps {
   email?: string | null;
   token?: string | null;
@@ -12,15 +14,15 @@ export interface AuthProps {
     walletAddress,
     loginType,
   }: {
-    email: string | null;
+    email?: string | null;
     walletAddress: string;
-    loginType: string;
+    loginType: LoginTypeEnum;
   }) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 export interface LoginProps {
-  email: string | null;
+  email?: string | null;
   walletAddress: string;
-  loginType: string;
+  loginType: LoginTypeEnum;
 }

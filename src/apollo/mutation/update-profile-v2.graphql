@@ -1,0 +1,16 @@
+mutation updateProfileV2($input: UpdateProfileV2Input!) {
+  updateProfileV2(input: $input) {
+    id
+    email
+    firstName
+    lastName
+    walletAddress
+    organizationName
+    profileImage
+    bio
+    skills
+    links
+    createdAt
+    updatedAt
+  }
+}

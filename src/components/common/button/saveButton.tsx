@@ -1,4 +1,4 @@
-import { useUsersQuery } from '@/apollo/queries/users.generated';
+import { useUsersV2Query } from '@/apollo/queries/users-v2.generated';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -35,23 +35,17 @@ const SaveButton: React.FC<SaveButtonProps> = ({
   const [inviterInput, setInviterInput] = useState<string>();
   const [debouncedInviterInput, setDebouncedInviterInput] = useState<string>();
 
-  const { data: invitersData, loading: invitersLoading } = useUsersQuery({
+  const { data: invitersData, loading: invitersLoading } = useUsersV2Query({
     variables: {
-      input: {
+      query: {
         limit: 5,
-        offset: 0,
-        filter: [
-          {
-            field: 'search',
-            value: debouncedInviterInput ?? '',
-          },
-        ],
+        search: debouncedInviterInput ?? '',
       },
     },
     skip: !inviterInput,
   });
 
-  const InviterOptions = invitersData?.users?.data?.map((v) => ({
+  const InviterOptions = invitersData?.usersV2?.users?.map((v) => ({
     value: v.id ?? '',
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
   }));

@@ -8,7 +8,7 @@ export type NotificationsSubscriptionVariables = Types.Exact<{
 }>;
 
 
-export type NotificationsSubscription = { __typename?: 'Subscription', notifications?: { __typename?: 'NotificationResult', count?: number | null, data?: Array<{ __typename?: 'Notification', action?: Types.NotificationAction | null, content?: string | null, entityId?: string | null, id?: string | null, metadata?: any | null, readAt?: any | null, title?: string | null, type?: Types.NotificationType | null }> | null } | null };
+export type NotificationsSubscription = { __typename?: 'Subscription', notifications?: { __typename?: 'NotificationResult', count?: number | null, data?: Array<{ __typename?: 'Notification', id?: string | null, title?: string | null, content?: string | null, type?: Types.NotificationType | null, action?: Types.NotificationAction | null, entityId?: string | null, metadata?: any | null, readAt?: any | null, createdAt?: any | null }> | null } | null };
 
 
 export const NotificationsDocument = gql`
@@ -16,14 +16,15 @@ export const NotificationsDocument = gql`
   notifications(pagination: $input) {
     count
     data {
-      action
-      content
-      entityId
       id
+      title
+      content
+      type
+      action
+      entityId
       metadata
       readAt
-      title
-      type
+      createdAt
     }
   }
 }

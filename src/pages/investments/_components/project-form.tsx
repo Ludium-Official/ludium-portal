@@ -1,5 +1,5 @@
 import { useProgramQuery } from '@/apollo/queries/program.generated';
-import { useUsersQuery } from '@/apollo/queries/users.generated';
+import { useUsersV2Query } from '@/apollo/queries/users-v2.generated';
 import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -152,23 +152,17 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     return () => clearTimeout(timer);
   }, [builderInput]);
 
-  const { data: buildersData, loading: buildersLoading } = useUsersQuery({
+  const { data: buildersData, loading: buildersLoading } = useUsersV2Query({
     variables: {
-      input: {
+      query: {
         limit: 5,
-        offset: 0,
-        filter: [
-          {
-            field: 'search',
-            value: debouncedBuilderInput ?? '',
-          },
-        ],
+        search: debouncedBuilderInput ?? '',
       },
     },
     skip: !builderInput,
   });
 
-  const builderOptions = buildersData?.users?.data?.map((v) => ({
+  const builderOptions = buildersData?.usersV2?.users?.map((v) => ({
     value: v.id ?? '',
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
   }));

@@ -1,15 +1,15 @@
-import { useLoginMutation } from '@/apollo/mutation/login.generated';
-import { useProfileQuery } from '@/apollo/queries/profile.generated';
-import type { AuthProps, LoginProps } from '@/types/auth';
-import { UserRole } from '@/types/types.generated';
-import { createContext, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useLoginV2Mutation } from "@/apollo/mutation/loginV2.generated";
+import { useProfileV2Query } from "@/apollo/queries/profile-v2.generated";
+import type { AuthProps, LoginProps } from "@/types/auth";
+import { UserRoleV2 } from "@/types/types.generated";
+import { createContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 
 export const AuthContext = createContext<AuthProps>({
   email: null,
   token: null,
   roles: null,
-  userId: '',
+  userId: "",
   isLoggedIn: false,
   isAuthed: false,
   isAdmin: false,
@@ -23,59 +23,56 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const [token, setToken] = useState<string | null>();
   const [email, setEmail] = useState<string | null>();
-  const [userId, setUserId] = useState<string>('');
+  const [userId, setUserId] = useState<string>("");
   const [isAdmin, setIsAdmin] = useState<boolean | null>();
   const [isSuperadmin, setIsSuperadmin] = useState<boolean | null>();
 
-  const { data: userProfile, error } = useProfileQuery({
+  const { data: userProfile, error } = useProfileV2Query({
     skip: !token,
-    fetchPolicy: 'network-only',
+    fetchPolicy: "network-only",
   });
 
-  const [loginMutation] = useLoginMutation();
+  const [loginMutation] = useLoginV2Mutation();
 
   const login = async (props: LoginProps) => {
     await loginMutation({
       variables: props,
       onCompleted: (data) => {
-        setToken(data.login);
+        setToken(data.loginV2);
         setEmail(email);
 
-        localStorage.setItem('token', data.login ?? '');
+        localStorage.setItem("token", data.loginV2 ?? "");
       },
     });
   };
 
   const logout = async () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('roles');
+    localStorage.removeItem("token");
+    localStorage.removeItem("roles");
 
     setToken(null);
 
-    navigate('/');
+    navigate("/");
   };
 
   useEffect(() => {
     if (userProfile) {
-      setUserId(userProfile.profile?.id ?? '');
-      setIsAdmin(
-        userProfile.profile?.role === UserRole.Admin ||
-          userProfile.profile?.role === UserRole.Superadmin,
-      );
-      setIsSuperadmin(userProfile.profile?.role === UserRole.Superadmin);
+      setUserId(userProfile.profileV2?.id ?? "");
+      setIsAdmin(userProfile.profileV2?.role === UserRoleV2.Admin);
+      setIsSuperadmin(userProfile.profileV2?.role === UserRoleV2.Admin);
     }
   }, [userProfile]);
 
   useEffect(() => {
-    const tkn = localStorage.getItem('token');
+    const tkn = localStorage.getItem("token");
 
     if (tkn) setToken(tkn);
   }, []);
 
   useEffect(() => {
     if (error) {
-      console.error('Error fetching profile:', error);
-      logout();
+      console.error("Error fetching profile:", error);
+      // logout();
     }
   }, [error]);
 
@@ -86,7 +83,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         token,
         isLoggedIn: !!token,
-        isAuthed: !!token && !!userProfile?.profile?.email,
+        isAuthed: !!token && !!userProfile?.profileV2?.email,
         login,
         logout,
         isAdmin,
