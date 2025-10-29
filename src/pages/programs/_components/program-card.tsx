@@ -1,21 +1,12 @@
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { dDay, getCurrency, getCurrencyIcon, timeAgo } from "@/lib/utils";
-import { ProgramV2 } from "@/types/types.generated";
-import { format } from "date-fns";
-import { Link } from "react-router";
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { dDay, getCurrency, getCurrencyIcon, timeAgo } from '@/lib/utils';
+import { ProgramV2 } from '@/types/types.generated';
+import { format } from 'date-fns';
+import { Link } from 'react-router';
 
 function ProgramCard({ program }: { program: ProgramV2 }) {
-  const {
-    id,
-    createdAt,
-    currency,
-    deadline,
-    description,
-    network,
-    price,
-    title,
-  } = program ?? {};
+  const { id, createdAt, currency, deadline, description, network, price, title } = program ?? {};
 
   return (
     <div className="block w-full max-h-[292px] border border-gray-border rounded-lg p-5">
@@ -41,18 +32,13 @@ function ProgramCard({ program }: { program: ProgramV2 }) {
                 </span>
               </>
             ) : (
-              <span className="text-muted-foreground font-medium">
-                Negotiable
-              </span>
+              <span className="text-muted-foreground font-medium">Negotiable</span>
             )}
           </div>
           <div className="inline-flex items-center self-start py-1 px-2 rounded-md text-sm bg-secondary">
             <span className="mr-3 text-neutral-400">DEADLINE</span>
             <span className="font-medium text-muted-foreground">
-              {format(
-                new Date(deadline ?? new Date()),
-                "dd . MMM . yyyy"
-              ).toUpperCase()}
+              {format(new Date(deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
             </span>
             {deadline && <Badge className="ml-2">{dDay(deadline)}</Badge>}
           </div>
@@ -64,7 +50,7 @@ function ProgramCard({ program }: { program: ProgramV2 }) {
       </p>
 
       <div className="flex items-center justify-between text-sm text-[#8C8C8C]">
-        <div>{createdAt ? timeAgo(createdAt) : ""}</div>
+        <div>{createdAt ? timeAgo(createdAt) : ''}</div>
         <div className="px-3 py-2 leading-4">
           Applicants:
           <span className="ml-1 font-semibold">{1}</span>

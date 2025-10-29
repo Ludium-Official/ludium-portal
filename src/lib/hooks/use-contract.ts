@@ -2,16 +2,8 @@ import { type ConnectedWallet, usePrivy, useWallets } from '@privy-io/react-auth
 import { ethers } from 'ethers';
 import type { Chain, PublicClient } from 'viem';
 import { http, createPublicClient } from 'viem';
-import {
-  arbitrum,
-  arbitrumSepolia,
-  base,
-  baseSepolia,
-  creditCoin3Mainnet,
-  eduChain,
-  eduChainTestnet,
-} from 'viem/chains';
 import ChainContract from '../contract';
+import { checkNetwork } from '../functions/checkNetwork';
 
 async function getSigner(checkNetwork: Chain, currentWallet: ConnectedWallet) {
   const eip1193Provider = await currentWallet.getEthereumProvider();
@@ -55,35 +47,12 @@ export function useContract(network: string) {
   const activeWallet =
     currentWallet || (isExternalWallet && wallets.length > 0 ? wallets[0] : null);
 
-  const checkNetwork: Chain = (() => {
-    if (network === 'base') {
-      return base;
-    }
-    if (network === 'base-sepolia') {
-      return baseSepolia;
-    }
-    if (network === 'educhain-testnet') {
-      return eduChainTestnet;
-    }
-    if (network === 'arbitrum') {
-      return arbitrum;
-    }
-    if (network === 'arbitrum-sepolia') {
-      return arbitrumSepolia;
-    }
-    if (network === 'creditcoin') {
-      return creditCoin3Mainnet;
-    }
-
-    return eduChain;
-  })();
-
   if (isExternalWallet && activeWallet) {
     sendTx = async (input, _uiOptions?: unknown) => {
       // Note: _uiOptions is ignored for external wallets since they use their own UI
       try {
         console.log('Sending transaction with external wallet...', input);
-        const signer = await getSigner(checkNetwork, activeWallet);
+        const signer = await getSigner(checkNetwork(network), activeWallet);
         const txResponse = await signer.sendTransaction(input);
         console.log('Transaction sent successfully:', txResponse.hash);
         return { hash: txResponse.hash as `0x${string}` };
@@ -109,25 +78,22 @@ export function useContract(network: string) {
 
   const checkContract = (() => {
     if (network === 'base' || network === 'base-sepolia') {
-      return import.meta.env.VITE_BASE_CONTRACT_ADDRESS;
+      return import.meta.env.VITE_RECRUITMENT_BASE_ADDRESS;
     }
     if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
-      return import.meta.env.VITE_ARBITRUM_CONTRACT_ADDRESS;
-    }
-    if (network === 'creditcoin') {
-      return import.meta.env.VITE_CREDITCOIN_CONTRACT_ADDRESS;
+      return import.meta.env.VITE_RECRUITMENT_ARBITRUM_ADDRESS;
     }
 
-    return import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS;
+    return import.meta.env.VITE_RECRUITMENT_EDUCHAIN_ADDRESS;
   })();
 
   // @ts-ignore
   const client: PublicClient = createPublicClient({
-    chain: checkNetwork,
-    transport: http(checkNetwork.rpcUrls.default.http[0]),
+    chain: checkNetwork(network),
+    transport: http(checkNetwork(network).rpcUrls.default.http[0]),
   });
 
-  const callContract = new ChainContract(checkContract, checkNetwork.id, sendTx, client);
+  const callContract = new ChainContract(checkContract, checkNetwork(network).id, sendTx, client);
 
   return callContract;
 }

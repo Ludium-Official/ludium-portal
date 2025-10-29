@@ -1,4 +1,5 @@
 import contractJson from '@/lib/contract/contract.json';
+import LdRecruitmentAbi from '@/lib/contract/abi/LdRecruitment';
 import type { User } from '@/types/types.generated';
 import type { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
@@ -54,6 +55,55 @@ class ChainContract {
     this.sendTransaction = sendTransaction;
     this.client = client;
   }
+
+  // --- 아래는 v2 recruitment 함수들
+
+  async createProgramV2(token: `0x${string}`, durationDays: bigint) {
+    try {
+      const data = encodeFunctionData({
+        abi: LdRecruitmentAbi,
+        functionName: 'createProgram',
+        args: [token, durationDays],
+      });
+      console.log(this.contractAddress, this.chainId);
+
+      const tx = await this.sendTransaction(
+        {
+          to: this.contractAddress,
+          data,
+          chainId: this.chainId,
+        },
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            description: `Create Program`,
+            buttonText: 'Submit Transaction',
+            transactionInfo: {
+              title: 'Transaction Details',
+              action: 'Create Program',
+            },
+            successHeader: 'Program Created Successfully!',
+            successDescription: 'Your program has been created and is now live.',
+          },
+        },
+      );
+
+      const receiptResult = await this.findReceipt(
+        tx.hash,
+        'ProgramCreated(uint256,address,address)',
+      );
+
+      if (receiptResult !== null) {
+        return { txHash: tx.hash, programId: receiptResult };
+      }
+
+      return { txHash: tx.hash, programId: null };
+    } catch (err) {
+      console.error('Failed to create program - Full error:', err);
+    }
+  }
+
+  // --- 아래는 v1 recruitment 함수들
 
   async getAmount(tokenAddress: string, walletAddress: string) {
     const balance = await this.client.readContract({

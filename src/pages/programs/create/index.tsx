@@ -3,10 +3,9 @@ import { useCreateProgramV2Mutation } from '@/apollo/mutation/create-program-v2.
 import { ProgramsV2Document } from '@/apollo/queries/programs-v2.generated';
 import ProgramForm from '@/components/program/program-form/program-form';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { useProgramDraft } from '@/lib/hooks/use-program-draft';
 import notify from '@/lib/notify';
 import type { OnSubmitProgramFunc } from '@/types/recruitment';
-import { ProgramStatusV2, type ProgramVisibilityV2 } from '@/types/types.generated';
+import { ProgramStatusV2, ProgramVisibilityV2 } from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -14,14 +13,16 @@ const CreateProgram: React.FC = () => {
   const navigate = useNavigate();
 
   const { isLoggedIn, isAuthed } = useAuth();
-
   const [createProgram, { loading }] = useCreateProgramV2Mutation();
-
-  const { clearDraft: clearProgramDraft } = useProgramDraft();
 
   const onSubmit: OnSubmitProgramFunc = (args) => {
     if (!args.deadline) {
       notify('Deadline is required', 'error');
+      return;
+    }
+
+    if (!args.network) {
+      notify('Network is required', 'error');
       return;
     }
 
@@ -34,7 +35,7 @@ const CreateProgram: React.FC = () => {
           description: args.description,
           deadline: args.deadline.toISOString(),
           skills: Array.isArray(args.skills) ? args.skills : [],
-          network: args.network ?? '',
+          network: args.network,
           visibility: args.visibility as ProgramVisibilityV2,
           invitedMembers: Array.isArray(args.builders) ? args.builders : [],
           status: (args.status as ProgramStatusV2) ?? ProgramStatusV2.Open,
@@ -48,7 +49,6 @@ const CreateProgram: React.FC = () => {
         notify(message, 'success');
         navigate('/programs');
         client.refetchQueries({ include: [ProgramsV2Document] });
-        clearProgramDraft();
       },
     });
   };

@@ -9,12 +9,15 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { tokenAddresses } from '@/constant/token-address';
 import { fetchSkills } from '@/lib/api/skills';
+import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import { mainnetDefaultNetwork } from '@/lib/utils';
 import type { LabelValueProps } from '@/types/common';
 import type { ProgramFormData, RecruitmentFormProps } from '@/types/recruitment';
 import { ProgramStatusV2 } from '@/types/types.generated';
+import { ethers } from 'ethers';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
@@ -68,17 +71,19 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
   const currency = watch('currency');
   const visibility = watch('visibility');
 
+  const contract = useContract(network || 'educhain');
+
   const isAllFill =
     !programTitle ||
     (budgetType === 'fixed' && !price) ||
-    (budgetType === 'fixed' && !network) ||
-    (budgetType === 'fixed' && !currency) ||
+    !network ||
+    !currency ||
     !description ||
     !skills.length ||
     (submitStatus === ProgramStatusV2.Open && !deadline);
 
-  const onSubmit = (submitData: ProgramFormData) => {
-    // deadline이 필수이므로 없으면 30일 후로 설정
+  const onSubmit = async (submitData: ProgramFormData) => {
+    let txResult;
     const finalDeadline =
       deadline ||
       (() => {
@@ -88,22 +93,42 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
         return date;
       })();
 
-    onSubmitProgram({
-      id: programData?.programV2?.id ?? id,
-      programTitle: submitData.programTitle,
-      price: submitData.price,
-      description,
-      currency,
-      deadline: finalDeadline,
-      skills: submitData.skills,
-      network: network ?? mainnetDefaultNetwork,
-      visibility,
-      builders: selectedBuilders,
-      budget: submitData.budget,
-      status: submitStatus,
-    });
+    if (submitStatus === ProgramStatusV2.Open) {
+      const networkTokens = tokenAddresses[network as keyof typeof tokenAddresses];
+      const tokenInfo = networkTokens?.find((token) => token.name === currency);
+      const tokenAddress = tokenInfo?.address || ethers.constants.AddressZero;
 
-    notify('Successfully created the program', 'success');
+      const now = new Date();
+      const deadline = new Date(finalDeadline);
+      const durationDays = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+      txResult = await contract.createProgramV2(
+        tokenAddress as `0x${string}`,
+        BigInt(durationDays),
+      );
+    }
+
+    if (txResult?.programId) {
+      // TODO: contract에서 준 programId도 저장해야 함
+      onSubmitProgram({
+        id: programData?.programV2?.id ?? id,
+        programTitle: submitData.programTitle,
+        price: submitData.price,
+        description,
+        currency,
+        deadline: finalDeadline,
+        skills: submitData.skills,
+        network: network ?? mainnetDefaultNetwork,
+        visibility,
+        builders: selectedBuilders,
+        budget: submitData.budget,
+        status: submitStatus,
+      });
+
+      notify('Successfully created the program', 'success');
+    } else {
+      notify('Failed created the program', 'error');
+    }
   };
 
   const skillOptions = [
@@ -249,48 +274,6 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                     <div className="mt-1 text-muted-foreground">
                       A set amount for the entire project.
                     </div>
-                    {budgetType === 'fixed' && (
-                      <div>
-                        <div className="mt-2">
-                          <span className="text-muted-foreground">Network</span>
-                          <NetworkSelector
-                            disabled={
-                              isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft
-                            }
-                            value={network}
-                            onValueChange={(value: string) => {
-                              setValue('network', value);
-                            }}
-                            className="flex justify-between w-full h-10 mt-1 bg-white border border-input text-gray-dark"
-                          />
-                        </div>
-                        <div className="flex items-end gap-2 mt-2">
-                          <InputLabel
-                            labelId="price"
-                            type="number"
-                            title="Price"
-                            isError={errors.price}
-                            className="w-full !space-y-1"
-                            titleClassName="text-muted-foreground"
-                            register={register}
-                            placeholder="Enter price"
-                          />
-                          {!!network && (
-                            <CurrencySelector
-                              disabled={
-                                isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft
-                              }
-                              value={currency}
-                              onValueChange={(value: string) => {
-                                setValue('currency', value);
-                              }}
-                              network={network ?? mainnetDefaultNetwork}
-                              className="w-[108px] h-10"
-                            />
-                          )}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
                 <div className="flex space-x-2">
@@ -300,6 +283,56 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                     <div className="mt-1 text-muted-foreground">
                       Open to discussion based on project scope
                     </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div>
+                    <span className="text-muted-foreground">Network</span>
+                    <NetworkSelector
+                      disabled={isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft}
+                      value={network}
+                      onValueChange={(value: string) => {
+                        setValue('network', value);
+                      }}
+                      className="flex justify-between w-full h-10 mt-1 bg-white border border-input text-gray-dark"
+                    />
+                  </div>
+                  <div className="flex items-end gap-2 mt-2">
+                    {budgetType === 'fixed' ? (
+                      <InputLabel
+                        labelId="price"
+                        type="number"
+                        title="Price"
+                        isError={errors.price}
+                        className="w-full !space-y-1"
+                        titleClassName="text-muted-foreground"
+                        register={register}
+                        placeholder="Enter price"
+                      />
+                    ) : (
+                      <InputLabel
+                        labelId="price"
+                        title="Price"
+                        className="w-full !space-y-1"
+                        titleClassName="text-muted-foreground"
+                        placeholder="Negotiable"
+                        disabled
+                      />
+                    )}
+                    {!!network && (
+                      <CurrencySelector
+                        disabled={
+                          isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft
+                        }
+                        value={currency}
+                        onValueChange={(value: string) => {
+                          setValue('currency', value);
+                        }}
+                        network={network ?? mainnetDefaultNetwork}
+                        className="w-[108px] h-10"
+                      />
+                    )}
                   </div>
                 </div>
               </RadioGroup>
