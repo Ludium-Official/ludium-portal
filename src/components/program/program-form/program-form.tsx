@@ -1,21 +1,20 @@
-import { useProgramQuery } from '@/apollo/queries/program.generated';
-import DraftButton from '@/components/common/button/draftButton';
+import { useProgramV2Query } from '@/apollo/queries/program-v2.generated';
 import SaveButton from '@/components/common/button/saveButton';
 import InputLabel from '@/components/common/label/inputLabel';
 import CurrencySelector from '@/components/currency-selector';
 import { MarkdownEditor } from '@/components/markdown';
 import NetworkSelector from '@/components/network-selector';
+import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { fetchSkills } from '@/lib/api/skills';
-import { useProgramDraft } from '@/lib/hooks/use-program-draft';
 import notify from '@/lib/notify';
 import { mainnetDefaultNetwork } from '@/lib/utils';
 import type { LabelValueProps } from '@/types/common';
 import type { ProgramFormData, RecruitmentFormProps } from '@/types/recruitment';
-import { ProgramStatus } from '@/types/types.generated';
+import { ProgramStatusV2 } from '@/types/types.generated';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
@@ -30,17 +29,16 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
   const [skillInput, setSkillInput] = useState<string>();
   const [selectedSkills, setSelectedSkills] = useState<{ name: string }[]>([]);
   const [skillsLoading, setSkillsLoading] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<ProgramStatusV2>(ProgramStatusV2.Open);
 
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { data: programData } = useProgramQuery({
+  const { data: programData } = useProgramV2Query({
     variables: {
       id: id ?? '',
     },
     skip: !isEdit,
   });
-
-  const { saveDraft: saveProgramDraft, loadDraft: loadProgramDraft } = useProgramDraft();
 
   const {
     register,
@@ -50,16 +48,14 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
     setValue,
   } = useForm<ProgramFormData>({
     values: {
-      programTitle: programData?.program?.title ?? '',
-      price: programData?.program?.price ?? '',
-      skills:
-        programData?.program?.skills?.map((s) => s.name).filter((s): s is string => Boolean(s)) ??
-        [],
-      description: programData?.program?.description ?? '',
+      programTitle: programData?.programV2?.title ?? '',
+      price: programData?.programV2?.price ?? '',
+      skills: programData?.programV2?.skills ?? [],
+      description: programData?.programV2?.description ?? '',
       network: isEdit ? '' : mainnetDefaultNetwork,
-      currency: programData?.program?.currency ?? '',
-      visibility: programData?.program?.visibility ?? 'public',
-      budget: programData?.program?.budget ?? '',
+      currency: programData?.programV2?.currency ?? '',
+      visibility: programData?.programV2?.visibility ?? 'public',
+      budget: '',
     },
   });
 
@@ -71,56 +67,55 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
   const network = watch('network');
   const currency = watch('currency');
   const visibility = watch('visibility');
-  const budget = watch('budget');
 
   const isAllFill =
     !programTitle ||
-    !price ||
+    (budgetType === 'fixed' && !price) ||
+    (budgetType === 'fixed' && !network) ||
+    (budgetType === 'fixed' && !currency) ||
     !description ||
     !skills.length ||
-    !deadline ||
-    !description ||
-    !network ||
-    !currency ||
-    !budget;
-
-  const saveFormData = {
-    programTitle,
-    skills,
-    budget,
-    price,
-    description,
-    currency,
-    deadline,
-    selectedSkillItems,
-    network,
-    visibility,
-    builders: selectedBuilders,
-    selectedBuilderItems,
-  };
+    (submitStatus === ProgramStatusV2.Open && !deadline);
 
   const onSubmit = (submitData: ProgramFormData) => {
+    // deadline이 필수이므로 없으면 30일 후로 설정
+    const finalDeadline =
+      deadline ||
+      (() => {
+        const date = new Date();
+        date.setDate(date.getDate() + 30);
+        date.setHours(23, 59, 59, 999);
+        return date;
+      })();
+
     onSubmitProgram({
-      id: programData?.program?.id ?? id,
+      id: programData?.programV2?.id ?? id,
       programTitle: submitData.programTitle,
       price: submitData.price,
       description,
       currency,
-      deadline,
+      deadline: finalDeadline,
       skills: submitData.skills,
       network: network ?? mainnetDefaultNetwork,
       visibility,
       builders: selectedBuilders,
       budget: submitData.budget,
+      status: submitStatus,
     });
 
     notify('Successfully created the program', 'success');
   };
 
-  const skillOptions = skills.map((v) => ({
-    value: v,
-    label: v,
-  }));
+  const skillOptions = [
+    ...skills.map((v) => ({
+      value: v,
+      label: v,
+    })),
+    ...selectedSkills.map((skill) => ({
+      value: skill.name,
+      label: skill.name,
+    })),
+  ];
 
   useEffect(() => {
     const loadSkills = async () => {
@@ -140,45 +135,16 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
   }, []);
 
   useEffect(() => {
-    if (programData?.program?.validators?.length) {
-      setSelectedSkillItems(
-        programData?.program.validators?.map((k) => ({
-          value: k.id ?? '',
-          label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
-        })) ?? [],
-      );
-    }
-    if (programData?.program?.invitedBuilders?.length) {
-      setSelectedBuilders(programData?.program.invitedBuilders?.map((k) => k.id ?? '') ?? '');
+    if (programData?.programV2?.invitedMembers?.length) {
+      setSelectedBuilders(programData?.programV2.invitedMembers ?? []);
       setSelectedBuilderItems(
-        programData?.program.invitedBuilders?.map((k) => ({
-          value: k.id ?? '',
-          label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
+        programData?.programV2.invitedMembers?.map((memberId) => ({
+          value: memberId,
+          label: memberId,
         })) ?? [],
       );
     }
   }, [programData]);
-
-  useEffect(() => {
-    if (isEdit) return;
-
-    const draft = loadProgramDraft();
-    if (!draft) return;
-
-    setValue('programTitle', draft.programTitle ?? '');
-    setValue('price', draft.price ?? '');
-    setValue('skills', draft.skills ?? []);
-    setValue('deadline', draft.deadline ? new Date(draft.deadline) : undefined);
-    setValue('description', draft.description ?? '');
-    setValue('network', draft.network ?? mainnetDefaultNetwork);
-    setValue('currency', draft.currency ?? '');
-    setValue('budget', draft.budget ?? '');
-    setValue('visibility', draft.visibility ?? 'public');
-
-    setSelectedBuilders(draft.builders ?? []);
-    if (draft.selectedSkillItems) setSelectedSkillItems(draft.selectedSkillItems);
-    if (draft.selectedBuilderItems) setSelectedBuilderItems(draft.selectedBuilderItems);
-  }, [isEdit]);
 
   return (
     <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="w-full mx-auto">
@@ -289,7 +255,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                           <span className="text-muted-foreground">Network</span>
                           <NetworkSelector
                             disabled={
-                              isEdit && programData?.program?.status !== ProgramStatus.Pending
+                              isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft
                             }
                             value={network}
                             onValueChange={(value: string) => {
@@ -312,7 +278,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                           {!!network && (
                             <CurrencySelector
                               disabled={
-                                isEdit && programData?.program?.status !== ProgramStatus.Pending
+                                isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft
                               }
                               value={currency}
                               onValueChange={(value: string) => {
@@ -341,14 +307,19 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
           </div>
           <div className="flex justify-end gap-4">
             {!isEdit && (
-              <DraftButton
-                loading={createLoading}
-                saveFunc={() => {
-                  saveProgramDraft(saveFormData);
-                  notify('Draft saved.');
+              <Button
+                type="button"
+                onClick={() => {
+                  setSubmitStatus(ProgramStatusV2.Draft);
+                  setTimeout(() => {
+                    formRef?.current?.dispatchEvent(
+                      new Event('submit', { cancelable: true, bubbles: true }),
+                    );
+                  }, 0);
                 }}
-                tooltipDescription="Draft save button"
-              />
+              >
+                Save as Draft
+              </Button>
             )}
 
             <SaveButton
@@ -361,6 +332,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
               selectedInviterItems={selectedBuilderItems}
               setSelectedInviterItems={setSelectedBuilderItems}
               formRef={formRef}
+              onBeforeSubmit={() => setSubmitStatus(ProgramStatusV2.Open)}
             />
           </div>
         </div>

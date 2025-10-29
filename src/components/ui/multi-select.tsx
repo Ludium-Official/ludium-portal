@@ -301,22 +301,6 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
             </CommandEmpty>
             <CommandList>
               <CommandGroup>
-                {options?.length > 0 && !inputValue && (
-                  <CommandItem key="all" onSelect={toggleAll} className="cursor-pointer">
-                    <div
-                      className={cn(
-                        'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
-                        selectedValues?.length === options?.length
-                          ? 'bg-gray-dark text-primary-foreground'
-                          : 'opacity-50 [&_svg]:invisible',
-                      )}
-                    >
-                      <CheckIcon className="h-4 w-4" />
-                    </div>
-                    <span>(Select All)</span>
-                  </CommandItem>
-                )}
-
                 {selectedItems
                   ?.filter((option) => {
                     if (!inputValue) return true;

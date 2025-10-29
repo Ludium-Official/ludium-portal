@@ -1,4 +1,4 @@
-import { useProgramQuery } from '@/apollo/queries/program.generated';
+import { useProgramV2Query } from '@/apollo/queries/program-v2.generated';
 import { useUsersV2Query } from '@/apollo/queries/users-v2.generated';
 import CloseIcon from '@/assets/icons/common/CloseIcon.svg';
 import InputLabel from '@/components/common/label/inputLabel';
@@ -11,7 +11,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { handleImage } from '@/lib/functions/inputForm';
 import { mainnetDefaultNetwork } from '@/lib/utils';
 import type { ProgramOverviewProps } from '@/types/recruitment';
-import { ProgramStatus } from '@/types/types.generated';
+import { ProgramStatusV2 } from '@/types/types.generated';
 import { ImageIcon, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
@@ -38,7 +38,7 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
   const [validatorInput, setValidatorInput] = useState<string>();
   const [debouncedValidatorInput, setDebouncedValidatorInput] = useState<string>();
 
-  const { data: programData } = useProgramQuery({
+  const { data: programData } = useProgramV2Query({
     variables: {
       id: id ?? '',
     },
@@ -192,7 +192,7 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
               isPrimary
             >
               <NetworkSelector
-                disabled={isEdit && programData?.program?.status !== ProgramStatus.Pending}
+                disabled={isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft}
                 value={network}
                 onValueChange={(value: string) => {
                   setValue('network', value);
@@ -208,13 +208,13 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
                 isPrimary
                 isError={errors.price}
                 className="w-full"
-                disabled={isEdit && programData?.program?.status !== ProgramStatus.Pending}
+                disabled={isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft}
                 register={register}
                 placeholder="Enter price"
               />
               {!!network && (
                 <CurrencySelector
-                  disabled={isEdit && programData?.program?.status !== ProgramStatus.Pending}
+                  disabled={isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft}
                   value={currency}
                   onValueChange={(value: string) => {
                     setValue('currency', value);
@@ -225,7 +225,7 @@ const ProgramOverview: React.FC<ProgramOverviewProps> = ({
               )}
             </div>
           </div>
-          {isEdit && programData?.program?.status !== ProgramStatus.Pending && (
+          {isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft && (
             <span className="text-destructive text-sm block">
               Price can't be updated after publishing.
             </span>

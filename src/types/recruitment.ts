@@ -1,6 +1,6 @@
 import type { Control, FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import type { LabelValueProps, VisibilityProps } from './common';
-import type { ProgramStatus } from './types.generated';
+import type { ProgramStatus, ProgramStatusV2 } from './types.generated';
 
 export interface ProgramFormData {
   id?: string;
@@ -13,7 +13,7 @@ export interface ProgramFormData {
   network?: string;
   visibility?: VisibilityProps;
   builders?: string[];
-  status?: ProgramStatus;
+  status?: ProgramStatus | ProgramStatusV2;
   budget?: string;
 }
 

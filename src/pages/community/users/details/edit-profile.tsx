@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useForm } from 'react-hook-form';
 
 import { useUpdateProfileV2Mutation } from '@/apollo/mutation/update-profile-v2.generated';
+import { useProfileV2Query } from '@/apollo/queries/profile-v2.generated';
 import { MarkdownEditor } from '@/components/markdown';
 import { Badge } from '@/components/ui/badge';
 import SocialIcon from '@/components/ui/social-icon';
@@ -12,7 +13,6 @@ import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useProfileV2Query } from '@/apollo/queries/profile-v2.generated';
 
 function EditProfilePage() {
   const navigate = useNavigate();

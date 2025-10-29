@@ -1,7 +1,7 @@
 import logo from '@/assets/logo.svg';
 import Notifications from '@/components/notifications';
 
-import { useProfileQuery } from '@/apollo/queries/profile.generated';
+import { useProfileV2Query } from '@/apollo/queries/profile-v2.generated';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -42,7 +42,7 @@ function Header() {
   const walletInfo = user?.wallet;
   const injectedWallet = user?.wallet?.connectorType !== 'embedded';
 
-  const { data: profileData } = useProfileQuery({
+  const { data: profileData } = useProfileV2Query({
     fetchPolicy: 'cache-first',
     skip: !authenticated,
   });
@@ -65,8 +65,8 @@ function Header() {
       const loginType = user?.google
         ? LoginTypeEnum.Google
         : user?.farcaster
-        ? LoginTypeEnum.Farcaster
-        : LoginTypeEnum.Wallet;
+          ? LoginTypeEnum.Farcaster
+          : LoginTypeEnum.Wallet;
 
       privyLogin({ disableSignup: false });
 
@@ -226,15 +226,15 @@ function Header() {
                 <DialogTrigger asChild>
                   <Button className="bg-primary hover:bg-primary/90 h-fit">
                     <span className="hidden sm:inline">
-                      {profileData?.profile?.firstName && profileData?.profile?.lastName
-                        ? `${profileData.profile.firstName} ${profileData.profile.lastName}`
+                      {profileData?.profileV2?.firstName && profileData?.profileV2?.lastName
+                        ? `${profileData.profileV2.firstName} ${profileData.profileV2.lastName}`
                         : reduceString(walletInfo?.address || '', 6, 6)}
                     </span>
                     <span className="sm:hidden">
-                      {profileData?.profile?.firstName && profileData?.profile?.lastName
-                        ? `${profileData.profile.firstName.charAt(
+                      {profileData?.profileV2?.firstName && profileData?.profileV2?.lastName
+                        ? `${profileData.profileV2.firstName.charAt(
                             0,
-                          )}${profileData.profile.lastName.charAt(0)}`
+                          )}${profileData.profileV2.lastName.charAt(0)}`
                         : reduceString(walletInfo?.address || '', 4, 4)}
                     </span>
                   </Button>

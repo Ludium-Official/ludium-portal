@@ -19,6 +19,7 @@ interface SaveButtonProps {
   selectedInviterItems: LabelValueProps[];
   setSelectedInviterItems: React.Dispatch<React.SetStateAction<LabelValueProps[]>>;
   formRef: React.RefObject<HTMLFormElement | null>;
+  onBeforeSubmit?: () => void;
 }
 
 const SaveButton: React.FC<SaveButtonProps> = ({
@@ -31,6 +32,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({
   selectedInviterItems,
   setSelectedInviterItems,
   formRef,
+  onBeforeSubmit,
 }) => {
   const [inviterInput, setInviterInput] = useState<string>();
   const [debouncedInviterInput, setDebouncedInviterInput] = useState<string>();
@@ -53,6 +55,10 @@ const SaveButton: React.FC<SaveButtonProps> = ({
   const extraValidation = () => {
     if (isAllFill) {
       notify('Please fill in all required fields.', 'error');
+    }
+
+    if (onBeforeSubmit) {
+      onBeforeSubmit();
     }
 
     formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
