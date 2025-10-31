@@ -8,9 +8,9 @@ query programV2($id: ID!) {
     invitedMembers
     status
     visibility
-    network
+    networkId
     price
-    currency
+    token_id
     createdAt
     updatedAt
   }

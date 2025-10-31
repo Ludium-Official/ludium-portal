@@ -30,26 +30,21 @@ async function getSigner(checkNetwork: Chain, currentWallet: ConnectedWallet) {
   return provider.getSigner();
 }
 
-export function useContract(network: string) {
+export function useContract(network: string, contractAddress?: string) {
   const { user, sendTransaction } = usePrivy();
 
   const { wallets } = useWallets();
   const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
 
-  // Check if the user is using an external wallet (like MetaMask)
-  // External wallets have connectorType like 'injected', 'wallet_connect', etc.
-  // Only 'embedded' wallets are Privy's internal wallets
   const isExternalWallet = user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
 
   let sendTx = sendTransaction;
 
-  // If no currentWallet found but user has a wallet, try to use the first available wallet
   const activeWallet =
     currentWallet || (isExternalWallet && wallets.length > 0 ? wallets[0] : null);
 
   if (isExternalWallet && activeWallet) {
     sendTx = async (input, _uiOptions?: unknown) => {
-      // Note: _uiOptions is ignored for external wallets since they use their own UI
       try {
         console.log('Sending transaction with external wallet...', input);
         const signer = await getSigner(checkNetwork(network), activeWallet);
@@ -63,7 +58,6 @@ export function useContract(network: string) {
     };
   } else if (isExternalWallet && !activeWallet) {
     console.warn('User has an external wallet but no active wallet found. Transactions may fail.');
-    // Throw a more helpful error
     sendTx = async () => {
       throw new Error(
         'External wallet detected but not properly connected. Please reconnect your wallet.',
@@ -76,24 +70,13 @@ export function useContract(network: string) {
   } else {
   }
 
-  const checkContract = (() => {
-    if (network === 'base' || network === 'base-sepolia') {
-      return import.meta.env.VITE_RECRUITMENT_BASE_ADDRESS;
-    }
-    if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
-      return import.meta.env.VITE_RECRUITMENT_ARBITRUM_ADDRESS;
-    }
-
-    return import.meta.env.VITE_RECRUITMENT_EDUCHAIN_ADDRESS;
-  })();
-
   // @ts-ignore
   const client: PublicClient = createPublicClient({
     chain: checkNetwork(network),
     transport: http(checkNetwork(network).rpcUrls.default.http[0]),
   });
 
-  const callContract = new ChainContract(checkContract, checkNetwork(network).id, sendTx, client);
+  const callContract = new ChainContract(contractAddress, checkNetwork(network).id, sendTx, client);
 
   return callContract;
 }

@@ -1,0 +1,14 @@
+query onchainProgramInfosByProgramV2($programId: Int!, $pagination: PaginationInput) {
+  onchainProgramInfosByProgramV2(programId: $programId, pagination: $pagination) {
+    data {
+      id
+      programId
+      smartContractId
+      onchainProgramId
+      status
+      createdAt
+      tx
+    }
+    count
+  }
+}

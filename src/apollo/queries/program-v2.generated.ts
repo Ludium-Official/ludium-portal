@@ -8,7 +8,7 @@ export type ProgramV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type ProgramV2Query = { __typename?: 'Query', programV2?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, skills?: Array<string> | null, deadline?: any | null, invitedMembers?: Array<string> | null, status?: Types.ProgramStatusV2 | null, visibility?: Types.ProgramVisibilityV2 | null, network?: string | null, price?: string | null, currency?: string | null, createdAt?: any | null, updatedAt?: any | null } | null };
+export type ProgramV2Query = { __typename?: 'Query', programV2?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, skills?: Array<string> | null, deadline?: any | null, invitedMembers?: Array<string> | null, status?: Types.ProgramStatusV2 | null, visibility?: Types.ProgramVisibilityV2 | null, networkId?: number | null, price?: string | null, token_id?: number | null, createdAt?: any | null, updatedAt?: any | null } | null };
 
 
 export const ProgramV2Document = gql`
@@ -22,9 +22,9 @@ export const ProgramV2Document = gql`
     invitedMembers
     status
     visibility
-    network
+    networkId
     price
-    currency
+    token_id
     createdAt
     updatedAt
   }

@@ -1,4 +1,5 @@
 import { useProgramV2Query } from '@/apollo/queries/program-v2.generated';
+import { useSmartContractsV2Query } from '@/apollo/queries/smart-contracts-v2.generated';
 import SaveButton from '@/components/common/button/saveButton';
 import InputLabel from '@/components/common/label/inputLabel';
 import CurrencySelector from '@/components/currency-selector';
@@ -9,7 +10,7 @@ import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { tokenAddresses } from '@/constant/token-address';
+import { useNetworks } from '@/contexts/networks-context';
 import { fetchSkills } from '@/lib/api/skills';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
@@ -36,6 +37,8 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
 
   const formRef = useRef<HTMLFormElement>(null);
 
+  const { networks: networksWithTokens, getContractByNetworkId } = useNetworks();
+
   const { data: programData } = useProgramV2Query({
     variables: {
       id: id ?? '',
@@ -51,39 +54,44 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
     setValue,
   } = useForm<ProgramFormData>({
     values: {
-      programTitle: programData?.programV2?.title ?? '',
-      price: programData?.programV2?.price ?? '',
-      skills: programData?.programV2?.skills ?? [],
+      title: programData?.programV2?.title ?? '',
       description: programData?.programV2?.description ?? '',
-      network: isEdit ? '' : mainnetDefaultNetwork,
-      currency: programData?.programV2?.currency ?? '',
+      skills: programData?.programV2?.skills ?? [],
+      deadline: programData?.programV2?.deadline ?? '',
       visibility: programData?.programV2?.visibility ?? 'public',
-      budget: '',
+      networkId: programData?.programV2?.networkId ?? 0,
+      price: programData?.programV2?.price ?? '',
+      token_id: programData?.programV2?.token_id ?? 0,
     },
   });
 
-  const programTitle = watch('programTitle') ?? '';
-  const price = watch('price') ?? '';
-  const deadline = watch('deadline');
+  const title = watch('title') ?? '';
   const description = watch('description');
   const skills = (watch('skills') || []).filter((l): l is string => Boolean(l));
-  const network = watch('network');
-  const currency = watch('currency');
+  const deadline = watch('deadline');
+  const price = watch('price') ?? '';
+  const networkId = watch('networkId');
+  const tokenId = watch('token_id');
   const visibility = watch('visibility');
 
-  const contract = useContract(network || 'educhain');
+  const currentNetwork = networksWithTokens.find((network) => Number(network.id) === networkId);
+
+  const currentContract = getContractByNetworkId(Number(currentNetwork?.id));
+
+  const availableTokens = currentNetwork?.tokens || [];
+
+  const contract = useContract(currentNetwork?.chainName || 'educhain', currentContract?.address);
 
   const isAllFill =
-    !programTitle ||
+    !title ||
     (budgetType === 'fixed' && !price) ||
-    !network ||
-    !currency ||
+    !networkId ||
+    !tokenId ||
     !description ||
     !skills.length ||
     (submitStatus === ProgramStatusV2.Open && !deadline);
 
   const onSubmit = async (submitData: ProgramFormData) => {
-    let txResult;
     const finalDeadline =
       deadline ||
       (() => {
@@ -94,41 +102,48 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
       })();
 
     if (submitStatus === ProgramStatusV2.Open) {
-      const networkTokens = tokenAddresses[network as keyof typeof tokenAddresses];
-      const tokenInfo = networkTokens?.find((token) => token.name === currency);
-      const tokenAddress = tokenInfo?.address || ethers.constants.AddressZero;
+      const tokenInfo = availableTokens.find((token) => token.id === String(tokenId));
+      const tokenAddress = tokenInfo?.tokenAddress || ethers.constants.AddressZero;
+      console.log(tokenInfo, tokenAddress);
 
       const now = new Date();
       const deadline = new Date(finalDeadline);
       const durationDays = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
-      txResult = await contract.createProgramV2(
+      // TODO: txResult에서 program_id 넣어야 함
+      const txResult = await contract.createProgramV2(
         tokenAddress as `0x${string}`,
         BigInt(durationDays),
       );
-    }
 
-    if (txResult?.programId) {
-      // TODO: contract에서 준 programId도 저장해야 함
       onSubmitProgram({
-        id: programData?.programV2?.id ?? id,
-        programTitle: submitData.programTitle,
+        title: submitData.title,
         price: submitData.price,
         description,
-        currency,
+        token_id: tokenId,
         deadline: finalDeadline,
         skills: submitData.skills,
-        network: network ?? mainnetDefaultNetwork,
+        networkId: networkId ?? mainnetDefaultNetwork,
         visibility,
-        builders: selectedBuilders,
-        budget: submitData.budget,
         status: submitStatus,
+        txResult,
+        contractId: currentContract?.id,
       });
 
-      notify('Successfully created the program', 'success');
-    } else {
-      notify('Failed created the program', 'error');
+      return;
     }
+
+    onSubmitProgram({
+      title: submitData.title,
+      price: submitData.price,
+      description,
+      token_id: tokenId,
+      deadline: finalDeadline,
+      skills: submitData.skills,
+      networkId: networkId ?? mainnetDefaultNetwork,
+      visibility,
+      status: submitStatus,
+    });
   };
 
   const skillOptions = [
@@ -178,11 +193,11 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
       <div className="flex gap-3">
         <div className="bg-white py-8 px-10 rounded-lg mb-3 flex-1">
           <InputLabel
-            labelId="programTitle"
+            labelId="title"
             title="Program Title"
             className="mb-10"
             isPrimary
-            isError={errors.programTitle}
+            isError={errors.title}
             placeholder="Type title"
             register={register}
           />
@@ -291,10 +306,14 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                     <span className="text-muted-foreground">Network</span>
                     <NetworkSelector
                       disabled={isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft}
-                      value={network}
+                      value={String(networkId)}
                       onValueChange={(value: string) => {
-                        setValue('network', value);
+                        setValue('networkId', Number(value));
+                        // Reset token selection when network changes
+                        setValue('token_id', 0);
                       }}
+                      networks={networksWithTokens}
+                      loading={false}
                       className="flex justify-between w-full h-10 mt-1 bg-white border border-input text-gray-dark"
                     />
                   </div>
@@ -320,19 +339,15 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                         disabled
                       />
                     )}
-                    {!!network && (
-                      <CurrencySelector
-                        disabled={
-                          isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft
-                        }
-                        value={currency}
-                        onValueChange={(value: string) => {
-                          setValue('currency', value);
-                        }}
-                        network={network ?? mainnetDefaultNetwork}
-                        className="w-[108px] h-10"
-                      />
-                    )}
+                    <CurrencySelector
+                      disabled={isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft}
+                      value={String(tokenId)}
+                      onValueChange={(value: string) => {
+                        setValue('token_id', Number(value));
+                      }}
+                      tokens={availableTokens}
+                      className="w-[108px] h-10"
+                    />
                   </div>
                 </div>
               </RadioGroup>

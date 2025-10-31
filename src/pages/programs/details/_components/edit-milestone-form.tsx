@@ -1,10 +1,10 @@
 import { useUpdateMilestoneMutation } from '@/apollo/mutation/update-milestone.generated';
-import { baseCurrencies, eduCurrencies } from '@/components/currency-selector';
 import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
 import { DialogClose, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { getTokenIcon } from '@/constant/network-icons';
 import notify from '@/lib/notify';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import type { Milestone } from '@/types/types.generated';
@@ -26,9 +26,8 @@ function EditMilestoneForm({ milestone, refetch }: { milestone: Milestone; refet
     milestone.price === price &&
     milestone.description === description &&
     JSON.stringify(milestone.links?.map((l) => l.url)) === JSON.stringify(links);
-  const programCurrency = [...eduCurrencies, ...baseCurrencies].find(
-    (c) => c.code === milestone?.currency,
-  );
+
+  const currencyIcon = milestone?.currency ? getTokenIcon(milestone.currency) : null;
 
   const onSubmit = () => {
     const { shouldSend, isValid } = validateLinks(links);
@@ -94,7 +93,7 @@ function EditMilestoneForm({ milestone, refetch }: { milestone: Milestone; refet
             />
           </label>
           <Button variant="outline" className="h-10" type="button" disabled>
-            {programCurrency?.icon} {programCurrency?.code}
+            {currencyIcon} {milestone?.currency}
           </Button>
         </div>
       </div>

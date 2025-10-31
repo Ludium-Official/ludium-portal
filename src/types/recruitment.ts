@@ -1,20 +1,23 @@
 import type { Control, FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import type { LabelValueProps, VisibilityProps } from './common';
-import type { ProgramStatus, ProgramStatusV2 } from './types.generated';
+import type { ProgramStatusV2 } from './types.generated';
 
 export interface ProgramFormData {
   id?: string;
-  programTitle: string;
-  price?: string;
+  title: string;
   description: string;
-  currency: string;
-  deadline?: Date;
   skills: string[];
-  network?: string;
-  visibility?: VisibilityProps;
-  builders?: string[];
-  status?: ProgramStatus | ProgramStatusV2;
-  budget?: string;
+  deadline?: Date;
+  visibility: VisibilityProps;
+  networkId: number;
+  price: string;
+  token_id: number;
+  status?: ProgramStatusV2;
+  txResult?: {
+    txHash: `0x${string}`;
+    programId: number | null;
+  };
+  contractId?: string;
 }
 
 export type OnSubmitProgramFunc = (data: ProgramFormData) => void;

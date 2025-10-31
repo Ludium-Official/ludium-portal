@@ -1,0 +1,11 @@
+query tokensV2($pagination: PaginationInput) {
+  tokensV2(pagination: $pagination) {
+    data {
+      id
+      chainInfoId
+      tokenName
+      tokenAddress
+    }
+    count
+  }
+}

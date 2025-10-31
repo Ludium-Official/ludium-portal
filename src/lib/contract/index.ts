@@ -1,5 +1,5 @@
-import contractJson from '@/lib/contract/contract.json';
 import LdRecruitmentAbi from '@/lib/contract/abi/LdRecruitment';
+import contractJson from '@/lib/contract/contract.json';
 import type { User } from '@/types/types.generated';
 import type { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
@@ -65,7 +65,6 @@ class ChainContract {
         functionName: 'createProgram',
         args: [token, durationDays],
       });
-      console.log(this.contractAddress, this.chainId);
 
       const tx = await this.sendTransaction(
         {

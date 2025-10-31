@@ -1,0 +1,9 @@
+query networkV2($id: ID!) {
+  networkV2(id: $id) {
+    id
+    chainId
+    chainName
+    mainnet
+    exploreUrl
+  }
+}

@@ -1,11 +1,15 @@
 import client from '@/apollo/client';
-import { useCreateProgramV2Mutation } from '@/apollo/mutation/create-program-v2.generated';
+import { useCreateProgramWithOnchainV2Mutation } from '@/apollo/mutation/create-program-with-onchain-v2.generated';
 import { ProgramsV2Document } from '@/apollo/queries/programs-v2.generated';
 import ProgramForm from '@/components/program/program-form/program-form';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import type { OnSubmitProgramFunc } from '@/types/recruitment';
-import { ProgramStatusV2, ProgramVisibilityV2 } from '@/types/types.generated';
+import {
+  OnchainProgramStatusV2,
+  ProgramStatusV2,
+  type ProgramVisibilityV2,
+} from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -13,7 +17,7 @@ const CreateProgram: React.FC = () => {
   const navigate = useNavigate();
 
   const { isLoggedIn, isAuthed } = useAuth();
-  const [createProgram, { loading }] = useCreateProgramV2Mutation();
+  const [createProgram, { loading }] = useCreateProgramWithOnchainV2Mutation();
 
   const onSubmit: OnSubmitProgramFunc = (args) => {
     if (!args.deadline) {
@@ -21,36 +25,48 @@ const CreateProgram: React.FC = () => {
       return;
     }
 
-    if (!args.network) {
+    if (!args.networkId) {
       notify('Network is required', 'error');
       return;
     }
 
-    createProgram({
-      variables: {
-        input: {
-          title: args.programTitle,
-          currency: args.currency,
-          price: args.price ?? '0',
-          description: args.description,
-          deadline: args.deadline.toISOString(),
-          skills: Array.isArray(args.skills) ? args.skills : [],
-          network: args.network,
-          visibility: args.visibility as ProgramVisibilityV2,
-          invitedMembers: Array.isArray(args.builders) ? args.builders : [],
-          status: (args.status as ProgramStatusV2) ?? ProgramStatusV2.Open,
+    try {
+      createProgram({
+        variables: {
+          input: {
+            onchain: {
+              onchainProgramId: args.txResult?.programId ?? 0,
+              smartContractId: args.contractId ? Number(args.contractId) : 0,
+              status: OnchainProgramStatusV2.Active,
+              tx: args.txResult?.txHash ?? '',
+            },
+            program: {
+              title: args.title,
+              networkId: Number(args.networkId),
+              token_id: args.token_id,
+              price: args.price ?? '0',
+              description: args.description,
+              deadline: args.deadline.toISOString(),
+              skills: Array.isArray(args.skills) ? args.skills : [],
+              visibility: args.visibility as ProgramVisibilityV2,
+              status: args.status ?? ProgramStatusV2.Open,
+            },
+          },
         },
-      },
-      onCompleted: async () => {
-        const message =
-          args.status === ProgramStatusV2.Draft
-            ? 'Successfully saved as draft'
-            : 'Successfully created the program';
-        notify(message, 'success');
-        navigate('/programs');
-        client.refetchQueries({ include: [ProgramsV2Document] });
-      },
-    });
+        onCompleted: async () => {
+          notify('Successfully created the program', 'success');
+          navigate('/programs');
+          client.refetchQueries({ include: [ProgramsV2Document] });
+        },
+        onError: (error) => {
+          console.error('Failed to create program:', error);
+          notify('Failed to create program', 'error');
+        },
+      });
+    } catch (error) {
+      console.error('Invalid network or token:', error);
+      notify((error as Error).message, 'error');
+    }
   };
 
   useEffect(() => {

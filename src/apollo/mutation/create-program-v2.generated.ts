@@ -8,13 +8,12 @@ export type CreateProgramV2MutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateProgramV2Mutation = { __typename?: 'Mutation', createProgramV2?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, skills?: Array<string> | null, deadline?: any | null, invitedMembers?: Array<string> | null, status?: Types.ProgramStatusV2 | null, visibility?: Types.ProgramVisibilityV2 | null, network?: string | null, price?: string | null, currency?: string | null, createdAt?: any | null, updatedAt?: any | null } | null };
+export type CreateProgramV2Mutation = { __typename?: 'Mutation', createProgramV2?: { __typename?: 'ProgramV2', title?: string | null, description?: string | null, skills?: Array<string> | null, deadline?: any | null, invitedMembers?: Array<string> | null, status?: Types.ProgramStatusV2 | null, visibility?: Types.ProgramVisibilityV2 | null, networkId?: number | null, price?: string | null, token_id?: number | null } | null };
 
 
 export const CreateProgramV2Document = gql`
     mutation createProgramV2($input: CreateProgramV2Input!) {
   createProgramV2(input: $input) {
-    id
     title
     description
     skills
@@ -22,11 +21,9 @@ export const CreateProgramV2Document = gql`
     invitedMembers
     status
     visibility
-    network
+    networkId
     price
-    currency
-    createdAt
-    updatedAt
+    token_id
   }
 }
     `;

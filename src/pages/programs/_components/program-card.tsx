@@ -1,12 +1,19 @@
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { dDay, getCurrency, getCurrencyIcon, timeAgo } from '@/lib/utils';
-import { ProgramV2 } from '@/types/types.generated';
+import { useNetworks } from '@/contexts/networks-context';
+import { getNetworkDisplayName, getTokenIcon } from '@/constant/network-icons';
+import { dDay, timeAgo } from '@/lib/utils';
+import type { ProgramV2 } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { Link } from 'react-router';
 
 function ProgramCard({ program }: { program: ProgramV2 }) {
-  const { id, createdAt, currency, deadline, description, network, price, title } = program ?? {};
+  const { id, createdAt, deadline, description, networkId, price, title, token_id } = program ?? {};
+
+  const { getNetworkById, getTokenById } = useNetworks();
+
+  const network = getNetworkById(networkId);
+  const token = getTokenById(token_id);
 
   return (
     <div className="block w-full max-h-[292px] border border-gray-border rounded-lg p-5">
@@ -24,11 +31,11 @@ function ProgramCard({ program }: { program: ProgramV2 }) {
             {price ? (
               <>
                 <span className="flex items-center gap-1 text-muted-foreground font-medium">
-                  {getCurrencyIcon(currency)} {price}
-                  <span className="ml-1">{currency}</span>
+                  {token && getTokenIcon(token.tokenName)} {price}
+                  <span className="ml-1">{token?.tokenName}</span>
                 </span>
                 <span className="block ml-2 pl-2 border-l text-muted-foreground font-medium">
-                  {getCurrency(network)?.display}
+                  {network && getNetworkDisplayName(network.chainName)}
                 </span>
               </>
             ) : (

@@ -8,9 +8,9 @@ mutation updateProgramV2($id: ID!, $input: UpdateProgramV2Input!) {
     invitedMembers
     status
     visibility
-    network
+    networkId
     price
-    currency
+    token_id
     createdAt
     updatedAt
   }

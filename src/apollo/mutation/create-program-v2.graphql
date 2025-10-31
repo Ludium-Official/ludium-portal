@@ -1,6 +1,5 @@
 mutation createProgramV2($input: CreateProgramV2Input!) {
   createProgramV2(input: $input) {
-    id
     title
     description
     skills
@@ -8,10 +7,8 @@ mutation createProgramV2($input: CreateProgramV2Input!) {
     invitedMembers
     status
     visibility
-    network
+    networkId
     price
-    currency
-    createdAt
-    updatedAt
+    token_id
   }
 }

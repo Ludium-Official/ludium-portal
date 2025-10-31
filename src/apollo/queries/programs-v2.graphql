@@ -9,9 +9,9 @@ query programsV2($pagination: PaginationInput) {
       invitedMembers
       status
       visibility
-      network
+      networkId
       price
-      currency
+      token_id
       createdAt
       updatedAt
     }
