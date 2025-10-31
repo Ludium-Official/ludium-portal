@@ -1,4 +1,4 @@
-import RecruitmentOverview from "@/components/recruitment/overview/recruitment-overview";
+import RecruitmentOverview from '@/components/recruitment/overview/recruitment-overview';
 
 const DetailsPage: React.FC = () => {
   return <RecruitmentOverview />;

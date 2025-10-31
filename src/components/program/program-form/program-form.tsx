@@ -1,60 +1,46 @@
-import { useGetProgramV2Query } from "@/apollo/queries/program-v2.generated";
-import SaveButton from "@/components/common/button/saveButton";
-import InputLabel from "@/components/common/label/inputLabel";
-import CurrencySelector from "@/components/currency-selector";
-import { MarkdownEditor } from "@/components/markdown";
-import NetworkSelector from "@/components/network-selector";
-import { Button } from "@/components/ui/button";
-import { DatePicker } from "@/components/ui/date-picker";
-import { Label } from "@/components/ui/label";
-import { MultiSelect } from "@/components/ui/multi-select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useNetworks } from "@/contexts/networks-context";
-import { fetchSkills } from "@/lib/api/skills";
-import { useContract } from "@/lib/hooks/use-contract";
-import notify from "@/lib/notify";
-import { mainnetDefaultNetwork } from "@/lib/utils";
-import type { LabelValueProps } from "@/types/common";
-import type {
-  ProgramFormData,
-  RecruitmentFormProps,
-} from "@/types/recruitment";
-import { ProgramStatusV2 } from "@/types/types.generated";
-import { ethers } from "ethers";
-import { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
-import { useParams } from "react-router";
+import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
+import SaveButton from '@/components/common/button/saveButton';
+import InputLabel from '@/components/common/label/inputLabel';
+import CurrencySelector from '@/components/currency-selector';
+import { MarkdownEditor } from '@/components/markdown';
+import NetworkSelector from '@/components/network-selector';
+import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { useNetworks } from '@/contexts/networks-context';
+import { fetchSkills } from '@/lib/api/skills';
+import { useContract } from '@/lib/hooks/use-contract';
+import notify from '@/lib/notify';
+import { mainnetDefaultNetwork } from '@/lib/utils';
+import type { LabelValueProps } from '@/types/common';
+import type { ProgramFormData, RecruitmentFormProps } from '@/types/recruitment';
+import { ProgramStatusV2 } from '@/types/types.generated';
+import { ethers } from 'ethers';
+import { useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useParams } from 'react-router';
 
-function ProgramForm({
-  onSubmitProgram,
-  isEdit = false,
-  createLoading,
-}: RecruitmentFormProps) {
+function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: RecruitmentFormProps) {
   const { id } = useParams();
 
-  const [budgetType, setBudgetType] = useState("");
-  const [selectedSkillItems, setSelectedSkillItems] = useState<
-    LabelValueProps[]
-  >([]);
+  const [budgetType, setBudgetType] = useState('');
+  const [selectedSkillItems, setSelectedSkillItems] = useState<LabelValueProps[]>([]);
   const [selectedBuilders, setSelectedBuilders] = useState<string[]>([]);
-  const [selectedBuilderItems, setSelectedBuilderItems] = useState<
-    LabelValueProps[]
-  >([]);
+  const [selectedBuilderItems, setSelectedBuilderItems] = useState<LabelValueProps[]>([]);
   const [skillInput, setSkillInput] = useState<string>();
   const [selectedSkills, setSelectedSkills] = useState<{ name: string }[]>([]);
   const [skillsLoading, setSkillsLoading] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<ProgramStatusV2>(
-    ProgramStatusV2.Open
-  );
+  const [submitStatus, setSubmitStatus] = useState<ProgramStatusV2>(ProgramStatusV2.Open);
 
   const formRef = useRef<HTMLFormElement>(null);
 
-  const { networks: networksWithTokens, getContractByNetworkId } =
-    useNetworks();
+  const { networks: networksWithTokens, getContractByNetworkId } = useNetworks();
 
   const { data: programData } = useGetProgramV2Query({
     variables: {
-      id: id ?? "",
+      id: id ?? '',
     },
     skip: !isEdit,
   });
@@ -67,44 +53,39 @@ function ProgramForm({
     setValue,
   } = useForm<ProgramFormData>({
     values: {
-      title: programData?.programV2?.title ?? "",
-      description: programData?.programV2?.description ?? "",
+      title: programData?.programV2?.title ?? '',
+      description: programData?.programV2?.description ?? '',
       skills: programData?.programV2?.skills ?? [],
       deadline: programData?.programV2?.deadline
         ? new Date(programData.programV2.deadline)
         : undefined,
-      visibility: programData?.programV2?.visibility ?? "public",
+      visibility: programData?.programV2?.visibility ?? 'public',
       networkId: programData?.programV2?.networkId ?? 0,
-      price: programData?.programV2?.price ?? "",
+      price: programData?.programV2?.price ?? '',
       token_id: programData?.programV2?.token_id ?? 0,
     },
   });
 
-  const title = watch("title") ?? "";
-  const description = watch("description");
-  const skills = (watch("skills") || []).filter((l): l is string => Boolean(l));
-  const deadline = watch("deadline");
-  const price = watch("price") ?? "";
-  const networkId = watch("networkId");
-  const tokenId = watch("token_id");
-  const visibility = watch("visibility");
+  const title = watch('title') ?? '';
+  const description = watch('description');
+  const skills = (watch('skills') || []).filter((l): l is string => Boolean(l));
+  const deadline = watch('deadline');
+  const price = watch('price') ?? '';
+  const networkId = watch('networkId');
+  const tokenId = watch('token_id');
+  const visibility = watch('visibility');
 
-  const currentNetwork = networksWithTokens.find(
-    (network) => Number(network.id) === networkId
-  );
+  const currentNetwork = networksWithTokens.find((network) => Number(network.id) === networkId);
 
   const currentContract = getContractByNetworkId(Number(currentNetwork?.id));
 
   const availableTokens = currentNetwork?.tokens || [];
 
-  const contract = useContract(
-    currentNetwork?.chainName || "educhain",
-    currentContract?.address
-  );
+  const contract = useContract(currentNetwork?.chainName || 'educhain', currentContract?.address);
 
   const isAllFill =
     !title ||
-    (budgetType === "fixed" && !price) ||
+    (budgetType === 'fixed' && !price) ||
     !networkId ||
     !tokenId ||
     !description ||
@@ -122,21 +103,16 @@ function ProgramForm({
       })();
 
     if (submitStatus === ProgramStatusV2.Open && !isEdit) {
-      const tokenInfo = availableTokens.find(
-        (token) => token.id === String(tokenId)
-      );
-      const tokenAddress =
-        tokenInfo?.tokenAddress || ethers.constants.AddressZero;
+      const tokenInfo = availableTokens.find((token) => token.id === String(tokenId));
+      const tokenAddress = tokenInfo?.tokenAddress || ethers.constants.AddressZero;
 
       const now = new Date();
       const deadline = new Date(finalDeadline);
-      const durationDays = Math.ceil(
-        (deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
-      );
+      const durationDays = Math.ceil((deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 
       const txResult = await contract.createProgramV2(
         tokenAddress as `0x${string}`,
-        BigInt(durationDays)
+        BigInt(durationDays),
       );
 
       onSubmitProgram({
@@ -183,7 +159,7 @@ function ProgramForm({
 
   useEffect(() => {
     if (isEdit) {
-      setBudgetType(price !== "" ? "fixed" : "negotiable");
+      setBudgetType(price !== '' ? 'fixed' : 'negotiable');
     }
   }, [isEdit, price]);
 
@@ -194,8 +170,8 @@ function ProgramForm({
         const skillsData = await fetchSkills();
         setSelectedSkills(skillsData);
       } catch (error) {
-        console.error("Failed to load skills:", error);
-        notify("Failed to load skills. Please try again.", "error");
+        console.error('Failed to load skills:', error);
+        notify('Failed to load skills. Please try again.', 'error');
       } finally {
         setSkillsLoading(false);
       }
@@ -211,7 +187,7 @@ function ProgramForm({
         programData?.programV2.invitedMembers?.map((memberId) => ({
           value: memberId,
           label: memberId,
-        })) ?? []
+        })) ?? [],
       );
     }
   }, [programData]);
@@ -222,20 +198,14 @@ function ProgramForm({
         programData?.programV2.skills.map((skill) => ({
           value: skill,
           label: skill,
-        }))
+        })),
       );
     }
   }, [programData]);
 
   return (
-    <form
-      ref={formRef}
-      onSubmit={handleSubmit(onSubmit)}
-      className="w-full mx-auto"
-    >
-      <h1 className="font-bold text-xl mb-6">
-        {isEdit ? "Edit Program" : "Create Program"}
-      </h1>
+    <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="w-full mx-auto">
+      <h1 className="font-bold text-xl mb-6">{isEdit ? 'Edit Program' : 'Create Program'}</h1>
 
       <div className="flex gap-3">
         <div className="bg-white py-8 px-10 rounded-lg mb-3 flex-1">
@@ -260,7 +230,7 @@ function ProgramForm({
           >
             <MarkdownEditor
               onChange={(value: string) => {
-                setValue("description", value);
+                setValue('description', value);
               }}
               content={description}
             />
@@ -277,7 +247,7 @@ function ProgramForm({
               options={skillOptions ?? []}
               value={skills}
               onValueChange={(value: string[]) => {
-                setValue("skills", value);
+                setValue('skills', value);
               }}
               placeholder="ex. React, NodeJS"
               animation={2}
@@ -303,12 +273,12 @@ function ProgramForm({
               <DatePicker
                 date={deadline}
                 setDate={(date) => {
-                  if (date && typeof date === "object" && "getTime" in date) {
+                  if (date && typeof date === 'object' && 'getTime' in date) {
                     const newDate = new Date(date.getTime());
                     newDate.setHours(23, 59, 59, 999);
-                    setValue("deadline", newDate);
+                    setValue('deadline', newDate);
                   } else {
-                    setValue("deadline", date);
+                    setValue('deadline', date);
                   }
                 }}
                 disabled={{ before: new Date() }}
@@ -328,9 +298,7 @@ function ProgramForm({
                 defaultValue="open"
                 className="space-y-4 text-sm"
                 value={budgetType}
-                onValueChange={(value) =>
-                  setBudgetType(value as "fixed" | "negotiable")
-                }
+                onValueChange={(value) => setBudgetType(value as 'fixed' | 'negotiable')}
                 disabled={isEdit}
               >
                 <div className="flex space-x-2">
@@ -356,14 +324,11 @@ function ProgramForm({
                   <div>
                     <span className="text-muted-foreground">Network</span>
                     <NetworkSelector
-                      disabled={
-                        isEdit &&
-                        programData?.programV2?.status !== ProgramStatusV2.Draft
-                      }
+                      disabled={isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft}
                       value={String(networkId)}
                       onValueChange={(value: string) => {
-                        setValue("networkId", Number(value));
-                        setValue("token_id", 0);
+                        setValue('networkId', Number(value));
+                        setValue('token_id', 0);
                       }}
                       networks={networksWithTokens}
                       loading={false}
@@ -371,7 +336,7 @@ function ProgramForm({
                     />
                   </div>
                   <div className="flex items-end gap-2 mt-2">
-                    {budgetType === "fixed" ? (
+                    {budgetType === 'fixed' ? (
                       <InputLabel
                         labelId="price"
                         type="number"
@@ -394,13 +359,10 @@ function ProgramForm({
                       />
                     )}
                     <CurrencySelector
-                      disabled={
-                        isEdit &&
-                        programData?.programV2?.status !== ProgramStatusV2.Draft
-                      }
+                      disabled={isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft}
                       value={String(tokenId)}
                       onValueChange={(value: string) => {
-                        setValue("token_id", Number(value));
+                        setValue('token_id', Number(value));
                       }}
                       tokens={availableTokens}
                       className="w-[108px] h-10"
@@ -418,7 +380,7 @@ function ProgramForm({
                   setSubmitStatus(ProgramStatusV2.Draft);
                   setTimeout(() => {
                     formRef?.current?.dispatchEvent(
-                      new Event("submit", { cancelable: true, bubbles: true })
+                      new Event('submit', { cancelable: true, bubbles: true }),
                     );
                   }, 0);
                 }}

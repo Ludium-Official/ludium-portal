@@ -8,16 +8,11 @@ import { Link } from 'react-router';
 
 interface ApplicantCardProps {
   applicant: RecruitmentApplicant;
-  onPickApplicant?: (userId?: string | null) => void;
-  onTogglePick?: (userId?: string | null, currentPicked?: boolean) => void;
+  onTogglePick?: (applicationId?: string | null, currentPicked?: boolean) => void;
 }
 
-const ApplicantCard: React.FC<ApplicantCardProps> = ({
-  applicant,
-  onPickApplicant,
-  onTogglePick,
-}) => {
-  const { userInfo, appliedDate, picked } = applicant;
+const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }) => {
+  const { id, userInfo, appliedDate, picked } = applicant;
   const fullName = `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim();
   const initials = `${userInfo.firstName?.[0] || ''}${userInfo.lastName?.[0] || ''}`.toUpperCase();
 
@@ -76,7 +71,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="ghost" onClick={() => onTogglePick?.(userInfo.userId, picked)}>
+              <Button variant="ghost" onClick={() => onTogglePick?.(id, picked)}>
                 {picked ? <Heart className="fill-red-500 text-red-500" /> : <Heart />}
               </Button>
               <Button>Message</Button>

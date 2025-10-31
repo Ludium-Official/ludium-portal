@@ -1,7 +1,7 @@
-import { useNetworksV2Query } from "@/apollo/queries/networks-v2.generated";
-import { useSmartContractsV2Query } from "@/apollo/queries/smart-contracts-v2.generated";
-import { useTokensV2Query } from "@/apollo/queries/tokens-v2.generated";
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { useNetworksV2Query } from '@/apollo/queries/networks-v2.generated';
+import { useSmartContractsV2Query } from '@/apollo/queries/smart-contracts-v2.generated';
+import { useTokensV2Query } from '@/apollo/queries/tokens-v2.generated';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 export type TokenInfo = {
   id: string;
@@ -31,9 +31,7 @@ interface NetworksContextType {
   contracts: SmartContractInfo[];
   loading: boolean;
   error: boolean;
-  getNetworkById: (
-    id: number | null | undefined
-  ) => NetworkWithTokens | undefined;
+  getNetworkById: (id: number | null | undefined) => NetworkWithTokens | undefined;
   getTokenById: (id: number | null | undefined) =>
     | {
         id: string;
@@ -42,14 +40,10 @@ interface NetworksContextType {
         tokenAddress: string;
       }
     | undefined;
-  getContractByNetworkId: (
-    networkId: number | null | undefined
-  ) => SmartContractInfo | undefined;
+  getContractByNetworkId: (networkId: number | null | undefined) => SmartContractInfo | undefined;
 }
 
-const NetworksContext = createContext<NetworksContextType | undefined>(
-  undefined
-);
+const NetworksContext = createContext<NetworksContextType | undefined>(undefined);
 
 export function NetworksProvider({ children }: { children: ReactNode }) {
   const {
@@ -58,11 +52,7 @@ export function NetworksProvider({ children }: { children: ReactNode }) {
     error: networksError,
   } = useNetworksV2Query();
 
-  const {
-    data: tokensData,
-    loading: tokensLoading,
-    error: tokensError,
-  } = useTokensV2Query();
+  const { data: tokensData, loading: tokensLoading, error: tokensError } = useTokensV2Query();
 
   const {
     data: contractsData,
@@ -147,17 +137,13 @@ export function NetworksProvider({ children }: { children: ReactNode }) {
     getContractByNetworkId,
   };
 
-  return (
-    <NetworksContext.Provider value={value}>
-      {children}
-    </NetworksContext.Provider>
-  );
+  return <NetworksContext.Provider value={value}>{children}</NetworksContext.Provider>;
 }
 
 export function useNetworks() {
   const context = useContext(NetworksContext);
   if (context === undefined) {
-    throw new Error("useNetworks must be used within a NetworksProvider");
+    throw new Error('useNetworks must be used within a NetworksProvider');
   }
   return context;
 }
