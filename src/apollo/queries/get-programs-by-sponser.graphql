@@ -1,5 +1,5 @@
-query GetProgramsV2($pagination: PaginationInput) {
-  programsV2(pagination: $pagination) {
+query GetProgramsBySponsorV2($sponsorId: ID!, $pagination: PaginationInput) {
+  programsBysponsorIdV2(sponsorId: $sponsorId, pagination: $pagination) {
     data {
       id
       title
@@ -7,27 +7,19 @@ query GetProgramsV2($pagination: PaginationInput) {
       price
       createdAt
       deadline
-      applicationCount
+      status
       sponsor {
         id
         walletAddress
         email
-        firstName
-        lastName
-        profileImage
       }
       network {
         id
-        chainId
         chainName
-        mainnet
-        exploreUrl
       }
       token {
         id
-        chainInfoId
         tokenName
-        tokenAddress
       }
     }
     count

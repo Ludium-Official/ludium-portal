@@ -1,17 +1,38 @@
-query programV2($id: ID!) {
+query GetProgramV2($id: ID!) {
   programV2(id: $id) {
     id
     title
     description
-    skills
+    price
+    createdAt
     deadline
-    invitedMembers
     status
     visibility
+    skills
     networkId
-    price
     token_id
-    createdAt
-    updatedAt
+    invitedMembers
+    applicationCount
+    sponsor {
+      id
+      walletAddress
+      email
+      firstName
+      lastName
+      profileImage
+    }
+    network {
+      id
+      chainId
+      chainName
+      mainnet
+      exploreUrl
+    }
+    token {
+      id
+      chainInfoId
+      tokenName
+      tokenAddress
+    }
   }
 }

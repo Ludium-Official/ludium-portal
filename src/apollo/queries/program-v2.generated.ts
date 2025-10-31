@@ -3,63 +3,84 @@ import * as Types from '../../types/types.generated';
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type ProgramV2QueryVariables = Types.Exact<{
+export type GetProgramV2QueryVariables = Types.Exact<{
   id: Types.Scalars['ID']['input'];
 }>;
 
 
-export type ProgramV2Query = { __typename?: 'Query', programV2?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, skills?: Array<string> | null, deadline?: any | null, invitedMembers?: Array<string> | null, status?: Types.ProgramStatusV2 | null, visibility?: Types.ProgramVisibilityV2 | null, networkId?: number | null, price?: string | null, token_id?: number | null, createdAt?: any | null, updatedAt?: any | null } | null };
+export type GetProgramV2Query = { __typename?: 'Query', programV2?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, price?: string | null, createdAt?: any | null, deadline?: any | null, status?: Types.ProgramStatusV2 | null, visibility?: Types.ProgramVisibilityV2 | null, skills?: Array<string> | null, networkId?: number | null, token_id?: number | null, invitedMembers?: Array<string> | null, applicationCount?: number | null, sponsor?: { __typename?: 'UserV2', id?: string | null, walletAddress?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null, profileImage?: string | null } | null, network?: { __typename?: 'NetworkV2', id?: string | null, chainId?: number | null, chainName?: string | null, mainnet?: boolean | null, exploreUrl?: string | null } | null, token?: { __typename?: 'TokenV2', id?: string | null, chainInfoId?: number | null, tokenName?: string | null, tokenAddress?: string | null } | null } | null };
 
 
-export const ProgramV2Document = gql`
-    query programV2($id: ID!) {
+export const GetProgramV2Document = gql`
+    query GetProgramV2($id: ID!) {
   programV2(id: $id) {
     id
     title
     description
-    skills
+    price
+    createdAt
     deadline
-    invitedMembers
     status
     visibility
+    skills
     networkId
-    price
     token_id
-    createdAt
-    updatedAt
+    invitedMembers
+    applicationCount
+    sponsor {
+      id
+      walletAddress
+      email
+      firstName
+      lastName
+      profileImage
+    }
+    network {
+      id
+      chainId
+      chainName
+      mainnet
+      exploreUrl
+    }
+    token {
+      id
+      chainInfoId
+      tokenName
+      tokenAddress
+    }
   }
 }
     `;
 
 /**
- * __useProgramV2Query__
+ * __useGetProgramV2Query__
  *
- * To run a query within a React component, call `useProgramV2Query` and pass it any options that fit your needs.
- * When your component renders, `useProgramV2Query` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetProgramV2Query` and pass it any options that fit your needs.
+ * When your component renders, `useGetProgramV2Query` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useProgramV2Query({
+ * const { data, loading, error } = useGetProgramV2Query({
  *   variables: {
  *      id: // value for 'id'
  *   },
  * });
  */
-export function useProgramV2Query(baseOptions: Apollo.QueryHookOptions<ProgramV2Query, ProgramV2QueryVariables> & ({ variables: ProgramV2QueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useGetProgramV2Query(baseOptions: Apollo.QueryHookOptions<GetProgramV2Query, GetProgramV2QueryVariables> & ({ variables: GetProgramV2QueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<ProgramV2Query, ProgramV2QueryVariables>(ProgramV2Document, options);
+        return Apollo.useQuery<GetProgramV2Query, GetProgramV2QueryVariables>(GetProgramV2Document, options);
       }
-export function useProgramV2LazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ProgramV2Query, ProgramV2QueryVariables>) {
+export function useGetProgramV2LazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetProgramV2Query, GetProgramV2QueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<ProgramV2Query, ProgramV2QueryVariables>(ProgramV2Document, options);
+          return Apollo.useLazyQuery<GetProgramV2Query, GetProgramV2QueryVariables>(GetProgramV2Document, options);
         }
-export function useProgramV2SuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ProgramV2Query, ProgramV2QueryVariables>) {
+export function useGetProgramV2SuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetProgramV2Query, GetProgramV2QueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<ProgramV2Query, ProgramV2QueryVariables>(ProgramV2Document, options);
+          return Apollo.useSuspenseQuery<GetProgramV2Query, GetProgramV2QueryVariables>(GetProgramV2Document, options);
         }
-export type ProgramV2QueryHookResult = ReturnType<typeof useProgramV2Query>;
-export type ProgramV2LazyQueryHookResult = ReturnType<typeof useProgramV2LazyQuery>;
-export type ProgramV2SuspenseQueryHookResult = ReturnType<typeof useProgramV2SuspenseQuery>;
-export type ProgramV2QueryResult = Apollo.QueryResult<ProgramV2Query, ProgramV2QueryVariables>;
+export type GetProgramV2QueryHookResult = ReturnType<typeof useGetProgramV2Query>;
+export type GetProgramV2LazyQueryHookResult = ReturnType<typeof useGetProgramV2LazyQuery>;
+export type GetProgramV2SuspenseQueryHookResult = ReturnType<typeof useGetProgramV2SuspenseQuery>;
+export type GetProgramV2QueryResult = Apollo.QueryResult<GetProgramV2Query, GetProgramV2QueryVariables>;

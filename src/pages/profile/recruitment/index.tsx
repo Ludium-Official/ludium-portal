@@ -1,11 +1,11 @@
-import StatusBadge from '@/components/recruitment/statusBadge/statusBadge';
+import StatusBadge from "@/components/recruitment/statusBadge/statusBadge";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -13,10 +13,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { formatDate, formatPrice, getCurrencyIcon } from '@/lib/utils';
-import { mockRecruitmentPrograms } from '@/mock/recruitment-programs';
-import type { RecruitmentProgram } from '@/types/recruitment';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { formatDate, formatPrice, getCurrencyIcon } from "@/lib/utils";
+import type { GetProgramsV2Query } from "@/apollo/queries/programs-v2.generated";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -24,33 +25,63 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from '@tanstack/react-table';
-import { ChevronDown, ChevronLeft, ChevronsUpDown } from 'lucide-react';
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+} from "@tanstack/react-table";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronsUpDown,
+  ChevronRight,
+} from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router";
+import { useGetProgramsBySponsorV2Query } from "@/apollo/queries/get-programs-by-sponser.generated";
+
+const PageSize = 10;
+
+type ProgramData = NonNullable<
+  NonNullable<GetProgramsV2Query["programsV2"]>["data"]
+>[number];
 
 const ProfileRecruitment: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const columns: ColumnDef<RecruitmentProgram>[] = [
+  const { userId } = useAuth();
+  const currentPage = Number(searchParams.get("page")) || 1;
+
+  const { data, loading, error } = useGetProgramsBySponsorV2Query({
+    variables: {
+      sponsorId: userId,
+      pagination: {
+        limit: PageSize,
+        offset: (currentPage - 1) * PageSize,
+      },
+    },
+    skip: !userId,
+  });
+
+  const programs = data?.programsBysponsorIdV2?.data || [];
+  const totalCount = data?.programsBysponsorIdV2?.count || 0;
+  const totalPages = Math.ceil(totalCount / PageSize);
+
+  const columns: ColumnDef<ProgramData>[] = [
     {
-      accessorKey: 'title',
-      header: 'Title',
+      accessorKey: "title",
+      header: "Title",
       cell: ({ row }) => (
         <div className="font-bold overflow-hidden text-ellipsis whitespace-nowrap">
-          {row.getValue('title')}
+          {row.getValue("title")}
         </div>
       ),
       size: 200,
     },
     {
-      accessorKey: 'status',
+      accessorKey: "status",
       header: ({ column }) => {
         const filterValue = (column.getFilterValue() as string[]) || [];
         const isAllSelected = filterValue.length === 0;
@@ -80,37 +111,50 @@ const ProfileRecruitment: React.FC = () => {
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              <DropdownMenuCheckboxItem checked={isAllSelected} onCheckedChange={handleAllChange}>
+              <DropdownMenuCheckboxItem
+                checked={isAllSelected}
+                onCheckedChange={handleAllChange}
+              >
                 All
               </DropdownMenuCheckboxItem>
               <DropdownMenuSeparator />
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes('open')}
-                onCheckedChange={(checked) => handleStatusChange('open', checked)}
+                checked={filterValue.includes("open")}
+                onCheckedChange={(checked) =>
+                  handleStatusChange("open", checked)
+                }
               >
                 Open
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes('closed')}
-                onCheckedChange={(checked) => handleStatusChange('closed', checked)}
+                checked={filterValue.includes("closed")}
+                onCheckedChange={(checked) =>
+                  handleStatusChange("closed", checked)
+                }
               >
                 Closed
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes('draft')}
-                onCheckedChange={(checked) => handleStatusChange('draft', checked)}
+                checked={filterValue.includes("draft")}
+                onCheckedChange={(checked) =>
+                  handleStatusChange("draft", checked)
+                }
               >
                 Draft
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes('under_review')}
-                onCheckedChange={(checked) => handleStatusChange('under_review', checked)}
+                checked={filterValue.includes("under_review")}
+                onCheckedChange={(checked) =>
+                  handleStatusChange("under_review", checked)
+                }
               >
                 Under Review
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes('declined')}
-                onCheckedChange={(checked) => handleStatusChange('declined', checked)}
+                checked={filterValue.includes("declined")}
+                onCheckedChange={(checked) =>
+                  handleStatusChange("declined", checked)
+                }
               >
                 Declined
               </DropdownMenuCheckboxItem>
@@ -119,7 +163,7 @@ const ProfileRecruitment: React.FC = () => {
         );
       },
       cell: ({ row }) => {
-        return <StatusBadge status={row.getValue('status')} />;
+        return <StatusBadge status={row.getValue("status")} />;
       },
       filterFn: (row, id, value) => {
         return value.includes(row.getValue(id));
@@ -127,12 +171,12 @@ const ProfileRecruitment: React.FC = () => {
       size: 100,
     },
     {
-      accessorKey: 'deadline',
+      accessorKey: "deadline",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Deadline
             <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -140,18 +184,22 @@ const ProfileRecruitment: React.FC = () => {
         );
       },
       cell: ({ row }) => {
-        return <div className="font-bold">{formatDate(row.getValue('deadline'))}</div>;
+        return (
+          <div className="font-bold">
+            {formatDate(row.getValue("deadline"))}
+          </div>
+        );
       },
-      sortingFn: 'datetime',
+      sortingFn: "datetime",
       size: 100,
     },
     {
-      accessorKey: 'price',
+      accessorKey: "price",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Price
             <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -159,49 +207,37 @@ const ProfileRecruitment: React.FC = () => {
         );
       },
       cell: ({ row }) => {
-        const budgetType = row.original.budgetType;
         const price = row.original.price;
-        const currency = row.original.currency;
+        const token = row.original.token;
 
-        if (budgetType === 'negotiable') {
+        if (!price) {
           return <div className="font-bold">Negotiable</div>;
-        }
-
-        if (!price || !currency) {
-          return <div className="font-bold">-</div>;
         }
 
         return (
           <div className="flex items-center gap-3 font-bold">
-            {formatPrice(price)}{' '}
+            {formatPrice(price)}{" "}
             <div className="flex items-center gap-2">
-              {getCurrencyIcon(currency)}
-              {currency}
+              {token && getCurrencyIcon(token.tokenName || "")}
+              {token?.tokenName}
             </div>
           </div>
         );
       },
       sortingFn: (rowA, rowB) => {
-        const a = rowA.original;
-        const b = rowB.original;
-
-        if (a.budgetType === 'negotiable' && b.budgetType !== 'negotiable') return 1;
-        if (a.budgetType !== 'negotiable' && b.budgetType === 'negotiable') return -1;
-
-        const priceA = Number.parseFloat(a.price || '0');
-        const priceB = Number.parseFloat(b.price || '0');
-
+        const priceA = Number.parseFloat(rowA.original.price || "0");
+        const priceB = Number.parseFloat(rowB.original.price || "0");
         return priceA - priceB;
       },
       size: 100,
     },
     {
-      accessorKey: 'createdAt',
+      accessorKey: "createdAt",
       header: ({ column }) => {
         return (
           <div
             className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Post Date
             <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -209,34 +245,31 @@ const ProfileRecruitment: React.FC = () => {
         );
       },
       cell: ({ row }) => {
-        return <div className="font-bold">{formatDate(row.getValue('createdAt'))}</div>;
+        return (
+          <div className="font-bold">
+            {formatDate(row.getValue("createdAt"))}
+          </div>
+        );
       },
-      sortingFn: 'datetime',
-      size: 100,
-    },
-    {
-      accessorKey: 'applicantCount',
-      header: 'Applicants',
-      cell: ({ row }) => {
-        return <div className="font-bold">{row.getValue('applicantCount')}</div>;
-      },
+      sortingFn: "datetime",
       size: 100,
     },
   ];
 
   const table = useReactTable({
-    data: mockRecruitmentPrograms,
+    data: programs,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
       columnFilters,
     },
+    manualPagination: true,
+    pageCount: totalPages,
   });
 
   return (
@@ -249,62 +282,132 @@ const ProfileRecruitment: React.FC = () => {
           <ChevronLeft className="w-4" />
           Dashboard
         </Link>
-        <div className="mb-6 font-bold text-2xl text-gray-mid-dark">My Job Posts</div>
+        <div className="mb-6 font-bold text-2xl text-gray-mid-dark">
+          My Job Posts
+        </div>
       </div>
-      <div className="border border-[#E4E4E7] rounded-2xl overflow-hidden">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="border-b border-[#E4E4E7]">
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      style={{ width: `${header.getSize()}px` }}
-                      className="p-4 text-[#4B5563]"
+
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-lg text-gray-500">Loading programs...</div>
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-lg text-red-500">
+            Error loading programs. Please try again.
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="border border-[#E4E4E7] rounded-2xl overflow-hidden">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow
+                    key={headerGroup.id}
+                    className="border-b border-[#E4E4E7]"
+                  >
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead
+                          key={header.id}
+                          style={{ width: `${header.getSize()}px` }}
+                          className="p-4 text-[#4B5563]"
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </TableHead>
+                      );
+                    })}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                      className="cursor-pointer hover:bg-gray-50 border-b border-[#E4E4E7] last:border-b-0 text-[#4B5563]"
+                      onClick={() =>
+                        navigate(`/profile/recruitment/sponser/${row.original.id}`)
+                      }
                     >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                  className="cursor-pointer hover:bg-gray-50 border-b border-[#E4E4E7] last:border-b-0 text-[#4B5563]"
-                  onClick={() => navigate(`/profile/recruitment/sponser/${row.original.id}`)}
-                >
-                  {row.getVisibleCells().map((cell) => (
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell
+                          key={cell.id}
+                          style={{
+                            width: `${cell.column.getSize()}px`,
+                            maxWidth: `${cell.column.getSize()}px`,
+                          }}
+                          className="px-4 py-[30px]"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
                     <TableCell
-                      key={cell.id}
-                      style={{
-                        width: `${cell.column.getSize()}px`,
-                        maxWidth: `${cell.column.getSize()}px`,
-                      }}
-                      className="px-4 py-[30px]"
+                      colSpan={columns.length}
+                      className="h-24 text-center px-4 py-[30px]"
                     >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      No results.
                     </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center px-4 py-[30px]">
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSearchParams({ page: String(currentPage - 1) })}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Previous
+              </Button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSearchParams({ page: String(page) })}
+                    className="min-w-[40px]"
+                  >
+                    {page}
+                  </Button>
+                ))}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSearchParams({ page: String(currentPage + 1) })}
+                disabled={currentPage === totalPages}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };

@@ -1515,16 +1515,24 @@ export enum ProgramType {
 
 export type ProgramV2 = {
   __typename?: 'ProgramV2';
+  /** The number of applications submitted by builders for this program */
+  applicationCount?: Maybe<Scalars['Int']['output']>;
   createdAt?: Maybe<Scalars['DateTime']['output']>;
   deadline?: Maybe<Scalars['DateTime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   invitedMembers?: Maybe<Array<Scalars['String']['output']>>;
+  /** The network associated with this program */
+  network?: Maybe<NetworkV2>;
   networkId?: Maybe<Scalars['Int']['output']>;
   price?: Maybe<Scalars['String']['output']>;
   skills?: Maybe<Array<Scalars['String']['output']>>;
+  /** The sponsor (creator) of this program */
+  sponsor?: Maybe<UserV2>;
   status?: Maybe<ProgramStatusV2>;
   title?: Maybe<Scalars['String']['output']>;
+  /** The token associated with this program */
+  token?: Maybe<TokenV2>;
   token_id?: Maybe<Scalars['Int']['output']>;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   visibility?: Maybe<ProgramVisibilityV2>;
@@ -1593,9 +1601,12 @@ export type Query = {
   /** Get current authenticated user profile */
   profileV2?: Maybe<UserV2>;
   program?: Maybe<Program>;
+  /** Get a single program by ID. */
   programV2?: Maybe<ProgramV2>;
   programs?: Maybe<PaginatedPrograms>;
+  /** Get all programs by sponsor ID with pagination. Default limit is 10, default offset is 0. Returns all programs created by a specific sponsor. */
   programsBysponsorIdV2?: Maybe<PaginatedProgramsV2>;
+  /** Get all programs with pagination. Default limit is 10, default offset is 0. */
   programsV2?: Maybe<PaginatedProgramsV2>;
   /** Query users with dynamic field=value filters (AND condition, no pagination) */
   queryUsersV2?: Maybe<Array<UserV2>>;
