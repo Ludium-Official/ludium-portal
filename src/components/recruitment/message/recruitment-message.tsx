@@ -1,33 +1,47 @@
+import { useGetProgramV2Query } from "@/apollo/queries/program-v2.generated";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Card, CardContent } from '@/components/ui/card';
-import { mockRecruitmentMessages } from '@/mock/recruitment-messages';
-import ApplicationChat from '@/pages/programs/details/application-chat';
-import { useState } from 'react';
-import MessageListItem from './message-list-item';
+} from "@/components/ui/accordion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import ApplicationChat from "@/pages/programs/details/application-chat";
+import { useState } from "react";
+import MessageListItem from "./message-list-item";
+import { ApplicationV2 } from "@/types/types.generated";
 
-const RecruitmentMessage: React.FC = () => {
-  const [messages] = useState(mockRecruitmentMessages);
+const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
+  applications,
+}) => {
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
-    messages[0]?.id || null,
+    null
   );
 
-  const selectedMessage = messages.find((msg) => msg.id === selectedMessageId);
+  const selectedMessage = applications.find(
+    (applicant) => applicant.id === selectedMessageId
+  );
+
+  const { data: programData } = useGetProgramV2Query({
+    variables: { id: selectedMessage?.program?.id || "" },
+    skip: !selectedMessage?.program?.id,
+  });
+
+  const program = programData?.programV2;
 
   return (
     <div className="flex gap-4 h-[calc(100vh-200px)]">
-      <Card className="w-[25%] overflow-y-auto py-4">
-        <CardContent className="px-2 space-y-2">
-          {messages.map((message) => (
+      <Card className="gap-3 w-[25%] overflow-y-auto py-5">
+        <CardHeader className="px-5">
+          <CardTitle>Messages</CardTitle>
+        </CardHeader>
+        <CardContent className="px-5 space-y-2">
+          {applications.map((applicant) => (
             <MessageListItem
-              key={message.id}
-              message={message}
-              isSelected={selectedMessageId === message.id}
-              onClick={() => setSelectedMessageId(message.id)}
+              key={applicant.id}
+              message={applicant}
+              isSelected={selectedMessageId === applicant.id}
+              onClick={() => setSelectedMessageId(applicant.id || null)}
             />
           ))}
         </CardContent>
@@ -37,7 +51,10 @@ const RecruitmentMessage: React.FC = () => {
         <div className="py-5 pr-0 pl-2 w-full">
           {selectedMessage ? (
             <div className="h-full overflow-hidden">
-              <ApplicationChat messageId={selectedMessage.id} />
+              <ApplicationChat
+                selectedMessage={selectedMessage}
+                program={program}
+              />
             </div>
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -57,12 +74,18 @@ const RecruitmentMessage: React.FC = () => {
                   <AccordionContent className="flex flex-col gap-3 pb-3">
                     <div className="space-y-3">
                       <div>
-                        <p className="text-muted-foreground text-xs mb-1">Resume</p>
+                        <p className="text-muted-foreground text-xs mb-1">
+                          Resume
+                        </p>
                         <p className="font-medium text-sm">resume.pdf</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground text-xs mb-1">Portfolio</p>
-                        <p className="font-medium text-sm">portfolio_link.url</p>
+                        <p className="text-muted-foreground text-xs mb-1">
+                          Portfolio
+                        </p>
+                        <p className="font-medium text-sm">
+                          portfolio_link.url
+                        </p>
                       </div>
                     </div>
                   </AccordionContent>
@@ -75,12 +98,20 @@ const RecruitmentMessage: React.FC = () => {
                   <AccordionContent className="flex flex-col gap-3 pb-3">
                     <div className="space-y-3">
                       <div>
-                        <p className="text-muted-foreground text-xs mb-1">Contract Document</p>
-                        <p className="font-medium text-sm">contract_signed.pdf</p>
+                        <p className="text-muted-foreground text-xs mb-1">
+                          Contract Document
+                        </p>
+                        <p className="font-medium text-sm">
+                          contract_signed.pdf
+                        </p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground text-xs mb-1">Status</p>
-                        <p className="font-medium text-sm text-green-600">Signed</p>
+                        <p className="text-muted-foreground text-xs mb-1">
+                          Status
+                        </p>
+                        <p className="font-medium text-sm text-green-600">
+                          Signed
+                        </p>
                       </div>
                     </div>
                   </AccordionContent>
@@ -89,7 +120,7 @@ const RecruitmentMessage: React.FC = () => {
 
               <Accordion
                 type="multiple"
-                defaultValue={['milestone', 'completed']}
+                defaultValue={["milestone", "completed"]}
                 className="bg-white rounded-lg"
               >
                 <AccordionItem value="milestone" className="px-3 border-none">
@@ -102,7 +133,9 @@ const RecruitmentMessage: React.FC = () => {
                         <span>Oct 15, 2025</span>
                       </div>
                       <div>
-                        <p className="text-sm">Complete UI/UX design and wireframes</p>
+                        <p className="text-sm">
+                          Complete UI/UX design and wireframes
+                        </p>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -110,7 +143,9 @@ const RecruitmentMessage: React.FC = () => {
                         <span>Oct 15, 2025</span>
                       </div>
                       <div>
-                        <p className="text-sm">Complete UI/UX design and wireframes</p>
+                        <p className="text-sm">
+                          Complete UI/UX design and wireframes
+                        </p>
                       </div>
                     </div>
                   </AccordionContent>
@@ -126,7 +161,9 @@ const RecruitmentMessage: React.FC = () => {
                         <span>Oct 15, 2025</span>
                       </div>
                       <div>
-                        <p className="text-sm">Implement frontend and backend features</p>
+                        <p className="text-sm">
+                          Implement frontend and backend features
+                        </p>
                       </div>
                     </div>
                   </AccordionContent>

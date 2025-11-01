@@ -1,4 +1,4 @@
-import type { LoginTypeEnum } from './types.generated';
+import type { LoginTypeEnum } from "./types.generated";
 
 export interface AuthProps {
   email?: string | null;

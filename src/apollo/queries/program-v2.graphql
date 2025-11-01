@@ -20,6 +20,7 @@ query GetProgramV2($id: ID!) {
       firstName
       lastName
       profileImage
+      organizationName
     }
     network {
       id
