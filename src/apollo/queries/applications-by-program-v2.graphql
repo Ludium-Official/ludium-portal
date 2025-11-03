@@ -24,6 +24,9 @@ query applicationsByProgramV2($query: ApplicationsByProgramV2QueryInput!) {
         description
         sponsor {
           id
+          firstName
+          lastName
+          email
         }
       }
     }

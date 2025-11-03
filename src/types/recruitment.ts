@@ -1,6 +1,6 @@
 import type { Control, FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import type { LabelValueProps, VisibilityProps } from './common';
-import type { ProgramStatusV2 } from './types.generated';
+import type { MilestoneV2, ProgramStatusV2, UserV2 } from './types.generated';
 
 export interface ProgramFormData {
   id?: string;
@@ -97,4 +97,13 @@ export interface RecruitmentApplicant {
     skills?: string[] | null;
     tools?: string[] | null;
   };
+}
+
+export interface ContractInformation {
+  title: string;
+  programId: string;
+  applicantId: string;
+  milestones: MilestoneV2[];
+  sponsor: UserV2 | null;
+  applicant: UserV2 | null;
 }

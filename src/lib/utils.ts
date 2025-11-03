@@ -64,6 +64,17 @@ export const getUserName = (user?: User | null) => {
   return user.firstName ?? user.lastName ?? user.email ?? user.organizationName ?? '';
 };
 
+export const getUserDisplayName = (
+  firstName?: string | null,
+  lastName?: string | null,
+  email?: string | null,
+): string => {
+  if (firstName && lastName) {
+    return `${firstName} ${lastName}`.trim();
+  }
+  return email || 'Unknown';
+};
+
 export const mainnetDefaultNetwork =
   import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet' ? 'educhain' : 'educhain-testnet';
 
@@ -112,6 +123,45 @@ export const dDay = (deadline: Date) => {
 
 export const formatDate = (date: Date | string) => {
   return format(new Date(date), 'MMMM d, yyyy');
+};
+
+/**
+ * 한국어 형식으로 날짜를 포맷합니다 (YYYY-MM-DD)
+ * @param date - 날짜 문자열, Date 객체, 또는 null/undefined
+ * @returns 포맷된 날짜 문자열 또는 "YYYY-MM-DD" (날짜가 없을 경우)
+ */
+export const formatDateKorean = (date: string | null | undefined): string => {
+  if (!date) return 'YYYY-MM-DD';
+  try {
+    return new Date(date).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  } catch {
+    return 'YYYY-MM-DD';
+  }
+};
+
+/**
+ * 날짜에 일수를 더한 날짜를 반환합니다
+ * @param date - 기준 날짜 (문자열, Date 객체, 또는 null/undefined)
+ * @param days - 더할 일수 (기본값: 0)
+ * @returns 포맷된 날짜 문자열 또는 "YYYY-MM-DD" (날짜가 없을 경우)
+ */
+export const addDaysToDate = (date: string | null | undefined, days: number = 0): string => {
+  if (!date) return 'YYYY-MM-DD';
+  try {
+    const dateObj = new Date(date);
+    dateObj.setDate(dateObj.getDate() + days);
+    return dateObj.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  } catch {
+    return 'YYYY-MM-DD';
+  }
 };
 
 export const formatPrice = (price: string | number) => {

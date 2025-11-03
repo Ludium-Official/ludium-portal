@@ -132,7 +132,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
         return date;
       })();
 
-    if (submitStatus === ProgramStatusV2.Open && currentStatus === ProgramStatusV2.Draft) {
+    if (submitStatus === ProgramStatusV2.Open || currentStatus === ProgramStatusV2.Draft) {
       const tokenInfo = availableTokens.find((token) => token.id === String(tokenId));
       const tokenAddress = tokenInfo?.tokenAddress || ethers.constants.AddressZero;
 

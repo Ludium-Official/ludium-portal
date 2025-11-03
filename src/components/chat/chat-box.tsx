@@ -10,6 +10,7 @@ import {
   subscribeToNewMessages,
 } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { getUserDisplayName } from '@/lib/utils';
 import type { ApplicationV2 } from '@/types/types.generated';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -53,15 +54,13 @@ function MessageItem({ message, timestamp, applicant }: MessageItemProps) {
   let senderImage: string;
 
   if (shouldUseApplicant && applicant) {
-    const fullName = `${applicant.firstName || ''} ${applicant.lastName || ''}`.trim();
-    // firstName과 lastName이 없으면 이메일 사용
-    senderName = fullName || applicant.email || 'Unknown';
+    const fullName = getUserDisplayName(applicant.firstName, applicant.lastName, applicant.email);
+    senderName = fullName;
     senderImage = applicant.profileImage || '';
   } else {
     const user = userData?.userV2;
-    const fullName = user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : '';
-    // firstName과 lastName이 없으면 이메일 사용
-    senderName = fullName || user?.email || 'Unknown';
+    const fullName = getUserDisplayName(user?.firstName, user?.lastName, user?.email);
+    senderName = fullName;
     senderImage = user?.profileImage || '';
   }
 

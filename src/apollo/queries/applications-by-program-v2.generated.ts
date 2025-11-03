@@ -8,7 +8,7 @@ export type ApplicationsByProgramV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type ApplicationsByProgramV2Query = { __typename?: 'Query', applicationsByProgramV2?: { __typename?: 'PaginatedApplicationsV2', count?: number | null, totalPages?: number | null, currentPage?: number | null, hasNextPage?: boolean | null, hasPreviousPage?: boolean | null, data?: Array<{ __typename?: 'ApplicationV2', id?: string | null, status?: Types.ApplicationStatusV2 | null, content?: string | null, picked?: boolean | null, rejectedReason?: string | null, createdAt?: any | null, updatedAt?: any | null, applicant?: { __typename?: 'UserV2', id?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null, profileImage?: string | null, organizationName?: string | null, bio?: string | null, skills?: Array<string> | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, sponsor?: { __typename?: 'UserV2', id?: string | null } | null } | null }> | null } | null };
+export type ApplicationsByProgramV2Query = { __typename?: 'Query', applicationsByProgramV2?: { __typename?: 'PaginatedApplicationsV2', count?: number | null, totalPages?: number | null, currentPage?: number | null, hasNextPage?: boolean | null, hasPreviousPage?: boolean | null, data?: Array<{ __typename?: 'ApplicationV2', id?: string | null, status?: Types.ApplicationStatusV2 | null, content?: string | null, picked?: boolean | null, rejectedReason?: string | null, createdAt?: any | null, updatedAt?: any | null, applicant?: { __typename?: 'UserV2', id?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null, profileImage?: string | null, organizationName?: string | null, bio?: string | null, skills?: Array<string> | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, sponsor?: { __typename?: 'UserV2', id?: string | null, firstName?: string | null, lastName?: string | null, email?: string | null } | null } | null }> | null } | null };
 
 
 export const ApplicationsByProgramV2Document = gql`
@@ -38,6 +38,9 @@ export const ApplicationsByProgramV2Document = gql`
         description
         sponsor {
           id
+          firstName
+          lastName
+          email
         }
       }
     }

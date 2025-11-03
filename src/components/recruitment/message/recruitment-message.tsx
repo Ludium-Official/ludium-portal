@@ -33,6 +33,7 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import * as z from 'zod';
 import MessageListItem from './message-list-item';
+import { ContractInformation } from '@/types/recruitment';
 
 const milestoneFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -114,25 +115,34 @@ const RecruitmentMessage: React.FC<{
   const [selectedMilestone, setSelectedMilestone] = useState<MilestoneV2 | null>(null);
   const [isNewMilestoneMode, setIsNewMilestoneMode] = useState(true);
 
-  const selectedMessage = applications.find((applicant) => applicant.id === selectedMessageId);
+  const selectedApplication = applications.find((applicant) => applicant.id === selectedMessageId);
 
   const { data: programData } = useGetProgramV2Query({
-    variables: { id: selectedMessage?.program?.id || '' },
-    skip: !selectedMessage?.program?.id,
+    variables: { id: selectedApplication?.program?.id || '' },
+    skip: !selectedApplication?.program?.id,
   });
-
-  const program = programData?.programV2;
 
   const { data: milestonesData, refetch: refetchMilestones } = useGetMilestonesV2Query({
     variables: {
       query: {
-        applicantId: selectedMessage?.applicant?.id,
-        programId: selectedMessage?.program?.id,
+        applicantId: selectedApplication?.applicant?.id,
+        programId: selectedApplication?.program?.id,
       },
     },
-    skip: !selectedMessage?.applicant?.id || !selectedMessage?.program?.id,
+    skip: !selectedApplication?.applicant?.id || !selectedApplication?.program?.id,
   });
+  console.log(selectedApplication);
 
+  const contractInformation: ContractInformation = {
+    title: selectedApplication?.program?.title || '',
+    programId: selectedApplication?.program?.id || '',
+    applicantId: selectedApplication?.applicant?.id || '',
+    milestones: milestonesData?.milestonesV2?.data || [],
+    sponsor: selectedApplication?.program?.sponsor || null,
+    applicant: selectedApplication?.applicant || null,
+  };
+
+  const program = programData?.programV2;
   const allMilestones = milestonesData?.milestonesV2?.data || [];
 
   const sortedMilestones = [...allMilestones].sort((a, b) => {
@@ -175,7 +185,7 @@ const RecruitmentMessage: React.FC<{
   });
 
   const onSubmitMilestone = async (data: MilestoneFormData) => {
-    if (!selectedMessage?.applicant?.id || !selectedMessage?.program?.id) {
+    if (!selectedApplication?.applicant?.id || !selectedApplication?.program?.id) {
       toast.error('Missing applicant or program information');
       return;
     }
@@ -184,8 +194,8 @@ const RecruitmentMessage: React.FC<{
       await createMilestone({
         variables: {
           input: {
-            applicantId: selectedMessage.applicant.id,
-            programId: selectedMessage.program.id,
+            applicantId: selectedApplication.applicant.id,
+            programId: selectedApplication.program.id,
             title: data.title,
             description: data.description,
             payout: data.price,
@@ -239,33 +249,33 @@ const RecruitmentMessage: React.FC<{
 
       <Card className="flex flex-row gap-2 w-full p-0">
         <div className="py-5 pr-0 pl-2 w-full flex flex-col">
-          {selectedMessage ? (
+          {selectedApplication ? (
             <>
               <div className="flex items-center justify-between border-b pb-4 px-4">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-12 w-12">
                     <AvatarImage
                       src={
-                        userId === selectedMessage.applicant?.id
+                        userId === selectedApplication.applicant?.id
                           ? program?.sponsor?.profileImage || ''
-                          : selectedMessage.applicant?.profileImage || ''
+                          : selectedApplication.applicant?.profileImage || ''
                       }
                       alt={
-                        userId === selectedMessage.applicant?.id
+                        userId === selectedApplication.applicant?.id
                           ? `${program?.sponsor?.firstName || ''} ${
                               program?.sponsor?.lastName || ''
                             }`.trim() ||
                             program?.sponsor?.email ||
                             'Unknown'
-                          : `${selectedMessage.applicant?.firstName || ''} ${
-                              selectedMessage.applicant?.lastName || ''
+                          : `${selectedApplication.applicant?.firstName || ''} ${
+                              selectedApplication.applicant?.lastName || ''
                             }`.trim() ||
-                            selectedMessage.applicant?.email ||
+                            selectedApplication.applicant?.email ||
                             'Unknown'
                       }
                     />
                     <AvatarFallback className="text-sm font-semibold">
-                      {userId === selectedMessage.applicant?.id
+                      {userId === selectedApplication.applicant?.id
                         ? getInitials(
                             `${program?.sponsor?.firstName || ''} ${
                               program?.sponsor?.lastName || ''
@@ -274,44 +284,41 @@ const RecruitmentMessage: React.FC<{
                               '',
                           )
                         : getInitials(
-                            `${selectedMessage.applicant?.firstName || ''} ${
-                              selectedMessage.applicant?.lastName || ''
+                            `${selectedApplication.applicant?.firstName || ''} ${
+                              selectedApplication.applicant?.lastName || ''
                             }`.trim() ||
-                              selectedMessage.applicant?.email ||
+                              selectedApplication.applicant?.email ||
                               '',
                           )}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
                     <h3 className="font-bold text-lg">
-                      {userId === selectedMessage.applicant?.id
+                      {userId === selectedApplication.applicant?.id
                         ? `${program?.sponsor?.firstName || ''} ${
                             program?.sponsor?.lastName || ''
                           }`.trim() ||
                           program?.sponsor?.email ||
                           'Unknown'
-                        : `${selectedMessage.applicant?.firstName || ''} ${
-                            selectedMessage.applicant?.lastName || ''
+                        : `${selectedApplication.applicant?.firstName || ''} ${
+                            selectedApplication.applicant?.lastName || ''
                           }`.trim() ||
-                          selectedMessage.applicant?.email ||
+                          selectedApplication.applicant?.email ||
                           'Unknown'}
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      {userId === selectedMessage.applicant?.id
+                      {userId === selectedApplication.applicant?.id
                         ? program?.sponsor?.organizationName
-                        : selectedMessage.applicant?.organizationName}
+                        : selectedApplication.applicant?.organizationName}
                     </p>
                   </div>
                 </div>
                 {program?.sponsor?.id === userId && (
-                  <HireButton
-                    applicationId={selectedMessage.id}
-                    programId={selectedMessage.programId}
-                  />
+                  <HireButton contractInformation={contractInformation} />
                 )}
               </div>
               <div className="flex-1 overflow-hidden">
-                <ChatBox selectedMessage={selectedMessage} />
+                <ChatBox selectedMessage={selectedApplication} />
               </div>
             </>
           ) : (
@@ -322,7 +329,7 @@ const RecruitmentMessage: React.FC<{
         </div>
 
         <div className="px-0 w-[40%]">
-          {selectedMessage ? (
+          {selectedApplication ? (
             <div className="h-full p-4 bg-[#FBF5FF] overflow-y-auto rounded-r-xl space-y-3">
               <Accordion
                 type="multiple"

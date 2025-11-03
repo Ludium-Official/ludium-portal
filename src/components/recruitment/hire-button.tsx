@@ -8,14 +8,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { ContractModal } from './contract-modal';
 import { useState } from 'react';
+import { ContractInformation } from '@/types/recruitment';
 
 interface HireButtonProps {
-  applicationId?: string | null;
-  programId?: string | null;
+  contractInformation: ContractInformation;
   disabled?: boolean;
 }
 
-export function HireButton({ applicationId, programId, disabled }: HireButtonProps) {
+export function HireButton({ contractInformation, disabled = false }: HireButtonProps) {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
@@ -34,19 +34,16 @@ export function HireButton({ applicationId, programId, disabled }: HireButtonPro
         Hire
       </Button>
 
-      {/* Confirm Hire Modal */}
       <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle className="text-center">
-              Are you sure you want to hire this candidate?
+            <DialogTitle className="flex justify-center text-center">
+              <div className="w-60">Are you sure you want to hire this candidate?</div>
             </DialogTitle>
           </DialogHeader>
-          <div className="py-4">
-            <p className="text-center text-sm text-muted-foreground">
-              Accepting it will open a pandora&apos;s box.
-            </p>
-          </div>
+          <p className="text-center text-sm text-muted-foreground">
+            Accepting it will open a pandora&apos;s box.
+          </p>
           <DialogFooter className="flex-col gap-2 sm:flex-col">
             <Button type="button" variant="default" className="w-full" onClick={handleContinue}>
               Continue writing
@@ -55,12 +52,10 @@ export function HireButton({ applicationId, programId, disabled }: HireButtonPro
         </DialogContent>
       </Dialog>
 
-      {/* Contract Modal */}
       <ContractModal
         open={isContractModalOpen}
         onOpenChange={setIsContractModalOpen}
-        applicationId={applicationId}
-        programId={programId}
+        contractInformation={contractInformation}
       />
     </>
   );

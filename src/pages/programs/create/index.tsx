@@ -22,6 +22,7 @@ const CreateProgram: React.FC = () => {
   const [createProgramV2] = useCreateProgramV2Mutation();
 
   const onSubmit: OnSubmitProgramFunc = (args) => {
+    console.log(args);
     try {
       if (args.status === ProgramStatusV2.Draft) {
         createProgramV2({
