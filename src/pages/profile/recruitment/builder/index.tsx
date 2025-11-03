@@ -1,11 +1,14 @@
-import StatusBadge from "@/components/recruitment/statusBadge/statusBadge";
+import { useGetProgramsBySponsorV2Query } from '@/apollo/queries/get-programs-by-sponser.generated';
+import type { GetProgramsV2Query } from '@/apollo/queries/programs-v2.generated';
+import StatusBadge from '@/components/recruitment/statusBadge/statusBadge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   Table,
   TableBody,
@@ -13,11 +16,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { formatDate, formatPrice, getCurrencyIcon } from "@/lib/utils";
-import type { GetProgramsV2Query } from "@/apollo/queries/programs-v2.generated";
+} from '@/components/ui/table';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { formatDate, formatPrice, getCurrencyIcon } from '@/lib/utils';
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -27,22 +28,14 @@ import {
   getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table";
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronsUpDown,
-  ChevronRight,
-} from "lucide-react";
-import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
-import { useGetProgramsBySponsorV2Query } from "@/apollo/queries/get-programs-by-sponser.generated";
+} from '@tanstack/react-table';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronsUpDown } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 
 const PageSize = 10;
 
-type ProgramData = NonNullable<
-  NonNullable<GetProgramsV2Query["programsV2"]>["data"]
->[number];
+type ProgramData = NonNullable<NonNullable<GetProgramsV2Query['programsV2']>['data']>[number];
 
 const ProfileRecruitmentBuilder: React.FC = () => {
   const navigate = useNavigate();
@@ -52,7 +45,7 @@ const ProfileRecruitmentBuilder: React.FC = () => {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const { userId } = useAuth();
-  const currentPage = Number(searchParams.get("page")) || 1;
+  const currentPage = Number(searchParams.get('page')) || 1;
 
   // TODO: builder용으로 만들어야 함
   const { data, loading, error } = useGetProgramsBySponsorV2Query({
@@ -72,17 +65,17 @@ const ProfileRecruitmentBuilder: React.FC = () => {
 
   const columns: ColumnDef<ProgramData>[] = [
     {
-      accessorKey: "title",
-      header: "Title",
+      accessorKey: 'title',
+      header: 'Title',
       cell: ({ row }) => (
         <div className="font-bold overflow-hidden text-ellipsis whitespace-nowrap">
-          {row.getValue("title")}
+          {row.getValue('title')}
         </div>
       ),
       size: 200,
     },
     {
-      accessorKey: "status",
+      accessorKey: 'status',
       header: ({ column }) => {
         const filterValue = (column.getFilterValue() as string[]) || [];
         const isAllSelected = filterValue.length === 0;
@@ -112,50 +105,37 @@ const ProfileRecruitmentBuilder: React.FC = () => {
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              <DropdownMenuCheckboxItem
-                checked={isAllSelected}
-                onCheckedChange={handleAllChange}
-              >
+              <DropdownMenuCheckboxItem checked={isAllSelected} onCheckedChange={handleAllChange}>
                 All
               </DropdownMenuCheckboxItem>
               <DropdownMenuSeparator />
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes("open")}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("open", checked)
-                }
+                checked={filterValue.includes('open')}
+                onCheckedChange={(checked) => handleStatusChange('open', checked)}
               >
                 Open
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes("closed")}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("closed", checked)
-                }
+                checked={filterValue.includes('closed')}
+                onCheckedChange={(checked) => handleStatusChange('closed', checked)}
               >
                 Closed
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes("draft")}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("draft", checked)
-                }
+                checked={filterValue.includes('draft')}
+                onCheckedChange={(checked) => handleStatusChange('draft', checked)}
               >
                 Draft
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes("under_review")}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("under_review", checked)
-                }
+                checked={filterValue.includes('under_review')}
+                onCheckedChange={(checked) => handleStatusChange('under_review', checked)}
               >
                 Under Review
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes("declined")}
-                onCheckedChange={(checked) =>
-                  handleStatusChange("declined", checked)
-                }
+                checked={filterValue.includes('declined')}
+                onCheckedChange={(checked) => handleStatusChange('declined', checked)}
               >
                 Declined
               </DropdownMenuCheckboxItem>
@@ -164,7 +144,7 @@ const ProfileRecruitmentBuilder: React.FC = () => {
         );
       },
       cell: ({ row }) => {
-        return <StatusBadge status={row.getValue("status")} />;
+        return <StatusBadge status={row.getValue('status')} />;
       },
       filterFn: (row, id, value) => {
         return value.includes(row.getValue(id));
@@ -172,12 +152,12 @@ const ProfileRecruitmentBuilder: React.FC = () => {
       size: 100,
     },
     {
-      accessorKey: "deadline",
+      accessorKey: 'deadline',
       header: ({ column }) => {
         return (
           <div
             className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Deadline
             <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -185,22 +165,18 @@ const ProfileRecruitmentBuilder: React.FC = () => {
         );
       },
       cell: ({ row }) => {
-        return (
-          <div className="font-bold">
-            {formatDate(row.getValue("deadline"))}
-          </div>
-        );
+        return <div className="font-bold">{formatDate(row.getValue('deadline'))}</div>;
       },
-      sortingFn: "datetime",
+      sortingFn: 'datetime',
       size: 100,
     },
     {
-      accessorKey: "price",
+      accessorKey: 'price',
       header: ({ column }) => {
         return (
           <div
             className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Price
             <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -217,28 +193,28 @@ const ProfileRecruitmentBuilder: React.FC = () => {
 
         return (
           <div className="flex items-center gap-3 font-bold">
-            {formatPrice(price)}{" "}
+            {formatPrice(price)}{' '}
             <div className="flex items-center gap-2">
-              {token && getCurrencyIcon(token.tokenName || "")}
+              {token && getCurrencyIcon(token.tokenName || '')}
               {token?.tokenName}
             </div>
           </div>
         );
       },
       sortingFn: (rowA, rowB) => {
-        const priceA = Number.parseFloat(rowA.original.price || "0");
-        const priceB = Number.parseFloat(rowB.original.price || "0");
+        const priceA = Number.parseFloat(rowA.original.price || '0');
+        const priceB = Number.parseFloat(rowB.original.price || '0');
         return priceA - priceB;
       },
       size: 100,
     },
     {
-      accessorKey: "createdAt",
+      accessorKey: 'createdAt',
       header: ({ column }) => {
         return (
           <div
             className="flex items-center cursor-pointer"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
             Post Date
             <ChevronsUpDown className="ml-2 h-4 w-4" />
@@ -246,13 +222,9 @@ const ProfileRecruitmentBuilder: React.FC = () => {
         );
       },
       cell: ({ row }) => {
-        return (
-          <div className="font-bold">
-            {formatDate(row.getValue("createdAt"))}
-          </div>
-        );
+        return <div className="font-bold">{formatDate(row.getValue('createdAt'))}</div>;
       },
-      sortingFn: "datetime",
+      sortingFn: 'datetime',
       size: 100,
     },
   ];
@@ -283,9 +255,7 @@ const ProfileRecruitmentBuilder: React.FC = () => {
           <ChevronLeft className="w-4" />
           Dashboard
         </Link>
-        <div className="mb-6 font-bold text-2xl text-gray-mid-dark">
-          My Applied Jobs
-        </div>
+        <div className="mb-6 font-bold text-2xl text-gray-mid-dark">My Applied Jobs</div>
       </div>
 
       {loading ? (
@@ -294,9 +264,7 @@ const ProfileRecruitmentBuilder: React.FC = () => {
         </div>
       ) : error ? (
         <div className="flex items-center justify-center py-20">
-          <div className="text-lg text-red-500">
-            Error loading programs. Please try again.
-          </div>
+          <div className="text-lg text-red-500">Error loading programs. Please try again.</div>
         </div>
       ) : (
         <>
@@ -304,10 +272,7 @@ const ProfileRecruitmentBuilder: React.FC = () => {
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow
-                    key={headerGroup.id}
-                    className="border-b border-[#E4E4E7]"
-                  >
+                  <TableRow key={headerGroup.id} className="border-b border-[#E4E4E7]">
                     {headerGroup.headers.map((header) => {
                       return (
                         <TableHead
@@ -317,10 +282,7 @@ const ProfileRecruitmentBuilder: React.FC = () => {
                         >
                           {header.isPlaceholder
                             ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                            : flexRender(header.column.columnDef.header, header.getContext())}
                         </TableHead>
                       );
                     })}
@@ -332,13 +294,9 @@ const ProfileRecruitmentBuilder: React.FC = () => {
                   table.getRowModel().rows.map((row) => (
                     <TableRow
                       key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
+                      data-state={row.getIsSelected() && 'selected'}
                       className="cursor-pointer hover:bg-gray-50 border-b border-[#E4E4E7] last:border-b-0 text-[#4B5563]"
-                      onClick={() =>
-                        navigate(
-                          `/profile/recruitment/builder/${row.original.id}`
-                        )
-                      }
+                      onClick={() => navigate(`/profile/recruitment/builder/${row.original.id}`)}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
@@ -349,20 +307,14 @@ const ProfileRecruitmentBuilder: React.FC = () => {
                           }}
                           className="px-4 py-[30px]"
                         >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
                       ))}
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center px-4 py-[30px]"
-                    >
+                    <TableCell colSpan={columns.length} className="h-24 text-center px-4 py-[30px]">
                       No results.
                     </TableCell>
                   </TableRow>
@@ -376,9 +328,7 @@ const ProfileRecruitmentBuilder: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  setSearchParams({ page: String(currentPage - 1) })
-                }
+                onClick={() => setSearchParams({ page: String(currentPage - 1) })}
                 disabled={currentPage === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -386,27 +336,23 @@ const ProfileRecruitmentBuilder: React.FC = () => {
               </Button>
 
               <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (page) => (
-                    <Button
-                      key={page}
-                      variant={currentPage === page ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSearchParams({ page: String(page) })}
-                      className="min-w-[40px]"
-                    >
-                      {page}
-                    </Button>
-                  )
-                )}
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSearchParams({ page: String(page) })}
+                    className="min-w-[40px]"
+                  >
+                    {page}
+                  </Button>
+                ))}
               </div>
 
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  setSearchParams({ page: String(currentPage + 1) })
-                }
+                onClick={() => setSearchParams({ page: String(currentPage + 1) })}
                 disabled={currentPage === totalPages}
               >
                 Next

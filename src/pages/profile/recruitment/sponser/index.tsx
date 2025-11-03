@@ -1,4 +1,7 @@
+import { useGetProgramsBySponsorV2Query } from '@/apollo/queries/get-programs-by-sponser.generated';
+import type { GetProgramsV2Query } from '@/apollo/queries/programs-v2.generated';
 import StatusBadge from '@/components/recruitment/statusBadge/statusBadge';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -14,10 +17,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { formatDate, formatPrice, getCurrencyIcon } from '@/lib/utils';
-import type { GetProgramsV2Query } from '@/apollo/queries/programs-v2.generated';
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -28,10 +29,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ChevronDown, ChevronLeft, ChevronsUpDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronsUpDown } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { useGetProgramsBySponsorV2Query } from '@/apollo/queries/get-programs-by-sponser.generated';
 
 const PageSize = 10;
 

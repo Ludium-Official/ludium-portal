@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { getNetworkIcon, getNetworkDisplayName } from '@/constant/network-icons';
+import { getNetworkDisplayName, getNetworkIcon } from '@/constant/network-icons';
 import type { NetworkWithTokens } from '@/contexts/networks-context';
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';

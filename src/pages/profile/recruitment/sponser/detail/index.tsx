@@ -1,22 +1,22 @@
-import { useApplicationsByProgramV2Query } from "@/apollo/queries/applications-by-program-v2.generated";
-import RecruitmentApplicants from "@/components/recruitment/applicants/recruitment-applicants";
-import RecruitmentMessage from "@/components/recruitment/message/recruitment-message";
-import RecruitmentOverview from "@/components/recruitment/overview/recruitment-overview";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ApplicationsByProgramV2QueryInput } from "@/types/types.generated";
-import { ChevronLeft } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router";
+import { useApplicationsByProgramV2Query } from '@/apollo/queries/applications-by-program-v2.generated';
+import RecruitmentApplicants from '@/components/recruitment/applicants/recruitment-applicants';
+import RecruitmentMessage from '@/components/recruitment/message/recruitment-message';
+import RecruitmentOverview from '@/components/recruitment/overview/recruitment-overview';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import type { ApplicationsByProgramV2QueryInput } from '@/types/types.generated';
+import { ChevronLeft } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router';
 
 const ProfileRecuitmentDetail: React.FC = () => {
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const tabParam = searchParams.get("tab");
+  const tabParam = searchParams.get('tab');
 
-  const [selectedTab, setSelectedTab] = useState(tabParam || "overview");
+  const [selectedTab, setSelectedTab] = useState(tabParam || 'overview');
 
   const queryInput: ApplicationsByProgramV2QueryInput = {
-    programId: id || "",
+    programId: id || '',
   };
 
   const { data, refetch, loading, error } = useApplicationsByProgramV2Query({
@@ -63,9 +63,9 @@ const ProfileRecuitmentDetail: React.FC = () => {
           </TabsList>
         </Tabs>
       </div>
-      <div>{selectedTab === "overview" && <RecruitmentOverview />}</div>
+      <div>{selectedTab === 'overview' && <RecruitmentOverview />}</div>
       <div>
-        {selectedTab === "applicants" && (
+        {selectedTab === 'applicants' && (
           <RecruitmentApplicants
             applications={applications}
             refetch={refetch}
@@ -74,11 +74,7 @@ const ProfileRecuitmentDetail: React.FC = () => {
           />
         )}
       </div>
-      <div>
-        {selectedTab === "message" && (
-          <RecruitmentMessage applications={applications} />
-        )}
-      </div>
+      <div>{selectedTab === 'message' && <RecruitmentMessage applications={applications} />}</div>
     </div>
   );
 };

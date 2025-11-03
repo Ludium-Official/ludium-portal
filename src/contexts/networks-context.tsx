@@ -1,7 +1,7 @@
 import { useNetworksV2Query } from '@/apollo/queries/networks-v2.generated';
 import { useSmartContractsV2Query } from '@/apollo/queries/smart-contracts-v2.generated';
 import { useTokensV2Query } from '@/apollo/queries/tokens-v2.generated';
-import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import { type ReactNode, createContext, useContext, useMemo } from 'react';
 
 export type TokenInfo = {
   id: string;

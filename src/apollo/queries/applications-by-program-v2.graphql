@@ -22,6 +22,9 @@ query applicationsByProgramV2($query: ApplicationsByProgramV2QueryInput!) {
         id
         title
         description
+        sponsor {
+          id
+        }
       }
     }
     count

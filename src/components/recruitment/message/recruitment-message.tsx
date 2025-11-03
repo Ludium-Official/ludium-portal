@@ -1,33 +1,47 @@
-import { useGetProgramV2Query } from "@/apollo/queries/program-v2.generated";
-import { useGetMilestonesV2Query } from "@/apollo/queries/milestones-v2.generated";
-import { useCreateMilestoneV2Mutation } from "@/apollo/mutation/create-milestone-v2.generated";
-import InputLabel from "@/components/common/label/inputLabel";
-import MarkdownEditor from "@/components/markdown/markdown-editor";
+import { useCreateMilestoneV2Mutation } from '@/apollo/mutation/create-milestone-v2.generated';
+import { useGetMilestonesV2Query } from '@/apollo/queries/milestones-v2.generated';
+import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
+import { ChatBox } from '@/components/chat/chat-box';
+import MarkdownEditor from '@/components/markdown/markdown-editor';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
-import { DatePicker } from "@/components/ui/date-picker";
-import { useEffect, useState } from "react";
-import MessageListItem from "./message-list-item";
-import type { ApplicationV2, MilestoneV2 } from "@/types/types.generated";
-import { Plus } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { useAuth } from "@/lib/hooks/use-auth";
-import toast from "react-hot-toast";
-import { ChatBox } from "@/components/chat/chat-box";
+} from '@/components/ui/accordion';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { useAuth } from '@/lib/hooks/use-auth';
+import type { ApplicationV2, MilestoneV2 } from '@/types/types.generated';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus } from 'lucide-react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
+import * as z from 'zod';
+import MessageListItem from './message-list-item';
 
-interface MilestoneFormData {
-  title: string;
-  price: string;
-  deadline: Date | null;
-  description: string;
-}
+const milestoneFormSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  price: z.string().min(1, 'Price is required'),
+  deadline: z.date({
+    required_error: 'Deadline is required',
+  }),
+  description: z.string().min(1, 'Description is required'),
+});
+
+type MilestoneFormData = z.infer<typeof milestoneFormSchema>;
 
 const MilestoneCard = ({
   milestone,
@@ -48,20 +62,14 @@ const MilestoneCard = ({
   };
 
   const daysLeft = getDaysLeft();
-  const isDraft = (milestone as any).status === "draft";
-  const isUrgent =
-    !isCompleted &&
-    !isDraft &&
-    daysLeft !== null &&
-    daysLeft <= 3 &&
-    daysLeft >= 0;
+  const isDraft = (milestone as any).status === 'draft';
+  const isUrgent = !isCompleted && !isDraft && daysLeft !== null && daysLeft <= 3 && daysLeft >= 0;
 
   const getBackgroundColor = () => {
-    if (isDraft) return "bg-[#F5F5F5] border-l-[#9CA3AF] hover:bg-[#E5E5E5]";
-    if (isCompleted)
-      return "bg-[#F0EDFF] border-l-[#9E71C9] hover:bg-[#E5DDFF]";
-    if (isUrgent) return "bg-[#FFF9FC] border-l-[#EC4899] hover:bg-[#FFF0F7]";
-    return "bg-[#F5F8FF] border-l-[#60A5FA] hover:bg-[#EBF2FF]";
+    if (isDraft) return 'bg-[#F5F5F5] border-l-[#9CA3AF] hover:bg-[#E5E5E5]';
+    if (isCompleted) return 'bg-[#F0EDFF] border-l-[#9E71C9] hover:bg-[#E5DDFF]';
+    if (isUrgent) return 'bg-[#FFF9FC] border-l-[#EC4899] hover:bg-[#FFF0F7]';
+    return 'bg-[#F5F8FF] border-l-[#60A5FA] hover:bg-[#EBF2FF]';
   };
 
   return (
@@ -76,11 +84,7 @@ const MilestoneCard = ({
           <>
             {isUrgent && (
               <span className="text-[#EC4899] font-medium">
-                {daysLeft === 0
-                  ? "Today"
-                  : daysLeft === 1
-                  ? "1 day left"
-                  : `${daysLeft} days left`}
+                {daysLeft === 0 ? 'Today' : daysLeft === 1 ? '1 day left' : `${daysLeft} days left`}
               </span>
             )}
             <span>{new Date(milestone.deadline).toLocaleDateString()}</span>
@@ -99,42 +103,39 @@ const RecruitmentMessage: React.FC<{
 }> = ({ applications }) => {
   const { userId } = useAuth();
 
+  const isSponser = applications[0]?.program?.sponsor?.id === userId;
+
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
-    null
+    !isSponser && applications.length > 0 ? applications[0].id || null : null,
   );
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
-  const [selectedMilestone, setSelectedMilestone] =
-    useState<MilestoneV2 | null>(null);
+  const [selectedMilestone, setSelectedMilestone] = useState<MilestoneV2 | null>(null);
   const [isNewMilestoneMode, setIsNewMilestoneMode] = useState(true);
 
-  const selectedMessage = applications.find(
-    (applicant) => applicant.id === selectedMessageId
-  );
+  const selectedMessage = applications.find((applicant) => applicant.id === selectedMessageId);
 
   const { data: programData } = useGetProgramV2Query({
-    variables: { id: selectedMessage?.program?.id || "" },
+    variables: { id: selectedMessage?.program?.id || '' },
     skip: !selectedMessage?.program?.id,
   });
 
   const program = programData?.programV2;
 
-  const { data: milestonesData, refetch: refetchMilestones } =
-    useGetMilestonesV2Query({
-      variables: {
-        query: {
-          applicantId: selectedMessage?.applicant?.id,
-          programId: selectedMessage?.program?.id,
-        },
+  const { data: milestonesData, refetch: refetchMilestones } = useGetMilestonesV2Query({
+    variables: {
+      query: {
+        applicantId: selectedMessage?.applicant?.id,
+        programId: selectedMessage?.program?.id,
       },
-      skip: !selectedMessage?.applicant?.id || !selectedMessage?.program?.id,
-    });
+    },
+    skip: !selectedMessage?.applicant?.id || !selectedMessage?.program?.id,
+  });
 
   const allMilestones = milestonesData?.milestonesV2?.data || [];
-  const isSponser = program?.sponsor?.id === userId;
 
   const sortedMilestones = [...allMilestones].sort((a, b) => {
-    const aIsDraft = (a as any).status === "draft";
-    const bIsDraft = (b as any).status === "draft";
+    const aIsDraft = (a as any).status === 'draft';
+    const bIsDraft = (b as any).status === 'draft';
 
     if (aIsDraft && !bIsDraft) return 1;
     if (!aIsDraft && bIsDraft) return -1;
@@ -146,39 +147,24 @@ const RecruitmentMessage: React.FC<{
     return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
   });
 
-  const activeMilestones = sortedMilestones.filter(
-    (m) => !(m as any).isCompleted
-  );
-  const completedMilestones = sortedMilestones.filter(
-    (m) => (m as any).isCompleted
-  );
+  const activeMilestones = sortedMilestones.filter((m) => !(m as any).isCompleted);
+  const completedMilestones = sortedMilestones.filter((m) => (m as any).isCompleted);
 
-  const [createMilestone, { loading: creatingMilestone }] =
-    useCreateMilestoneV2Mutation();
+  const [createMilestone, { loading: creatingMilestone }] = useCreateMilestoneV2Mutation();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<MilestoneFormData>({
+  const form = useForm<MilestoneFormData>({
+    resolver: zodResolver(milestoneFormSchema),
     defaultValues: {
-      description: "",
+      title: '',
+      price: '',
+      deadline: undefined,
+      description: '',
     },
   });
 
-  const descriptionValue = watch("description");
-
   const onSubmitMilestone = async (data: MilestoneFormData) => {
     if (!selectedMessage?.applicant?.id || !selectedMessage?.program?.id) {
-      toast.error("Missing applicant or program information");
-      return;
-    }
-
-    if (!data.deadline) {
-      toast.error("Deadline is required");
+      toast.error('Missing applicant or program information');
       return;
     }
 
@@ -196,14 +182,14 @@ const RecruitmentMessage: React.FC<{
         },
       });
 
-      toast.success("Milestone created successfully");
+      toast.success('Milestone created successfully');
       await refetchMilestones();
       setIsMilestoneModalOpen(false);
       setIsNewMilestoneMode(true);
-      reset();
+      form.reset();
     } catch (error) {
-      console.error("Failed to create milestone:", error);
-      toast.error("Failed to create milestone");
+      console.error('Failed to create milestone:', error);
+      toast.error('Failed to create milestone');
     }
   };
 
@@ -218,12 +204,6 @@ const RecruitmentMessage: React.FC<{
     setIsNewMilestoneMode(true);
     setIsMilestoneModalOpen(true);
   };
-
-  useEffect(() => {
-    if (!isSponser && applications) {
-      setSelectedMessageId(applications[0].id || null);
-    }
-  }, [isSponser, applications]);
 
   return (
     <div className="flex gap-4 h-[calc(100vh-200px)]">
@@ -263,7 +243,7 @@ const RecruitmentMessage: React.FC<{
             <div className="h-full p-4 bg-[#FBF5FF] overflow-y-auto rounded-r-xl space-y-3">
               <Accordion
                 type="multiple"
-                defaultValue={["milestone"]}
+                defaultValue={['milestone']}
                 className="bg-white rounded-lg"
               >
                 <AccordionItem value="milestone" className="px-3 border-none">
@@ -344,7 +324,7 @@ const RecruitmentMessage: React.FC<{
           if (!open) {
             setSelectedMilestone(null);
             setIsNewMilestoneMode(true);
-            reset();
+            form.reset();
           }
         }}
       >
@@ -352,90 +332,106 @@ const RecruitmentMessage: React.FC<{
           <div className="flex flex-1 overflow-hidden">
             <div className="flex-1 p-6 overflow-y-auto border-r bg-white">
               {isNewMilestoneMode ? (
-                <form
-                  id="milestone-form"
-                  onSubmit={handleSubmit(onSubmitMilestone)}
-                  className="h-full flex flex-col"
-                >
-                  <h2 className="text-2xl font-bold mb-6">
-                    Milestone #{allMilestones.length + 1}
-                  </h2>
+                <Form {...form}>
+                  <form
+                    id="milestone-form"
+                    onSubmit={form.handleSubmit(onSubmitMilestone)}
+                    className="h-full flex flex-col"
+                  >
+                    <h2 className="text-2xl font-bold mb-6">
+                      Milestone #{allMilestones.length + 1}
+                    </h2>
 
-                  <div className="space-y-4 flex-1">
-                    <InputLabel
-                      labelId="title"
-                      title="Title"
-                      isPrimary
-                      register={register}
-                      placeholder="Title"
-                      isError={errors.title}
-                    />
+                    <div className="space-y-4 flex-1">
+                      <FormField
+                        control={form.control}
+                        name="title"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Title <span className="text-destructive">*</span>
+                            </FormLabel>
+                            <FormControl>
+                              <Input placeholder="Title" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <InputLabel
-                          labelId="price"
-                          type="number"
-                          title="Price"
-                          className="w-full !space-y-1"
-                          titleClassName="text-muted-foreground"
-                          register={register}
-                          placeholder="Enter price"
+                      <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="price"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>
+                                Milestone Payout <span className="text-destructive">*</span>
+                              </FormLabel>
+                              <FormControl>
+                                <Input type="number" placeholder="Enter price" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="deadline"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>
+                                Deadline <span className="text-destructive">*</span>
+                              </FormLabel>
+                              <FormControl>
+                                <DatePicker
+                                  date={field.value}
+                                  setDate={(date) => {
+                                    if (date && typeof date === 'object' && 'getTime' in date) {
+                                      const newDate = new Date(date.getTime());
+                                      newDate.setHours(23, 59, 59, 999);
+                                      field.onChange(newDate);
+                                    } else {
+                                      field.onChange(date);
+                                    }
+                                  }}
+                                  disabled={{ before: new Date() }}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
                         />
                       </div>
-                      <InputLabel
-                        labelId="deadline"
-                        title="Deadline"
-                        inputClassName="hidden"
-                        isPrimary
-                        isError={errors.deadline}
-                      >
-                        <DatePicker
-                          date={watch("deadline") || undefined}
-                          setDate={(date) => {
-                            if (
-                              date &&
-                              typeof date === "object" &&
-                              "getTime" in date
-                            ) {
-                              const newDate = new Date(date.getTime());
-                              newDate.setHours(23, 59, 59, 999);
-                              setValue("deadline", newDate);
-                            } else {
-                              setValue("deadline", date);
-                            }
-                          }}
-                          disabled={{ before: new Date() }}
-                        />
-                      </InputLabel>
-                    </div>
 
-                    <div>
-                      <InputLabel
-                        labelId="description"
-                        title="Description"
-                        isPrimary
-                        isError={errors.description}
-                        inputClassName="hidden"
-                      >
-                        <MarkdownEditor
-                          onChange={(value: string) => {
-                            setValue("description", value);
-                          }}
-                          content={descriptionValue || ""}
-                        />
-                      </InputLabel>
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>
+                              Description <span className="text-destructive">*</span>
+                            </FormLabel>
+                            <FormControl>
+                              <MarkdownEditor
+                                onChange={field.onChange}
+                                content={field.value || ''}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
-                  </div>
-                </form>
+                  </form>
+                </Form>
               ) : (
                 <div className="space-y-4">
                   <h2 className="text-2xl font-bold mb-6">
                     Milestone #
                     {selectedMilestone
-                      ? allMilestones.findIndex(
-                          (m) => m.id === selectedMilestone.id
-                        ) + 1
+                      ? allMilestones.findIndex((m) => m.id === selectedMilestone.id) + 1
                       : 1}
                   </h2>
 
@@ -448,24 +444,16 @@ const RecruitmentMessage: React.FC<{
                     <p className="font-medium">{selectedMilestone?.payout}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Deadline
-                    </p>
+                    <p className="text-sm text-muted-foreground mb-1">Deadline</p>
                     <p className="font-medium">
                       {selectedMilestone?.deadline
-                        ? new Date(
-                            selectedMilestone.deadline
-                          ).toLocaleDateString()
-                        : "-"}
+                        ? new Date(selectedMilestone.deadline).toLocaleDateString()
+                        : '-'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">
-                      Description
-                    </p>
-                    <p className="font-medium">
-                      {selectedMilestone?.description}
-                    </p>
+                    <p className="text-sm text-muted-foreground mb-1">Description</p>
+                    <p className="font-medium">{selectedMilestone?.description}</p>
                   </div>
                 </div>
               )}
@@ -474,7 +462,7 @@ const RecruitmentMessage: React.FC<{
             <div className="w-[400px] p-4 bg-[#F7F7F7] overflow-y-auto">
               <Accordion
                 type="multiple"
-                defaultValue={["milestone"]}
+                defaultValue={['milestone']}
                 className="bg-white rounded-lg"
               >
                 <AccordionItem value="milestone" className="px-3 border-none">
@@ -520,7 +508,7 @@ const RecruitmentMessage: React.FC<{
                 className="ml-auto"
                 disabled={creatingMilestone}
               >
-                {creatingMilestone ? "Creating..." : "Submit"}
+                {creatingMilestone ? 'Creating...' : 'Submit'}
               </Button>
             ) : (
               <div className="flex items-center justify-between w-full">
@@ -532,7 +520,7 @@ const RecruitmentMessage: React.FC<{
                     onClick={() => {
                       setSelectedMilestone(null);
                       setIsNewMilestoneMode(true);
-                      reset();
+                      form.reset();
                     }}
                   >
                     Make New Milestone
@@ -545,7 +533,7 @@ const RecruitmentMessage: React.FC<{
                     setIsMilestoneModalOpen(false);
                     setSelectedMilestone(null);
                     setIsNewMilestoneMode(true);
-                    reset();
+                    form.reset();
                   }}
                 >
                   Close
