@@ -1,7 +1,9 @@
 import { useCreateMilestoneV2Mutation } from '@/apollo/mutation/create-milestone-v2.generated';
 import { useGetMilestonesV2Query } from '@/apollo/queries/milestones-v2.generated';
 import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChatBox } from '@/components/chat/chat-box';
+import { HireButton } from '@/components/recruitment/hire-button';
 import MarkdownEditor from '@/components/markdown/markdown-editor';
 import {
   Accordion,
@@ -148,6 +150,16 @@ const RecruitmentMessage: React.FC<{
   });
 
   const activeMilestones = sortedMilestones.filter((m) => !(m as any).isCompleted);
+
+  const getInitials = (name: string) => {
+    if (!name) return '??';
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    }
+    return name[0]?.toUpperCase() || '??';
+  };
+
   const completedMilestones = sortedMilestones.filter((m) => (m as any).isCompleted);
 
   const [createMilestone, { loading: creatingMilestone }] = useCreateMilestoneV2Mutation();
@@ -226,11 +238,82 @@ const RecruitmentMessage: React.FC<{
       )}
 
       <Card className="flex flex-row gap-2 w-full p-0">
-        <div className="py-5 pr-0 pl-2 w-full">
+        <div className="py-5 pr-0 pl-2 w-full flex flex-col">
           {selectedMessage ? (
-            <div className="h-full overflow-hidden">
-              <ChatBox selectedMessage={selectedMessage} program={program} />
-            </div>
+            <>
+              <div className="flex items-center justify-between border-b pb-4 px-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12">
+                    <AvatarImage
+                      src={
+                        userId === selectedMessage.applicant?.id
+                          ? program?.sponsor?.profileImage || ''
+                          : selectedMessage.applicant?.profileImage || ''
+                      }
+                      alt={
+                        userId === selectedMessage.applicant?.id
+                          ? `${program?.sponsor?.firstName || ''} ${
+                              program?.sponsor?.lastName || ''
+                            }`.trim() ||
+                            program?.sponsor?.email ||
+                            'Unknown'
+                          : `${selectedMessage.applicant?.firstName || ''} ${
+                              selectedMessage.applicant?.lastName || ''
+                            }`.trim() ||
+                            selectedMessage.applicant?.email ||
+                            'Unknown'
+                      }
+                    />
+                    <AvatarFallback className="text-sm font-semibold">
+                      {userId === selectedMessage.applicant?.id
+                        ? getInitials(
+                            `${program?.sponsor?.firstName || ''} ${
+                              program?.sponsor?.lastName || ''
+                            }`.trim() ||
+                              program?.sponsor?.email ||
+                              '',
+                          )
+                        : getInitials(
+                            `${selectedMessage.applicant?.firstName || ''} ${
+                              selectedMessage.applicant?.lastName || ''
+                            }`.trim() ||
+                              selectedMessage.applicant?.email ||
+                              '',
+                          )}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <h3 className="font-bold text-lg">
+                      {userId === selectedMessage.applicant?.id
+                        ? `${program?.sponsor?.firstName || ''} ${
+                            program?.sponsor?.lastName || ''
+                          }`.trim() ||
+                          program?.sponsor?.email ||
+                          'Unknown'
+                        : `${selectedMessage.applicant?.firstName || ''} ${
+                            selectedMessage.applicant?.lastName || ''
+                          }`.trim() ||
+                          selectedMessage.applicant?.email ||
+                          'Unknown'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {userId === selectedMessage.applicant?.id
+                        ? program?.sponsor?.organizationName
+                        : selectedMessage.applicant?.organizationName}
+                    </p>
+                  </div>
+                </div>
+                {program?.sponsor?.id === userId && (
+                  <HireButton
+                    applicationId={selectedMessage.id}
+                    programId={selectedMessage.programId}
+                  />
+                )}
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <ChatBox selectedMessage={selectedMessage} />
+              </div>
+            </>
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
               Select a message to view conversation

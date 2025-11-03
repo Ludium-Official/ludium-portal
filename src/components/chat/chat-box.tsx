@@ -10,7 +10,7 @@ import {
   subscribeToNewMessages,
 } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
-import type { ApplicationV2, ProgramV2 } from '@/types/types.generated';
+import type { ApplicationV2 } from '@/types/types.generated';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   type DocumentData,
@@ -102,10 +102,8 @@ function MessageItem({ message, timestamp, applicant }: MessageItemProps) {
 
 export function ChatBox({
   selectedMessage,
-  program,
 }: {
   selectedMessage: ApplicationV2;
-  program?: ProgramV2 | null;
 }) {
   const totalMessages = 50;
 
@@ -285,54 +283,8 @@ export function ChatBox({
     );
   };
 
-  const applicant = selectedMessage.applicant;
-
-  const sponsorFullName =
-    userId === selectedMessage.applicant?.id
-      ? `${program?.sponsor?.firstName || ''} ${program?.sponsor?.lastName || ''}`.trim()
-      : '';
-
-  const applicantFullName = `${applicant?.firstName || ''} ${applicant?.lastName || ''}`.trim();
-
-  const fullName =
-    userId === selectedMessage.applicant?.id
-      ? sponsorFullName || program?.sponsor?.email || 'Unknown'
-      : applicantFullName || applicant?.email || 'Unknown';
-
-  const getInitials = (name: string) => {
-    if (!name) return '??';
-    const parts = name.split(' ');
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return name[0]?.toUpperCase() || '??';
-  };
-
-  const initials =
-    userId === selectedMessage.applicant?.id
-      ? getInitials(sponsorFullName || program?.sponsor?.email || '')
-      : getInitials(applicantFullName || applicant?.email || '');
-
   return (
     <div className="flex flex-col min-h-[600px] h-full">
-      <div className="flex items-center justify-between border-b pb-4">
-        <div className="flex items-center gap-3 px-4 bg-slate-3">
-          <Avatar className="h-12 w-12">
-            <AvatarImage src={applicant?.profileImage || ''} alt={fullName} />
-            <AvatarFallback className="text-sm font-semibold">{initials || '??'}</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <h3 className="font-bold text-lg">{fullName}</h3>
-            <p className="text-sm text-muted-foreground">
-              {userId === selectedMessage.applicant?.id
-                ? program?.sponsor?.organizationName
-                : applicant?.organizationName}
-            </p>
-          </div>
-        </div>
-        {program?.sponsor?.id === userId && <Button className="mr-4 px-8 bg-primary">Hire</Button>}
-      </div>
-
       <div
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col"
