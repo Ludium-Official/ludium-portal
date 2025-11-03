@@ -1,5 +1,6 @@
 import { useGetProgramV2Query } from "@/apollo/queries/program-v2.generated";
-import CurrencySelector from "@/components/currency-selector";
+import { useGetMilestonesV2Query } from "@/apollo/queries/milestones-v2.generated";
+import { useCreateMilestoneV2Mutation } from "@/apollo/mutation/create-milestone-v2.generated";
 import InputLabel from "@/components/common/label/inputLabel";
 import MarkdownEditor from "@/components/markdown/markdown-editor";
 import {
@@ -12,40 +13,78 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import { DatePicker } from "@/components/ui/date-picker";
-import { Input } from "@/components/ui/input";
-import { useNetworks } from "@/contexts/networks-context";
-import ApplicationChat from "@/pages/programs/details/application-chat";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MessageListItem from "./message-list-item";
 import type { ApplicationV2, MilestoneV2 } from "@/types/types.generated";
 import { Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { useAuth } from "@/lib/hooks/use-auth";
+import toast from "react-hot-toast";
+import { ChatBox } from "@/components/chat/chat-box";
 
 interface MilestoneFormData {
   title: string;
-  payout: string;
+  price: string;
   deadline: Date | null;
   description: string;
-  currency: string;
 }
 
 const MilestoneCard = ({
   milestone,
   onClick,
+  isCompleted = false,
 }: {
-  milestone: MilestoneV2;
+  milestone: MilestoneV2 & { isCompleted?: boolean };
   onClick: (milestone: MilestoneV2) => void;
+  isCompleted?: boolean;
 }) => {
+  const getDaysLeft = () => {
+    if (!milestone.deadline) return null;
+    const now = new Date();
+    const deadline = new Date(milestone.deadline);
+    const diffTime = deadline.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const daysLeft = getDaysLeft();
+  const isDraft = (milestone as any).status === "draft";
+  const isUrgent =
+    !isCompleted &&
+    !isDraft &&
+    daysLeft !== null &&
+    daysLeft <= 3 &&
+    daysLeft >= 0;
+
+  const getBackgroundColor = () => {
+    if (isDraft) return "bg-[#F5F5F5] border-l-[#9CA3AF] hover:bg-[#E5E5E5]";
+    if (isCompleted)
+      return "bg-[#F0EDFF] border-l-[#9E71C9] hover:bg-[#E5DDFF]";
+    if (isUrgent) return "bg-[#FFF9FC] border-l-[#EC4899] hover:bg-[#FFF0F7]";
+    return "bg-[#F5F8FF] border-l-[#60A5FA] hover:bg-[#EBF2FF]";
+  };
+
   return (
     <div
-      className="space-y-2 bg-[#FFF9FC] p-2 rounded border-l-5 border-l-[#EC4899] cursor-pointer hover:bg-[#FFF0F7] transition-colors"
+      className={`space-y-2 p-2 rounded border-l-5 cursor-pointer transition-colors ${getBackgroundColor()}`}
       onClick={() => {
         onClick(milestone);
       }}
     >
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {milestone.deadline && (
-          <span>{new Date(milestone.deadline).toLocaleDateString()}</span>
+          <>
+            {isUrgent && (
+              <span className="text-[#EC4899] font-medium">
+                {daysLeft === 0
+                  ? "Today"
+                  : daysLeft === 1
+                  ? "1 day left"
+                  : `${daysLeft} days left`}
+              </span>
+            )}
+            <span>{new Date(milestone.deadline).toLocaleDateString()}</span>
+          </>
         )}
       </div>
       <div>
@@ -55,9 +94,11 @@ const MilestoneCard = ({
   );
 };
 
-const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
-  applications,
-}) => {
+const RecruitmentMessage: React.FC<{
+  applications: ApplicationV2[];
+}> = ({ applications }) => {
+  const { userId } = useAuth();
+
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
     null
   );
@@ -76,10 +117,45 @@ const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
   });
 
   const program = programData?.programV2;
-  const { networks } = useNetworks();
-  const allTokens = networks.flatMap((n) => n.tokens);
 
-  // Milestone form
+  const { data: milestonesData, refetch: refetchMilestones } =
+    useGetMilestonesV2Query({
+      variables: {
+        query: {
+          applicantId: selectedMessage?.applicant?.id,
+          programId: selectedMessage?.program?.id,
+        },
+      },
+      skip: !selectedMessage?.applicant?.id || !selectedMessage?.program?.id,
+    });
+
+  const allMilestones = milestonesData?.milestonesV2?.data || [];
+  const isSponser = program?.sponsor?.id === userId;
+
+  const sortedMilestones = [...allMilestones].sort((a, b) => {
+    const aIsDraft = (a as any).status === "draft";
+    const bIsDraft = (b as any).status === "draft";
+
+    if (aIsDraft && !bIsDraft) return 1;
+    if (!aIsDraft && bIsDraft) return -1;
+
+    if (!a.deadline && !b.deadline) return 0;
+    if (!a.deadline) return 1;
+    if (!b.deadline) return -1;
+
+    return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+  });
+
+  const activeMilestones = sortedMilestones.filter(
+    (m) => !(m as any).isCompleted
+  );
+  const completedMilestones = sortedMilestones.filter(
+    (m) => (m as any).isCompleted
+  );
+
+  const [createMilestone, { loading: creatingMilestone }] =
+    useCreateMilestoneV2Mutation();
+
   const {
     register,
     handleSubmit,
@@ -95,31 +171,41 @@ const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
 
   const descriptionValue = watch("description");
 
-  const onSubmitMilestone = (data: MilestoneFormData) => {
-    console.log("Milestone data:", data);
-    // TODO: API 호출로 milestone 생성
-    setIsMilestoneModalOpen(false);
-    setIsNewMilestoneMode(true);
-    reset();
-  };
+  const onSubmitMilestone = async (data: MilestoneFormData) => {
+    if (!selectedMessage?.applicant?.id || !selectedMessage?.program?.id) {
+      toast.error("Missing applicant or program information");
+      return;
+    }
 
-  // Mock milestone data (나중에 API에서 가져올 예정)
-  const milestones: MilestoneV2[] = [
-    {
-      id: "1",
-      title: "Complete UI/UX design and wireframes",
-      description: "Complete UI/UX design and wireframes for the application",
-      payout: "1000",
-      deadline: new Date("2025-11-03").toISOString(),
-    },
-    {
-      id: "2",
-      title: "Implement frontend and backend features",
-      description: "Implement all required frontend and backend features",
-      payout: "2000",
-      deadline: new Date("2025-11-15").toISOString(),
-    },
-  ];
+    if (!data.deadline) {
+      toast.error("Deadline is required");
+      return;
+    }
+
+    try {
+      await createMilestone({
+        variables: {
+          input: {
+            applicantId: selectedMessage.applicant.id,
+            programId: selectedMessage.program.id,
+            title: data.title,
+            description: data.description,
+            payout: data.price,
+            deadline: data.deadline.toISOString(),
+          },
+        },
+      });
+
+      toast.success("Milestone created successfully");
+      await refetchMilestones();
+      setIsMilestoneModalOpen(false);
+      setIsNewMilestoneMode(true);
+      reset();
+    } catch (error) {
+      console.error("Failed to create milestone:", error);
+      toast.error("Failed to create milestone");
+    }
+  };
 
   const handleMilestoneClick = (milestone: MilestoneV2) => {
     setSelectedMilestone(milestone);
@@ -133,32 +219,37 @@ const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
     setIsMilestoneModalOpen(true);
   };
 
+  useEffect(() => {
+    if (!isSponser && applications) {
+      setSelectedMessageId(applications[0].id || null);
+    }
+  }, [isSponser, applications]);
+
   return (
     <div className="flex gap-4 h-[calc(100vh-200px)]">
-      <Card className="gap-3 w-[25%] overflow-y-auto py-5">
-        <CardHeader className="px-5">
-          <CardTitle>Messages</CardTitle>
-        </CardHeader>
-        <CardContent className="px-5 space-y-2">
-          {applications.map((applicant) => (
-            <MessageListItem
-              key={applicant.id}
-              message={applicant}
-              isSelected={selectedMessageId === applicant.id}
-              onClick={() => setSelectedMessageId(applicant.id || null)}
-            />
-          ))}
-        </CardContent>
-      </Card>
+      {isSponser && (
+        <Card className="gap-3 w-[25%] overflow-y-auto py-5">
+          <CardHeader className="px-5">
+            <CardTitle>Messages</CardTitle>
+          </CardHeader>
+          <CardContent className="px-5 space-y-2">
+            {applications.map((applicant) => (
+              <MessageListItem
+                key={applicant.id}
+                message={applicant}
+                isSelected={selectedMessageId === applicant.id}
+                onClick={() => setSelectedMessageId(applicant.id || null)}
+              />
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="flex flex-row gap-2 w-full p-0">
         <div className="py-5 pr-0 pl-2 w-full">
           {selectedMessage ? (
             <div className="h-full overflow-hidden">
-              <ApplicationChat
-                selectedMessage={selectedMessage}
-                program={program}
-              />
+              <ChatBox selectedMessage={selectedMessage} program={program} />
             </div>
           ) : (
             <div className="flex items-center justify-center h-full text-muted-foreground">
@@ -179,17 +270,19 @@ const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
                   <AccordionTrigger className="hover:no-underline py-3">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-base">Milestone</span>
-                      <Plus
-                        className="cursor-pointer w-4 h-4"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleNewMilestoneClick();
-                        }}
-                      />
+                      {isSponser && (
+                        <Plus
+                          className="cursor-pointer w-4 h-4"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleNewMilestoneClick();
+                          }}
+                        />
+                      )}
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="flex flex-col gap-3 pb-3">
-                    {milestones.map((milestone) => (
+                    {activeMilestones.map((milestone) => (
                       <MilestoneCard
                         key={milestone.id}
                         milestone={milestone}
@@ -204,16 +297,14 @@ const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
                     <span className="font-medium text-base">Completed</span>
                   </AccordionTrigger>
                   <AccordionContent className="flex flex-col gap-3 pb-3">
-                    <div className="space-y-2 bg-[#F0EDFF] p-2 rounded border-l-10 border-l-[#9E71C9]">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>Nov 15, 2025</span>
-                      </div>
-                      <div>
-                        <p className="text-sm">
-                          Complete UI/UX design and wireframes
-                        </p>
-                      </div>
-                    </div>
+                    {completedMilestones.map((milestone) => (
+                      <MilestoneCard
+                        key={milestone.id}
+                        milestone={milestone}
+                        onClick={handleMilestoneClick}
+                        isCompleted={true}
+                      />
+                    ))}
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
@@ -224,22 +315,7 @@ const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
                     <span className="font-medium text-base">File</span>
                   </AccordionTrigger>
                   <AccordionContent className="flex flex-col gap-3 pb-3">
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-muted-foreground text-xs mb-1">
-                          Resume
-                        </p>
-                        <p className="font-medium text-sm">resume.pdf</p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-xs mb-1">
-                          Portfolio
-                        </p>
-                        <p className="font-medium text-sm">
-                          portfolio_link.url
-                        </p>
-                      </div>
-                    </div>
+                    {/* TODO: Add file list */}
                   </AccordionContent>
                 </AccordionItem>
 
@@ -248,24 +324,7 @@ const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
                     <span className="font-medium text-base">Contract</span>
                   </AccordionTrigger>
                   <AccordionContent className="flex flex-col gap-3 pb-3">
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-muted-foreground text-xs mb-1">
-                          Contract Document
-                        </p>
-                        <p className="font-medium text-sm">
-                          contract_signed.pdf
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-muted-foreground text-xs mb-1">
-                          Status
-                        </p>
-                        <p className="font-medium text-sm text-green-600">
-                          Signed
-                        </p>
-                      </div>
-                    </div>
+                    {/* TODO: Add contract list */}
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
@@ -278,7 +337,6 @@ const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
         </div>
       </Card>
 
-      {/* Milestone Modal */}
       <Dialog
         open={isMilestoneModalOpen}
         onOpenChange={(open) => {
@@ -292,7 +350,6 @@ const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
       >
         <DialogContent className="sm:max-w-[1200px] max-h-[90vh] overflow-hidden flex flex-col p-0">
           <div className="flex flex-1 overflow-hidden">
-            {/* 왼쪽: 입력 폼 또는 선택된 milestone 상세 */}
             <div className="flex-1 p-6 overflow-y-auto border-r bg-white">
               {isNewMilestoneMode ? (
                 <form
@@ -300,13 +357,11 @@ const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
                   onSubmit={handleSubmit(onSubmitMilestone)}
                   className="h-full flex flex-col"
                 >
-                  {/* Milestone 제목 */}
                   <h2 className="text-2xl font-bold mb-6">
-                    Milestone #{milestones.length + 1}
+                    Milestone #{allMilestones.length + 1}
                   </h2>
 
                   <div className="space-y-4 flex-1">
-                    {/* Title - 최상단 혼자 */}
                     <InputLabel
                       labelId="title"
                       title="Title"
@@ -316,102 +371,74 @@ const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
                       isError={errors.title}
                     />
 
-                    {/* Milestone Payout과 Deadline - 같은 줄에 */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label htmlFor="payout" className="block space-y-3">
-                          <p className="text-sm font-medium">
-                            Milestone Payout{" "}
-                            <span className="text-primary">*</span>
-                          </p>
-                          <div className="flex gap-2">
-                            <Input
-                              id="payout"
-                              type="number"
-                              placeholder="Price"
-                              className="flex-1 h-10"
-                              {...register("payout", { required: true })}
-                            />
-                            <CurrencySelector
-                              className="h-10"
-                              value={watch("currency") || null}
-                              onValueChange={(value) =>
-                                setValue("currency", value)
-                              }
-                              tokens={allTokens}
-                            />
-                          </div>
-                          {errors.payout && (
-                            <span className="text-destructive text-sm block">
-                              Milestone Payout is required
-                            </span>
-                          )}
-                        </label>
+                        <InputLabel
+                          labelId="price"
+                          type="number"
+                          title="Price"
+                          className="w-full !space-y-1"
+                          titleClassName="text-muted-foreground"
+                          register={register}
+                          placeholder="Enter price"
+                        />
                       </div>
-                      <div>
-                        <label htmlFor="deadline" className="block space-y-3">
-                          <p className="text-sm font-medium">
-                            Deadline <span className="text-primary">*</span>
-                          </p>
-                          <DatePicker
-                            date={watch("deadline") || undefined}
-                            setDate={(date) => setValue("deadline", date)}
-                          />
-                          {errors.deadline && (
-                            <span className="text-destructive text-sm block">
-                              Deadline is required
-                            </span>
-                          )}
-                        </label>
-                      </div>
+                      <InputLabel
+                        labelId="deadline"
+                        title="Deadline"
+                        inputClassName="hidden"
+                        isPrimary
+                        isError={errors.deadline}
+                      >
+                        <DatePicker
+                          date={watch("deadline") || undefined}
+                          setDate={(date) => {
+                            if (
+                              date &&
+                              typeof date === "object" &&
+                              "getTime" in date
+                            ) {
+                              const newDate = new Date(date.getTime());
+                              newDate.setHours(23, 59, 59, 999);
+                              setValue("deadline", newDate);
+                            } else {
+                              setValue("deadline", date);
+                            }
+                          }}
+                          disabled={{ before: new Date() }}
+                        />
+                      </InputLabel>
                     </div>
 
-                    {/* Description - 그 아래 */}
                     <div>
-                      <label htmlFor="description" className="block space-y-3">
-                        <p className="text-sm font-medium">
-                          Description <span className="text-primary">*</span>
-                        </p>
+                      <InputLabel
+                        labelId="description"
+                        title="Description"
+                        isPrimary
+                        isError={errors.description}
+                        inputClassName="hidden"
+                      >
                         <MarkdownEditor
+                          onChange={(value: string) => {
+                            setValue("description", value);
+                          }}
                           content={descriptionValue || ""}
-                          onChange={(value) => setValue("description", value)}
                         />
-                        {errors.description && (
-                          <span className="text-destructive text-sm block">
-                            Description is required
-                          </span>
-                        )}
-                      </label>
+                      </InputLabel>
                     </div>
                   </div>
                 </form>
               ) : (
                 <div className="space-y-4">
-                  {/* Milestone 제목 */}
                   <h2 className="text-2xl font-bold mb-6">
                     Milestone #
                     {selectedMilestone
-                      ? milestones.findIndex(
+                      ? allMilestones.findIndex(
                           (m) => m.id === selectedMilestone.id
                         ) + 1
                       : 1}
                   </h2>
 
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Milestone Details</h3>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedMilestone(null);
-                        setIsNewMilestoneMode(true);
-                        reset();
-                      }}
-                    >
-                      New Milestone
-                    </Button>
-                  </div>
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Title</p>
                     <p className="font-medium">{selectedMilestone?.title}</p>
@@ -455,33 +482,12 @@ const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
                     <span className="font-medium text-base">Milestone</span>
                   </AccordionTrigger>
                   <AccordionContent className="flex flex-col gap-3 pb-3">
-                    {milestones.map((milestone) => (
-                      <div
+                    {activeMilestones.map((milestone) => (
+                      <MilestoneCard
                         key={milestone.id}
-                        className={`space-y-2 p-2 rounded border-l-5 border-l-[#EC4899] cursor-pointer hover:bg-[#FFF0F7] transition-colors ${
-                          selectedMilestone?.id === milestone.id
-                            ? "bg-[#FFF0F7] border-l-[#EC4899]"
-                            : "bg-[#FFF9FC]"
-                        }`}
-                        onClick={() => {
-                          handleMilestoneClick(milestone);
-                        }}
-                      >
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          {milestone.deadline && (
-                            <span>
-                              {new Date(
-                                milestone.deadline
-                              ).toLocaleDateString()}
-                            </span>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium">
-                            {milestone.title}
-                          </p>
-                        </div>
-                      </div>
+                        milestone={milestone}
+                        onClick={handleMilestoneClick}
+                      />
                     ))}
                   </AccordionContent>
                 </AccordionItem>
@@ -491,7 +497,14 @@ const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
                     <span className="font-medium text-base">Completed</span>
                   </AccordionTrigger>
                   <AccordionContent className="flex flex-col gap-3 pb-3">
-                    {/* Completed milestones will be shown here */}
+                    {completedMilestones.map((milestone) => (
+                      <MilestoneCard
+                        key={milestone.id}
+                        milestone={milestone}
+                        onClick={handleMilestoneClick}
+                        isCompleted={true}
+                      />
+                    ))}
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
@@ -505,22 +518,39 @@ const RecruitmentMessage: React.FC<{ applications: ApplicationV2[] }> = ({
                 form="milestone-form"
                 variant="default"
                 className="ml-auto"
+                disabled={creatingMilestone}
               >
-                Submit
+                {creatingMilestone ? "Creating..." : "Submit"}
               </Button>
             ) : (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsMilestoneModalOpen(false);
-                  setSelectedMilestone(null);
-                  setIsNewMilestoneMode(true);
-                  reset();
-                }}
-              >
-                Close
-              </Button>
+              <div className="flex items-center justify-between w-full">
+                {isSponser && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedMilestone(null);
+                      setIsNewMilestoneMode(true);
+                      reset();
+                    }}
+                  >
+                    Make New Milestone
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsMilestoneModalOpen(false);
+                    setSelectedMilestone(null);
+                    setIsNewMilestoneMode(true);
+                    reset();
+                  }}
+                >
+                  Close
+                </Button>
+              </div>
             )}
           </DialogFooter>
         </DialogContent>

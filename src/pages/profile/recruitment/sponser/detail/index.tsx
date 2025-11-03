@@ -60,9 +60,6 @@ const ProfileRecuitmentDetail: React.FC = () => {
             <TabsTrigger value="message" className="rounded-sm px-10">
               Message
             </TabsTrigger>
-            <TabsTrigger value="hired" className="rounded-sm px-10">
-              Hired
-            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

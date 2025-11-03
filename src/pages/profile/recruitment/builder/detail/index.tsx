@@ -5,6 +5,7 @@ import RecruitmentOverview from "@/components/recruitment/overview/recruitment-o
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ApplicationsByProgramV2QueryInput,
+  ApplicationStatusV2,
   ApplicationV2,
 } from "@/types/types.generated";
 import { ChevronLeft } from "lucide-react";
@@ -53,7 +54,7 @@ const ProfileRecruitmentBuilderDetail: React.FC = () => {
         title: "1030 Test Program Edit 2",
       },
       rejectedReason: "",
-      status: "applied",
+      status: ApplicationStatusV2.Applied,
       updatedAt: "2025-10-31T08:54:32.642Z",
     },
   ];
