@@ -24,6 +24,7 @@ export const CreateProgramV2Document = gql`
     networkId
     price
     token_id
+    status
   }
 }
     `;

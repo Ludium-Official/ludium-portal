@@ -91,6 +91,9 @@ export interface RecruitmentApplicant {
   id: string;
   appliedDate?: string;
   picked?: boolean;
+  chatroomMessageId?: string | null;
+  applicationId?: string | null;
+  programId?: string | null;
   userInfo: {
     userId?: string | null;
     image?: string | null;
@@ -113,4 +116,13 @@ export interface ContractInformation {
   applicant: UserV2 | null;
   networkId: number | null;
   chatRoomId: string | null;
+}
+
+export interface ContractFormProps {
+  programTitle: string;
+  milestones: MilestoneV2[];
+  sponsor: UserV2;
+  applicant: UserV2;
+  totalPrice: number;
+  pendingPrice: number;
 }

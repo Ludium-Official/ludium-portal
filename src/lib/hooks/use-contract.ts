@@ -70,6 +70,32 @@ export function useContract(network: string, contractAddress?: string) {
   } else {
   }
 
+  // Create signMessage function for message signing
+  const signMessageFn = async (
+    message: string,
+    wallet?: ConnectedWallet,
+    chain?: Chain
+  ): Promise<string> => {
+    const targetWallet = wallet || activeWallet;
+    if (!targetWallet) {
+      throw new Error('No wallet available for signing');
+    }
+
+    try {
+      const eip1193Provider = await targetWallet.getEthereumProvider();
+      const provider = new ethers.providers.Web3Provider(eip1193Provider);
+      const signer = provider.getSigner();
+
+      // Use personal_sign for message signing
+      // message is a human-readable string, sign it directly
+      const signature = await signer.signMessage(message);
+      return signature;
+    } catch (error) {
+      console.error('Error signing message:', error);
+      throw error;
+    }
+  };
+
   // @ts-ignore
   const client: PublicClient = createPublicClient({
     chain: checkNetwork(network),
@@ -81,6 +107,7 @@ export function useContract(network: string, contractAddress?: string) {
     checkNetwork(network).id,
     sendTx,
     client,
+    signMessageFn,
   );
 
   return callContract;

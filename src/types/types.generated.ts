@@ -176,6 +176,20 @@ export enum CommentableTypeEnum {
   Program = 'program'
 }
 
+export type ContractV2 = {
+  __typename?: 'ContractV2';
+  applicantId?: Maybe<Scalars['Int']['output']>;
+  builder_signature?: Maybe<Scalars['String']['output']>;
+  contract_snapshot_cotents?: Maybe<Scalars['JSON']['output']>;
+  contract_snapshot_hash?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  onchainContractId?: Maybe<Scalars['Int']['output']>;
+  programId?: Maybe<Scalars['Int']['output']>;
+  smartContractId?: Maybe<Scalars['Int']['output']>;
+  sponsorId?: Maybe<Scalars['Int']['output']>;
+};
+
 export type CreateApplicationInput = {
   content: Scalars['String']['input'];
   fundingTarget?: InputMaybe<Scalars['String']['input']>;
@@ -213,6 +227,17 @@ export type CreateCommentInput = {
   parentId?: InputMaybe<Scalars['ID']['input']>;
 };
 
+export type CreateContractV2Input = {
+  applicantId: Scalars['Int']['input'];
+  builder_signature?: InputMaybe<Scalars['String']['input']>;
+  contract_snapshot_cotents?: InputMaybe<Scalars['JSON']['input']>;
+  contract_snapshot_hash?: InputMaybe<Scalars['String']['input']>;
+  onchainContractId: Scalars['Int']['input'];
+  programId: Scalars['Int']['input'];
+  smartContractId: Scalars['Int']['input'];
+  sponsorId: Scalars['Int']['input'];
+};
+
 export type CreateInvestmentInput = {
   amount: Scalars['String']['input'];
   investmentTermId?: InputMaybe<Scalars['ID']['input']>;
@@ -244,10 +269,14 @@ export type CreateMilestoneV2Input = {
   deadline: Scalars['DateTime']['input'];
   /** Milestone description */
   description: Scalars['String']['input'];
+  /** Milestone files (URLs) */
+  files?: InputMaybe<Array<Scalars['String']['input']>>;
   /** Milestone payout amount */
   payout: Scalars['String']['input'];
   /** ID of the program */
   programId: Scalars['ID']['input'];
+  /** Milestone status */
+  status: MilestoneStatusV2;
   /** Milestone title */
   title: Scalars['String']['input'];
 };
@@ -261,8 +290,10 @@ export type CreateNetworkV2Input = {
 
 export type CreateOnchainContractInfoV2Input = {
   applicantId: Scalars['Int']['input'];
-  contentHash: Scalars['String']['input'];
+  onchainContractId: Scalars['Int']['input'];
   programId: Scalars['Int']['input'];
+  smartContractId: Scalars['Int']['input'];
+  sponsorId: Scalars['Int']['input'];
   status?: InputMaybe<OnchainContractStatusV2>;
   tx: Scalars['String']['input'];
 };
@@ -316,6 +347,7 @@ export type CreateProgramV2Input = {
   networkId: Scalars['Int']['input'];
   price: Scalars['String']['input'];
   skills: Array<Scalars['String']['input']>;
+  status: ProgramStatusV2;
   title: Scalars['String']['input'];
   token_id: Scalars['Int']['input'];
   visibility: ProgramVisibilityV2;
@@ -541,10 +573,19 @@ export enum MilestoneStatus {
   Submitted = 'submitted'
 }
 
+export enum MilestoneStatusV2 {
+  Completed = 'completed',
+  Draft = 'draft',
+  InProgress = 'in_progress',
+  UnderReview = 'under_review'
+}
+
 export type MilestoneV2 = {
   __typename?: 'MilestoneV2';
   /** User who owns this milestone */
   applicant?: Maybe<UserV2>;
+  /** ID of the applicant (user) who owns this milestone */
+  applicantId?: Maybe<Scalars['Int']['output']>;
   /** Milestone creation timestamp */
   createdAt?: Maybe<Scalars['DateTime']['output']>;
   /** Milestone deadline */
@@ -557,6 +598,10 @@ export type MilestoneV2 = {
   payout?: Maybe<Scalars['String']['output']>;
   /** Program this milestone belongs to */
   program?: Maybe<ProgramV2>;
+  /** ID of the program this milestone belongs to */
+  programId?: Maybe<Scalars['Int']['output']>;
+  /** Milestone status: draft, under_review, in_progress, or completed */
+  status?: Maybe<MilestoneStatusV2>;
   /** Milestone title */
   title?: Maybe<Scalars['String']['output']>;
   /** Milestone last update timestamp */
@@ -589,6 +634,7 @@ export type Mutation = {
   createApplicationV2?: Maybe<ApplicationV2>;
   createCarouselItem?: Maybe<CarouselItem>;
   createComment?: Maybe<Comment>;
+  createContractV2?: Maybe<ContractV2>;
   createInvestment?: Maybe<Investment>;
   createInvestmentTerm?: Maybe<InvestmentTerm>;
   /** Create a new milestone */
@@ -608,6 +654,7 @@ export type Mutation = {
   /** Delete an application by ID (only by the applicant) */
   deleteApplicationV2?: Maybe<ApplicationV2>;
   deleteCarouselItem?: Maybe<CarouselItem>;
+  deleteContractV2?: Maybe<ContractV2>;
   deleteInvestmentTerm?: Maybe<Scalars['Boolean']['output']>;
   /** Delete a milestone by ID */
   deleteMilestoneV2?: Maybe<MilestoneV2>;
@@ -662,6 +709,7 @@ export type Mutation = {
   updateApplicationV2?: Maybe<ApplicationV2>;
   updateCarouselItem?: Maybe<CarouselItem>;
   updateComment?: Maybe<Comment>;
+  updateContractV2?: Maybe<ContractV2>;
   updateInvestmentTerm?: Maybe<InvestmentTerm>;
   updateMilestone?: Maybe<Milestone>;
   /** Update an existing milestone */
@@ -751,6 +799,11 @@ export type MutationCreateCommentArgs = {
 };
 
 
+export type MutationCreateContractV2Args = {
+  input: CreateContractV2Input;
+};
+
+
 export type MutationCreateInvestmentArgs = {
   input: CreateInvestmentInput;
 };
@@ -828,6 +881,11 @@ export type MutationDeleteApplicationV2Args = {
 
 
 export type MutationDeleteCarouselItemArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteContractV2Args = {
   id: Scalars['ID']['input'];
 };
 
@@ -1082,6 +1140,12 @@ export type MutationUpdateCommentArgs = {
 };
 
 
+export type MutationUpdateContractV2Args = {
+  id: Scalars['ID']['input'];
+  input: UpdateContractV2Input;
+};
+
+
 export type MutationUpdateInvestmentTermArgs = {
   input: UpdateInvestmentTermInput;
 };
@@ -1219,17 +1283,19 @@ export enum NotificationType {
 export type OnchainContractInfoV2 = {
   __typename?: 'OnchainContractInfoV2';
   applicantId?: Maybe<Scalars['Int']['output']>;
-  contentHash?: Maybe<Scalars['String']['output']>;
   createdAt?: Maybe<Scalars['DateTime']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
+  onchainContractId?: Maybe<Scalars['Int']['output']>;
   programId?: Maybe<Scalars['Int']['output']>;
+  smartContractId?: Maybe<Scalars['Int']['output']>;
+  sponsorId?: Maybe<Scalars['Int']['output']>;
   status?: Maybe<OnchainContractStatusV2>;
   tx?: Maybe<Scalars['String']['output']>;
 };
 
 export enum OnchainContractStatusV2 {
   Active = 'active',
-  Canceled = 'canceled',
+  Cancelled = 'cancelled',
   Completed = 'completed',
   Paused = 'paused',
   Updated = 'updated'
@@ -1287,6 +1353,12 @@ export type PaginatedComments = {
   __typename?: 'PaginatedComments';
   count?: Maybe<Scalars['Int']['output']>;
   data?: Maybe<Array<Comment>>;
+};
+
+export type PaginatedContractV2 = {
+  __typename?: 'PaginatedContractV2';
+  count?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<ContractV2>>;
 };
 
 export type PaginatedInvestments = {
@@ -1529,8 +1601,12 @@ export type ProgramV2 = {
   createdAt?: Maybe<Scalars['DateTime']['output']>;
   deadline?: Maybe<Scalars['DateTime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
+  /** Whether the currently authenticated builder has applied to this program */
+  hasApplied?: Maybe<Scalars['Boolean']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   invitedMembers?: Maybe<Array<Scalars['String']['output']>>;
+  /** The current builder's application to this program (only available in getProgramsByBuilderV2) */
+  myApplication?: Maybe<ApplicationV2>;
   /** The network associated with this program */
   network?: Maybe<NetworkV2>;
   networkId?: Maybe<Scalars['Int']['output']>;
@@ -1566,7 +1642,7 @@ export type Query = {
   /** Get a single application by ID */
   applicationV2?: Maybe<ApplicationV2>;
   applications?: Maybe<PaginatedApplications>;
-  /** Get all applications for a specific program (only by program creator) */
+  /** Get applications for a specific program. Sponsors see all applications, builders see only their own. */
   applicationsByProgramV2?: Maybe<PaginatedApplicationsV2>;
   /** Get paginated list of applications with filtering options */
   applicationsV2?: Maybe<PaginatedApplicationsV2>;
@@ -1575,6 +1651,11 @@ export type Query = {
   comment?: Maybe<Comment>;
   comments?: Maybe<PaginatedComments>;
   commentsByCommentable?: Maybe<Array<Comment>>;
+  contractV2?: Maybe<ContractV2>;
+  contractsByApplicantV2?: Maybe<PaginatedContractV2>;
+  contractsByProgramV2?: Maybe<PaginatedContractV2>;
+  contractsBySponsorV2?: Maybe<PaginatedContractV2>;
+  contractsV2?: Maybe<PaginatedContractV2>;
   countNotifications?: Maybe<Scalars['Int']['output']>;
   getSwappedStatus?: Maybe<SwappedStatusResponse>;
   investment?: Maybe<Investment>;
@@ -1613,6 +1694,8 @@ export type Query = {
   /** Get a single program by ID. */
   programV2?: Maybe<ProgramV2>;
   programs?: Maybe<PaginatedPrograms>;
+  /** Get all programs that the current builder has applied to, with pagination. Each program includes the builder's application with appliedAt. Default limit is 10, default offset is 0. */
+  programsByBuilderIdV2?: Maybe<PaginatedProgramsV2>;
   /** Get all programs by sponsor ID with pagination. Default limit is 10, default offset is 0. Returns all programs created by a specific sponsor. */
   programsBysponsorIdV2?: Maybe<PaginatedProgramsV2>;
   /** Get all programs with pagination. Default limit is 10, default offset is 0. */
@@ -1685,6 +1768,34 @@ export type QueryCommentsArgs = {
 export type QueryCommentsByCommentableArgs = {
   commentableId: Scalars['ID']['input'];
   commentableType: CommentableTypeEnum;
+};
+
+
+export type QueryContractV2Args = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryContractsByApplicantV2Args = {
+  applicantId: Scalars['Int']['input'];
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryContractsByProgramV2Args = {
+  pagination?: InputMaybe<PaginationInput>;
+  programId: Scalars['Int']['input'];
+};
+
+
+export type QueryContractsBySponsorV2Args = {
+  pagination?: InputMaybe<PaginationInput>;
+  sponsorId: Scalars['Int']['input'];
+};
+
+
+export type QueryContractsV2Args = {
+  pagination?: InputMaybe<PaginationInput>;
 };
 
 
@@ -1834,6 +1945,12 @@ export type QueryProgramV2Args = {
 
 
 export type QueryProgramsArgs = {
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryProgramsByBuilderIdV2Args = {
+  builderId: Scalars['ID']['input'];
   pagination?: InputMaybe<PaginationInput>;
 };
 
@@ -2044,6 +2161,12 @@ export type UpdateCommentInput = {
   id: Scalars['ID']['input'];
 };
 
+export type UpdateContractV2Input = {
+  builder_signature?: InputMaybe<Scalars['String']['input']>;
+  contract_snapshot_cotents?: InputMaybe<Scalars['JSON']['input']>;
+  contract_snapshot_hash?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type UpdateInvestmentTermInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
@@ -2083,7 +2206,6 @@ export type UpdateNetworkV2Input = {
 };
 
 export type UpdateOnchainContractInfoV2Input = {
-  contentHash?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<OnchainContractStatusV2>;
   tx?: InputMaybe<Scalars['String']['input']>;
 };

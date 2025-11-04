@@ -25,7 +25,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/hooks/use-auth";
-import type { ApplicationV2, MilestoneV2 } from "@/types/types.generated";
+import {
+  MilestoneStatusV2,
+  type ApplicationV2,
+  type MilestoneV2,
+} from "@/types/types.generated";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { useState } from "react";
@@ -66,16 +70,20 @@ const MilestoneCard = ({
   };
 
   const daysLeft = getDaysLeft();
-  const isDraft = (milestone as any).status === "draft";
+  const isDraft = milestone.status === MilestoneStatusV2.Draft;
+  const isUnderReview = milestone.status === MilestoneStatusV2.UnderReview;
   const isUrgent =
     !isCompleted &&
     !isDraft &&
+    !isUnderReview &&
     daysLeft !== null &&
     daysLeft <= 3 &&
     daysLeft >= 0;
 
   const getBackgroundColor = () => {
     if (isDraft) return "bg-[#F5F5F5] border-l-[#9CA3AF] hover:bg-[#E5E5E5]";
+    if (isUnderReview)
+      return "bg-[#F0FDF4] border-l-[#22C55E] hover:bg-[#DCFCE7]";
     if (isCompleted)
       return "bg-[#F0EDFF] border-l-[#9E71C9] hover:bg-[#E5DDFF]";
     if (isUrgent) return "bg-[#FFF9FC] border-l-[#EC4899] hover:bg-[#FFF0F7]";
@@ -120,7 +128,9 @@ const RecruitmentMessage: React.FC<{
   const isSponsor = applications[0]?.program?.sponsor?.id === userId;
 
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
-    !isSponsor && applications.length > 0 ? applications[0].id || null : null
+    !isSponsor && applications.length > 0 && applications[0].chatroomMessageId
+      ? applications[0].chatroomMessageId
+      : null
   );
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
   const [selectedMilestone, setSelectedMilestone] =
@@ -128,7 +138,7 @@ const RecruitmentMessage: React.FC<{
   const [isNewMilestoneMode, setIsNewMilestoneMode] = useState(true);
 
   const selectedApplication = applications.find(
-    (applicant) => applicant.id === selectedMessageId
+    (applicant) => applicant.chatroomMessageId === selectedMessageId
   );
 
   const { data: programData } = useGetProgramV2Query({
@@ -149,21 +159,20 @@ const RecruitmentMessage: React.FC<{
         !selectedApplication?.program?.id,
     });
 
-  const contractInformation: ContractInformation = {
-    title: selectedApplication?.program?.title || "",
-    programId: selectedApplication?.program?.id || "",
-    sponsor: selectedApplication?.program?.sponsor || null,
-    applicant: selectedApplication?.applicant || null,
-    networkId: selectedApplication?.program?.networkId || null,
-    chatRoomId: selectedApplication?.id || null,
-  };
-
   const program = programData?.programV2;
   const allMilestones = milestonesData?.milestonesV2?.data || [];
 
-  const sortedMilestones = [...allMilestones].sort((a, b) => {
-    const aIsDraft = (a as any).status === "draft";
-    const bIsDraft = (b as any).status === "draft";
+  const filteredMilestones = isSponsor
+    ? allMilestones
+    : allMilestones.filter(
+        (m) =>
+          m.status === MilestoneStatusV2.InProgress ||
+          m.status === MilestoneStatusV2.Completed
+      );
+
+  const sortedMilestones = [...filteredMilestones].sort((a, b) => {
+    const aIsDraft = (a as any).status === MilestoneStatusV2.Draft;
+    const bIsDraft = (b as any).status === MilestoneStatusV2.Draft;
 
     if (aIsDraft && !bIsDraft) return 1;
     if (!aIsDraft && bIsDraft) return -1;
@@ -178,6 +187,15 @@ const RecruitmentMessage: React.FC<{
   const activeMilestones = sortedMilestones.filter(
     (m) => !(m as any).isCompleted
   );
+
+  const contractInformation: ContractInformation = {
+    title: selectedApplication?.program?.title || "",
+    programId: selectedApplication?.program?.id || "",
+    sponsor: selectedApplication?.program?.sponsor || null,
+    applicant: selectedApplication?.applicant || null,
+    networkId: selectedApplication?.program?.networkId || null,
+    chatRoomId: selectedApplication?.chatroomMessageId || null,
+  };
 
   const getInitials = (name: string) => {
     if (!name) return "??";
@@ -224,6 +242,7 @@ const RecruitmentMessage: React.FC<{
             description: data.description,
             payout: data.price,
             deadline: data.deadline.toISOString(),
+            status: MilestoneStatusV2.UnderReview,
           },
         },
       });
@@ -261,10 +280,12 @@ const RecruitmentMessage: React.FC<{
           <CardContent className="px-5 space-y-2">
             {applications.map((applicant) => (
               <MessageListItem
-                key={applicant.id}
+                key={applicant.chatroomMessageId}
                 message={applicant}
-                isSelected={selectedMessageId === applicant.id}
-                onClick={() => setSelectedMessageId(applicant.id || null)}
+                isSelected={selectedMessageId === applicant.chatroomMessageId}
+                onClick={() =>
+                  setSelectedMessageId(applicant.chatroomMessageId || null)
+                }
               />
             ))}
           </CardContent>
@@ -342,7 +363,14 @@ const RecruitmentMessage: React.FC<{
                   </div>
                 </div>
                 {program?.sponsor?.id === userId && (
-                  <HireButton contractInformation={contractInformation} />
+                  <HireButton
+                    contractInformation={contractInformation}
+                    disabled={
+                      allMilestones.filter(
+                        (m) => m.status === MilestoneStatusV2.UnderReview
+                      ).length <= 0
+                    }
+                  />
                 )}
               </div>
               <div className="flex-1 overflow-hidden">
@@ -480,7 +508,7 @@ const RecruitmentMessage: React.FC<{
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>
-                                Milestone Price{" "}
+                                Price
                                 <span className="text-destructive">*</span>
                               </FormLabel>
                               <FormControl>

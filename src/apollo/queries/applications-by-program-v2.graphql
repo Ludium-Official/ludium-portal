@@ -5,9 +5,9 @@ query applicationsByProgramV2($query: ApplicationsByProgramV2QueryInput!) {
       status
       content
       picked
-      rejectedReason
       createdAt
       updatedAt
+      chatroomMessageId
       applicant {
         id
         email

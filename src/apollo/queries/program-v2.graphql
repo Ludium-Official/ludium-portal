@@ -13,6 +13,7 @@ query GetProgramV2($id: ID!) {
     token_id
     invitedMembers
     applicationCount
+    hasApplied
     sponsor {
       id
       walletAddress

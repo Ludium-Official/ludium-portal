@@ -8,7 +8,7 @@ export type GetProgramV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type GetProgramV2Query = { __typename?: 'Query', programV2?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, price?: string | null, createdAt?: any | null, deadline?: any | null, status?: Types.ProgramStatusV2 | null, visibility?: Types.ProgramVisibilityV2 | null, skills?: Array<string> | null, networkId?: number | null, token_id?: number | null, invitedMembers?: Array<string> | null, applicationCount?: number | null, sponsor?: { __typename?: 'UserV2', id?: string | null, walletAddress?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null, profileImage?: string | null, organizationName?: string | null } | null, network?: { __typename?: 'NetworkV2', id?: string | null, chainId?: number | null, chainName?: string | null, mainnet?: boolean | null, exploreUrl?: string | null } | null, token?: { __typename?: 'TokenV2', id?: string | null, chainInfoId?: number | null, tokenName?: string | null, tokenAddress?: string | null } | null } | null };
+export type GetProgramV2Query = { __typename?: 'Query', programV2?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, price?: string | null, createdAt?: any | null, deadline?: any | null, status?: Types.ProgramStatusV2 | null, visibility?: Types.ProgramVisibilityV2 | null, skills?: Array<string> | null, networkId?: number | null, token_id?: number | null, invitedMembers?: Array<string> | null, applicationCount?: number | null, hasApplied?: boolean | null, sponsor?: { __typename?: 'UserV2', id?: string | null, walletAddress?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null, profileImage?: string | null, organizationName?: string | null } | null, network?: { __typename?: 'NetworkV2', id?: string | null, chainId?: number | null, chainName?: string | null, mainnet?: boolean | null, exploreUrl?: string | null } | null, token?: { __typename?: 'TokenV2', id?: string | null, chainInfoId?: number | null, tokenName?: string | null, tokenAddress?: string | null } | null } | null };
 
 
 export const GetProgramV2Document = gql`
@@ -27,6 +27,7 @@ export const GetProgramV2Document = gql`
     token_id
     invitedMembers
     applicationCount
+    hasApplied
     sponsor {
       id
       walletAddress

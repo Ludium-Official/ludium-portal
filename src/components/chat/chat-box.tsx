@@ -25,7 +25,7 @@ import { Loader2, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { ContractModal } from "@/components/recruitment/contract-modal";
+import { ContractModal } from "@/components/recruitment/contract/contract-modal";
 
 const messageFormSchema = z.object({
   message: z.string().min(1, "Message cannot be empty"),
@@ -116,7 +116,6 @@ function MessageItem({
       </div>
     );
   }
-  console.log(application);
 
   return (
     <div className="flex gap-3 items-start">
@@ -176,7 +175,7 @@ function MessageItem({
                     sponsor: application.program?.sponsor || null,
                     applicant: application.applicant || null,
                     networkId: application.program?.networkId || null,
-                    chatRoomId: application.id || null,
+                    chatRoomId: application.chatroomMessageId || null,
                   }}
                   assistantId={message.senderId}
                 />
@@ -213,7 +212,7 @@ export function ChatBox({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const prevchatRoomId = useRef<string>("");
-  const chatRoomId = selectedMessage.id;
+  const chatRoomId = selectedMessage.chatroomMessageId;
 
   const form = useForm<MessageFormData>({
     resolver: zodResolver(messageFormSchema),
@@ -447,56 +446,58 @@ export function ChatBox({
         <div ref={messagesEndRef} />
       </div>
 
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(handleSendMessage)}
-          className="p-4 border-t bg-slate-3"
-        >
-          <div className="flex gap-2 items-end">
-            <FormField
-              control={form.control}
-              name="message"
-              render={({ field }) => (
-                <FormItem className="flex-1">
-                  <FormControl>
-                    <textarea
-                      {...field}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Type your message... (Shift+Enter for new line)"
-                      disabled={isSending}
-                      rows={1}
-                      className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px] overflow-y-auto w-full"
-                      style={{
-                        height: "auto",
-                        minHeight: "40px",
-                      }}
-                      onInput={(e) => {
-                        const target = e.target as HTMLTextAreaElement;
-                        target.style.height = "auto";
-                        target.style.height = `${Math.min(
-                          target.scrollHeight,
-                          120
-                        )}px`;
-                      }}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <Button
-              type="submit"
-              disabled={isSending || !form.watch("message")?.trim()}
-              size="icon"
-            >
-              {isSending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-            </Button>
-          </div>
-        </form>
-      </Form>
+      {chatRoomId && (
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSendMessage)}
+            className="p-4 border-t bg-slate-3"
+          >
+            <div className="flex gap-2 items-end">
+              <FormField
+                control={form.control}
+                name="message"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormControl>
+                      <textarea
+                        {...field}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Type your message... (Shift+Enter for new line)"
+                        disabled={isSending}
+                        rows={1}
+                        className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px] overflow-y-auto w-full"
+                        style={{
+                          height: "auto",
+                          minHeight: "40px",
+                        }}
+                        onInput={(e) => {
+                          const target = e.target as HTMLTextAreaElement;
+                          target.style.height = "auto";
+                          target.style.height = `${Math.min(
+                            target.scrollHeight,
+                            120
+                          )}px`;
+                        }}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="submit"
+                disabled={isSending || !form.watch("message")?.trim()}
+                size="icon"
+              >
+                {isSending ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      )}
     </div>
   );
 }

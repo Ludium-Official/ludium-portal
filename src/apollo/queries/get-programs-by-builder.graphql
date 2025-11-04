@@ -1,5 +1,5 @@
-query GetProgramsV2($pagination: PaginationInput) {
-  programsV2(pagination: $pagination) {
+query GetProgramsByBuilderV2($builderId: ID!, $pagination: PaginationInput) {
+  programsByBuilderIdV2(builderId: $builderId, pagination: $pagination) {
     data {
       id
       title
@@ -7,8 +7,8 @@ query GetProgramsV2($pagination: PaginationInput) {
       price
       createdAt
       deadline
+      status
       applicationCount
-      hasApplied
       sponsor {
         id
         walletAddress

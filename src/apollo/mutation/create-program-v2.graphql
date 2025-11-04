@@ -10,5 +10,6 @@ mutation createProgramV2($input: CreateProgramV2Input!) {
     networkId
     price
     token_id
+    status
   }
 }

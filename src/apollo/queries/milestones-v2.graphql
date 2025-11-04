@@ -13,6 +13,7 @@ query GetMilestonesV2($query: MilestonesV2QueryInput) {
       deadline
       createdAt
       updatedAt
+      status
       applicant {
         id
         walletAddress
