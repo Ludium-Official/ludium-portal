@@ -1,6 +1,11 @@
-import type { Control, FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
-import type { LabelValueProps, VisibilityProps } from './common';
-import type { MilestoneV2, ProgramStatusV2, UserV2 } from './types.generated';
+import type {
+  Control,
+  FieldErrors,
+  UseFormRegister,
+  UseFormSetValue,
+} from "react-hook-form";
+import type { LabelValueProps, VisibilityProps } from "./common";
+import type { MilestoneV2, ProgramStatusV2, UserV2 } from "./types.generated";
 
 export interface ProgramFormData {
   id?: string;
@@ -44,7 +49,9 @@ export interface ProgramOverviewProps extends programFormProps {
   deadline?: Date;
   validators: string[];
   selectedValidatorItems: LabelValueProps[];
-  setSelectedValidatorItems: React.Dispatch<React.SetStateAction<LabelValueProps[]>>;
+  setSelectedValidatorItems: React.Dispatch<
+    React.SetStateAction<LabelValueProps[]>
+  >;
   selectedImage?: File;
   isEdit?: boolean;
   control: Control<ProgramFormData, any, any>;
@@ -102,8 +109,8 @@ export interface RecruitmentApplicant {
 export interface ContractInformation {
   title: string;
   programId: string;
-  applicantId: string;
-  milestones: MilestoneV2[];
   sponsor: UserV2 | null;
   applicant: UserV2 | null;
+  networkId: number | null;
+  chatRoomId: string | null;
 }

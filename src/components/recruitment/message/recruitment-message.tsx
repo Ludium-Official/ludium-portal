@@ -1,20 +1,20 @@
-import { useCreateMilestoneV2Mutation } from '@/apollo/mutation/create-milestone-v2.generated';
-import { useGetMilestonesV2Query } from '@/apollo/queries/milestones-v2.generated';
-import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ChatBox } from '@/components/chat/chat-box';
-import { HireButton } from '@/components/recruitment/hire-button';
-import MarkdownEditor from '@/components/markdown/markdown-editor';
+import { useCreateMilestoneV2Mutation } from "@/apollo/mutation/create-milestone-v2.generated";
+import { useGetMilestonesV2Query } from "@/apollo/queries/milestones-v2.generated";
+import { useGetProgramV2Query } from "@/apollo/queries/program-v2.generated";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ChatBox } from "@/components/chat/chat-box";
+import { HireButton } from "@/components/recruitment/hire-button";
+import MarkdownEditor from "@/components/markdown/markdown-editor";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DatePicker } from '@/components/ui/date-picker';
-import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+} from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -22,26 +22,27 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { useAuth } from '@/lib/hooks/use-auth';
-import type { ApplicationV2, MilestoneV2 } from '@/types/types.generated';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus } from 'lucide-react';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
-import * as z from 'zod';
-import MessageListItem from './message-list-item';
-import { ContractInformation } from '@/types/recruitment';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/lib/hooks/use-auth";
+import type { ApplicationV2, MilestoneV2 } from "@/types/types.generated";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+import * as z from "zod";
+import MessageListItem from "./message-list-item";
+import { ContractInformation } from "@/types/recruitment";
+import { MarkdownPreviewer } from "@/components/markdown";
 
 const milestoneFormSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  price: z.string().min(1, 'Price is required'),
+  title: z.string().min(1, "Title is required"),
+  price: z.string().min(1, "Price is required"),
   deadline: z.date({
-    required_error: 'Deadline is required',
+    required_error: "Deadline is required",
   }),
-  description: z.string().min(1, 'Description is required'),
+  description: z.string().min(1, "Description is required"),
 });
 
 type MilestoneFormData = z.infer<typeof milestoneFormSchema>;
@@ -65,14 +66,20 @@ const MilestoneCard = ({
   };
 
   const daysLeft = getDaysLeft();
-  const isDraft = (milestone as any).status === 'draft';
-  const isUrgent = !isCompleted && !isDraft && daysLeft !== null && daysLeft <= 3 && daysLeft >= 0;
+  const isDraft = (milestone as any).status === "draft";
+  const isUrgent =
+    !isCompleted &&
+    !isDraft &&
+    daysLeft !== null &&
+    daysLeft <= 3 &&
+    daysLeft >= 0;
 
   const getBackgroundColor = () => {
-    if (isDraft) return 'bg-[#F5F5F5] border-l-[#9CA3AF] hover:bg-[#E5E5E5]';
-    if (isCompleted) return 'bg-[#F0EDFF] border-l-[#9E71C9] hover:bg-[#E5DDFF]';
-    if (isUrgent) return 'bg-[#FFF9FC] border-l-[#EC4899] hover:bg-[#FFF0F7]';
-    return 'bg-[#F5F8FF] border-l-[#60A5FA] hover:bg-[#EBF2FF]';
+    if (isDraft) return "bg-[#F5F5F5] border-l-[#9CA3AF] hover:bg-[#E5E5E5]";
+    if (isCompleted)
+      return "bg-[#F0EDFF] border-l-[#9E71C9] hover:bg-[#E5DDFF]";
+    if (isUrgent) return "bg-[#FFF9FC] border-l-[#EC4899] hover:bg-[#FFF0F7]";
+    return "bg-[#F5F8FF] border-l-[#60A5FA] hover:bg-[#EBF2FF]";
   };
 
   return (
@@ -87,7 +94,11 @@ const MilestoneCard = ({
           <>
             {isUrgent && (
               <span className="text-[#EC4899] font-medium">
-                {daysLeft === 0 ? 'Today' : daysLeft === 1 ? '1 day left' : `${daysLeft} days left`}
+                {daysLeft === 0
+                  ? "Today"
+                  : daysLeft === 1
+                  ? "1 day left"
+                  : `${daysLeft} days left`}
               </span>
             )}
             <span>{new Date(milestone.deadline).toLocaleDateString()}</span>
@@ -106,48 +117,53 @@ const RecruitmentMessage: React.FC<{
 }> = ({ applications }) => {
   const { userId } = useAuth();
 
-  const isSponser = applications[0]?.program?.sponsor?.id === userId;
+  const isSponsor = applications[0]?.program?.sponsor?.id === userId;
 
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
-    !isSponser && applications.length > 0 ? applications[0].id || null : null,
+    !isSponsor && applications.length > 0 ? applications[0].id || null : null
   );
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
-  const [selectedMilestone, setSelectedMilestone] = useState<MilestoneV2 | null>(null);
+  const [selectedMilestone, setSelectedMilestone] =
+    useState<MilestoneV2 | null>(null);
   const [isNewMilestoneMode, setIsNewMilestoneMode] = useState(true);
 
-  const selectedApplication = applications.find((applicant) => applicant.id === selectedMessageId);
+  const selectedApplication = applications.find(
+    (applicant) => applicant.id === selectedMessageId
+  );
 
   const { data: programData } = useGetProgramV2Query({
-    variables: { id: selectedApplication?.program?.id || '' },
+    variables: { id: selectedApplication?.program?.id || "" },
     skip: !selectedApplication?.program?.id,
   });
 
-  const { data: milestonesData, refetch: refetchMilestones } = useGetMilestonesV2Query({
-    variables: {
-      query: {
-        applicantId: selectedApplication?.applicant?.id,
-        programId: selectedApplication?.program?.id,
+  const { data: milestonesData, refetch: refetchMilestones } =
+    useGetMilestonesV2Query({
+      variables: {
+        query: {
+          applicantId: selectedApplication?.applicant?.id,
+          programId: selectedApplication?.program?.id,
+        },
       },
-    },
-    skip: !selectedApplication?.applicant?.id || !selectedApplication?.program?.id,
-  });
-  console.log(selectedApplication);
+      skip:
+        !selectedApplication?.applicant?.id ||
+        !selectedApplication?.program?.id,
+    });
 
   const contractInformation: ContractInformation = {
-    title: selectedApplication?.program?.title || '',
-    programId: selectedApplication?.program?.id || '',
-    applicantId: selectedApplication?.applicant?.id || '',
-    milestones: milestonesData?.milestonesV2?.data || [],
+    title: selectedApplication?.program?.title || "",
+    programId: selectedApplication?.program?.id || "",
     sponsor: selectedApplication?.program?.sponsor || null,
     applicant: selectedApplication?.applicant || null,
+    networkId: selectedApplication?.program?.networkId || null,
+    chatRoomId: selectedApplication?.id || null,
   };
 
   const program = programData?.programV2;
   const allMilestones = milestonesData?.milestonesV2?.data || [];
 
   const sortedMilestones = [...allMilestones].sort((a, b) => {
-    const aIsDraft = (a as any).status === 'draft';
-    const bIsDraft = (b as any).status === 'draft';
+    const aIsDraft = (a as any).status === "draft";
+    const bIsDraft = (b as any).status === "draft";
 
     if (aIsDraft && !bIsDraft) return 1;
     if (!aIsDraft && bIsDraft) return -1;
@@ -159,34 +175,42 @@ const RecruitmentMessage: React.FC<{
     return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
   });
 
-  const activeMilestones = sortedMilestones.filter((m) => !(m as any).isCompleted);
+  const activeMilestones = sortedMilestones.filter(
+    (m) => !(m as any).isCompleted
+  );
 
   const getInitials = (name: string) => {
-    if (!name) return '??';
-    const parts = name.split(' ');
+    if (!name) return "??";
+    const parts = name.split(" ");
     if (parts.length >= 2) {
       return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
     }
-    return name[0]?.toUpperCase() || '??';
+    return name[0]?.toUpperCase() || "??";
   };
 
-  const completedMilestones = sortedMilestones.filter((m) => (m as any).isCompleted);
+  const completedMilestones = sortedMilestones.filter(
+    (m) => (m as any).isCompleted
+  );
 
-  const [createMilestone, { loading: creatingMilestone }] = useCreateMilestoneV2Mutation();
+  const [createMilestone, { loading: creatingMilestone }] =
+    useCreateMilestoneV2Mutation();
 
   const form = useForm<MilestoneFormData>({
     resolver: zodResolver(milestoneFormSchema),
     defaultValues: {
-      title: '',
-      price: '',
+      title: "",
+      price: "",
       deadline: undefined,
-      description: '',
+      description: "",
     },
   });
 
   const onSubmitMilestone = async (data: MilestoneFormData) => {
-    if (!selectedApplication?.applicant?.id || !selectedApplication?.program?.id) {
-      toast.error('Missing applicant or program information');
+    if (
+      !selectedApplication?.applicant?.id ||
+      !selectedApplication?.program?.id
+    ) {
+      toast.error("Missing applicant or program information");
       return;
     }
 
@@ -204,14 +228,14 @@ const RecruitmentMessage: React.FC<{
         },
       });
 
-      toast.success('Milestone created successfully');
+      toast.success("Milestone created successfully");
       await refetchMilestones();
       setIsMilestoneModalOpen(false);
       setIsNewMilestoneMode(true);
       form.reset();
     } catch (error) {
-      console.error('Failed to create milestone:', error);
-      toast.error('Failed to create milestone');
+      console.error("Failed to create milestone:", error);
+      toast.error("Failed to create milestone");
     }
   };
 
@@ -229,7 +253,7 @@ const RecruitmentMessage: React.FC<{
 
   return (
     <div className="flex gap-4 h-[calc(100vh-200px)]">
-      {isSponser && (
+      {isSponsor && (
         <Card className="gap-3 w-[25%] overflow-y-auto py-5">
           <CardHeader className="px-5">
             <CardTitle>Messages</CardTitle>
@@ -257,54 +281,58 @@ const RecruitmentMessage: React.FC<{
                     <AvatarImage
                       src={
                         userId === selectedApplication.applicant?.id
-                          ? program?.sponsor?.profileImage || ''
-                          : selectedApplication.applicant?.profileImage || ''
+                          ? program?.sponsor?.profileImage || ""
+                          : selectedApplication.applicant?.profileImage || ""
                       }
                       alt={
                         userId === selectedApplication.applicant?.id
-                          ? `${program?.sponsor?.firstName || ''} ${
-                              program?.sponsor?.lastName || ''
+                          ? `${program?.sponsor?.firstName || ""} ${
+                              program?.sponsor?.lastName || ""
                             }`.trim() ||
                             program?.sponsor?.email ||
-                            'Unknown'
-                          : `${selectedApplication.applicant?.firstName || ''} ${
-                              selectedApplication.applicant?.lastName || ''
+                            "Unknown"
+                          : `${
+                              selectedApplication.applicant?.firstName || ""
+                            } ${
+                              selectedApplication.applicant?.lastName || ""
                             }`.trim() ||
                             selectedApplication.applicant?.email ||
-                            'Unknown'
+                            "Unknown"
                       }
                     />
                     <AvatarFallback className="text-sm font-semibold">
                       {userId === selectedApplication.applicant?.id
                         ? getInitials(
-                            `${program?.sponsor?.firstName || ''} ${
-                              program?.sponsor?.lastName || ''
+                            `${program?.sponsor?.firstName || ""} ${
+                              program?.sponsor?.lastName || ""
                             }`.trim() ||
                               program?.sponsor?.email ||
-                              '',
+                              ""
                           )
                         : getInitials(
-                            `${selectedApplication.applicant?.firstName || ''} ${
-                              selectedApplication.applicant?.lastName || ''
+                            `${
+                              selectedApplication.applicant?.firstName || ""
+                            } ${
+                              selectedApplication.applicant?.lastName || ""
                             }`.trim() ||
                               selectedApplication.applicant?.email ||
-                              '',
+                              ""
                           )}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
                     <h3 className="font-bold text-lg">
                       {userId === selectedApplication.applicant?.id
-                        ? `${program?.sponsor?.firstName || ''} ${
-                            program?.sponsor?.lastName || ''
+                        ? `${program?.sponsor?.firstName || ""} ${
+                            program?.sponsor?.lastName || ""
                           }`.trim() ||
                           program?.sponsor?.email ||
-                          'Unknown'
-                        : `${selectedApplication.applicant?.firstName || ''} ${
-                            selectedApplication.applicant?.lastName || ''
+                          "Unknown"
+                        : `${selectedApplication.applicant?.firstName || ""} ${
+                            selectedApplication.applicant?.lastName || ""
                           }`.trim() ||
                           selectedApplication.applicant?.email ||
-                          'Unknown'}
+                          "Unknown"}
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       {userId === selectedApplication.applicant?.id
@@ -333,14 +361,14 @@ const RecruitmentMessage: React.FC<{
             <div className="h-full p-4 bg-[#FBF5FF] overflow-y-auto rounded-r-xl space-y-3">
               <Accordion
                 type="multiple"
-                defaultValue={['milestone']}
+                defaultValue={["milestone"]}
                 className="bg-white rounded-lg"
               >
                 <AccordionItem value="milestone" className="px-3 border-none">
                   <AccordionTrigger className="hover:no-underline py-3">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-base">Milestone</span>
-                      {isSponser && (
+                      {isSponsor && (
                         <Plus
                           className="cursor-pointer w-4 h-4"
                           onClick={(e) => {
@@ -428,10 +456,6 @@ const RecruitmentMessage: React.FC<{
                     onSubmit={form.handleSubmit(onSubmitMilestone)}
                     className="h-full flex flex-col"
                   >
-                    <h2 className="text-2xl font-bold mb-6">
-                      Milestone #{allMilestones.length + 1}
-                    </h2>
-
                     <div className="space-y-4 flex-1">
                       <FormField
                         control={form.control}
@@ -456,10 +480,15 @@ const RecruitmentMessage: React.FC<{
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>
-                                Milestone Payout <span className="text-destructive">*</span>
+                                Milestone Price{" "}
+                                <span className="text-destructive">*</span>
                               </FormLabel>
                               <FormControl>
-                                <Input type="number" placeholder="Enter price" {...field} />
+                                <Input
+                                  type="number"
+                                  placeholder="Enter price"
+                                  {...field}
+                                />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -472,13 +501,18 @@ const RecruitmentMessage: React.FC<{
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>
-                                Deadline <span className="text-destructive">*</span>
+                                Deadline{" "}
+                                <span className="text-destructive">*</span>
                               </FormLabel>
                               <FormControl>
                                 <DatePicker
                                   date={field.value}
                                   setDate={(date) => {
-                                    if (date && typeof date === 'object' && 'getTime' in date) {
+                                    if (
+                                      date &&
+                                      typeof date === "object" &&
+                                      "getTime" in date
+                                    ) {
                                       const newDate = new Date(date.getTime());
                                       newDate.setHours(23, 59, 59, 999);
                                       field.onChange(newDate);
@@ -501,12 +535,13 @@ const RecruitmentMessage: React.FC<{
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>
-                              Description <span className="text-destructive">*</span>
+                              Description{" "}
+                              <span className="text-destructive">*</span>
                             </FormLabel>
                             <FormControl>
                               <MarkdownEditor
                                 onChange={field.onChange}
-                                content={field.value || ''}
+                                content={field.value || ""}
                               />
                             </FormControl>
                             <FormMessage />
@@ -518,32 +553,34 @@ const RecruitmentMessage: React.FC<{
                 </Form>
               ) : (
                 <div className="space-y-4">
-                  <h2 className="text-2xl font-bold mb-6">
-                    Milestone #
-                    {selectedMilestone
-                      ? allMilestones.findIndex((m) => m.id === selectedMilestone.id) + 1
-                      : 1}
-                  </h2>
-
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Title</p>
                     <p className="font-medium">{selectedMilestone?.title}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Payout</p>
+                    <p className="text-sm text-muted-foreground mb-1">Price</p>
                     <p className="font-medium">{selectedMilestone?.payout}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Deadline</p>
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Deadline
+                    </p>
                     <p className="font-medium">
                       {selectedMilestone?.deadline
-                        ? new Date(selectedMilestone.deadline).toLocaleDateString()
-                        : '-'}
+                        ? new Date(
+                            selectedMilestone.deadline
+                          ).toLocaleDateString()
+                        : "-"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Description</p>
-                    <p className="font-medium">{selectedMilestone?.description}</p>
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Description
+                    </p>
+                    <MarkdownPreviewer
+                      key={selectedMilestone?.id || "empty"}
+                      value={selectedMilestone?.description || ""}
+                    />
                   </div>
                 </div>
               )}
@@ -552,7 +589,7 @@ const RecruitmentMessage: React.FC<{
             <div className="w-[400px] p-4 bg-[#F7F7F7] overflow-y-auto">
               <Accordion
                 type="multiple"
-                defaultValue={['milestone']}
+                defaultValue={["milestone"]}
                 className="bg-white rounded-lg"
               >
                 <AccordionItem value="milestone" className="px-3 border-none">
@@ -598,11 +635,11 @@ const RecruitmentMessage: React.FC<{
                 className="ml-auto"
                 disabled={creatingMilestone}
               >
-                {creatingMilestone ? 'Creating...' : 'Submit'}
+                {creatingMilestone ? "Creating..." : "Submit"}
               </Button>
             ) : (
               <div className="flex items-center justify-between w-full">
-                {isSponser && (
+                {isSponsor && (
                   <Button
                     type="button"
                     variant="outline"

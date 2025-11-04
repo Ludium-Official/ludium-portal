@@ -1,36 +1,75 @@
-import logo from '@/assets/logo.svg';
+import logo from "@/assets/logo.svg";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { ContractInformation } from '@/types/recruitment';
-import { Separator } from '../ui/separator';
-import { formatDateKorean, addDaysToDate, getUserDisplayName } from '@/lib/utils';
-import { MarkdownPreviewer } from '../markdown';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { ContractInformation } from "@/types/recruitment";
+import { Separator } from "../ui/separator";
+import {
+  formatDateKorean,
+  addDaysToDate,
+  getUserDisplayName,
+} from "@/lib/utils";
+import { MarkdownPreviewer } from "../markdown";
+import { useNetworks } from "@/contexts/networks-context";
+import { useContract } from "@/lib/hooks/use-contract";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { sendMessage } from "@/lib/firebase-chat";
+import toast from "react-hot-toast";
+import { useState } from "react";
+import notify from "@/lib/notify";
+import { useGetMilestonesV2Query } from "@/apollo/queries/milestones-v2.generated";
 
 interface ContractModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contractInformation: ContractInformation;
+  assistantId?: string;
 }
 
-export function ContractModal({ open, onOpenChange, contractInformation }: ContractModalProps) {
-  const handleSubmit = () => {
-    console.log('Submit contract', { contractInformation });
-    // TODO: API 호출로 계약서 생성
-    onOpenChange(false);
-  };
+export function ContractModal({
+  open,
+  onOpenChange,
+  contractInformation,
+  assistantId,
+}: ContractModalProps) {
+  const { userId } = useAuth();
+  const { networks: networksWithTokens, getContractByNetworkId } =
+    useNetworks();
+  const { data: milestonesData } = useGetMilestonesV2Query({
+    variables: {
+      query: {
+        applicantId: contractInformation.applicant?.id,
+        programId: contractInformation.programId,
+      },
+    },
+  });
+  const milestones = milestonesData?.milestonesV2?.data || [];
 
-  let pendingPayout = 0;
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
-  const totalPayout = contractInformation.milestones.reduce((acc, milestone) => {
-    if (milestone.status !== 'completed') {
-      if (milestone.status === 'pending') {
-        pendingPayout += Number(milestone.payout);
+  const currentNetwork = networksWithTokens.find(
+    (network) => Number(network.id) === contractInformation.networkId
+  );
+  const currentContract = getContractByNetworkId(Number(currentNetwork?.id));
+
+  const contract = useContract(
+    currentNetwork?.chainName || "educhain",
+    currentContract?.address
+  );
+
+  const isSponser = contractInformation.sponsor?.id === userId;
+  const isBuilder = contractInformation.applicant?.id === userId;
+  let pendingPrice = 0;
+
+  const totalPrice = milestones.reduce((acc, milestone) => {
+    if (milestone.status !== "completed") {
+      if (milestone.status === "pending") {
+        pendingPrice += Number(milestone.payout);
       }
 
       return acc + Number(milestone.payout);
@@ -38,6 +77,78 @@ export function ContractModal({ open, onOpenChange, contractInformation }: Contr
 
     return acc;
   }, 0);
+
+  const handleSendMessage = async () => {
+    if (!userId || !contractInformation.applicant?.id) {
+      notify("Missing user information", "error");
+      return;
+    }
+
+    setIsSendingMessage(true);
+    try {
+      await sendMessage(contractInformation.chatRoomId || "", "", "-1");
+
+      notify("Contract sent to builder for signature", "success");
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Failed to send contract message:", error);
+      notify("Failed to send contract message", "error");
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
+
+  const handleAddSignature = async () => {
+    console.log(userId, contractInformation.applicant?.walletAddress);
+    if (!userId || !contractInformation.applicant?.walletAddress) {
+      notify("Missing user information", "error");
+      return;
+    }
+
+    try {
+      const signature = await contract.createBuilderSignature(
+        Number(contractInformation.programId),
+        contractInformation.applicant.walletAddress as `0x${string}`,
+        BigInt(pendingPrice),
+        3n
+      );
+
+      console.log("Builder signature created:", signature);
+
+      // TODO: Save the signature to the database
+      // This should:
+      // 1. Save signature to database
+      // 2. Send message to sponsor that contract is ready
+
+      // Send notification to sponsor
+      await sendMessage(contractInformation.chatRoomId || "", "", "-2");
+
+      toast.success("Signature added successfully");
+      notify("Contract signed and sent to sponsor", "success");
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Failed to add signature:", error);
+      toast.error("Failed to add signature");
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const tx = await contract.createContract(
+        Number(contractInformation.programId),
+        contractInformation.applicant?.walletAddress as `0x${string}`,
+        BigInt(pendingPrice),
+        "0x0000000000000000000000000000000000000000000000000000000000000000"
+      );
+
+      toast.success("Contract created successfully!");
+      console.log("Transaction:", tx);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Failed to submit contract", error);
+      toast.error("Failed to create contract");
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -49,23 +160,29 @@ export function ContractModal({ open, onOpenChange, contractInformation }: Contr
           </DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-hidden flex flex-col">
-          <div className="text-lg font-bold mb-2">{contractInformation.title}</div>
+          <div className="text-lg font-bold mb-2">
+            {contractInformation.title}
+          </div>
           <Separator className="my-4" />
           <div className="flex-1 overflow-y-auto px-2">
             <div className="space-y-6 text-sm leading-relaxed">
               <div>
-                <h3 className="text-lg font-bold mb-2">1. 계약 개요</h3>
+                <h3 className="text-lg font-bold mb-2">1. Contract Overview</h3>
                 <p className="mb-2">
-                  본 계약서(이하 &ldquo;계약&rdquo;)는 스폰서와 빌더가 [플랫폼명, 이하
-                  &ldquo;루디움(Ludium)&rdquo;]을 통해 체결하는 프로젝트 수행 계약임.
+                  This contract (hereinafter referred to as the
+                  &ldquo;Contract&rdquo;) is a project execution agreement
+                  between the Sponsor and the Builder through Ludium.
                 </p>
-                <p>양 당사자는 아래 명시된 조건에 따라 프로젝트를 성실히 수행할 것을 약속함.</p>
+                <p>
+                  Both parties agree to faithfully perform the project in
+                  accordance with the terms specified below.
+                </p>
               </div>
 
               <div>
-                <h3 className="text-lg font-bold mb-4">2. 프로젝트 상세</h3>
+                <h3 className="text-lg font-bold mb-4">2. Project Details</h3>
                 <div className="space-y-4">
-                  {contractInformation.milestones.map((milestone, index) => (
+                  {milestones.map((milestone, index) => (
                     <div
                       key={milestone.id || index}
                       className="border border-border rounded-lg p-4 bg-muted/30 space-y-3"
@@ -73,35 +190,38 @@ export function ContractModal({ open, onOpenChange, contractInformation }: Contr
                       <div className="space-y-3">
                         <div className="flex flex-col gap-1">
                           <div className="text-xs font-semibold text-muted-foreground">
-                            프로젝트 제목
+                            Milestone Title
                             <span className="text-green-500">
-                              {milestone.status === 'progress' && 'In Progress'}
+                              {milestone.status === "progress" &&
+                                " (In Progress)"}
                             </span>
                           </div>
-                          <div>{milestone.title || ''}</div>
+                          <div>{milestone.title || ""}</div>
                         </div>
                         <div className="flex flex-col gap-1">
                           <div className="text-xs font-semibold text-muted-foreground">
-                            작업 내용
+                            Description
                           </div>
                           <MarkdownPreviewer
-                            value={milestone.description || ''}
+                            value={milestone.description || ""}
                             className="mb-0!"
                           />
                         </div>
                         <div className="flex flex-col gap-1">
                           <div className="text-xs font-semibold text-muted-foreground">
-                            작업 제출일
+                            Submission Date
                           </div>
                           <div>{formatDateKorean(milestone.deadline)}</div>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <div className="text-xs font-semibold text-muted-foreground">지급일</div>
+                          <div className="text-xs font-semibold text-muted-foreground">
+                            Payment Date
+                          </div>
                           <div>{addDaysToDate(milestone.deadline, 3)}</div>
                         </div>
                         <div className="flex flex-col gap-1">
                           <div className="text-xs font-semibold text-muted-foreground">
-                            지급 금액
+                            Payment Amount
                           </div>
                           <div>{milestone.payout}</div>
                         </div>
@@ -112,82 +232,128 @@ export function ContractModal({ open, onOpenChange, contractInformation }: Contr
               </div>
 
               <div>
-                <h3 className="text-lg font-bold mb-2">3. 빌더의 의무</h3>
+                <h3 className="text-lg font-bold mb-2">
+                  3. Builder&apos;s Obligations
+                </h3>
                 <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>빌더는 작업 제출일 내에 합의된 범위와 품질 기준에 맞춰 작업을 완료함.</li>
-                  <li>모든 작업물은 빌더의 창작물이어야 하며, 제3자의 저작권을 침해하지 않음.</li>
                   <li>
-                    빌더는 프로젝트 진행 중 진행 상황을 성실히 공유하고, 스폰서의 피드백에 신속히
-                    응답함.
+                    The Builder shall complete the work within the submission
+                    deadline according to the agreed scope and quality
+                    standards.
+                  </li>
+                  <li>
+                    All deliverables must be the Builder&apos;s original work
+                    and shall not infringe upon any third-party copyrights.
+                  </li>
+                  <li>
+                    The Builder shall faithfully share progress updates during
+                    the project and respond promptly to the Sponsor&apos;s
+                    feedback.
                   </li>
                 </ul>
               </div>
 
               <div>
-                <h3 className="text-lg font-bold mb-2">4. 스폰서의 의무</h3>
+                <h3 className="text-lg font-bold mb-2">
+                  4. Sponsor&apos;s Obligations
+                </h3>
                 <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>스폰서는 제출된 작업물을 공정하고 신속하게 검토함.</li>
-                  <li>스폰서는 합리적인 사유 없이 추가 작업을 요구할수없음+원할시 마일스톤추가</li>
+                  <li>
+                    The Sponsor shall review submitted deliverables fairly and
+                    promptly.
+                  </li>
+                  <li>
+                    The Sponsor shall not request additional work without
+                    reasonable cause. If additional work is desired, a new
+                    milestone must be added.
+                  </li>
                 </ul>
               </div>
 
               <div>
-                <h3 className="text-lg font-bold mb-2">5. 상호 성실 이행 및 위반 시 조치</h3>
+                <h3 className="text-lg font-bold mb-2">
+                  5. Mutual Good Faith Performance and Breach Actions
+                </h3>
 
                 <div className="mt-2">
-                  <h4 className="font-semibold mb-1">5-1. 상호 성실 이행</h4>
+                  <h4 className="font-semibold mb-1">
+                    5-1. Mutual Good Faith Performance
+                  </h4>
                   <p className="mb-2">
-                    스폰서와 빌더는 상호 <strong>신뢰와 성실</strong>을 기반으로 협력하며,
+                    The Sponsor and Builder shall cooperate based on mutual{" "}
+                    <strong>trust and good faith</strong>,
                   </p>
-                  <p className="mb-2">각자의 역할과 의무를 충실히 수행함.</p>
-                  <p>고의적인 지연, 불성실한 소통, 무단 연락두절 등은 위반 행위로 간주함.</p>
+                  <p className="mb-2">
+                    and faithfully perform their respective roles and
+                    obligations.
+                  </p>
+                  <p>
+                    Intentional delays, unfaithful communication, or
+                    unauthorized absence of contact shall be considered breach
+                    of contract.
+                  </p>
                 </div>
 
                 <div className="mt-4">
-                  <h4 className="font-semibold mb-2">5-2. 위반 및 계약 해지</h4>
+                  <h4 className="font-semibold mb-2">
+                    5-2. Breach and Termination
+                  </h4>
 
                   <div className="mb-3">
-                    <strong>① 빌더의 위반</strong>
+                    <strong>① Builder&apos;s Breach</strong>
                     <ul className="list-disc list-inside space-y-1 ml-4 mt-1">
                       <li>
-                        빌더가 장기간 연락이 두절되거나, 소통을 게을리하거나, 약속된 결과물의 품질이
-                        현저히 미달될 경우, 스폰서는 계약 해지를 요청할 수 있음.
-                      </li>
-                      <li>스폰서가 신고를 접수하면 빌더에게도 알림이 자동 발송됨.</li>
-                      <li>
-                        빌더가 즉시 성실히 재수행 의사를 밝히고 스폰서가 이를 수락할 경우, 스폰서는
-                        신고를 취소할 수 있음.
+                        If the Builder is out of contact for an extended period,
+                        neglects communication, or the quality of deliverables
+                        is significantly substandard, the Sponsor may request
+                        contract termination.
                       </li>
                       <li>
-                        이후 동일한 사유로 재신고가 접수될 경우, 플랫폼은 별도 조정 없이 해당 계약을
-                        즉시 파기함.
+                        When the Sponsor files a report, a notification is
+                        automatically sent to the Builder.
+                      </li>
+                      <li>
+                        If the Builder immediately expresses intention to
+                        faithfully re-perform and the Sponsor accepts, the
+                        Sponsor may cancel the report.
+                      </li>
+                      <li>
+                        If a subsequent report is filed for the same reason, the
+                        platform shall immediately terminate the contract
+                        without further mediation.
                       </li>
                     </ul>
                   </div>
 
                   <div>
-                    <strong>② 스폰서의 위반</strong>
+                    <strong>② Sponsor&apos;s Breach</strong>
                     <ul className="list-disc list-inside space-y-1 ml-4 mt-1">
                       <li className="mb-2">
-                        <strong>합의 범위 외 작업 요구</strong>
+                        <strong>Requesting Work Outside Agreed Scope</strong>
                         <br />
-                        스폰서는 계약서에 명시된 작업 범위를 일방적으로 변경하거나 추가 작업을
-                        요구하지 않음. 추가 작업이 필요한 경우, 반드시 빌더의 동의와 함께 별도 계약
-                        또는 마일스톤을 새로 설정함.
+                        The Sponsor shall not unilaterally change the work scope
+                        specified in the contract or request additional work. If
+                        additional work is required, a separate contract or
+                        milestone must be established with the Builder&apos;s
+                        consent.
                       </li>
                       <li className="mb-2">
-                        <strong>허위 신고</strong>
+                        <strong>False Reporting</strong>
                         <br />
-                        스폰서는 객관적인 근거 없이 허위 또는 악의적인 신고를 하지 않음. 부당한
-                        신고로 인해 빌더에게 불이익이 발생할 경우, 플랫폼은 해당 신고를 무효
-                        처리하고 스폰서에게 제재를 가할 수 있음.
+                        The Sponsor shall not make false or malicious reports
+                        without objective grounds. If the Builder suffers
+                        disadvantage due to an unfair report, the platform may
+                        invalidate the report and impose sanctions on the
+                        Sponsor.
                       </li>
                       <li>
-                        <strong>부당한 계약 해지</strong>
+                        <strong>Unfair Contract Termination</strong>
                         <br />
-                        스폰서는 정당한 사유 없이 프로젝트를 일방적으로 중단하거나 계약을 해지하지
-                        않음. 프로젝트 중단이 필요한 경우, 반드시 루디움의 조정 절차를 거쳐야 하며,
-                        플랫폼의 승인 없이 해지된 계약은 효력이 없음.
+                        The Sponsor shall not unilaterally suspend or terminate
+                        the project without just cause. If project suspension is
+                        necessary, Ludium&apos;s mediation procedure must be
+                        followed, and contracts terminated without platform
+                        approval shall be invalid.
                       </li>
                     </ul>
                   </div>
@@ -196,32 +362,42 @@ export function ContractModal({ open, onOpenChange, contractInformation }: Contr
 
               <div>
                 <h3 className="text-lg font-bold mb-2">
-                  6. 플랫폼 내 거래 원칙 (Off-platform 거래 금지)
+                  6. On-Platform Transaction Policy (Off-Platform Transactions
+                  Prohibited)
                 </h3>
                 <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>스폰서와 빌더는 계약 체결 이후, 루디움 채팅 시스템을 통해서만 소통함.</li>
                   <li>
-                    개인 연락처(이메일, SNS, 전화번호 등)를 공유하여{' '}
-                    <strong>플랫폼 외 개인 거래(Off-platform 거래)</strong>를 유도하거나 진행하는
-                    행위는 금지됨.
+                    After contract execution, the Sponsor and Builder shall
+                    communicate only through Ludium&apos;s chat system.
                   </li>
                   <li>
-                    루디움 외부에서의 직접 거래는 루디움의 보증, 에스크로, 분쟁 조정 대상에서
-                    제외되며, 적발 시 즉시 계정 정지 또는 영구 이용 제한(밴) 조치가 이루어짐.
+                    Sharing personal contact information (email, SNS, phone
+                    numbers, etc.) to induce or conduct{" "}
+                    <strong>off-platform transactions</strong> is prohibited.
                   </li>
-                  <li>모든 거래는 루디움을 통해서만 보장됨.</li>
+                  <li>
+                    Direct transactions outside Ludium are excluded from
+                    Ludium&apos;s guarantee, escrow, and dispute mediation, and
+                    detection may result in immediate account suspension or
+                    permanent ban.
+                  </li>
+                  <li>All transactions are guaranteed only through Ludium.</li>
                 </ul>
               </div>
 
               <div>
-                <h3 className="text-lg font-bold mb-2">7. 분쟁 해결</h3>
+                <h3 className="text-lg font-bold mb-2">
+                  7. Dispute Resolution
+                </h3>
                 <p>
-                  계약 관련 이견이 발생할 경우, 양 당사자는 먼저 플랫폼의 내부 분쟁 조정 시스템을
-                  통해 해결을 시도함.
+                  In case of contract-related disputes, both parties shall first
+                  attempt resolution through the platform&apos;s internal
+                  dispute mediation system.
                 </p>
                 <p className="mt-2">
-                  해결되지 않을 경우, 스마트 컨트랙트 기록 및 온체인 트랜잭션을 최종 증거로 사용하여
-                  플랫폼 규정에 따라 처리함.
+                  If unresolved, smart contract records and on-chain
+                  transactions shall be used as final evidence and handled
+                  according to platform regulations.
                 </p>
               </div>
             </div>
@@ -230,40 +406,72 @@ export function ContractModal({ open, onOpenChange, contractInformation }: Contr
         <DialogFooter className="flex flex-col! gap-4 border-t pt-4">
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold text-muted-foreground">Sponsor</div>
+              <div className="text-sm font-semibold text-muted-foreground">
+                Sponsor
+              </div>
               <div className="text-sm">
                 {getUserDisplayName(
                   contractInformation.sponsor?.firstName,
                   contractInformation.sponsor?.lastName,
-                  contractInformation.sponsor?.email,
+                  contractInformation.sponsor?.email
                 )}
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold text-muted-foreground">Builder</div>
+              <div className="text-sm font-semibold text-muted-foreground">
+                Builder
+              </div>
               <div className="text-sm">
                 {getUserDisplayName(
                   contractInformation.applicant?.firstName,
                   contractInformation.applicant?.lastName,
-                  contractInformation.applicant?.email,
+                  contractInformation.applicant?.email
                 )}
               </div>
             </div>
             <div className="flex items-center justify-between">
-              <div className="text-sm font-semibold text-muted-foreground">Total payout</div>
+              <div className="text-sm font-semibold text-muted-foreground">
+                Total price
+              </div>
               <div className="text-sm">
                 <span className="text-muted-foreground">
-                  {pendingPayout > 0 && `You will pay only ${pendingPayout}`}
+                  {pendingPrice > 0 && `You will pay only ${pendingPrice}`}
                 </span>
-                {totalPayout - pendingPayout}
+                {totalPrice - pendingPrice}
               </div>
             </div>
           </div>
-          <div className="flex justify-end">
-            <Button type="button" variant="default" onClick={handleSubmit} className="w-fit">
-              Continue writing
-            </Button>
-          </div>
+          {((assistantId !== "-1" && isSponser) ||
+            (assistantId !== "-2" && isBuilder)) && (
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="default"
+                // sponser이고, builder의 signature가 없을 경우 메세지 send
+                // builder일 경우 signature db에 추가
+                // sponser이고, builder의 signature가 있을 경우 handleSubmit 실행
+                onClick={
+                  isSponser && !isBuilder
+                    ? handleSendMessage
+                    : isBuilder
+                    ? handleAddSignature
+                    : handleSubmit
+                }
+                disabled={
+                  isSendingMessage || (assistantId === userId && isBuilder)
+                }
+                className="w-fit"
+              >
+                {isSendingMessage
+                  ? "Sending..."
+                  : isSponser && !isBuilder
+                  ? "Send to Builder"
+                  : isBuilder
+                  ? "Add Signature"
+                  : "Create Contract"}
+              </Button>
+            </div>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

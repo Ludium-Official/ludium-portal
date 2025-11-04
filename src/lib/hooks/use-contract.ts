@@ -2,8 +2,8 @@ import { type ConnectedWallet, usePrivy, useWallets } from '@privy-io/react-auth
 import { ethers } from 'ethers';
 import type { Chain, PublicClient } from 'viem';
 import { http, createPublicClient } from 'viem';
-import ChainContract from '../contract';
 import { checkNetwork } from '../functions/checkNetwork';
+import RecruitmentContract from '../contract/recruitment-contract';
 
 async function getSigner(checkNetwork: Chain, currentWallet: ConnectedWallet) {
   const eip1193Provider = await currentWallet.getEthereumProvider();
@@ -76,7 +76,12 @@ export function useContract(network: string, contractAddress?: string) {
     transport: http(checkNetwork(network).rpcUrls.default.http[0]),
   });
 
-  const callContract = new ChainContract(contractAddress, checkNetwork(network).id, sendTx, client);
+  const callContract = new RecruitmentContract(
+    contractAddress || '',
+    checkNetwork(network).id,
+    sendTx,
+    client,
+  );
 
   return callContract;
 }

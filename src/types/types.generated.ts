@@ -64,6 +64,8 @@ export type ApplicationV2 = {
   applicant?: Maybe<UserV2>;
   /** ID of the user who submitted this application */
   applicantId?: Maybe<Scalars['ID']['output']>;
+  /** Chatroom message ID for this application (set by program sponsor) */
+  chatroomMessageId?: Maybe<Scalars['String']['output']>;
   /** Content of the application submitted by the applicant */
   content?: Maybe<Scalars['String']['output']>;
   /** Application creation timestamp */
@@ -314,7 +316,6 @@ export type CreateProgramV2Input = {
   networkId: Scalars['Int']['input'];
   price: Scalars['String']['input'];
   skills: Array<Scalars['String']['input']>;
-  status: ProgramStatusV2;
   title: Scalars['String']['input'];
   token_id: Scalars['Int']['input'];
   visibility: ProgramVisibilityV2;
@@ -655,6 +656,8 @@ export type Mutation = {
   syncApplicationTiers?: Maybe<TierSyncResult>;
   unbanUser?: Maybe<User>;
   updateApplication?: Maybe<Application>;
+  /** Update chatroom message ID for an application (only by program sponsor). Generates a random UUID. */
+  updateApplicationChatroomV2?: Maybe<ApplicationV2>;
   /** Update application content (only by applicant) */
   updateApplicationV2?: Maybe<ApplicationV2>;
   updateCarouselItem?: Maybe<CarouselItem>;
@@ -1054,6 +1057,12 @@ export type MutationUnbanUserArgs = {
 
 export type MutationUpdateApplicationArgs = {
   input: UpdateApplicationInput;
+};
+
+
+export type MutationUpdateApplicationChatroomV2Args = {
+  id: Scalars['ID']['input'];
+  input: UpdateApplicationChatroomV2Input;
 };
 
 
@@ -2000,6 +2009,11 @@ export type TokenV2 = {
   id?: Maybe<Scalars['ID']['output']>;
   tokenAddress?: Maybe<Scalars['String']['output']>;
   tokenName?: Maybe<Scalars['String']['output']>;
+};
+
+export type UpdateApplicationChatroomV2Input = {
+  /** Placeholder field (GraphQL requires at least one field in input types) */
+  _placeholder?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type UpdateApplicationInput = {

@@ -17,11 +17,13 @@ query applicationsByProgramV2($query: ApplicationsByProgramV2QueryInput!) {
         organizationName
         bio
         skills
+        walletAddress
       }
       program {
         id
         title
         description
+        networkId
         sponsor {
           id
           firstName
