@@ -4,6 +4,7 @@ import LdRecruitmentAbi from "./abi/LdRecruitment";
 import { ethers } from "ethers";
 import type { ConnectedWallet } from "@privy-io/react-auth";
 import type { Chain } from "viem";
+import ERC20Abi from "./abi/ERC20";
 
 class RecruitmentContract {
   private contractAddress: string;
@@ -11,7 +12,7 @@ class RecruitmentContract {
   private sendTransaction: ReturnType<typeof usePrivy>["sendTransaction"];
   private client: PublicClient;
   private signMessage?: (
-    message: string,
+    message: string | Uint8Array,
     wallet?: ConnectedWallet,
     chain?: Chain
   ) => Promise<string>;
@@ -22,7 +23,7 @@ class RecruitmentContract {
     sendTransaction: ReturnType<typeof usePrivy>["sendTransaction"],
     client: PublicClient,
     signMessage?: (
-      message: string,
+      message: string | Uint8Array,
       wallet?: ConnectedWallet,
       chain?: Chain
     ) => Promise<string>
@@ -107,6 +108,7 @@ class RecruitmentContract {
       const platformFee = (totalAmount * sponsorFee) / 10000n;
       const totalDeposit = totalAmount + platformFee;
 
+      // 들어가는 값: 0n '0xf260B6bA650be86379f6059673A4a09C9977dE76' 10000000000000000n 3n '0x89b13c7d43cbda11a366160d034c91e0921cd0e0ade991460cd880839cb822bd028155be47425d9d9abd11c54a9604ed03b65ae5718cebe32dc6868faeb6e4951c' '6943568db2162726c3f61f58b23ec7411ad75bb1e86b4dc9dc0b46b19d13fcc0'
       const data = encodeFunctionData({
         abi: LdRecruitmentAbi,
         functionName: "createContract",
@@ -116,7 +118,7 @@ class RecruitmentContract {
           totalAmount,
           durationDays,
           builderSig,
-          contractSnapshotHash,
+          `0x${contractSnapshotHash}`,
         ],
       });
 
@@ -173,10 +175,11 @@ class RecruitmentContract {
         throw new Error(`Invalid contract address: ${this.contractAddress}`);
       }
 
+      // 들어가는 값: 0n '0xf260B6bA650be86379f6059673A4a09C9977dE76' 10000000000000000n 3 656476 '0x115b100BC2F2d1F74a017f9275cE463B47Ab87a3'
       const contractHash = ethers.utils.solidityKeccak256(
         ["uint256", "address", "uint256", "uint256", "uint256", "address"],
         [
-          BigInt(programId),
+          programId,
           builderAddress,
           totalAmount,
           durationDays,
@@ -189,42 +192,14 @@ class RecruitmentContract {
         throw new Error("Failed to generate contract hash");
       }
 
-      if (this.signMessage) {
-        const humanReadableMessage = `Please sign Employment contract
-          Builder Address: ${builderAddress}
-          Total Amount: ${totalAmount.toString()}
-          Contract Address: ${this.contractAddress}
-        `;
-
-        const signature = await this.signMessage(humanReadableMessage);
-
-        return signature as `0x${string}`;
+      if (!this.signMessage) {
+        throw new Error("signMessage function is not available");
       }
 
-      const messageBytes = ethers.utils.arrayify(contractHash);
+      const contractHashBytes = ethers.utils.arrayify(contractHash);
+      const signature = await this.signMessage(contractHashBytes);
 
-      const signature = await this.sendTransaction(
-        {
-          to: builderAddress,
-          data: ethers.utils.hexlify(messageBytes) as `0x${string}`,
-          chainId: this.chainId,
-        },
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            description: "Sign Contract",
-            buttonText: "Sign",
-            transactionInfo: {
-              title: "Contract Signature",
-              action: "Sign Employment Contract",
-            },
-            successHeader: "Signature Created Successfully!",
-            successDescription: "You have signed the employment contract.",
-          },
-        }
-      );
-
-      return signature.hash;
+      return signature as `0x${string}`;
     } catch (err) {
       console.error("Failed to create builder signature - Full error:", err);
       throw err;
@@ -247,14 +222,32 @@ class RecruitmentContract {
       return log.topics[0] === eventSignature;
     });
 
-    if (event?.topics[1]) {
-      // For ContractCreated event, topics[1] is contractId (first indexed parameter)
+    if (event?.topics[1] !== undefined) {
       const id = ethers.BigNumber.from(event.topics[1]).toNumber();
       return id;
     }
 
     console.warn("Event not found in logs, but transaction succeeded");
     return null;
+  }
+
+  async getBalance(walletAddress: string) {
+    const balance = await this.client.getBalance({
+      address: walletAddress as `0x${string}`,
+    });
+
+    return balance;
+  }
+
+  async getAmount(tokenAddress: string, walletAddress: string) {
+    const balance = await this.client.readContract({
+      address: tokenAddress as `0x${string}`,
+      abi: ERC20Abi,
+      functionName: "balanceOf",
+      args: [walletAddress as `0x${string}`],
+    });
+
+    return balance;
   }
 }
 

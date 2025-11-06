@@ -13,6 +13,7 @@ import { ContractForm } from "./contract-form";
 import { MilestoneStatusV2 } from "@/types/types.generated";
 import { useCreateContractV2Mutation } from "@/apollo/mutation/create-contract-v2.generated";
 import { useUpdateContractV2Mutation } from "@/apollo/mutation/update-contract-v2.generated";
+import { useUpdateMilestoneV2Mutation } from "@/apollo/mutation/update-milestone-v2.generated";
 import { useContractsByProgramV2Query } from "@/apollo/queries/contracts-by-program-v2.generated";
 import { ethers } from "ethers";
 import { useOnchainProgramInfosByProgramV2Query } from "@/apollo/queries/onchain-program-infos-by-program-v2.generated";
@@ -57,6 +58,7 @@ export function ContractModal({
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [createContractV2Mutation] = useCreateContractV2Mutation();
   const [updateContractV2Mutation] = useUpdateContractV2Mutation();
+  const [updateMilestoneV2Mutation] = useUpdateMilestoneV2Mutation();
 
   const { data: onchainProgramInfosData } =
     useOnchainProgramInfosByProgramV2Query({
@@ -263,26 +265,30 @@ export function ContractModal({
           variables: {
             id: existingContract.id,
             input: {
-              contract_snapshot_cotents: contractSnapshotContents as any,
+              contract_snapshot_cotents: contractSnapshotContents,
               contract_snapshot_hash: `0x${contractSnapshotHash}`,
             },
           },
         });
+
+        const milestoneUpdatePromises = milestones
+          .filter((milestone) => milestone.id)
+          .map((milestone) =>
+            updateMilestoneV2Mutation({
+              variables: {
+                id: milestone.id!,
+                input: {
+                  status: MilestoneStatusV2.InProgress,
+                },
+              },
+            })
+          );
+
+        await Promise.all(milestoneUpdatePromises);
       } else {
-        await createContractV2Mutation({
-          variables: {
-            input: {
-              programId: onchainProgramId || 0,
-              applicantId: Number(contractInformation.applicant.id),
-              sponsorId: Number(contractInformation.sponsor.id),
-              onchainContractId: txResult.onchainContractId,
-              smartContractId: Number(currentContract.id),
-              builder_signature: existingContract.builder_signature,
-              contract_snapshot_cotents: contractSnapshotContents as any,
-              contract_snapshot_hash: `0x${contractSnapshotHash}`,
-            },
-          },
-        });
+        toast.error("Contract not found");
+        notify("Contract not found", "error");
+        return;
       }
 
       toast.success("Contract created successfully!");

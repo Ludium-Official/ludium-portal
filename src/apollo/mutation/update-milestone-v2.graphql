@@ -5,6 +5,7 @@ mutation UpdateMilestoneV2($id: ID!, $input: UpdateMilestoneV2Input!) {
     description
     payout
     deadline
+    status
     createdAt
     updatedAt
     applicant {
