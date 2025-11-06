@@ -1,32 +1,33 @@
-import contractLogo from "@/assets/icons/contract.svg";
-import ludiumAssignmentLogo from "@/assets/ludium-assignment.svg";
-import { useUserV2Query } from "@/apollo/queries/user-v2.generated";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import contractLogo from '@/assets/icons/contract.svg';
+import ludiumAssignmentLogo from '@/assets/ludium-assignment.svg';
+import { useUserV2Query } from '@/apollo/queries/user-v2.generated';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import {
   type ChatMessage,
   loadInitialMessages,
   loadMoreMessages as loadMoreMessagesFromFirebase,
   sendMessage,
   subscribeToNewMessages,
+  getNewMessages,
   type Unsubscribe,
-} from "@/lib/firebase-chat";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { cn, getUserDisplayName } from "@/lib/utils";
-import type { ApplicationV2 } from "@/types/types.generated";
-import { zodResolver } from "@hookform/resolvers/zod";
+} from '@/lib/firebase-chat';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { cn, getUserDisplayName } from '@/lib/utils';
+import type { ApplicationV2 } from '@/types/types.generated';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   type DocumentData,
   Timestamp as FirestoreTimestamp,
   type QueryDocumentSnapshot,
   type Timestamp,
-} from "firebase/firestore";
-import { Loader2, Send, X, Paperclip, File } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { ContractModal } from "@/components/recruitment/contract/contract-modal";
+} from 'firebase/firestore';
+import { Loader2, Send, X, Paperclip, File } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { ContractModal } from '@/components/recruitment/contract/contract-modal';
 
 const messageFormSchema = z.object({
   message: z.string().optional(),
@@ -47,12 +48,7 @@ interface MessageItemProps {
   application: ApplicationV2;
 }
 
-function MessageItem({
-  message,
-  timestamp,
-  applicant,
-  application,
-}: MessageItemProps) {
+function MessageItem({ message, timestamp, applicant, application }: MessageItemProps) {
   const { userId } = useAuth();
   const shouldUseApplicant = applicant && applicant.id === message.senderId;
   const isMyMessage = userId === message.senderId;
@@ -60,9 +56,9 @@ function MessageItem({
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   const { data: userData } = useUserV2Query({
@@ -70,35 +66,27 @@ function MessageItem({
     skip: !message.senderId || shouldUseApplicant || isMyMessage,
   });
 
-  let senderName: string = "";
-  let senderImage: string = "";
+  let senderName: string = '';
+  let senderImage: string = '';
 
   if (!isMyMessage) {
     if (shouldUseApplicant && applicant) {
-      const fullName = getUserDisplayName(
-        applicant.firstName,
-        applicant.lastName,
-        applicant.email
-      );
+      const fullName = getUserDisplayName(applicant.firstName, applicant.lastName, applicant.email);
       senderName = fullName;
-      senderImage = applicant.profileImage || "";
+      senderImage = applicant.profileImage || '';
     } else {
       const user = userData?.userV2;
-      const fullName = getUserDisplayName(
-        user?.firstName,
-        user?.lastName,
-        user?.email
-      );
+      const fullName = getUserDisplayName(user?.firstName, user?.lastName, user?.email);
       senderName = fullName;
-      senderImage = user?.profileImage || "";
+      senderImage = user?.profileImage || '';
     }
   }
 
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((part) => part[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
@@ -110,26 +98,21 @@ function MessageItem({
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs text-slate-400">
               {timestamp.toDate().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
+                hour: '2-digit',
+                minute: '2-digit',
               })}
             </span>
           </div>
 
           <div className="rounded-lg px-4 py-2 bg-primary text-primary-foreground w-fit">
             {message.text && (
-              <p className="text-sm whitespace-pre-wrap break-words">
-                {message.text}
-              </p>
+              <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
             )}
             {message.files && message.files.length > 0 && (
               <div className="mt-2 space-y-2">
                 {message.files.map((file, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center gap-2 bg-white/10 rounded p-2"
-                  >
-                    {file.type.startsWith("image/") ? (
+                  <div key={index} className="flex items-center gap-2 bg-white/10 rounded p-2">
+                    {file.type.startsWith('image/') ? (
                       <a
                         href={file.url}
                         target="_blank"
@@ -151,9 +134,7 @@ function MessageItem({
                       >
                         <File className="w-4 h-4" />
                         <span>{file.name}</span>
-                        <span className="text-xs opacity-70">
-                          ({formatFileSize(file.size)})
-                        </span>
+                        <span className="text-xs opacity-70">({formatFileSize(file.size)})</span>
                       </a>
                     )}
                   </div>
@@ -169,43 +150,39 @@ function MessageItem({
   return (
     <div className="flex gap-3 items-start">
       <Avatar className="h-10 w-10">
-        <AvatarImage
-          src={isLudiumAssistant ? ludiumAssignmentLogo : senderImage}
-        />
-        <AvatarFallback className="text-sm">
-          {getInitials(senderName)}
-        </AvatarFallback>
+        <AvatarImage src={isLudiumAssistant ? ludiumAssignmentLogo : senderImage} />
+        <AvatarFallback className="text-sm">{getInitials(senderName)}</AvatarFallback>
       </Avatar>
 
       <div className="flex flex-col flex-1">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-sm font-semibold text-slate-700">
-            {isLudiumAssistant ? "Ludium Assistant" : senderName}
+            {isLudiumAssistant ? 'Ludium Assistant' : senderName}
           </span>
           <span className="text-xs text-slate-400">
             {timestamp.toDate().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
+              hour: '2-digit',
+              minute: '2-digit',
             })}
           </span>
         </div>
 
         <div
           className={cn(
-            "rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]",
-            isLudiumAssistant && "py-4 bg-white border border-primary"
+            'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
+            isLudiumAssistant && 'py-4 bg-white border border-primary',
           )}
         >
           <p className="text-sm whitespace-pre-wrap break-words">
-            {message.senderId === "-1" || message.senderId === "-2" ? (
+            {message.senderId === '-1' || message.senderId === '-2' ? (
               <>
                 <div>
                   <img src={contractLogo} alt="contract" className="mb-3" />
                   <div className="font-bold text-lg">Employment Contract</div>
                   <div className="mt-1 mb-5 font-semibold">
-                    {message.senderId === "-1"
-                      ? "Sponser sent a contract for review and signature."
-                      : "Builder sent a contract for review and signature."}
+                    {message.senderId === '-1'
+                      ? 'Sponser sent a contract for review and signature.'
+                      : 'Builder sent a contract for review and signature.'}
                   </div>
                   <Button
                     variant="lightPurple"
@@ -219,8 +196,8 @@ function MessageItem({
                   open={isContractModalOpen}
                   onOpenChange={setIsContractModalOpen}
                   contractInformation={{
-                    title: application.program?.title || "",
-                    programId: application.program?.id || "",
+                    title: application.program?.title || '',
+                    programId: application.program?.id || '',
                     sponsor: application.program?.sponsor || null,
                     applicant: application.applicant || null,
                     networkId: application.program?.networkId || null,
@@ -232,15 +209,13 @@ function MessageItem({
             ) : (
               <>
                 {message.text && (
-                  <p className="text-sm whitespace-pre-wrap break-words">
-                    {message.text}
-                  </p>
+                  <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
                 )}
                 {message.files && message.files.length > 0 && (
                   <div className="mt-2 space-y-2">
                     {message.files.map((file, index) => (
                       <div key={index} className="flex items-center gap-2">
-                        {file.type.startsWith("image/") ? (
+                        {file.type.startsWith('image/') ? (
                           <a
                             href={file.url}
                             target="_blank"
@@ -294,31 +269,30 @@ export function ChatBox({
   const [isSending, setIsSending] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [oldestDoc, setOldestDoc] =
-    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [oldestDoc, setOldestDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [filePreviews, setFilePreviews] = useState<
-    { file: File; preview: string }[]
-  >([]);
+  const [filePreviews, setFilePreviews] = useState<{ file: File; preview: string }[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const prevchatRoomId = useRef<string>("");
+  const prevchatRoomId = useRef<string>('');
   const newestTimestampRef = useRef<Timestamp | null>(null);
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastActivityRef = useRef<number>(Date.now());
   const chatRoomId = selectedMessage.chatroomMessageId;
 
   const form = useForm<MessageFormData>({
     resolver: zodResolver(messageFormSchema),
     defaultValues: {
-      message: "",
+      message: '',
     },
   });
 
   useEffect(() => {
     // Create previews for image files
     const previews = selectedFiles
-      .filter((file) => file.type.startsWith("image/"))
+      .filter((file) => file.type.startsWith('image/'))
       .map((file) => ({
         file,
         preview: URL.createObjectURL(file),
@@ -339,7 +313,7 @@ export function ChatBox({
     }
     // Reset input so same file can be selected again
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = '';
     }
   };
 
@@ -351,9 +325,9 @@ export function ChatBox({
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   useEffect(() => {
@@ -396,13 +370,14 @@ export function ChatBox({
         }
       })
       .catch((error) => {
-        console.error("❌ Error loading initial messages:", error);
+        console.error('❌ Error loading initial messages:', error);
       })
       .finally(() => {
         setIsLoading(false);
       });
   }, [chatRoomId]);
 
+  // 실시간 구독 + 폴링 백업 하이브리드 방식
   useEffect(() => {
     if (!chatRoomId || !newestTimestampRef.current) return;
 
@@ -412,6 +387,7 @@ export function ChatBox({
       unsubscribeRef.current = null;
     }
 
+    // 실시간 구독 설정
     const unsubscribe = subscribeToNewMessages(
       chatRoomId,
       newestTimestampRef.current,
@@ -420,20 +396,55 @@ export function ChatBox({
           if (prev.some((m) => m.id === newMsg.id)) return prev;
           return [...prev, newMsg];
         });
-        // Update ref without triggering re-subscription
         newestTimestampRef.current = newMsg.timestamp;
+        lastActivityRef.current = Date.now(); // 실시간 메시지 받음
       },
       (error) => {
-        console.error("❌ Realtime subscription error:", error);
-      }
+        console.error('❌ Realtime subscription error:', error);
+      },
     );
 
     unsubscribeRef.current = unsubscribe;
+
+    // 폴링 백업: 30초 동안 실시간 메시지가 없으면 폴링으로 확인
+    const pollingInterval = setInterval(async () => {
+      const timeSinceLastActivity = Date.now() - lastActivityRef.current;
+
+      // 30초 이상 실시간 메시지가 없으면 폴링으로 확인
+      if (timeSinceLastActivity > 30000 && newestTimestampRef.current) {
+        try {
+          const newMessages = await getNewMessages(chatRoomId, newestTimestampRef.current);
+
+          if (newMessages.length > 0) {
+            setMessages((prev) => {
+              const existingIds = new Set(prev.map((m) => m.id));
+              const uniqueNewMessages = newMessages.filter((m) => !existingIds.has(m.id));
+
+              if (uniqueNewMessages.length === 0) return prev;
+
+              return [...prev, ...uniqueNewMessages];
+            });
+
+            const latestMessage = newMessages[newMessages.length - 1];
+            newestTimestampRef.current = latestMessage.timestamp;
+            lastActivityRef.current = Date.now();
+          }
+        } catch (error) {
+          console.error('❌ Error polling new messages:', error);
+        }
+      }
+    }, 10000); // 10초마다 체크
+
+    pollingIntervalRef.current = pollingInterval;
 
     return () => {
       if (unsubscribeRef.current) {
         unsubscribeRef.current();
         unsubscribeRef.current = null;
+      }
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
       }
     };
   }, [chatRoomId]);
@@ -445,11 +456,7 @@ export function ChatBox({
 
     try {
       const { messages: olderMessages, oldestDoc: newOldestDoc } =
-        await loadMoreMessagesFromFirebase(
-          chatRoomId,
-          oldestDoc,
-          totalMessages
-        );
+        await loadMoreMessagesFromFirebase(chatRoomId, oldestDoc, totalMessages);
 
       if (olderMessages.length === 0) {
         setHasMore(false);
@@ -466,7 +473,7 @@ export function ChatBox({
         setHasMore(false);
       }
     } catch (error) {
-      console.error("❌ Error loading more messages:", error);
+      console.error('❌ Error loading more messages:', error);
     } finally {
       setLoadingMore(false);
     }
@@ -480,27 +487,48 @@ export function ChatBox({
     setIsSending(true);
 
     try {
-      await sendMessage(
-        chatRoomId || "",
-        data.message?.trim() || "",
+      const messageId = await sendMessage(
+        chatRoomId || '',
+        data.message?.trim() || '',
         userId,
-        selectedFiles.length > 0 ? selectedFiles : undefined
+        selectedFiles.length > 0 ? selectedFiles : undefined,
       );
+
+      // Optimistic update: Add the message to local state immediately
+      const newMessage: ChatMessage = {
+        id: messageId,
+        chatRoomId: chatRoomId || '',
+        text: data.message?.trim() || '',
+        senderId: userId,
+        timestamp: FirestoreTimestamp.now(),
+        ...(selectedFiles.length > 0 && {
+          files: selectedFiles.map((file) => ({
+            name: file.name,
+            url: URL.createObjectURL(file), // Temporary URL until real one loads
+            type: file.type,
+            size: file.size,
+          })),
+        }),
+      };
+
+      setMessages((prev) => [...prev, newMessage]);
+      newestTimestampRef.current = newMessage.timestamp;
+
       form.reset();
       setSelectedFiles([]);
       setFilePreviews([]);
     } catch (error) {
-      console.error("❌ Error sending message:", error);
+      console.error('❌ Error sending message:', error);
     } finally {
       setIsSending(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && e.shiftKey) {
+    if (e.key === 'Enter' && e.shiftKey) {
       return;
     }
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       form.handleSubmit(handleSendMessage)();
     }
@@ -518,22 +546,21 @@ export function ChatBox({
       date1.getDate() === date2.getDate();
 
     if (isSameDay(messageDate, today)) {
-      return "Today";
+      return 'Today';
     } else if (isSameDay(messageDate, yesterday)) {
-      return "Yesterday";
+      return 'Yesterday';
     } else {
       return messageDate.toLocaleDateString([], {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
       });
     }
   };
 
   const shouldShowDateLabel = (index: number) => {
     if (index === 0) return true;
-    if (!messages[index].timestamp || !messages[index - 1].timestamp)
-      return false;
+    if (!messages[index].timestamp || !messages[index - 1].timestamp) return false;
 
     const currentDate = messages[index].timestamp.toDate();
     const prevDate = messages[index - 1].timestamp.toDate();
@@ -544,6 +571,14 @@ export function ChatBox({
       currentDate.getDate() !== prevDate.getDate()
     );
   };
+
+  // 메시지 목록이 업데이트되면 스크롤을 맨 아래로 이동
+  useEffect(() => {
+    if (messages.length > 0 && messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [messages]);
 
   return (
     <div className="flex flex-col min-h-[600px] h-full">
@@ -572,7 +607,7 @@ export function ChatBox({
                   Loading...
                 </span>
               ) : (
-                "Load older messages"
+                'Load older messages'
               )}
             </Button>
           </div>
@@ -612,10 +647,7 @@ export function ChatBox({
 
       {chatRoomId && (
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSendMessage)}
-            className="p-4 border-t bg-slate-3"
-          >
+          <form onSubmit={form.handleSubmit(handleSendMessage)} className="p-4 border-t bg-slate-3">
             {/* File Previews */}
             {selectedFiles.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2">
@@ -644,9 +676,7 @@ export function ChatBox({
                           <File className="w-8 h-8 text-gray-400" />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs truncate">{file.name}</p>
-                            <p className="text-xs text-gray-500">
-                              {formatFileSize(file.size)}
-                            </p>
+                            <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
                           </div>
                         </div>
                       )}
@@ -686,16 +716,13 @@ export function ChatBox({
                         rows={1}
                         className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px] overflow-y-auto w-full"
                         style={{
-                          height: "auto",
-                          minHeight: "40px",
+                          height: 'auto',
+                          minHeight: '40px',
                         }}
                         onInput={(e) => {
                           const target = e.target as HTMLTextAreaElement;
-                          target.style.height = "auto";
-                          target.style.height = `${Math.min(
-                            target.scrollHeight,
-                            120
-                          )}px`;
+                          target.style.height = 'auto';
+                          target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
                         }}
                       />
                     </FormControl>
@@ -705,8 +732,7 @@ export function ChatBox({
               <Button
                 type="submit"
                 disabled={
-                  isSending ||
-                  (!form.watch("message")?.trim() && selectedFiles.length === 0)
+                  isSending || (!form.watch('message')?.trim() && selectedFiles.length === 0)
                 }
                 size="icon"
               >

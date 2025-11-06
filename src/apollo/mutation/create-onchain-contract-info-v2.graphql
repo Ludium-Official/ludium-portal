@@ -11,4 +11,3 @@ mutation createOnchainContractInfoV2($input: CreateOnchainContractInfoV2Input!) 
     createdAt
   }
 }
-
