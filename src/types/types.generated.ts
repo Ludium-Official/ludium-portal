@@ -2202,8 +2202,14 @@ export type UpdateMilestoneV2Input = {
   deadline?: InputMaybe<Scalars['DateTime']['input']>;
   /** Milestone description */
   description?: InputMaybe<Scalars['String']['input']>;
+  /** Milestone files (URLs) */
+  files?: InputMaybe<Array<Scalars['String']['input']>>;
   /** Milestone payout amount */
   payout?: InputMaybe<Scalars['String']['input']>;
+  /** Transaction hash for the milestone payout */
+  payout_tx?: InputMaybe<Scalars['String']['input']>;
+  /** Milestone status */
+  status?: InputMaybe<MilestoneStatusV2>;
   /** Milestone title */
   title?: InputMaybe<Scalars['String']['input']>;
 };

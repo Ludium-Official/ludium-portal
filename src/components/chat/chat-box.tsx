@@ -1,34 +1,35 @@
-import contractLogo from '@/assets/icons/contract.svg';
-import ludiumAssignmentLogo from '@/assets/ludium-assignment.svg';
-import { useUserV2Query } from '@/apollo/queries/user-v2.generated';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
+import contractLogo from "@/assets/icons/contract.svg";
+import ludiumAssignmentLogo from "@/assets/ludium-assignment.svg";
+import { useUserV2Query } from "@/apollo/queries/user-v2.generated";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import {
   type ChatMessage,
   loadInitialMessages,
   loadMoreMessages as loadMoreMessagesFromFirebase,
   sendMessage,
   subscribeToNewMessages,
-} from '@/lib/firebase-chat';
-import { useAuth } from '@/lib/hooks/use-auth';
-import { cn, getUserDisplayName } from '@/lib/utils';
-import type { ApplicationV2 } from '@/types/types.generated';
-import { zodResolver } from '@hookform/resolvers/zod';
+  type Unsubscribe,
+} from "@/lib/firebase-chat";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { cn, getUserDisplayName } from "@/lib/utils";
+import type { ApplicationV2 } from "@/types/types.generated";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   type DocumentData,
   Timestamp as FirestoreTimestamp,
   type QueryDocumentSnapshot,
   type Timestamp,
-} from 'firebase/firestore';
-import { Loader2, Send } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { ContractModal } from '@/components/recruitment/contract/contract-modal';
+} from "firebase/firestore";
+import { Loader2, Send, X, Paperclip, File } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { ContractModal } from "@/components/recruitment/contract/contract-modal";
 
 const messageFormSchema = z.object({
-  message: z.string().min(1, 'Message cannot be empty'),
+  message: z.string().optional(),
 });
 
 type MessageFormData = z.infer<typeof messageFormSchema>;
@@ -46,39 +47,58 @@ interface MessageItemProps {
   application: ApplicationV2;
 }
 
-function MessageItem({ message, timestamp, applicant, application }: MessageItemProps) {
+function MessageItem({
+  message,
+  timestamp,
+  applicant,
+  application,
+}: MessageItemProps) {
   const { userId } = useAuth();
   const shouldUseApplicant = applicant && applicant.id === message.senderId;
   const isMyMessage = userId === message.senderId;
   const isLudiumAssistant = Number(message.senderId) < 0;
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  };
+
   const { data: userData } = useUserV2Query({
     variables: { id: message.senderId },
     skip: !message.senderId || shouldUseApplicant || isMyMessage,
   });
 
-  let senderName: string = '';
-  let senderImage: string = '';
+  let senderName: string = "";
+  let senderImage: string = "";
 
   if (!isMyMessage) {
     if (shouldUseApplicant && applicant) {
-      const fullName = getUserDisplayName(applicant.firstName, applicant.lastName, applicant.email);
+      const fullName = getUserDisplayName(
+        applicant.firstName,
+        applicant.lastName,
+        applicant.email
+      );
       senderName = fullName;
-      senderImage = applicant.profileImage || '';
+      senderImage = applicant.profileImage || "";
     } else {
       const user = userData?.userV2;
-      const fullName = getUserDisplayName(user?.firstName, user?.lastName, user?.email);
+      const fullName = getUserDisplayName(
+        user?.firstName,
+        user?.lastName,
+        user?.email
+      );
       senderName = fullName;
-      senderImage = user?.profileImage || '';
+      senderImage = user?.profileImage || "";
     }
   }
 
   const getInitials = (name: string) => {
     return name
-      .split(' ')
+      .split(" ")
       .map((part) => part[0])
-      .join('')
+      .join("")
       .toUpperCase()
       .slice(0, 2);
   };
@@ -90,14 +110,56 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs text-slate-400">
               {timestamp.toDate().toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
+                hour: "2-digit",
+                minute: "2-digit",
               })}
             </span>
           </div>
 
           <div className="rounded-lg px-4 py-2 bg-primary text-primary-foreground w-fit">
-            <p className="text-sm">{message.text}</p>
+            {message.text && (
+              <p className="text-sm whitespace-pre-wrap break-words">
+                {message.text}
+              </p>
+            )}
+            {message.files && message.files.length > 0 && (
+              <div className="mt-2 space-y-2">
+                {message.files.map((file, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 bg-white/10 rounded p-2"
+                  >
+                    {file.type.startsWith("image/") ? (
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block"
+                      >
+                        <img
+                          src={file.url}
+                          alt={file.name}
+                          className="max-w-[200px] max-h-[200px] object-contain rounded"
+                        />
+                      </a>
+                    ) : (
+                      <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-sm hover:underline"
+                      >
+                        <File className="w-4 h-4" />
+                        <span>{file.name}</span>
+                        <span className="text-xs opacity-70">
+                          ({formatFileSize(file.size)})
+                        </span>
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -107,39 +169,43 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
   return (
     <div className="flex gap-3 items-start">
       <Avatar className="h-10 w-10">
-        <AvatarImage src={isLudiumAssistant ? ludiumAssignmentLogo : senderImage} />
-        <AvatarFallback className="text-sm">{getInitials(senderName)}</AvatarFallback>
+        <AvatarImage
+          src={isLudiumAssistant ? ludiumAssignmentLogo : senderImage}
+        />
+        <AvatarFallback className="text-sm">
+          {getInitials(senderName)}
+        </AvatarFallback>
       </Avatar>
 
       <div className="flex flex-col flex-1">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-sm font-semibold text-slate-700">
-            {isLudiumAssistant ? 'Ludium Assistant' : senderName}
+            {isLudiumAssistant ? "Ludium Assistant" : senderName}
           </span>
           <span className="text-xs text-slate-400">
             {timestamp.toDate().toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
+              hour: "2-digit",
+              minute: "2-digit",
             })}
           </span>
         </div>
 
         <div
           className={cn(
-            'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
-            isLudiumAssistant && 'py-4 bg-white border border-primary',
+            "rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]",
+            isLudiumAssistant && "py-4 bg-white border border-primary"
           )}
         >
           <p className="text-sm whitespace-pre-wrap break-words">
-            {message.senderId === '-1' || message.senderId === '-2' ? (
+            {message.senderId === "-1" || message.senderId === "-2" ? (
               <>
                 <div>
                   <img src={contractLogo} alt="contract" className="mb-3" />
                   <div className="font-bold text-lg">Employment Contract</div>
                   <div className="mt-1 mb-5 font-semibold">
-                    {message.senderId === '-1'
-                      ? 'Sponser sent a contract for review and signature.'
-                      : 'Builder sent a contract for review and signature.'}
+                    {message.senderId === "-1"
+                      ? "Sponser sent a contract for review and signature."
+                      : "Builder sent a contract for review and signature."}
                   </div>
                   <Button
                     variant="lightPurple"
@@ -153,8 +219,8 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
                   open={isContractModalOpen}
                   onOpenChange={setIsContractModalOpen}
                   contractInformation={{
-                    title: application.program?.title || '',
-                    programId: application.program?.id || '',
+                    title: application.program?.title || "",
+                    programId: application.program?.id || "",
                     sponsor: application.program?.sponsor || null,
                     applicant: application.applicant || null,
                     networkId: application.program?.networkId || null,
@@ -164,7 +230,48 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
                 />
               </>
             ) : (
-              message.text
+              <>
+                {message.text && (
+                  <p className="text-sm whitespace-pre-wrap break-words">
+                    {message.text}
+                  </p>
+                )}
+                {message.files && message.files.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    {message.files.map((file, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        {file.type.startsWith("image/") ? (
+                          <a
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block"
+                          >
+                            <img
+                              src={file.url}
+                              alt={file.name}
+                              className="max-w-[200px] max-h-[200px] object-contain rounded"
+                            />
+                          </a>
+                        ) : (
+                          <a
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-sm hover:underline"
+                          >
+                            <File className="w-4 h-4" />
+                            <span>{file.name}</span>
+                            <span className="text-xs opacity-70">
+                              ({formatFileSize(file.size)})
+                            </span>
+                          </a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </p>
         </div>
@@ -187,19 +294,67 @@ export function ChatBox({
   const [isSending, setIsSending] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [oldestDoc, setOldestDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
-  const [newestTimestamp, setNewestTimestamp] = useState<Timestamp | null>(null);
+  const [oldestDoc, setOldestDoc] =
+    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [filePreviews, setFilePreviews] = useState<
+    { file: File; preview: string }[]
+  >([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const prevchatRoomId = useRef<string>('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const prevchatRoomId = useRef<string>("");
+  const newestTimestampRef = useRef<Timestamp | null>(null);
+  const unsubscribeRef = useRef<Unsubscribe | null>(null);
   const chatRoomId = selectedMessage.chatroomMessageId;
 
   const form = useForm<MessageFormData>({
     resolver: zodResolver(messageFormSchema),
     defaultValues: {
-      message: '',
+      message: "",
     },
   });
+
+  useEffect(() => {
+    // Create previews for image files
+    const previews = selectedFiles
+      .filter((file) => file.type.startsWith("image/"))
+      .map((file) => ({
+        file,
+        preview: URL.createObjectURL(file),
+      }));
+
+    setFilePreviews(previews);
+
+    // Cleanup preview URLs
+    return () => {
+      previews.forEach(({ preview }) => URL.revokeObjectURL(preview));
+    };
+  }, [selectedFiles]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...files]);
+    }
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setSelectedFiles((prev) => {
+      const newFiles = prev.filter((_, i) => i !== index);
+      return newFiles;
+    });
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  };
 
   useEffect(() => {
     if (!chatRoomId) return;
@@ -211,7 +366,13 @@ export function ChatBox({
     setMessages([]);
     setHasMore(true);
     setOldestDoc(null);
-    setNewestTimestamp(null);
+    newestTimestampRef.current = null;
+
+    // Cleanup previous subscription
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current();
+      unsubscribeRef.current = null;
+    }
 
     loadInitialMessages(chatRoomId, totalMessages)
       .then(({ messages: initialMessages, oldestDoc: doc }) => {
@@ -223,9 +384,11 @@ export function ChatBox({
 
         if (initialMessages.length > 0) {
           const newest = initialMessages[initialMessages.length - 1];
-          setNewestTimestamp(newest.timestamp);
+          const timestamp = newest.timestamp;
+          newestTimestampRef.current = timestamp;
         } else {
-          setNewestTimestamp(FirestoreTimestamp.now());
+          const now = FirestoreTimestamp.now();
+          newestTimestampRef.current = now;
         }
 
         if (initialMessages.length < totalMessages) {
@@ -233,7 +396,7 @@ export function ChatBox({
         }
       })
       .catch((error) => {
-        console.error('❌ Error loading initial messages:', error);
+        console.error("❌ Error loading initial messages:", error);
       })
       .finally(() => {
         setIsLoading(false);
@@ -241,25 +404,39 @@ export function ChatBox({
   }, [chatRoomId]);
 
   useEffect(() => {
-    if (!chatRoomId || !newestTimestamp) return;
+    if (!chatRoomId || !newestTimestampRef.current) return;
+
+    // Cleanup previous subscription if exists
+    if (unsubscribeRef.current) {
+      unsubscribeRef.current();
+      unsubscribeRef.current = null;
+    }
 
     const unsubscribe = subscribeToNewMessages(
       chatRoomId,
-      newestTimestamp,
+      newestTimestampRef.current,
       (newMsg) => {
         setMessages((prev) => {
           if (prev.some((m) => m.id === newMsg.id)) return prev;
           return [...prev, newMsg];
         });
-        setNewestTimestamp(newMsg.timestamp);
+        // Update ref without triggering re-subscription
+        newestTimestampRef.current = newMsg.timestamp;
       },
       (error) => {
-        console.error('❌ Realtime subscription error:', error);
-      },
+        console.error("❌ Realtime subscription error:", error);
+      }
     );
 
-    return () => unsubscribe();
-  }, [chatRoomId, newestTimestamp]);
+    unsubscribeRef.current = unsubscribe;
+
+    return () => {
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+        unsubscribeRef.current = null;
+      }
+    };
+  }, [chatRoomId]);
 
   const loadMoreMessages = async () => {
     if (!chatRoomId || !oldestDoc || loadingMore || !hasMore) return;
@@ -268,7 +445,11 @@ export function ChatBox({
 
     try {
       const { messages: olderMessages, oldestDoc: newOldestDoc } =
-        await loadMoreMessagesFromFirebase(chatRoomId, oldestDoc, totalMessages);
+        await loadMoreMessagesFromFirebase(
+          chatRoomId,
+          oldestDoc,
+          totalMessages
+        );
 
       if (olderMessages.length === 0) {
         setHasMore(false);
@@ -285,34 +466,41 @@ export function ChatBox({
         setHasMore(false);
       }
     } catch (error) {
-      console.error('❌ Error loading more messages:', error);
+      console.error("❌ Error loading more messages:", error);
     } finally {
       setLoadingMore(false);
     }
   };
 
   const handleSendMessage = async (data: MessageFormData) => {
-    if (!data.message.trim() || !userId) {
+    if ((!data.message?.trim() && selectedFiles.length === 0) || !userId) {
       return;
     }
 
     setIsSending(true);
 
     try {
-      await sendMessage(chatRoomId || '', data.message, userId);
+      await sendMessage(
+        chatRoomId || "",
+        data.message?.trim() || "",
+        userId,
+        selectedFiles.length > 0 ? selectedFiles : undefined
+      );
       form.reset();
+      setSelectedFiles([]);
+      setFilePreviews([]);
     } catch (error) {
-      console.error('❌ Error sending message:', error);
+      console.error("❌ Error sending message:", error);
     } finally {
       setIsSending(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && e.shiftKey) {
+    if (e.key === "Enter" && e.shiftKey) {
       return;
     }
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       form.handleSubmit(handleSendMessage)();
     }
@@ -330,21 +518,22 @@ export function ChatBox({
       date1.getDate() === date2.getDate();
 
     if (isSameDay(messageDate, today)) {
-      return 'Today';
+      return "Today";
     } else if (isSameDay(messageDate, yesterday)) {
-      return 'Yesterday';
+      return "Yesterday";
     } else {
       return messageDate.toLocaleDateString([], {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       });
     }
   };
 
   const shouldShowDateLabel = (index: number) => {
     if (index === 0) return true;
-    if (!messages[index].timestamp || !messages[index - 1].timestamp) return false;
+    if (!messages[index].timestamp || !messages[index - 1].timestamp)
+      return false;
 
     const currentDate = messages[index].timestamp.toDate();
     const prevDate = messages[index - 1].timestamp.toDate();
@@ -383,7 +572,7 @@ export function ChatBox({
                   Loading...
                 </span>
               ) : (
-                'Load older messages'
+                "Load older messages"
               )}
             </Button>
           </div>
@@ -423,8 +612,66 @@ export function ChatBox({
 
       {chatRoomId && (
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSendMessage)} className="p-4 border-t bg-slate-3">
+          <form
+            onSubmit={form.handleSubmit(handleSendMessage)}
+            className="p-4 border-t bg-slate-3"
+          >
+            {/* File Previews */}
+            {selectedFiles.length > 0 && (
+              <div className="mb-3 flex flex-wrap gap-2">
+                {selectedFiles.map((file, index) => {
+                  const preview = filePreviews.find((p) => p.file === file);
+                  return (
+                    <div
+                      key={index}
+                      className="relative inline-block bg-white rounded-lg border p-2 max-w-[150px]"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFile(index)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                      {preview ? (
+                        <img
+                          src={preview.preview}
+                          alt={file.name}
+                          className="w-full h-24 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <File className="w-8 h-8 text-gray-400" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs truncate">{file.name}</p>
+                            <p className="text-xs text-gray-500">
+                              {formatFileSize(file.size)}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             <div className="flex gap-2 items-end">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                multiple
+                className="hidden"
+                id="file-input"
+              />
+              <label htmlFor="file-input" className="cursor-pointer">
+                <Button type="button" variant="outline" size="icon" asChild>
+                  <div>
+                    <Paperclip className="w-4 h-4" />
+                  </div>
+                </Button>
+              </label>
               <FormField
                 control={form.control}
                 name="message"
@@ -439,13 +686,16 @@ export function ChatBox({
                         rows={1}
                         className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px] overflow-y-auto w-full"
                         style={{
-                          height: 'auto',
-                          minHeight: '40px',
+                          height: "auto",
+                          minHeight: "40px",
                         }}
                         onInput={(e) => {
                           const target = e.target as HTMLTextAreaElement;
-                          target.style.height = 'auto';
-                          target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
+                          target.style.height = "auto";
+                          target.style.height = `${Math.min(
+                            target.scrollHeight,
+                            120
+                          )}px`;
                         }}
                       />
                     </FormControl>
@@ -454,7 +704,10 @@ export function ChatBox({
               />
               <Button
                 type="submit"
-                disabled={isSending || !form.watch('message')?.trim()}
+                disabled={
+                  isSending ||
+                  (!form.watch("message")?.trim() && selectedFiles.length === 0)
+                }
                 size="icon"
               >
                 {isSending ? (
