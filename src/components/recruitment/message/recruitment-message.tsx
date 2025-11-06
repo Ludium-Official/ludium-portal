@@ -286,60 +286,68 @@ const RecruitmentMessage: React.FC<{
   };
 
   useEffect(() => {
-    const fetchLatestMessages = async () => {
-      const messagePromises = hasMessageIdRoom.map(async (application) => {
-        if (!application.chatroomMessageId) return null;
-        const { message, timestamp, senderId } = await getLatestMessage(
-          application.chatroomMessageId
-        );
-        if (message && timestamp && senderId) {
-          return {
-            chatroomMessageId: application.chatroomMessageId,
-            text: message.text,
-            timestamp,
-            senderId,
-          };
-        }
-        return null;
-      });
+    const timeoutId = setTimeout(() => {
+      const fetchLatestMessages = async () => {
+        const messagePromises = hasMessageIdRoom.map(async (application) => {
+          if (!application.chatroomMessageId) return null;
+          const { message, timestamp, senderId } = await getLatestMessage(
+            application.chatroomMessageId
+          );
+          if (message && timestamp && senderId) {
+            return {
+              chatroomMessageId: application.chatroomMessageId,
+              text: message.text,
+              timestamp,
+              senderId,
+            };
+          }
+          return null;
+        });
 
-      const results = await Promise.all(messagePromises);
-      const messagesMap: Record<
-        string,
-        { text: string; timestamp: Timestamp; senderId: string }
-      > = {};
+        const results = await Promise.all(messagePromises);
+        const messagesMap: Record<
+          string,
+          { text: string; timestamp: Timestamp; senderId: string }
+        > = {};
 
-      results.forEach((result) => {
-        if (result && result.chatroomMessageId) {
-          messagesMap[result.chatroomMessageId] = {
-            text: result.text,
-            timestamp: result.timestamp,
-            senderId: result.senderId,
-          };
-        }
-      });
+        results.forEach((result) => {
+          if (result && result.chatroomMessageId) {
+            messagesMap[result.chatroomMessageId] = {
+              text: result.text,
+              timestamp: result.timestamp,
+              senderId: result.senderId,
+            };
+          }
+        });
 
-      setLatestMessages(messagesMap);
-    };
+        setLatestMessages(messagesMap);
+      };
 
-    if (hasMessageIdRoom.length > 0) {
-      fetchLatestMessages();
-    }
+      if (hasMessageIdRoom.length > 0) {
+        fetchLatestMessages();
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
   }, [hasMessageIdRoom]);
 
   useEffect(() => {
-    const fetchFiles = async () => {
-      if (selectedApplication?.chatroomMessageId) {
-        const allFiles = await getAllFiles(
-          selectedApplication.chatroomMessageId
-        );
-        setFiles(allFiles);
-      } else {
-        setFiles([]);
-      }
-    };
+    const timeoutId = setTimeout(() => {
+      const fetchFiles = async () => {
+        if (selectedApplication?.chatroomMessageId) {
+          const allFiles = await getAllFiles(
+            selectedApplication.chatroomMessageId
+          );
+          setFiles(allFiles);
+        } else {
+          setFiles([]);
+        }
+      };
 
-    fetchFiles();
+      fetchFiles();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
   }, [selectedApplication?.chatroomMessageId]);
 
   return (
