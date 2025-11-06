@@ -138,3 +138,38 @@ export function subscribeToNewMessages(
 
   return unsubscribe;
 }
+
+export async function getLatestMessage(
+  chatRoomId: string,
+): Promise<{ message: ChatMessage | null; timestamp: Timestamp | null; senderId: string | null }> {
+  if (!chatRoomId) {
+    return { message: null, timestamp: null, senderId: null };
+  }
+
+  try {
+    const messagesRef = collection(db, 'chats');
+    const q = query(
+      messagesRef,
+      where('chatRoomId', '==', chatRoomId),
+      orderBy('timestamp', 'desc'),
+      limit(1),
+    );
+
+    const snapshot = await getDocs(q);
+
+    if (snapshot.empty) {
+      return { message: null, timestamp: null, senderId: null };
+    }
+
+    const doc = snapshot.docs[0];
+    const message = {
+      id: doc.id,
+      ...doc.data(),
+    } as ChatMessage;
+
+    return { message, timestamp: message.timestamp, senderId: message.senderId };
+  } catch (error) {
+    console.error('❌ Error getting latest message:', error);
+    return { message: null, timestamp: null, senderId: null };
+  }
+}

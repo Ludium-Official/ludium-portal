@@ -25,21 +25,18 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/lib/hooks/use-auth';
-import {
-  ApplicationStatusV2,
-  MilestoneStatusV2,
-  type ApplicationV2,
-  type MilestoneV2,
-} from '@/types/types.generated';
+import { MilestoneStatusV2, type ApplicationV2, type MilestoneV2 } from '@/types/types.generated';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import * as z from 'zod';
 import MessageListItem from './message-list-item';
 import { ContractInformation } from '@/types/recruitment';
 import { MarkdownPreviewer } from '@/components/markdown';
+import { getLatestMessage } from '@/lib/firebase-chat';
+import type { Timestamp } from 'firebase/firestore';
 
 const milestoneFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -131,6 +128,9 @@ const RecruitmentMessage: React.FC<{
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
   const [selectedMilestone, setSelectedMilestone] = useState<MilestoneV2 | null>(null);
   const [isNewMilestoneMode, setIsNewMilestoneMode] = useState(true);
+  const [latestMessages, setLatestMessages] = useState<
+    Record<string, { text: string; timestamp: Timestamp; senderId: string }>
+  >({});
 
   const selectedApplication = hasMessageIdRoom.find(
     (applicant) => applicant.chatroomMessageId === selectedMessageId,
@@ -253,6 +253,46 @@ const RecruitmentMessage: React.FC<{
     setIsMilestoneModalOpen(true);
   };
 
+  useEffect(() => {
+    const fetchLatestMessages = async () => {
+      const messagePromises = hasMessageIdRoom.map(async (application) => {
+        if (!application.chatroomMessageId) return null;
+        const { message, timestamp, senderId } = await getLatestMessage(
+          application.chatroomMessageId,
+        );
+        if (message && timestamp && senderId) {
+          return {
+            chatroomMessageId: application.chatroomMessageId,
+            text: message.text,
+            timestamp,
+            senderId,
+          };
+        }
+        return null;
+      });
+
+      const results = await Promise.all(messagePromises);
+      const messagesMap: Record<string, { text: string; timestamp: Timestamp; senderId: string }> =
+        {};
+
+      results.forEach((result) => {
+        if (result && result.chatroomMessageId) {
+          messagesMap[result.chatroomMessageId] = {
+            text: result.text,
+            timestamp: result.timestamp,
+            senderId: result.senderId,
+          };
+        }
+      });
+
+      setLatestMessages(messagesMap);
+    };
+
+    if (hasMessageIdRoom.length > 0) {
+      fetchLatestMessages();
+    }
+  }, [hasMessageIdRoom]);
+
   return (
     <div className="flex gap-4 h-[calc(100vh-200px)]">
       {isSponsor && (
@@ -261,14 +301,23 @@ const RecruitmentMessage: React.FC<{
             <CardTitle>Messages</CardTitle>
           </CardHeader>
           <CardContent className="px-5 space-y-2">
-            {hasMessageIdRoom.map((applicant) => (
-              <MessageListItem
-                key={applicant.chatroomMessageId}
-                message={applicant}
-                isSelected={selectedMessageId === applicant.chatroomMessageId}
-                onClick={() => setSelectedMessageId(applicant.chatroomMessageId || null)}
-              />
-            ))}
+            {hasMessageIdRoom.map((applicant) => {
+              const latestMessage = applicant.chatroomMessageId
+                ? latestMessages[applicant.chatroomMessageId]
+                : null;
+              return (
+                <MessageListItem
+                  key={applicant.chatroomMessageId}
+                  message={applicant}
+                  isSelected={selectedMessageId === applicant.chatroomMessageId}
+                  onClick={() => setSelectedMessageId(applicant.chatroomMessageId || null)}
+                  latestMessageText={latestMessage?.text || null}
+                  latestMessageTimestamp={latestMessage?.timestamp || null}
+                  latestMessageSenderId={latestMessage?.senderId || null}
+                  currentUserId={userId || null}
+                />
+              );
+            })}
           </CardContent>
         </Card>
       )}

@@ -1,24 +1,24 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ContractFormProps, ContractInformation } from "@/types/recruitment";
-import { useNetworks } from "@/contexts/networks-context";
-import { useContract } from "@/lib/hooks/use-contract";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { sendMessage } from "@/lib/firebase-chat";
-import toast from "react-hot-toast";
-import { useMemo, useState } from "react";
-import notify from "@/lib/notify";
-import { useGetMilestonesV2Query } from "@/apollo/queries/milestones-v2.generated";
-import { ContractForm } from "./contract-form";
-import { MilestoneStatusV2 } from "@/types/types.generated";
-import { useCreateContractV2Mutation } from "@/apollo/mutation/create-contract-v2.generated";
-import { useUpdateContractV2Mutation } from "@/apollo/mutation/update-contract-v2.generated";
-import { useUpdateMilestoneV2Mutation } from "@/apollo/mutation/update-milestone-v2.generated";
-import { useContractsByProgramV2Query } from "@/apollo/queries/contracts-by-program-v2.generated";
-import { ethers } from "ethers";
-import { useOnchainProgramInfosByProgramV2Query } from "@/apollo/queries/onchain-program-infos-by-program-v2.generated";
-import { useGetProgramV2Query } from "@/apollo/queries/program-v2.generated";
-import { useParams } from "react-router";
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { ContractFormProps, ContractInformation } from '@/types/recruitment';
+import { useNetworks } from '@/contexts/networks-context';
+import { useContract } from '@/lib/hooks/use-contract';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { sendMessage } from '@/lib/firebase-chat';
+import toast from 'react-hot-toast';
+import { useMemo, useState } from 'react';
+import notify from '@/lib/notify';
+import { useGetMilestonesV2Query } from '@/apollo/queries/milestones-v2.generated';
+import { ContractForm } from './contract-form';
+import { MilestoneStatusV2 } from '@/types/types.generated';
+import { useCreateContractV2Mutation } from '@/apollo/mutation/create-contract-v2.generated';
+import { useUpdateContractV2Mutation } from '@/apollo/mutation/update-contract-v2.generated';
+import { useUpdateMilestoneV2Mutation } from '@/apollo/mutation/update-milestone-v2.generated';
+import { useContractsByProgramV2Query } from '@/apollo/queries/contracts-by-program-v2.generated';
+import { ethers } from 'ethers';
+import { useOnchainProgramInfosByProgramV2Query } from '@/apollo/queries/onchain-program-infos-by-program-v2.generated';
+import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
+import { useParams } from 'react-router';
 
 interface ContractModalProps {
   open: boolean;
@@ -35,12 +35,11 @@ export function ContractModal({
 }: ContractModalProps) {
   const { id } = useParams();
   const { userId } = useAuth();
-  const { networks: networksWithTokens, getContractByNetworkId } =
-    useNetworks();
+  const { networks: networksWithTokens, getContractByNetworkId } = useNetworks();
 
   const { data: programData } = useGetProgramV2Query({
     variables: {
-      id: id || "",
+      id: id || '',
     },
     skip: !id,
   });
@@ -60,14 +59,12 @@ export function ContractModal({
   const [updateContractV2Mutation] = useUpdateContractV2Mutation();
   const [updateMilestoneV2Mutation] = useUpdateMilestoneV2Mutation();
 
-  const { data: onchainProgramInfosData } =
-    useOnchainProgramInfosByProgramV2Query({
-      variables: { programId: Number(contractInformation.programId) || 0 },
-      skip: !contractInformation.programId,
-    });
+  const { data: onchainProgramInfosData } = useOnchainProgramInfosByProgramV2Query({
+    variables: { programId: Number(contractInformation.programId) || 0 },
+    skip: !contractInformation.programId,
+  });
   const onchainProgramId =
-    onchainProgramInfosData?.onchainProgramInfosByProgramV2?.data?.[0]
-      ?.onchainProgramId ?? 0;
+    onchainProgramInfosData?.onchainProgramInfosByProgramV2?.data?.[0]?.onchainProgramId ?? 0;
 
   const { data: contractsData } = useContractsByProgramV2Query({
     variables: {
@@ -78,18 +75,15 @@ export function ContractModal({
   });
 
   const existingContract = contractsData?.contractsByProgramV2?.data?.find(
-    (c) => c?.applicantId === Number(contractInformation.applicant?.id)
+    (c) => c?.applicantId === Number(contractInformation.applicant?.id),
   );
 
   const currentNetwork = networksWithTokens.find(
-    (network) => Number(network.id) === contractInformation.networkId
+    (network) => Number(network.id) === contractInformation.networkId,
   );
   const currentContract = getContractByNetworkId(Number(currentNetwork?.id));
 
-  const contract = useContract(
-    currentNetwork?.chainName || "educhain",
-    currentContract?.address
-  );
+  const contract = useContract(currentNetwork?.chainName || 'educhain', currentContract?.address);
 
   const isSponser = contractInformation.sponsor?.id === userId;
   const isBuilder = contractInformation.applicant?.id === userId;
@@ -115,9 +109,8 @@ export function ContractModal({
   const decimals = useMemo(() => {
     if (currentNetwork?.tokens && currentNetwork.tokens.length > 0) {
       return (
-        currentNetwork.tokens.find(
-          (token) => token.id === programData?.programV2?.token?.id
-        )?.decimals ?? 18
+        currentNetwork.tokens.find((token) => token.id === programData?.programV2?.token?.id)
+          ?.decimals ?? 18
       );
     }
 
@@ -126,26 +119,26 @@ export function ContractModal({
 
   const targetFundingWei = useMemo(() => {
     if (pendingPrice <= 0) {
-      return ethers.utils.parseUnits("0", decimals);
+      return ethers.utils.parseUnits('0', decimals);
     }
     return ethers.utils.parseUnits(pendingPrice.toString(), decimals);
   }, [pendingPrice, decimals]);
 
   const handleSendMessage = async () => {
     if (!userId || !contractInformation.applicant?.id) {
-      notify("Missing user information", "error");
+      notify('Missing user information', 'error');
       return;
     }
 
     setIsSendingMessage(true);
     try {
-      await sendMessage(contractInformation.chatRoomId || "", "", "-1");
+      await sendMessage(contractInformation.chatRoomId || '', '', '-1');
 
-      notify("Contract sent to builder for signature", "success");
+      notify('Contract sent to builder for signature', 'success');
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to send contract message:", error);
-      notify("Failed to send contract message", "error");
+      console.error('Failed to send contract message:', error);
+      notify('Failed to send contract message', 'error');
     } finally {
       setIsSendingMessage(false);
     }
@@ -153,17 +146,17 @@ export function ContractModal({
 
   const handleAddSignature = async () => {
     if (!userId || !contractInformation.applicant?.walletAddress) {
-      notify("Missing user information", "error");
+      notify('Missing user information', 'error');
       return;
     }
 
     if (!currentContract?.address) {
-      notify("Contract address is not configured for this network", "error");
+      notify('Contract address is not configured for this network', 'error');
       return;
     }
 
     if (!currentContract?.id || !contractInformation.sponsor?.id) {
-      notify("Missing contract or sponsor information", "error");
+      notify('Missing contract or sponsor information', 'error');
       return;
     }
 
@@ -172,7 +165,7 @@ export function ContractModal({
         onchainProgramId,
         contractInformation.applicant.walletAddress as `0x${string}`,
         BigInt(targetFundingWei.toString()),
-        3
+        3,
       );
 
       if (existingContract?.id) {
@@ -198,54 +191,41 @@ export function ContractModal({
         });
       }
 
-      await sendMessage(contractInformation.chatRoomId || "", "", "-2");
+      await sendMessage(contractInformation.chatRoomId || '', '', '-2');
 
-      toast.success("Signature added successfully");
-      notify("Contract signed and sent to sponsor", "success");
+      toast.success('Signature added successfully');
+      notify('Contract signed and sent to sponsor', 'success');
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to add signature:", error);
-      toast.error("Failed to add signature");
-      notify(
-        error instanceof Error ? error.message : "Failed to add signature",
-        "error"
-      );
+      console.error('Failed to add signature:', error);
+      toast.error('Failed to add signature');
+      notify(error instanceof Error ? error.message : 'Failed to add signature', 'error');
     }
   };
 
   const handleSubmit = async () => {
-    if (
-      !userId ||
-      !contractInformation.applicant?.id ||
-      !contractInformation.sponsor?.id
-    ) {
-      notify("Missing user information", "error");
+    if (!userId || !contractInformation.applicant?.id || !contractInformation.sponsor?.id) {
+      notify('Missing user information', 'error');
       return;
     }
 
     if (!currentContract?.id) {
-      notify("Contract address is not configured for this network", "error");
+      notify('Contract address is not configured for this network', 'error');
       return;
     }
 
     if (!existingContract?.builder_signature) {
-      notify(
-        "Builder signature not found. Please wait for builder to sign the contract.",
-        "error"
-      );
+      notify('Builder signature not found. Please wait for builder to sign the contract.', 'error');
       return;
     }
 
     try {
       const contractSnapshotContents = contractJson;
       const contractSnapshotHash = await crypto.subtle
-        .digest(
-          "SHA-256",
-          new TextEncoder().encode(JSON.stringify(contractSnapshotContents))
-        )
+        .digest('SHA-256', new TextEncoder().encode(JSON.stringify(contractSnapshotContents)))
         .then((hashBuffer) => {
           const hashArray = Array.from(new Uint8Array(hashBuffer));
-          return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+          return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
         });
 
       const txResult = await contract.createContract(
@@ -253,11 +233,11 @@ export function ContractModal({
         contractInformation.applicant?.walletAddress as `0x${string}`,
         BigInt(targetFundingWei.toString()),
         existingContract.builder_signature as `0x${string}`,
-        contractSnapshotHash as `0x${string}`
+        contractSnapshotHash as `0x${string}`,
       );
 
       if (!txResult.onchainContractId) {
-        throw new Error("Failed to get contract ID from transaction receipt");
+        throw new Error('Failed to get contract ID from transaction receipt');
       }
 
       if (existingContract?.id) {
@@ -281,26 +261,23 @@ export function ContractModal({
                   status: MilestoneStatusV2.InProgress,
                 },
               },
-            })
+            }),
           );
 
         await Promise.all(milestoneUpdatePromises);
       } else {
-        toast.error("Contract not found");
-        notify("Contract not found", "error");
+        toast.error('Contract not found');
+        notify('Contract not found', 'error');
         return;
       }
 
-      toast.success("Contract created successfully!");
-      notify("Contract created on-chain and in database", "success");
+      toast.success('Contract created successfully!');
+      notify('Contract created on-chain and in database', 'success');
       onOpenChange(false);
     } catch (error) {
-      console.error("Failed to submit contract", error);
-      toast.error("Failed to create contract");
-      notify(
-        error instanceof Error ? error.message : "Failed to create contract",
-        "error"
-      );
+      console.error('Failed to submit contract', error);
+      toast.error('Failed to create contract');
+      notify(error instanceof Error ? error.message : 'Failed to create contract', 'error');
     }
   };
 
@@ -346,7 +323,7 @@ export function ContractModal({
                     disabled={isSendingMessage}
                     className="w-fit"
                   >
-                    {isSendingMessage ? "Sending..." : "Send to Builder"}
+                    {isSendingMessage ? 'Sending...' : 'Send to Builder'}
                   </Button>
                 </div>
               );
@@ -354,7 +331,7 @@ export function ContractModal({
             return null;
           }
 
-          if (assistantId === "-1") {
+          if (assistantId === '-1') {
             if (isBuilder && !isSponser) {
               return (
                 <div className="flex justify-end">
@@ -365,7 +342,7 @@ export function ContractModal({
                     disabled={isSendingMessage}
                     className="w-fit"
                   >
-                    {isSendingMessage ? "Signing..." : "Add Signature"}
+                    {isSendingMessage ? 'Signing...' : 'Add Signature'}
                   </Button>
                 </div>
               );
@@ -373,7 +350,7 @@ export function ContractModal({
             return null;
           }
 
-          if (assistantId === "-2") {
+          if (assistantId === '-2') {
             if (isSponser && !isBuilder) {
               return (
                 <div className="flex justify-end">
@@ -384,7 +361,7 @@ export function ContractModal({
                     disabled={isSendingMessage}
                     className="w-fit"
                   >
-                    {isSendingMessage ? "Creating..." : "Create Contract"}
+                    {isSendingMessage ? 'Creating...' : 'Create Contract'}
                   </Button>
                 </div>
               );
