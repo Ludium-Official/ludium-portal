@@ -8,7 +8,7 @@ export type TokensV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type TokensV2Query = { __typename?: 'Query', tokensV2?: { __typename?: 'PaginatedTokensV2', count?: number | null, data?: Array<{ __typename?: 'TokenV2', id?: string | null, chainInfoId?: number | null, tokenName?: string | null, tokenAddress?: string | null }> | null } | null };
+export type TokensV2Query = { __typename?: 'Query', tokensV2?: { __typename?: 'PaginatedTokensV2', count?: number | null, data?: Array<{ __typename?: 'TokenV2', id?: string | null, chainInfoId?: number | null, tokenName?: string | null, tokenAddress?: string | null, decimals?: number | null }> | null } | null };
 
 
 export const TokensV2Document = gql`
@@ -19,6 +19,7 @@ export const TokensV2Document = gql`
       chainInfoId
       tokenName
       tokenAddress
+      decimals
     }
     count
   }

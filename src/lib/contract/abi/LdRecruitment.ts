@@ -611,6 +611,11 @@ const LdRecruitmentAbi = [
         type: 'bytes',
       },
       {
+        internalType: 'bytes',
+        name: 'snapshotHash',
+        type: 'bytes',
+      },
+      {
         internalType: 'uint256',
         name: 'deadline',
         type: 'uint256',
@@ -637,14 +642,19 @@ const LdRecruitmentAbi = [
         type: 'uint256',
       },
       {
+        internalType: 'uint256',
+        name: 'durationDays',
+        type: 'uint256',
+      },
+      {
         internalType: 'bytes',
         name: 'builderSig',
         type: 'bytes',
       },
       {
-        internalType: 'uint256',
-        name: 'durationDays',
-        type: 'uint256',
+        internalType: 'bytes',
+        name: 'snapshotHash',
+        type: 'bytes',
       },
     ],
     name: 'createContract',
@@ -808,6 +818,11 @@ const LdRecruitmentAbi = [
           {
             internalType: 'bytes',
             name: 'builderSig',
+            type: 'bytes',
+          },
+          {
+            internalType: 'bytes',
+            name: 'snapshotHash',
             type: 'bytes',
           },
           {
@@ -1416,6 +1431,11 @@ const LdRecruitmentAbi = [
       {
         internalType: 'bytes',
         name: 'builderSig',
+        type: 'bytes',
+      },
+      {
+        internalType: 'bytes',
+        name: 'snapshotHash',
         type: 'bytes',
       },
     ],

@@ -8,6 +8,7 @@ export type TokenInfo = {
   chainInfoId: number;
   tokenName: string;
   tokenAddress: string;
+  decimals: number;
 };
 
 export type SmartContractInfo = {
@@ -81,6 +82,7 @@ export function NetworksProvider({ children }: { children: ReactNode }) {
             chainInfoId: token.chainInfoId!,
             tokenName: token.tokenName!,
             tokenAddress: token.tokenAddress!,
+            decimals: token.decimals!,
           }));
 
         return {

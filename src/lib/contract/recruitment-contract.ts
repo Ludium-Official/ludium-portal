@@ -99,6 +99,7 @@ class RecruitmentContract {
     builder: `0x${string}`,
     totalAmount: bigint,
     builderSig: `0x${string}`,
+    contractSnapshotHash: `0x${string}`,
     durationDays: bigint = 3n
   ) {
     try {
@@ -113,8 +114,9 @@ class RecruitmentContract {
           BigInt(programId),
           builder,
           totalAmount,
-          builderSig,
           durationDays,
+          builderSig,
+          contractSnapshotHash,
         ],
       });
 
@@ -140,7 +142,16 @@ class RecruitmentContract {
         }
       );
 
-      return { txHash: tx.hash };
+      const receiptResult = await this.findReceipt(
+        tx.hash,
+        "ContractCreated(uint256,address,address,uint256)"
+      );
+
+      if (receiptResult !== null) {
+        return { txHash: tx.hash, onchainContractId: receiptResult };
+      }
+
+      return { txHash: tx.hash, onchainContractId: null };
     } catch (err) {
       console.error("Failed to create contract - Full error:", err);
       throw err;
@@ -151,7 +162,7 @@ class RecruitmentContract {
     programId: number,
     builderAddress: `0x${string}`,
     totalAmount: bigint,
-    durationDays: bigint
+    durationDays: number
   ): Promise<`0x${string}`> {
     try {
       if (!this.contractAddress || this.contractAddress === "") {
@@ -162,22 +173,13 @@ class RecruitmentContract {
         throw new Error(`Invalid contract address: ${this.contractAddress}`);
       }
 
-      console.log(
-        programId,
-        builderAddress,
-        totalAmount,
-        durationDays,
-        this.chainId,
-        this.contractAddress
-      );
-
       const contractHash = ethers.utils.solidityKeccak256(
         ["uint256", "address", "uint256", "uint256", "uint256", "address"],
         [
-          programId,
+          BigInt(programId),
           builderAddress,
-          totalAmount.toString(),
-          durationDays.toString(),
+          totalAmount,
+          durationDays,
           this.chainId,
           this.contractAddress,
         ]
@@ -229,7 +231,7 @@ class RecruitmentContract {
     }
   }
 
-  async findReceipt(hash: `0x${string}`, signature: string) {
+  async findReceipt(hash: `0x${string}`, eventName: string) {
     const receipt = await this.client.waitForTransactionReceipt({
       hash,
     });
@@ -239,15 +241,16 @@ class RecruitmentContract {
       throw new Error("Transaction reverted on-chain");
     }
 
-    const eventSignature = ethers.utils.id(signature);
+    const eventSignature = ethers.utils.id(eventName);
 
     const event = receipt.logs.find((log) => {
       return log.topics[0] === eventSignature;
     });
 
     if (event?.topics[1]) {
-      const programId = ethers.BigNumber.from(event.topics[1]).toNumber();
-      return programId;
+      // For ContractCreated event, topics[1] is contractId (first indexed parameter)
+      const id = ethers.BigNumber.from(event.topics[1]).toNumber();
+      return id;
     }
 
     console.warn("Event not found in logs, but transaction succeeded");

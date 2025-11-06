@@ -1,21 +1,21 @@
-import { useApplicationsByProgramV2Query } from "@/apollo/queries/applications-by-program-v2.generated";
-import RecruitmentMessage from "@/components/recruitment/message/recruitment-message";
-import RecruitmentOverview from "@/components/recruitment/overview/recruitment-overview";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { type ApplicationsByProgramV2QueryInput } from "@/types/types.generated";
-import { ChevronLeft } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router";
+import { useApplicationsByProgramV2Query } from '@/apollo/queries/applications-by-program-v2.generated';
+import RecruitmentMessage from '@/components/recruitment/message/recruitment-message';
+import RecruitmentOverview from '@/components/recruitment/overview/recruitment-overview';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { type ApplicationsByProgramV2QueryInput } from '@/types/types.generated';
+import { ChevronLeft } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router';
 
 const ProfileRecruitmentBuilderDetail: React.FC = () => {
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const tabParam = searchParams.get("tab");
+  const tabParam = searchParams.get('tab');
 
-  const [selectedTab, setSelectedTab] = useState(tabParam || "overview");
+  const [selectedTab, setSelectedTab] = useState(tabParam || 'overview');
 
   const queryInput: ApplicationsByProgramV2QueryInput = {
-    programId: id || "",
+    programId: id || '',
   };
 
   const { data } = useApplicationsByProgramV2Query({
@@ -59,12 +59,8 @@ const ProfileRecruitmentBuilderDetail: React.FC = () => {
           </TabsList>
         </Tabs>
       </div>
-      <div>{selectedTab === "overview" && <RecruitmentOverview />}</div>
-      <div>
-        {selectedTab === "message" && (
-          <RecruitmentMessage applications={applications} />
-        )}
-      </div>
+      <div>{selectedTab === 'overview' && <RecruitmentOverview />}</div>
+      <div>{selectedTab === 'message' && <RecruitmentMessage applications={applications} />}</div>
     </div>
   );
 };

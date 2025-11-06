@@ -74,7 +74,7 @@ export function useContract(network: string, contractAddress?: string) {
   const signMessageFn = async (
     message: string,
     wallet?: ConnectedWallet,
-    chain?: Chain
+    chain?: Chain,
   ): Promise<string> => {
     const targetWallet = wallet || activeWallet;
     if (!targetWallet) {

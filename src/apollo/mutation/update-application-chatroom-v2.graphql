@@ -1,7 +1,4 @@
-mutation updateApplicationChatroomV2(
-  $id: ID!
-  $input: UpdateApplicationChatroomV2Input!
-) {
+mutation updateApplicationChatroomV2($id: ID!, $input: UpdateApplicationChatroomV2Input!) {
   updateApplicationChatroomV2(id: $id, input: $input) {
     id
     chatroomMessageId

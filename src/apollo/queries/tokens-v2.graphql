@@ -5,6 +5,7 @@ query tokensV2($pagination: PaginationInput) {
       chainInfoId
       tokenName
       tokenAddress
+      decimals
     }
     count
   }

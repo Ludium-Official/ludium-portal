@@ -1,60 +1,43 @@
-import { MarkdownPreviewer } from "@/components/markdown";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { formatDate } from "@/lib/utils";
-import type { RecruitmentApplicant } from "@/types/recruitment";
-import { Heart, MapPin, Star } from "lucide-react";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router";
-import { useUpdateApplicationChatroomV2Mutation } from "@/apollo/mutation/update-application-chatroom-v2.generated";
-import notify from "@/lib/notify";
+import { MarkdownPreviewer } from '@/components/markdown';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { formatDate } from '@/lib/utils';
+import type { RecruitmentApplicant } from '@/types/recruitment';
+import { Heart, MapPin, Star } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import { useUpdateApplicationChatroomV2Mutation } from '@/apollo/mutation/update-application-chatroom-v2.generated';
+import notify from '@/lib/notify';
 
 interface ApplicantCardProps {
   applicant: RecruitmentApplicant;
-  onTogglePick?: (
-    applicationId?: string | null,
-    currentPicked?: boolean
-  ) => void;
+  onTogglePick?: (applicationId?: string | null, currentPicked?: boolean) => void;
 }
 
-const ApplicantCard: React.FC<ApplicantCardProps> = ({
-  applicant,
-  onTogglePick,
-}) => {
+const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }) => {
   const { id, userInfo, appliedDate, picked, chatroomMessageId } = applicant;
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const navigate = useNavigate();
   const [updateApplicationChatroom, { loading: isUpdatingChatroom }] =
     useUpdateApplicationChatroomV2Mutation();
 
-  const fullName = `${userInfo.firstName || ""} ${
-    userInfo.lastName || ""
-  }`.trim();
-  const initials = `${userInfo.firstName?.[0] || ""}${
-    userInfo.lastName?.[0] || ""
-  }`.toUpperCase();
+  const fullName = `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim();
+  const initials = `${userInfo.firstName?.[0] || ''}${userInfo.lastName?.[0] || ''}`.toUpperCase();
 
   const handleMessageClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (!applicant.applicationId) {
-      notify("Application ID is missing", "error");
+      notify('Application ID is missing', 'error');
       return;
     }
 
     try {
       if (chatroomMessageId) {
-        navigate(
-          `/profile/recruitment/sponser/${applicant.programId}?tab=message`
-        );
+        navigate(`/profile/recruitment/sponser/${applicant.programId}?tab=message`);
         return;
       }
 
@@ -66,16 +49,14 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
       });
 
       if (result.data?.updateApplicationChatroomV2?.chatroomMessageId) {
-        navigate(
-          `/profile/recruitment/sponser/${applicant.programId}?tab=message`
-        );
-        notify("Chatroom created successfully", "success");
+        navigate(`/profile/recruitment/sponser/${applicant.programId}?tab=message`);
+        notify('Chatroom created successfully', 'success');
       } else {
-        notify("Failed to create chatroom", "error");
+        notify('Failed to create chatroom', 'error');
       }
     } catch (error) {
-      console.error("Error updating application chatroom:", error);
-      notify("Failed to create chatroom. Please try again.", "error");
+      console.error('Error updating application chatroom:', error);
+      notify('Failed to create chatroom. Please try again.', 'error');
     }
   };
 
@@ -90,9 +71,9 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-cetner gap-3">
                 <Avatar className="h-16 w-16">
-                  <AvatarImage src={userInfo.image || ""} alt={fullName} />
+                  <AvatarImage src={userInfo.image || ''} alt={fullName} />
                   <AvatarFallback className="text-lg font-semibold">
-                    {initials || "??"}
+                    {initials || '??'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col justify-around">
@@ -105,9 +86,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
                       {fullName}
                     </Link>
                     {userInfo.role && (
-                      <p className="text-sm text-muted-foreground">
-                        {userInfo.role}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{userInfo.role}</p>
                     )}
                   </div>
                   <div className="flex items-center text-slate-500 text-sm">
@@ -143,25 +122,12 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
                   </div>
                 </div>
               </div>
-              <div
-                className="flex items-center gap-3"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Button
-                  variant="ghost"
-                  onClick={() => onTogglePick?.(id, picked)}
-                >
-                  {picked ? (
-                    <Heart className="fill-red-500 text-red-500" />
-                  ) : (
-                    <Heart />
-                  )}
+              <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" onClick={() => onTogglePick?.(id, picked)}>
+                  {picked ? <Heart className="fill-red-500 text-red-500" /> : <Heart />}
                 </Button>
-                <Button
-                  onClick={handleMessageClick}
-                  disabled={isUpdatingChatroom}
-                >
-                  {isUpdatingChatroom ? "Creating..." : "Message"}
+                <Button onClick={handleMessageClick} disabled={isUpdatingChatroom}>
+                  {isUpdatingChatroom ? 'Creating...' : 'Message'}
                 </Button>
               </div>
             </div>
@@ -169,18 +135,14 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
             <div className="flex flex-col gap-5 text-sm">
               {userInfo.cv && (
                 <div className="flex gap-3">
-                  <div className="w-[65px] flex-shrink-0 text-gray-dark font-bold">
-                    CV
-                  </div>
+                  <div className="w-[65px] flex-shrink-0 text-gray-dark font-bold">CV</div>
                   <p className="text-gray-700 line-clamp-2">{userInfo.cv}</p>
                 </div>
               )}
 
               {userInfo.skills && userInfo.skills.length > 0 && (
                 <div className="flex gap-3">
-                  <div className="w-[65px] flex-shrink-0 text-gray-dark font-bold">
-                    Skills
-                  </div>
+                  <div className="w-[65px] flex-shrink-0 text-gray-dark font-bold">Skills</div>
                   {userInfo.skills.map((skill) => (
                     <Badge key={skill} variant="secondary" className="text-xs">
                       {skill}
@@ -191,9 +153,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
 
               {userInfo.tools && userInfo.tools.length > 0 && (
                 <div className="flex gap-3">
-                  <div className="w-[65px] flex-shrink-0 text-gray-dark font-bold">
-                    Tools
-                  </div>
+                  <div className="w-[65px] flex-shrink-0 text-gray-dark font-bold">Tools</div>
                   {userInfo.tools.map((tool) => (
                     <Badge key={tool} variant="secondary" className="text-xs">
                       {tool}
@@ -215,23 +175,18 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
           <div className="mt-4">
             <div className="flex items-start gap-4 mb-6">
               <Avatar className="h-16 w-16">
-                <AvatarImage src={userInfo.image || ""} alt={fullName} />
+                <AvatarImage src={userInfo.image || ''} alt={fullName} />
                 <AvatarFallback className="text-lg font-semibold">
-                  {initials || "??"}
+                  {initials || '??'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center gap-3 text-xl text-neutral-700 mb-2">
-                  <Link
-                    to={`/users/${userInfo.userId}`}
-                    className="font-bold hover:underline"
-                  >
+                  <Link to={`/users/${userInfo.userId}`} className="font-bold hover:underline">
                     {fullName}
                   </Link>
                   {userInfo.role && (
-                    <p className="text-sm text-muted-foreground">
-                      {userInfo.role}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{userInfo.role}</p>
                   )}
                 </div>
                 <div className="flex items-center text-slate-500 text-sm">
@@ -258,9 +213,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
                   )}
                   <div className="flex items-center">
                     <span className="mx-1">∙</span>
-                    <span>
-                      Applied {appliedDate && formatDate(appliedDate)}
-                    </span>
+                    <span>Applied {appliedDate && formatDate(appliedDate)}</span>
                   </div>
                 </div>
               </div>
@@ -269,16 +222,10 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
             <div className="space-y-6">
               {userInfo.skills && userInfo.skills.length > 0 && (
                 <div>
-                  <div className="text-sm font-bold text-gray-dark mb-2">
-                    Skills
-                  </div>
+                  <div className="text-sm font-bold text-gray-dark mb-2">Skills</div>
                   <div className="flex flex-wrap gap-2">
                     {userInfo.skills.map((skill) => (
-                      <Badge
-                        key={skill}
-                        variant="secondary"
-                        className="text-xs"
-                      >
+                      <Badge key={skill} variant="secondary" className="text-xs">
                         {skill}
                       </Badge>
                     ))}
@@ -288,9 +235,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
 
               {userInfo.tools && userInfo.tools.length > 0 && (
                 <div>
-                  <div className="text-sm font-bold text-gray-dark mb-2">
-                    Tools
-                  </div>
+                  <div className="text-sm font-bold text-gray-dark mb-2">Tools</div>
                   <div className="flex flex-wrap gap-2">
                     {userInfo.tools.map((tool) => (
                       <Badge key={tool} variant="secondary" className="text-xs">
@@ -303,9 +248,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
 
               {userInfo.cv && (
                 <div>
-                  <div className="text-sm font-bold text-gray-dark mb-3">
-                    Cover Letter
-                  </div>
+                  <div className="text-sm font-bold text-gray-dark mb-3">Cover Letter</div>
                   <div className="prose prose-sm max-w-none max-h-[500px] overflow-y-auto border rounded-lg p-4 bg-gray-50">
                     <MarkdownPreviewer value={userInfo.cv} />
                   </div>
@@ -321,17 +264,10 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({
                   onTogglePick?.(id, picked);
                 }}
               >
-                {picked ? (
-                  <Heart className="fill-red-500 text-red-500" />
-                ) : (
-                  <Heart />
-                )}
+                {picked ? <Heart className="fill-red-500 text-red-500" /> : <Heart />}
               </Button>
-              <Button
-                onClick={handleMessageClick}
-                disabled={isUpdatingChatroom}
-              >
-                {isUpdatingChatroom ? "Creating..." : "Message"}
+              <Button onClick={handleMessageClick} disabled={isUpdatingChatroom}>
+                {isUpdatingChatroom ? 'Creating...' : 'Message'}
               </Button>
             </div>
           </div>

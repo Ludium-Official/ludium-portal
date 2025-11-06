@@ -1,6 +1,7 @@
 import logo from "@/assets/logo.svg";
 import { MarkdownPreviewer } from "@/components/markdown";
 import { Separator } from "@/components/ui/separator";
+import { useNetworks } from "@/contexts/networks-context";
 import {
   addDaysToDate,
   formatDateKorean,
@@ -14,6 +15,9 @@ export function ContractForm({
 }: {
   contractJson: ContractFormProps;
 }) {
+  const { getTokenById } = useNetworks();
+  const token = getTokenById(contractJson.tokenId);
+
   return (
     <>
       <div>
@@ -86,7 +90,9 @@ export function ContractForm({
                         <div className="text-xs font-semibold text-muted-foreground">
                           Payment Amount
                         </div>
-                        <div>{milestone.payout}</div>
+                        <div>
+                          {milestone.payout} {token?.tokenName}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -291,14 +297,15 @@ export function ContractForm({
             </div>
             <div className="text-sm">
               {contractJson.totalPrice === contractJson.pendingPrice ? (
-                contractJson.totalPrice
+                `${contractJson.totalPrice} ${token?.tokenName}`
               ) : (
                 <>
                   <span className="text-muted-foreground">
                     {contractJson.pendingPrice > 0 &&
-                      `You will pay only ${contractJson.pendingPrice}`}
+                      `You will pay only ${contractJson.pendingPrice} ${token?.tokenName}`}
                   </span>
-                  {contractJson.totalPrice - contractJson.pendingPrice}
+                  {contractJson.totalPrice - contractJson.pendingPrice}{" "}
+                  {token?.tokenName}
                 </>
               )}
             </div>

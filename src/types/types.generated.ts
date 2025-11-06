@@ -82,6 +82,8 @@ export type ApplicationV2 = {
   rejectedReason?: Maybe<Scalars['String']['output']>;
   /** Application status */
   status?: Maybe<ApplicationStatusV2>;
+  /** Title of the application */
+  title?: Maybe<Scalars['String']['output']>;
   /** Application last update timestamp */
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };
@@ -232,7 +234,8 @@ export type CreateContractV2Input = {
   builder_signature?: InputMaybe<Scalars['String']['input']>;
   contract_snapshot_cotents?: InputMaybe<Scalars['JSON']['input']>;
   contract_snapshot_hash?: InputMaybe<Scalars['String']['input']>;
-  onchainContractId: Scalars['Int']['input'];
+  /** On-chain contract ID (optional on creation, will be set after contract execution) */
+  onchainContractId?: InputMaybe<Scalars['Int']['input']>;
   programId: Scalars['Int']['input'];
   smartContractId: Scalars['Int']['input'];
   sponsorId: Scalars['Int']['input'];
@@ -592,10 +595,14 @@ export type MilestoneV2 = {
   deadline?: Maybe<Scalars['DateTime']['output']>;
   /** Milestone description */
   description?: Maybe<Scalars['String']['output']>;
+  /** Files associated with this milestone */
+  files?: Maybe<Array<Scalars['String']['output']>>;
   /** Milestone unique identifier */
   id?: Maybe<Scalars['ID']['output']>;
   /** Milestone payout amount */
   payout?: Maybe<Scalars['String']['output']>;
+  /** Transaction hash for the milestone payout */
+  payout_tx?: Maybe<Scalars['String']['output']>;
   /** Program this milestone belongs to */
   program?: Maybe<ProgramV2>;
   /** ID of the program this milestone belongs to */
@@ -2123,6 +2130,7 @@ export type TierSyncResult = {
 export type TokenV2 = {
   __typename?: 'TokenV2';
   chainInfoId?: Maybe<Scalars['Int']['output']>;
+  decimals?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
   tokenAddress?: Maybe<Scalars['String']['output']>;
   tokenName?: Maybe<Scalars['String']['output']>;
@@ -2165,6 +2173,8 @@ export type UpdateContractV2Input = {
   builder_signature?: InputMaybe<Scalars['String']['input']>;
   contract_snapshot_cotents?: InputMaybe<Scalars['JSON']['input']>;
   contract_snapshot_hash?: InputMaybe<Scalars['String']['input']>;
+  /** On-chain contract ID (set after contract execution and payment) */
+  onchainContractId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type UpdateInvestmentTermInput = {
