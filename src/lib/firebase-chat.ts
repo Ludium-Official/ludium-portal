@@ -242,3 +242,41 @@ export async function getLatestMessage(chatRoomId: string): Promise<{
     return { message: null, timestamp: null, senderId: null };
   }
 }
+
+/**
+ * 특정 채팅방의 모든 파일을 가져옵니다
+ */
+export async function getAllFiles(chatRoomId: string): Promise<ChatMessageFile[]> {
+  if (!chatRoomId) {
+    return [];
+  }
+
+  try {
+    const messagesRef = collection(db, 'chats');
+    const q = query(
+      messagesRef,
+      where('chatRoomId', '==', chatRoomId),
+      orderBy('timestamp', 'desc'),
+    );
+
+    const snapshot = await getDocs(q);
+
+    const allFiles: ChatMessageFile[] = [];
+
+    snapshot.docs.forEach((doc) => {
+      const message = {
+        id: doc.id,
+        ...doc.data(),
+      } as ChatMessage;
+
+      if (message.files && message.files.length > 0) {
+        allFiles.push(...message.files);
+      }
+    });
+
+    return allFiles;
+  } catch (error) {
+    console.error('❌ Error getting all files:', error);
+    return [];
+  }
+}

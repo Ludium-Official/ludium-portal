@@ -69,7 +69,7 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
     <div
       onClick={onClick}
       className={cn(
-        'flex items-start gap-3 p-4 rounded-lg cursor-pointer transition-colors hover:bg-gray-50',
+        'flex items-start gap-3 py-4 px-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-50',
         isSelected && 'bg-[#F8F5FA]',
       )}
     >

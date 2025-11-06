@@ -23,11 +23,12 @@ import {
   type QueryDocumentSnapshot,
   type Timestamp,
 } from 'firebase/firestore';
-import { Loader2, Send, X, Paperclip, File } from 'lucide-react';
+import { Loader2, Send, X, Paperclip, File, Folder } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { ContractModal } from '@/components/recruitment/contract/contract-modal';
+import notify from '@/lib/notify';
 
 const messageFormSchema = z.object({
   message: z.string().optional(),
@@ -104,14 +105,19 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
             </span>
           </div>
 
-          <div className="rounded-lg px-4 py-2 bg-primary text-primary-foreground w-fit">
+          <div className="flex flex-col items-end space-y-2">
             {message.text && (
-              <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+              <div className="rounded-lg px-4 py-2 bg-primary text-primary-foreground w-fit">
+                <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+              </div>
             )}
             {message.files && message.files.length > 0 && (
-              <div className="mt-2 space-y-2">
+              <div className="flex flex-col items-end space-y-2">
                 {message.files.map((file, index) => (
-                  <div key={index} className="flex items-center gap-2 bg-white/10 rounded p-2">
+                  <div
+                    key={index}
+                    className="rounded-lg px-4 py-2 bg-primary text-primary-foreground w-fit"
+                  >
                     {file.type.startsWith('image/') ? (
                       <a
                         href={file.url}
@@ -130,11 +136,15 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
                         href={file.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-sm hover:underline"
+                        className="flex items-center gap-3"
                       >
-                        <File className="w-4 h-4" />
-                        <span>{file.name}</span>
-                        <span className="text-xs opacity-70">({formatFileSize(file.size)})</span>
+                        <Folder className="w-5 h-5 text-primary-foreground/70" />
+                        <div className="flex flex-col">
+                          <span className="text-sm text-primary-foreground">{file.name}</span>
+                          <span className="text-xs text-primary-foreground/70">
+                            {formatFileSize(file.size)}
+                          </span>
+                        </div>
                       </a>
                     )}
                   </div>
@@ -167,88 +177,101 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
           </span>
         </div>
 
-        <div
-          className={cn(
-            'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
-            isLudiumAssistant && 'py-4 bg-white border border-primary',
-          )}
-        >
-          <p className="text-sm whitespace-pre-wrap break-words">
-            {message.senderId === '-1' || message.senderId === '-2' ? (
-              <>
-                <div>
-                  <img src={contractLogo} alt="contract" className="mb-3" />
-                  <div className="font-bold text-lg">Employment Contract</div>
-                  <div className="mt-1 mb-5 font-semibold">
-                    {message.senderId === '-1'
-                      ? 'Sponser sent a contract for review and signature.'
-                      : 'Builder sent a contract for review and signature.'}
-                  </div>
-                  <Button
-                    variant="lightPurple"
-                    className="w-full"
-                    onClick={() => setIsContractModalOpen(true)}
-                  >
-                    View Contract
-                  </Button>
+        <div className="space-y-2">
+          {message.senderId === '-1' || message.senderId === '-2' ? (
+            <div
+              className={cn(
+                'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
+                isLudiumAssistant && 'py-4 bg-white border border-primary',
+              )}
+            >
+              <div>
+                <img src={contractLogo} alt="contract" className="mb-3" />
+                <div className="font-bold text-lg">Employment Contract</div>
+                <div className="mt-1 mb-5 font-semibold">
+                  {message.senderId === '-1'
+                    ? 'Sponser sent a contract for review and signature.'
+                    : 'Builder sent a contract for review and signature.'}
                 </div>
-                <ContractModal
-                  open={isContractModalOpen}
-                  onOpenChange={setIsContractModalOpen}
-                  contractInformation={{
-                    title: application.program?.title || '',
-                    programId: application.program?.id || '',
-                    sponsor: application.program?.sponsor || null,
-                    applicant: application.applicant || null,
-                    networkId: application.program?.networkId || null,
-                    chatRoomId: application.chatroomMessageId || null,
-                  }}
-                  assistantId={message.senderId}
-                />
-              </>
-            ) : (
-              <>
-                {message.text && (
+                <Button
+                  variant="lightPurple"
+                  className="w-full"
+                  onClick={() => setIsContractModalOpen(true)}
+                >
+                  View Contract
+                </Button>
+              </div>
+              <ContractModal
+                open={isContractModalOpen}
+                onOpenChange={setIsContractModalOpen}
+                contractInformation={{
+                  title: application.program?.title || '',
+                  programId: application.program?.id || '',
+                  sponsor: application.program?.sponsor || null,
+                  applicant: application.applicant || null,
+                  networkId: application.program?.networkId || null,
+                  chatRoomId: application.chatroomMessageId || null,
+                }}
+                assistantId={message.senderId}
+              />
+            </div>
+          ) : (
+            <>
+              {message.text && (
+                <div
+                  className={cn(
+                    'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
+                    isLudiumAssistant && 'py-4 bg-white border border-primary',
+                  )}
+                >
                   <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
-                )}
-                {message.files && message.files.length > 0 && (
-                  <div className="mt-2 space-y-2">
-                    {message.files.map((file, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        {file.type.startsWith('image/') ? (
-                          <a
-                            href={file.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block"
-                          >
-                            <img
-                              src={file.url}
-                              alt={file.name}
-                              className="max-w-[200px] max-h-[200px] object-contain rounded"
-                            />
-                          </a>
-                        ) : (
-                          <a
-                            href={file.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-sm hover:underline"
-                          >
-                            <File className="w-4 h-4" />
-                            <span>{file.name}</span>
-                            <span className="text-xs opacity-70">
-                              ({formatFileSize(file.size)})
+                </div>
+              )}
+              {message.files && message.files.length > 0 && (
+                <div className="space-y-2">
+                  {message.files.map((file, index) => (
+                    <div
+                      key={index}
+                      className={cn(
+                        'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit',
+                        isLudiumAssistant && 'bg-white border border-primary',
+                      )}
+                    >
+                      {file.type.startsWith('image/') ? (
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block"
+                        >
+                          <img
+                            src={file.url}
+                            alt={file.name}
+                            className="max-w-[200px] max-h-[200px] object-contain rounded"
+                          />
+                        </a>
+                      ) : (
+                        <a
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3"
+                        >
+                          <Folder className="w-5 h-5 text-slate-400" />
+                          <div className="flex flex-col">
+                            <span className="text-sm text-slate-900">{file.name}</span>
+                            <span className="text-xs text-slate-400">
+                              {formatFileSize(file.size)}
                             </span>
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-          </p>
+                          </div>
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -290,7 +313,6 @@ export function ChatBox({
   });
 
   useEffect(() => {
-    // Create previews for image files
     const previews = selectedFiles
       .filter((file) => file.type.startsWith('image/'))
       .map((file) => ({
@@ -300,7 +322,6 @@ export function ChatBox({
 
     setFilePreviews(previews);
 
-    // Cleanup preview URLs
     return () => {
       previews.forEach(({ preview }) => URL.revokeObjectURL(preview));
     };
@@ -308,10 +329,35 @@ export function ChatBox({
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      setSelectedFiles((prev) => [...prev, ...files]);
+    if (files.length === 0) return;
+
+    const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
+    const validFiles: File[] = [];
+    const invalidFiles: File[] = [];
+
+    files.forEach((file) => {
+      const isImage = file.type.startsWith('image/');
+      const maxSize = isImage ? MAX_IMAGE_SIZE : MAX_FILE_SIZE;
+
+      if (file.size > maxSize) {
+        invalidFiles.push(file);
+      } else {
+        validFiles.push(file);
+      }
+    });
+
+    if (invalidFiles.length > 0) {
+      const fileType = invalidFiles[0].type.startsWith('image/') ? 'Image' : 'File';
+      const maxSize = invalidFiles[0].type.startsWith('image/') ? '10MB' : '50MB';
+      notify(`${fileType} is too heavy. Maximum upload size is ${maxSize}.`, 'error');
     }
-    // Reset input so same file can be selected again
+
+    if (validFiles.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...validFiles]);
+    }
+
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -342,7 +388,6 @@ export function ChatBox({
     setOldestDoc(null);
     newestTimestampRef.current = null;
 
-    // Cleanup previous subscription
     if (unsubscribeRef.current) {
       unsubscribeRef.current();
       unsubscribeRef.current = null;
@@ -377,17 +422,14 @@ export function ChatBox({
       });
   }, [chatRoomId]);
 
-  // 실시간 구독 + 폴링 백업 하이브리드 방식
   useEffect(() => {
     if (!chatRoomId || !newestTimestampRef.current) return;
 
-    // Cleanup previous subscription if exists
     if (unsubscribeRef.current) {
       unsubscribeRef.current();
       unsubscribeRef.current = null;
     }
 
-    // 실시간 구독 설정
     const unsubscribe = subscribeToNewMessages(
       chatRoomId,
       newestTimestampRef.current,
@@ -397,7 +439,7 @@ export function ChatBox({
           return [...prev, newMsg];
         });
         newestTimestampRef.current = newMsg.timestamp;
-        lastActivityRef.current = Date.now(); // 실시간 메시지 받음
+        lastActivityRef.current = Date.now();
       },
       (error) => {
         console.error('❌ Realtime subscription error:', error);
@@ -406,11 +448,9 @@ export function ChatBox({
 
     unsubscribeRef.current = unsubscribe;
 
-    // 폴링 백업: 30초 동안 실시간 메시지가 없으면 폴링으로 확인
     const pollingInterval = setInterval(async () => {
       const timeSinceLastActivity = Date.now() - lastActivityRef.current;
 
-      // 30초 이상 실시간 메시지가 없으면 폴링으로 확인
       if (timeSinceLastActivity > 30000 && newestTimestampRef.current) {
         try {
           const newMessages = await getNewMessages(chatRoomId, newestTimestampRef.current);
@@ -433,7 +473,7 @@ export function ChatBox({
           console.error('❌ Error polling new messages:', error);
         }
       }
-    }, 10000); // 10초마다 체크
+    }, 10000);
 
     pollingIntervalRef.current = pollingInterval;
 
@@ -494,7 +534,6 @@ export function ChatBox({
         selectedFiles.length > 0 ? selectedFiles : undefined,
       );
 
-      // Optimistic update: Add the message to local state immediately
       const newMessage: ChatMessage = {
         id: messageId,
         chatRoomId: chatRoomId || '',
@@ -504,7 +543,7 @@ export function ChatBox({
         ...(selectedFiles.length > 0 && {
           files: selectedFiles.map((file) => ({
             name: file.name,
-            url: URL.createObjectURL(file), // Temporary URL until real one loads
+            url: URL.createObjectURL(file),
             type: file.type,
             size: file.size,
           })),
@@ -572,7 +611,6 @@ export function ChatBox({
     );
   };
 
-  // 메시지 목록이 업데이트되면 스크롤을 맨 아래로 이동
   useEffect(() => {
     if (messages.length > 0 && messagesContainerRef.current) {
       const container = messagesContainerRef.current;
@@ -648,7 +686,6 @@ export function ChatBox({
       {chatRoomId && (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSendMessage)} className="p-4 border-t bg-slate-3">
-            {/* File Previews */}
             {selectedFiles.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2">
                 {selectedFiles.map((file, index) => {
