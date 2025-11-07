@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { tokenAddresses } from '@/constant/token-address';
+import { useNetworks } from '@/contexts/networks-context';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
@@ -22,7 +23,6 @@ import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useNetworks } from '@/contexts/networks-context';
 import NetworkSelector from '../network-selector';
 
 function Header() {

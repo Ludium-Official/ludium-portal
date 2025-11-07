@@ -7,6 +7,8 @@ import { Separator } from '@/components/ui/separator';
 import { ShareButton } from '@/components/ui/share-button';
 import SocialIcon from '@/components/ui/social-icon';
 import { tokenAddresses } from '@/constant/token-address';
+import { useNetworks } from '@/contexts/networks-context';
+import type RecruitmentContract from '@/lib/contract/recruitment-contract';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
@@ -18,8 +20,6 @@ import { ArrowUpRight, Building2, CircleCheck, Settings, Sparkle, UserCog } from
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router';
 import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
-import { useNetworks } from '@/contexts/networks-context';
-import RecruitmentContract from '@/lib/contract/recruitment-contract';
 
 const adminLinks = [
   { label: 'Banner', path: 'admin/banner' },

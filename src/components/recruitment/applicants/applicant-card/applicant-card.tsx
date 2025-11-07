@@ -1,15 +1,15 @@
+import { useUpdateApplicationChatroomV2Mutation } from '@/apollo/mutation/update-application-chatroom-v2.generated';
 import { MarkdownPreviewer } from '@/components/markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import notify from '@/lib/notify';
 import { formatDate } from '@/lib/utils';
 import type { RecruitmentApplicant } from '@/types/recruitment';
 import { Heart, MapPin, Star } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { useUpdateApplicationChatroomV2Mutation } from '@/apollo/mutation/update-application-chatroom-v2.generated';
-import notify from '@/lib/notify';
 
 interface ApplicantCardProps {
   applicant: RecruitmentApplicant;

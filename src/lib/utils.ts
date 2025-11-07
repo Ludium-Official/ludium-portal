@@ -127,7 +127,7 @@ export const formatDate = (date: Date | string) => {
   return format(dateObj, 'MMMM d, yyyy');
 };
 
-export const addDaysToDate = (date: string | null | undefined, days: number = 0): string => {
+export const addDaysToDate = (date: string | null | undefined, days = 0): string => {
   if (!date) return 'YYYY-MM-DD';
   try {
     const localDate = fromUTCString(date);

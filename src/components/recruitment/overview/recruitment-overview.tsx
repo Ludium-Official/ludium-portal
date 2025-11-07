@@ -1,5 +1,7 @@
+import client from '@/apollo/client';
 import { useCreateApplicationV2Mutation } from '@/apollo/mutation/create-application-v2.generated';
 import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
+import { GetProgramsV2Document } from '@/apollo/queries/programs-v2.generated';
 import InputLabel from '@/components/common/label/inputLabel';
 import { MarkdownEditor, MarkdownPreviewer } from '@/components/markdown';
 import { Badge } from '@/components/ui/badge';
@@ -26,8 +28,6 @@ import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import StatusBadge from '../statusBadge/statusBadge';
-import client from '@/apollo/client';
-import { GetProgramsV2Document } from '@/apollo/queries/programs-v2.generated';
 
 const RecruitmentOverview: React.FC = () => {
   const { id } = useParams();

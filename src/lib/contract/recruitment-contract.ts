@@ -1,10 +1,10 @@
-import { usePrivy } from '@privy-io/react-auth';
-import { encodeFunctionData, type PublicClient } from 'viem';
-import LdRecruitmentAbi from './abi/LdRecruitment';
-import { ethers } from 'ethers';
+import type { usePrivy } from '@privy-io/react-auth';
 import type { ConnectedWallet } from '@privy-io/react-auth';
+import { ethers } from 'ethers';
+import { type PublicClient, encodeFunctionData } from 'viem';
 import type { Chain } from 'viem';
 import ERC20Abi from './abi/ERC20';
+import LdRecruitmentAbi from './abi/LdRecruitment';
 
 class RecruitmentContract {
   private contractAddress: string;
@@ -100,12 +100,52 @@ class RecruitmentContract {
     totalAmount: bigint,
     builderSig: `0x${string}`,
     contractSnapshotHash: `0x${string}`,
-    durationDays: bigint = 3n,
+    durationDays = 3n,
+    tokenAddress?: `0x${string}`,
+    ownerAddress?: string,
+    tokenName?: string,
+    tokenDecimals?: number,
   ) {
     try {
       const sponsorFee = await this.getSponsorFeePercentage();
       const platformFee = (totalAmount * sponsorFee) / 10000n;
       const totalDeposit = totalAmount + platformFee;
+
+      const isNativeToken = !tokenAddress || tokenAddress === ethers.constants.AddressZero;
+
+      if (!isNativeToken && ownerAddress && tokenAddress) {
+        // Check user's token balance first
+        const balance = await this.getAmount(tokenAddress, ownerAddress);
+        if (balance < totalDeposit) {
+          // Use tokenDecimals if provided, otherwise default to 18
+          const decimals = tokenDecimals ?? 18;
+
+          // Debug: Log the values to help diagnose the issue
+          console.log('Balance check:', {
+            totalAmount: totalAmount.toString(),
+            totalDeposit: totalDeposit.toString(),
+            balance: balance.toString(),
+            tokenDecimals,
+            decimals,
+            tokenName,
+          });
+
+          const displayAmount = ethers.utils.formatUnits(totalDeposit, decimals);
+          const displayBalance = ethers.utils.formatUnits(balance, decimals);
+          throw new Error(
+            `Insufficient ${
+              tokenName || 'token'
+            } balance. Required: ${displayAmount}, Available: ${displayBalance}`,
+          );
+        }
+
+        // Check and approve if needed
+        const allowance = await this.getAllowance(tokenAddress, ownerAddress);
+
+        if (allowance < totalDeposit) {
+          await this.approveToken(tokenAddress, totalDeposit, tokenName, tokenDecimals);
+        }
+      }
 
       // 들어가는 값: 0n '0xf260B6bA650be86379f6059673A4a09C9977dE76' 10000000000000000n 3n '0x89b13c7d43cbda11a366160d034c91e0921cd0e0ade991460cd880839cb822bd028155be47425d9d9abd11c54a9604ed03b65ae5718cebe32dc6868faeb6e4951c' '6943568db2162726c3f61f58b23ec7411ad75bb1e86b4dc9dc0b46b19d13fcc0'
       const data = encodeFunctionData({
@@ -125,7 +165,7 @@ class RecruitmentContract {
         {
           to: this.contractAddress,
           data,
-          value: totalDeposit,
+          value: isNativeToken ? totalDeposit : 0n,
           chainId: this.chainId,
         },
         {
@@ -163,7 +203,7 @@ class RecruitmentContract {
     programId: number,
     builderAddress: `0x${string}`,
     totalAmount: bigint,
-    durationDays: number,
+    durationDays: bigint,
   ): Promise<`0x${string}`> {
     try {
       if (!this.contractAddress || this.contractAddress === '') {
@@ -174,7 +214,6 @@ class RecruitmentContract {
         throw new Error(`Invalid contract address: ${this.contractAddress}`);
       }
 
-      // 들어가는 값: 0n '0xf260B6bA650be86379f6059673A4a09C9977dE76' 10000000000000000n 3 656476 '0x115b100BC2F2d1F74a017f9275cE463B47Ab87a3'
       const contractHash = ethers.utils.solidityKeccak256(
         ['uint256', 'address', 'uint256', 'uint256', 'uint256', 'address'],
         [programId, builderAddress, totalAmount, durationDays, this.chainId, this.contractAddress],
@@ -240,6 +279,69 @@ class RecruitmentContract {
     });
 
     return balance as bigint;
+  }
+
+  async getAllowance(tokenAddress: string, ownerAddress: string): Promise<bigint> {
+    try {
+      const allowance = await this.client.readContract({
+        address: tokenAddress as `0x${string}`,
+        abi: ERC20Abi,
+        functionName: 'allowance',
+        args: [ownerAddress as `0x${string}`, this.contractAddress as `0x${string}`],
+      });
+
+      return allowance as bigint;
+    } catch (error) {
+      console.error('Failed to check allowance:', error);
+      return BigInt(0);
+    }
+  }
+
+  async approveToken(
+    tokenAddress: `0x${string}`,
+    amount: bigint,
+    tokenName?: string,
+    tokenDecimals?: number,
+  ) {
+    const data = encodeFunctionData({
+      abi: ERC20Abi,
+      functionName: 'approve',
+      args: [this.contractAddress, amount],
+    });
+
+    const displayAmount =
+      tokenDecimals !== undefined
+        ? ethers.utils.formatUnits(amount, tokenDecimals)
+        : ethers.utils.formatUnits(amount, 18);
+
+    const tx = await this.sendTransaction(
+      {
+        to: tokenAddress,
+        data,
+        chainId: this.chainId,
+      },
+      {
+        uiOptions: {
+          showWalletUIs: true,
+          description: `Approve ${displayAmount} ${tokenName || 'tokens'} for use in the contract.`,
+          buttonText: 'Approve Token',
+          transactionInfo: {
+            title: 'Approve Token',
+            action: 'Grant Permission',
+          },
+          successHeader: 'Token Approved Successfully!',
+          successDescription: `You have successfully approved ${displayAmount} ${
+            tokenName || 'tokens'
+          } for use in the contract.`,
+        },
+      },
+    );
+
+    await this.client.waitForTransactionReceipt({
+      hash: tx.hash,
+    });
+
+    return tx;
   }
 }
 

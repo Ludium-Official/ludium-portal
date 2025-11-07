@@ -1,17 +1,19 @@
 import { useCreateMilestoneV2Mutation } from '@/apollo/mutation/create-milestone-v2.generated';
+import { useContractsByApplicationV2Query } from '@/apollo/queries/contracts-by-application-v2.generated';
 import { useGetMilestonesV2Query } from '@/apollo/queries/milestones-v2.generated';
 import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
-import { useContractsByApplicationV2Query } from '@/apollo/queries/contracts-by-application-v2.generated';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ChatBox } from '@/components/chat/chat-box';
-import { HireButton } from '@/components/recruitment/hire-button';
+import { MarkdownPreviewer } from '@/components/markdown';
 import MarkdownEditor from '@/components/markdown/markdown-editor';
+import { ContractModal } from '@/components/recruitment/contract/contract-modal';
+import { HireButton } from '@/components/recruitment/hire-button';
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -25,26 +27,24 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { type ChatMessageFile, getAllFiles, getLatestMessage } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { toUTCString, fromUTCString, formatUTCDateLocal } from '@/lib/utils';
+import { formatUTCDateLocal, fromUTCString, toUTCString } from '@/lib/utils';
+import type { ContractInformation } from '@/types/recruitment';
 import {
   ApplicationStatusV2,
-  MilestoneStatusV2,
   type ApplicationV2,
+  MilestoneStatusV2,
   type MilestoneV2,
 } from '@/types/types.generated';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Folder, Image as ImageIcon, FileText } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import type { Timestamp } from 'firebase/firestore';
+import { FileText, Folder, Image as ImageIcon, Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import * as z from 'zod';
 import MessageListItem from './message-list-item';
-import { ContractInformation } from '@/types/recruitment';
-import { MarkdownPreviewer } from '@/components/markdown';
-import { ContractModal } from '@/components/recruitment/contract/contract-modal';
-import { getLatestMessage, getAllFiles, type ChatMessageFile } from '@/lib/firebase-chat';
-import type { Timestamp } from 'firebase/firestore';
 
 const milestoneFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),

@@ -13,7 +13,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import MainCommunityCard from '@/pages/main/_components/main-community-card';
 import ProgramCard from '@/pages/programs/_components/program-card';
-import { type Post, type Program } from '@/types/types.generated';
+import type { Post, Program } from '@/types/types.generated';
 import Autoplay from 'embla-carousel-autoplay';
 import { ArrowRight } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';

@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -5,11 +6,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { ContractModal } from './contract/contract-modal';
-import { useState } from 'react';
-import { ContractInformation } from '@/types/recruitment';
+import type { ContractInformation } from '@/types/recruitment';
 import { ApplicationStatusV2 } from '@/types/types.generated';
+import { useState } from 'react';
+import { ContractModal } from './contract/contract-modal';
 
 interface HireButtonProps {
   contractInformation: ContractInformation;

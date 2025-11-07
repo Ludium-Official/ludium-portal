@@ -115,6 +115,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
       networkId: programData?.programV2?.networkId ?? 0,
       price: programData?.programV2?.price ?? '',
       token_id: programData?.programV2?.token_id ?? 0,
+      status: programData?.programV2?.status ?? ProgramStatusV2.Open,
     },
   });
 
@@ -165,7 +166,12 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
         return date;
       })();
 
-    if (submitStatus === ProgramStatusV2.Open || currentStatus === ProgramStatusV2.Draft) {
+    console.log(currentStatus);
+    if (
+      submitStatus === ProgramStatusV2.Open &&
+      currentStatus !== ProgramStatusV2.Open &&
+      currentStatus === ProgramStatusV2.Draft
+    ) {
       const tokenInfo = availableTokens.find((token) => token.id === String(tokenId));
       const tokenAddress = tokenInfo?.tokenAddress || ethers.constants.AddressZero;
 

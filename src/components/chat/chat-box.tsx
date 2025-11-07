@@ -1,19 +1,21 @@
+import { useUserV2Query } from '@/apollo/queries/user-v2.generated';
 import contractLogo from '@/assets/icons/contract.svg';
 import ludiumAssignmentLogo from '@/assets/ludium-assignment.svg';
-import { useUserV2Query } from '@/apollo/queries/user-v2.generated';
+import { ContractModal } from '@/components/recruitment/contract/contract-modal';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import {
   type ChatMessage,
+  type Unsubscribe,
+  getNewMessages,
   loadInitialMessages,
   loadMoreMessages as loadMoreMessagesFromFirebase,
   sendMessage,
   subscribeToNewMessages,
-  getNewMessages,
-  type Unsubscribe,
 } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
+import notify from '@/lib/notify';
 import { cn, getUserDisplayName } from '@/lib/utils';
 import type { ApplicationV2 } from '@/types/types.generated';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -23,12 +25,10 @@ import {
   type QueryDocumentSnapshot,
   type Timestamp,
 } from 'firebase/firestore';
-import { Loader2, Send, X, Paperclip, File, Folder } from 'lucide-react';
+import { File, Folder, Loader2, Paperclip, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { ContractModal } from '@/components/recruitment/contract/contract-modal';
-import notify from '@/lib/notify';
 
 const messageFormSchema = z.object({
   message: z.string().optional(),
@@ -67,8 +67,8 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
     skip: !message.senderId || shouldUseApplicant || isMyMessage,
   });
 
-  let senderName: string = '';
-  let senderImage: string = '';
+  let senderName = '';
+  let senderImage = '';
 
   if (!isMyMessage) {
     if (shouldUseApplicant && applicant) {

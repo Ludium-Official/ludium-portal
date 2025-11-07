@@ -3,7 +3,7 @@ import { MarkdownPreviewer } from '@/components/markdown';
 import { Separator } from '@/components/ui/separator';
 import { useNetworks } from '@/contexts/networks-context';
 import { addDaysToDate, formatUTCDateLocal, getUserDisplayName } from '@/lib/utils';
-import { ContractFormProps } from '@/types/recruitment';
+import type { ContractFormProps } from '@/types/recruitment';
 import { MilestoneStatusV2 } from '@/types/types.generated';
 
 export function ContractForm({
@@ -257,14 +257,24 @@ export function ContractForm({
             <div className="text-sm font-semibold text-muted-foreground">Total price</div>
             <div className="text-sm">
               {contractJson.totalPrice === contractJson.pendingPrice ? (
-                `${contractJson.totalPrice} ${token?.tokenName}`
+                `${contractJson.totalPriceString || contractJson.totalPrice} ${token?.tokenName}`
               ) : (
                 <>
                   <span className="text-muted-foreground">
                     {contractJson.pendingPrice > 0 &&
-                      `You will pay only ${contractJson.pendingPrice} ${token?.tokenName}`}
+                      `You will pay only ${contractJson.pendingPriceString || contractJson.pendingPrice} ${token?.tokenName}`}
                   </span>
-                  {contractJson.totalPrice - contractJson.pendingPrice} {token?.tokenName}
+                  {contractJson.totalPriceString && contractJson.pendingPriceString
+                    ? (
+                        Number.parseFloat(contractJson.totalPriceString) -
+                        Number.parseFloat(contractJson.pendingPriceString)
+                      )
+                        .toFixed(6)
+                        .replace(/\.?0+$/, '')
+                    : (contractJson.totalPrice - contractJson.pendingPrice)
+                        .toFixed(6)
+                        .replace(/\.?0+$/, '')}{' '}
+                  {token?.tokenName}
                 </>
               )}
             </div>

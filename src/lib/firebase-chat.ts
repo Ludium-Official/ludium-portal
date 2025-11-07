@@ -17,7 +17,7 @@ import {
 } from 'firebase/firestore';
 
 export type { Unsubscribe };
-import { getDownloadURL, ref, uploadBytes, listAll, getMetadata } from 'firebase/storage';
+import { getDownloadURL, getMetadata, listAll, ref, uploadBytes } from 'firebase/storage';
 
 export interface ChatMessageFile {
   name: string;
@@ -257,7 +257,7 @@ export async function getAllFiles(chatRoomId: string): Promise<ChatMessageFile[]
       const downloadURL = await getDownloadURL(itemRef);
 
       const timestampMatch = itemRef.name.match(/^(\d+)_(.+)$/);
-      const timestamp = timestampMatch ? parseInt(timestampMatch[1], 10) : 0;
+      const timestamp = timestampMatch ? Number.parseInt(timestampMatch[1], 10) : 0;
       const originalName = timestampMatch ? timestampMatch[2] : itemRef.name;
 
       return {

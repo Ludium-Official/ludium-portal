@@ -2,7 +2,7 @@ import { useApplicationsByProgramV2Query } from '@/apollo/queries/applications-b
 import RecruitmentMessage from '@/components/recruitment/message/recruitment-message';
 import RecruitmentOverview from '@/components/recruitment/overview/recruitment-overview';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { type ApplicationsByProgramV2QueryInput } from '@/types/types.generated';
+import type { ApplicationsByProgramV2QueryInput } from '@/types/types.generated';
 import { ChevronLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';

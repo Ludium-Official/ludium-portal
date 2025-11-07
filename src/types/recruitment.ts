@@ -120,5 +120,7 @@ export interface ContractFormProps {
   applicant: UserV2;
   totalPrice: number;
   pendingPrice: number;
+  totalPriceString?: string;
+  pendingPriceString?: string;
   tokenId: number | null;
 }

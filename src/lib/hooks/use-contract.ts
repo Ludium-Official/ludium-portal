@@ -2,8 +2,8 @@ import { type ConnectedWallet, usePrivy, useWallets } from '@privy-io/react-auth
 import { ethers } from 'ethers';
 import type { Chain } from 'viem';
 import { http, createPublicClient } from 'viem';
-import { checkNetwork } from '../functions/checkNetwork';
 import RecruitmentContract from '../contract/recruitment-contract';
+import { checkNetwork } from '../functions/checkNetwork';
 
 async function getSigner(checkNetwork: Chain, currentWallet: ConnectedWallet) {
   const eip1193Provider = await currentWallet.getEthereumProvider();
@@ -46,10 +46,9 @@ export function useContract(network: string, contractAddress?: string) {
   if (isExternalWallet && activeWallet) {
     sendTx = async (input, _uiOptions?: unknown) => {
       try {
-        console.log('Sending transaction with external wallet...', input);
         const signer = await getSigner(checkNetwork(network), activeWallet);
         const txResponse = await signer.sendTransaction(input);
-        console.log('Transaction sent successfully:', txResponse.hash);
+
         return { hash: txResponse.hash as `0x${string}` };
       } catch (error) {
         console.error('Error sending transaction with external wallet:', error);
