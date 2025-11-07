@@ -1,27 +1,27 @@
-import { currencies, currencyIcons } from "@/constant/currencies";
+import { currencies, currencyIcons } from '@/constant/currencies';
 import {
   type Application,
   type Milestone,
   type Program,
   ProgramStatus,
   type User,
-} from "@/types/types.generated";
-import { type ClassValue, clsx } from "clsx";
-import { format } from "date-fns";
-import { twMerge } from "tailwind-merge";
+} from '@/types/types.generated';
+import { type ClassValue, clsx } from 'clsx';
+import { format } from 'date-fns';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
 const formatStatus = (status?: string | null) => {
-  if (!status) return "";
-  return `${status[0].toUpperCase()}${status.slice(1)}`.replace("_", " ");
+  if (!status) return '';
+  return `${status[0].toUpperCase()}${status.slice(1)}`.replace('_', ' ');
 };
 
 export function formatProgramStatus(program?: Program | null) {
-  if (!program?.status) return "";
-  if (program.status === ProgramStatus.Pending) return "Not confirmed";
+  if (!program?.status) return '';
+  if (program.status === ProgramStatus.Pending) return 'Not confirmed';
   return formatStatus(program.status);
 }
 
@@ -35,65 +35,55 @@ export function formatMilestoneStatus(milestone?: Milestone | null) {
 
 export function getInitials(name: string) {
   return name
-    .split(" ")
+    .split(' ')
     .map((part) => part[0])
-    .join("")
+    .join('')
     .toUpperCase();
 }
 
-export const reduceString = (
-  str: string,
-  from: number,
-  end: number
-): string => {
-  if (!str) return "-";
+export const reduceString = (str: string, from: number, end: number): string => {
+  if (!str) return '-';
   if (str.length <= from + end) return str;
   return `${str.substring(0, from)}...${str.substring(str.length - end)}`;
 };
 
 export const commaNumber = (num: number | string) => {
   const numStr = num.toString();
-  const [integer, decimal] = numStr.split(".");
-  const formattedInt = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const [integer, decimal] = numStr.split('.');
+  const formattedInt = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   return decimal ? `${formattedInt}.${decimal}` : formattedInt;
 };
 
 export const getUserName = (user?: User | null) => {
-  if (!user) return "";
+  if (!user) return '';
 
   if (user.firstName && user.lastName) {
     return `${user.firstName} ${user.lastName}`;
   }
 
-  return (
-    user.firstName ?? user.lastName ?? user.email ?? user.organizationName ?? ""
-  );
+  return user.firstName ?? user.lastName ?? user.email ?? user.organizationName ?? '';
 };
 
 export const getUserDisplayName = (
   firstName?: string | null,
   lastName?: string | null,
-  email?: string | null
+  email?: string | null,
 ): string => {
   if (firstName && lastName) {
     return `${firstName} ${lastName}`.trim();
   }
-  return email || "Unknown";
+  return email || 'Unknown';
 };
 
 export const mainnetDefaultNetwork =
-  import.meta.env.VITE_VERCEL_ENVIRONMENT === "mainnet"
-    ? "educhain"
-    : "educhain-testnet";
+  import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet' ? 'educhain' : 'educhain-testnet';
 
 export const getCurrency = (network?: string | null) => {
   return currencies.find((c) => c.code === network);
 };
 
 export const getCurrencyIcon = (currency?: string | null) => {
-  return currency
-    ? currencyIcons[currency as keyof typeof currencyIcons]
-    : null;
+  return currency ? currencyIcons[currency as keyof typeof currencyIcons] : null;
 };
 
 // Helper function to sort tierSettings entries
@@ -101,9 +91,9 @@ export const getCurrencyIcon = (currency?: string | null) => {
 // Pass reverse=false to sort in ascending order: bronze, silver, gold, platinum
 export const sortTierSettings = (
   tierSettings: Record<string, { enabled: boolean; maxAmount?: number }>,
-  reverse = true
+  reverse = true,
 ) => {
-  const TIER_ORDER = ["bronze", "silver", "gold", "platinum"];
+  const TIER_ORDER = ['bronze', 'silver', 'gold', 'platinum'];
   const tierOrder = reverse ? [...TIER_ORDER].reverse() : TIER_ORDER;
 
   return Object.entries(tierSettings).sort(([keyA], [keyB]) => {
@@ -114,8 +104,9 @@ export const sortTierSettings = (
 };
 
 const userAgent = navigator.userAgent || navigator.vendor;
-export const isMobileDevice =
-  /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent);
+export const isMobileDevice = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+  userAgent,
+);
 
 export const dDay = (deadline: Date) => {
   const deadlineDate = new Date(deadline);
@@ -125,45 +116,39 @@ export const dDay = (deadline: Date) => {
   today.setHours(0, 0, 0, 0);
 
   const diffTime = deadlineDate.getTime() - today.getTime();
-  const daysRemaining = Math.max(
-    0,
-    Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  );
+  const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
   return `D-${daysRemaining}`;
 };
 
 export const formatDate = (date: Date | string) => {
-  const dateObj = typeof date === "string" ? fromUTCString(date) : date;
-  if (!dateObj) return "";
-  return format(dateObj, "MMMM d, yyyy");
+  const dateObj = typeof date === 'string' ? fromUTCString(date) : date;
+  if (!dateObj) return '';
+  return format(dateObj, 'MMMM d, yyyy');
 };
 
-export const addDaysToDate = (
-  date: string | null | undefined,
-  days: number = 0
-): string => {
-  if (!date) return "YYYY-MM-DD";
+export const addDaysToDate = (date: string | null | undefined, days: number = 0): string => {
+  if (!date) return 'YYYY-MM-DD';
   try {
     const localDate = fromUTCString(date);
-    if (!localDate) return "YYYY-MM-DD";
+    if (!localDate) return 'YYYY-MM-DD';
     localDate.setDate(localDate.getDate() + days);
     return localDate.toLocaleDateString([], {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
     });
   } catch {
-    return "YYYY-MM-DD";
+    return 'YYYY-MM-DD';
   }
 };
 
 export const formatPrice = (price: string | number) => {
-  return Number.parseInt(price.toString()).toLocaleString("en-US");
+  return Number.parseInt(price.toString()).toLocaleString('en-US');
 };
 
 export const timeAgo = (date: Date | string) => {
-  const d = typeof date === "string" ? new Date(date) : date;
+  const d = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
   const diffInMs = now.getTime() - d.getTime();
   const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
@@ -174,33 +159,29 @@ export const timeAgo = (date: Date | string) => {
   const diffInYears = Math.floor(diffInDays / 365);
 
   if (diffInMinutes < 1) {
-    return "just now";
+    return 'just now';
   } else if (diffInMinutes < 60) {
-    return `${diffInMinutes} minute${diffInMinutes === 1 ? "" : "s"} ago`;
+    return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
   } else if (diffInHours < 24) {
-    return `${diffInHours} hour${diffInHours === 1 ? "" : "s"} ago`;
+    return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
   } else if (diffInDays < 7) {
-    return `${diffInDays} day${diffInDays === 1 ? "" : "s"} ago`;
+    return `${diffInDays} day${diffInDays === 1 ? '' : 's'} ago`;
   } else if (diffInWeeks < 4) {
-    return `${diffInWeeks} week${diffInWeeks === 1 ? "" : "s"} ago`;
+    return `${diffInWeeks} week${diffInWeeks === 1 ? '' : 's'} ago`;
   } else if (diffInMonths < 12) {
-    return `${diffInMonths} month${diffInMonths === 1 ? "" : "s"} ago`;
+    return `${diffInMonths} month${diffInMonths === 1 ? '' : 's'} ago`;
   } else {
-    return `${diffInYears} year${diffInYears === 1 ? "" : "s"} ago`;
+    return `${diffInYears} year${diffInYears === 1 ? '' : 's'} ago`;
   }
 };
 
-export const toUTCString = (
-  date: Date | string | null | undefined
-): string | undefined => {
+export const toUTCString = (date: Date | string | null | undefined): string | undefined => {
   if (!date) return undefined;
-  const dateObj = typeof date === "string" ? new Date(date) : date;
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
   return dateObj.toISOString();
 };
 
-export const fromUTCString = (
-  utcDateString: string | null | undefined
-): Date | null => {
+export const fromUTCString = (utcDateString: string | null | undefined): Date | null => {
   if (!utcDateString) return null;
   try {
     return new Date(utcDateString);
@@ -209,51 +190,43 @@ export const fromUTCString = (
   }
 };
 
-export const formatUTCDate = (
-  utcDateString: string | null | undefined
-): string => {
-  if (!utcDateString) return "";
+export const formatUTCDate = (utcDateString: string | null | undefined): string => {
+  if (!utcDateString) return '';
   const localDate = fromUTCString(utcDateString);
-  if (!localDate) return "";
-  return format(localDate, "MMMM d, yyyy");
+  if (!localDate) return '';
+  return format(localDate, 'MMMM d, yyyy');
 };
 
-export const formatUTCDateLocal = (
-  utcDateString: string | null | undefined
-): string => {
-  if (!utcDateString) return "YYYY-MM-DD";
+export const formatUTCDateLocal = (utcDateString: string | null | undefined): string => {
+  if (!utcDateString) return 'YYYY-MM-DD';
   const localDate = fromUTCString(utcDateString);
-  if (!localDate) return "YYYY-MM-DD";
+  if (!localDate) return 'YYYY-MM-DD';
   return localDate.toLocaleDateString([], {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
   });
 };
 
-export const formatUTCTime = (
-  utcDateString: string | null | undefined
-): string => {
-  if (!utcDateString) return "";
+export const formatUTCTime = (utcDateString: string | null | undefined): string => {
+  if (!utcDateString) return '';
   const localDate = fromUTCString(utcDateString);
-  if (!localDate) return "";
+  if (!localDate) return '';
   return localDate.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
+    hour: '2-digit',
+    minute: '2-digit',
   });
 };
 
-export const formatUTCDateTime = (
-  utcDateString: string | null | undefined
-): string => {
-  if (!utcDateString) return "";
+export const formatUTCDateTime = (utcDateString: string | null | undefined): string => {
+  if (!utcDateString) return '';
   const localDate = fromUTCString(utcDateString);
-  if (!localDate) return "";
+  if (!localDate) return '';
   return localDate.toLocaleString([], {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 };

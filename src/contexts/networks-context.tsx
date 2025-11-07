@@ -1,7 +1,7 @@
-import { useNetworksV2Query } from "@/apollo/queries/networks-v2.generated";
-import { useSmartContractsV2Query } from "@/apollo/queries/smart-contracts-v2.generated";
-import { useTokensV2Query } from "@/apollo/queries/tokens-v2.generated";
-import { type ReactNode, createContext, useContext, useMemo } from "react";
+import { useNetworksV2Query } from '@/apollo/queries/networks-v2.generated';
+import { useSmartContractsV2Query } from '@/apollo/queries/smart-contracts-v2.generated';
+import { useTokensV2Query } from '@/apollo/queries/tokens-v2.generated';
+import { type ReactNode, createContext, useContext, useMemo } from 'react';
 
 export type TokenInfo = {
   id: string;
@@ -32,9 +32,7 @@ interface NetworksContextType {
   contracts: SmartContractInfo[];
   loading: boolean;
   error: boolean;
-  getNetworkById: (
-    id: number | null | undefined
-  ) => NetworkWithTokens | undefined;
+  getNetworkById: (id: number | null | undefined) => NetworkWithTokens | undefined;
   getTokenById: (id: number | null | undefined) =>
     | {
         id: string;
@@ -43,14 +41,10 @@ interface NetworksContextType {
         tokenAddress: string;
       }
     | undefined;
-  getContractByNetworkId: (
-    networkId: number | null | undefined
-  ) => SmartContractInfo | undefined;
+  getContractByNetworkId: (networkId: number | null | undefined) => SmartContractInfo | undefined;
 }
 
-const NetworksContext = createContext<NetworksContextType | undefined>(
-  undefined
-);
+const NetworksContext = createContext<NetworksContextType | undefined>(undefined);
 
 export function NetworksProvider({ children }: { children: ReactNode }) {
   const {
@@ -157,17 +151,13 @@ export function NetworksProvider({ children }: { children: ReactNode }) {
     getContractByNetworkId,
   };
 
-  return (
-    <NetworksContext.Provider value={value}>
-      {children}
-    </NetworksContext.Provider>
-  );
+  return <NetworksContext.Provider value={value}>{children}</NetworksContext.Provider>;
 }
 
 export function useNetworks() {
   const context = useContext(NetworksContext);
   if (context === undefined) {
-    throw new Error("useNetworks must be used within a NetworksProvider");
+    throw new Error('useNetworks must be used within a NetworksProvider');
   }
   return context;
 }

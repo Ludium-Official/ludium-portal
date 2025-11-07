@@ -1,8 +1,8 @@
-import logo from "@/assets/logo.svg";
-import Notifications from "@/components/notifications";
+import logo from '@/assets/logo.svg';
+import Notifications from '@/components/notifications';
 
-import { useProfileV2Query } from "@/apollo/queries/profile-v2.generated";
-import { Button } from "@/components/ui/button";
+import { useProfileV2Query } from '@/apollo/queries/profile-v2.generated';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -10,36 +10,25 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { tokenAddresses } from "@/constant/token-address";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { useContract } from "@/lib/hooks/use-contract";
-import notify from "@/lib/notify";
-import {
-  commaNumber,
-  isMobileDevice,
-  mainnetDefaultNetwork,
-  reduceString,
-} from "@/lib/utils";
-import type { BalanceProps } from "@/types/asset";
-import { LoginTypeEnum } from "@/types/types.generated";
-import { usePrivy } from "@privy-io/react-auth";
-import { ethers } from "ethers";
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
-import { useNetworks } from "@/contexts/networks-context";
-import NetworkSelector from "../network-selector";
+} from '@/components/ui/dialog';
+import { tokenAddresses } from '@/constant/token-address';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { useContract } from '@/lib/hooks/use-contract';
+import notify from '@/lib/notify';
+import { commaNumber, isMobileDevice, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
+import type { BalanceProps } from '@/types/asset';
+import { LoginTypeEnum } from '@/types/types.generated';
+import { usePrivy } from '@privy-io/react-auth';
+import { ethers } from 'ethers';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
+import { useNetworks } from '@/contexts/networks-context';
+import NetworkSelector from '../network-selector';
 
 function Header() {
   const navigate = useNavigate();
 
-  const {
-    user,
-    authenticated,
-    login: privyLogin,
-    logout: privyLogout,
-    exportWallet,
-  } = usePrivy();
+  const { user, authenticated, login: privyLogin, logout: privyLogout, exportWallet } = usePrivy();
   const { login: authLogin, logout: authLogout } = useAuth();
 
   const [isMobile, setIsMobile] = useState(false);
@@ -53,13 +42,11 @@ function Header() {
 
   useEffect(() => {
     if (networksWithTokens.length > 0 && !networkId) {
-      const isMainnet = import.meta.env.VITE_VERCEL_ENVIRONMENT === "mainnet";
+      const isMainnet = import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet';
       const defaultNetwork = networksWithTokens.find((network) =>
         isMainnet
-          ? network.chainName.toLowerCase().includes("educhain") &&
-            network.mainnet
-          : network.chainName.toLowerCase().includes("educhain") &&
-            !network.mainnet
+          ? network.chainName.toLowerCase().includes('educhain') && network.mainnet
+          : network.chainName.toLowerCase().includes('educhain') && !network.mainnet,
       );
       if (defaultNetwork) {
         setNetworkId(defaultNetwork.id);
@@ -68,9 +55,7 @@ function Header() {
   }, [networksWithTokens, networkId]);
 
   const currentNetwork = networksWithTokens.find(
-    (n) =>
-      n.id === networkId ||
-      (!networkId && n.chainName === mainnetDefaultNetwork)
+    (n) => n.id === networkId || (!networkId && n.chainName === mainnetDefaultNetwork),
   );
   const network = currentNetwork?.chainName || mainnetDefaultNetwork;
   const contract = useContract(network);
@@ -79,27 +64,24 @@ function Header() {
   // Use ref to track previous network to prevent unnecessary re-fetches
   const prevNetworkRef = useRef<string>(network);
   const prevWalletRef = useRef<string | undefined>(walletInfo?.address);
-  const injectedWallet = user?.wallet?.connectorType !== "embedded";
+  const injectedWallet = user?.wallet?.connectorType !== 'embedded';
 
   const { data: profileData } = useProfileV2Query({
-    fetchPolicy: "cache-first",
+    fetchPolicy: 'cache-first',
     skip: !authenticated,
   });
 
   const fetchTokenBalance = async (
     contract: {
-      getAmount: (
-        tokenAddress: string,
-        walletAddress: string
-      ) => Promise<bigint>;
+      getAmount: (tokenAddress: string, walletAddress: string) => Promise<bigint>;
     },
     tokenAddress: string,
-    walletAddress: string
+    walletAddress: string,
   ): Promise<bigint | null> => {
     try {
       return (await contract.getAmount(tokenAddress, walletAddress)) as bigint;
     } catch (error) {
-      console.error("Error fetching token balance:", error);
+      console.error('Error fetching token balance:', error);
       return null;
     }
   };
@@ -109,8 +91,8 @@ function Header() {
       const loginType = user?.google
         ? LoginTypeEnum.Google
         : user?.farcaster
-        ? LoginTypeEnum.Farcaster
-        : LoginTypeEnum.Wallet;
+          ? LoginTypeEnum.Farcaster
+          : LoginTypeEnum.Wallet;
 
       privyLogin({ disableSignup: false });
 
@@ -122,8 +104,8 @@ function Header() {
         });
       }
     } catch (error) {
-      notify("Failed to login", "error");
-      console.error("Failed to login:", error);
+      notify('Failed to login', 'error');
+      console.error('Failed to login:', error);
     }
   };
 
@@ -132,13 +114,13 @@ function Header() {
       await authLogout();
       await privyLogout();
 
-      notify("Successfully logged out", "success");
-      await navigate("/");
+      notify('Successfully logged out', 'success');
+      await navigate('/');
 
       window.location.reload();
     } catch (error) {
-      notify("Error logging out", "error");
-      console.error("Error logging out:", error);
+      notify('Error logging out', 'error');
+      console.error('Error logging out:', error);
     }
   };
 
@@ -151,13 +133,11 @@ function Header() {
     const blur = Math.min(scrollY / MAX_SCROLL, 1) * MAX_BLUR;
 
     return {
-      backgroundColor: `rgba(255, 255, 255, ${
-        1 - opacity * BACKGROUND_OPACITY_FACTOR
-      })`,
+      backgroundColor: `rgba(255, 255, 255, ${1 - opacity * BACKGROUND_OPACITY_FACTOR})`,
       backdropFilter: `blur(${blur}px)`,
-      transform: isVisible ? "translateY(0)" : "translateY(-120%)",
+      transform: isVisible ? 'translateY(0)' : 'translateY(-120%)',
       transition:
-        "transform 0.3s ease-in-out, background-color 0.3s ease-in-out, backdrop-filter 0.3s ease-in-out",
+        'transform 0.3s ease-in-out, background-color 0.3s ease-in-out, backdrop-filter 0.3s ease-in-out',
     };
   };
 
@@ -180,20 +160,17 @@ function Header() {
       lastScrollY.current = currentScrollY;
     };
 
-    const scrollAreaViewport = document.getElementById(
-      "scroll-area-main-viewport"
-    );
+    const scrollAreaViewport = document.getElementById('scroll-area-main-viewport');
 
     if (scrollAreaViewport) {
-      scrollAreaViewport.addEventListener("scroll", handleScroll, {
+      scrollAreaViewport.addEventListener('scroll', handleScroll, {
         passive: true,
       });
-      return () =>
-        scrollAreaViewport.removeEventListener("scroll", handleScroll);
+      return () => scrollAreaViewport.removeEventListener('scroll', handleScroll);
     }
 
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -206,10 +183,7 @@ function Header() {
     const fetchBalances = async () => {
       if (!authenticated || !walletInfo?.address || !network) return;
 
-      if (
-        prevNetworkRef.current === network &&
-        prevWalletRef.current === walletInfo.address
-      ) {
+      if (prevNetworkRef.current === network && prevWalletRef.current === walletInfo.address) {
         return;
       }
 
@@ -217,34 +191,27 @@ function Header() {
       prevWalletRef.current = walletInfo.address;
 
       try {
-        const tokens =
-          tokenAddresses[network as keyof typeof tokenAddresses] || [];
+        const tokens = tokenAddresses[network as keyof typeof tokenAddresses] || [];
 
         const erc20Tokens = tokens.filter(
-          (token: { address: string }) =>
-            token.address !== ethers.constants.AddressZero
+          (token: { address: string }) => token.address !== ethers.constants.AddressZero,
         );
 
         const balancesPromises = erc20Tokens.map(
           (token: { address: string; decimal: number; name: string }) =>
-            fetchTokenBalance(contract, token.address, walletInfo.address).then(
-              (balance) => ({
-                name: token.name,
-                amount: balance,
-                decimal: token.decimal,
-              })
-            )
+            fetchTokenBalance(contract, token.address, walletInfo.address).then((balance) => ({
+              name: token.name,
+              amount: balance,
+              decimal: token.decimal,
+            })),
         );
 
         const ercBalances = await Promise.all(balancesPromises);
         const nativeBalance = await contract.getBalance(walletInfo.address);
 
-        setBalances([
-          { name: "Native", amount: nativeBalance, decimal: 18 },
-          ...ercBalances,
-        ]);
+        setBalances([{ name: 'Native', amount: nativeBalance, decimal: 18 }, ...ercBalances]);
       } catch (error) {
-        console.error("Error fetching token balances:", error);
+        console.error('Error fetching token balances:', error);
       }
     };
 
@@ -260,14 +227,14 @@ function Header() {
         <div className="flex items-center gap-4">
           <button
             type="button"
-            onClick={() => navigate("/")}
+            onClick={() => navigate('/')}
             className="cursor-pointer flex items-center w-[50px]"
           >
             <img src={logo} alt="Logo" className="h-8 w-auto" />
           </button>
           <button
             type="button"
-            onClick={() => navigate("/investments")}
+            onClick={() => navigate('/investments')}
             className="hover:bg-gray-50 transition-colors px-3 py-1 rounded-md text-sm font-medium text-gray-700 hover:text-primary"
           >
             Funding
@@ -292,18 +259,16 @@ function Header() {
                 <DialogTrigger asChild>
                   <Button className="bg-primary hover:bg-primary/90 h-fit">
                     <span className="hidden sm:inline">
-                      {profileData?.profileV2?.firstName &&
-                      profileData?.profileV2?.lastName
+                      {profileData?.profileV2?.firstName && profileData?.profileV2?.lastName
                         ? `${profileData.profileV2.firstName} ${profileData.profileV2.lastName}`
-                        : reduceString(walletInfo?.address || "", 6, 6)}
+                        : reduceString(walletInfo?.address || '', 6, 6)}
                     </span>
                     <span className="sm:hidden">
-                      {profileData?.profileV2?.firstName &&
-                      profileData?.profileV2?.lastName
+                      {profileData?.profileV2?.firstName && profileData?.profileV2?.lastName
                         ? `${profileData.profileV2.firstName.charAt(
-                            0
+                            0,
                           )}${profileData.profileV2.lastName.charAt(0)}`
-                        : reduceString(walletInfo?.address || "", 4, 4)}
+                        : reduceString(walletInfo?.address || '', 4, 4)}
                     </span>
                   </Button>
                 </DialogTrigger>
@@ -334,18 +299,13 @@ function Header() {
                                 key={balance.name}
                                 className="mb-2 flex flex-col sm:flex-row sm:justify-between"
                               >
-                                <span className="font-medium">
-                                  {balance.name}:
-                                </span>
+                                <span className="font-medium">{balance.name}:</span>
                                 <span className="break-all">
                                   {balance.amount !== null
                                     ? commaNumber(
-                                        ethers.utils.formatUnits(
-                                          balance.amount,
-                                          balance.decimal
-                                        )
+                                        ethers.utils.formatUnits(balance.amount, balance.decimal),
                                       )
-                                    : "Fetching..."}
+                                    : 'Fetching...'}
                                 </span>
                               </div>
                             );
@@ -353,24 +313,20 @@ function Header() {
                         </div>
                       </div>
                       <div className="border border-gray-border rounded-[10px] p-3 md:p-5">
-                        <div className="mb-3 text-sm md:text-base font-bold">
-                          Account
-                        </div>
+                        <div className="mb-3 text-sm md:text-base font-bold">Account</div>
                         {injectedWallet ? (
                           <div
                             className="cursor-pointer hover:underline text-sm md:text-base break-all"
                             onClick={() => {
-                              navigator.clipboard.writeText(
-                                walletInfo?.address || ""
-                              );
-                              notify("Copied address!", "success");
+                              navigator.clipboard.writeText(walletInfo?.address || '');
+                              notify('Copied address!', 'success');
                             }}
                           >
                             <span className="hidden sm:inline">
-                              {reduceString(walletInfo?.address || "", 8, 8)}
+                              {reduceString(walletInfo?.address || '', 8, 8)}
                             </span>
                             <span className="sm:hidden">
-                              {reduceString(walletInfo?.address || "", 6, 6)}
+                              {reduceString(walletInfo?.address || '', 6, 6)}
                             </span>
                           </div>
                         ) : (
@@ -382,10 +338,7 @@ function Header() {
                           </Button>
                         )}
                       </div>
-                      <Button
-                        className="w-full text-sm md:text-base"
-                        onClick={logout}
-                      >
+                      <Button className="w-full text-sm md:text-base" onClick={logout}>
                         Logout
                       </Button>
                     </DialogDescription>

@@ -1,9 +1,9 @@
-import contractLogo from "@/assets/icons/contract.svg";
-import ludiumAssignmentLogo from "@/assets/ludium-assignment.svg";
-import { useUserV2Query } from "@/apollo/queries/user-v2.generated";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import contractLogo from '@/assets/icons/contract.svg';
+import ludiumAssignmentLogo from '@/assets/ludium-assignment.svg';
+import { useUserV2Query } from '@/apollo/queries/user-v2.generated';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import {
   type ChatMessage,
   loadInitialMessages,
@@ -12,23 +12,23 @@ import {
   subscribeToNewMessages,
   getNewMessages,
   type Unsubscribe,
-} from "@/lib/firebase-chat";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { cn, getUserDisplayName } from "@/lib/utils";
-import type { ApplicationV2 } from "@/types/types.generated";
-import { zodResolver } from "@hookform/resolvers/zod";
+} from '@/lib/firebase-chat';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { cn, getUserDisplayName } from '@/lib/utils';
+import type { ApplicationV2 } from '@/types/types.generated';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   type DocumentData,
   Timestamp as FirestoreTimestamp,
   type QueryDocumentSnapshot,
   type Timestamp,
-} from "firebase/firestore";
-import { Loader2, Send, X, Paperclip, File, Folder } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { ContractModal } from "@/components/recruitment/contract/contract-modal";
-import notify from "@/lib/notify";
+} from 'firebase/firestore';
+import { Loader2, Send, X, Paperclip, File, Folder } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
+import { ContractModal } from '@/components/recruitment/contract/contract-modal';
+import notify from '@/lib/notify';
 
 const messageFormSchema = z.object({
   message: z.string().optional(),
@@ -49,12 +49,7 @@ interface MessageItemProps {
   application: ApplicationV2;
 }
 
-function MessageItem({
-  message,
-  timestamp,
-  applicant,
-  application,
-}: MessageItemProps) {
+function MessageItem({ message, timestamp, applicant, application }: MessageItemProps) {
   const { userId } = useAuth();
   const shouldUseApplicant = applicant && applicant.id === message.senderId;
   const isMyMessage = userId === message.senderId;
@@ -62,9 +57,9 @@ function MessageItem({
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   const { data: userData } = useUserV2Query({
@@ -72,35 +67,27 @@ function MessageItem({
     skip: !message.senderId || shouldUseApplicant || isMyMessage,
   });
 
-  let senderName: string = "";
-  let senderImage: string = "";
+  let senderName: string = '';
+  let senderImage: string = '';
 
   if (!isMyMessage) {
     if (shouldUseApplicant && applicant) {
-      const fullName = getUserDisplayName(
-        applicant.firstName,
-        applicant.lastName,
-        applicant.email
-      );
+      const fullName = getUserDisplayName(applicant.firstName, applicant.lastName, applicant.email);
       senderName = fullName;
-      senderImage = applicant.profileImage || "";
+      senderImage = applicant.profileImage || '';
     } else {
       const user = userData?.userV2;
-      const fullName = getUserDisplayName(
-        user?.firstName,
-        user?.lastName,
-        user?.email
-      );
+      const fullName = getUserDisplayName(user?.firstName, user?.lastName, user?.email);
       senderName = fullName;
-      senderImage = user?.profileImage || "";
+      senderImage = user?.profileImage || '';
     }
   }
 
   const getInitials = (name: string) => {
     return name
-      .split(" ")
+      .split(' ')
       .map((part) => part[0])
-      .join("")
+      .join('')
       .toUpperCase()
       .slice(0, 2);
   };
@@ -112,8 +99,8 @@ function MessageItem({
           <div className="flex items-center gap-2 mb-1">
             <span className="text-xs text-slate-400">
               {timestamp.toDate().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
+                hour: '2-digit',
+                minute: '2-digit',
               })}
             </span>
           </div>
@@ -121,9 +108,7 @@ function MessageItem({
           <div className="flex flex-col items-end space-y-2">
             {message.text && (
               <div className="rounded-lg px-4 py-2 bg-primary text-primary-foreground w-fit">
-                <p className="text-sm whitespace-pre-wrap break-words">
-                  {message.text}
-                </p>
+                <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
               </div>
             )}
             {message.files && message.files.length > 0 && (
@@ -133,7 +118,7 @@ function MessageItem({
                     key={index}
                     className="rounded-lg px-4 py-2 bg-primary text-primary-foreground w-fit"
                   >
-                    {file.type.startsWith("image/") ? (
+                    {file.type.startsWith('image/') ? (
                       <a
                         href={file.url}
                         target="_blank"
@@ -155,9 +140,7 @@ function MessageItem({
                       >
                         <Folder className="w-5 h-5 text-primary-foreground/70" />
                         <div className="flex flex-col">
-                          <span className="text-sm text-primary-foreground">
-                            {file.name}
-                          </span>
+                          <span className="text-sm text-primary-foreground">{file.name}</span>
                           <span className="text-xs text-primary-foreground/70">
                             {formatFileSize(file.size)}
                           </span>
@@ -177,42 +160,38 @@ function MessageItem({
   return (
     <div className="flex gap-3 items-start">
       <Avatar className="h-10 w-10">
-        <AvatarImage
-          src={isLudiumAssistant ? ludiumAssignmentLogo : senderImage}
-        />
-        <AvatarFallback className="text-sm">
-          {getInitials(senderName)}
-        </AvatarFallback>
+        <AvatarImage src={isLudiumAssistant ? ludiumAssignmentLogo : senderImage} />
+        <AvatarFallback className="text-sm">{getInitials(senderName)}</AvatarFallback>
       </Avatar>
 
       <div className="flex flex-col flex-1">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-sm font-semibold text-slate-700">
-            {isLudiumAssistant ? "Ludium Assistant" : senderName}
+            {isLudiumAssistant ? 'Ludium Assistant' : senderName}
           </span>
           <span className="text-xs text-slate-400">
             {timestamp.toDate().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
+              hour: '2-digit',
+              minute: '2-digit',
             })}
           </span>
         </div>
 
         <div className="space-y-2">
-          {message.senderId === "-1" || message.senderId === "-2" ? (
+          {message.senderId === '-1' || message.senderId === '-2' ? (
             <div
               className={cn(
-                "rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]",
-                isLudiumAssistant && "py-4 bg-white border border-primary"
+                'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
+                isLudiumAssistant && 'py-4 bg-white border border-primary',
               )}
             >
               <div>
                 <img src={contractLogo} alt="contract" className="mb-3" />
                 <div className="font-bold text-lg">Employment Contract</div>
                 <div className="mt-1 mb-5 font-semibold">
-                  {message.senderId === "-1"
-                    ? "Sponser sent a contract for review and signature."
-                    : "Builder sent a contract for review and signature."}
+                  {message.senderId === '-1'
+                    ? 'Sponser sent a contract for review and signature.'
+                    : 'Builder sent a contract for review and signature.'}
                 </div>
                 <Button
                   variant="lightPurple"
@@ -226,13 +205,13 @@ function MessageItem({
                 open={isContractModalOpen}
                 onOpenChange={setIsContractModalOpen}
                 contractInformation={{
-                  title: application.program?.title || "",
-                  programId: application.program?.id || "",
+                  title: application.program?.title || '',
+                  programId: application.program?.id || '',
                   sponsor: application.program?.sponsor || null,
                   applicant: application.applicant || null,
                   networkId: application.program?.networkId || null,
                   chatRoomId: application.chatroomMessageId || null,
-                  applicationId: application.id || "",
+                  applicationId: application.id || '',
                   applicationStatus: application.status || null,
                 }}
                 assistantId={message.senderId}
@@ -243,13 +222,11 @@ function MessageItem({
               {message.text && (
                 <div
                   className={cn(
-                    "rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]",
-                    isLudiumAssistant && "py-4 bg-white border border-primary"
+                    'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
+                    isLudiumAssistant && 'py-4 bg-white border border-primary',
                   )}
                 >
-                  <p className="text-sm whitespace-pre-wrap break-words">
-                    {message.text}
-                  </p>
+                  <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
                 </div>
               )}
               {message.files && message.files.length > 0 && (
@@ -258,11 +235,11 @@ function MessageItem({
                     <div
                       key={index}
                       className={cn(
-                        "rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit",
-                        isLudiumAssistant && "bg-white border border-primary"
+                        'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit',
+                        isLudiumAssistant && 'bg-white border border-primary',
                       )}
                     >
-                      {file.type.startsWith("image/") ? (
+                      {file.type.startsWith('image/') ? (
                         <a
                           href={file.url}
                           target="_blank"
@@ -284,9 +261,7 @@ function MessageItem({
                         >
                           <Folder className="w-5 h-5 text-slate-400" />
                           <div className="flex flex-col">
-                            <span className="text-sm text-slate-900">
-                              {file.name}
-                            </span>
+                            <span className="text-sm text-slate-900">{file.name}</span>
                             <span className="text-xs text-slate-400">
                               {formatFileSize(file.size)}
                             </span>
@@ -319,16 +294,13 @@ export function ChatBox({
   const [isSending, setIsSending] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [oldestDoc, setOldestDoc] =
-    useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [oldestDoc, setOldestDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [filePreviews, setFilePreviews] = useState<
-    { file: File; preview: string }[]
-  >([]);
+  const [filePreviews, setFilePreviews] = useState<{ file: File; preview: string }[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const prevchatRoomId = useRef<string>("");
+  const prevchatRoomId = useRef<string>('');
   const newestTimestampRef = useRef<Timestamp | null>(null);
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -338,13 +310,13 @@ export function ChatBox({
   const form = useForm<MessageFormData>({
     resolver: zodResolver(messageFormSchema),
     defaultValues: {
-      message: "",
+      message: '',
     },
   });
 
   useEffect(() => {
     const previews = selectedFiles
-      .filter((file) => file.type.startsWith("image/"))
+      .filter((file) => file.type.startsWith('image/'))
       .map((file) => ({
         file,
         preview: URL.createObjectURL(file),
@@ -368,7 +340,7 @@ export function ChatBox({
     const invalidFiles: File[] = [];
 
     files.forEach((file) => {
-      const isImage = file.type.startsWith("image/");
+      const isImage = file.type.startsWith('image/');
       const maxSize = isImage ? MAX_IMAGE_SIZE : MAX_FILE_SIZE;
 
       if (file.size > maxSize) {
@@ -379,16 +351,9 @@ export function ChatBox({
     });
 
     if (invalidFiles.length > 0) {
-      const fileType = invalidFiles[0].type.startsWith("image/")
-        ? "Image"
-        : "File";
-      const maxSize = invalidFiles[0].type.startsWith("image/")
-        ? "10MB"
-        : "50MB";
-      notify(
-        `${fileType} is too heavy. Maximum upload size is ${maxSize}.`,
-        "error"
-      );
+      const fileType = invalidFiles[0].type.startsWith('image/') ? 'Image' : 'File';
+      const maxSize = invalidFiles[0].type.startsWith('image/') ? '10MB' : '50MB';
+      notify(`${fileType} is too heavy. Maximum upload size is ${maxSize}.`, 'error');
     }
 
     if (validFiles.length > 0) {
@@ -396,7 +361,7 @@ export function ChatBox({
     }
 
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = '';
     }
   };
 
@@ -408,9 +373,9 @@ export function ChatBox({
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   useEffect(() => {
@@ -452,7 +417,7 @@ export function ChatBox({
         }
       })
       .catch((error) => {
-        console.error("❌ Error loading initial messages:", error);
+        console.error('❌ Error loading initial messages:', error);
       })
       .finally(() => {
         setIsLoading(false);
@@ -479,8 +444,8 @@ export function ChatBox({
         lastActivityRef.current = Date.now();
       },
       (error) => {
-        console.error("❌ Realtime subscription error:", error);
-      }
+        console.error('❌ Realtime subscription error:', error);
+      },
     );
 
     unsubscribeRef.current = unsubscribe;
@@ -490,17 +455,12 @@ export function ChatBox({
 
       if (timeSinceLastActivity > 60000 && newestTimestampRef.current) {
         try {
-          const newMessages = await getNewMessages(
-            chatRoomId,
-            newestTimestampRef.current
-          );
+          const newMessages = await getNewMessages(chatRoomId, newestTimestampRef.current);
 
           if (newMessages.length > 0) {
             setMessages((prev) => {
               const existingIds = new Set(prev.map((m) => m.id));
-              const uniqueNewMessages = newMessages.filter(
-                (m) => !existingIds.has(m.id)
-              );
+              const uniqueNewMessages = newMessages.filter((m) => !existingIds.has(m.id));
 
               if (uniqueNewMessages.length === 0) return prev;
 
@@ -512,7 +472,7 @@ export function ChatBox({
             lastActivityRef.current = Date.now();
           }
         } catch (error) {
-          console.error("❌ Error polling new messages:", error);
+          console.error('❌ Error polling new messages:', error);
         }
       }
     }, 30000);
@@ -538,11 +498,7 @@ export function ChatBox({
 
     try {
       const { messages: olderMessages, oldestDoc: newOldestDoc } =
-        await loadMoreMessagesFromFirebase(
-          chatRoomId,
-          oldestDoc,
-          totalMessages
-        );
+        await loadMoreMessagesFromFirebase(chatRoomId, oldestDoc, totalMessages);
 
       if (olderMessages.length === 0) {
         setHasMore(false);
@@ -559,7 +515,7 @@ export function ChatBox({
         setHasMore(false);
       }
     } catch (error) {
-      console.error("❌ Error loading more messages:", error);
+      console.error('❌ Error loading more messages:', error);
     } finally {
       setLoadingMore(false);
     }
@@ -574,16 +530,16 @@ export function ChatBox({
 
     try {
       const messageId = await sendMessage(
-        chatRoomId || "",
-        data.message?.trim() || "",
+        chatRoomId || '',
+        data.message?.trim() || '',
         userId,
-        selectedFiles.length > 0 ? selectedFiles : undefined
+        selectedFiles.length > 0 ? selectedFiles : undefined,
       );
 
       const newMessage: ChatMessage = {
         id: messageId,
-        chatRoomId: chatRoomId || "",
-        text: data.message?.trim() || "",
+        chatRoomId: chatRoomId || '',
+        text: data.message?.trim() || '',
         senderId: userId,
         timestamp: FirestoreTimestamp.now(),
         ...(selectedFiles.length > 0 && {
@@ -603,17 +559,17 @@ export function ChatBox({
       setSelectedFiles([]);
       setFilePreviews([]);
     } catch (error) {
-      console.error("❌ Error sending message:", error);
+      console.error('❌ Error sending message:', error);
     } finally {
       setIsSending(false);
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && e.shiftKey) {
+    if (e.key === 'Enter' && e.shiftKey) {
       return;
     }
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       form.handleSubmit(handleSendMessage)();
     }
@@ -631,22 +587,21 @@ export function ChatBox({
       date1.getDate() === date2.getDate();
 
     if (isSameDay(messageDate, today)) {
-      return "Today";
+      return 'Today';
     } else if (isSameDay(messageDate, yesterday)) {
-      return "Yesterday";
+      return 'Yesterday';
     } else {
       return messageDate.toLocaleDateString([], {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
       });
     }
   };
 
   const shouldShowDateLabel = (index: number) => {
     if (index === 0) return true;
-    if (!messages[index].timestamp || !messages[index - 1].timestamp)
-      return false;
+    if (!messages[index].timestamp || !messages[index - 1].timestamp) return false;
 
     const currentDate = messages[index].timestamp.toDate();
     const prevDate = messages[index - 1].timestamp.toDate();
@@ -692,7 +647,7 @@ export function ChatBox({
                   Loading...
                 </span>
               ) : (
-                "Load older messages"
+                'Load older messages'
               )}
             </Button>
           </div>
@@ -732,10 +687,7 @@ export function ChatBox({
 
       {chatRoomId && (
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSendMessage)}
-            className="p-4 border-t bg-slate-3"
-          >
+          <form onSubmit={form.handleSubmit(handleSendMessage)} className="p-4 border-t bg-slate-3">
             {selectedFiles.length > 0 && (
               <div className="mb-3 flex flex-wrap gap-2">
                 {selectedFiles.map((file, index) => {
@@ -763,9 +715,7 @@ export function ChatBox({
                           <File className="w-8 h-8 text-gray-400" />
                           <div className="flex-1 min-w-0">
                             <p className="text-xs truncate">{file.name}</p>
-                            <p className="text-xs text-gray-500">
-                              {formatFileSize(file.size)}
-                            </p>
+                            <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
                           </div>
                         </div>
                       )}
@@ -805,16 +755,13 @@ export function ChatBox({
                         rows={1}
                         className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px] overflow-y-auto w-full"
                         style={{
-                          height: "auto",
-                          minHeight: "40px",
+                          height: 'auto',
+                          minHeight: '40px',
                         }}
                         onInput={(e) => {
                           const target = e.target as HTMLTextAreaElement;
-                          target.style.height = "auto";
-                          target.style.height = `${Math.min(
-                            target.scrollHeight,
-                            120
-                          )}px`;
+                          target.style.height = 'auto';
+                          target.style.height = `${Math.min(target.scrollHeight, 120)}px`;
                         }}
                       />
                     </FormControl>
@@ -824,8 +771,7 @@ export function ChatBox({
               <Button
                 type="submit"
                 disabled={
-                  isSending ||
-                  (!form.watch("message")?.trim() && selectedFiles.length === 0)
+                  isSending || (!form.watch('message')?.trim() && selectedFiles.length === 0)
                 }
                 size="icon"
               >

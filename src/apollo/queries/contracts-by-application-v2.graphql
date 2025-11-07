@@ -15,4 +15,3 @@ query contractsByApplicationV2($applicationId: Int!, $pagination: PaginationInpu
     count
   }
 }
-
