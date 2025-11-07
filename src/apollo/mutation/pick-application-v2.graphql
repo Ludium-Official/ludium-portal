@@ -1,0 +1,20 @@
+mutation pickApplicationV2($id: ID!, $input: PickApplicationV2Input!) {
+  pickApplicationV2(id: $id, input: $input) {
+    id
+    status
+    picked
+    createdAt
+    updatedAt
+    applicant {
+      id
+      email
+      firstName
+      lastName
+      profileImage
+    }
+    program {
+      id
+      title
+    }
+  }
+}

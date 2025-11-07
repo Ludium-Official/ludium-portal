@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import { cn } from '@/lib/utils';
+import { LoginTypeEnum } from '@/types/types.generated';
 import { usePrivy } from '@privy-io/react-auth';
 import { ArrowRight, Settings, Wallet } from 'lucide-react';
 import { useState } from 'react';
@@ -56,12 +57,13 @@ function ProfilePage() {
 
       const loginType = (() => {
         const types = {
-          google: googleInfo,
-          farcaster: farcasterInfo,
+          [LoginTypeEnum.Google]: googleInfo,
+          [LoginTypeEnum.Farcaster]: farcasterInfo,
         };
 
         return (
-          (Object.keys(types) as Array<keyof typeof types>).find((key) => types[key]) || 'wallet'
+          (Object.keys(types) as Array<keyof typeof types>).find((key) => types[key]) ||
+          LoginTypeEnum.Wallet
         );
       })();
 

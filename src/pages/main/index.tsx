@@ -1,7 +1,6 @@
 import { useCarouselItemsQuery } from '@/apollo/queries/carousel-items.generated';
 import { usePostsQuery } from '@/apollo/queries/posts.generated';
-import { useProgramsQuery } from '@/apollo/queries/programs.generated';
-// import { useUsersQuery } from '@/apollo/queries/users.generated';
+import { useGetProgramsV2Query } from '@/apollo/queries/programs-v2.generated';
 import thumbnail from '@/assets/thumbnail.jpg';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,10 +12,8 @@ import {
 } from '@/components/ui/carousel';
 import { Skeleton } from '@/components/ui/skeleton';
 import MainCommunityCard from '@/pages/main/_components/main-community-card';
-import MainProgramCard from '@/pages/main/_components/main-program-card';
 import ProgramCard from '@/pages/programs/_components/program-card';
-// import MainUserCard from '@/pages/main/_components/main-user-card';
-import { type Post, type Program, ProgramType } from '@/types/types.generated';
+import type { Post, Program } from '@/types/types.generated';
 import Autoplay from 'embla-carousel-autoplay';
 import { ArrowRight } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -42,22 +39,29 @@ function MainPage() {
     };
   }, [api, onSelect]);
 
-  const { data: programsData, loading: programsLoading } = useProgramsQuery({
+  const { data: programsData, loading: programsLoading } = useGetProgramsV2Query({
     variables: {
       pagination: {
-        filter: [
-          {
-            field: 'status',
-            value: 'published',
-          },
-          {
-            field: 'visibility',
-            value: 'public',
-          },
-        ],
+        limit: 5,
       },
     },
   });
+  // const { data: programsData, loading: programsLoading } = useProgramsQuery({
+  //   variables: {
+  //     pagination: {
+  //       filter: [
+  //         {
+  //           field: 'status',
+  //           value: 'published',
+  //         },
+  //         {
+  //           field: 'visibility',
+  //           value: 'public',
+  //         },
+  //       ],
+  //     },
+  //   },
+  // });
 
   const { data: postsData, loading: postsLoading } = usePostsQuery({
     variables: {
@@ -180,18 +184,16 @@ function MainPage() {
               </Link>
             </div>
             <div className="flex gap-3 overflow-x-auto whitespace-nowrap pb-4 select-none -mx-4 md:mx-0 px-4 md:px-0">
-              {programsData?.programs?.data?.map((program) => {
-                if (program.type === ProgramType.Regular) {
-                  return (
-                    <Link
-                      to={`/programs/${program.id}`}
-                      className="min-w-[280px] md:min-w-[624px] hover:shadow-md transition-shadow"
-                    >
-                      <ProgramCard key={program.id} program={program} />
-                    </Link>
-                  );
-                }
-                return <MainProgramCard key={program.id} program={program} />;
+              {programsData?.programsV2?.data?.map((program) => {
+                return (
+                  <Link
+                    to={`/programs/${program.id}`}
+                    className="min-w-[280px] md:min-w-[624px] hover:shadow-md transition-shadow"
+                    key={program.id}
+                  >
+                    <ProgramCard key={program.id} program={program} />
+                  </Link>
+                );
               })}
             </div>
           </section>

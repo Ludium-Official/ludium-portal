@@ -1,28 +1,26 @@
 import type React from 'react';
 
 interface SvgIconProps {
-  width?: number;
-  height?: number;
+  size?: number;
   fill?: string;
   secondaryFill?: string;
 }
 
 const UsdcIcon: React.FC<SvgIconProps> = ({
-  width = 24,
-  height = 24,
+  size = 24,
   fill = '#2775CA',
   secondaryFill = 'white',
 }) => {
   return (
     // biome-ignore lint/a11y/noSvgWithoutTitle: <explanation>
     <svg
-      width={width}
-      height={height}
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <g clip-path="url(#clip0_3001_16901)">
+      <g clipPath="url(#clip0_3001_16901)">
         <path
           d="M12 24C14.3734 24 16.6935 23.2962 18.6669 21.9776C20.6403 20.6591 22.1783 18.7849 23.0866 16.5922C23.9948 14.3995 24.2325 11.9867 23.7695 9.65892C23.3064 7.33115 22.1635 5.19295 20.4853 3.51472C18.8071 1.83649 16.6689 0.693605 14.3411 0.230582C12.0133 -0.232441 9.60055 0.00519936 7.40784 0.913451C5.21512 1.8217 3.34098 3.35977 2.0224 5.33316C0.703824 7.30655 3.63305e-05 9.62663 3.63305e-05 12C-0.00384869 13.577 0.303889 15.1391 0.905569 16.5968C1.50725 18.0545 2.39101 19.3789 3.50609 20.4939C4.62117 21.609 5.94558 22.4928 7.40324 23.0945C8.8609 23.6962 10.4231 24.0039 12 24Z"
           fill={fill}

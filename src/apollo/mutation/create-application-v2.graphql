@@ -1,0 +1,19 @@
+mutation createApplicationV2($input: CreateApplicationV2Input!) {
+  createApplicationV2(input: $input) {
+    id
+    status
+    createdAt
+    updatedAt
+    applicant {
+      id
+      email
+      firstName
+      lastName
+      profileImage
+    }
+    program {
+      id
+      title
+    }
+  }
+}

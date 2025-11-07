@@ -1,0 +1,28 @@
+mutation CreateMilestoneV2($input: CreateMilestoneV2Input!) {
+  createMilestoneV2(input: $input) {
+    id
+    title
+    description
+    payout
+    deadline
+    createdAt
+    updatedAt
+    applicant {
+      id
+      walletAddress
+      email
+      firstName
+      lastName
+      profileImage
+      organizationName
+    }
+    program {
+      id
+      title
+      description
+      price
+      deadline
+      status
+    }
+  }
+}

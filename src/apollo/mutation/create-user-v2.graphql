@@ -1,0 +1,18 @@
+mutation createUserV2($input: CreateUserV2Input!) {
+  createUserV2(input: $input) {
+    id
+    role
+    loginType
+    walletAddress
+    email
+    firstName
+    lastName
+    organizationName
+    profileImage
+    bio
+    skills
+    links
+    createdAt
+    updatedAt
+  }
+}

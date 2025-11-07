@@ -1,0 +1,41 @@
+query applicationsByProgramV2($query: ApplicationsByProgramV2QueryInput!) {
+  applicationsByProgramV2(query: $query) {
+    data {
+      id
+      status
+      content
+      picked
+      createdAt
+      updatedAt
+      chatroomMessageId
+      applicant {
+        id
+        email
+        firstName
+        lastName
+        profileImage
+        organizationName
+        bio
+        skills
+        walletAddress
+      }
+      program {
+        id
+        title
+        description
+        networkId
+        sponsor {
+          id
+          firstName
+          lastName
+          email
+        }
+      }
+    }
+    count
+    totalPages
+    currentPage
+    hasNextPage
+    hasPreviousPage
+  }
+}

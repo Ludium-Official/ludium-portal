@@ -1,10 +1,10 @@
-import { useProfileQuery } from '@/apollo/queries/profile.generated';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useForm } from 'react-hook-form';
 
-import { useUpdateProfileMutation } from '@/apollo/mutation/updateProfile.generated';
+import { useUpdateProfileV2Mutation } from '@/apollo/mutation/update-profile-v2.generated';
+import { useProfileV2Query } from '@/apollo/queries/profile-v2.generated';
 import { MarkdownEditor } from '@/components/markdown';
 import { Badge } from '@/components/ui/badge';
 import SocialIcon from '@/components/ui/social-icon';
@@ -14,12 +14,10 @@ import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-// Social icon logic moved to SocialIcon component
-
 function EditProfilePage() {
   const navigate = useNavigate();
 
-  const { data: profileData, refetch } = useProfileQuery({
+  const { data: profileData, refetch } = useProfileV2Query({
     fetchPolicy: 'network-only',
   });
 
@@ -27,59 +25,54 @@ function EditProfilePage() {
   const [selectedTab, setSelectedTab] = useState<string>('overview');
 
   useEffect(() => {
-    if (profileData?.profile?.about) {
-      setContent(profileData?.profile?.about);
+    if (profileData?.profileV2?.bio) {
+      setContent(profileData?.profileV2?.bio);
     }
-    if (profileData?.profile?.image) {
-      setImagePreview(profileData?.profile?.image);
+    if (profileData?.profileV2?.profileImage) {
+      setImagePreview(profileData?.profileV2?.profileImage);
     }
   }, [profileData]);
 
   useEffect(() => {
-    const links = profileData?.profile?.links;
+    const links = profileData?.profileV2?.links;
     if (links?.length) {
-      setLinks(links?.filter((l) => l)?.map((l) => l.url ?? ''));
+      setLinks(links?.filter((l) => l));
     }
   }, [profileData]);
 
   const [links, setLinks] = useState<string[]>(['']);
 
-  const [updateProfile] = useUpdateProfileMutation();
+  const [updateProfile] = useUpdateProfileV2Mutation();
 
   const { register, handleSubmit, watch, setValue, getValues } = useForm<{
     email: string;
-    summary: string;
     name: string;
     firstName: string;
     lastName: string;
-    keywords: string[];
     roleKeywords: string[];
     skillKeywords: string[];
   }>({
     values: {
-      email: profileData?.profile?.email ?? '',
-      summary: profileData?.profile?.summary ?? '',
-      name: profileData?.profile?.organizationName ?? '',
-      firstName: profileData?.profile?.firstName ?? '',
-      lastName: profileData?.profile?.lastName ?? '',
-      keywords: profileData?.profile?.keywords?.map((k) => k.name || '') || [],
-      roleKeywords: profileData?.profile?.roleKeywords?.map((k) => k.name || '') || [],
-      skillKeywords: profileData?.profile?.skillKeywords?.map((k) => k.name || '') || [],
+      email: profileData?.profileV2?.email ?? '',
+      name: profileData?.profileV2?.organizationName ?? '',
+      firstName: profileData?.profileV2?.firstName ?? '',
+      lastName: profileData?.profileV2?.lastName ?? '',
+      roleKeywords: [],
+      skillKeywords: profileData?.profileV2?.skills || [],
     },
   });
 
-  const [selectedAvatar, setSelectedAvatar] = useState<File>();
+  // TODO: 이미지 backend에서 처리하는 것 확인
+  const [_selectedAvatar, setSelectedAvatar] = useState<File>();
   const [imageError, setImageError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [linksError, setLinksError] = useState(false);
 
   const onSubmit = (data: {
-    summary: string;
     name: string;
     email: string;
     firstName: string;
     lastName: string;
-    keywords: string[];
     roleKeywords: string[];
     skillKeywords: string[];
   }) => {
@@ -92,33 +85,15 @@ function EditProfilePage() {
     updateProfile({
       variables: {
         input: {
-          id: profileData?.profile?.id ?? '',
-          image: selectedAvatar,
           email: data.email,
           organizationName: data?.name,
-          summary: data?.summary,
           firstName: data?.firstName,
           lastName: data?.lastName,
-          about: content,
-          // Only send keywords if they've changed
-          ...(JSON.stringify(profileData?.profile?.keywords?.map((k) => k.name || '') || []) !==
-          JSON.stringify(data.keywords || [])
-            ? { keywords: data.keywords }
-            : {}),
-          ...(JSON.stringify(profileData?.profile?.roleKeywords?.map((k) => k.name || '') || []) !==
-          JSON.stringify(data.roleKeywords || [])
-            ? { roleKeywords: data.roleKeywords }
-            : {}),
-          ...(JSON.stringify(
-            profileData?.profile?.skillKeywords?.map((k) => k.name || '') || [],
-          ) !== JSON.stringify(data.skillKeywords || [])
-            ? { skillKeywords: data.skillKeywords }
-            : {}),
+          bio: content,
+          skills: data.skillKeywords,
           links: (() => {
             const { shouldSend } = validateLinks(links);
-            return shouldSend
-              ? filterEmptyLinks(links).map((l) => ({ title: l, url: l }))
-              : undefined;
+            return shouldSend ? filterEmptyLinks(links) : undefined;
           })(),
         },
       },
@@ -138,30 +113,18 @@ function EditProfilePage() {
   };
 
   const isNoChanges =
-    profileData?.profile?.summary === watch('summary') &&
-    profileData?.profile?.firstName === watch('firstName') &&
-    profileData?.profile?.lastName === watch('lastName') &&
-    profileData?.profile?.organizationName === watch('name') &&
-    profileData?.profile?.email === watch('email') &&
-    profileData?.profile?.about === content &&
-    JSON.stringify(profileData.profile.links?.map((l) => l.url)) === JSON.stringify(links) &&
-    JSON.stringify(profileData.profile.keywords?.map((k) => k.name || '') || []) ===
-      JSON.stringify(watch('keywords') || []) &&
-    JSON.stringify(profileData.profile.roleKeywords?.map((k) => k.name || '') || []) ===
-      JSON.stringify(watch('roleKeywords') || []) &&
-    JSON.stringify(profileData.profile.skillKeywords?.map((k) => k.name || '') || []) ===
+    profileData?.profileV2?.firstName === watch('firstName') &&
+    profileData?.profileV2?.lastName === watch('lastName') &&
+    profileData?.profileV2?.organizationName === watch('name') &&
+    profileData?.profileV2?.email === watch('email') &&
+    profileData?.profileV2?.bio === content &&
+    JSON.stringify(profileData?.profileV2?.links || []) === JSON.stringify(links) &&
+    JSON.stringify(profileData?.profileV2?.skills || []) ===
       JSON.stringify(watch('skillKeywords') || []);
 
-  // const [keywordInput, setKeywordInput] = useState<string>('');
   const [roleKeywordInput, setRoleKeywordInput] = useState<string>('');
   const [skillKeywordInput, setSkillKeywordInput] = useState<string>('');
 
-  // Unused functions - keeping for potential future use
-  // const _handleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   setKeywordInput(e.target.value);
-  // };
-
-  // const _handleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
   // Role keywords handlers
   const handleRoleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRoleKeywordInput(e.target.value);
@@ -537,25 +500,8 @@ function EditProfilePage() {
           </TabsContent>
 
           <TabsContent value="details">
-            <div className="bg-white px-10 py-6 rounded-lg mb-3">
-              <label htmlFor="summary" className="space-y-2 block">
-                <p className="text-sm font-medium">
-                  Summary <span className="text-primary">*</span>
-                </p>
-                <Input
-                  {...register('summary', {
-                    required: 'Summary is required.',
-                  })}
-                  id="summary"
-                  type="text"
-                  placeholder="Input text"
-                  className="h-10"
-                />
-              </label>
-            </div>
-
             <div className="px-10 py-6 bg-white rounded-lg">
-              <label htmlFor="description" className="space-y-2 block">
+              <label htmlFor="bio" className="space-y-2 block">
                 <p className="text-sm font-medium">
                   Description <span className="text-primary">*</span>
                 </p>

@@ -1,8 +1,3 @@
-import CreditCoinIcon from '@/assets/icons/crypto/creditcoin';
-import EduIcon from '@/assets/icons/crypto/edu';
-import EthIcon from '@/assets/icons/crypto/eth';
-import UsdcIcon from '@/assets/icons/crypto/usdc';
-import UsdtIcon from '@/assets/icons/crypto/usdt';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -10,87 +5,70 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useEffect, useMemo, useState } from 'react';
-
-export const sepoliaCurrencies = [{ code: 'ETH', icon: <EthIcon /> }];
-
-export const eduCurrencies = [
-  { code: 'EDU', icon: <EduIcon /> },
-  { code: 'USDT', icon: <UsdtIcon /> },
-  { code: 'USDC', icon: <UsdcIcon /> },
-];
-
-export const baseCurrencies = [
-  { code: 'ETH', icon: <EthIcon /> },
-  { code: 'USDT', icon: <UsdtIcon /> },
-  { code: 'USDC', icon: <UsdcIcon /> },
-];
-
-export const arbitrumCurrencies = [
-  { code: 'ETH', icon: <EthIcon /> },
-  { code: 'USDT', icon: <UsdtIcon /> },
-  { code: 'USDC', icon: <UsdcIcon /> },
-];
-
-export const creditcoinCurrencies = [{ code: 'CTC', icon: <CreditCoinIcon /> }];
+import { getTokenIcon } from '@/constant/network-icons';
+import type { TokenInfo } from '@/contexts/networks-context';
+import { ethers } from 'ethers';
+import { useEffect, useState } from 'react';
 
 function CurrencySelector({
   className,
   value,
   onValueChange,
-  network,
+  tokens,
   disabled,
 }: {
   className: string;
   value?: string | null;
   onValueChange?: (value: string) => void;
-  network: string;
+  tokens: TokenInfo[];
   disabled?: boolean;
 }) {
-  const [selectedCurrency, setSelectedCurrency] = useState(value ?? '');
-
-  const displayCurrencies = useMemo(() => {
-    if (network === 'sepolia') {
-      return sepoliaCurrencies;
-    }
-    if (network === 'base' || network === 'base-sepolia') {
-      return baseCurrencies;
-    }
-    if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
-      return arbitrumCurrencies;
-    }
-    if (network === 'creditcoin') {
-      return creditcoinCurrencies;
-    }
-
-    return eduCurrencies;
-  }, [network]);
+  const [selectedTokenId, setSelectedTokenId] = useState(value ?? '');
 
   useEffect(() => {
-    onValueChange?.(selectedCurrency);
-  }, [selectedCurrency]);
+    if (value !== undefined && value !== null && String(value) !== String(selectedTokenId)) {
+      setSelectedTokenId(value);
+    }
+  }, [value]);
 
   useEffect(() => {
-    setSelectedCurrency(
-      displayCurrencies.some((c) => c.code === selectedCurrency)
-        ? selectedCurrency
-        : displayCurrencies[0].code,
-    );
-  }, [displayCurrencies]);
+    if (tokens.length > 0) {
+      const isValid = tokens.some((t) => t.id === selectedTokenId);
+      if (!isValid) {
+        const nativeToken = tokens.find((t) => t.tokenAddress === ethers.constants.AddressZero);
 
-  const currWithIcon = displayCurrencies.find((c) => c.code === selectedCurrency);
+        const defaultToken = nativeToken || tokens[0];
+        onValueChange?.(defaultToken.id);
+      }
+    }
+  }, [tokens]);
+
+  const selectedToken = tokens.find((t) => t.id === selectedTokenId);
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild disabled={disabled}>
+      <DropdownMenuTrigger asChild disabled={disabled || tokens.length === 0}>
         <Button className={className}>
-          {currWithIcon?.icon} {currWithIcon?.code}
+          {selectedToken ? (
+            <>
+              {getTokenIcon(selectedToken.tokenName)} {selectedToken.tokenName}
+            </>
+          ) : (
+            'Select Token'
+          )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        {displayCurrencies.map((c) => (
-          <DropdownMenuItem onClick={() => setSelectedCurrency(c.code)} key={c.code}>
-            {c.icon} {c.code}
+      <DropdownMenuContent align="start" className="max-h-[300px] overflow-y-auto">
+        {tokens.map((token) => (
+          <DropdownMenuItem
+            key={token.id}
+            onClick={() => {
+              onValueChange?.(token.id);
+            }}
+          >
+            <span className="flex items-center gap-2">
+              {getTokenIcon(token.tokenName)} {token.tokenName}
+            </span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

@@ -1,0 +1,12 @@
+query networksV2($pagination: PaginationInput) {
+  networksV2(pagination: $pagination) {
+    data {
+      id
+      chainId
+      chainName
+      mainnet
+      exploreUrl
+    }
+    count
+  }
+}

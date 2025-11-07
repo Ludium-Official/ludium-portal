@@ -76,7 +76,7 @@ function MarkdownEditor({
   onChange,
   content,
 }: {
-  onChange: React.Dispatch<React.SetStateAction<string>>;
+  onChange: (value: string) => void;
   content: string;
 }) {
   const mdxRef = useRef<MDXEditorMethods>(null);
@@ -106,8 +106,8 @@ function MarkdownEditor({
     <MDXEditor
       ref={mdxRef}
       markdown={content}
-      className="overflow-auto max-h-[500px] border rounded-md"
-      contentEditableClassName="prose min-h-[300px] cursor-text w-full"
+      className="overflow-auto max-h-[600px] border rounded-md"
+      contentEditableClassName="prose min-h-[400px] cursor-text w-full"
       onChange={(value) => debouncedOnChange(value)}
       plugins={[
         listsPlugin(),

@@ -1,0 +1,15 @@
+mutation createProgramV2($input: CreateProgramV2Input!) {
+  createProgramV2(input: $input) {
+    title
+    description
+    skills
+    deadline
+    invitedMembers
+    status
+    visibility
+    networkId
+    price
+    token_id
+    status
+  }
+}

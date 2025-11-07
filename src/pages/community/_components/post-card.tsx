@@ -1,11 +1,9 @@
 import { useCommentsByCommentableQuery } from '@/apollo/queries/comments-by-commentable.generated';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/lib/hooks/use-auth';
 import { cn, getInitials, getUserName } from '@/lib/utils';
 import { CommentableTypeEnum, type Post } from '@/types/types.generated';
 import { format } from 'date-fns';
-import { Settings } from 'lucide-react';
 import { Link } from 'react-router';
 
 interface ExtendedPost extends Post {
@@ -19,7 +17,6 @@ interface PostCardProps {
 }
 
 function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
-  const { isSponsor } = useAuth();
   const { id, title, createdAt, summary } = post ?? {};
 
   const postId = id || '';
@@ -72,11 +69,6 @@ function PostCard({ post, variant = 'small', maxComments = 1 }: PostCardProps) {
                     </div>
                   ) : (
                     ''
-                  )}
-                  {isSponsor && (
-                    <Link to={`/community/${post?.id}/edit`} className="ml-2">
-                      <Settings className="w-4 h-4 inline" />
-                    </Link>
                   )}
                 </div>
               </div>

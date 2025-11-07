@@ -1,0 +1,36 @@
+query GetMilestonesV2($query: MilestonesV2QueryInput) {
+  milestonesV2(query: $query) {
+    count
+    currentPage
+    totalPages
+    hasNextPage
+    hasPreviousPage
+    data {
+      id
+      title
+      description
+      payout
+      deadline
+      createdAt
+      updatedAt
+      status
+      applicant {
+        id
+        walletAddress
+        email
+        firstName
+        lastName
+        profileImage
+        organizationName
+      }
+      program {
+        id
+        title
+        description
+        price
+        deadline
+        status
+      }
+    }
+  }
+}

@@ -2,39 +2,35 @@ import loadingGif from '@/assets/icons/loading.gif';
 import Footer from '@/components/layout/footer';
 import Header from '@/components/layout/header';
 import Sidebar from '@/components/layout/sidebar';
+import MobileWebView from '@/components/mobile-web-view';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { isMobileDevice } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Outlet, useLocation } from 'react-router';
-import MobileWebView from '../mobile-web-view';
 
 function Layout() {
+  const location = useLocation();
+
   const [isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(true);
-  const location = useLocation();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const currentPath = location.pathname;
-    const userAgent = navigator.userAgent || navigator.vendor;
-    const isMobileDevice = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
-      userAgent,
-    );
 
-    // Only main page and pages starting with "investments" should NOT be mobile IF it's a mobile device
     const isMainPage = currentPath === '/' || currentPath === '';
-    const isInvestmentsPage =
+    const isOnlyMobilePage =
       currentPath.startsWith('/investments') || currentPath.startsWith('/my-profile');
 
-    if ((isMainPage || isInvestmentsPage) && isMobileDevice) {
+    if ((isMainPage || isOnlyMobilePage) && isMobileDevice) {
       setIsMobile(false);
     } else if (isMobileDevice) {
       setIsMobile(true);
-    } else {
-      setIsMobile(false);
     }
 
     setLoading(false);
-  }, [location.pathname]);
+  }, [location]);
 
   return (
     <>
@@ -47,23 +43,30 @@ function Layout() {
           {isMobile ? (
             <MobileWebView />
           ) : (
-            <>
-              <div className="hidden md:block">
-                <Sidebar />
+            <div className="md:max-w-[1920px] md:mx-auto md:flex md:gap-3 md:p-3">
+              <div
+                className={`hidden md:block md:flex-shrink-0 transition-all duration-300 ${
+                  sidebarCollapsed ? 'md:w-[72px]' : 'md:w-[216px]'
+                }`}
+              >
+                <Sidebar
+                  isCollapsed={sidebarCollapsed}
+                  onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+                />
               </div>
               <ScrollArea
                 id="scroll-area-main"
-                className="bg-gray-light h-[calc(100dvh-24px)] rounded-2xl m-3 md:ml-[240px] flex flex-col gap-3 relative"
+                className="bg-gray-light h-[calc(100dvh-24px)] rounded-2xl m-3 md:m-0 md:flex-1 flex flex-col gap-3 relative"
               >
                 <div className="relative">
                   <Header />
-                  <div className="pt-20 pb-3 rounded-2xl overflow-hidden">
+                  <div className="pt-3 pb-3 rounded-2xl overflow-hidden">
                     <Outlet />
                   </div>
                 </div>
                 <Footer />
               </ScrollArea>
-            </>
+            </div>
           )}
           <Toaster />
         </>

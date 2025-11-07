@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Button } from '../ui/button';
-import { Loader2, CheckCircle } from 'lucide-react';
-import notify from '@/lib/notify';
 import { useGenerateSwappedUrlMutation } from '@/apollo/mutation/generate-swapped-url.generated';
 import { useGetSwappedStatusQuery } from '@/apollo/queries/get-swapped-status.generated';
+import notify from '@/lib/notify';
 import { usePrivy } from '@privy-io/react-auth';
+import { CheckCircle, Loader2 } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Button } from '../ui/button';
 
 interface SwappedInvestmentProps {
   currencyCode?: string;
@@ -30,7 +31,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
   const [processingInvestment, setProcessingInvestment] = useState(false);
 
   const realAmount = useMemo(() => {
-    const numericAmount = parseFloat(amount);
+    const numericAmount = Number.parseFloat(amount);
     if (isNaN(numericAmount)) return amount;
 
     const amountWithFee = numericAmount * 1.01;

@@ -1,0 +1,27 @@
+query GetProgramsBySponsorV2($sponsorId: ID!, $pagination: PaginationInput) {
+  programsBysponsorIdV2(sponsorId: $sponsorId, pagination: $pagination) {
+    data {
+      id
+      title
+      description
+      price
+      createdAt
+      deadline
+      status
+      sponsor {
+        id
+        walletAddress
+        email
+      }
+      network {
+        id
+        chainName
+      }
+      token {
+        id
+        tokenName
+      }
+    }
+    count
+  }
+}

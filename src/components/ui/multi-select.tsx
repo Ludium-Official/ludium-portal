@@ -201,17 +201,6 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
       setIsPopoverOpen((prev) => !prev);
     };
 
-    const toggleAll = () => {
-      if (selectedValues?.length === options?.length) {
-        handleClear();
-      } else {
-        const allValues = options.map((option) => option.value);
-        setSelectedValues(allValues);
-        setSelectedItems?.(options);
-        onValueChange(allValues);
-      }
-    };
-
     return (
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen} modal={modalPopover}>
         <PopoverTrigger asChild>
@@ -301,48 +290,37 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
             </CommandEmpty>
             <CommandList>
               <CommandGroup>
-                {options?.length > 0 && !inputValue && (
-                  <CommandItem key="all" onSelect={toggleAll} className="cursor-pointer">
-                    <div
-                      className={cn(
-                        'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
-                        selectedValues?.length === options?.length
-                          ? 'bg-gray-dark text-primary-foreground'
-                          : 'opacity-50 [&_svg]:invisible',
-                      )}
-                    >
-                      <CheckIcon className="h-4 w-4" />
-                    </div>
-                    <span>(Select All)</span>
-                  </CommandItem>
-                )}
-
-                {selectedItems?.map((option) => {
-                  // const option = options.find(o => o.value === opt)
-                  // const isSelected = selectedValues?.includes(option.value);
-                  return (
-                    <CommandItem
-                      value={option?.value}
-                      key={option?.value}
-                      onSelect={() => toggleOption(option?.value ?? '', option?.label ?? '')}
-                      className="cursor-pointer"
-                    >
-                      <div
-                        className={cn(
-                          'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
-                          // isSelected
-                          //   ?
-                          'bg-gray-dark text-primary-foreground',
-                          // :
-                          // 'opacity-50 [&_svg]:invisible',
-                        )}
+                {selectedItems
+                  ?.filter((option) => {
+                    if (!inputValue) return true;
+                    return option?.label?.toLowerCase().includes(inputValue.toLowerCase());
+                  })
+                  .map((option) => {
+                    // const option = options.find(o => o.value === opt)
+                    // const isSelected = selectedValues?.includes(option.value);
+                    return (
+                      <CommandItem
+                        value={option?.value}
+                        key={option?.value}
+                        onSelect={() => toggleOption(option?.value ?? '', option?.label ?? '')}
+                        className="cursor-pointer"
                       >
-                        <CheckIcon className="h-4 w-4" />
-                      </div>
-                      <span>{option?.label}</span>
-                    </CommandItem>
-                  );
-                })}
+                        <div
+                          className={cn(
+                            'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-gray-dark',
+                            // isSelected
+                            //   ?
+                            'bg-gray-dark text-primary-foreground',
+                            // :
+                            // 'opacity-50 [&_svg]:invisible',
+                          )}
+                        >
+                          <CheckIcon className="h-4 w-4" />
+                        </div>
+                        <span>{option?.label}</span>
+                      </CommandItem>
+                    );
+                  })}
                 {options
                   .filter((o) => !selectedValues.includes(o.value))
                   .map((option) => {

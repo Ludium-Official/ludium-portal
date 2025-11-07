@@ -1,5 +1,4 @@
 import { useProfileQuery } from '@/apollo/queries/profile.generated';
-// import { useUserQuery } from '@/apollo/queries/user.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
 import NetworkSelector from '@/components/network-selector';
 import { Badge } from '@/components/ui/badge';
@@ -8,14 +7,15 @@ import { Separator } from '@/components/ui/separator';
 import { ShareButton } from '@/components/ui/share-button';
 import SocialIcon from '@/components/ui/social-icon';
 import { tokenAddresses } from '@/constant/token-address';
-import type ChainContract from '@/lib/contract';
+import { useNetworks } from '@/contexts/networks-context';
+import type RecruitmentContract from '@/lib/contract/recruitment-contract';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import { cn, commaNumber, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
+import type { BalanceProps } from '@/types/asset';
 import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
-// import { Separator } from '@radix-ui/react-dropdown-menu';
 import { ArrowUpRight, Building2, CircleCheck, Settings, Sparkle, UserCog } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router';
@@ -29,7 +29,6 @@ const adminLinks = [
 ];
 
 function MyProfilePage() {
-  // const { id } = useParams();
   const { isAdmin, isLoggedIn, isSuperadmin } = useAuth();
   const { user: privyUser, exportWallet, authenticated } = usePrivy();
   const walletInfo = privyUser?.wallet;
@@ -42,21 +41,14 @@ function MyProfilePage() {
     }
   }, [isLoggedIn]);
 
-  const [network, setNetwork] = useState(mainnetDefaultNetwork);
+  const [balances, setBalances] = useState<BalanceProps[]>([]);
+  const [networkId, setNetworkId] = useState<string | null>(null);
 
-  const [balances, setBalances] = useState<
-    { name: string; amount: bigint | null; decimal: number }[]
-  >([]);
+  const { networks: networksWithTokens } = useNetworks();
 
   const { data: profileData } = useProfileQuery({
     fetchPolicy: 'network-only',
   });
-
-  // const { data: userData } = useUserQuery({
-  //   variables: {
-  //     id: id ?? '',
-  //   },
-  // });
 
   const user = profileData?.profile;
 
@@ -68,10 +60,14 @@ function MyProfilePage() {
     !user?.summary?.trim() ||
     !user?.about?.trim();
 
+  const currentNetwork = networksWithTokens.find(
+    (n) => n.id === networkId || (!networkId && n.chainName === mainnetDefaultNetwork),
+  );
+  const network = currentNetwork?.chainName || mainnetDefaultNetwork;
   const contract = useContract(network);
 
   const callTokenBalance = async (
-    contract: ChainContract,
+    contract: RecruitmentContract,
     tokenAddress: string,
     walletAddress: string,
   ): Promise<bigint | null> => {
@@ -86,6 +82,20 @@ function MyProfilePage() {
   };
 
   useEffect(() => {
+    if (networksWithTokens.length > 0 && !networkId) {
+      const isMainnet = import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet';
+      const defaultNetwork = networksWithTokens.find((network) =>
+        isMainnet
+          ? network.chainName.toLowerCase().includes('educhain') && network.mainnet
+          : network.chainName.toLowerCase().includes('educhain') && !network.mainnet,
+      );
+      if (defaultNetwork) {
+        setNetworkId(defaultNetwork.id);
+      }
+    }
+  }, [networksWithTokens, networkId]);
+
+  useEffect(() => {
     const fetchBalances = async () => {
       if (!authenticated || !walletInfo?.address) return;
 
@@ -94,8 +104,7 @@ function MyProfilePage() {
 
         // Filter out native token (0x0000...0000) as it's not an ERC20 contract
         const erc20Tokens = tokens.filter(
-          (token: { address: string }) =>
-            token.address !== '0x0000000000000000000000000000000000000000',
+          (token: { address: string }) => token.address !== ethers.constants.AddressZero,
         );
 
         const balancesPromises = erc20Tokens.map(
@@ -178,10 +187,6 @@ function MyProfilePage() {
                   Complete Your Profile
                 </p>
               )}
-              {/* <Button variant={'outline'} className="h-11">
-                <p className="font-medium text-sm text-gray-dark">Share</p>
-                <Share2Icon />
-              </Button> */}
             </div>
             <Separator />
             <div className="flex flex-col gap-2 px-6">
@@ -229,8 +234,11 @@ function MyProfilePage() {
                   </div>
                   <div>
                     <NetworkSelector
-                      value={network}
-                      onValueChange={setNetwork}
+                      value={networkId || undefined}
+                      onValueChange={(value: string) => {
+                        setNetworkId(value);
+                      }}
+                      networks={networksWithTokens}
                       className="w-[150px] h-9"
                     />
                   </div>
@@ -248,12 +256,6 @@ function MyProfilePage() {
                             ? commaNumber(ethers.utils.formatUnits(balance.amount, balance.decimal))
                             : 'Fetching...'}
                         </p>
-                        {/* {balance.name}:{' '}
-                        {balance.amount !== null
-                          ? commaNumber(
-                            ethers.utils.formatUnits(balance.amount, balance.decimal),
-                          )
-                          : 'Fetching...'} */}
                       </div>
                     );
                   })}
@@ -322,7 +324,6 @@ function MyProfilePage() {
                     {user?.links?.length ? (
                       user.links.map((link, index) => {
                         return (
-                          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                           <div key={index} className="flex items-center gap-2">
                             <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
                               <SocialIcon
@@ -330,16 +331,6 @@ function MyProfilePage() {
                                 className="w-4 h-4 text-secondary-foreground"
                               />
                             </div>
-                            {/* {platform && (
-                              <div className="flex items-center justify-center h-10 w-10 rounded-md bg-secondary">
-                                <img
-                                  src={platform.icon}
-                                  width={16}
-                                  height={16}
-                                  alt={platform.alt}
-                                />
-                              </div>
-                            )} */}
                             <a
                               target="_blank"
                               href={link.url || '#'}

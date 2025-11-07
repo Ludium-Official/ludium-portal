@@ -1,0 +1,18 @@
+mutation deleteApplicationV2($id: ID!) {
+  deleteApplicationV2(id: $id) {
+    id
+    status
+    createdAt
+    updatedAt
+    applicant {
+      id
+      email
+      firstName
+      lastName
+    }
+    program {
+      id
+      title
+    }
+  }
+}

@@ -1,9 +1,13 @@
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import * as React from 'react';
 
-import { type ButtonProps, buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import type { PaginationLinkProps, PaginationProps } from '@/types/pagination';
 import { useSearchParams } from 'react-router';
+
+export const PageSize = 5;
+const maxVisible = 4;
 
 const PaginationRoot = ({ className, ...props }: React.ComponentProps<'nav'>) => (
   <nav
@@ -26,19 +30,17 @@ const PaginationItem = React.forwardRef<HTMLLIElement, React.ComponentProps<'li'
 );
 PaginationItem.displayName = 'PaginationItem';
 
-type PaginationLinkProps = {
-  isActive?: boolean;
-} & Pick<ButtonProps, 'size'> &
-  React.ComponentProps<'a'>;
-
 const PaginationLink = ({ className, isActive, size = 'icon', ...props }: PaginationLinkProps) => (
-  <a
+  <button
+    type="button"
     aria-current={isActive ? 'page' : undefined}
+    aria-label={isActive ? `Current page, page ${props.children}` : `Go to page ${props.children}`}
     className={cn(
       buttonVariants({
         variant: isActive ? 'outline' : 'ghost',
         size,
       }),
+      'cursor-pointer',
       className,
     )}
     {...props}
@@ -87,48 +89,107 @@ const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<'span'
 );
 PaginationEllipsis.displayName = 'PaginationEllipsis';
 
-const Pagination = ({ totalCount, pageSize }: { totalCount: number; pageSize?: number }) => {
-  const totalPages = totalCount ? Math.floor((totalCount - 1) / (pageSize ?? PageSize) + 1) : 0;
-
+const Pagination = ({ totalCount, pageSize }: PaginationProps) => {
   const [searchParams, setSearchParams] = useSearchParams();
+
   const currentPage = Number(searchParams.get('page')) || 1;
-
-  const goToPage = (page: number) => {
-    const newSP = new URLSearchParams(searchParams);
-
-    newSP.set('page', page.toString());
-    setSearchParams(newSP);
-  };
+  const totalPages = totalCount ? Math.floor((totalCount - 1) / (pageSize ?? PageSize) + 1) : 0;
 
   if (totalPages <= 1) {
     return null;
   }
+
+  const goToPage = (page: number) => {
+    const newSP = new URLSearchParams(searchParams);
+    newSP.set('page', page.toString());
+    setSearchParams(newSP);
+  };
+
+  const visiblePages = (() => {
+    const halfVisible = Math.floor(maxVisible / 2);
+
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+
+    let start = Math.max(1, currentPage - halfVisible);
+    const end = Math.min(totalPages, start + maxVisible - 1);
+
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  })();
+
+  const showStartEllipsis = visiblePages[0] > 2;
+  const showEndEllipsis = visiblePages[visiblePages.length - 1] < totalPages - 1;
 
   return (
     <PaginationRoot>
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
-            className="max-h-9"
+            className={cn('max-h-9', currentPage === 1 && 'pointer-events-none opacity-50')}
             onClick={() => goToPage(Math.max(currentPage - 1, 1))}
           />
         </PaginationItem>
-        {totalPages &&
-          Array.from({ length: totalPages })?.map((_, idx) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-            <PaginationItem key={idx}>
-              <PaginationLink
-                isActive={currentPage === idx + 1}
-                className="aria-[current]:bg-primary-light border-none aria-[current]:text-primary"
-                onClick={() => goToPage(idx + 1)}
-              >
-                {idx + 1}
-              </PaginationLink>
-            </PaginationItem>
-          ))}
+
+        {visiblePages[0] > 1 && (
+          <PaginationItem>
+            <PaginationLink
+              isActive={currentPage === 1}
+              className="aria-[current]:bg-[var(--primary-light)] border-none aria-[current]:text-primary"
+              onClick={() => goToPage(1)}
+            >
+              1
+            </PaginationLink>
+          </PaginationItem>
+        )}
+
+        {showStartEllipsis && (
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
+        )}
+
+        {visiblePages.map((pageNum) => (
+          <PaginationItem key={pageNum}>
+            <PaginationLink
+              isActive={currentPage === pageNum}
+              className="aria-[current]:bg-[var(--primary-light)] border-none aria-[current]:text-primary"
+              onClick={() => goToPage(pageNum)}
+            >
+              {pageNum}
+            </PaginationLink>
+          </PaginationItem>
+        ))}
+
+        {showEndEllipsis && (
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
+        )}
+
+        {/* Last page */}
+        {visiblePages[visiblePages.length - 1] < totalPages && (
+          <PaginationItem>
+            <PaginationLink
+              isActive={currentPage === totalPages}
+              className="aria-[current]:bg-[var(--primary-light)] border-none aria-[current]:text-primary"
+              onClick={() => goToPage(totalPages)}
+            >
+              {totalPages}
+            </PaginationLink>
+          </PaginationItem>
+        )}
+
         <PaginationItem>
           <PaginationNext
-            className="max-h-9"
+            className={cn(
+              'max-h-9',
+              currentPage === totalPages && 'pointer-events-none opacity-50',
+            )}
             onClick={() => goToPage(Math.min(currentPage + 1, totalPages))}
           />
         </PaginationItem>
@@ -137,8 +198,6 @@ const Pagination = ({ totalCount, pageSize }: { totalCount: number; pageSize?: n
   );
 };
 Pagination.displayName = 'Pagination';
-
-export const PageSize = 5;
 
 export {
   Pagination,

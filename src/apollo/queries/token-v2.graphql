@@ -1,0 +1,8 @@
+query tokenV2($id: ID!) {
+  tokenV2(id: $id) {
+    id
+    chainInfoId
+    tokenName
+    tokenAddress
+  }
+}

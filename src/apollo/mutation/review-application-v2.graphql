@@ -1,0 +1,20 @@
+mutation reviewApplicationV2($id: ID!, $input: ReviewApplicationV2Input!) {
+  reviewApplicationV2(id: $id, input: $input) {
+    id
+    status
+    rejectedReason
+    createdAt
+    updatedAt
+    applicant {
+      id
+      email
+      firstName
+      lastName
+      profileImage
+    }
+    program {
+      id
+      title
+    }
+  }
+}

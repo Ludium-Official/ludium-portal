@@ -2,14 +2,15 @@ subscription notifications($input: PaginationInput) {
   notifications(pagination: $input) {
     count
     data {
-      action
-      content
-      entityId
       id
+      title
+      content
+      type
+      action
+      entityId
       metadata
       readAt
-      title
-      type
+      createdAt
     }
   }
 }

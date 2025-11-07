@@ -1,0 +1,36 @@
+query GetProgramsV2($pagination: PaginationInput) {
+  programsV2(pagination: $pagination) {
+    data {
+      id
+      title
+      description
+      price
+      createdAt
+      deadline
+      applicationCount
+      hasApplied
+      sponsor {
+        id
+        walletAddress
+        email
+        firstName
+        lastName
+        profileImage
+      }
+      network {
+        id
+        chainId
+        chainName
+        mainnet
+        exploreUrl
+      }
+      token {
+        id
+        chainInfoId
+        tokenName
+        tokenAddress
+      }
+    }
+    count
+  }
+}
