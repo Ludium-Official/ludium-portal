@@ -231,7 +231,7 @@ class RecruitmentContract {
     return balance;
   }
 
-  async getAmount(tokenAddress: string, walletAddress: string) {
+  async getAmount(tokenAddress: string, walletAddress: string): Promise<bigint> {
     const balance = await this.client.readContract({
       address: tokenAddress as `0x${string}`,
       abi: ERC20Abi,
@@ -239,7 +239,7 @@ class RecruitmentContract {
       args: [walletAddress as `0x${string}`],
     });
 
-    return balance;
+    return balance as bigint;
   }
 }
 

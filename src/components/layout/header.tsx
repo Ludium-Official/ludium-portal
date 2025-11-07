@@ -32,15 +32,40 @@ function Header() {
   const { login: authLogin, logout: authLogout } = useAuth();
 
   const [isMobile, setIsMobile] = useState(false);
-  const [network, setNetwork] = useState(mainnetDefaultNetwork);
+  const [networkId, setNetworkId] = useState<string | null>(null);
   const [balances, setBalances] = useState<BalanceProps[]>([]);
   const [isVisible, setIsVisible] = useState(true);
   const [scrollY, setScrollY] = useState(0);
   const lastScrollY = useRef(0);
 
   const { networks: networksWithTokens } = useNetworks();
+
+  // Initialize networkId when networks are loaded
+  useEffect(() => {
+    if (networksWithTokens.length > 0 && !networkId) {
+      const isMainnet = import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet';
+      const defaultNetwork = networksWithTokens.find((network) =>
+        isMainnet
+          ? network.chainName.toLowerCase().includes('educhain') && network.mainnet
+          : network.chainName.toLowerCase().includes('educhain') && !network.mainnet,
+      );
+      if (defaultNetwork) {
+        setNetworkId(defaultNetwork.id);
+      }
+    }
+  }, [networksWithTokens, networkId]);
+
+  // Find network by chainName for useContract
+  const currentNetwork = networksWithTokens.find(
+    (n) => n.id === networkId || (!networkId && n.chainName === mainnetDefaultNetwork),
+  );
+  const network = currentNetwork?.chainName || mainnetDefaultNetwork;
   const contract = useContract(network);
   const walletInfo = user?.wallet;
+
+  // Use ref to track previous network to prevent unnecessary re-fetches
+  const prevNetworkRef = useRef<string>(network);
+  const prevWalletRef = useRef<string | undefined>(walletInfo?.address);
   const injectedWallet = user?.wallet?.connectorType !== 'embedded';
 
   const { data: profileData } = useProfileV2Query({
@@ -158,7 +183,15 @@ function Header() {
 
   useEffect(() => {
     const fetchBalances = async () => {
-      if (!authenticated || !walletInfo?.address) return;
+      if (!authenticated || !walletInfo?.address || !network) return;
+
+      // Prevent unnecessary re-fetches if network and wallet haven't changed
+      if (prevNetworkRef.current === network && prevWalletRef.current === walletInfo.address) {
+        return;
+      }
+
+      prevNetworkRef.current = network;
+      prevWalletRef.current = walletInfo.address;
 
       try {
         const tokens = tokenAddresses[network as keyof typeof tokenAddresses] || [];
@@ -186,7 +219,7 @@ function Header() {
     };
 
     fetchBalances();
-  }, [authenticated, walletInfo, network]);
+  }, [authenticated, walletInfo?.address, network]);
 
   return (
     <header
@@ -253,8 +286,10 @@ function Header() {
                           <span>Balance</span>
                           <div>
                             <NetworkSelector
-                              value={network}
-                              onValueChange={setNetwork}
+                              value={networkId || undefined}
+                              onValueChange={(value: string) => {
+                                setNetworkId(value);
+                              }}
                               networks={networksWithTokens}
                               className="min-w-[120px] h-10 w-full sm:w-auto"
                             />

@@ -27,14 +27,12 @@ function NetworkSelector({
 }) {
   const [selectedNetworkId, setSelectedNetworkId] = useState(value);
 
-  // Sync with parent value only when it actually changes
   useEffect(() => {
     if (value !== undefined && value !== null && String(value) !== String(selectedNetworkId)) {
       setSelectedNetworkId(value);
     }
-  }, [value]);
+  }, [value, selectedNetworkId]);
 
-  // Set default network based on environment (only once when networks load)
   useEffect(() => {
     if (
       (!value || value === '0') &&
@@ -49,11 +47,12 @@ function NetworkSelector({
           : network.chainName.toLowerCase().includes('educhain') && !network.mainnet,
       );
 
-      if (defaultNetwork) {
+      if (defaultNetwork && defaultNetwork.id !== selectedNetworkId) {
+        setSelectedNetworkId(defaultNetwork.id);
         onValueChange?.(defaultNetwork.id);
       }
     }
-  }, [networks]);
+  }, [networks, value, selectedNetworkId, onValueChange]);
 
   const selectedNetwork = networks?.find((n) => n.id === selectedNetworkId);
 
@@ -83,11 +82,12 @@ function NetworkSelector({
           <ChevronDown />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
+      <DropdownMenuContent align="start" className="z-[10000]">
         {filteredNetworks?.map((network) => (
           <DropdownMenuItem
             key={network.id}
             onClick={() => {
+              setSelectedNetworkId(network.id);
               onValueChange?.(network.id);
             }}
           >

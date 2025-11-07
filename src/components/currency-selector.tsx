@@ -58,9 +58,14 @@ function CurrencySelector({
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent align="start" className="max-h-[300px] overflow-y-auto">
         {tokens.map((token) => (
-          <DropdownMenuItem onClick={() => onValueChange?.(token.id)} key={token.id}>
+          <DropdownMenuItem
+            key={token.id}
+            onClick={() => {
+              onValueChange?.(token.id);
+            }}
+          >
             <span className="flex items-center gap-2">
               {getTokenIcon(token.tokenName)} {token.tokenName}
             </span>
