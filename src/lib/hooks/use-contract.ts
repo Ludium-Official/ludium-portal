@@ -1,9 +1,13 @@
-import { type ConnectedWallet, usePrivy, useWallets } from '@privy-io/react-auth';
-import { ethers } from 'ethers';
-import type { Chain, PublicClient } from 'viem';
-import { http, createPublicClient } from 'viem';
-import { checkNetwork } from '../functions/checkNetwork';
-import RecruitmentContract from '../contract/recruitment-contract';
+import {
+  type ConnectedWallet,
+  usePrivy,
+  useWallets,
+} from "@privy-io/react-auth";
+import { ethers } from "ethers";
+import type { Chain } from "viem";
+import { http, createPublicClient } from "viem";
+import { checkNetwork } from "../functions/checkNetwork";
+import RecruitmentContract from "../contract/recruitment-contract";
 
 async function getSigner(checkNetwork: Chain, currentWallet: ConnectedWallet) {
   const eip1193Provider = await currentWallet.getEthereumProvider();
@@ -17,12 +21,12 @@ async function getSigner(checkNetwork: Chain, currentWallet: ConnectedWallet) {
     nativeCurrency: checkNetwork.nativeCurrency,
   };
   const currentChainId = await eip1193Provider.request({
-    method: 'eth_chainId',
+    method: "eth_chainId",
   });
 
   if (currentChainId !== targetNetwork.chainId) {
     await eip1193Provider.request({
-      method: 'wallet_addEthereumChain',
+      method: "wallet_addEthereumChain",
       params: [targetNetwork],
     });
   }
@@ -34,51 +38,56 @@ export function useContract(network: string, contractAddress?: string) {
   const { user, sendTransaction } = usePrivy();
 
   const { wallets } = useWallets();
-  const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
+  const currentWallet = wallets.find(
+    (wallet) => wallet.address === user?.wallet?.address
+  );
 
-  const isExternalWallet = user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
+  const isExternalWallet =
+    user?.wallet?.connectorType && user.wallet.connectorType !== "embedded";
 
   let sendTx = sendTransaction;
 
   const activeWallet =
-    currentWallet || (isExternalWallet && wallets.length > 0 ? wallets[0] : null);
+    currentWallet ||
+    (isExternalWallet && wallets.length > 0 ? wallets[0] : null);
 
   if (isExternalWallet && activeWallet) {
     sendTx = async (input, _uiOptions?: unknown) => {
       try {
-        console.log('Sending transaction with external wallet...', input);
+        console.log("Sending transaction with external wallet...", input);
         const signer = await getSigner(checkNetwork(network), activeWallet);
         const txResponse = await signer.sendTransaction(input);
-        console.log('Transaction sent successfully:', txResponse.hash);
+        console.log("Transaction sent successfully:", txResponse.hash);
         return { hash: txResponse.hash as `0x${string}` };
       } catch (error) {
-        console.error('Error sending transaction with external wallet:', error);
+        console.error("Error sending transaction with external wallet:", error);
         throw error;
       }
     };
   } else if (isExternalWallet && !activeWallet) {
-    console.warn('User has an external wallet but no active wallet found. Transactions may fail.');
+    console.warn(
+      "User has an external wallet but no active wallet found. Transactions may fail."
+    );
     sendTx = async () => {
       throw new Error(
-        'External wallet detected but not properly connected. Please reconnect your wallet.',
+        "External wallet detected but not properly connected. Please reconnect your wallet."
       );
     };
   } else if (!user?.wallet) {
     sendTx = async () => {
-      throw new Error('No wallet connected. Please connect a wallet to continue.');
+      throw new Error(
+        "No wallet connected. Please connect a wallet to continue."
+      );
     };
-  } else {
   }
 
-  // Create signMessage function for message signing
   const signMessageFn = async (
-    message: string,
-    wallet?: ConnectedWallet,
-    chain?: Chain,
+    message: string | Uint8Array<ArrayBufferLike>,
+    wallet?: ConnectedWallet
   ): Promise<string> => {
     const targetWallet = wallet || activeWallet;
     if (!targetWallet) {
-      throw new Error('No wallet available for signing');
+      throw new Error("No wallet available for signing");
     }
 
     try {
@@ -86,28 +95,25 @@ export function useContract(network: string, contractAddress?: string) {
       const provider = new ethers.providers.Web3Provider(eip1193Provider);
       const signer = provider.getSigner();
 
-      // Use personal_sign for message signing
-      // message is a human-readable string, sign it directly
       const signature = await signer.signMessage(message);
       return signature;
     } catch (error) {
-      console.error('Error signing message:', error);
+      console.error("Error signing message:", error);
       throw error;
     }
   };
 
-  // @ts-ignore
-  const client: PublicClient = createPublicClient({
+  const client = createPublicClient({
     chain: checkNetwork(network),
     transport: http(checkNetwork(network).rpcUrls.default.http[0]),
   });
 
   const callContract = new RecruitmentContract(
-    contractAddress || '',
+    contractAddress || "",
     checkNetwork(network).id,
     sendTx,
     client,
-    signMessageFn,
+    signMessageFn
   );
 
   return callContract;

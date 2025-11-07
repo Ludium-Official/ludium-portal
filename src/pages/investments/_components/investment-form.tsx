@@ -1,29 +1,39 @@
-import { useProgramQuery } from '@/apollo/queries/program.generated';
-import { useUsersV2Query } from '@/apollo/queries/users-v2.generated';
-import CurrencySelector from '@/components/currency-selector';
-import { MarkdownEditor } from '@/components/markdown';
-import NetworkSelector from '@/components/network-selector';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { DatePicker } from '@/components/ui/date-picker';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { MultiSelect } from '@/components/ui/multi-select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useInvestmentDraft } from '@/lib/hooks/use-investment-draft';
-import notify from '@/lib/notify';
-import { cn, mainnetDefaultNetwork } from '@/lib/utils';
-import { filterEmptyLinks, validateLinks } from '@/lib/validation';
-import type { LabelValueProps, VisibilityProps } from '@/types/common';
-import { type LinkInput, ProgramStatus } from '@/types/types.generated';
-import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
-import { useEffect, useReducer, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router';
+import { useProgramQuery } from "@/apollo/queries/program.generated";
+import { useUsersV2Query } from "@/apollo/queries/users-v2.generated";
+import CurrencySelector from "@/components/currency-selector";
+import { MarkdownEditor } from "@/components/markdown";
+import NetworkSelector from "@/components/network-selector";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { MultiSelect } from "@/components/ui/multi-select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useNetworks } from "@/contexts/networks-context";
+import { useInvestmentDraft } from "@/lib/hooks/use-investment-draft";
+import notify from "@/lib/notify";
+import { cn, fromUTCString, mainnetDefaultNetwork, toUTCString } from "@/lib/utils";
+import { filterEmptyLinks, validateLinks } from "@/lib/validation";
+import type { LabelValueProps, VisibilityProps } from "@/types/common";
+import { type LinkInput, ProgramStatus } from "@/types/types.generated";
+import { ethers } from "ethers";
+import { ChevronRight, Image as ImageIcon, Plus, X } from "lucide-react";
+import { useEffect, useReducer, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useParams } from "react-router";
 
 export type OnSubmitInvestmentFunc = (data: {
   id?: string;
@@ -46,7 +56,7 @@ export type OnSubmitInvestmentFunc = (data: {
   applicationEndDate?: string;
   fundingStartDate?: string;
   fundingEndDate?: string;
-  fundingCondition?: 'open' | 'tier';
+  fundingCondition?: "open" | "tier";
   tierSettings?: {
     bronze?: { enabled: boolean; maxAmount: string };
     silver?: { enabled: boolean; maxAmount: string };
@@ -67,66 +77,73 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
   const { data } = useProgramQuery({
     variables: {
-      id: id ?? '',
+      id: id ?? "",
     },
     skip: !isEdit,
   });
 
-  const [selectedTab, setSelectedTab] = useState<string>('overview');
+  const { networks: networksWithTokens } = useNetworks();
+
+  const [selectedTab, setSelectedTab] = useState<string>("overview");
 
   // Check if program is published - only allow editing title, keywords, summary, and description
   const isPublished = data?.program?.status === ProgramStatus.Published;
 
-  const [content, setContent] = useState<string>('');
+  const [content, setContent] = useState<string>("");
   const [deadline, setDeadline] = useState<Date>();
   const [applicationStartDate, setApplicationStartDate] = useState<Date>();
   const [applicationDueDate, setApplicationDueDate] = useState<Date>();
   const [fundingStartDate, setFundingStartDate] = useState<Date>();
   const [fundingDueDate, setFundingDueDate] = useState<Date>();
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);
-  const [keywordInput, setKeywordInput] = useState<string>('');
+  const [keywordInput, setKeywordInput] = useState<string>("");
   const [selectedValidators, setSelectedValidators] = useState<string[]>([]);
-  const [links, setLinks] = useState<string[]>(['']);
-  const [network, setNetwork] = useState(isEdit ? undefined : mainnetDefaultNetwork);
-  const [currency, setCurrency] = useState('');
+  const [links, setLinks] = useState<string[]>([""]);
+  const [network, setNetwork] = useState(
+    isEdit ? undefined : mainnetDefaultNetwork
+  );
+  const [currency, setCurrency] = useState("");
   const [selectedImage, setSelectedImage] = useState<File>();
-  const [visibility, setVisibility] = useState<VisibilityProps>('public');
+  const [visibility, setVisibility] = useState<VisibilityProps>("public");
   const [imageError, setImageError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedBuilders, setSelectedBuilders] = useState<string[]>([]);
-  const [selectedBuilderItems, setSelectedBuilderItems] = useState<LabelValueProps[]>([]);
+  const [selectedBuilderItems, setSelectedBuilderItems] = useState<
+    LabelValueProps[]
+  >([]);
   const [builderInput, setBuilderInput] = useState<string>();
   const [debouncedBuilderInput, setDebouncedBuilderInput] = useState<string>();
 
   // Condition tab state
-  const [conditionType, setConditionType] = useState<'open' | 'tier'>('open');
+  const [conditionType, setConditionType] = useState<"open" | "tier">("open");
   const [tiers, setTiers] = useState([
     {
-      name: 'Bronze',
+      name: "Bronze",
       enabled: false,
       maxAmount: undefined as string | undefined,
     },
     {
-      name: 'Silver',
+      name: "Silver",
       enabled: false,
       maxAmount: undefined as string | undefined,
     },
     {
-      name: 'Gold',
+      name: "Gold",
       enabled: false,
       maxAmount: undefined as string | undefined,
     },
     {
-      name: 'Platinum',
+      name: "Platinum",
       enabled: false,
       maxAmount: undefined as string | undefined,
     },
   ]);
-  const [feeType, setFeeType] = useState<'default' | 'custom'>('default');
+  const [feeType, setFeeType] = useState<"default" | "custom">("default");
   const [customFee, setCustomFee] = useState<string | undefined>(undefined);
 
   const [validatorInput, setValidatorInput] = useState<string>();
-  const [debouncedValidatorInput, setDebouncedValidatorInput] = useState<string>();
+  const [debouncedValidatorInput, setDebouncedValidatorInput] =
+    useState<string>();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -140,7 +157,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     variables: {
       query: {
         limit: 5,
-        search: debouncedValidatorInput ?? '',
+        search: debouncedValidatorInput ?? "",
       },
     },
     skip: !validatorInput,
@@ -155,85 +172,106 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   });
 
   const validatorOptions = validators?.usersV2?.users?.map((v) => ({
-    value: v.id ?? '',
-    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
+    value: v.id ?? "",
+    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ""}`,
   }));
 
   useEffect(() => {
     if (data?.program?.keywords)
-      setSelectedKeywords(data?.program?.keywords?.map((k) => k.name ?? '') ?? []);
+      setSelectedKeywords(
+        data?.program?.keywords?.map((k) => k.name ?? "") ?? []
+      );
     if (data?.program?.validators?.length) {
-      setSelectedValidators(data?.program.validators?.map((k) => k.id ?? '') ?? '');
+      setSelectedValidators(
+        data?.program.validators?.map((k) => k.id ?? "") ?? ""
+      );
       setSelectedValidatorItems(
         data?.program.validators?.map((k) => ({
-          value: k.id ?? '',
-          label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
-        })) ?? [],
+          value: k.id ?? "",
+          label: `${k.email} ${
+            k.organizationName ? `(${k.organizationName})` : ""
+          }`,
+        })) ?? []
       );
     }
     if (data?.program?.invitedBuilders?.length) {
-      setSelectedBuilders(data?.program.invitedBuilders?.map((k) => k.id ?? '') ?? '');
+      setSelectedBuilders(
+        data?.program.invitedBuilders?.map((k) => k.id ?? "") ?? ""
+      );
       setSelectedBuilderItems(
         data?.program.invitedBuilders?.map((k) => ({
-          value: k.id ?? '',
-          label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
-        })) ?? [],
+          value: k.id ?? "",
+          label: `${k.email} ${
+            k.organizationName ? `(${k.organizationName})` : ""
+          }`,
+        })) ?? []
       );
     }
-    if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
-    if (data?.program?.links) setLinks(data?.program?.links.map((l) => l.url ?? ''));
+    if (data?.program?.deadline) setDeadline(fromUTCString(data?.program?.deadline) ?? undefined);
+    if (data?.program?.links)
+      setLinks(data?.program?.links.map((l) => l.url ?? ""));
     if (data?.program?.description) setContent(data?.program.description);
     if (data?.program?.network) setNetwork(data?.program?.network);
     if (data?.program?.currency) setCurrency(data?.program?.currency);
     if (data?.program?.image) setImagePreview(data?.program?.image);
     if (data?.program?.visibility) setVisibility(data?.program?.visibility);
 
-    // Prefill application dates
+    // Prefill application dates (convert from UTC to local)
     if (data?.program?.applicationStartDate)
-      setApplicationStartDate(new Date(data?.program?.applicationStartDate));
+      setApplicationStartDate(fromUTCString(data?.program?.applicationStartDate) ?? undefined);
     if (data?.program?.applicationEndDate)
-      setApplicationDueDate(new Date(data?.program?.applicationEndDate));
+      setApplicationDueDate(fromUTCString(data?.program?.applicationEndDate) ?? undefined);
 
-    // Prefill funding dates
+    // Prefill funding dates (convert from UTC to local)
     if (data?.program?.fundingStartDate)
-      setFundingStartDate(new Date(data?.program?.fundingStartDate));
-    if (data?.program?.fundingEndDate) setFundingDueDate(new Date(data?.program?.fundingEndDate));
+      setFundingStartDate(fromUTCString(data?.program?.fundingStartDate) ?? undefined);
+    if (data?.program?.fundingEndDate)
+      setFundingDueDate(fromUTCString(data?.program?.fundingEndDate) ?? undefined);
 
     // Prefill funding condition
-    if (data?.program?.fundingCondition) setConditionType(data?.program?.fundingCondition);
+    if (data?.program?.fundingCondition)
+      setConditionType(data?.program?.fundingCondition);
 
     // Prefill tier settings
     if (data?.program?.tierSettings) {
       setTiers([
         {
-          name: 'Bronze',
+          name: "Bronze",
           enabled: data?.program?.tierSettings.bronze?.enabled ?? false,
-          maxAmount: data?.program?.tierSettings.bronze?.maxAmount?.toString() ?? undefined,
+          maxAmount:
+            data?.program?.tierSettings.bronze?.maxAmount?.toString() ??
+            undefined,
         },
         {
-          name: 'Silver',
+          name: "Silver",
           enabled: data?.program?.tierSettings.silver?.enabled ?? false,
-          maxAmount: data?.program?.tierSettings.silver?.maxAmount?.toString() ?? undefined,
+          maxAmount:
+            data?.program?.tierSettings.silver?.maxAmount?.toString() ??
+            undefined,
         },
         {
-          name: 'Gold',
+          name: "Gold",
           enabled: data?.program?.tierSettings.gold?.enabled ?? false,
-          maxAmount: data?.program?.tierSettings.gold?.maxAmount?.toString() ?? undefined,
+          maxAmount:
+            data?.program?.tierSettings.gold?.maxAmount?.toString() ??
+            undefined,
         },
         {
-          name: 'Platinum',
+          name: "Platinum",
           enabled: data?.program?.tierSettings.platinum?.enabled ?? false,
-          maxAmount: data?.program?.tierSettings.platinum?.maxAmount?.toString() ?? undefined,
+          maxAmount:
+            data?.program?.tierSettings.platinum?.maxAmount?.toString() ??
+            undefined,
         },
       ]);
     }
 
     // Prefill fee settings
     if (data?.program?.customFeePercentage) {
-      setFeeType('custom');
+      setFeeType("custom");
       setCustomFee((data?.program?.customFeePercentage / 100).toString());
     } else if (data?.program?.feePercentage) {
-      setFeeType('default');
+      setFeeType("default");
       setCustomFee(undefined);
     }
   }, [data]);
@@ -249,15 +287,15 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     variables: {
       query: {
         limit: 5,
-        search: debouncedBuilderInput ?? '',
+        search: debouncedBuilderInput ?? "",
       },
     },
     skip: !builderInput,
   });
 
   const builderOptions = buildersData?.usersV2?.users?.map((v) => ({
-    value: v.id ?? '',
-    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
+    value: v.id ?? "",
+    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ""}`,
   }));
 
   const {
@@ -268,9 +306,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     setValue,
   } = useForm({
     values: {
-      programName: data?.program?.name ?? '',
-      price: data?.program?.price ?? '',
-      summary: data?.program?.summary ?? '',
+      programName: data?.program?.name ?? "",
+      price: data?.program?.price ?? "",
+      summary: data?.program?.summary ?? "",
     },
   });
 
@@ -287,42 +325,57 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         !content.length ||
         !selectedKeywords?.length
       ) {
-        notify('Please fill in all required fields.', 'error');
+        notify("Please fill in all required fields.", "error");
         return;
       }
     } else {
       // Validate number fields for non-published programs
       const price = submitData.price;
-      if (!price || price === '0' || price === '0.0' || price === '0.00' || Number(price) <= 0) {
-        notify('Please enter a valid price greater than 0.', 'error');
+      if (
+        !price ||
+        price === "0" ||
+        price === "0.0" ||
+        price === "0.00" ||
+        Number(price) <= 0
+      ) {
+        notify("Please enter a valid price greater than 0.", "error");
         return;
       }
 
       // Validate custom fee if custom fee type is selected
       if (
-        feeType === 'custom' &&
-        (!customFee || customFee === '0' || customFee === '0.0' || Number(customFee) <= 0)
+        feeType === "custom" &&
+        (!customFee ||
+          customFee === "0" ||
+          customFee === "0.0" ||
+          Number(customFee) <= 0)
       ) {
-        notify('Please enter a valid custom fee percentage greater than 0.', 'error');
+        notify(
+          "Please enter a valid custom fee percentage greater than 0.",
+          "error"
+        );
         return;
       }
 
       // Validate tier amounts if tier condition is selected
-      if (conditionType === 'tier') {
+      if (conditionType === "tier") {
         const enabledTiers = tiers.filter((tier) => tier.enabled);
         if (enabledTiers.length === 0) {
-          notify('Please enable at least one tier.', 'error');
+          notify("Please enable at least one tier.", "error");
           return;
         }
 
         for (const tier of enabledTiers) {
           if (
             !tier.maxAmount ||
-            tier.maxAmount === '0' ||
-            tier.maxAmount === '0.0' ||
+            tier.maxAmount === "0" ||
+            tier.maxAmount === "0.0" ||
             Number(tier.maxAmount) <= 0
           ) {
-            notify(`Please enter a valid maximum amount for ${tier.name} tier.`, 'error');
+            notify(
+              `Please enter a valid maximum amount for ${tier.name} tier.`,
+              "error"
+            );
             return;
           }
         }
@@ -339,7 +392,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         !content.length ||
         (!selectedImage && !isEdit)
       ) {
-        notify('Please fill in all required fields.', 'error');
+        notify("Please fill in all required fields.", "error");
         return;
       }
     }
@@ -348,7 +401,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     const validatorWalletAddresses = selectedValidatorItems
       .map((item) => {
         // Find the validator in the data
-        const validator = validators?.usersV2?.users?.find((u) => u.id === item.value);
+        const validator = validators?.usersV2?.users?.find(
+          (u) => u.id === item.value
+        );
         return validator?.walletAddress || null;
       })
       .filter((address) => address !== null) as string[];
@@ -365,7 +420,10 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         currency: data?.program?.currency as string,
         network: data?.program?.network as string,
         validators: selectedValidators ?? [],
-        visibility: data?.program?.visibility as 'public' | 'restricted' | 'private',
+        visibility: data?.program?.visibility as
+          | "public"
+          | "restricted"
+          | "private",
         status: data?.program?.status ?? ProgramStatus.Pending,
       });
     } else {
@@ -374,14 +432,16 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         id: data?.program?.id ?? id,
         programName: submitData.programName,
         price:
-          isEdit && data?.program?.status !== ProgramStatus.Pending ? undefined : submitData.price,
+          isEdit && data?.program?.status !== ProgramStatus.Pending
+            ? undefined
+            : submitData.price,
         description: content,
         summary: submitData.summary,
         currency:
           isEdit && data?.program?.status !== ProgramStatus.Pending
             ? (data?.program?.currency as string)
             : currency,
-        deadline: deadline ? deadline.toISOString() : undefined,
+        deadline: deadline ? toUTCString(deadline) : undefined,
         keywords: selectedKeywords,
         validators: selectedValidators ?? [],
         validatorWalletAddresses,
@@ -394,73 +454,91 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         network:
           isEdit && data?.program?.status !== ProgramStatus.Pending
             ? (data?.program?.network as string)
-            : (network ?? mainnetDefaultNetwork),
+            : network ?? mainnetDefaultNetwork,
         image: selectedImage,
         visibility: visibility,
         status:
           isEdit && data?.program?.status !== ProgramStatus.Pending
-            ? (data?.program?.status ?? ProgramStatus.Pending)
+            ? data?.program?.status ?? ProgramStatus.Pending
             : ProgramStatus.Pending,
         builders: selectedBuilders,
-        applicationStartDate: applicationStartDate ? applicationStartDate.toISOString() : undefined,
-        applicationEndDate: applicationDueDate ? applicationDueDate.toISOString() : undefined,
-        fundingStartDate: fundingStartDate ? fundingStartDate.toISOString() : undefined,
-        fundingEndDate: fundingDueDate ? fundingDueDate.toISOString() : undefined,
+        applicationStartDate: applicationStartDate
+          ? toUTCString(applicationStartDate)
+          : undefined,
+        applicationEndDate: applicationDueDate
+          ? toUTCString(applicationDueDate)
+          : undefined,
+        fundingStartDate: fundingStartDate
+          ? toUTCString(fundingStartDate)
+          : undefined,
+        fundingEndDate: fundingDueDate
+          ? toUTCString(fundingDueDate)
+          : undefined,
         fundingCondition: conditionType,
         tierSettings:
-          conditionType === 'tier'
+          conditionType === "tier"
             ? {
                 bronze:
-                  (tiers.find((t) => t.name === 'Bronze')?.enabled ?? false)
+                  tiers.find((t) => t.name === "Bronze")?.enabled ?? false
                     ? {
                         enabled: true,
-                        maxAmount: tiers.find((t) => t.name === 'Bronze')?.maxAmount || '',
+                        maxAmount:
+                          tiers.find((t) => t.name === "Bronze")?.maxAmount ||
+                          "",
                       }
                     : undefined,
                 silver:
-                  (tiers.find((t) => t.name === 'Silver')?.enabled ?? false)
+                  tiers.find((t) => t.name === "Silver")?.enabled ?? false
                     ? {
                         enabled: true,
-                        maxAmount: tiers.find((t) => t.name === 'Silver')?.maxAmount || '',
+                        maxAmount:
+                          tiers.find((t) => t.name === "Silver")?.maxAmount ||
+                          "",
                       }
                     : undefined,
                 gold:
-                  (tiers.find((t) => t.name === 'Gold')?.enabled ?? false)
+                  tiers.find((t) => t.name === "Gold")?.enabled ?? false
                     ? {
                         enabled: true,
-                        maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '',
+                        maxAmount:
+                          tiers.find((t) => t.name === "Gold")?.maxAmount || "",
                       }
                     : undefined,
                 platinum:
-                  (tiers.find((t) => t.name === 'Platinum')?.enabled ?? false)
+                  tiers.find((t) => t.name === "Platinum")?.enabled ?? false
                     ? {
                         enabled: true,
-                        maxAmount: tiers.find((t) => t.name === 'Platinum')?.maxAmount || '',
+                        maxAmount:
+                          tiers.find((t) => t.name === "Platinum")?.maxAmount ||
+                          "",
                       }
                     : undefined,
               }
             : undefined,
-        feePercentage: feeType === 'default' ? 300 : undefined,
+        feePercentage: feeType === "default" ? 300 : undefined,
         customFeePercentage:
-          feeType === 'custom' ? Math.round(Number.parseFloat(customFee ?? '0') * 100) : undefined,
+          feeType === "custom"
+            ? Math.round(Number.parseFloat(customFee ?? "0") * 100)
+            : undefined,
       });
     }
   };
 
   const extraValidation = () => {
-    if (!watch('programName') || !watch('summary')) {
-      notify('Please fill in all required fields.', 'error');
+    if (!watch("programName") || !watch("summary")) {
+      notify("Please fill in all required fields.", "error");
     }
 
     // Only validate price if not published
-    if (!isPublished && !watch('price')) {
-      notify('Please fill in all required fields.', 'error');
+    if (!isPublished && !watch("price")) {
+      notify("Please fill in all required fields.", "error");
     }
 
     dispatchErrors({ type: ExtraErrorActionKind.CLEAR_ERRORS });
 
     // Only validate image if not published and not editing
-    if (!isPublished && !selectedImage && !isEdit) setImageError('Picture is required.');
+    if (!isPublished && !selectedImage && !isEdit)
+      setImageError("Picture is required.");
 
     if (!selectedKeywords?.length)
       dispatchErrors({ type: ExtraErrorActionKind.SET_KEYWORDS_ERROR });
@@ -472,7 +550,10 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     // Only validate dates if not published
     if (
       !isPublished &&
-      (!applicationStartDate || !applicationDueDate || !fundingStartDate || !fundingDueDate)
+      (!applicationStartDate ||
+        !applicationDueDate ||
+        !fundingStartDate ||
+        !fundingDueDate)
     )
       dispatchErrors({ type: ExtraErrorActionKind.SET_DATE_ERROR });
 
@@ -484,7 +565,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
       }
     }
 
-    formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    formRef?.current?.dispatchEvent(
+      new Event("submit", { cancelable: true, bubbles: true })
+    );
   };
 
   const [selectedValidatorItems, setSelectedValidatorItems] = useState<
@@ -495,59 +578,68 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   >([]);
 
   const formRef = useRef<HTMLFormElement>(null);
-  const { saveDraft: saveInvestmentDraft, loadDraft: loadInvestmentDraft } = useInvestmentDraft();
+  const { saveDraft: saveInvestmentDraft, loadDraft: loadInvestmentDraft } =
+    useInvestmentDraft();
 
   // Prefill from draft on mount when creating (not editing)
   useEffect(() => {
     if (isEdit) return;
     const draft = loadInvestmentDraft();
     if (!draft) return;
-    setValue('programName', draft.programName ?? '');
-    setValue('price', draft.price ?? '');
-    setValue('summary', draft.summary ?? '');
-    setContent(draft.description ?? '');
-    setDeadline(draft.deadline ? new Date(draft.deadline) : undefined);
+    setValue("programName", draft.programName ?? "");
+    setValue("price", draft.price ?? "");
+    setValue("summary", draft.summary ?? "");
+    setContent(draft.description ?? "");
+    setDeadline(draft.deadline ? fromUTCString(draft.deadline) ?? undefined : undefined);
     setSelectedKeywords(draft.keywords ?? []);
     setSelectedValidators(draft.validators ?? []);
-    setLinks(draft.links?.length ? draft.links : ['']);
+    setLinks(draft.links?.length ? draft.links : [""]);
     setNetwork(draft.network ?? mainnetDefaultNetwork);
-    setCurrency(draft.currency ?? '');
-    setVisibility(draft.visibility ?? 'public');
+    setCurrency(draft.currency ?? "");
+    setVisibility(draft.visibility ?? "public");
     setSelectedBuilders(draft.builders ?? []);
     setApplicationStartDate(
-      draft.applicationStartDate ? new Date(draft.applicationStartDate) : undefined,
+      draft.applicationStartDate
+        ? fromUTCString(draft.applicationStartDate) ?? undefined
+        : undefined
     );
     setApplicationDueDate(
-      draft.applicationEndDate ? new Date(draft.applicationEndDate) : undefined,
+      draft.applicationEndDate ? fromUTCString(draft.applicationEndDate) ?? undefined : undefined
     );
-    setFundingStartDate(draft.fundingStartDate ? new Date(draft.fundingStartDate) : undefined);
-    setFundingDueDate(draft.fundingEndDate ? new Date(draft.fundingEndDate) : undefined);
-    setConditionType(draft.fundingCondition ?? 'open');
-    setFeeType(draft.feeType ?? 'default');
-    setCustomFee(draft.customFee ?? '0');
-    if (draft.selectedValidatorItems) setSelectedValidatorItems(draft.selectedValidatorItems);
-    if (draft.selectedBuilderItems) setSelectedBuilderItems(draft.selectedBuilderItems);
+    setFundingStartDate(
+      draft.fundingStartDate ? fromUTCString(draft.fundingStartDate) ?? undefined : undefined
+    );
+    setFundingDueDate(
+      draft.fundingEndDate ? fromUTCString(draft.fundingEndDate) ?? undefined : undefined
+    );
+    setConditionType(draft.fundingCondition ?? "open");
+    setFeeType(draft.feeType ?? "default");
+    setCustomFee(draft.customFee ?? "0");
+    if (draft.selectedValidatorItems)
+      setSelectedValidatorItems(draft.selectedValidatorItems);
+    if (draft.selectedBuilderItems)
+      setSelectedBuilderItems(draft.selectedBuilderItems);
     if (draft.tierSettings) {
       setTiers([
         {
-          name: 'Bronze',
+          name: "Bronze",
           enabled: draft.tierSettings.bronze?.enabled ?? false,
-          maxAmount: draft.tierSettings.bronze?.maxAmount ?? '0',
+          maxAmount: draft.tierSettings.bronze?.maxAmount ?? "0",
         },
         {
-          name: 'Silver',
+          name: "Silver",
           enabled: draft.tierSettings.silver?.enabled ?? false,
-          maxAmount: draft.tierSettings.silver?.maxAmount ?? '0',
+          maxAmount: draft.tierSettings.silver?.maxAmount ?? "0",
         },
         {
-          name: 'Gold',
+          name: "Gold",
           enabled: draft.tierSettings.gold?.enabled ?? false,
-          maxAmount: draft.tierSettings.gold?.maxAmount ?? '0',
+          maxAmount: draft.tierSettings.gold?.maxAmount ?? "0",
         },
         {
-          name: 'Platinum',
+          name: "Platinum",
           enabled: draft.tierSettings.platinum?.enabled ?? false,
-          maxAmount: draft.tierSettings.platinum?.maxAmount ?? '0',
+          maxAmount: draft.tierSettings.platinum?.maxAmount ?? "0",
         },
       ]);
     }
@@ -575,14 +667,18 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
   // Tier handlers
   const handleTierChange = (tierName: string, enabled: boolean) => {
-    setTiers((prev) => prev.map((tier) => (tier.name === tierName ? { ...tier, enabled } : tier)));
+    setTiers((prev) =>
+      prev.map((tier) => (tier.name === tierName ? { ...tier, enabled } : tier))
+    );
   };
 
   const handleTierAmountChange = (tierName: string, amount: string) => {
     setTiers((prev) =>
       prev.map((tier) =>
-        tier.name === tierName ? { ...tier, maxAmount: amount || undefined } : tier,
-      ),
+        tier.name === tierName
+          ? { ...tier, maxAmount: amount || undefined }
+          : tier
+      )
     );
   };
 
@@ -590,24 +686,28 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     setKeywordInput(e.target.value);
   };
 
-  const handleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if ((e.key === ' ' || e.key === 'Enter') && keywordInput.trim()) {
+  const handleKeywordInputKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if ((e.key === " " || e.key === "Enter") && keywordInput.trim()) {
       e.preventDefault();
       const newKeyword = keywordInput.trim();
       if (newKeyword && !selectedKeywords.includes(newKeyword)) {
         setSelectedKeywords([...selectedKeywords, newKeyword]);
       }
-      setKeywordInput('');
+      setKeywordInput("");
     }
   };
 
   const removeKeyword = (keywordToRemove: string) => {
-    setSelectedKeywords(selectedKeywords.filter((keyword) => keyword !== keywordToRemove));
+    setSelectedKeywords(
+      selectedKeywords.filter((keyword) => keyword !== keywordToRemove)
+    );
   };
 
   // Validation functions for each tab
   const isOverviewTabValid = () => {
-    const programName = watch('programName');
+    const programName = watch("programName");
     const hasKeywords = selectedKeywords.length > 0;
 
     // For published programs, only validate editable fields
@@ -632,7 +732,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   };
 
   const isDetailsTabValid = () => {
-    const summary = watch('summary');
+    const summary = watch("summary");
     const hasDescription = content.length > 0;
 
     return summary && hasDescription;
@@ -644,15 +744,15 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     const file = e.target.files?.[0];
     if (!file) return;
     // Validate type
-    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
-      setImageError('Only PNG, JPG, or JPEG files are allowed.');
+    if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
+      setImageError("Only PNG, JPG, or JPEG files are allowed.");
       setSelectedImage(undefined);
       setImagePreview(null);
       return;
     }
     // Validate size
     if (file.size > 2 * 1024 * 1024) {
-      setImageError('Image must be under 2MB.');
+      setImageError("Image must be under 2MB.");
       setSelectedImage(undefined);
       setImagePreview(null);
       return;
@@ -661,7 +761,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     const img = new window.Image();
     img.onload = () => {
       if (img.width !== img.height) {
-        setImageError('Image must be square (1:1).');
+        setImageError("Image must be square (1:1).");
         setSelectedImage(undefined);
         setImagePreview(null);
       } else {
@@ -670,7 +770,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
       }
     };
     img.onerror = () => {
-      setImageError('Invalid image file.');
+      setImageError("Invalid image file.");
       setSelectedImage(undefined);
       setImagePreview(null);
     };
@@ -678,15 +778,25 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   };
 
   return (
-    <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="max-w-[820px] w-full mx-auto">
+    <form
+      ref={formRef}
+      onSubmit={handleSubmit(onSubmit)}
+      className="max-w-[820px] w-full mx-auto"
+    >
       <h1 className="font-medium text-xl mb-6">Investment</h1>
       {/* <h1 className="font-medium text-xl mb-6">{isEdit ? 'Edit Program' : 'Create Program'}</h1> */}
 
-      <Tabs defaultValue="overview" value={selectedTab} onValueChange={setSelectedTab}>
+      <Tabs
+        defaultValue="overview"
+        value={selectedTab}
+        onValueChange={setSelectedTab}
+      >
         <TabsList className="w-full px-0 mb-3">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="details">Details</TabsTrigger>
-          {!isPublished && <TabsTrigger value="condition">Condition</TabsTrigger>}
+          {!isPublished && (
+            <TabsTrigger value="condition">Condition</TabsTrigger>
+          )}
         </TabsList>
         <TabsContent value="overview">
           <div className="bg-white py-6 px-10 rounded-lg mb-3">
@@ -699,10 +809,12 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 type="text"
                 placeholder="Type name"
                 className="h-10"
-                {...register('programName', { required: true })}
+                {...register("programName", { required: true })}
               />
               {errors.programName && (
-                <span className="text-destructive text-sm block">Program name is required</span>
+                <span className="text-destructive text-sm block">
+                  Program name is required
+                </span>
               )}
             </label>
 
@@ -758,7 +870,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 )}
               </div>
               {extraErrors.keyword && (
-                <span className="text-destructive text-sm block">Keywords is required</span>
+                <span className="text-destructive text-sm block">
+                  Keywords is required
+                </span>
               )}
             </label>
 
@@ -775,7 +889,11 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     disabled={isPublished}
                   />
                   {imagePreview ? (
-                    <img src={imagePreview} alt="Preview" className="object-cover w-full h-full" />
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="object-cover w-full h-full"
+                    />
                   ) : (
                     <div className="flex flex-col items-center justify-center w-full h-full">
                       <ImageIcon className="w-10 h-10 text-[#666666] mb-2" />
@@ -791,12 +909,15 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     Cover image <span className="text-primary">*</span>
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Logo image must be square, under 2MB, and in PNG, JPG, or JPEG format.
+                    Logo image must be square, under 2MB, and in PNG, JPG, or
+                    JPEG format.
                     <br />
                     This image is used in the program list
                   </p>
                   {imageError && (
-                    <span className="text-destructive text-sm block mt-28">{imageError}</span>
+                    <span className="text-destructive text-sm block mt-28">
+                      {imageError}
+                    </span>
                   )}
                 </div>
               </div>
@@ -805,7 +926,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
           <div className="bg-white px-10 py-6 rounded-lg mb-3">
             <label htmlFor="applicationDate" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium text-muted-foreground">Application date</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Application date
+              </p>
               <div className="flex items-center gap-2">
                 <div className="flex-1">
                   <p className="text-sm font-medium mb-2">
@@ -815,7 +938,11 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     <DatePicker
                       date={applicationStartDate}
                       setDate={(date) => {
-                        if (date && typeof date === 'object' && 'getTime' in date) {
+                        if (
+                          date &&
+                          typeof date === "object" &&
+                          "getTime" in date
+                        ) {
                           const newDate = new Date(date.getTime());
                           newDate.setHours(0, 0, 0, 0);
                           setApplicationStartDate(newDate);
@@ -844,7 +971,11 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     <DatePicker
                       date={applicationDueDate}
                       setDate={(date) => {
-                        if (date && typeof date === 'object' && 'getTime' in date) {
+                        if (
+                          date &&
+                          typeof date === "object" &&
+                          "getTime" in date
+                        ) {
                           const newDate = new Date(date.getTime());
                           newDate.setHours(23, 59, 59, 999);
                           setApplicationDueDate(newDate);
@@ -874,7 +1005,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
             </label>
 
             <label htmlFor="fundingDate" className="space-y-2 block mb-10">
-              <p className="text-sm font-medium text-muted-foreground">Funding date</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                Funding date
+              </p>
               <div className="flex items-center gap-2">
                 <div className="flex-1">
                   <p className="text-sm font-medium mb-2">
@@ -884,7 +1017,11 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     <DatePicker
                       date={fundingStartDate}
                       setDate={(date) => {
-                        if (date && typeof date === 'object' && 'getTime' in date) {
+                        if (
+                          date &&
+                          typeof date === "object" &&
+                          "getTime" in date
+                        ) {
                           const newDate = new Date(date.getTime());
                           newDate.setHours(0, 0, 0, 0);
                           setFundingStartDate(newDate);
@@ -913,7 +1050,11 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     <DatePicker
                       date={fundingDueDate}
                       setDate={(date) => {
-                        if (date && typeof date === 'object' && 'getTime' in date) {
+                        if (
+                          date &&
+                          typeof date === "object" &&
+                          "getTime" in date
+                        ) {
                           const newDate = new Date(date.getTime());
                           newDate.setHours(23, 59, 59, 999);
                           setFundingDueDate(newDate);
@@ -977,13 +1118,15 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 }
               />
               {extraErrors.validator && (
-                <span className="text-destructive text-sm block">Validator is required</span>
+                <span className="text-destructive text-sm block">
+                  Validator is required
+                </span>
               )}
               {data?.program?.educhainProgramId !== null &&
                 data?.program?.educhainProgramId !== undefined && (
                   <span className="text-muted-foreground text-xs block mt-1">
-                    Validators cannot be changed after the host has signed the program on
-                    blockchain.
+                    Validators cannot be changed after the host has signed the
+                    program on blockchain.
                   </span>
                 )}
             </label>
@@ -1028,7 +1171,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 </div>
               ))}
               <Button
-                onClick={() => setLinks((prev) => [...prev, ''])}
+                onClick={() => setLinks((prev) => [...prev, ""])}
                 type="button"
                 variant="outline"
                 size="sm"
@@ -1038,11 +1181,13 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 Add URL
               </Button>
               {extraErrors.links && (
-                <span className="text-destructive text-sm block">Links is required</span>
+                <span className="text-destructive text-sm block">
+                  Links is required
+                </span>
               )}
               {extraErrors.invalidLink && (
                 <span className="text-destructive text-sm block">
-                  The provided link is not valid. All links must begin with{' '}
+                  The provided link is not valid. All links must begin with{" "}
                   <span className="font-bold">https://</span>.
                 </span>
               )}
@@ -1060,10 +1205,12 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 id="summary"
                 placeholder="Type summary"
                 className="h-10"
-                {...register('summary', { required: true })}
+                {...register("summary", { required: true })}
               />
               {errors.summary && (
-                <span className="text-destructive text-sm block">Summary is required</span>
+                <span className="text-destructive text-sm block">
+                  Summary is required
+                </span>
               )}
             </label>
           </div>
@@ -1076,7 +1223,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
               <MarkdownEditor onChange={setContent} content={content} />
               {!content.length && (
-                <span className="text-destructive text-sm block">Description is required</span>
+                <span className="text-destructive text-sm block">
+                  Description is required
+                </span>
               )}
             </label>
           </div>
@@ -1095,9 +1244,36 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                       Network <span className="text-primary">*</span>
                     </p>
                     <NetworkSelector
-                      disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
-                      value={network ?? mainnetDefaultNetwork}
-                      onValueChange={setNetwork}
+                      disabled={
+                        isEdit &&
+                        data?.program?.status !== ProgramStatus.Pending
+                      }
+                      value={
+                        networksWithTokens.find((n) => n.chainName === network)
+                          ?.id ||
+                        networksWithTokens.find(
+                          (n) => n.chainName === mainnetDefaultNetwork
+                        )?.id ||
+                        undefined
+                      }
+                      onValueChange={(value: string) => {
+                        const selectedNetwork = networksWithTokens.find(
+                          (n) => n.id === value
+                        );
+                        if (selectedNetwork) {
+                          setNetwork(selectedNetwork.chainName);
+                          // Reset currency when network changes
+                          const availableTokens = selectedNetwork.tokens || [];
+                          const nativeToken = availableTokens.find(
+                            (t) =>
+                              t.tokenAddress === ethers.constants.AddressZero
+                          );
+                          if (nativeToken) {
+                            setCurrency(nativeToken.id);
+                          }
+                        }
+                      }}
+                      networks={networksWithTokens}
                       className="min-w-[120px] h-10 w-full flex justify-between bg-white text-gray-dark border border-input shadow-sm hover:bg-white"
                     />
                   </div>
@@ -1106,27 +1282,41 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                       Terms <span className="text-primary">*</span>
                     </p>
                     <Input
-                      disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
+                      disabled={
+                        isEdit &&
+                        data?.program?.status !== ProgramStatus.Pending
+                      }
                       step={0.000000000000000001}
                       id="price"
                       type="number"
                       min={0}
                       placeholder="Enter price"
                       className="h-10 w-full"
-                      {...register('price', { required: true })}
+                      {...register("price", { required: true })}
                     />
                   </div>
                   <CurrencySelector
-                    disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
+                    disabled={
+                      isEdit && data?.program?.status !== ProgramStatus.Pending
+                    }
                     value={currency}
                     onValueChange={setCurrency}
-                    network={network ?? mainnetDefaultNetwork}
+                    tokens={
+                      networksWithTokens.find((n) => n.chainName === network)
+                        ?.tokens ||
+                      networksWithTokens.find(
+                        (n) => n.chainName === mainnetDefaultNetwork
+                      )?.tokens ||
+                      []
+                    }
                     className="w-[108px] h-10"
                   />
                 </div>
 
                 {errors.price && (
-                  <span className="text-destructive text-sm block">Price is required</span>
+                  <span className="text-destructive text-sm block">
+                    Price is required
+                  </span>
                 )}
                 {isEdit && data?.program?.status !== ProgramStatus.Pending && (
                   <span className="text-destructive text-sm block">
@@ -1145,7 +1335,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                   defaultValue="open"
                   className="space-y-4"
                   value={conditionType}
-                  onValueChange={(value) => setConditionType(value as 'open' | 'tier')}
+                  onValueChange={(value) =>
+                    setConditionType(value as "open" | "tier")
+                  }
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="open" id="open" />
@@ -1164,38 +1356,44 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                         type="checkbox"
                         id={tier.name}
                         checked={tier.enabled}
-                        onChange={(e) => handleTierChange(tier.name, e.target.checked)}
-                        disabled={conditionType !== 'tier'}
+                        onChange={(e) =>
+                          handleTierChange(tier.name, e.target.checked)
+                        }
+                        disabled={conditionType !== "tier"}
                         className="rounded w-4 h-4 mt-1"
                       />
                       <div>
                         <Label
                           htmlFor={tier.name}
                           className={cn(
-                            'flex-1',
-                            conditionType !== 'tier' && 'text-muted-foreground',
+                            "flex-1",
+                            conditionType !== "tier" && "text-muted-foreground"
                           )}
                         >
                           <span
                             className={cn(
-                              'px-2 py-1 rounded-full text-xs font-medium',
-                              tier.name === 'Bronze' && 'bg-amber-100 text-amber-800',
-                              tier.name === 'Silver' && 'bg-slate-100 text-slate-800',
-                              tier.name === 'Gold' && 'bg-orange-100 text-orange-800',
-                              tier.name === 'Platinum' && 'bg-emerald-100 text-emerald-800',
+                              "px-2 py-1 rounded-full text-xs font-medium",
+                              tier.name === "Bronze" &&
+                                "bg-amber-100 text-amber-800",
+                              tier.name === "Silver" &&
+                                "bg-slate-100 text-slate-800",
+                              tier.name === "Gold" &&
+                                "bg-orange-100 text-orange-800",
+                              tier.name === "Platinum" &&
+                                "bg-emerald-100 text-emerald-800"
                             )}
                           >
                             {tier.name}
-                          </span>{' '}
+                          </span>{" "}
                           can invest
                         </Label>
                         <div className="flex items-center gap-4">
                           <span
                             className={cn(
-                              'text-sm mb-1',
-                              conditionType !== 'tier' || !tier.enabled
-                                ? 'text-muted-foreground'
-                                : 'text-foreground',
+                              "text-sm mb-1",
+                              conditionType !== "tier" || !tier.enabled
+                                ? "text-muted-foreground"
+                                : "text-foreground"
                             )}
                           >
                             Maximum amount
@@ -1204,9 +1402,11 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                             type="number"
                             min={0}
                             placeholder="0"
-                            value={tier.maxAmount || ''}
-                            onChange={(e) => handleTierAmountChange(tier.name, e.target.value)}
-                            disabled={conditionType !== 'tier' || !tier.enabled}
+                            value={tier.maxAmount || ""}
+                            onChange={(e) =>
+                              handleTierAmountChange(tier.name, e.target.value)
+                            }
+                            disabled={conditionType !== "tier" || !tier.enabled}
                             className="w-[296px] h-8"
                           />
                         </div>
@@ -1219,12 +1419,16 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
             <div className="bg-white px-10 py-6 rounded-lg">
               <label htmlFor="fee" className="space-y-2 block mb-10">
-                <p className="text-sm font-medium text-muted-foreground mb-8">Fee settings *</p>
+                <p className="text-sm font-medium text-muted-foreground mb-8">
+                  Fee settings *
+                </p>
                 <RadioGroup
                   defaultValue="default"
                   className="space-y-4"
                   value={feeType}
-                  onValueChange={(value) => setFeeType(value as 'default' | 'custom')}
+                  onValueChange={(value) =>
+                    setFeeType(value as "default" | "custom")
+                  }
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="default" id="default" />
@@ -1243,12 +1447,17 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     max={100}
                     step={0.01}
                     placeholder="0"
-                    value={customFee || ''}
+                    value={customFee || ""}
                     onChange={(e) => setCustomFee(e.target.value)}
-                    disabled={feeType !== 'custom'}
+                    disabled={feeType !== "custom"}
                     className="w-32 h-8"
                   />
-                  <span className={cn('text-sm', feeType !== 'custom' && 'text-muted-foreground')}>
+                  <span
+                    className={cn(
+                      "text-sm",
+                      feeType !== "custom" && "text-muted-foreground"
+                    )}
+                  >
                     %
                   </span>
                 </div>
@@ -1269,10 +1478,10 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 onClick={() => {
                   // Save all fields except the image into localStorage draft
                   const draft = {
-                    programName: watch('programName') ?? '',
-                    price: watch('price') ?? '',
-                    description: content ?? '',
-                    summary: watch('summary') ?? '',
+                    programName: watch("programName") ?? "",
+                    price: watch("price") ?? "",
+                    description: content ?? "",
+                    summary: watch("summary") ?? "",
                     currency,
                     deadline: deadline?.toISOString(),
                     keywords: selectedKeywords,
@@ -1289,33 +1498,41 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     fundingEndDate: fundingDueDate?.toISOString(),
                     fundingCondition: conditionType,
                     tierSettings:
-                      conditionType === 'tier'
+                      conditionType === "tier"
                         ? {
-                            bronze: tiers.find((t) => t.name === 'Bronze')?.enabled
+                            bronze: tiers.find((t) => t.name === "Bronze")
+                              ?.enabled
                               ? {
                                   enabled: true,
                                   maxAmount:
-                                    tiers.find((t) => t.name === 'Bronze')?.maxAmount || '0',
+                                    tiers.find((t) => t.name === "Bronze")
+                                      ?.maxAmount || "0",
                                 }
                               : undefined,
-                            silver: tiers.find((t) => t.name === 'Silver')?.enabled
+                            silver: tiers.find((t) => t.name === "Silver")
+                              ?.enabled
                               ? {
                                   enabled: true,
                                   maxAmount:
-                                    tiers.find((t) => t.name === 'Silver')?.maxAmount || '0',
+                                    tiers.find((t) => t.name === "Silver")
+                                      ?.maxAmount || "0",
                                 }
                               : undefined,
-                            gold: tiers.find((t) => t.name === 'Gold')?.enabled
-                              ? {
-                                  enabled: true,
-                                  maxAmount: tiers.find((t) => t.name === 'Gold')?.maxAmount || '0',
-                                }
-                              : undefined,
-                            platinum: tiers.find((t) => t.name === 'Platinum')?.enabled
+                            gold: tiers.find((t) => t.name === "Gold")?.enabled
                               ? {
                                   enabled: true,
                                   maxAmount:
-                                    tiers.find((t) => t.name === 'Platinum')?.maxAmount || '0',
+                                    tiers.find((t) => t.name === "Gold")
+                                      ?.maxAmount || "0",
+                                }
+                              : undefined,
+                            platinum: tiers.find((t) => t.name === "Platinum")
+                              ?.enabled
+                              ? {
+                                  enabled: true,
+                                  maxAmount:
+                                    tiers.find((t) => t.name === "Platinum")
+                                      ?.maxAmount || "0",
                                 }
                               : undefined,
                           }
@@ -1324,7 +1541,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     customFee,
                   };
                   saveInvestmentDraft(draft);
-                  notify('Draft saved (image is not included).');
+                  notify("Draft saved (image is not included).");
                 }}
               >
                 Save
@@ -1339,7 +1556,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
           </Tooltip>
         )}
 
-        {selectedTab === 'condition' && !isPublished && (
+        {selectedTab === "condition" && !isPublished && (
           <Popover>
             <PopoverTrigger>
               <Button
@@ -1351,7 +1568,9 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="min-w-[440px]">
-              <h2 className="text-foreground font-semibold text-center text-lg">Visibility</h2>
+              <h2 className="text-foreground font-semibold text-center text-lg">
+                Visibility
+              </h2>
               <p className="text-center text-muted-foreground text-sm mb-4">
                 Choose when to publish and who can see your program.
               </p>
@@ -1360,10 +1579,16 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                 defaultValue="public"
                 className="space-y-2 mb-8"
                 value={visibility}
-                onValueChange={(v) => setVisibility(v as 'public' | 'private' | 'restricted')}
+                onValueChange={(v) =>
+                  setVisibility(v as "public" | "private" | "restricted")
+                }
               >
                 <div className="flex items-start gap-3">
-                  <RadioGroupItem value="private" id="r1" className="border-foreground" />
+                  <RadioGroupItem
+                    value="private"
+                    id="r1"
+                    className="border-foreground"
+                  />
                   <div className="flex-1">
                     <Label htmlFor="r1" className="font-medium mb-[6px]">
                       Private
@@ -1371,7 +1596,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     <p className="text-sm text-muted-foreground mb-2">
                       Only invited users can view this program.
                     </p>
-                    {visibility === 'private' && (
+                    {visibility === "private" && (
                       <MultiSelect
                         options={builderOptions ?? []}
                         value={selectedBuilders}
@@ -1391,17 +1616,29 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <RadioGroupItem value="restricted" id="r2" className="border-foreground" />
+                  <RadioGroupItem
+                    value="restricted"
+                    id="r2"
+                    className="border-foreground"
+                  />
                   <div>
                     <Label htmlFor="r2">Restricted</Label>
-                    <p className="text-sm text-muted-foreground">Only users with links can view.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Only users with links can view.
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <RadioGroupItem value="public" id="r3" className="border-foreground" />
+                  <RadioGroupItem
+                    value="public"
+                    id="r3"
+                    className="border-foreground"
+                  />
                   <div>
                     <Label htmlFor="r3">Public</Label>
-                    <p className="text-sm text-muted-foreground">Anyone can view this program.</p>
+                    <p className="text-sm text-muted-foreground">
+                      Anyone can view this program.
+                    </p>
                   </div>
                 </div>
               </RadioGroup>
@@ -1419,31 +1656,31 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
           </Popover>
         )}
 
-        {selectedTab === 'overview' && (
+        {selectedTab === "overview" && (
           <Button
             type="button"
             size="lg"
             variant="outline"
-            onClick={() => setSelectedTab('details')}
+            onClick={() => setSelectedTab("details")}
             disabled={!isOverviewTabValid()}
           >
             Next to Details <ChevronRight />
           </Button>
         )}
 
-        {selectedTab === 'details' && !isPublished && (
+        {selectedTab === "details" && !isPublished && (
           <Button
             type="button"
             size="lg"
             variant="outline"
-            onClick={() => setSelectedTab('condition')}
+            onClick={() => setSelectedTab("condition")}
             disabled={!isDetailsTabValid()}
           >
             Next to Condition <ChevronRight />
           </Button>
         )}
 
-        {selectedTab === 'details' && isPublished && (
+        {selectedTab === "details" && isPublished && (
           <Button
             type="button"
             size="lg"
@@ -1463,13 +1700,13 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 export default InvestmentForm;
 
 enum ExtraErrorActionKind {
-  SET_KEYWORDS_ERROR = 'SET_KEYWORDS_ERROR',
-  SET_VALIDATOR_ERROR = 'SET_VALIDATOR_ERROR',
-  SET_DEADLINE_ERROR = 'SET_DEADLINE_ERROR',
-  SET_LINKS_ERROR = 'SET_LINKS_ERROR',
-  CLEAR_ERRORS = 'CLEAR_ERRORS',
-  SET_INVALID_LINK_ERROR = 'SET_INVALID_LINK_ERROR',
-  SET_DATE_ERROR = 'SET_DATE_ERROR',
+  SET_KEYWORDS_ERROR = "SET_KEYWORDS_ERROR",
+  SET_VALIDATOR_ERROR = "SET_VALIDATOR_ERROR",
+  SET_DEADLINE_ERROR = "SET_DEADLINE_ERROR",
+  SET_LINKS_ERROR = "SET_LINKS_ERROR",
+  CLEAR_ERRORS = "CLEAR_ERRORS",
+  SET_INVALID_LINK_ERROR = "SET_INVALID_LINK_ERROR",
+  SET_DATE_ERROR = "SET_DATE_ERROR",
 }
 
 interface ExtraErrorAction {

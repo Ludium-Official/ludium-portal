@@ -1,34 +1,35 @@
-import { useProfileQuery } from '@/apollo/queries/profile.generated';
-import { useProgramsQuery } from '@/apollo/queries/programs.generated';
-import avatarPlaceholder from '@/assets/avatar-placeholder.png';
-import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/lib/hooks/use-auth';
-import notify from '@/lib/notify';
-import { cn } from '@/lib/utils';
-import { usePrivy } from '@privy-io/react-auth';
-import { ArrowRight, Settings, Wallet } from 'lucide-react';
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { useProfileQuery } from "@/apollo/queries/profile.generated";
+import { useProgramsQuery } from "@/apollo/queries/programs.generated";
+import avatarPlaceholder from "@/assets/avatar-placeholder.png";
+import MarkdownPreviewer from "@/components/markdown/markdown-previewer";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/lib/hooks/use-auth";
+import notify from "@/lib/notify";
+import { cn } from "@/lib/utils";
+import { LoginTypeEnum } from "@/types/types.generated";
+import { usePrivy } from "@privy-io/react-auth";
+import { ArrowRight, Settings, Wallet } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router";
 
 function ProfilePage() {
-  const roles = JSON.parse(localStorage.getItem('roles') ?? '[]') as string[];
+  const roles = JSON.parse(localStorage.getItem("roles") ?? "[]") as string[];
 
-  const [selectedTab, setSelectedTab] = useState(roles?.[0] ?? 'sponsor');
+  const [selectedTab, setSelectedTab] = useState(roles?.[0] ?? "sponsor");
 
   const filterBasedOnRole = {
-    sponsor: 'creatorId',
-    validator: 'validatorId',
-    builder: 'applicantId',
+    sponsor: "creatorId",
+    validator: "validatorId",
+    builder: "applicantId",
   };
 
   const { user, login: privyLogin } = usePrivy();
   const { login: authLogin } = useAuth();
 
   const { data: profileData } = useProfileQuery({
-    fetchPolicy: 'network-only',
+    fetchPolicy: "network-only",
   });
 
   const { data } = useProgramsQuery({
@@ -38,8 +39,11 @@ function ProfilePage() {
         offset: 0,
         filter: [
           {
-            value: profileData?.profile?.id ?? '',
-            field: filterBasedOnRole[selectedTab as 'sponsor' | 'validator' | 'builder'],
+            value: profileData?.profile?.id ?? "",
+            field:
+              filterBasedOnRole[
+                selectedTab as "sponsor" | "validator" | "builder"
+              ],
           },
         ],
       },
@@ -56,12 +60,14 @@ function ProfilePage() {
 
       const loginType = (() => {
         const types = {
-          google: googleInfo,
-          farcaster: farcasterInfo,
+          [LoginTypeEnum.Google]: googleInfo,
+          [LoginTypeEnum.Farcaster]: farcasterInfo,
         };
 
         return (
-          (Object.keys(types) as Array<keyof typeof types>).find((key) => types[key]) || 'wallet'
+          (Object.keys(types) as Array<keyof typeof types>).find(
+            (key) => types[key]
+          ) || LoginTypeEnum.Wallet
         );
       })();
 
@@ -75,8 +81,8 @@ function ProfilePage() {
         });
       }
     } catch (error) {
-      notify('Failed to login', 'error');
-      console.error('Failed to login:', error);
+      notify("Failed to login", "error");
+      console.error("Failed to login:", error);
     }
   };
 
@@ -86,7 +92,9 @@ function ProfilePage() {
         <section className="">
           <h1 className="text-xl font-bold mb-6">Profile</h1>
 
-          <h3 className="text-gray-text text-xs font-medium mb-2">Profile image</h3>
+          <h3 className="text-gray-text text-xs font-medium mb-2">
+            Profile image
+          </h3>
 
           <div className="px-6 py-2 mb-9">
             <img
@@ -96,38 +104,47 @@ function ProfilePage() {
             />
           </div>
 
-          <h3 className="text-gray-text text-xs font-medium mb-2">Organization / Person name</h3>
+          <h3 className="text-gray-text text-xs font-medium mb-2">
+            Organization / Person name
+          </h3>
           <div className="text-gray-dark text-sm font-medium mb-10">
-            {profileData?.profile?.organizationName} / {profileData?.profile?.firstName}{' '}
-            {profileData?.profile?.lastName}
+            {profileData?.profile?.organizationName} /{" "}
+            {profileData?.profile?.firstName} {profileData?.profile?.lastName}
           </div>
 
           <h3 className="text-gray-text text-xs font-medium mb-2">Email</h3>
-          <p className="text-gray-dark text-sm font-medium mb-10">{profileData?.profile?.email}</p>
+          <p className="text-gray-dark text-sm font-medium mb-10">
+            {profileData?.profile?.email}
+          </p>
 
           <h3 className="text-gray-text text-xs font-medium mb-2">Summary</h3>
           <p className="text-gray-dark text-sm font-medium mb-10">
             {profileData?.profile?.summary}
           </p>
 
-          <h3 className="text-gray-text text-xs font-medium mb-2">Description</h3>
+          <h3 className="text-gray-text text-xs font-medium mb-2">
+            Description
+          </h3>
           {profileData?.profile?.about && (
-            <MarkdownPreviewer value={profileData?.profile?.about ?? ''} />
+            <MarkdownPreviewer value={profileData?.profile?.about ?? ""} />
           )}
           {/* <p className="text-[#18181B] text-sm font-medium mb-10">{profileData?.profile?.about}</p> */}
 
           <h3 className="text-gray-text text-xs font-medium mb-2">Wallet</h3>
           <div className="p-6 mb-10 border min-w-[282px] bg-muted rounded-lg shadow-sm relative">
-            <label htmlFor="description" className="block text-foreground font-medium mb-2 text-sm">
+            <label
+              htmlFor="description"
+              className="block text-foreground font-medium mb-2 text-sm"
+            >
               My Wallet
             </label>
             <span
               className={cn(
-                'block text-gray-text text-sm mb-5',
-                !!profileData?.profile?.walletAddress && 'mb-2',
+                "block text-gray-text text-sm mb-5",
+                !!profileData?.profile?.walletAddress && "mb-2"
               )}
             >
-              {user ? 'Your wallet is connected' : 'Connect your wallet'}
+              {user ? "Your wallet is connected" : "Connect your wallet"}
             </span>
             {profileData?.profile?.walletAddress && (
               <div className="text-xs text-gray-text mb-5">
@@ -140,7 +157,7 @@ function ProfilePage() {
               disabled={user !== null}
               className="bg-primary hover:bg-primary/90 h-9 w-[133px] ml-auto flex text-xs"
             >
-              {user ? 'Connected' : 'Connect wallet'} <Wallet />
+              {user ? "Connected" : "Connect wallet"} <Wallet />
             </Button>
           </div>
 
@@ -148,7 +165,7 @@ function ProfilePage() {
           <div className="text-gray-dark text-sm font-medium mb-10">
             {profileData?.profile?.links?.map((l) => (
               <a
-                href={l?.url ?? ''}
+                href={l?.url ?? ""}
                 key={l.url}
                 className="block hover:underline text-slate-600 text-sm"
                 target="_blank"
@@ -168,7 +185,10 @@ function ProfilePage() {
         </section>
 
         <section>
-          <Link to="./edit" className="text-sm font-medium flex items-center gap-2">
+          <Link
+            to="./edit"
+            className="text-sm font-medium flex items-center gap-2"
+          >
             <Settings className="w-4 h-4" /> Edit
           </Link>
         </section>
@@ -177,13 +197,15 @@ function ProfilePage() {
       <div className="bg-white p-5 rounded-2xl">
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList className="w-full">
-            <TabsTrigger value={'sponsor'}>Programs as sponsor</TabsTrigger>
-            <TabsTrigger value={'validator'}>Programs as validator</TabsTrigger>
-            <TabsTrigger value={'builder'}>Programs as builder</TabsTrigger>
+            <TabsTrigger value={"sponsor"}>Programs as sponsor</TabsTrigger>
+            <TabsTrigger value={"validator"}>Programs as validator</TabsTrigger>
+            <TabsTrigger value={"builder"}>Programs as builder</TabsTrigger>
           </TabsList>
         </Tabs>
 
-        <h2 className="text-xl font-bold mt-10 mb-6">Programs as {selectedTab}</h2>
+        <h2 className="text-xl font-bold mt-10 mb-6">
+          Programs as {selectedTab}
+        </h2>
 
         {!data?.programs?.data?.length && (
           <div className="text-sm text-muted-foreground">No programs found</div>
@@ -193,7 +215,10 @@ function ProfilePage() {
           <div key={p.id} className="border rounded-xl p-6 mb-6">
             <div className="flex justify-between mb-4">
               <Badge>{p.status}</Badge>
-              <Link to={`/programs/${p.id}`} className="flex gap-2 text-sm items-center">
+              <Link
+                to={`/programs/${p.id}`}
+                className="flex gap-2 text-sm items-center"
+              >
                 See more <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

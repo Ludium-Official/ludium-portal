@@ -52,10 +52,12 @@ export enum ApplicationStatus {
   Submitted = 'submitted'
 }
 
+/** Lifecycle status for V2 applications: submitted → pending_signature → in_progress → completed */
 export enum ApplicationStatusV2 {
-  Applied = 'applied',
-  Hired = 'hired',
-  Rejected = 'rejected'
+  Completed = 'completed',
+  InProgress = 'in_progress',
+  PendingSignature = 'pending_signature',
+  Submitted = 'submitted'
 }
 
 export type ApplicationV2 = {
@@ -78,9 +80,9 @@ export type ApplicationV2 = {
   program?: Maybe<ProgramV2>;
   /** ID of the program this application is for */
   programId?: Maybe<Scalars['ID']['output']>;
-  /** Reason for rejection if the application was rejected */
+  /** Legacy rejection note or optional review comment (populated when sponsors leave a note) */
   rejectedReason?: Maybe<Scalars['String']['output']>;
-  /** Application status */
+  /** Application lifecycle status (submitted, pending_signature, in_progress, completed) */
   status?: Maybe<ApplicationStatusV2>;
   /** Title of the application */
   title?: Maybe<Scalars['String']['output']>;
@@ -181,6 +183,7 @@ export enum CommentableTypeEnum {
 export type ContractV2 = {
   __typename?: 'ContractV2';
   applicantId?: Maybe<Scalars['Int']['output']>;
+  applicationId?: Maybe<Scalars['Int']['output']>;
   builder_signature?: Maybe<Scalars['String']['output']>;
   contract_snapshot_cotents?: Maybe<Scalars['JSON']['output']>;
   contract_snapshot_hash?: Maybe<Scalars['String']['output']>;
@@ -212,7 +215,7 @@ export type CreateApplicationV2Input = {
   content?: InputMaybe<Scalars['String']['input']>;
   /** ID of the program to apply for */
   programId: Scalars['ID']['input'];
-  /** Application status (defaults to applied) */
+  /** Application status (defaults to submitted) */
   status?: InputMaybe<ApplicationStatusV2>;
 };
 
@@ -231,6 +234,7 @@ export type CreateCommentInput = {
 
 export type CreateContractV2Input = {
   applicantId: Scalars['Int']['input'];
+  applicationId: Scalars['Int']['input'];
   builder_signature?: InputMaybe<Scalars['String']['input']>;
   contract_snapshot_cotents?: InputMaybe<Scalars['JSON']['input']>;
   contract_snapshot_hash?: InputMaybe<Scalars['String']['input']>;
@@ -1660,6 +1664,7 @@ export type Query = {
   commentsByCommentable?: Maybe<Array<Comment>>;
   contractV2?: Maybe<ContractV2>;
   contractsByApplicantV2?: Maybe<PaginatedContractV2>;
+  contractsByApplicationV2?: Maybe<PaginatedContractV2>;
   contractsByProgramV2?: Maybe<PaginatedContractV2>;
   contractsBySponsorV2?: Maybe<PaginatedContractV2>;
   contractsV2?: Maybe<PaginatedContractV2>;
@@ -1785,6 +1790,12 @@ export type QueryContractV2Args = {
 
 export type QueryContractsByApplicantV2Args = {
   applicantId: Scalars['Int']['input'];
+  pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryContractsByApplicationV2Args = {
+  applicationId: Scalars['Int']['input'];
   pagination?: InputMaybe<PaginationInput>;
 };
 
@@ -2035,9 +2046,9 @@ export type ReorderCarouselItemInput = {
 };
 
 export type ReviewApplicationV2Input = {
-  /** Reason for rejection (required when status is rejected) */
+  /** Optional note when adjusting status (legacy compatibility) */
   rejectedReason?: InputMaybe<Scalars['String']['input']>;
-  /** Review decision: accepted or rejected */
+  /** Review decision status update (e.g., pending_signature, in_progress) */
   status: ApplicationStatusV2;
 };
 
@@ -2154,6 +2165,8 @@ export type UpdateApplicationInput = {
 export type UpdateApplicationV2Input = {
   /** Updated application content */
   content?: InputMaybe<Scalars['String']['input']>;
+  /** Updated application status (builder-driven lifecycle updates) */
+  status?: InputMaybe<ApplicationStatusV2>;
 };
 
 export type UpdateCarouselItemInput = {

@@ -1,0 +1,18 @@
+query contractsByApplicationV2($applicationId: Int!, $pagination: PaginationInput) {
+  contractsByApplicationV2(applicationId: $applicationId, pagination: $pagination) {
+    data {
+      id
+      programId
+      applicantId
+      sponsorId
+      onchainContractId
+      smartContractId
+      builder_signature
+      contract_snapshot_hash
+      contract_snapshot_cotents
+      createdAt
+    }
+    count
+  }
+}
+

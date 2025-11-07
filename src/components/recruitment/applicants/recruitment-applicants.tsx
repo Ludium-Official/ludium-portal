@@ -1,12 +1,12 @@
-import { usePickApplicationV2Mutation } from '@/apollo/mutation/pick-application-v2.generated';
-import type { ApplicationsByProgramV2Query } from '@/apollo/queries/applications-by-program-v2.generated';
-import notify from '@/lib/notify';
-import type { RecruitmentApplicant } from '@/types/recruitment';
-import type { ApolloError } from '@apollo/client';
-import ApplicantCard from './applicant-card/applicant-card';
+import { usePickApplicationV2Mutation } from "@/apollo/mutation/pick-application-v2.generated";
+import type { ApplicationsByProgramV2Query } from "@/apollo/queries/applications-by-program-v2.generated";
+import notify from "@/lib/notify";
+import type { RecruitmentApplicant } from "@/types/recruitment";
+import type { ApolloError } from "@apollo/client";
+import ApplicantCard from "./applicant-card/applicant-card";
 
 type ApplicationData = NonNullable<
-  NonNullable<ApplicationsByProgramV2Query['applicationsByProgramV2']>['data']
+  NonNullable<ApplicationsByProgramV2Query["applicationsByProgramV2"]>["data"]
 >[number];
 
 const RecruitmentApplicants: React.FC<{
@@ -17,7 +17,10 @@ const RecruitmentApplicants: React.FC<{
 }> = ({ applications, refetch, loading, error }) => {
   const [pickApplication] = usePickApplicationV2Mutation();
 
-  const handleTogglePick = async (applicationId?: string | null, currentPicked?: boolean) => {
+  const handleTogglePick = async (
+    applicationId?: string | null,
+    currentPicked?: boolean
+  ) => {
     if (!applicationId) return;
 
     try {
@@ -32,19 +35,22 @@ const RecruitmentApplicants: React.FC<{
 
       refetch();
       notify(
-        !currentPicked ? 'Applicant picked successfully!' : 'Applicant unpicked successfully!',
-        'success',
+        !currentPicked
+          ? "Applicant picked successfully!"
+          : "Applicant unpicked successfully!",
+        "success"
       );
     } catch (error) {
-      console.error('Error toggling pick:', error);
-      notify('Failed to update pick status. Please try again.', 'error');
+      console.error("Error toggling pick:", error);
+      notify("Failed to update pick status. Please try again.", "error");
     }
   };
 
-  const transformToApplicant = (application: ApplicationData): RecruitmentApplicant => {
-    console.log(application);
+  const transformToApplicant = (
+    application: ApplicationData
+  ): RecruitmentApplicant => {
     return {
-      id: application.id || '',
+      id: application.id || "",
       appliedDate: application.createdAt,
       picked: application.picked || false,
       programId: application.program?.id,
@@ -78,7 +84,9 @@ const RecruitmentApplicants: React.FC<{
   if (error) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="text-lg text-red-500">Error loading applicants. Please try again.</div>
+        <div className="text-lg text-red-500">
+          Error loading applicants. Please try again.
+        </div>
       </div>
     );
   }
@@ -95,7 +103,9 @@ const RecruitmentApplicants: React.FC<{
             />
           ))
         ) : (
-          <div className="text-center py-12 text-muted-foreground">No applicants yet</div>
+          <div className="text-center py-12 text-muted-foreground">
+            No applicants yet
+          </div>
         )}
       </div>
     </div>
