@@ -29,22 +29,21 @@ import {
 import { Input } from '@/components/ui/input';
 import { type ChatMessageFile, getAllFiles, getLatestMessage } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { formatUTCDateLocal, fromUTCString, toUTCString } from '@/lib/utils';
+import { dDay, formatUTCDateLocal, fromUTCString, toUTCString } from '@/lib/utils';
 import type { ContractInformation } from '@/types/recruitment';
-import {
-  ApplicationStatusV2,
-  type ApplicationV2,
-  MilestoneStatusV2,
-  type MilestoneV2,
-} from '@/types/types.generated';
+import { ApplicationStatusV2, MilestoneStatusV2, type MilestoneV2 } from '@/types/types.generated';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Timestamp } from 'firebase/firestore';
 import { FileText, Folder, Image as ImageIcon, Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import * as z from 'zod';
 import MessageListItem from './message-list-item';
+import { useParams } from 'react-router';
+import { useApplicationsByProgramV2Query } from '@/apollo/queries/applications-by-program-v2.generated';
+import { Badge } from '@/components/ui/badge';
+import { useNetworks } from '@/contexts/networks-context';
 
 const milestoneFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -121,19 +120,32 @@ const MilestoneCard = ({
   );
 };
 
-const RecruitmentMessage: React.FC<{
-  applications: ApplicationV2[];
-}> = ({ applications }) => {
+const RecruitmentMessage: React.FC<{}> = () => {
+  const { id } = useParams();
   const { userId } = useAuth();
+  const { networks: networksWithTokens, getContractByNetworkId } = useNetworks();
 
-  const isSponsor = applications[0]?.program?.sponsor?.id === userId;
-  const hasMessageIdRoom = applications.filter((application) => application.chatroomMessageId);
+  const { data } = useApplicationsByProgramV2Query({
+    variables: {
+      query: {
+        programId: id || '',
+      },
+    },
+    skip: !id,
+  });
 
-  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
-    !isSponsor && hasMessageIdRoom.length > 0 && hasMessageIdRoom[0].chatroomMessageId
-      ? hasMessageIdRoom[0].chatroomMessageId
-      : null,
+  const applications = data?.applicationsByProgramV2?.data || [];
+
+  const isSponsor = useMemo(
+    () => applications[0]?.program?.sponsor?.id === userId,
+    [applications, userId],
   );
+  const hasMessageIdRoom = useMemo(
+    () => applications.filter((application) => application.chatroomMessageId),
+    [applications],
+  );
+
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
   const [selectedMilestone, setSelectedMilestone] = useState<MilestoneV2 | null>(null);
   const [isNewMilestoneMode, setIsNewMilestoneMode] = useState(true);
@@ -143,6 +155,20 @@ const RecruitmentMessage: React.FC<{
   const [files, setFiles] = useState<ChatMessageFile[]>([]);
   const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isSponsor && hasMessageIdRoom.length > 0 && hasMessageIdRoom[0].chatroomMessageId) {
+      const firstChatroomId = hasMessageIdRoom[0].chatroomMessageId;
+      const isSelectedValid =
+        selectedMessageId &&
+        hasMessageIdRoom.find((app) => app.chatroomMessageId === selectedMessageId);
+      if (!isSelectedValid) {
+        setSelectedMessageId(firstChatroomId);
+      }
+    } else if (isSponsor && selectedMessageId) {
+      setSelectedMessageId(null);
+    }
+  }, [isSponsor, hasMessageIdRoom]);
 
   const selectedApplication = hasMessageIdRoom.find(
     (applicant) => applicant.chatroomMessageId === selectedMessageId,
@@ -343,6 +369,10 @@ const RecruitmentMessage: React.FC<{
     return () => clearTimeout(timeoutId);
   }, [selectedApplication?.chatroomMessageId]);
 
+  const currentNetwork = networksWithTokens.find(
+    (network) => Number(network.id) === contractInformation.networkId,
+  );
+
   return (
     <div className="flex gap-4 h-[calc(100vh-200px)]">
       {isSponsor && (
@@ -373,7 +403,7 @@ const RecruitmentMessage: React.FC<{
       )}
 
       <Card className="flex flex-row gap-2 w-full p-0">
-        <div className="py-5 pr-0 pl-2 w-full flex flex-col">
+        <div className="pt-5 pb-1 pr-0 pl-2 w-full flex flex-col">
           {selectedApplication ? (
             <>
               <div className="flex items-center justify-between border-b pb-4 px-4">
@@ -614,7 +644,7 @@ const RecruitmentMessage: React.FC<{
       >
         <DialogContent className="sm:max-w-[1200px] max-h-[90vh] overflow-hidden flex flex-col p-0">
           <div className="flex flex-1 overflow-hidden">
-            <div className="flex-1 p-6 overflow-y-auto border-r bg-white">
+            <div className="flex-1 min-h-[500px] p-6 overflow-y-auto border-r bg-white">
               {isNewMilestoneMode ? (
                 <Form {...form}>
                   <form
@@ -709,28 +739,37 @@ const RecruitmentMessage: React.FC<{
                 </Form>
               ) : (
                 <div className="space-y-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Title</p>
-                    <p className="font-medium">{selectedMilestone?.title}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Price</p>
-                    <p className="font-medium">{selectedMilestone?.payout}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Deadline</p>
-                    <p className="font-medium">
-                      {selectedMilestone?.deadline
-                        ? formatUTCDateLocal(selectedMilestone.deadline)
-                        : '-'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1">Description</p>
-                    <MarkdownPreviewer
-                      key={selectedMilestone?.id || 'empty'}
-                      value={selectedMilestone?.description || ''}
-                    />
+                  <p className="mb-10 text-2xl font-semibold">{selectedMilestone?.title}</p>
+                  <div className="mx-3">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-sm text-gray-text rounded-md">
+                        <div className="flex items-center gap-2">
+                          Price
+                          <div className="ml-2 text-gray-dark">
+                            {selectedMilestone?.payout} {currentNetwork?.tokens?.[0]?.tokenName}
+                          </div>
+                        </div>
+                      </Badge>
+                      <Badge variant="secondary" className="text-sm text-gray-text rounded-md">
+                        <div className="flex items-center gap-2">
+                          Deadline
+                          <div className="ml-2 text-gray-dark">
+                            {selectedMilestone?.deadline &&
+                              formatUTCDateLocal(selectedMilestone.deadline)}
+                            {selectedMilestone?.deadline && (
+                              <Badge className="ml-2">{dDay(selectedMilestone.deadline)}</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </Badge>
+                    </div>
+                    <div className="mt-5">
+                      <p className="text-base font-bold text-gray-dark mb-1">DESCRIPTION</p>
+                      <MarkdownPreviewer
+                        key={selectedMilestone?.id || 'empty'}
+                        value={selectedMilestone?.description || ''}
+                      />
+                    </div>
                   </div>
                 </div>
               )}

@@ -20,6 +20,7 @@ import { ArrowUpRight, Building2, CircleCheck, Settings, Sparkle, UserCog } from
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router';
 import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
+import { useProfileV2Query } from '@/apollo/queries/profile-v2.generated';
 
 const adminLinks = [
   { label: 'Banner', path: 'admin/banner' },
@@ -46,19 +47,17 @@ function MyProfilePage() {
 
   const { networks: networksWithTokens } = useNetworks();
 
-  const { data: profileData } = useProfileQuery({
+  const { data: profileData } = useProfileV2Query({
     fetchPolicy: 'network-only',
   });
 
-  const user = profileData?.profile;
+  const user = profileData?.profileV2;
 
   const isProfileIncomplete =
     !user?.firstName?.trim() ||
     !user?.lastName?.trim() ||
     !user?.email?.trim() ||
-    !user?.organizationName?.trim() ||
-    !user?.summary?.trim() ||
-    !user?.about?.trim();
+    !user?.organizationName?.trim();
 
   const currentNetwork = networksWithTokens.find(
     (n) => n.id === networkId || (!networkId && n.chainName === mainnetDefaultNetwork),
@@ -137,7 +136,7 @@ function MyProfilePage() {
               <div className="flex items-center gap-[22px]">
                 <div className="p-[7.5px]">
                   <img
-                    src={user?.image ?? avatarPlaceholder}
+                    src={user?.profileImage ?? avatarPlaceholder}
                     alt="avatar"
                     className="w-[121px] h-[121px] rounded-full object-cover"
                   />
@@ -154,12 +153,6 @@ function MyProfilePage() {
                     {user?.organizationName?.length ? user?.organizationName : '-'}
                   </p>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <p className="font-bold text-sm text-muted-foreground">SUMMARY</p>
-                <p className="text-sm text-slate-600 line-clamp-4 font-inter">
-                  {user?.summary?.length ? user.summary : 'There is no summary written.'}
-                </p>
               </div>
               <div className="flex gap-2">
                 <Button
@@ -178,7 +171,7 @@ function MyProfilePage() {
                 <ShareButton
                   variant="outline"
                   className="h-11 flex-1"
-                  linkToCopy={`${window.location.origin}/users/${profileData?.profile?.id}/overview`}
+                  linkToCopy={`${window.location.origin}/users/${user?.id}/overview`}
                 />
               </div>
 
@@ -280,43 +273,24 @@ function MyProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <p className="font-bold text-sm text-muted-foreground">ROLES</p>
+                <p className="font-bold text-sm text-muted-foreground">SKILLS</p>
                 <div className="flex gap-[6px] flex-wrap">
-                  {(!profileData?.profile?.roleKeywords ||
-                    profileData.profile.roleKeywords.length === 0) && (
+                  {(!user?.skills || user.skills.length === 0) && (
                     <span className="text-xs text-muted-foreground font-normal">
                       There are no roles added yet.
                     </span>
                   )}
-                  {profileData?.profile?.roleKeywords?.map((k) => (
+                  {user?.skills?.map((s) => (
                     <Badge
-                      key={k.id}
+                      key={s}
                       className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs"
                     >
-                      {k.name}
+                      {s}
                     </Badge>
                   ))}
                 </div>
               </div>
-              <div className="space-y-2">
-                <p className="font-bold text-sm text-muted-foreground">SKILLS</p>
-                <div className="flex gap-[6px] flex-wrap">
-                  {(!profileData?.profile?.skillKeywords ||
-                    profileData.profile.skillKeywords.length === 0) && (
-                    <span className="text-xs text-muted-foreground font-normal">
-                      There are no skills added yet.
-                    </span>
-                  )}
-                  {profileData?.profile?.skillKeywords?.map((k) => (
-                    <Badge
-                      key={k.id}
-                      className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs"
-                    >
-                      {k.name}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+
               <div className="space-y-3">
                 <p className="font-bold text-sm text-muted-foreground">LINKS</p>
                 <div className="space-y-2">
@@ -327,17 +301,17 @@ function MyProfilePage() {
                           <div key={index} className="flex items-center gap-2">
                             <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
                               <SocialIcon
-                                value={link.url ?? ''}
+                                value={link ?? ''}
                                 className="w-4 h-4 text-secondary-foreground"
                               />
                             </div>
                             <a
                               target="_blank"
-                              href={link.url || '#'}
+                              href={link || '#'}
                               className="text-sm text-slate-600 break-all"
                               rel="noreferrer"
                             >
-                              {link.url || 'No link'}
+                              {link || 'No link'}
                             </a>
                           </div>
                         );
