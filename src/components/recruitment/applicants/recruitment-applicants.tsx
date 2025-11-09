@@ -1,21 +1,23 @@
 import { usePickApplicationV2Mutation } from '@/apollo/mutation/pick-application-v2.generated';
-import type { ApplicationsByProgramV2Query } from '@/apollo/queries/applications-by-program-v2.generated';
 import notify from '@/lib/notify';
 import type { RecruitmentApplicant } from '@/types/recruitment';
-import type { ApolloError } from '@apollo/client';
 import ApplicantCard from './applicant-card/applicant-card';
+import { useParams } from 'react-router';
+import { useApplicationsByProgramV2Query } from '@/apollo/queries/applications-by-program-v2.generated';
+import { ApplicationV2 } from '@/types/types.generated';
 
-type ApplicationData = NonNullable<
-  NonNullable<ApplicationsByProgramV2Query['applicationsByProgramV2']>['data']
->[number];
+const RecruitmentApplicants: React.FC = () => {
+  const { id } = useParams();
 
-const RecruitmentApplicants: React.FC<{
-  applications: ApplicationData[];
-  refetch: () => void;
-  loading: boolean;
-  error?: ApolloError;
-}> = ({ applications, refetch, loading, error }) => {
   const [pickApplication] = usePickApplicationV2Mutation();
+  const { data, refetch, loading, error } = useApplicationsByProgramV2Query({
+    variables: {
+      query: { programId: id || '' },
+    },
+    skip: !id,
+  });
+
+  const applications = data?.applicationsByProgramV2?.data || [];
 
   const handleTogglePick = async (applicationId?: string | null, currentPicked?: boolean) => {
     if (!applicationId) return;
@@ -41,7 +43,7 @@ const RecruitmentApplicants: React.FC<{
     }
   };
 
-  const transformToApplicant = (application: ApplicationData): RecruitmentApplicant => {
+  const transformToApplicant = (application: ApplicationV2): RecruitmentApplicant => {
     return {
       id: application.id || '',
       appliedDate: application.createdAt,

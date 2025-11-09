@@ -154,3 +154,9 @@ body {
     max-width: 1440px;
   }
 }
+
+/* Fix Radix UI ScrollArea display: table issue */
+[data-radix-scroll-area-viewport] > div {
+  display: block !important;
+  min-width: 100% !important;
+}

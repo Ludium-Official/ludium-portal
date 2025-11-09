@@ -183,16 +183,22 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
               className={cn(
                 'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
                 isLudiumAssistant && 'py-4 bg-white border border-primary',
+                !message.is_active && 'opacity-50',
               )}
             >
               <div>
                 <img src={contractLogo} alt="contract" className="mb-3" />
                 <div className="font-bold text-lg">Employment Contract</div>
                 <div className="mt-1 mb-5 font-semibold">
-                  {message.senderId === '-1'
+                  {message.senderId
                     ? 'Sponser sent a contract for review and signature.'
                     : 'Builder sent a contract for review and signature.'}
                 </div>
+                {!message.is_active && (
+                  <div className="mb-3 text-sm text-slate-500 italic">
+                    This contract has been completed and is no longer active.
+                  </div>
+                )}
                 <Button
                   variant="lightPurple"
                   className="w-full"
@@ -215,6 +221,7 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
                   applicationStatus: application.status || null,
                 }}
                 assistantId={message.senderId}
+                readOnly={!message.is_active}
               />
             </div>
           ) : (
@@ -407,9 +414,11 @@ export function ChatBox({
           const newest = initialMessages[initialMessages.length - 1];
           const timestamp = newest.timestamp;
           newestTimestampRef.current = timestamp;
+          lastActivityRef.current = Date.now();
         } else {
           const now = FirestoreTimestamp.now();
           newestTimestampRef.current = now;
+          lastActivityRef.current = Date.now();
         }
 
         if (initialMessages.length < totalMessages) {
@@ -453,7 +462,7 @@ export function ChatBox({
     const pollingInterval = setInterval(async () => {
       const timeSinceLastActivity = Date.now() - lastActivityRef.current;
 
-      if (timeSinceLastActivity > 60000 && newestTimestampRef.current) {
+      if (timeSinceLastActivity > 1000 && newestTimestampRef.current) {
         try {
           const newMessages = await getNewMessages(chatRoomId, newestTimestampRef.current);
 
@@ -475,7 +484,7 @@ export function ChatBox({
           console.error('❌ Error polling new messages:', error);
         }
       }
-    }, 30000);
+    }, 5000);
 
     pollingIntervalRef.current = pollingInterval;
 
@@ -621,7 +630,7 @@ export function ChatBox({
   }, [messages]);
 
   return (
-    <div className="flex flex-col min-h-[600px] h-full">
+    <div className="flex flex-col h-full">
       <div
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col"

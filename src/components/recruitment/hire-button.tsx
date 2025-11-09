@@ -32,7 +32,7 @@ export function HireButton({ contractInformation, disabled = false }: HireButton
   return (
     <>
       <Button className="mr-4 px-8 bg-primary" onClick={handleHireClick} disabled={disabled}>
-        {contractInformation.applicationStatus === ApplicationStatusV2.InProgress
+        {contractInformation.applicationStatus === ApplicationStatusV2.PendingSignature
           ? 'Update Contract'
           : 'Hire'}
       </Button>

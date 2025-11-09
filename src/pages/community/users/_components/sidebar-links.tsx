@@ -72,7 +72,7 @@ export function SidebarLinks({
         </div>
       )}
       {item.children && (
-        <div className={`ml-4 pl-2 ${item.path && 'border-l'} border-gray-200 space-y-1`}>
+        <div className={`ml-4 pl-2 border-l border-gray-200 space-y-1`}>
           {item.children
             .filter((child) => myProfile || child.label !== 'Reclaim')
             .map((child) => (

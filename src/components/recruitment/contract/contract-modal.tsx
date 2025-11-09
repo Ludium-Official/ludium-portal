@@ -11,7 +11,7 @@ import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useNetworks } from '@/contexts/networks-context';
-import { sendMessage } from '@/lib/firebase-chat';
+import { deactivateContractMessages, sendMessage } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
@@ -225,6 +225,11 @@ export function ContractModal({
 
       await sendMessage(contractInformation.chatRoomId || '', '', '-2');
 
+      // Deactivate previous contract message (-1) when builder adds signature
+      if (contractInformation.chatRoomId) {
+        await deactivateContractMessages(contractInformation.chatRoomId, ['-1']);
+      }
+
       toast.success('Signature added successfully');
       notify('Contract signed and sent to sponsor', 'success');
       onOpenChange(false);
@@ -325,6 +330,11 @@ export function ContractModal({
             },
           },
         });
+
+        // Deactivate previous contract-related messages (-1, -2)
+        if (contractInformation.chatRoomId) {
+          await deactivateContractMessages(contractInformation.chatRoomId);
+        }
       } else {
         toast.error('Contract not found');
         notify('Contract not found', 'error');
@@ -343,14 +353,21 @@ export function ContractModal({
 
   const contractJson: ContractFormProps = {
     programTitle: contractInformation.title,
-    milestones: milestones.map((milestone) => ({
-      id: milestone.id,
-      status: milestone.status || MilestoneStatusV2.UnderReview,
-      title: milestone.title,
-      description: milestone.description,
-      deadline: milestone.deadline,
-      payout: milestone.payout,
-    })),
+    milestones: milestones
+      .map((milestone) => ({
+        id: milestone.id,
+        status: milestone.status || MilestoneStatusV2.UnderReview,
+        title: milestone.title,
+        description: milestone.description,
+        deadline: milestone.deadline,
+        payout: milestone.payout,
+      }))
+      .sort((a, b) => {
+        if (a.deadline && b.deadline) {
+          return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+        }
+        return 0;
+      }),
     sponsor: {
       firstName: contractInformation.sponsor?.firstName,
       lastName: contractInformation.sponsor?.lastName,

@@ -21,7 +21,7 @@ function ProgramCard({ program }: { program: ProgramV2 }) {
   } = program ?? {};
 
   return (
-    <div className="block w-full max-h-[292px] border border-gray-border rounded-lg p-5">
+    <div className="block w-full max-w-full max-h-[292px] border border-gray-border rounded-lg p-5">
       <Link to={`/programs/${id}`} className="flex flex-col gap-4 mb-4">
         <div className="text-xl font-bold">{title}</div>
         <div className="flex items-center gap-3">

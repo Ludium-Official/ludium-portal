@@ -6,6 +6,7 @@ import {
   type Unsubscribe,
   addDoc,
   collection,
+  doc,
   getDocs,
   limit,
   onSnapshot,
@@ -13,6 +14,7 @@ import {
   query,
   serverTimestamp,
   startAfter,
+  updateDoc,
   where,
 } from 'firebase/firestore';
 
@@ -33,6 +35,7 @@ export interface ChatMessage {
   senderId: string;
   timestamp: Timestamp;
   files?: ChatMessageFile[];
+  is_active?: boolean;
 }
 
 export async function loadInitialMessages(
@@ -131,6 +134,7 @@ export async function sendMessage(
     text: text.trim() || '',
     senderId,
     timestamp: serverTimestamp(),
+    is_active: true,
     ...(uploadedFiles && uploadedFiles.length > 0 && { files: uploadedFiles }),
   };
 
@@ -277,5 +281,40 @@ export async function getAllFiles(chatRoomId: string): Promise<ChatMessageFile[]
   } catch (error) {
     console.error('❌ Error getting all files from Storage:', error);
     return [];
+  }
+}
+
+/**
+ * 특정 채팅방의 계약 관련 메시지들을 비활성화합니다
+ * @param chatRoomId 채팅방 ID
+ * @param senderIds 비활성화할 senderId 배열 (기본값: ['-1', '-2'])
+ */
+export async function deactivateContractMessages(
+  chatRoomId: string,
+  senderIds: string[] = ['-1', '-2'],
+): Promise<void> {
+  if (!chatRoomId) {
+    return;
+  }
+
+  try {
+    const messagesRef = collection(db, 'chats');
+    const q = query(
+      messagesRef,
+      where('chatRoomId', '==', chatRoomId),
+      where('senderId', 'in', senderIds),
+    );
+
+    const snapshot = await getDocs(q);
+
+    const updatePromises = snapshot.docs.map((docSnapshot) => {
+      const messageRef = doc(db, 'chats', docSnapshot.id);
+      return updateDoc(messageRef, { is_active: false });
+    });
+
+    await Promise.all(updatePromises);
+  } catch (error) {
+    console.error('❌ Error deactivating contract messages:', error);
+    throw error;
   }
 }
