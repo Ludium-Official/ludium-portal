@@ -56,11 +56,11 @@ function Layout() {
               </div>
               <ScrollArea
                 id="scroll-area-main"
-                className="bg-gray-light h-[calc(100dvh-24px)] rounded-2xl m-3 md:m-0 md:flex-1 flex flex-col gap-3 relative"
+                className="bg-gray-light h-[calc(100dvh-24px)] rounded-2xl m-3 md:m-0 md:flex-1 flex flex-col gap-3 relative overflow-hidden"
               >
-                <div className="relative">
+                <div className="relative flex-1 flex flex-col min-h-0">
                   <Header />
-                  <div className="pt-3 pb-3 rounded-2xl overflow-hidden">
+                  <div className="pt-3 pb-3 rounded-2xl flex-1 overflow-y-auto overflow-x-hidden min-h-0">
                     <Outlet />
                   </div>
                 </div>

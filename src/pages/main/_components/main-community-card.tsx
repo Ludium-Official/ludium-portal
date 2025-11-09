@@ -10,7 +10,7 @@ function MainCommunityCard({ post }: MainCommunityCardProps) {
   return (
     <Link
       to={`/community/posts/${post.id}`}
-      className="bg-white border border-gray-200 w-[544px] rounded-lg hover:shadow-md transition-shadow flex flex-col p-5"
+      className="bg-white border border-gray-200 w-full max-w-[544px] rounded-lg hover:shadow-md transition-shadow flex flex-col p-5"
     >
       {/* Main Content */}
       <div className="flex gap-5 mb-5">
