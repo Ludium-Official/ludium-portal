@@ -51,8 +51,12 @@ export function ContractForm({
                       <div className="flex flex-col gap-1">
                         <div className="text-xs font-semibold text-muted-foreground">
                           Milestone Title
-                          <span className="text-green-500">
-                            {milestone.status === MilestoneStatusV2.InProgress && ' (In Progress)'}
+                          <span className="ml-2">
+                            {milestone.status === MilestoneStatusV2.InProgress ? (
+                              <span className="text-green-500">(In Progress)</span>
+                            ) : (
+                              <span className="text-blue-500">(New)</span>
+                            )}
                           </span>
                         </div>
                         <div>{milestone.title || ''}</div>
@@ -260,20 +264,17 @@ export function ContractForm({
                 `${contractJson.totalPriceString || contractJson.totalPrice} ${token?.tokenName}`
               ) : (
                 <>
-                  <span className="text-muted-foreground">
+                  <span className="mr-2 text-primary">
                     {contractJson.pendingPrice > 0 &&
-                      `You will pay only ${contractJson.pendingPriceString || contractJson.pendingPrice} ${token?.tokenName}`}
+                      `(You will pay only ${
+                        contractJson.pendingPriceString || contractJson.pendingPrice
+                      } ${token?.tokenName})`}
                   </span>
-                  {contractJson.totalPriceString && contractJson.pendingPriceString
-                    ? (
-                        Number.parseFloat(contractJson.totalPriceString) -
-                        Number.parseFloat(contractJson.pendingPriceString)
-                      )
+                  {contractJson.totalPriceString
+                    ? Number.parseFloat(contractJson.totalPriceString)
                         .toFixed(6)
                         .replace(/\.?0+$/, '')
-                    : (contractJson.totalPrice - contractJson.pendingPrice)
-                        .toFixed(6)
-                        .replace(/\.?0+$/, '')}{' '}
+                    : contractJson.totalPrice.toFixed(6).replace(/\.?0+$/, '')}{' '}
                   {token?.tokenName}
                 </>
               )}

@@ -34,7 +34,7 @@ import type { ContractInformation } from '@/types/recruitment';
 import { ApplicationStatusV2, MilestoneStatusV2, type MilestoneV2 } from '@/types/types.generated';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Timestamp } from 'firebase/firestore';
-import { FileText, Folder, Image as ImageIcon, Plus } from 'lucide-react';
+import { ChartNoAxesColumn, FileText, Folder, Image as ImageIcon, Plus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
@@ -473,7 +473,7 @@ const RecruitmentMessage: React.FC<{}> = () => {
                     contractInformation={contractInformation}
                     disabled={
                       allMilestones.filter((m) => m.status === MilestoneStatusV2.UnderReview)
-                        .length <= 0 ||
+                        .length <= 0 &&
                       contractInformation.applicationStatus === ApplicationStatusV2.PendingSignature
                     }
                   />

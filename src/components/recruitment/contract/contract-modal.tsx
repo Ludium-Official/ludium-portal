@@ -225,6 +225,11 @@ export function ContractModal({
 
       await sendMessage(contractInformation.chatRoomId || '', '', '-2');
 
+      // Deactivate previous contract message (-1) when builder adds signature
+      if (contractInformation.chatRoomId) {
+        await deactivateContractMessages(contractInformation.chatRoomId, ['-1']);
+      }
+
       toast.success('Signature added successfully');
       notify('Contract signed and sent to sponsor', 'success');
       onOpenChange(false);
