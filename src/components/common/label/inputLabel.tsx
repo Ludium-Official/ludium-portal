@@ -21,11 +21,11 @@ const InputLabel: React.FC<InputLabelProps> = ({
   isTextarea,
 }) => {
   return (
-    <label htmlFor={labelId} className={`space-y-3 block ${className}`}>
+    <label htmlFor={labelId} className={`space-y-2 block ${className}`}>
       {title && (
         <p className={`text-sm font-medium ${titleClassName}`}>
           {title}
-          {isPrimary && <span className="ml-1 text-primary">*</span>}
+          {isPrimary && <span className="ml-[2px] text-red-500">*</span>}
         </p>
       )}
       <div className={inputWrapperClassName}>

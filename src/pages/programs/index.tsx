@@ -77,7 +77,7 @@ const ProgramsPage: React.FC = () => {
           <h1 className="text-3xl font-bold">Recruitment</h1>
         </div>
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <section className="flex justify-between items-center py-4">
+          <section className="flex justify-between items-center py-2">
             {/* TODO: dropdown으로 filtering */}
             <div></div>
             <div className="flex items-center gap-3 h-10">

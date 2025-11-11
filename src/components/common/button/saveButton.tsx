@@ -78,7 +78,7 @@ const SaveButton: React.FC<SaveButtonProps> = ({
           type="button"
           className="min-w-[97px] bg-primary hover:bg-primary/90"
           size="lg"
-          disabled={loading}
+          disabled={isAllFill || loading}
         >
           Publish
         </Button>

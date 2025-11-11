@@ -9,13 +9,12 @@ export type UpdateProgramV2MutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateProgramV2Mutation = { __typename?: 'Mutation', updateProgramV2?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, skills?: Array<string> | null, deadline?: any | null, invitedMembers?: Array<string> | null, status?: Types.ProgramStatusV2 | null, visibility?: Types.ProgramVisibilityV2 | null, networkId?: number | null, price?: string | null, token_id?: number | null, createdAt?: any | null, updatedAt?: any | null } | null };
+export type UpdateProgramV2Mutation = { __typename?: 'Mutation', updateProgramV2?: { __typename?: 'ProgramV2', title?: string | null, description?: string | null, skills?: Array<string> | null, deadline?: any | null, invitedMembers?: Array<string> | null, status?: Types.ProgramStatusV2 | null, visibility?: Types.ProgramVisibilityV2 | null, networkId?: number | null, price?: string | null, token_id?: number | null } | null };
 
 
 export const UpdateProgramV2Document = gql`
     mutation updateProgramV2($id: ID!, $input: UpdateProgramV2Input!) {
   updateProgramV2(id: $id, input: $input) {
-    id
     title
     description
     skills
@@ -26,8 +25,6 @@ export const UpdateProgramV2Document = gql`
     networkId
     price
     token_id
-    createdAt
-    updatedAt
   }
 }
     `;

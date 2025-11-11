@@ -1,42 +1,36 @@
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { getNetworkDisplayName, getTokenIcon } from '@/constant/network-icons';
-import { dDay, reduceString, timeAgo } from '@/lib/utils';
+import { dDay, getInitials, reduceString, timeAgo } from '@/lib/utils';
 import type { ProgramV2 } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { Link } from 'react-router';
 
 function ProgramCard({ program }: { program: ProgramV2 }) {
-  const {
-    id,
-    createdAt,
-    deadline,
-    description,
-    price,
-    title,
-    network,
-    sponsor,
-    token,
-    applicationCount,
-  } = program ?? {};
+  const { id, createdAt, deadline, price, title, network, sponsor, token, applicationCount } =
+    program ?? {};
 
   return (
     <div className="block w-full max-w-full max-h-[292px] border border-gray-border rounded-lg p-5">
-      <Link to={`/programs/${id}`} className="flex flex-col gap-4 mb-4">
-        <div className="text-xl font-bold">{title}</div>
+      <Link to={`/programs/${id}`} className="flex flex-col gap-3 mb-4">
+        <div className="text-lg font-bold line-clamp-1 min-h-[28px]">{title}</div>
         <div className="flex items-center gap-3">
-          <Avatar className="w-10 h-10">
+          <Avatar className="w-7 h-7">
             <AvatarImage src={sponsor?.profileImage || ''} alt="sponser-img" />
+            <AvatarFallback className="text-xs">
+              {getInitials(`${program.sponsor?.firstName} ${program.sponsor?.lastName}`)}
+            </AvatarFallback>
           </Avatar>
-          <div className="text-muted-foreground font-medium">
+          <div className="text-muted-foreground text-sm">
             {sponsor?.firstName && sponsor?.lastName
               ? `${sponsor?.firstName} ${sponsor?.lastName}`
               : reduceString(sponsor?.walletAddress || '', 6, 6)}
           </div>
         </div>
-        <div className="flex gap-4">
+
+        <div className="flex gap-3">
           <div className="inline-flex items-center self-start bg-secondary text-sm py-1 px-2 rounded-md">
-            <span className="mr-3 text-neutral-400">PRICE</span>
+            <span className="mr-3 text-xs font-semibold text-neutral-400">PRICE</span>
             {price ? (
               <>
                 <span className="flex items-center gap-1 text-muted-foreground font-medium">
@@ -52,7 +46,7 @@ function ProgramCard({ program }: { program: ProgramV2 }) {
             )}
           </div>
           <div className="inline-flex items-center self-start py-1 px-2 rounded-md text-sm bg-secondary">
-            <span className="mr-3 text-neutral-400">DEADLINE</span>
+            <span className="mr-3 text-xs font-semibold text-neutral-400">DEADLINE</span>
             <span className="font-medium text-muted-foreground">
               {format(new Date(deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
             </span>
@@ -60,11 +54,6 @@ function ProgramCard({ program }: { program: ProgramV2 }) {
           </div>
         </div>
       </Link>
-
-      <p className="mb-3 leading-5 line-clamp-2 h-10 text-slate-500 text-sm font-normal">
-        {description}
-      </p>
-
       <div className="flex items-center justify-between text-sm text-[#8C8C8C]">
         <div>{createdAt ? timeAgo(createdAt) : ''}</div>
         <div className="px-3 py-2 leading-4">

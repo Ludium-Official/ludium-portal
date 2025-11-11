@@ -46,7 +46,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
     <aside
       className={cn(
         'h-[calc(100dvh-24px)] bg-white rounded-2xl sticky top-3 transition-all duration-300 z-[100]',
-        isCollapsed ? 'w-[72px]' : 'w-[216px]',
+        isCollapsed ? 'w-[72px]' : 'w-[168px]',
       )}
     >
       <div
@@ -84,7 +84,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
             );
 
             return (
-              <li key={link.path} className="relative z-50">
+              <li key={link.path} className="relative z-50 mb-[8px]">
                 {link.submenu ? (
                   <div
                     onMouseEnter={() => setProgramMenuOpen(true)}
@@ -92,13 +92,13 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                     className="relative"
                   >
                     <div
-                      className={`group flex items-center w-full px-4 py-3 rounded-xl transition-colors text-lg font-medium text-left ${
+                      className={`group flex items-center w-full px-4 py-3 rounded-xl transition-colors text-base font-medium text-left ${
                         isLinkSubMenu
                           ? 'bg-[var(--primary-tranparent)] text-primary'
                           : 'hover:bg-[var(--primary-tranparent)] hover:text-primary'
-                      } ${isCollapsed ? 'justify-center' : 'gap-4'}`}
+                      } ${isCollapsed ? 'justify-center' : 'gap-2'}`}
                     >
-                      <link.icon className="group-active:text-primary group-hover:text-primary flex-shrink-0" />
+                      <link.icon className="group-active:text-primary group-hover:text-primary flex-shrink-0 w-[20px] h-[20px]" />
                       <span
                         className={cn(
                           'transition-opacity duration-200 whitespace-nowrap',
@@ -152,7 +152,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                                   to={sublink.path}
                                   className={({ isActive }) =>
                                     cn(
-                                      'block px-4 py-2 rounded-lg transition-all duration-300 ease-in-out text-base font-normal hover:text-primary',
+                                      'block px-4 py-2 rounded-lg transition-all duration-300 ease-in-out text-sm font-normal hover:text-primary',
                                       isActive ? 'text-primary font-medium' : 'text-gray-600',
                                       programMenuOpen || isLinkSubMenu
                                         ? 'opacity-100 translate-y-0'
@@ -177,14 +177,14 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                   <NavLink
                     to={link.path}
                     className={({ isActive }) =>
-                      `group flex items-center px-4 py-3 rounded-xl transition-colors text-lg font-medium ${
+                      `group flex items-center px-4 py-3 rounded-xl transition-colors text-base font-semibold ${
                         isActive
                           ? 'bg-[var(--primary-tranparent)] text-primary'
                           : 'hover:bg-[var(--primary-tranparent)] hover:text-primary'
-                      } ${isCollapsed ? 'justify-center' : 'gap-4'}`
+                      } ${isCollapsed ? 'justify-center' : 'gap-2'}`
                     }
                   >
-                    <link.icon className="group-active:text-primary group-hover:text-primary flex-shrink-0" />
+                    <link.icon className="group-active:text-primary group-hover:text-primary flex-shrink-0 w-[20px] h-[20px]" />
                     <span
                       className={cn(
                         'transition-opacity duration-200 whitespace-nowrap',
@@ -203,15 +203,15 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
               href="https://ludium.oopy.io/"
               className={cn(
                 'group flex items-center px-4 py-3 rounded-xl transition-colors text-lg font-medium hover:bg-[var(--primary-tranparent)] hover:text-primary',
-                isCollapsed ? 'justify-center' : 'gap-4',
+                isCollapsed ? 'justify-center' : 'gap-2',
               )}
               target="_blank"
               rel="noreferrer"
             >
-              <CircleAlert className="flex-shrink-0" />
+              <CircleAlert className="flex-shrink-0 w-[20px] h-[20px]" />
               <span
                 className={cn(
-                  'transition-opacity duration-200 whitespace-nowrap',
+                  'transition-opacity duration-200 whitespace-nowrap text-base font-semibold',
                   isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100',
                 )}
               >

@@ -522,11 +522,12 @@ const RecruitmentMessage: React.FC<{}> = () => {
                   <HireButton
                     contractInformation={contractInformation}
                     disabled={
-                      allMilestones.filter(
+                      allMilestones.length <= 0 ||
+                      (allMilestones.filter(
                         (m) => m.status === MilestoneStatusV2.UnderReview
                       ).length <= 0 &&
-                      contractInformation.applicationStatus ===
-                        ApplicationStatusV2.PendingSignature
+                        contractInformation.applicationStatus ===
+                          ApplicationStatusV2.PendingSignature)
                     }
                   />
                 )}

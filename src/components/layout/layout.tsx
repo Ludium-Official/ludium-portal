@@ -46,7 +46,7 @@ function Layout() {
             <div className="md:max-w-[1920px] md:mx-auto md:flex md:gap-3 md:p-3">
               <div
                 className={`hidden md:block md:flex-shrink-0 transition-all duration-300 ${
-                  sidebarCollapsed ? 'md:w-[72px]' : 'md:w-[216px]'
+                  sidebarCollapsed ? 'md:w-[72px]' : 'md:w-[168px]'
                 }`}
               >
                 <Sidebar

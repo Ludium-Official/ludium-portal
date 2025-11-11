@@ -149,6 +149,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
     submitStatus === ProgramStatusV2.Draft
       ? true
       : !title ||
+        !budgetType ||
         (budgetType === 'fixed' && !price) ||
         !networkId ||
         !tokenId ||
@@ -452,7 +453,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
               </InputLabel>
             </div>
             <div className="flex justify-end gap-4">
-              {!isEdit && (
+              {currentStatus !== ProgramStatusV2.Open && (
                 <Button
                   type="button"
                   onClick={() => {
@@ -464,7 +465,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                     }, 0);
                   }}
                 >
-                  Save as Draft
+                  Save draft
                 </Button>
               )}
 
