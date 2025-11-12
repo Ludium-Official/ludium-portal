@@ -68,6 +68,7 @@ export function ContractModal({
   const milestones = milestonesData?.milestonesV2?.data || [];
 
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [isSigningMessage, setIsSigningMessage] = useState(false);
   const [createContractV2Mutation] = useCreateContractV2Mutation();
   const [updateContractV2Mutation] = useUpdateContractV2Mutation();
   const [updateMilestoneV2Mutation] = useUpdateMilestoneV2Mutation();
@@ -198,6 +199,7 @@ export function ContractModal({
   };
 
   const handleAddSignature = async () => {
+    setIsSigningMessage(true);
     if (!userId || !contractInformation.applicant?.walletAddress) {
       notify('Missing user information', 'error');
       return;
@@ -236,7 +238,6 @@ export function ContractModal({
 
       await sendMessage(contractInformation.chatRoomId || '', '', '-2');
 
-      // Deactivate previous contract message (-1) when builder adds signature
       if (contractInformation.chatRoomId) {
         await deactivateContractMessages(contractInformation.chatRoomId, ['-1']);
       }
@@ -244,17 +245,19 @@ export function ContractModal({
       toast.success('Signature added successfully');
       notify('Contract signed and sent to sponsor', 'success');
 
-      // Wait a bit for message to be received before closing modal
       await new Promise((resolve) => setTimeout(resolve, 500));
       onOpenChange(false);
     } catch (error) {
       console.error('Failed to add signature:', error);
       toast.error('Failed to add signature');
       notify(error instanceof Error ? error.message : 'Failed to add signature', 'error');
+    } finally {
+      setIsSigningMessage(false);
     }
   };
 
   const handleSubmit = async () => {
+    setIsSigningMessage(true);
     if (!userId || !contractInformation.applicant?.id || !contractInformation.sponsor?.id) {
       notify('Missing user information', 'error');
       return;
@@ -265,7 +268,13 @@ export function ContractModal({
       return;
     }
 
-    if (!existingContract?.builder_signature) {
+    if (!existingContract?.id) {
+      toast.error('Contract not found');
+      notify('Contract not found', 'error');
+      return;
+    }
+
+    if (!existingContract.builder_signature) {
       notify('Builder signature not found. Please wait for builder to sign the contract.', 'error');
       return;
     }
@@ -284,7 +293,6 @@ export function ContractModal({
       const tokenAddress = tokenInfo?.tokenAddress;
       const tokenName = tokenInfo?.tokenName;
       const tokenDecimals = tokenInfo?.decimals ?? decimals;
-
       const userWalletAddress = user?.wallet?.address;
 
       const txResult = await contract.createContract(
@@ -304,8 +312,21 @@ export function ContractModal({
         throw new Error('Failed to get contract ID from transaction receipt');
       }
 
-      if (existingContract?.id) {
-        await updateContractV2Mutation({
+      const milestoneUpdatePromises = milestones
+        .filter((milestone) => milestone.id)
+        .map((milestone) =>
+          updateMilestoneV2Mutation({
+            variables: {
+              id: milestone.id!,
+              input: {
+                status: MilestoneStatusV2.InProgress,
+              },
+            },
+          }),
+        );
+
+      await Promise.all([
+        updateContractV2Mutation({
           variables: {
             id: existingContract.id,
             input: {
@@ -314,57 +335,47 @@ export function ContractModal({
               onchainContractId: txResult.onchainContractId,
             },
           },
-        });
-
-        const milestoneUpdatePromises = milestones
-          .filter((milestone) => milestone.id)
-          .map((milestone) =>
-            updateMilestoneV2Mutation({
-              variables: {
-                id: milestone.id!,
-                input: {
-                  status: MilestoneStatusV2.InProgress,
-                },
-              },
-            }),
-          );
-
-        await Promise.all(milestoneUpdatePromises);
-
-        await createOnchainContractInfoV2Mutation({
+        }),
+        updateApplicationV2Mutation({
           variables: {
+            id: contractInformation.applicationId,
             input: {
-              programId: Number(contractInformation.programId) || 0,
-              applicantId: Number(contractInformation.applicant?.id) || 0,
-              sponsorId: Number(contractInformation.sponsor?.id) || 0,
-              onchainContractId: txResult.onchainContractId,
-              smartContractId: Number(currentContract?.id) || 0,
-              tx: txResult.txHash,
-              status: OnchainContractStatusV2.Active,
+              status: ApplicationStatusV2.InProgress,
             },
           },
-        });
+        }),
+        ...milestoneUpdatePromises,
+      ]);
 
-        // Deactivate previous contract-related messages (-1, -2)
-        if (contractInformation.chatRoomId) {
-          await deactivateContractMessages(contractInformation.chatRoomId);
-        }
-      } else {
-        toast.error('Contract not found');
-        notify('Contract not found', 'error');
-        return;
+      await createOnchainContractInfoV2Mutation({
+        variables: {
+          input: {
+            programId: Number(contractInformation.programId) || 0,
+            applicantId: Number(contractInformation.applicant?.id) || 0,
+            sponsorId: Number(contractInformation.sponsor?.id) || 0,
+            onchainContractId: txResult.onchainContractId,
+            smartContractId: Number(currentContract.id),
+            tx: txResult.txHash,
+            status: OnchainContractStatusV2.Active,
+          },
+        },
+      });
+
+      if (contractInformation.chatRoomId) {
+        await deactivateContractMessages(contractInformation.chatRoomId);
       }
 
       toast.success('Contract created successfully!');
       notify('Contract created on-chain and in database', 'success');
 
-      // Wait a bit for message updates before closing modal
       await new Promise((resolve) => setTimeout(resolve, 500));
       onOpenChange(false);
     } catch (error) {
       console.error('Failed to submit contract', error);
       toast.error('Failed to create contract');
       notify(error instanceof Error ? error.message : 'Failed to create contract', 'error');
+    } finally {
+      setIsSigningMessage(false);
     }
   };
 
@@ -441,10 +452,10 @@ export function ContractModal({
                     type="button"
                     variant="purple"
                     onClick={handleAddSignature}
-                    disabled={isSendingMessage}
+                    disabled={isSigningMessage}
                     className="w-fit"
                   >
-                    {isSendingMessage ? 'Signing...' : 'Add Signature'}
+                    {isSigningMessage ? 'Signing...' : 'Add Signature'}
                   </Button>
                 </div>
               );
@@ -460,10 +471,10 @@ export function ContractModal({
                     type="button"
                     variant="purple"
                     onClick={handleSubmit}
-                    disabled={isSendingMessage}
+                    disabled={isSigningMessage}
                     className="w-fit"
                   >
-                    {isSendingMessage ? 'Creating...' : 'Create Contract'}
+                    {isSigningMessage ? 'Creating...' : 'Create Contract'}
                   </Button>
                 </div>
               );

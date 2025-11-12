@@ -387,17 +387,22 @@ const RecruitmentMessage: React.FC<{}> = () => {
   );
 
   const isHandleMakeNewMilestone = useMemo(() => {
-    const isPendingSignature =
-      contractInformation.applicationStatus === ApplicationStatusV2.PendingSignature;
+    if (contractInformation.applicationStatus === ApplicationStatusV2.PendingSignature) {
+      return false;
+    }
 
-    const hasActiveDeadline = filteredMilestones.some((milestone) => {
+    if (filteredMilestones.length === 0) {
+      return true;
+    }
+
+    const allDeadlinesPassed = filteredMilestones.every((milestone) => {
       if (!milestone.deadline) return false;
       const deadline = fromUTCString(milestone.deadline);
       if (!deadline) return false;
-      return deadline.getTime() > new Date().getTime();
+      return deadline.getTime() <= new Date().getTime();
     });
 
-    return isPendingSignature || !hasActiveDeadline;
+    return !allDeadlinesPassed;
   }, [contractInformation, filteredMilestones]);
 
   const isUnderReviewMilestone = useMemo(() => {
@@ -537,7 +542,7 @@ const RecruitmentMessage: React.FC<{}> = () => {
                   <AccordionTrigger className="hover:no-underline py-3">
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-base">Milestone</span>
-                      {isSponsor && !isHandleMakeNewMilestone && (
+                      {isSponsor && isHandleMakeNewMilestone && (
                         <Plus
                           className="cursor-pointer w-4 h-4"
                           onClick={(e) => {
@@ -826,7 +831,7 @@ const RecruitmentMessage: React.FC<{}> = () => {
                   <AccordionTrigger className="hover:no-underline py-3">
                     <span className="flex items-center gap-2 font-medium text-base">
                       Milestone
-                      {isSponsor && !isHandleMakeNewMilestone && (
+                      {isSponsor && isHandleMakeNewMilestone && (
                         <Plus
                           className="cursor-pointer w-4 h-4"
                           onClick={() => {

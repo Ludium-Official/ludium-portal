@@ -9,6 +9,7 @@ import {
 import type { ContractInformation } from '@/types/recruitment';
 import { useState } from 'react';
 import { ContractModal } from './contract/contract-modal';
+import { useGetMilestonesV2Query } from '@/apollo/queries/milestones-v2.generated';
 
 interface HireButtonProps {
   contractInformation: ContractInformation;
@@ -18,6 +19,17 @@ interface HireButtonProps {
 export function HireButton({ contractInformation, disabled = false }: HireButtonProps) {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
+
+  const { data: milestonesData } = useGetMilestonesV2Query({
+    variables: {
+      query: {
+        applicantId: contractInformation.applicant?.id,
+        programId: contractInformation.programId,
+      },
+    },
+  });
+  const milestones = milestonesData?.milestonesV2?.data || [];
+  const hasMilestones = milestones.length > 0;
 
   const handleHireClick = () => {
     setIsConfirmModalOpen(true);
@@ -31,7 +43,7 @@ export function HireButton({ contractInformation, disabled = false }: HireButton
   return (
     <>
       <Button className="mr-4 px-8 bg-primary" onClick={handleHireClick} disabled={disabled}>
-        {!disabled ? 'Update Contract' : 'Hire'}
+        {hasMilestones ? 'Update Contract' : 'Hire'}
       </Button>
 
       <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
