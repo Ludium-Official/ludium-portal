@@ -34,6 +34,7 @@ interface ContractModalProps {
   contractInformation: ContractInformation;
   assistantId?: string;
   readOnly?: boolean;
+  contractSnapshot?: any;
 }
 
 export function ContractModal({
@@ -42,6 +43,7 @@ export function ContractModal({
   contractInformation,
   assistantId,
   readOnly = false,
+  contractSnapshot,
 }: ContractModalProps) {
   const { id } = useParams();
   const { userId } = useAuth();
@@ -119,7 +121,6 @@ export function ContractModal({
     milestones.forEach((milestone) => {
       if (milestone.status !== MilestoneStatusV2.Completed) {
         const payout = milestone.payout || '0';
-        // Parse as fixed-point decimal to avoid floating point errors
         const payoutBN = ethers.utils.parseUnits(payout, decimals);
         total = total.add(payoutBN);
 
@@ -141,7 +142,6 @@ export function ContractModal({
     if (pendingPrice <= 0) {
       return ethers.utils.parseUnits('0', decimals);
     }
-    // Use the string version to avoid floating point precision issues
     return ethers.utils.parseUnits(pendingPriceString, decimals);
   }, [pendingPrice, pendingPriceString, decimals]);
 
@@ -161,6 +161,22 @@ export function ContractModal({
               status: ApplicationStatusV2.PendingSignature,
             },
           },
+        });
+      }
+
+      await sendMessage(contractInformation.chatRoomId || '', '', '-1');
+
+      notify('Contract sent to builder for signature', 'success');
+      onOpenChange(false);
+
+      setTimeout(() => {
+        updateApplicationV2Mutation({
+          variables: {
+            id: contractInformation.applicationId || '',
+            input: {
+              status: ApplicationStatusV2.PendingSignature,
+            },
+          },
           refetchQueries: [
             {
               query: ApplicationsByProgramV2Document,
@@ -172,12 +188,7 @@ export function ContractModal({
             },
           ],
         });
-      }
-
-      await sendMessage(contractInformation.chatRoomId || '', '', '-1');
-
-      notify('Contract sent to builder for signature', 'success');
-      onOpenChange(false);
+      }, 100);
     } catch (error) {
       console.error('Failed to send contract message:', error);
       notify('Failed to send contract message', 'error');
@@ -232,6 +243,9 @@ export function ContractModal({
 
       toast.success('Signature added successfully');
       notify('Contract signed and sent to sponsor', 'success');
+
+      // Wait a bit for message to be received before closing modal
+      await new Promise((resolve) => setTimeout(resolve, 500));
       onOpenChange(false);
     } catch (error) {
       console.error('Failed to add signature:', error);
@@ -343,6 +357,9 @@ export function ContractModal({
 
       toast.success('Contract created successfully!');
       notify('Contract created on-chain and in database', 'success');
+
+      // Wait a bit for message updates before closing modal
+      await new Promise((resolve) => setTimeout(resolve, 500));
       onOpenChange(false);
     } catch (error) {
       console.error('Failed to submit contract', error);
@@ -351,17 +368,19 @@ export function ContractModal({
     }
   };
 
-  const contractJson: ContractFormProps = {
+  const contractJson: ContractFormProps = contractSnapshot?.contract_snapshot_cotents || {
     programTitle: contractInformation.title,
     milestones: milestones
-      .map((milestone) => ({
-        id: milestone.id,
-        status: milestone.status || MilestoneStatusV2.UnderReview,
-        title: milestone.title,
-        description: milestone.description,
-        deadline: milestone.deadline,
-        payout: milestone.payout,
-      }))
+      .map((milestone) => {
+        return {
+          id: milestone.id,
+          status: milestone.status || MilestoneStatusV2.UnderReview,
+          title: milestone.title,
+          description: milestone.description,
+          deadline: milestone.deadline,
+          payout: milestone.payout,
+        };
+      })
       .sort((a, b) => {
         if (a.deadline && b.deadline) {
           return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
@@ -388,7 +407,7 @@ export function ContractModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col">
-        <ContractForm contractJson={contractJson} />
+        <ContractForm contractJson={contractJson} isSponsor={isSponser} />
 
         {(() => {
           if (readOnly) {

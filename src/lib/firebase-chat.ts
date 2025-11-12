@@ -210,9 +210,10 @@ export async function getLatestMessage(chatRoomId: string): Promise<{
   message: ChatMessage | null;
   timestamp: Timestamp | null;
   senderId: string | null;
+  isFile: boolean;
 }> {
   if (!chatRoomId) {
-    return { message: null, timestamp: null, senderId: null };
+    return { message: null, timestamp: null, senderId: null, isFile: false };
   }
 
   try {
@@ -227,7 +228,7 @@ export async function getLatestMessage(chatRoomId: string): Promise<{
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
-      return { message: null, timestamp: null, senderId: null };
+      return { message: null, timestamp: null, senderId: null, isFile: false };
     }
 
     const doc = snapshot.docs[0];
@@ -240,10 +241,11 @@ export async function getLatestMessage(chatRoomId: string): Promise<{
       message,
       timestamp: message.timestamp,
       senderId: message.senderId,
+      isFile: Array.isArray(message.files) && message.files.length > 0,
     };
   } catch (error) {
     console.error('❌ Error getting latest message:', error);
-    return { message: null, timestamp: null, senderId: null };
+    return { message: null, timestamp: null, senderId: null, isFile: false };
   }
 }
 

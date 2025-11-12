@@ -8,8 +8,10 @@ import { MilestoneStatusV2 } from '@/types/types.generated';
 
 export function ContractForm({
   contractJson,
+  isSponsor = false,
 }: {
   contractJson: ContractFormProps;
+  isSponsor?: boolean;
 }) {
   const { getTokenById } = useNetworks();
   const token = getTokenById(contractJson.tokenId);
@@ -42,54 +44,63 @@ export function ContractForm({
             <div>
               <h3 className="text-lg font-bold mb-4">2. Project Details</h3>
               <div className="space-y-4">
-                {contractJson.milestones?.map((milestone, index) => (
-                  <div
-                    key={milestone.id || index}
-                    className="border border-border rounded-lg p-4 bg-muted/30 space-y-3"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex flex-col gap-1">
-                        <div className="text-xs font-semibold text-muted-foreground">
-                          Milestone Title
-                          <span className="ml-2">
-                            {milestone.status === MilestoneStatusV2.InProgress ? (
-                              <span className="text-green-500">(In Progress)</span>
-                            ) : (
-                              <span className="text-blue-500">(New)</span>
-                            )}
-                          </span>
+                {contractJson.milestones?.map((milestone, index) => {
+                  return (
+                    <div
+                      key={milestone.id || index}
+                      className="border border-border rounded-lg p-4 bg-muted/30 space-y-3"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex flex-col gap-1">
+                          <div className="text-sm font-semibold text-muted-foreground">
+                            Milestone Title
+                            <span className="ml-2">
+                              {milestone.status === MilestoneStatusV2.InProgress ? (
+                                <span className="bg-[#60A5FA] px-2 py-1 rounded-full text-white">
+                                  In Progress
+                                </span>
+                              ) : (
+                                <span className="bg-[#4ADE80] px-2 py-1 rounded-full text-white">
+                                  New
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                          <div>{milestone.title || ''}</div>
                         </div>
-                        <div>{milestone.title || ''}</div>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <div className="text-xs font-semibold text-muted-foreground">
-                          Description
+                        <div className="flex flex-col gap-1">
+                          <div className="text-sm font-semibold text-muted-foreground">
+                            Description
+                          </div>
+                          <MarkdownPreviewer
+                            value={milestone.description || ''}
+                            className="mb-0!"
+                          />
                         </div>
-                        <MarkdownPreviewer value={milestone.description || ''} className="mb-0!" />
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <div className="text-xs font-semibold text-muted-foreground">
-                          Submission Date
+                        <div className="flex flex-col gap-1">
+                          <div className="text-sm font-semibold text-muted-foreground">
+                            Submission Date
+                          </div>
+                          <div>{formatUTCDateLocal(milestone.deadline)}</div>
                         </div>
-                        <div>{formatUTCDateLocal(milestone.deadline)}</div>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <div className="text-xs font-semibold text-muted-foreground">
-                          Payment Date
+                        <div className="flex flex-col gap-1">
+                          <div className="text-sm font-semibold text-muted-foreground">
+                            Payment Date
+                          </div>
+                          <div>{addDaysToDate(milestone.deadline, 3)}</div>
                         </div>
-                        <div>{addDaysToDate(milestone.deadline, 3)}</div>
-                      </div>
-                      <div className="flex flex-col gap-1">
-                        <div className="text-xs font-semibold text-muted-foreground">
-                          Payment Amount
-                        </div>
-                        <div>
-                          {milestone.payout} {token?.tokenName}
+                        <div className="flex flex-col gap-1">
+                          <div className="text-sm font-semibold text-muted-foreground">
+                            Payment Amount
+                          </div>
+                          <div>
+                            {milestone.payout} {token?.tokenName}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -264,12 +275,14 @@ export function ContractForm({
                 `${contractJson.totalPriceString || contractJson.totalPrice} ${token?.tokenName}`
               ) : (
                 <>
-                  <span className="mr-2 text-primary">
-                    {contractJson.pendingPrice > 0 &&
-                      `(You will pay only ${
-                        contractJson.pendingPriceString || contractJson.pendingPrice
-                      } ${token?.tokenName})`}
-                  </span>
+                  {isSponsor && (
+                    <span className="mr-2 text-primary">
+                      {contractJson.pendingPrice > 0 &&
+                        `(You will pay only ${
+                          contractJson.pendingPriceString || contractJson.pendingPrice
+                        } ${token?.tokenName})`}
+                    </span>
+                  )}
                   {contractJson.totalPriceString
                     ? Number.parseFloat(contractJson.totalPriceString)
                         .toFixed(6)

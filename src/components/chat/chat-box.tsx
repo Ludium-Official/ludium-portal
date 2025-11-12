@@ -25,9 +25,10 @@ import {
   type QueryDocumentSnapshot,
   type Timestamp,
 } from 'firebase/firestore';
-import { File, Folder, Loader2, Paperclip, Send, X } from 'lucide-react';
+import { File, FolderOpen, Image as ImageIcon, Loader2, Paperclip, Send, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { Link } from 'react-router';
 import * as z from 'zod';
 
 const messageFormSchema = z.object({
@@ -107,47 +108,47 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
 
           <div className="flex flex-col items-end space-y-2">
             {message.text && (
-              <div className="rounded-lg px-4 py-2 bg-primary text-primary-foreground w-fit">
-                <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+              <div className="rounded-lg px-4 py-2 bg-primary-light w-fit">
+                <p className="text-sm whitespace-pre-wrap break-words">
+                  {!/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(message.text) ? (
+                    message.text
+                  ) : (
+                    <Link
+                      to={message.text}
+                      target="_blank"
+                      className="text-blue-500 hover:underline"
+                    >
+                      {message.text}
+                    </Link>
+                  )}
+                </p>
               </div>
             )}
             {message.files && message.files.length > 0 && (
               <div className="flex flex-col items-end space-y-2">
                 {message.files.map((file, index) => (
-                  <div
+                  <Link
                     key={index}
-                    className="rounded-lg px-4 py-2 bg-primary text-primary-foreground w-fit"
+                    to={file.url}
+                    target="_blank"
+                    className="flex items-center gap-3 p-3 rounded-lg bg-white border border-gray-200 hover:bg-slate-50 transition-colors w-fit"
                   >
                     {file.type.startsWith('image/') ? (
-                      <a
-                        href={file.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block"
-                      >
-                        <img
-                          src={file.url}
-                          alt={file.name}
-                          className="max-w-[200px] max-h-[200px] object-contain rounded"
-                        />
-                      </a>
+                      <div className="w-10 h-10 rounded-full bg-[#F2F2F2] flex items-center justify-center flex-shrink-0">
+                        <ImageIcon className="w-5 h-5 text-gray-600" />
+                      </div>
                     ) : (
-                      <a
-                        href={file.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3"
-                      >
-                        <Folder className="w-5 h-5 text-primary-foreground/70" />
-                        <div className="flex flex-col">
-                          <span className="text-sm text-primary-foreground">{file.name}</span>
-                          <span className="text-xs text-primary-foreground/70">
-                            {formatFileSize(file.size)}
-                          </span>
-                        </div>
-                      </a>
+                      <div className="w-10 h-10 rounded-full bg-[#F2F2F2] flex items-center justify-center flex-shrink-0">
+                        <FolderOpen className="w-5 h-5 text-gray-600" />
+                      </div>
                     )}
-                  </div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-semibold text-gray-800 truncate">
+                        {file.name}
+                      </span>
+                      <span className="text-xs text-gray-500">{formatFileSize(file.size)}</span>
+                    </div>
+                  </Link>
                 ))}
               </div>
             )}
@@ -199,13 +200,15 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
                     This contract has been completed and is no longer active.
                   </div>
                 )}
-                <Button
-                  variant="lightPurple"
-                  className="w-full"
-                  onClick={() => setIsContractModalOpen(true)}
-                >
-                  View Contract
-                </Button>
+                {message.is_active && (
+                  <Button
+                    variant="lightPurple"
+                    className="w-full"
+                    onClick={() => setIsContractModalOpen(true)}
+                  >
+                    View Contract
+                  </Button>
+                )}
               </div>
               <ContractModal
                 open={isContractModalOpen}
@@ -233,49 +236,46 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
                     isLudiumAssistant && 'py-4 bg-white border border-primary',
                   )}
                 >
-                  <p className="text-sm whitespace-pre-wrap break-words">{message.text}</p>
+                  <p className="text-sm whitespace-pre-wrap break-words">
+                    {!/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(message.text) ? (
+                      message.text
+                    ) : (
+                      <Link
+                        to={message.text}
+                        target="_blank"
+                        className="text-blue-500 hover:underline"
+                      >
+                        {message.text}
+                      </Link>
+                    )}
+                  </p>
                 </div>
               )}
               {message.files && message.files.length > 0 && (
                 <div className="space-y-2">
                   {message.files.map((file, index) => (
-                    <div
+                    <Link
                       key={index}
-                      className={cn(
-                        'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit',
-                        isLudiumAssistant && 'bg-white border border-primary',
-                      )}
+                      to={file.url}
+                      target="_blank"
+                      className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 bg-white hover:bg-slate-50 transition-colors w-fit"
                     >
                       {file.type.startsWith('image/') ? (
-                        <a
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block"
-                        >
-                          <img
-                            src={file.url}
-                            alt={file.name}
-                            className="max-w-[200px] max-h-[200px] object-contain rounded"
-                          />
-                        </a>
+                        <div className="w-10 h-10 rounded-full bg-[#F2F2F2] flex items-center justify-center flex-shrink-0">
+                          <ImageIcon className="w-5 h-5 text-gray-600" />
+                        </div>
                       ) : (
-                        <a
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3"
-                        >
-                          <Folder className="w-5 h-5 text-slate-400" />
-                          <div className="flex flex-col">
-                            <span className="text-sm text-slate-900">{file.name}</span>
-                            <span className="text-xs text-slate-400">
-                              {formatFileSize(file.size)}
-                            </span>
-                          </div>
-                        </a>
+                        <div className="w-10 h-10 rounded-full bg-[#F2F2F2] flex items-center justify-center flex-shrink-0">
+                          <FolderOpen className="w-5 h-5 text-gray-600" />
+                        </div>
                       )}
-                    </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-semibold text-gray-800 truncate">
+                          {file.name}
+                        </span>
+                        <span className="text-xs text-gray-500">{formatFileSize(file.size)}</span>
+                      </div>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -462,7 +462,7 @@ export function ChatBox({
     const pollingInterval = setInterval(async () => {
       const timeSinceLastActivity = Date.now() - lastActivityRef.current;
 
-      if (timeSinceLastActivity > 1000 && newestTimestampRef.current) {
+      if (timeSinceLastActivity > 500 && newestTimestampRef.current) {
         try {
           const newMessages = await getNewMessages(chatRoomId, newestTimestampRef.current);
 
@@ -484,7 +484,7 @@ export function ChatBox({
           console.error('❌ Error polling new messages:', error);
         }
       }
-    }, 5000);
+    }, 1000);
 
     pollingIntervalRef.current = pollingInterval;
 
