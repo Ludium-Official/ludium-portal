@@ -7,7 +7,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { ContractInformation } from '@/types/recruitment';
-import { ApplicationStatusV2 } from '@/types/types.generated';
 import { useState } from 'react';
 import { ContractModal } from './contract/contract-modal';
 
@@ -32,9 +31,7 @@ export function HireButton({ contractInformation, disabled = false }: HireButton
   return (
     <>
       <Button className="mr-4 px-8 bg-primary" onClick={handleHireClick} disabled={disabled}>
-        {contractInformation.applicationStatus === ApplicationStatusV2.PendingSignature
-          ? 'Update Contract'
-          : 'Hire'}
+        {!disabled ? 'Update Contract' : 'Hire'}
       </Button>
 
       <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>

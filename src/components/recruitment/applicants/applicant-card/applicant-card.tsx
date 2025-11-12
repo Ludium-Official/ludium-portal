@@ -26,6 +26,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
   const fullName = `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim();
   const initials = `${userInfo.firstName?.[0] || ''}${userInfo.lastName?.[0] || ''}`.toUpperCase();
 
+  console.log(userInfo);
   const handleMessageClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -68,7 +69,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
       >
         <div className="flex items-start gap-4">
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between mb-4">
+            <div className="flex items-start justify-between">
               <div className="flex items-cetner gap-3">
                 <Avatar className="h-16 w-16">
                   <AvatarImage src={userInfo.image || ''} alt={fullName} />
@@ -132,36 +133,32 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
               </div>
             </div>
 
-            <div className="flex flex-col gap-5 text-sm">
-              {userInfo.cv && (
-                <div className="flex gap-3">
-                  <div className="w-[65px] flex-shrink-0 text-gray-dark font-bold">CV</div>
-                  <p className="text-gray-700 line-clamp-2">{userInfo.cv}</p>
-                </div>
-              )}
+            {((userInfo.skills && userInfo.skills.length > 0) ||
+              (userInfo.tools && userInfo.tools.length > 0)) && (
+              <div className="flex flex-col gap-5 mt-4 text-sm">
+                {userInfo.skills && userInfo.skills.length > 0 && (
+                  <div className="flex gap-3">
+                    <div className="w-[65px] flex-shrink-0 text-gray-dark font-bold">Skills</div>
+                    {userInfo.skills.map((skill) => (
+                      <Badge key={skill} variant="secondary" className="text-xs">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
 
-              {userInfo.skills && userInfo.skills.length > 0 && (
-                <div className="flex gap-3">
-                  <div className="w-[65px] flex-shrink-0 text-gray-dark font-bold">Skills</div>
-                  {userInfo.skills.map((skill) => (
-                    <Badge key={skill} variant="secondary" className="text-xs">
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              {userInfo.tools && userInfo.tools.length > 0 && (
-                <div className="flex gap-3">
-                  <div className="w-[65px] flex-shrink-0 text-gray-dark font-bold">Tools</div>
-                  {userInfo.tools.map((tool) => (
-                    <Badge key={tool} variant="secondary" className="text-xs">
-                      {tool}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
+                {userInfo.tools && userInfo.tools.length > 0 && (
+                  <div className="flex gap-3">
+                    <div className="w-[65px] flex-shrink-0 text-gray-dark font-bold">Tools</div>
+                    {userInfo.tools.map((tool) => (
+                      <Badge key={tool} variant="secondary" className="text-xs">
+                        {tool}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

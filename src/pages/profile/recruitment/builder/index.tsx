@@ -85,15 +85,11 @@ const ProfileRecruitmentBuilder: React.FC = () => {
           }
         };
 
-        const handleStatusChange = (status: string, checked: boolean) => {
-          const currentFilter = (column.getFilterValue() as string[]) || [];
-          if (checked) {
-            column.setFilterValue([...currentFilter, status]);
-          } else {
-            const newFilter = currentFilter.filter((s) => s !== status);
-            column.setFilterValue(newFilter.length > 0 ? newFilter : undefined);
-          }
+        const handleStatusChange = (status: string) => {
+          column.setFilterValue([status]);
         };
+
+        const currentStatus = filterValue.length > 0 ? filterValue[0] : null;
 
         return (
           <DropdownMenu>
@@ -109,32 +105,32 @@ const ProfileRecruitmentBuilder: React.FC = () => {
               </DropdownMenuCheckboxItem>
               <DropdownMenuSeparator />
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes('open')}
-                onCheckedChange={(checked) => handleStatusChange('open', checked)}
+                checked={currentStatus === 'open'}
+                onCheckedChange={() => handleStatusChange('open')}
               >
                 Open
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes('closed')}
-                onCheckedChange={(checked) => handleStatusChange('closed', checked)}
+                checked={currentStatus === 'closed'}
+                onCheckedChange={() => handleStatusChange('closed')}
               >
                 Closed
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes('draft')}
-                onCheckedChange={(checked) => handleStatusChange('draft', checked)}
+                checked={currentStatus === 'draft'}
+                onCheckedChange={() => handleStatusChange('draft')}
               >
                 Draft
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes('under_review')}
-                onCheckedChange={(checked) => handleStatusChange('under_review', checked)}
+                checked={currentStatus === 'under_review'}
+                onCheckedChange={() => handleStatusChange('under_review')}
               >
                 Under Review
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
-                checked={filterValue.includes('declined')}
-                onCheckedChange={(checked) => handleStatusChange('declined', checked)}
+                checked={currentStatus === 'declined'}
+                onCheckedChange={() => handleStatusChange('declined')}
               >
                 Declined
               </DropdownMenuCheckboxItem>
@@ -249,7 +245,7 @@ const ProfileRecruitmentBuilder: React.FC = () => {
       <div>
         <Link
           to={`/my-profile`}
-          className="flex items-center mb-3 text-xs font-semibold text-gray-text"
+          className="flex items-center mb-5 text-sm font-semibold text-gray-text"
         >
           <ChevronLeft className="w-4" />
           Dashboard

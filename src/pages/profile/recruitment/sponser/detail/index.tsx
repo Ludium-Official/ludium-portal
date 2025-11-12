@@ -28,13 +28,13 @@ const ProfileRecuitmentDetail: React.FC = () => {
       <div className="mb-3">
         <Link
           to={`/profile/recruitment/sponser`}
-          className="flex items-center mb-3 text-xs font-semibold text-gray-text"
+          className="flex items-center mb-5 text-sm font-semibold text-gray-text"
         >
           <ChevronLeft className="w-4" />
           My Job Posts
         </Link>
         <Tabs value={selectedTab} onValueChange={handleTabChange}>
-          <TabsList className="rounded-md p-2">
+          <TabsList className="rounded-md">
             <TabsTrigger value="overview" className="rounded-sm px-10">
               Overview
             </TabsTrigger>

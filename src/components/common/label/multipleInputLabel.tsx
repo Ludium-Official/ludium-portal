@@ -39,7 +39,7 @@ const MultipleInputLabel: React.FC<InputLabelProps> = ({
       {title && (
         <p className="text-sm font-medium">
           {title}
-          {isPrimary && <span className="ml-1 text-primary">*</span>}
+          {isPrimary && <span className="ml-[2px] text-red-500">*</span>}
         </p>
       )}
       {subTitle && <span className="block text-gray-text text-sm">{subTitle}</span>}

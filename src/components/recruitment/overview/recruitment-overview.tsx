@@ -1,4 +1,3 @@
-import client from '@/apollo/client';
 import { useCreateApplicationV2Mutation } from '@/apollo/mutation/create-application-v2.generated';
 import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
 import { GetProgramsV2Document } from '@/apollo/queries/programs-v2.generated';
@@ -26,12 +25,13 @@ import { formatDate, formatPrice, getCurrencyIcon, reduceString } from '@/lib/ut
 import { ProgramStatusV2 } from '@/types/types.generated';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import StatusBadge from '../statusBadge/statusBadge';
 
 const RecruitmentOverview: React.FC = () => {
   const { id } = useParams();
   const { userId } = useAuth();
+  const navigate = useNavigate();
 
   const { data, loading, error } = useGetProgramV2Query({
     variables: {
@@ -75,9 +75,9 @@ const RecruitmentOverview: React.FC = () => {
 
       if (result.data?.createApplicationV2) {
         notify('Application submitted successfully!', 'success');
-        setIsDialogOpen(false);
-        setCoverLetter('');
-        client.refetchQueries({ include: [GetProgramsV2Document] });
+        navigate('/profile/recruitment/builder');
+
+        return;
       }
     } catch (error) {
       console.error('Error submitting application:', error);
@@ -252,7 +252,7 @@ const RecruitmentOverview: React.FC = () => {
 
             <div>
               <div className="mb-2 text-muted-foreground text-sm font-medium">Skills</div>
-              <div className="flex gap-3 text-sm">
+              <div className="flex flex-wrap gap-3 text-sm">
                 {program.skills?.map((skill: string) => (
                   <Badge key={skill} variant="secondary" className="text-xs font-semibold">
                     {skill.toUpperCase()}

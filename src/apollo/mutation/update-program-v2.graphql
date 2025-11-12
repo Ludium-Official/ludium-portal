@@ -1,6 +1,5 @@
 mutation updateProgramV2($id: ID!, $input: UpdateProgramV2Input!) {
   updateProgramV2(id: $id, input: $input) {
-    id
     title
     description
     skills
@@ -11,7 +10,5 @@ mutation updateProgramV2($id: ID!, $input: UpdateProgramV2Input!) {
     networkId
     price
     token_id
-    createdAt
-    updatedAt
   }
 }

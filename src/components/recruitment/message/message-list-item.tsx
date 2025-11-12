@@ -50,14 +50,12 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
   };
 
   const getDisplayText = () => {
-    if (!latestMessageText) return 'No messages yet';
-
-    // Check if it's a contract message
     if (latestMessageSenderId === '-1' || latestMessageSenderId === '-2') {
-      return 'Employment Contract';
+      return 'Ludium Assistant Message';
     }
 
-    // Check if it's the current user's message
+    if (!latestMessageText) return 'No messages yet';
+
     if (latestMessageSenderId === currentUserId) {
       return latestMessageText;
     }
