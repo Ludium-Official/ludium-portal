@@ -32,18 +32,16 @@ function ProgramCard({ program }: { program: ProgramV2 }) {
           <div className="inline-flex items-center self-start bg-secondary text-sm py-1 px-2 rounded-md">
             <span className="mr-3 text-xs font-semibold text-neutral-400">PRICE</span>
             {price ? (
-              <>
-                <span className="flex items-center gap-1 text-muted-foreground font-medium">
-                  {token && getTokenIcon(token.tokenName || 'EDU')} {price}
-                  <span className="ml-1">{token?.tokenName}</span>
-                </span>
-                <span className="block ml-2 pl-2 border-l text-muted-foreground font-medium">
-                  {network && getNetworkDisplayName(network.chainName || 'educhain')}
-                </span>
-              </>
+              <span className="flex items-center gap-1 text-muted-foreground font-medium">
+                {token && getTokenIcon(token.tokenName || 'EDU')} {price}
+                <span className="ml-1">{token?.tokenName}</span>
+              </span>
             ) : (
               <span className="text-muted-foreground font-medium">Negotiable</span>
             )}
+            <span className="block ml-2 pl-2 border-l text-muted-foreground font-medium">
+              {network && getNetworkDisplayName(network.chainName || 'educhain')}
+            </span>
           </div>
           <div className="inline-flex items-center self-start py-1 px-2 rounded-md text-sm bg-secondary">
             <span className="mr-3 text-xs font-semibold text-neutral-400">DEADLINE</span>

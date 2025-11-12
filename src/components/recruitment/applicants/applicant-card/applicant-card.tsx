@@ -38,7 +38,9 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
 
     try {
       if (chatroomMessageId) {
-        navigate(`/profile/recruitment/sponser/${applicant.programId}?tab=message`);
+        navigate(
+          `/profile/recruitment/sponser/${applicant.programId}?tab=message&chatroomId=${chatroomMessageId}`,
+        );
         return;
       }
 
@@ -50,7 +52,10 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
       });
 
       if (result.data?.updateApplicationChatroomV2?.chatroomMessageId) {
-        navigate(`/profile/recruitment/sponser/${applicant.programId}?tab=message`);
+        const newChatroomId = result.data.updateApplicationChatroomV2.chatroomMessageId;
+        navigate(
+          `/profile/recruitment/sponser/${applicant.programId}?tab=message&chatroomId=${newChatroomId}`,
+        );
         notify('Chatroom created successfully', 'success');
       } else {
         notify('Failed to create chatroom', 'error');

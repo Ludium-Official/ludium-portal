@@ -10,11 +10,9 @@ import UserCommunityTab from '@/pages/community/users/_components/community-tab'
 import UserDescriptionTab from '@/pages/community/users/_components/description-tab';
 import UserInvestmentHostTab from '@/pages/community/users/_components/investment-host-tab';
 import UserInvestmentProjectTab from '@/pages/community/users/_components/investment-project-tab';
-import UserInvestmentReclaimTab from '@/pages/community/users/_components/investment-reclaim-tab';
 import UserInvestmentTab from '@/pages/community/users/_components/investment-tab';
 import UserOverviewTab from '@/pages/community/users/_components/overview-tab';
 import UserRecruitmentBuilderTab from '@/pages/community/users/_components/recruitment-builder-tab';
-import UserRecruitmentReclaimTab from '@/pages/community/users/_components/recruitment-reclaim-tab';
 import BannerAdminPage from '@/pages/community/users/admin/banner';
 import HiddenCommunitiesAdminPage from '@/pages/community/users/admin/hidden-communities';
 import HiddenProgramsAdminPage from '@/pages/community/users/admin/hidden-programs';
@@ -22,7 +20,6 @@ import MasterAdminPage from '@/pages/community/users/admin/master-admin-page';
 import UserManagementAdminPage from '@/pages/community/users/admin/user-management';
 import UserDetailsPage from '@/pages/community/users/details';
 import EditProfilePage from '@/pages/community/users/details/edit-profile';
-import MyProfilePage from '@/pages/community/users/details/my-profile';
 import MainPage from '@/pages/main';
 import ProgramsPage from '@/pages/programs';
 import ProgramDetailsPage from '@/pages/programs/details';
@@ -34,6 +31,7 @@ import ProfileRecruitmentBuilderDetail from './pages/profile/recruitment/builder
 import ProfileRecruitment from './pages/profile/recruitment/sponser';
 import ProfileRecuitmentDetail from './pages/profile/recruitment/sponser/detail';
 import CreateProgram from './pages/programs/create';
+import ProfilePage from './pages/profile/profile';
 
 function App() {
   return (
@@ -84,49 +82,8 @@ function App() {
             </Route>
           </Route>
 
-          <Route path="my-profile">
-            <Route path="edit" element={<EditProfilePage />} />
-            <Route element={<MyProfilePage />}>
-              <Route index element={<Navigate to="overview" />} />
-            </Route>
-            <Route element={<MyProfilePage />}>
-              <Route path="overview" element={<UserOverviewTab />} />
-              <Route path="description" element={<UserDescriptionTab myProfile />} />
-              <Route
-                path="program/recruitment/builder"
-                element={<UserRecruitmentBuilderTab myProfile />}
-              />
-              <Route
-                path="program/recruitment/reclaim"
-                element={<UserRecruitmentReclaimTab myProfile />}
-              />
-              <Route path="program/investment" element={<UserInvestmentTab myProfile />} />
-              <Route path="program/investment/host" element={<UserInvestmentHostTab myProfile />} />
-              <Route
-                path="program/investment/project"
-                element={<UserInvestmentProjectTab myProfile />}
-              />
-              <Route
-                path="program/investment/supporter"
-                element={<UserInvestmentProjectTab myProfile />}
-              />
-              <Route
-                path="program/investment/reclaim"
-                element={<UserInvestmentReclaimTab myProfile />}
-              />
-              <Route path="community" element={<UserCommunityTab />} />
-
-              <Route path="admin">
-                <Route path="banner" element={<BannerAdminPage />} />
-                <Route path="hidden-programs" element={<HiddenProgramsAdminPage />} />
-                <Route path="hidden-communities" element={<HiddenCommunitiesAdminPage />} />
-                <Route path="user-management" element={<UserManagementAdminPage />} />
-                <Route path="master-admin" element={<MasterAdminPage />} />
-              </Route>
-            </Route>
-          </Route>
-
           <Route path="profile">
+            <Route path="edit" element={<EditProfilePage />} />
             <Route path="recruitment">
               <Route path="sponser">
                 <Route index element={<ProfileRecruitment />} />
@@ -135,6 +92,19 @@ function App() {
               <Route path="builder">
                 <Route index element={<ProfileRecruitmentBuilder />} />
                 <Route path=":id" element={<ProfileRecruitmentBuilderDetail />} />
+              </Route>
+            </Route>
+            <Route element={<ProfilePage />}>
+              <Route index element={<UserOverviewTab />} />
+              <Route path="description" element={<UserDescriptionTab myProfile />} />
+              <Route path="community" element={<UserCommunityTab />} />
+
+              <Route path="admin">
+                <Route path="banner" element={<BannerAdminPage />} />
+                <Route path="hidden-programs" element={<HiddenProgramsAdminPage />} />
+                <Route path="hidden-communities" element={<HiddenCommunitiesAdminPage />} />
+                <Route path="user-management" element={<UserManagementAdminPage />} />
+                <Route path="master-admin" element={<MasterAdminPage />} />
               </Route>
             </Route>
           </Route>

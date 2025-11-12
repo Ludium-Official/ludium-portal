@@ -49,10 +49,6 @@ function UserDetailsPage() {
                 </p>
               </div>
               <ShareButton variant="outline" className="h-11" />
-              {/* <Button variant={'outline'} className="h-11">
-                <p className="font-medium text-sm text-gray-dark">Share</p>
-                <Share2Icon />
-              </Button> */}
             </div>
             <Separator />
             <div className="flex flex-col gap-2 px-6">
@@ -101,7 +97,6 @@ function UserDetailsPage() {
                     {userData?.user?.links?.length ? (
                       userData.user.links.map((link, index) => {
                         return (
-                          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                           <div key={index} className="flex items-center gap-2">
                             <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
                               <SocialIcon

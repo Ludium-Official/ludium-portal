@@ -47,9 +47,7 @@ function ApplicationCard({
         )} */}
       </div>
 
-      {/* Builder Info and Price */}
       <div className="flex flex-col gap-3 mb-4">
-        {/* Builder Info */}
         <div className="flex items-center gap-2">
           <Avatar className="w-8 h-8">
             <AvatarImage
@@ -60,17 +58,11 @@ function ApplicationCard({
               {getUserName(application?.applicant)?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          {/* <Link
-            className="text-sm font-bold text-slate-900 hover:underline"
-            to={`/users/${application?.applicant?.id}`}
-          > */}
           <div className="text-sm font-bold text-slate-900 hover:underline">
             {getUserName(application?.applicant) ?? application?.applicant?.organizationName}
           </div>
-          {/* </Link> */}
         </div>
 
-        {/* Price Tag */}
         <div className="bg-[#0000000A] rounded-md px-2 py-1 inline-flex items-center gap-3 w-fit">
           <span className="text-xs text-neutral-400 font-semibold">PRICE</span>
           <div className="flex items-center gap-1">
@@ -83,7 +75,6 @@ function ApplicationCard({
         </div>
       </div>
 
-      {/* Description */}
       <div className="">
         <p className="text-sm text-slate-900 leading-relaxed line-clamp-2">
           {application?.name || 'No description available'}

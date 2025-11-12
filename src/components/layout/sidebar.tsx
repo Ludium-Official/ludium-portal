@@ -27,7 +27,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
   const [programMenuOpen, setProgramMenuOpen] = useState(false);
 
   const urlLinks: PathLinkProps[] = [
-    ...(isLoggedIn ? [{ name: 'Profile', path: '/my-profile', icon: UserRound }] : []),
+    ...(isLoggedIn ? [{ name: 'Profile', path: '/profile', icon: UserRound }] : []),
     {
       name: 'Program',
       path: '/programs',

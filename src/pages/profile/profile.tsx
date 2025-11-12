@@ -18,7 +18,7 @@ import { ethers } from 'ethers';
 import { ArrowUpRight, Building2, CircleCheck, Settings, Sparkle, UserCog } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router';
-import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
+import { SidebarLinks, sidebarLinks } from '../community/users/_components/sidebar-links';
 import { useProfileV2Query } from '@/apollo/queries/profile-v2.generated';
 
 const adminLinks = [
@@ -28,7 +28,7 @@ const adminLinks = [
   { label: 'User management', path: 'admin/user-management' },
 ];
 
-function MyProfilePage() {
+function ProfilePage() {
   const { isAdmin, isLoggedIn, isSuperadmin } = useAuth();
   const { user: privyUser, exportWallet, authenticated } = usePrivy();
   const walletInfo = privyUser?.wallet;
@@ -163,7 +163,7 @@ function MyProfilePage() {
                   )}
                   asChild
                 >
-                  <Link to="/my-profile/edit">
+                  <Link to="/profile/edit">
                     Edit Profile <Settings />
                   </Link>
                 </Button>
@@ -202,10 +202,10 @@ function MyProfilePage() {
             {isSuperadmin && (
               <div className="flex flex-col gap-2 px-6">
                 <Link
-                  to="/my-profile/admin/master-admin"
+                  to="/profile/admin/master-admin"
                   className={cn(
                     'text-sm px-2 gap-2 text-primary h-8 flex items-center select-none hover:bg-sidebar-accent',
-                    location.pathname === '/my-profile/admin/master-admin' &&
+                    location.pathname === '/profile/admin/master-admin' &&
                       'bg-sidebar-accent rounded-md',
                   )}
                 >
@@ -332,4 +332,4 @@ function MyProfilePage() {
   );
 }
 
-export default MyProfilePage;
+export default ProfilePage;

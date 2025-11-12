@@ -62,7 +62,6 @@ function EditProfilePage() {
     },
   });
 
-  // TODO: 이미지 backend에서 처리하는 것 확인
   const [_selectedAvatar, setSelectedAvatar] = useState<File>();
   const [imageError, setImageError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -95,12 +94,14 @@ function EditProfilePage() {
             const { shouldSend } = validateLinks(links);
             return shouldSend ? filterEmptyLinks(links) : undefined;
           })(),
+          // TODO: 이미지 넣어야 함
+          // profileImage: selectedAvatar,
         },
       },
       onCompleted: () => {
         notify('Profile successfully updated');
         refetch();
-        navigate('/my-profile');
+        navigate('/profile');
       },
       onError: (e) => {
         if (e.message === 'duplicate key value violates unique constraint "users_email_unique"') {

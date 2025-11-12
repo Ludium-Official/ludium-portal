@@ -52,19 +52,17 @@ export function ContractForm({
                     >
                       <div className="space-y-3">
                         <div className="flex flex-col gap-1">
-                          <div className="text-sm font-semibold text-muted-foreground">
+                          <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground text-xs">
                             Milestone Title
-                            <span className="ml-2">
-                              {milestone.status === MilestoneStatusV2.InProgress ? (
-                                <span className="bg-[#60A5FA] px-2 py-1 rounded-full text-white">
-                                  In Progress
-                                </span>
-                              ) : (
-                                <span className="bg-[#4ADE80] px-2 py-1 rounded-full text-white">
-                                  New
-                                </span>
-                              )}
-                            </span>
+                            {milestone.status === MilestoneStatusV2.InProgress ? (
+                              <span className="bg-[#60A5FA] px-2 py-[1px] rounded-full text-white">
+                                In Progress
+                              </span>
+                            ) : (
+                              <span className="bg-[#4ADE80] px-2 py-[1px] rounded-full text-white">
+                                New
+                              </span>
+                            )}
                           </div>
                           <div>{milestone.title || ''}</div>
                         </div>

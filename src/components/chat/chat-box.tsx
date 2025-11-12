@@ -434,13 +434,22 @@ export function ChatBox({
   }, [chatRoomId]);
 
   useEffect(() => {
-    if (!chatRoomId || !newestTimestampRef.current) return;
+    if (!chatRoomId) return;
 
+    // Clean up existing subscriptions
     if (unsubscribeRef.current) {
       unsubscribeRef.current();
       unsubscribeRef.current = null;
     }
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
 
+    // Wait for newestTimestampRef to be set
+    if (!newestTimestampRef.current) return;
+
+    // Setup realtime subscription
     const unsubscribe = subscribeToNewMessages(
       chatRoomId,
       newestTimestampRef.current,
@@ -459,30 +468,29 @@ export function ChatBox({
 
     unsubscribeRef.current = unsubscribe;
 
+    // Setup polling interval
     const pollingInterval = setInterval(async () => {
-      const timeSinceLastActivity = Date.now() - lastActivityRef.current;
+      if (!newestTimestampRef.current) return;
 
-      if (timeSinceLastActivity > 500 && newestTimestampRef.current) {
-        try {
-          const newMessages = await getNewMessages(chatRoomId, newestTimestampRef.current);
+      try {
+        const newMessages = await getNewMessages(chatRoomId, newestTimestampRef.current);
 
-          if (newMessages.length > 0) {
-            setMessages((prev) => {
-              const existingIds = new Set(prev.map((m) => m.id));
-              const uniqueNewMessages = newMessages.filter((m) => !existingIds.has(m.id));
+        if (newMessages.length > 0) {
+          setMessages((prev) => {
+            const existingIds = new Set(prev.map((m) => m.id));
+            const uniqueNewMessages = newMessages.filter((m) => !existingIds.has(m.id));
 
-              if (uniqueNewMessages.length === 0) return prev;
+            if (uniqueNewMessages.length === 0) return prev;
 
-              return [...prev, ...uniqueNewMessages];
-            });
+            return [...prev, ...uniqueNewMessages];
+          });
 
-            const latestMessage = newMessages[newMessages.length - 1];
-            newestTimestampRef.current = latestMessage.timestamp;
-            lastActivityRef.current = Date.now();
-          }
-        } catch (error) {
-          console.error('❌ Error polling new messages:', error);
+          const latestMessage = newMessages[newMessages.length - 1];
+          newestTimestampRef.current = latestMessage.timestamp;
+          lastActivityRef.current = Date.now();
         }
+      } catch (error) {
+        console.error('❌ Error polling new messages:', error);
       }
     }, 1000);
 
@@ -498,7 +506,7 @@ export function ChatBox({
         pollingIntervalRef.current = null;
       }
     };
-  }, [chatRoomId]);
+  }, [chatRoomId, messages.length]);
 
   const loadMoreMessages = async () => {
     if (!chatRoomId || !oldestDoc || loadingMore || !hasMore) return;

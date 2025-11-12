@@ -244,7 +244,7 @@ const ProfileRecruitment: React.FC = () => {
     <div className="flex flex-col justify-between bg-white px-10 py-7 rounded-2xl">
       <div>
         <Link
-          to={`/my-profile`}
+          to={`/profile`}
           className="flex items-center mb-5 text-sm font-semibold text-gray-text"
         >
           <ChevronLeft className="w-4" />
