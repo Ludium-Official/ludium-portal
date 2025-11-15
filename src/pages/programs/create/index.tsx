@@ -8,7 +8,7 @@ import ProgramForm from '@/components/program-form';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useProgramDraft } from '@/lib/hooks/use-program-draft';
 import notify from '@/lib/notify';
-import type { ProgramStatus, ProgramVisibility } from '@/types/types.generated';
+import { type ProgramStatus, ProgramType, type ProgramVisibility } from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -29,7 +29,7 @@ const CreateProgram: React.FC = () => {
       return;
     }
     if (!isAuthed) {
-      navigate('/profile/edit');
+      navigate('/my-profile/edit');
       notify('Please add your email', 'success');
       return;
     }
@@ -49,6 +49,7 @@ const CreateProgram: React.FC = () => {
           links: args.links,
           network: args.network,
           image: args.image,
+          type: ProgramType.Regular,
 
           visibility: args.visibility as ProgramVisibility,
           status: args.status as ProgramStatus,

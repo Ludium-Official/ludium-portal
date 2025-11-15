@@ -58,7 +58,7 @@ function UsersPage() {
   return (
     <div className="bg-white rounded-[16px] pb-[60px] flex flex-col gap-10">
       <div className="px-10">
-        <div className="max-w-1440 mx-auto">
+        <div className="max-w-full md:max-w-1440 mx-auto">
           <div className="flex justify-between items-center pt-9 pb-4">
             <h3 className="text-gray-dark font-bold text-3xl">Agent</h3>
           </div>
@@ -184,7 +184,7 @@ function UsersPage() {
                     </div>
 
                     <div className="p-3 flex flex-col gap-1 min-w-[132px]">
-                      <p className="font-bold text-xs text-gray-dark">Investment</p>
+                      <p className="font-bold text-xs text-gray-dark">Funding</p>
                       <Separator />
                       <div className="flex justify-between">
                         <p className="font-bold text-xs text-zinc-500">Host</p>

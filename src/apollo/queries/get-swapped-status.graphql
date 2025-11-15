@@ -1,0 +1,8 @@
+query GetSwappedStatus($userId: String!) {
+  getSwappedStatus(userId: $userId) {
+    status
+    message
+    orderId
+    data
+  }
+}

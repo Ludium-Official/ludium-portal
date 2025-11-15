@@ -1,6 +1,6 @@
-import twitter from '@/assets/icons/twitter.svg';
 import github from '@/assets/icons/github.svg';
 import linkedin from '@/assets/icons/linkedin.svg';
+import twitter from '@/assets/icons/twitter.svg';
 
 export const platformIcons: Record<string, { icon: string; alt: string }> = {
   twitter: { icon: twitter, alt: 'Twitter' },

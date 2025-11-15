@@ -1,0 +1,5 @@
+mutation hideProgram($id: ID!) {
+  hideProgram(id: $id) {
+    id
+  }
+}

@@ -6,6 +6,7 @@ query post($id: ID!) {
     image
     summary
     viewCount
+    visibility
     keywords {
       id
       name

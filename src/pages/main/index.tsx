@@ -14,8 +14,9 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import MainCommunityCard from '@/pages/main/_components/main-community-card';
 import MainProgramCard from '@/pages/main/_components/main-program-card';
+import ProgramCard from '@/pages/programs/_components/program-card';
 // import MainUserCard from '@/pages/main/_components/main-user-card';
-import type { Post, Program } from '@/types/types.generated';
+import { type Post, type Program, ProgramType } from '@/types/types.generated';
 import Autoplay from 'embla-carousel-autoplay';
 import { ArrowRight } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -49,6 +50,10 @@ function MainPage() {
             field: 'status',
             value: 'published',
           },
+          {
+            field: 'visibility',
+            value: 'public',
+          },
         ],
       },
     },
@@ -63,19 +68,10 @@ function MainPage() {
     },
   });
 
-  // const { data: usersData, loading: usersLoading } = useUsersQuery({
-  //   variables: {
-  //     input: {
-  //       limit: 3,
-  //       offset: 0,
-  //     },
-  //   },
-  // });
-
   const { data: carouselItemsData, loading: carouselLoading } = useCarouselItemsQuery();
 
   return (
-    <div className="bg-white rounded-2xl px-10 py-[60px]">
+    <div className="bg-white rounded-2xl p-4 md:px-10 md:py-[60px]">
       <div className="max-w-1440 mx-auto">
         {carouselLoading && (
           <section className="flex justify-between items-center mb-20">
@@ -104,30 +100,32 @@ function MainPage() {
             <CarouselContent>
               {carouselItemsData?.carouselItems?.map((item) => (
                 <CarouselItem key={item.id}>
-                  <section className="flex justify-between items-center mb-20">
-                    <div className="max-w-[50%]">
-                      <div className="flex gap-3">
+                  <section className="flex flex-col md:flex-row justify-between items-center mb-12 md:mb-20 gap-8">
+                    <div className="max-w-full md:max-w-[50%] text-center md:text-left">
+                      <div className="flex gap-3 justify-center md:justify-start flex-wrap">
                         {(item.data as Post)?.keywords?.slice(0, 3)?.map((k) => (
                           <Badge className="h-[20px] font-sans" key={k.id}>
                             {k.name}
                           </Badge>
                         ))}
                       </div>
-                      <h1 className="text-5xl font-bold font-sans mb-3">
+                      <h1 className="text-3xl md:text-5xl font-bold font-sans mb-3">
                         {item?.data?.__typename === 'Post'
                           ? (item.data as Post)?.title
                           : (item.data as Program)?.name}
                       </h1>
-                      <p className="text-lg mb-15">{item.data?.summary}</p>
+                      <p className="text-base md:text-lg mb-6 md:mb-15">{item.data?.summary}</p>
                       <Button type="button" variant="purple" className="w-[152px] h-11" asChild>
                         <Link
-                          to={`${item.data?.__typename === 'Post' ? '/community/posts/' : '/programs/'}${item.itemId}`}
+                          to={`${
+                            item.data?.__typename === 'Post' ? '/community/posts/' : '/programs/'
+                          }${item.itemId}`}
                         >
                           VIEW DETAIL
                         </Link>
                       </Button>
                     </div>
-                    <div className="flex w-[544px] h-[306px]">
+                    <div className="flex w-full md:w-[544px] h-[200px] md:h-[306px]">
                       {(item.data as Post)?.image ? (
                         <img
                           src={(item.data as Post)?.image ?? ''}
@@ -135,7 +133,6 @@ function MainPage() {
                           className="rounded-lg w-full h-full object-cover"
                         />
                       ) : (
-                        // <div className="rounded-lg w-full h-full" />
                         <img src={thumbnail} alt="main" className="rounded-lg" />
                       )}
                     </div>
@@ -175,17 +172,27 @@ function MainPage() {
           </section>
         ) : (
           <section className="mb-12">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-2xl font-bold font-sans mb-3">Programs</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
+              <h2 className="text-xl md:text-2xl font-bold font-sans mb-0">Programs</h2>
               <Link to="/programs" className="flex items-center gap-2">
                 View more
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="flex gap-3 overflow-x-auto whitespace-nowrap pb-4 select-none">
-              {programsData?.programs?.data?.map((program) => (
-                <MainProgramCard key={program.id} program={program} />
-              ))}
+            <div className="flex gap-3 overflow-x-auto whitespace-nowrap pb-4 select-none -mx-4 md:mx-0 px-4 md:px-0">
+              {programsData?.programs?.data?.map((program) => {
+                if (program.type === ProgramType.Regular) {
+                  return (
+                    <Link
+                      to={`/programs/${program.id}`}
+                      className="min-w-[280px] md:min-w-[624px] hover:shadow-md transition-shadow"
+                    >
+                      <ProgramCard key={program.id} program={program} />
+                    </Link>
+                  );
+                }
+                return <MainProgramCard key={program.id} program={program} />;
+              })}
             </div>
           </section>
         )}
@@ -202,14 +209,14 @@ function MainPage() {
           </section>
         ) : (
           <section className="mb-12">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-2xl font-bold font-sans mb-3">Community</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
+              <h2 className="text-xl md:text-2xl font-bold font-sans mb-0">Community</h2>
               <Link to="/community" className="flex items-center gap-2">
                 View more
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="flex gap-3 overflow-x-auto whitespace-nowrap pb-4 select-none">
+            <div className="flex gap-3 overflow-x-auto whitespace-nowrap pb-4 select-none -mx-4 md:mx-0 px-4 md:px-0">
               {postsData?.posts?.data?.map((post) => (
                 <MainCommunityCard key={post.id} post={post} />
               ))}

@@ -8,13 +8,40 @@ query CarouselItems {
         keywords {
           name
         }
+        comments {
+          id
+        }
+        createdAt
+        viewCount
+        author {
+          id
+          firstName
+          lastName
+          links {
+            title
+            url
+          }
+        }
         summary
       }
       ... on Program {
         name
         image
+        status
+        type
+        price
+        currency
+        network
+        deadline
         keywords {
           name
+        }
+        creator {
+          firstName
+          id
+          image
+          lastName
+          organizationName
         }
         summary
       }

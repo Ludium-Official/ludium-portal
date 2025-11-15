@@ -2,10 +2,10 @@ import { useUserQuery } from '@/apollo/queries/user.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
 import { Badge } from '@/components/ui/badge';
 import { ShareButton } from '@/components/ui/share-button';
+import SocialIcon from '@/components/ui/social-icon';
 import { Separator } from '@radix-ui/react-dropdown-menu';
 import { Outlet, useParams } from 'react-router';
 import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
-import { platformIcons } from '../agent-utils';
 
 function UserDetailsPage() {
   const { id } = useParams();
@@ -18,7 +18,7 @@ function UserDetailsPage() {
 
   return (
     <div className="bg-white rounded-2xl">
-      <div className="max-w-1440 mx-auto p-10">
+      <div className="max-w-full md:max-w-1440 mx-auto p-10">
         <div className="flex gap-6">
           <section className="max-w-[360px] flex flex-col gap-5">
             <div className="flex flex-col gap-6">
@@ -64,30 +64,34 @@ function UserDetailsPage() {
             <div className="flex flex-col gap-6">
               <div className="space-y-2">
                 <p className="font-bold text-sm text-muted-foreground">ROLES</p>
-                <div className="flex gap-[6px]">
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    Crypto
-                  </Badge>
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    BD
-                  </Badge>
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    Develope
-                  </Badge>
+                <div className="flex gap-[6px] flex-wrap">
+                  {userData?.user?.roleKeywords?.map((keyword) => (
+                    <Badge
+                      key={keyword.id}
+                      className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs"
+                    >
+                      {keyword.name}
+                    </Badge>
+                  ))}
+                  {!userData?.user?.roleKeywords?.length && (
+                    <p className="text-sm text-muted-foreground">No roles defined</p>
+                  )}
                 </div>
               </div>
               <div className="space-y-2">
                 <p className="font-bold text-sm text-muted-foreground">SKILLS</p>
-                <div className="flex gap-[6px]">
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    Crypto
-                  </Badge>
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    BD
-                  </Badge>
-                  <Badge className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs">
-                    Develope
-                  </Badge>
+                <div className="flex gap-[6px] flex-wrap">
+                  {userData?.user?.skillKeywords?.map((keyword) => (
+                    <Badge
+                      key={keyword.id}
+                      className="bg-zinc-100 text-gray-dark px-2.5 py-0.5 font-semibold text-xs"
+                    >
+                      {keyword.name}
+                    </Badge>
+                  ))}
+                  {!userData?.user?.skillKeywords?.length && (
+                    <p className="text-sm text-muted-foreground">No skills defined</p>
+                  )}
                 </div>
               </div>
               <div className="space-y-3">
@@ -96,25 +100,15 @@ function UserDetailsPage() {
                   <div className="space-y-2">
                     {userData?.user?.links?.length ? (
                       userData.user.links.map((link, index) => {
-                        const url = link.url?.toLowerCase() || '';
-                        const matchedKey = Object.keys(platformIcons).find((key) =>
-                          url.includes(key),
-                        );
-                        const platform = matchedKey ? platformIcons[matchedKey] : null;
-
                         return (
                           // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                           <div key={index} className="flex items-center gap-2">
-                            {platform && (
-                              <div className="flex items-center justify-center h-10 w-10 rounded-md bg-secondary">
-                                <img
-                                  src={platform.icon}
-                                  width={16}
-                                  height={16}
-                                  alt={platform.alt}
-                                />
-                              </div>
-                            )}
+                            <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
+                              <SocialIcon
+                                value={link.url ?? ''}
+                                className="w-4 h-4 text-secondary-foreground"
+                              />
+                            </div>
                             <a
                               target="_blank"
                               href={link.url || '#'}

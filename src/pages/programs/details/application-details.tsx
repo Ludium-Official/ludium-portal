@@ -37,6 +37,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
+import { useInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
 import { getCurrency, getCurrencyIcon, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
@@ -52,6 +53,7 @@ import {
 } from '@/types/types.generated';
 import BigNumber from 'bignumber.js';
 import { format } from 'date-fns';
+import * as ethers from 'ethers';
 import { ArrowUpRight, Check, ChevronDown, CircleAlert, Settings } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
@@ -80,15 +82,6 @@ function ApplicationDetails() {
     },
   });
 
-  // const { data: comments } = useCommentsByCommentableQuery({
-  //   variables: {
-  //     commentableId: applicationId ?? '',
-  //     commentableType: CommentableTypeEnum.Application,
-  //   },
-  //   skip: !applicationId,
-  //   fetchPolicy: 'cache-and-network',
-  // });
-
   // const [createComment] = useCreateCommentMutation();
 
   const program = programData?.program;
@@ -96,6 +89,7 @@ function ApplicationDetails() {
   const { name, keywords, network } = program ?? {};
 
   const contract = useContract(network || mainnetDefaultNetwork);
+  const investmentContract = useInvestmentContract(network || mainnetDefaultNetwork);
 
   const applicationMutationParams = {
     onCompleted: () => {
@@ -114,37 +108,262 @@ function ApplicationDetails() {
 
   const navigate = useNavigate();
 
-  const callTx = async (price?: string | null, applicationId?: string | null) => {
+  const handleAcceptApplication = async () => {
+    try {
+      let onChainProjectId: number | undefined;
+
+      // If this is a funding program with blockchain deployment, register the project first
+      if (
+        program?.type === 'funding' &&
+        program?.educhainProgramId !== null &&
+        program?.educhainProgramId !== undefined
+      ) {
+        const application = data?.application;
+        if (!application) {
+          notify('Application data not found', 'error');
+          return;
+        }
+
+        // Check if application already has an onChainProjectId
+        if ('onChainProjectId' in application && application.onChainProjectId) {
+          notify('This project is already registered on the blockchain', 'error');
+          onChainProjectId = application.onChainProjectId as number;
+        } else {
+          notify('Registering project on blockchain...', 'loading');
+
+          try {
+            // Prepare milestones for blockchain
+            const milestones =
+              application.milestones?.map((m) => ({
+                title: m.title || '',
+                description: m.description || '',
+                percentage: Number.parseFloat(m.percentage || '0'),
+                deadline: m.deadline || new Date().toISOString(),
+              })) || [];
+
+            // Debug logging for funding target
+            console.log('=== Application Accept Debug ===');
+            console.log('Full application object:', application);
+            console.log('Application data:', {
+              fundingTarget: application.fundingTarget,
+              price: application.price,
+              name: application.name,
+            });
+
+            // Use price as funding target since that's what's set in the form
+            const fundingAmount = application.fundingTarget || application.price || '0';
+            console.log('Using funding amount:', fundingAmount);
+
+            if (fundingAmount === '0' || !fundingAmount) {
+              console.warn(
+                'WARNING: Funding amount is 0 or undefined. This application may have been created before the fundingTarget fix.',
+              );
+              notify(
+                'Warning: This application has no funding target set. It may have been created before the recent fix.',
+                'error',
+              );
+            }
+
+            // Validate that applicant has a proper wallet address
+            const projectOwnerAddress = application.applicant?.walletAddress;
+
+            if (!projectOwnerAddress || !ethers.utils.isAddress(projectOwnerAddress)) {
+              notify(
+                'Error: The applicant must have a valid wallet address connected to their profile before the project can be validated on blockchain. Please ask the applicant to connect their wallet.',
+                'error',
+              );
+              console.error('Invalid or missing wallet address:', {
+                walletAddress: projectOwnerAddress,
+                applicantId: application.applicant?.id,
+                applicantEmail: application.applicant?.email,
+              });
+              return;
+            }
+
+            console.log('Validating project with owner address:', projectOwnerAddress);
+
+            // Determine token decimals based on currency
+            const tokenDecimals =
+              program.currency === 'USDT' || program.currency === 'USDC' ? 6 : 18;
+
+            // Call signValidate to register the project on blockchain FIRST
+            const result = await investmentContract.signValidate({
+              programId: program.educhainProgramId,
+              projectOwner: projectOwnerAddress,
+              projectName: application.name || '',
+              targetFunding: fundingAmount,
+              tokenDecimals, // Pass correct decimals for USDT/USDC
+              milestones,
+            });
+
+            if (result.projectId !== null) {
+              onChainProjectId = result.projectId;
+              notify(`Project registered on blockchain with ID: ${onChainProjectId}`, 'success');
+            } else {
+              notify('Failed to extract project ID from blockchain transaction', 'error');
+              return; // Don't save to DB if we couldn't get the project ID
+            }
+          } catch (blockchainError) {
+            console.error('Blockchain registration failed:', blockchainError);
+            // Check if user rejected the transaction
+            const errorMessage =
+              blockchainError instanceof Error ? blockchainError.message : String(blockchainError);
+            const errorCode = (blockchainError as { code?: number })?.code;
+
+            if (
+              errorMessage.includes('User rejected') ||
+              errorMessage.includes('User denied') ||
+              errorCode === 4001
+            ) {
+              notify('Transaction canceled by user', 'error');
+            } else {
+              notify('Failed to register project on blockchain', 'error');
+            }
+            return; // Exit without saving to database
+          }
+        }
+      }
+
+      // Only save to database AFTER successful blockchain transaction (or if off-chain)
+      await approveApplication({
+        variables: {
+          id: applicationId ?? '',
+          ...(onChainProjectId !== undefined && { onChainProjectId }),
+        },
+      });
+
+      notify(
+        onChainProjectId !== undefined
+          ? `Application accepted and registered on blockchain! Project ID: ${onChainProjectId}`
+          : 'Application accepted successfully',
+        'success',
+      );
+    } catch (_error) {
+      notify('Failed to accept application', 'error');
+    }
+  };
+
+  const callTx = async (
+    price?: string | null,
+    milestoneId?: string | null,
+    milestoneIndex?: number,
+  ) => {
     try {
       if (program) {
-        const network = program.network as keyof typeof tokenAddresses;
-        const tokens = tokenAddresses[network] || [];
-        const targetToken = tokens.find((token) => token.name === program.currency);
+        // For investment programs, check if we should use the investment contract
+        // Accept educhainProgramId as number or string, including 0
+        if (
+          program.type === 'funding' &&
+          program.educhainProgramId !== null &&
+          program.educhainProgramId !== undefined
+        ) {
+          // Check if project is registered on blockchain
+          if (!data?.application?.onChainProjectId && data?.application?.onChainProjectId !== 0) {
+            notify(
+              'This project needs to be registered on blockchain first. Please ensure the application has been properly accepted.',
+              'error',
+            );
+            return;
+          }
 
-        const tx = await contract.acceptMilestone(
-          Number(program?.educhainProgramId),
-          data?.application?.applicant?.walletAddress ?? '',
-          price ?? '',
-          targetToken ?? { name: program.currency as string },
-        );
+          // Step 1: Approve the milestone (marks it as approved)
+          const approveResult = await investmentContract.approveMilestone(
+            Number(data.application.onChainProjectId),
+            milestoneIndex ?? 0,
+          );
 
-        if (tx) {
-          await checkMilestone({
-            variables: {
-              input: {
-                id: applicationId ?? '',
-                status: CheckMilestoneStatus.Completed,
-              },
-            },
-            onCompleted: () => {
-              refetch();
-              programRefetch();
-            },
-          });
+          if (approveResult?.txHash) {
+            notify('Milestone approved! Now executing to release funds...');
 
-          notify('Milestone accept successfully', 'success');
+            // Step 2: Execute the milestone to release funds
+            try {
+              const executeResult = await investmentContract.executeMilestone(
+                Number(data.application.onChainProjectId),
+                milestoneIndex ?? 0,
+              );
+
+              if (executeResult?.txHash) {
+                await checkMilestone({
+                  variables: {
+                    input: {
+                      id: milestoneId ?? '',
+                      status: CheckMilestoneStatus.Completed,
+                    },
+                  },
+                  onCompleted: () => {
+                    refetch();
+                    programRefetch();
+                    notify(
+                      'Milestone completed! Funds successfully released to project owner.',
+                      'success',
+                    );
+                  },
+                });
+              }
+            } catch (executeError) {
+              console.error('Failed to execute milestone:', executeError);
+              notify(
+                'Milestone approved but failed to release funds. Please try executing manually.',
+                'error',
+              );
+            }
+          }
         } else {
-          notify("Can't found acceptMilestone event", 'error');
+          // For regular programs, use the old flow (validator pays)
+          const network = program.network as keyof typeof tokenAddresses;
+          const tokens = tokenAddresses[network] || [];
+          const targetToken = tokens.find((token) => token.name === program.currency);
+
+          const result = await contract.acceptMilestone(
+            Number(program?.educhainProgramId),
+            data?.application?.applicant?.walletAddress ?? '',
+            price ?? '',
+            targetToken ?? { name: program.currency as string },
+          );
+
+          if (result?.txHash) {
+            // Transaction was sent successfully
+            console.log('Milestone acceptance result:', result);
+
+            // Update backend milestone status regardless of event detection
+            await checkMilestone({
+              variables: {
+                input: {
+                  id: milestoneId ?? '',
+                  status: CheckMilestoneStatus.Completed,
+                },
+              },
+              onCompleted: () => {
+                refetch();
+                programRefetch();
+
+                if (!result.eventFound) {
+                  notify(
+                    'Milestone accepted! Transaction succeeded but event log not found. Please verify on blockchain explorer.',
+                    'success',
+                  );
+                } else {
+                  notify('Milestone accepted successfully', 'success');
+                }
+              },
+              onError: (error) => {
+                console.error('Failed to update milestone status in backend:', error);
+                if (result?.txHash && result.txHash !== '0x0') {
+                  notify(
+                    `Transaction succeeded (${result.txHash}) but failed to update status: ${error.message}`,
+                    'error',
+                  );
+                } else {
+                  notify(
+                    'Transaction may have been sent but failed to update status. Please check your wallet.',
+                    'error',
+                  );
+                }
+              },
+            });
+          } else {
+            notify('Failed to accept milestone: No transaction hash returned', 'error');
+          }
         }
       }
     } catch (error) {
@@ -187,7 +406,7 @@ function ApplicationDetails() {
   return (
     <div className="bg-[#F7F7F7]">
       <section className="bg-white p-10 pb-0 rounded-b-2xl">
-        <div className="max-w-1440 mx-auto">
+        <div className="max-w-full md:max-w-1440 mx-auto">
           <ProgramStatusBadge program={program} className="inline-flex mb-4" />
           <div className="flex justify-between mb-5">
             <Link to={`/programs/${id}`} className="flex items-center gap-4 mb-4">
@@ -469,7 +688,7 @@ function ApplicationDetails() {
               // refetchComments={refetchComments}
               rightSide={
                 program?.validators?.some((v) => v.id === userId) &&
-                data?.application?.status === 'pending' && (
+                data?.application?.status === ApplicationStatus.Pending && (
                   <div className="flex justify-end gap-3">
                     <Dialog>
                       <DialogTrigger asChild>
@@ -491,12 +710,7 @@ function ApplicationDetails() {
                         />
                       </DialogContent>
                     </Dialog>
-                    <Button
-                      className="h-10"
-                      onClick={() => {
-                        approveApplication();
-                      }}
-                    >
+                    <Button className="h-10" onClick={handleAcceptApplication}>
                       Select
                     </Button>
                   </div>
@@ -594,21 +808,6 @@ function ApplicationDetails() {
                           })()}
                       </p>
                     </div>
-                    {/* <div className="mb-6">
-                    <p className="font-sans font-bold bg-primary-light text-primary leading-4 text-xs inline-flex items-center py-1 px-2 rounded-[6px]">
-                      <span className="inline-block mr-2">
-                        {m?.price} {program?.currency}
-                      </span>
-                      <span className="h-3 border-l border-primary inline-block" />
-                      <span className="inline-block ml-2">
-                        DEADLINE{' '}
-                        {format(
-                          new Date(program?.deadline ?? new Date()),
-                          'dd . MMM . yyyy',
-                        ).toUpperCase()}
-                      </span>
-                    </p>
-                  </div> */}
 
                     <div className="mb-6">
                       <h2 className="font-bold text-gray-dark text-sm mb-3">SUMMARY</h2>
@@ -686,7 +885,7 @@ function ApplicationDetails() {
                               />
                             </DialogContent>
                           </Dialog>
-                          <Button className="h-10" onClick={() => callTx(m.price, m.id)}>
+                          <Button className="h-10" onClick={() => callTx(m.price, m.id, idx)}>
                             Accept Milestone
                           </Button>
                         </div>
@@ -700,18 +899,35 @@ function ApplicationDetails() {
                           <DialogTrigger
                             asChild
                             disabled={
-                              idx !== 0 &&
-                              data?.application?.milestones?.[idx - 1]?.status !==
-                                MilestoneStatus.Completed
+                              (idx !== 0 &&
+                                data?.application?.milestones?.[idx - 1]?.status !==
+                                  MilestoneStatus.Completed) ||
+                              // Prevent milestone submission before funding ends
+                              (program?.fundingEndDate &&
+                                new Date() <= new Date(program.fundingEndDate))
                             }
                           >
-                            <Button className="h-10 block ml-auto">Submit Milestone</Button>
+                            <Button
+                              className="h-10 block ml-auto"
+                              title={
+                                program?.fundingEndDate &&
+                                new Date() <= new Date(program.fundingEndDate)
+                                  ? `Milestones can only be submitted after funding ends on ${new Date(program.fundingEndDate).toLocaleDateString()}`
+                                  : undefined
+                              }
+                            >
+                              Submit Milestone
+                            </Button>
                           </DialogTrigger>
                           <DialogContent>
                             <DialogTitle />
                             <DialogDescription />
                             <DialogClose id="submit-milestone-dialog-close" />
-                            <SubmitMilestoneForm milestone={m} refetch={refetch} />
+                            <SubmitMilestoneForm
+                              milestone={m}
+                              refetch={refetch}
+                              program={program}
+                            />
                           </DialogContent>
                         </Dialog>
                       )}

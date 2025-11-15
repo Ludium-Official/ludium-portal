@@ -2,27 +2,28 @@ import { Link, useLocation, useParams } from 'react-router';
 
 export const sidebarLinks = [
   { label: 'Overview', path: 'overview' },
+  { label: 'Description', path: 'description' },
   {
     label: 'Program',
     children: [
       {
         label: 'Recruitment',
-        path: 'recruitment',
+        path: 'program/recruitment',
         children: [
           { label: 'Sponsor', path: 'program/recruitment/sponsor' },
           { label: 'Validator', path: 'program/recruitment/validator' },
           { label: 'Builder', path: 'program/recruitment/builder' },
-          { label: 'Reclaim', path: 'program/recruitment/reclaim' },
+          // { label: 'Reclaim', path: 'program/recruitment/reclaim' },
         ],
       },
       {
-        label: 'Investment',
-        path: 'investment',
+        label: 'Funding',
+        path: 'program/investment',
         children: [
-          { label: 'Host', path: 'program/investment/Host' },
+          { label: 'Host', path: 'program/investment/host' },
           { label: 'Project', path: 'program/investment/project' },
           { label: 'Supporter', path: 'program/investment/supporter' },
-          { label: 'Reclaim', path: 'program/investment/reclaim' },
+          // { label: 'Reclaim', path: 'program/investment/reclaim' },
         ],
       },
     ],
@@ -30,17 +31,27 @@ export const sidebarLinks = [
   { label: 'Community', path: 'community' },
 ];
 
-type SidebarItemType = {
+export type SidebarItemType = {
   label: string;
   path?: string;
   children?: SidebarItemType[];
 };
 
-export function SidebarLinks({ item }: { item: SidebarItemType }) {
+export function SidebarLinks({
+  item,
+  myProfile,
+}: {
+  item: SidebarItemType;
+  myProfile?: boolean;
+}) {
   const { id } = useParams();
   const location = useLocation();
 
-  const fullPath = item.path ? `/users/${id}/${item.path}` : '';
+  const fullPath = myProfile
+    ? `/my-profile/${item.path}`
+    : item.path
+      ? `/users/${id}/${item.path}`
+      : '';
 
   const isActive = location.pathname === fullPath;
 
@@ -64,9 +75,11 @@ export function SidebarLinks({ item }: { item: SidebarItemType }) {
       )}
       {item.children && (
         <div className={`ml-4 pl-2 ${item.path && 'border-l'} border-gray-200 space-y-1`}>
-          {item.children.map((child) => (
-            <SidebarLinks key={child.label} item={child} />
-          ))}
+          {item.children
+            .filter((child) => myProfile || child.label !== 'Reclaim')
+            .map((child) => (
+              <SidebarLinks key={child.label} item={child} myProfile={myProfile} />
+            ))}
         </div>
       )}
     </div>

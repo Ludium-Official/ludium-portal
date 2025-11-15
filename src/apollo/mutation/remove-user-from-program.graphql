@@ -1,0 +1,5 @@
+mutation removeUserFromProgram($programId: ID!, $userId: ID!) {
+  removeUserFromProgram(programId: $programId, userId: $userId) {
+    id
+  }
+}

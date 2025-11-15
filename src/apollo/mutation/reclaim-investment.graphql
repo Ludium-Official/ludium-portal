@@ -1,0 +1,10 @@
+mutation reclaimInvestment($input: ReclaimInvestmentInput!) {
+  reclaimInvestment(input: $input) {
+    id
+    amount
+    status
+    reclaimed
+    reclaimTxHash
+    reclaimedAt
+  }
+}
