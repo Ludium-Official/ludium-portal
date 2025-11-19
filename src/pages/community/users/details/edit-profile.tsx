@@ -62,7 +62,7 @@ function EditProfilePage() {
     },
   });
 
-  const [_selectedAvatar, setSelectedAvatar] = useState<File>();
+  const [selectedAvatar, setSelectedAvatar] = useState<File>();
   const [imageError, setImageError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [linksError, setLinksError] = useState(false);
@@ -94,8 +94,7 @@ function EditProfilePage() {
             const { shouldSend } = validateLinks(links);
             return shouldSend ? filterEmptyLinks(links) : undefined;
           })(),
-          // TODO: 이미지 넣어야 함
-          // profileImage: selectedAvatar,
+          profileImage: selectedAvatar,
         },
       },
       onCompleted: () => {
@@ -176,36 +175,29 @@ function EditProfilePage() {
     );
   };
 
-  // image input handler
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setImageError(null);
     const file = e.target.files?.[0];
     if (!file) return;
-    // Validate type
+
     if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
       setImageError('Only PNG, JPG, or JPEG files are allowed.');
       setSelectedAvatar(undefined);
       setImagePreview(null);
       return;
     }
-    // Validate size
+
     if (file.size > 2 * 1024 * 1024) {
       setImageError('Image must be under 2MB.');
       setSelectedAvatar(undefined);
       setImagePreview(null);
       return;
     }
-    // Validate square
     const img = new window.Image();
+
     img.onload = () => {
-      if (img.width !== img.height) {
-        setImageError('Image must be square (1:1).');
-        setSelectedAvatar(undefined);
-        setImagePreview(null);
-      } else {
-        setSelectedAvatar(file);
-        setImagePreview(URL.createObjectURL(file));
-      }
+      setSelectedAvatar(file);
+      setImagePreview(URL.createObjectURL(file));
     };
     img.onerror = () => {
       setImageError('Invalid image file.');
@@ -392,7 +384,6 @@ function EditProfilePage() {
 
               <label htmlFor="image" className="space-y-2 block mb-10">
                 <div className="flex items-start gap-6">
-                  {/* Image input with preview/placeholder */}
                   <div className="relative w-[200px] h-[200px] flex items-center justify-center bg-[#eaeaea] rounded-lg overflow-hidden group">
                     <input
                       id="picture"
@@ -416,7 +407,6 @@ function EditProfilePage() {
                       <Plus className="w-5 h-5 text-white" />
                     </div>
                   </div>
-                  {/* Text info */}
                   <div className="flex-1">
                     <p className="font-medium text-base">
                       Profile image <span className="text-primary">*</span>

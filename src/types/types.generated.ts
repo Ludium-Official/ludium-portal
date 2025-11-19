@@ -2267,7 +2267,7 @@ export type UpdateProfileV2Input = {
   /** User organization name */
   organizationName?: InputMaybe<Scalars['String']['input']>;
   /** User profile image URL */
-  profileImage?: InputMaybe<Scalars['String']['input']>;
+  profileImage?: InputMaybe<Scalars['Upload']['input']>;
   /** User skills array */
   skills?: InputMaybe<Array<Scalars['String']['input']>>;
 };

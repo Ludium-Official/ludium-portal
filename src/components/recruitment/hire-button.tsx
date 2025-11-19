@@ -43,7 +43,7 @@ export function HireButton({ contractInformation, disabled = false }: HireButton
   return (
     <>
       <Button className="mr-4 px-8 bg-primary" onClick={handleHireClick} disabled={disabled}>
-        {hasMilestones ? 'Update Contract' : 'Hire'}
+        {hasMilestones ? 'Send Contract' : 'Hire'}
       </Button>
 
       <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>

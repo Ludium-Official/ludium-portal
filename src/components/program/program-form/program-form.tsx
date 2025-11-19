@@ -150,7 +150,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
       ? true
       : !title ||
         !budgetType ||
-        (budgetType === 'fixed' && !price) ||
+        (budgetType === 'budget' && !price) ||
         !networkId ||
         !tokenId ||
         !description ||
@@ -232,7 +232,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
 
   useEffect(() => {
     if (isEdit) {
-      setBudgetType(price !== '' ? 'fixed' : 'negotiable');
+      setBudgetType(price !== '' ? 'budget' : 'negotiable');
     }
   }, [isEdit, price]);
 
@@ -372,13 +372,13 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                   defaultValue="open"
                   className="space-y-4 text-sm"
                   value={budgetType}
-                  onValueChange={(value) => setBudgetType(value as 'fixed' | 'negotiable')}
+                  onValueChange={(value) => setBudgetType(value as 'budget' | 'negotiable')}
                   disabled={isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft}
                 >
                   <div className="flex space-x-2">
-                    <RadioGroupItem value="fixed" id="fixed" />
+                    <RadioGroupItem value="budget" id="budget" />
                     <div className="w-full">
-                      <Label htmlFor="fixed">Fixed Price</Label>
+                      <Label htmlFor="budget">Budget</Label>
                       <div className="mt-1 text-muted-foreground">
                         A set amount for the entire project.
                       </div>
@@ -412,7 +412,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                       />
                     </div>
                     <div className="flex items-end gap-2 mt-2">
-                      {budgetType === 'fixed' ? (
+                      {budgetType === 'budget' ? (
                         <InputLabel
                           labelId="price"
                           type="number"
