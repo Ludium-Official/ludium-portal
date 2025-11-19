@@ -124,3 +124,39 @@ export interface ContractFormProps {
   pendingPriceString?: string;
   tokenId: number | null;
 }
+
+// Component Props Types
+export interface MilestoneCardProps {
+  milestone: MilestoneV2 & { isCompleted?: boolean };
+  onClick: (milestone: MilestoneV2) => void;
+  isCompleted?: boolean;
+}
+
+export interface ApplicationSidebarProps {
+  activeMilestones: MilestoneV2[];
+  completedMilestones: MilestoneV2[];
+  files: any[]; // ChatMessageFile[]
+  contracts: any[];
+  isSponsor: boolean;
+  isHandleMakeNewMilestone: boolean;
+  onMilestoneClick: (milestone: MilestoneV2) => void;
+  onNewMilestoneClick: () => void;
+  onContractClick: (contract: any) => void;
+}
+
+export interface MilestoneModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  selectedMilestone: MilestoneV2 | null;
+  setSelectedMilestone: (milestone: MilestoneV2 | null) => void;
+  isNewMilestoneMode: boolean;
+  setIsNewMilestoneMode: (mode: boolean) => void;
+  activeMilestones: MilestoneV2[];
+  completedMilestones: MilestoneV2[];
+  applicantId: string;
+  programId: string;
+  onRefetch: () => void;
+  isSponsor: boolean;
+  isHandleMakeNewMilestone: boolean;
+  currentNetwork: any;
+}
