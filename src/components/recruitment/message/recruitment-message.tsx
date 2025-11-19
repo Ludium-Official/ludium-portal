@@ -434,7 +434,7 @@ const RecruitmentMessage: React.FC<{}> = () => {
                   isSelected={selectedMessageId === applicant.chatroomMessageId}
                   onClick={() => setSelectedMessageId(applicant.chatroomMessageId || null)}
                   latestMessageText={
-                    latestMessage?.isFile ? 'File uploaded' : (latestMessage?.text ?? null)
+                    latestMessage?.isFile ? '📂 File uploaded' : (latestMessage?.text ?? null)
                   }
                   latestMessageTimestamp={latestMessage?.timestamp || null}
                   latestMessageSenderId={latestMessage?.senderId || null}
@@ -618,7 +618,7 @@ const RecruitmentMessage: React.FC<{}> = () => {
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-gray-800 truncate">
+                              <p className="w-[200px] text-sm font-semibold text-gray-800 truncate">
                                 {file.name}
                               </p>
                               <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>

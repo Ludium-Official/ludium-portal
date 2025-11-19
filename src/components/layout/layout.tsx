@@ -21,7 +21,7 @@ function Layout() {
 
     const isMainPage = currentPath === '/' || currentPath === '';
     const isOnlyMobilePage =
-      currentPath.startsWith('/investments') || currentPath.startsWith('/my-profile');
+      currentPath.startsWith('/investments') || currentPath.startsWith('/profile');
 
     if ((isMainPage || isOnlyMobilePage) && isMobileDevice) {
       setIsMobile(false);

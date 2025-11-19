@@ -57,6 +57,9 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
   const isLudiumAssistant = Number(message.senderId) < 0;
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
+  const isUserSponsor = userId === application.program?.sponsor?.id;
+  const isUserBuilder = userId === application.applicant?.id;
+
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
@@ -143,7 +146,7 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
                       </div>
                     )}
                     <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-semibold text-gray-800 truncate">
+                      <span className="max-w-[300px] text-sm font-semibold text-gray-800 truncate">
                         {file.name}
                       </span>
                       <span className="text-xs text-gray-500">{formatFileSize(file.size)}</span>
@@ -180,53 +183,70 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
 
         <div className="space-y-2">
           {message.senderId === '-1' || message.senderId === '-2' ? (
-            <div
-              className={cn(
-                'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
-                isLudiumAssistant && 'py-4 bg-white border border-primary',
-                !message.is_active && 'opacity-50',
-              )}
-            >
-              <div>
-                <img src={contractLogo} alt="contract" className="mb-3" />
-                <div className="font-bold text-lg">Employment Contract</div>
-                <div className="mt-1 mb-5 font-semibold">
-                  {message.senderId
-                    ? 'Sponser sent a contract for review and signature.'
-                    : 'Builder sent a contract for review and signature.'}
-                </div>
-                {!message.is_active && (
-                  <div className="mb-3 text-sm text-slate-500 italic">
-                    This contract has been completed and is no longer active.
+            // Only show contract message if user is the intended recipient
+            (message.senderId === '-1' && isUserBuilder) ||
+            (message.senderId === '-2' && isUserSponsor) ? (
+              <div
+                className={cn(
+                  'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
+                  isLudiumAssistant && 'py-4 bg-white border border-primary',
+                  !message.is_active && 'opacity-50',
+                )}
+              >
+                <div>
+                  <img src={contractLogo} alt="contract" className="mb-3" />
+                  <div className="font-bold text-lg">Employment Contract</div>
+                  <div className="mt-1 mb-5 font-semibold">
+                    {message.senderId === '-1'
+                      ? 'Sponsor sent a contract for review and signature.'
+                      : 'Builder sent a contract for review and signature.'}
                   </div>
-                )}
-                {message.is_active && (
-                  <Button
-                    variant="lightPurple"
-                    className="w-full"
-                    onClick={() => setIsContractModalOpen(true)}
-                  >
-                    View Contract
-                  </Button>
-                )}
+                  {!message.is_active && (
+                    <div className="mb-3 text-sm text-slate-500 italic">
+                      This contract has been completed and is no longer active.
+                    </div>
+                  )}
+                  {message.is_active && (
+                    <Button
+                      variant="purple"
+                      className="w-full"
+                      onClick={() => setIsContractModalOpen(true)}
+                    >
+                      View Contract
+                    </Button>
+                  )}
+                </div>
+                <ContractModal
+                  open={isContractModalOpen}
+                  onOpenChange={setIsContractModalOpen}
+                  contractInformation={{
+                    title: application.program?.title || '',
+                    programId: application.program?.id || '',
+                    sponsor: application.program?.sponsor || null,
+                    applicant: application.applicant || null,
+                    networkId: application.program?.networkId || null,
+                    chatRoomId: application.chatroomMessageId || null,
+                    applicationId: application.id || '',
+                    applicationStatus: application.status || null,
+                  }}
+                  assistantId={message.senderId}
+                  readOnly={!message.is_active}
+                />
               </div>
-              <ContractModal
-                open={isContractModalOpen}
-                onOpenChange={setIsContractModalOpen}
-                contractInformation={{
-                  title: application.program?.title || '',
-                  programId: application.program?.id || '',
-                  sponsor: application.program?.sponsor || null,
-                  applicant: application.applicant || null,
-                  networkId: application.program?.networkId || null,
-                  chatRoomId: application.chatroomMessageId || null,
-                  applicationId: application.id || '',
-                  applicationStatus: application.status || null,
-                }}
-                assistantId={message.senderId}
-                readOnly={!message.is_active}
-              />
-            </div>
+            ) : (
+              <div
+                className={cn(
+                  'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
+                  isLudiumAssistant && 'py-4 bg-white border border-primary',
+                )}
+              >
+                <p className="text-sm text-slate-600 italic">
+                  {message.senderId === '-1'
+                    ? 'The builder is reviewing the contract. While it is under review, you cannot modify or add milestones.'
+                    : 'Contract review has been completed, and the sponsor is currently proceeding with signing and funding.'}
+                </p>
+              </div>
+            )
           ) : (
             <>
               {message.text && (
@@ -270,7 +290,7 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
                         </div>
                       )}
                       <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-semibold text-gray-800 truncate">
+                        <span className="max-w-[300px] text-sm font-semibold text-gray-800 truncate">
                           {file.name}
                         </span>
                         <span className="text-xs text-gray-500">{formatFileSize(file.size)}</span>
@@ -434,13 +454,22 @@ export function ChatBox({
   }, [chatRoomId]);
 
   useEffect(() => {
-    if (!chatRoomId || !newestTimestampRef.current) return;
+    if (!chatRoomId) return;
 
+    // Clean up existing subscriptions
     if (unsubscribeRef.current) {
       unsubscribeRef.current();
       unsubscribeRef.current = null;
     }
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
 
+    // Wait for newestTimestampRef to be set
+    if (!newestTimestampRef.current) return;
+
+    // Setup realtime subscription
     const unsubscribe = subscribeToNewMessages(
       chatRoomId,
       newestTimestampRef.current,
@@ -459,30 +488,29 @@ export function ChatBox({
 
     unsubscribeRef.current = unsubscribe;
 
+    // Setup polling interval
     const pollingInterval = setInterval(async () => {
-      const timeSinceLastActivity = Date.now() - lastActivityRef.current;
+      if (!newestTimestampRef.current) return;
 
-      if (timeSinceLastActivity > 500 && newestTimestampRef.current) {
-        try {
-          const newMessages = await getNewMessages(chatRoomId, newestTimestampRef.current);
+      try {
+        const newMessages = await getNewMessages(chatRoomId, newestTimestampRef.current);
 
-          if (newMessages.length > 0) {
-            setMessages((prev) => {
-              const existingIds = new Set(prev.map((m) => m.id));
-              const uniqueNewMessages = newMessages.filter((m) => !existingIds.has(m.id));
+        if (newMessages.length > 0) {
+          setMessages((prev) => {
+            const existingIds = new Set(prev.map((m) => m.id));
+            const uniqueNewMessages = newMessages.filter((m) => !existingIds.has(m.id));
 
-              if (uniqueNewMessages.length === 0) return prev;
+            if (uniqueNewMessages.length === 0) return prev;
 
-              return [...prev, ...uniqueNewMessages];
-            });
+            return [...prev, ...uniqueNewMessages];
+          });
 
-            const latestMessage = newMessages[newMessages.length - 1];
-            newestTimestampRef.current = latestMessage.timestamp;
-            lastActivityRef.current = Date.now();
-          }
-        } catch (error) {
-          console.error('❌ Error polling new messages:', error);
+          const latestMessage = newMessages[newMessages.length - 1];
+          newestTimestampRef.current = latestMessage.timestamp;
+          lastActivityRef.current = Date.now();
         }
+      } catch (error) {
+        console.error('❌ Error polling new messages:', error);
       }
     }, 1000);
 
@@ -498,7 +526,7 @@ export function ChatBox({
         pollingIntervalRef.current = null;
       }
     };
-  }, [chatRoomId]);
+  }, [chatRoomId, messages.length]);
 
   const loadMoreMessages = async () => {
     if (!chatRoomId || !oldestDoc || loadingMore || !hasMore) return;

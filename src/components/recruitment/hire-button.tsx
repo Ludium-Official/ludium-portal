@@ -43,7 +43,7 @@ export function HireButton({ contractInformation, disabled = false }: HireButton
   return (
     <>
       <Button className="mr-4 px-8 bg-primary" onClick={handleHireClick} disabled={disabled}>
-        {hasMilestones ? 'Update Contract' : 'Hire'}
+        {hasMilestones ? 'Send Contract' : 'Hire'}
       </Button>
 
       <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
@@ -54,11 +54,11 @@ export function HireButton({ contractInformation, disabled = false }: HireButton
             </DialogTitle>
           </DialogHeader>
           <p className="text-center text-sm text-muted-foreground">
-            Accepting it will open a pandora&apos;s box.
+            The contract will be created based on the milestones you’ve set.
           </p>
           <DialogFooter className="flex-col gap-2 sm:flex-col">
             <Button type="button" variant="default" className="w-full" onClick={handleContinue}>
-              Continue writing
+              Proceed to Contract
             </Button>
           </DialogFooter>
         </DialogContent>
