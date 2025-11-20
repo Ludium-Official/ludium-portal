@@ -327,6 +327,7 @@ export function ChatBox({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const prevchatRoomId = useRef<string>('');
   const newestTimestampRef = useRef<Timestamp | null>(null);
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
@@ -595,6 +596,10 @@ export function ChatBox({
       form.reset();
       setSelectedFiles([]);
       setFilePreviews([]);
+
+      setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 0);
     } catch (error) {
       console.error('❌ Error sending message:', error);
     } finally {
@@ -786,6 +791,7 @@ export function ChatBox({
                     <FormControl>
                       <textarea
                         {...field}
+                        ref={textareaRef}
                         onKeyDown={handleKeyDown}
                         placeholder="Type your message... (Shift+Enter for new line)"
                         disabled={isSending}

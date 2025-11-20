@@ -23,7 +23,7 @@ export function DatePicker({
         <Button
           variant={'outline'}
           className={cn(
-            'w-full justify-start text-left font-normal rounded-[6px] h-10 ',
+            'w-full justify-start text-left font-normal rounded-[6px] h-10',
             !date && 'text-muted-foreground',
           )}
         >
@@ -31,13 +31,15 @@ export function DatePicker({
           {date ? format(date, 'PPP') : <span>Pick a date</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align={align} className="w-auto p-0 z-[10000]">
+      <PopoverContent align={align} className="w-auto p-0 z-[10000] pointer-events-auto">
         <Calendar
           disabled={disabled}
           mode="single"
           selected={date}
           onSelect={(day) => {
-            if (day) setDate(day);
+            if (day) {
+              setDate(day);
+            }
           }}
           initialFocus
         />

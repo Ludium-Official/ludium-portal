@@ -3,11 +3,11 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { formatUTCDateLocal } from "@/lib/utils";
-import { FileText, Folder, Image as ImageIcon } from "lucide-react";
-import { MilestoneAccordion } from "./milestone-accordion";
-import type { ApplicationSidebarProps } from "@/types/recruitment";
+} from '@/components/ui/accordion';
+import { formatUTCDateLocal } from '@/lib/utils';
+import { FileText, Folder, Image as ImageIcon } from 'lucide-react';
+import { MilestoneAccordion } from './milestone-accordion';
+import type { ApplicationSidebarProps } from '@/types/recruitment';
 
 export function ApplicationSidebar({
   activeMilestones,
@@ -21,9 +21,9 @@ export function ApplicationSidebar({
   onContractClick,
 }: ApplicationSidebarProps) {
   const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
   return (
@@ -44,12 +44,10 @@ export function ApplicationSidebar({
           </AccordionTrigger>
           <AccordionContent className="flex flex-col gap-3 pb-3">
             {files.length === 0 ? (
-              <div className="text-sm text-muted-foreground text-center py-4">
-                No files yet
-              </div>
+              <div className="text-sm text-muted-foreground text-center py-4">No files yet</div>
             ) : (
               files.map((file, index) => {
-                const isImage = file.type.startsWith("image/");
+                const isImage = file.type.startsWith('image/');
 
                 return (
                   <a
@@ -72,9 +70,7 @@ export function ApplicationSidebar({
                       <p className="w-[200px] text-sm font-semibold text-gray-800 truncate">
                         {file.name}
                       </p>
-                      <p className="text-xs text-gray-500">
-                        {formatFileSize(file.size)}
-                      </p>
+                      <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
                     </div>
                   </a>
                 );
@@ -89,9 +85,7 @@ export function ApplicationSidebar({
           </AccordionTrigger>
           <AccordionContent className="flex flex-col gap-3 pb-3">
             {contracts.length === 0 ? (
-              <div className="text-sm text-muted-foreground text-center py-4">
-                No contracts yet
-              </div>
+              <div className="text-sm text-muted-foreground text-center py-4">No contracts yet</div>
             ) : (
               contracts.map((contract, idx) => (
                 <button
@@ -104,15 +98,11 @@ export function ApplicationSidebar({
                     <p className="text-sm font-medium text-slate-900">
                       Contract #{idx + 1}
                       {contracts.length === idx + 1 && (
-                        <span className="text-xs text-green-500 ml-2">
-                          (Latest)
-                        </span>
+                        <span className="text-xs text-green-500 ml-2">(Latest)</span>
                       )}
                     </p>
                     <p className="text-xs text-slate-400">
-                      {contract.createdAt
-                        ? formatUTCDateLocal(contract.createdAt)
-                        : "No date"}
+                      {contract.createdAt ? formatUTCDateLocal(contract.createdAt) : 'No date'}
                     </p>
                   </div>
                 </button>
