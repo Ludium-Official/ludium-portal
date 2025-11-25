@@ -94,13 +94,92 @@ class RecruitmentContract {
     }
   }
 
+  async getContract(contractId: number | string | bigint) {
+    try {
+      const contract = await this.client.readContract({
+        address: this.contractAddress as `0x${string}`,
+        abi: LdRecruitmentAbi,
+        functionName: 'getContract',
+        args: [BigInt(contractId)],
+      });
+
+      const contractData = contract as {
+        id: bigint;
+        programId: bigint;
+        sponsor: `0x${string}`;
+        builder: `0x${string}`;
+        token: `0x${string}`;
+        totalAmount: bigint;
+        paidAmount: bigint;
+        status: number;
+        builderSig: `0x${string}`;
+        snapshotHash: `0x${string}`;
+        deadline: bigint;
+      };
+
+      const decimals = await this.getTokenDecimals(contractData.token);
+
+      return {
+        id: contractData.id.toString(),
+        programId: contractData.programId.toString(),
+        sponsor: contractData.sponsor,
+        builder: contractData.builder,
+        token: contractData.token,
+        totalAmount: ethers.utils.formatUnits(contractData.totalAmount, decimals),
+        paidAmount: ethers.utils.formatUnits(contractData.paidAmount, decimals),
+        status: contractData.status,
+        deadline: new Date(Number(contractData.deadline) * 1000).toISOString(),
+        builderSig: contractData.builderSig,
+        snapshotHash: contractData.snapshotHash,
+      };
+    } catch (err) {
+      console.error('Failed to get contract - Full error:', err);
+      throw err;
+    }
+  }
+
+  async getContractAmounts(contractId: number | string | bigint) {
+    try {
+      const contract = await this.client.readContract({
+        address: this.contractAddress as `0x${string}`,
+        abi: LdRecruitmentAbi,
+        functionName: 'getContract',
+        args: [BigInt(contractId)],
+      });
+
+      const contractData = contract as {
+        id: bigint;
+        programId: bigint;
+        sponsor: `0x${string}`;
+        builder: `0x${string}`;
+        token: `0x${string}`;
+        totalAmount: bigint;
+        paidAmount: bigint;
+        status: number;
+        builderSig: `0x${string}`;
+        snapshotHash: `0x${string}`;
+        deadline: bigint;
+      };
+
+      const decimals = await this.getTokenDecimals(contractData.token);
+
+      return {
+        totalAmount: ethers.utils.formatUnits(contractData.totalAmount, decimals),
+        paidAmount: ethers.utils.formatUnits(contractData.paidAmount, decimals),
+      };
+    } catch (err) {
+      console.error('Failed to get contract amounts - Full error:', err);
+      throw err;
+    }
+  }
+
   async createContract(
     programId: number,
     builder: `0x${string}`,
     totalAmount: bigint,
     builderSig: `0x${string}`,
     contractSnapshotHash: `0x${string}`,
-    durationDays = 3n,
+    durationDays = 2n,
     tokenAddress?: `0x${string}`,
     ownerAddress?: string,
     tokenName?: string,
@@ -114,21 +193,9 @@ class RecruitmentContract {
       const isNativeToken = !tokenAddress || tokenAddress === ethers.constants.AddressZero;
 
       if (!isNativeToken && ownerAddress && tokenAddress) {
-        // Check user's token balance first
         const balance = await this.getAmount(tokenAddress, ownerAddress);
         if (balance < totalDeposit) {
-          // Use tokenDecimals if provided, otherwise default to 18
           const decimals = tokenDecimals ?? 18;
-
-          // Debug: Log the values to help diagnose the issue
-          console.log('Balance check:', {
-            totalAmount: totalAmount.toString(),
-            totalDeposit: totalDeposit.toString(),
-            balance: balance.toString(),
-            tokenDecimals,
-            decimals,
-            tokenName,
-          });
 
           const displayAmount = ethers.utils.formatUnits(totalDeposit, decimals);
           const displayBalance = ethers.utils.formatUnits(balance, decimals);
@@ -139,7 +206,6 @@ class RecruitmentContract {
           );
         }
 
-        // Check and approve if needed
         const allowance = await this.getAllowance(tokenAddress, ownerAddress);
 
         if (allowance < totalDeposit) {
@@ -147,7 +213,6 @@ class RecruitmentContract {
         }
       }
 
-      // 들어가는 값: 0n '0xf260B6bA650be86379f6059673A4a09C9977dE76' 10000000000000000n 3n '0x89b13c7d43cbda11a366160d034c91e0921cd0e0ade991460cd880839cb822bd028155be47425d9d9abd11c54a9604ed03b65ae5718cebe32dc6868faeb6e4951c' '6943568db2162726c3f61f58b23ec7411ad75bb1e86b4dc9dc0b46b19d13fcc0'
       const data = encodeFunctionData({
         abi: LdRecruitmentAbi,
         functionName: 'createContract',
@@ -195,6 +260,107 @@ class RecruitmentContract {
       return { txHash: tx.hash, onchainContractId: null };
     } catch (err) {
       console.error('Failed to create contract - Full error:', err);
+      throw err;
+    }
+  }
+
+  async updateContract(
+    contractId: number | string | bigint,
+    newAmount: bigint,
+    durationDays: bigint,
+    builderSig: `0x${string}`,
+    contractSnapshotHash: `0x${string}`,
+    tokenAddress?: `0x${string}`,
+    ownerAddress?: string,
+    tokenName?: string,
+    tokenDecimals?: number,
+  ) {
+    try {
+      const currentContract = await this.client.readContract({
+        address: this.contractAddress as `0x${string}`,
+        abi: LdRecruitmentAbi,
+        functionName: 'getContract',
+        args: [BigInt(contractId)],
+      });
+
+      const contractData = currentContract as {
+        totalAmount: bigint;
+        token: `0x${string}`;
+      };
+
+      const currentAmount = contractData.totalAmount;
+      const isNativeToken = !tokenAddress || tokenAddress === ethers.constants.AddressZero;
+
+      let totalDeposit = 0n;
+      if (newAmount > currentAmount) {
+        const sponsorFee = await this.getSponsorFeePercentage();
+        const amountDifference = newAmount - currentAmount;
+        const additionalFee = (amountDifference * sponsorFee) / 10000n;
+        totalDeposit = amountDifference + additionalFee;
+
+        if (!isNativeToken && ownerAddress && tokenAddress) {
+          const balance = await this.getAmount(tokenAddress, ownerAddress);
+          if (balance < totalDeposit) {
+            const decimals = tokenDecimals ?? 18;
+
+            const displayAmount = ethers.utils.formatUnits(totalDeposit, decimals);
+            const displayBalance = ethers.utils.formatUnits(balance, decimals);
+            throw new Error(
+              `Insufficient ${
+                tokenName || 'token'
+              } balance. Required: ${displayAmount}, Available: ${displayBalance}`,
+            );
+          }
+
+          const allowance = await this.getAllowance(tokenAddress, ownerAddress);
+
+          if (allowance < totalDeposit) {
+            await this.approveToken(tokenAddress, totalDeposit, tokenName, tokenDecimals);
+          }
+        }
+      }
+
+      const data = encodeFunctionData({
+        abi: LdRecruitmentAbi,
+        functionName: 'updateContract',
+        args: [
+          BigInt(contractId),
+          newAmount,
+          durationDays,
+          builderSig,
+          `0x${contractSnapshotHash}`,
+        ],
+      });
+
+      const tx = await this.sendTransaction(
+        {
+          to: this.contractAddress,
+          data,
+          value: isNativeToken ? totalDeposit : 0n,
+          chainId: this.chainId,
+        },
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            description: `Update Contract`,
+            buttonText: 'Submit Transaction',
+            transactionInfo: {
+              title: 'Transaction Details',
+              action: 'Update Contract',
+            },
+            successHeader: 'Contract Updated Successfully!',
+            successDescription: 'Your contract has been updated.',
+          },
+        },
+      );
+
+      await this.client.waitForTransactionReceipt({
+        hash: tx.hash,
+      });
+
+      return { txHash: tx.hash };
+    } catch (err) {
+      console.error('Failed to update contract - Full error:', err);
       throw err;
     }
   }
@@ -294,6 +460,21 @@ class RecruitmentContract {
     } catch (error) {
       console.error('Failed to check allowance:', error);
       return BigInt(0);
+    }
+  }
+
+  async getTokenDecimals(tokenAddress: `0x${string}`): Promise<number> {
+    try {
+      const decimals = await this.client.readContract({
+        address: tokenAddress,
+        abi: ERC20Abi,
+        functionName: 'decimals',
+      });
+
+      return Number(decimals);
+    } catch (error) {
+      console.error('Failed to get token decimals:', error);
+      return 18;
     }
   }
 

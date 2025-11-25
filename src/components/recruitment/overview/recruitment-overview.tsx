@@ -22,7 +22,7 @@ import { ShareButton } from '@/components/ui/share-button';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import { formatDate, formatPrice, getCurrencyIcon, reduceString } from '@/lib/utils';
-import { ProgramStatusV2 } from '@/types/types.generated';
+import { ProgramStatusV2, ProgramVisibilityV2 } from '@/types/types.generated';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
@@ -98,6 +98,23 @@ const RecruitmentOverview: React.FC = () => {
       <div className="flex items-center justify-center h-96">
         <div className="text-lg text-red-500">
           {error ? 'Error loading program' : 'Program not found'}
+        </div>
+      </div>
+    );
+  }
+
+  if (
+    program.visibility === ProgramVisibilityV2.Private &&
+    !isOwner &&
+    !program.invitedMembers?.includes(userId)
+  ) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div className="text-lg text-gray-700 font-semibold mb-2">Private Program</div>
+          <div className="text-sm text-gray-500">
+            This program is private. Please log in to view the details.
+          </div>
         </div>
       </div>
     );
@@ -213,41 +230,43 @@ const RecruitmentOverview: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="w-full" disabled={program.hasApplied || false}>
-                    {program.hasApplied ? 'Applied' : 'Submit application'}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-3xl! max-h-[90vh] overflow-y-auto">
-                  <DialogHeader className="flex-row items-center justify-between space-y-0">
-                    <DialogTitle>Add Cover Letter</DialogTitle>
-                  </DialogHeader>
-                  <div className="mt-4">
-                    <InputLabel
-                      labelId="coverLetter"
-                      title="Highlight your skills and explain why you're a great fit for this role."
-                      isPrimary
-                      inputClassName="hidden"
-                    >
-                      <MarkdownEditor
-                        onChange={(value: string) => {
-                          setCoverLetter(value);
-                        }}
-                        content={coverLetter}
-                      />
-                    </InputLabel>
-                  </div>
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={handleSubmitApplication}
-                      disabled={submitting || !coverLetter.trim()}
-                    >
-                      {submitting ? 'Submitting...' : 'Submit application'}
+              userId && (
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full" disabled={program.hasApplied || false}>
+                      {program.hasApplied ? 'Applied' : 'Submit application'}
                     </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-3xl! max-h-[90vh] overflow-y-auto">
+                    <DialogHeader className="flex-row items-center justify-between space-y-0">
+                      <DialogTitle>Add Cover Letter</DialogTitle>
+                    </DialogHeader>
+                    <div className="mt-4">
+                      <InputLabel
+                        labelId="coverLetter"
+                        title="Highlight your skills and explain why you're a great fit for this role."
+                        isPrimary
+                        inputClassName="hidden"
+                      >
+                        <MarkdownEditor
+                          onChange={(value: string) => {
+                            setCoverLetter(value);
+                          }}
+                          content={coverLetter}
+                        />
+                      </InputLabel>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button
+                        onClick={handleSubmitApplication}
+                        disabled={submitting || !coverLetter.trim()}
+                      >
+                        {submitting ? 'Submitting...' : 'Submit application'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )
             )}
 
             <div>
@@ -284,14 +303,16 @@ const RecruitmentOverview: React.FC = () => {
                   </Badge>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {program.invitedMembers &&
-                  program.invitedMembers.map((member: string) => (
-                    <Badge key={member} variant="secondary" className="text-xs font-semibold">
-                      {reduceString(member, 6, 6)}
-                    </Badge>
-                  ))}
-              </div>
+              {isOwner && (
+                <div className="flex items-center gap-2">
+                  {program.invitedMembers &&
+                    program.invitedMembers.map((member: string) => (
+                      <Badge key={member} variant="secondary" className="text-xs font-semibold">
+                        {reduceString(member, 6, 6)}
+                      </Badge>
+                    ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

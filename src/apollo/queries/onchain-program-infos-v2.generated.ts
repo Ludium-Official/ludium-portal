@@ -8,7 +8,7 @@ export type OnchainProgramInfosV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type OnchainProgramInfosV2Query = { __typename?: 'Query', onchainProgramInfosV2?: { __typename?: 'PaginatedOnchainProgramInfoV2', count?: number | null, data?: Array<{ __typename?: 'OnchainProgramInfoV2', id?: string | null, programId?: number | null, smartContractId?: number | null, onchainProgramId?: number | null, status?: Types.OnchainProgramStatusV2 | null, createdAt?: any | null, tx?: string | null }> | null } | null };
+export type OnchainProgramInfosV2Query = { __typename?: 'Query', onchainProgramInfosV2?: { __typename?: 'PaginatedOnchainProgramInfoV2', count?: number | null, data?: Array<{ __typename?: 'OnchainProgramInfoV2', id?: string | null, networkId?: number | null, smartContractId?: number | null, onchainProgramId?: number | null, status?: Types.OnchainProgramStatusV2 | null, createdAt?: any | null, tx?: string | null }> | null } | null };
 
 
 export const OnchainProgramInfosV2Document = gql`
@@ -16,7 +16,7 @@ export const OnchainProgramInfosV2Document = gql`
   onchainProgramInfosV2(pagination: $pagination) {
     data {
       id
-      programId
+      networkId
       smartContractId
       onchainProgramId
       status

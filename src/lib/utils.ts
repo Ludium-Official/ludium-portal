@@ -75,6 +75,21 @@ export const getUserDisplayName = (
   return email || 'Unknown';
 };
 
+export const getUserInitialName = (
+  firstName?: string | null,
+  lastName?: string | null,
+  email?: string | null,
+): string => {
+  const name = getUserDisplayName(firstName, lastName, email);
+
+  if (!name) return '??';
+  const parts = name.split(' ');
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  return name[0]?.toUpperCase() || '??';
+};
+
 export const mainnetDefaultNetwork =
   import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet' ? 'educhain' : 'educhain-testnet';
 

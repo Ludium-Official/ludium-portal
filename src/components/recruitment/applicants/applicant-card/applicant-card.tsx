@@ -26,7 +26,6 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
   const fullName = `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim();
   const initials = `${userInfo.firstName?.[0] || ''}${userInfo.lastName?.[0] || ''}`.toUpperCase();
 
-  console.log(userInfo);
   const handleMessageClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();

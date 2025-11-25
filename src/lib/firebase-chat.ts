@@ -172,6 +172,7 @@ export function subscribeToNewMessages(
   afterTimestamp: Timestamp,
   onNewMessage: (message: ChatMessage) => void,
   onError?: (error: Error) => void,
+  onMessageUpdate?: (message: ChatMessage) => void,
 ): Unsubscribe {
   const messagesRef = collection(db, 'chats');
   const q = query(
@@ -185,12 +186,15 @@ export function subscribeToNewMessages(
     q,
     (snapshot) => {
       snapshot.docChanges().forEach((change) => {
+        const msg = {
+          id: change.doc.id,
+          ...change.doc.data(),
+        } as ChatMessage;
+
         if (change.type === 'added') {
-          const newMsg = {
-            id: change.doc.id,
-            ...change.doc.data(),
-          } as ChatMessage;
-          onNewMessage(newMsg);
+          onNewMessage(msg);
+        } else if (change.type === 'modified' && onMessageUpdate) {
+          onMessageUpdate(msg);
         }
       });
     },

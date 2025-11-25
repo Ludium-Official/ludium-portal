@@ -245,7 +245,7 @@ const ProfileRecruitmentBuilder: React.FC = () => {
       <div>
         <Link
           to={`/profile`}
-          className="flex items-center mb-5 text-sm font-semibold text-gray-text"
+          className="flex items-center w-fit mb-5 text-sm font-semibold text-gray-text"
         >
           <ChevronLeft className="w-4" />
           Dashboard

@@ -2,19 +2,47 @@ import logo from '@/assets/logo.svg';
 import { MarkdownPreviewer } from '@/components/markdown';
 import { Separator } from '@/components/ui/separator';
 import { useNetworks } from '@/contexts/networks-context';
+import { useContract } from '@/lib/hooks/use-contract';
 import { addDaysToDate, formatUTCDateLocal, getUserDisplayName } from '@/lib/utils';
 import type { ContractFormProps } from '@/types/recruitment';
 import { MilestoneStatusV2 } from '@/types/types.generated';
+import { useEffect, useState } from 'react';
 
 export function ContractForm({
   contractJson,
   isSponsor = false,
+  onchainContractId,
+  networkId,
 }: {
   contractJson: ContractFormProps;
   isSponsor?: boolean;
+  onchainContractId?: number | string;
+  networkId?: number | null;
 }) {
-  const { getTokenById } = useNetworks();
+  const { getTokenById, networks: networksWithTokens, getContractByNetworkId } = useNetworks();
+
+  const [contractData, setContractData] = useState<any>(null);
+
   const token = getTokenById(contractJson.tokenId);
+
+  const currentNetwork = networksWithTokens.find((network) => Number(network.id) === networkId);
+  const currentContract = getContractByNetworkId(Number(currentNetwork?.id));
+  const contract = useContract(currentNetwork?.chainName || 'educhain', currentContract?.address);
+
+  useEffect(() => {
+    const fetchContractAmounts = async () => {
+      if (onchainContractId && contract && currentContract?.address) {
+        try {
+          const onchainContractData = await contract.getContract(onchainContractId);
+          setContractData(onchainContractData);
+        } catch (error) {
+          console.error('Failed to fetch contract amounts:', error);
+        }
+      }
+    };
+
+    fetchContractAmounts();
+  }, [onchainContractId, currentContract?.address]);
 
   return (
     <>
@@ -44,61 +72,68 @@ export function ContractForm({
             <div>
               <h3 className="text-lg font-bold mb-4">2. Project Details</h3>
               <div className="space-y-4">
-                {contractJson.milestones?.map((milestone, index) => {
-                  return (
-                    <div
-                      key={milestone.id || index}
-                      className="border border-border rounded-lg p-4 bg-muted/30 space-y-3"
-                    >
-                      <div className="space-y-3">
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground text-xs">
-                            Milestone Title
-                            {milestone.status === MilestoneStatusV2.InProgress ? (
-                              <span className="bg-[#60A5FA] px-2 py-[1px] rounded-full text-white">
-                                In Progress
-                              </span>
-                            ) : (
-                              <span className="bg-[#4ADE80] px-2 py-[1px] rounded-full text-white">
-                                New
-                              </span>
-                            )}
+                {[...contractJson.milestones]
+                  .sort((a, b) => {
+                    if (a.deadline && b.deadline) {
+                      return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+                    }
+                    return 0;
+                  })
+                  .map((milestone, index) => {
+                    return (
+                      <div
+                        key={milestone.id || index}
+                        className="border border-border rounded-lg p-4 bg-muted/30 space-y-3"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground text-xs">
+                              Milestone Title
+                              {milestone.status === MilestoneStatusV2.InProgress ? (
+                                <span className="bg-[#60A5FA] px-2 py-[1px] rounded-full text-white">
+                                  In Progress
+                                </span>
+                              ) : (
+                                <span className="bg-[#4ADE80] px-2 py-[1px] rounded-full text-white">
+                                  New
+                                </span>
+                              )}
+                            </div>
+                            <div>{milestone.title || ''}</div>
                           </div>
-                          <div>{milestone.title || ''}</div>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <div className="text-sm font-semibold text-muted-foreground">
-                            Description
+                          <div className="flex flex-col gap-1">
+                            <div className="text-sm font-semibold text-muted-foreground">
+                              Description
+                            </div>
+                            <MarkdownPreviewer
+                              value={milestone.description || ''}
+                              className="mb-0!"
+                            />
                           </div>
-                          <MarkdownPreviewer
-                            value={milestone.description || ''}
-                            className="mb-0!"
-                          />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <div className="text-sm font-semibold text-muted-foreground">
-                            Submission Date
+                          <div className="flex flex-col gap-1">
+                            <div className="text-sm font-semibold text-muted-foreground">
+                              Submission Date
+                            </div>
+                            <div>{formatUTCDateLocal(milestone.deadline)}</div>
                           </div>
-                          <div>{formatUTCDateLocal(milestone.deadline)}</div>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <div className="text-sm font-semibold text-muted-foreground">
-                            Payment Date
+                          <div className="flex flex-col gap-1">
+                            <div className="text-sm font-semibold text-muted-foreground">
+                              Payment Date
+                            </div>
+                            <div>{addDaysToDate(milestone.deadline, 2)}</div>
                           </div>
-                          <div>{addDaysToDate(milestone.deadline, 3)}</div>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <div className="text-sm font-semibold text-muted-foreground">
-                            Payment Amount
-                          </div>
-                          <div>
-                            {milestone.payout} {token?.tokenName}
+                          <div className="flex flex-col gap-1">
+                            <div className="text-sm font-semibold text-muted-foreground">
+                              Payment Amount
+                            </div>
+                            <div>
+                              {milestone.payout} {token?.tokenName}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
               </div>
             </div>
 
@@ -269,26 +304,52 @@ export function ContractForm({
           <div className="flex items-center justify-between">
             <div className="text-sm font-semibold text-muted-foreground">Total price</div>
             <div className="text-sm">
-              {contractJson.totalPrice === contractJson.pendingPrice ? (
-                `${contractJson.totalPriceString || contractJson.totalPrice} ${token?.tokenName}`
-              ) : (
-                <>
-                  {isSponsor && (
-                    <span className="mr-2 text-primary">
-                      {contractJson.pendingPrice > 0 &&
-                        `(You will pay only ${
-                          contractJson.pendingPriceString || contractJson.pendingPrice
-                        } ${token?.tokenName})`}
-                    </span>
-                  )}
-                  {contractJson.totalPriceString
-                    ? Number.parseFloat(contractJson.totalPriceString)
-                        .toFixed(6)
-                        .replace(/\.?0+$/, '')
-                    : contractJson.totalPrice.toFixed(6).replace(/\.?0+$/, '')}{' '}
-                  {token?.tokenName}
-                </>
-              )}
+              {(() => {
+                const newTotalPrice = contractJson.totalPrice;
+
+                if (contractData?.totalAmount) {
+                  const existingTotalAmount = Number.parseFloat(contractData.totalAmount);
+                  const actualPaymentAmount = newTotalPrice - existingTotalAmount;
+
+                  if (actualPaymentAmount > 0) {
+                    return (
+                      <>
+                        {isSponsor && (
+                          <span className="mr-2 text-primary">
+                            {`(You will pay only ${actualPaymentAmount
+                              .toFixed(6)
+                              .replace(/\.?0+$/, '')} ${token?.tokenName})`}
+                          </span>
+                        )}
+                        {Number.parseFloat(newTotalPrice.toString())
+                          .toFixed(6)
+                          .replace(/\.?0+$/, '')}{' '}
+                        {token?.tokenName}
+                      </>
+                    );
+                  } else if (actualPaymentAmount < 0) {
+                    return (
+                      <>
+                        {isSponsor && (
+                          <span className="mr-2 text-primary">
+                            {`(${Math.abs(actualPaymentAmount)
+                              .toFixed(6)
+                              .replace(/\.?0+$/, '')} ${token?.tokenName} will be refund)`}
+                          </span>
+                        )}
+                        {Number.parseFloat(newTotalPrice.toString())
+                          .toFixed(6)
+                          .replace(/\.?0+$/, '')}{' '}
+                        {token?.tokenName}
+                      </>
+                    );
+                  }
+                }
+
+                return `${Number.parseFloat(newTotalPrice.toString())
+                  .toFixed(6)
+                  .replace(/\.?0+$/, '')} ${token?.tokenName}`;
+              })()}
             </div>
           </div>
         </div>

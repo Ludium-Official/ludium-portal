@@ -8,21 +8,23 @@ export type CreateProgramWithOnchainV2MutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateProgramWithOnchainV2Mutation = { __typename?: 'Mutation', createProgramWithOnchainV2?: { __typename?: 'CreateProgramWithOnchainV2Payload', onchain?: { __typename?: 'OnchainProgramInfoV2', networkId?: number | null, onchainProgramId?: number | null, programId?: number | null, smartContractId?: number | null, status?: Types.OnchainProgramStatusV2 | null, tx?: string | null } | null, program?: { __typename?: 'ProgramV2', deadline?: any | null, description?: string | null, invitedMembers?: Array<string> | null, networkId?: number | null, price?: string | null, skills?: Array<string> | null, status?: Types.ProgramStatusV2 | null, title?: string | null } | null } | null };
+export type CreateProgramWithOnchainV2Mutation = { __typename?: 'Mutation', createProgramWithOnchainV2?: { __typename?: 'CreateProgramWithOnchainV2Payload', onchain?: { __typename?: 'OnchainProgramInfoV2', id?: string | null, networkId?: number | null, onchainProgramId?: number | null, smartContractId?: number | null, status?: Types.OnchainProgramStatusV2 | null, tx?: string | null, createdAt?: any | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, deadline?: any | null, description?: string | null, invitedMembers?: Array<string> | null, networkId?: number | null, price?: string | null, skills?: Array<string> | null, status?: Types.ProgramStatusV2 | null, title?: string | null } | null } | null };
 
 
 export const CreateProgramWithOnchainV2Document = gql`
     mutation CreateProgramWithOnchainV2($input: CreateProgramWithOnchainV2Input!) {
   createProgramWithOnchainV2(input: $input) {
     onchain {
+      id
       networkId
       onchainProgramId
-      programId
       smartContractId
       status
       tx
+      createdAt
     }
     program {
+      id
       deadline
       description
       invitedMembers

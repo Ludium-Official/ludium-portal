@@ -1,6 +1,12 @@
 import type { Control, FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import type { LabelValueProps, VisibilityProps } from './common';
-import type { ApplicationStatusV2, MilestoneV2, ProgramStatusV2, UserV2 } from './types.generated';
+import type {
+  ApplicationStatusV2,
+  ContractV2,
+  MilestoneV2,
+  ProgramStatusV2,
+  UserV2,
+} from './types.generated';
 
 export interface ProgramFormData {
   id?: string;
@@ -103,14 +109,21 @@ export interface RecruitmentApplicant {
 }
 
 export interface ContractInformation {
-  title: string;
-  applicationId: string;
-  programId: string;
-  sponsor: UserV2 | null;
-  applicant: UserV2 | null;
-  networkId: number | null;
-  chatRoomId: string | null;
-  applicationStatus: ApplicationStatusV2 | null;
+  programInfo: {
+    id: string;
+    title: string;
+    sponser: UserV2 | null;
+    networkId: number | null;
+    tokenId: string | null;
+    price: string | null;
+  };
+  applicationInfo: {
+    id: string;
+    applicant: UserV2 | null;
+    status: ApplicationStatusV2 | null;
+    chatRoomId: string | null;
+  };
+  contractSnapshot?: ContractV2 | null;
 }
 
 export interface ContractFormProps {
@@ -119,8 +132,41 @@ export interface ContractFormProps {
   sponsor: UserV2;
   applicant: UserV2;
   totalPrice: number;
-  pendingPrice: number;
-  totalPriceString?: string;
-  pendingPriceString?: string;
   tokenId: number | null;
+}
+
+export interface MilestoneCardProps {
+  milestone: MilestoneV2 & { isCompleted?: boolean };
+  onClick: (milestone: MilestoneV2) => void;
+  isCompleted?: boolean;
+}
+
+export interface ApplicationSidebarProps {
+  activeMilestones: MilestoneV2[];
+  completedMilestones: MilestoneV2[];
+  files: any[];
+  contracts: any[];
+  isSponsor: boolean;
+  isHandleMakeNewMilestone: boolean;
+  onMilestoneClick: (milestone: MilestoneV2) => void;
+  onNewMilestoneClick: () => void;
+  onContractClick: (contract: any) => void;
+}
+
+export interface MilestoneModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  selectedMilestone: MilestoneV2 | null;
+  setSelectedMilestone: (milestone: MilestoneV2 | null) => void;
+  isNewMilestoneMode: boolean;
+  setIsNewMilestoneMode: (mode: boolean) => void;
+  activeMilestones: MilestoneV2[];
+  completedMilestones: MilestoneV2[];
+  applicantId: string;
+  programId: string;
+  onRefetch: () => void;
+  isSponsor: boolean;
+  isHandleMakeNewMilestone: boolean;
+  tokenName?: string;
+  programPrice?: string | null;
 }
