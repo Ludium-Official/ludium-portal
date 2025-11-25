@@ -26,6 +26,13 @@ const ERC20Abi = [
     outputs: [{ name: '', type: 'uint256' }],
     type: 'function',
   },
+  {
+    constant: true,
+    inputs: [],
+    name: 'decimals',
+    outputs: [{ name: '', type: 'uint8' }],
+    type: 'function',
+  },
 ] as const;
 
 export default ERC20Abi;

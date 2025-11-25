@@ -27,7 +27,7 @@ const ProfileRecruitmentBuilderDetail: React.FC = () => {
       <div className="mb-3">
         <Link
           to={`/profile/recruitment/builder`}
-          className="flex items-center mb-5 text-sm font-semibold text-gray-text"
+          className="flex items-center w-fit mb-5 text-sm font-semibold text-gray-text"
         >
           <ChevronLeft className="w-4" />
           My Job Posts

@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type ChatMessageFile, getAllFiles, getLatestMessage } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { fromUTCString } from '@/lib/utils';
+import { fromUTCString, getUserDisplayName, getUserInitialName } from '@/lib/utils';
 import type { ContractInformation } from '@/types/recruitment';
 import { ApplicationStatusV2, MilestoneStatusV2, type MilestoneV2 } from '@/types/types.generated';
 import type { Timestamp } from 'firebase/firestore';
@@ -20,10 +20,10 @@ import MessageListItem from './message-list-item';
 import { MilestoneModal } from './milestone-modal';
 import { ApplicationSidebar } from './application-sidebar';
 
-const RecruitmentMessage: React.FC<{}> = () => {
+const RecruitmentMessage: React.FC = () => {
   const { id } = useParams();
   const { userId } = useAuth();
-  const { networks: networksWithTokens } = useNetworks();
+  const { getTokenById } = useNetworks();
 
   const { data } = useApplicationsByProgramV2Query({
     variables: {
@@ -106,54 +106,51 @@ const RecruitmentMessage: React.FC<{}> = () => {
       }) || [];
 
   const program = programData?.programV2;
+
   const allMilestones = milestonesData?.milestonesV2?.data || [];
+  const sortedMilestones = [...allMilestones]
+    .filter((m) =>
+      isSponsor
+        ? true
+        : m.status === MilestoneStatusV2.InProgress || m.status === MilestoneStatusV2.Completed,
+    )
+    .sort((a, b) => {
+      const aIsDraft = (a as any).status === MilestoneStatusV2.Draft;
+      const bIsDraft = (b as any).status === MilestoneStatusV2.Draft;
 
-  const filteredMilestones = isSponsor
-    ? allMilestones
-    : allMilestones.filter(
-        (m) =>
-          m.status === MilestoneStatusV2.InProgress || m.status === MilestoneStatusV2.Completed,
-      );
+      if (aIsDraft && !bIsDraft) return 1;
+      if (!aIsDraft && bIsDraft) return -1;
 
-  const sortedMilestones = [...filteredMilestones].sort((a, b) => {
-    const aIsDraft = (a as any).status === MilestoneStatusV2.Draft;
-    const bIsDraft = (b as any).status === MilestoneStatusV2.Draft;
+      if (!a.deadline && !b.deadline) return 0;
+      if (!a.deadline) return 1;
+      if (!b.deadline) return -1;
 
-    if (aIsDraft && !bIsDraft) return 1;
-    if (!aIsDraft && bIsDraft) return -1;
-
-    if (!a.deadline && !b.deadline) return 0;
-    if (!a.deadline) return 1;
-    if (!b.deadline) return -1;
-
-    const aDate = fromUTCString(a.deadline);
-    const bDate = fromUTCString(b.deadline);
-    if (!aDate || !bDate) return 0;
-    return aDate.getTime() - bDate.getTime();
-  });
-
+      const aDate = fromUTCString(a.deadline);
+      const bDate = fromUTCString(b.deadline);
+      if (!aDate || !bDate) return 0;
+      return aDate.getTime() - bDate.getTime();
+    });
   const activeMilestones = sortedMilestones.filter((m) => !(m as any).isCompleted);
   const completedMilestones = sortedMilestones.filter((m) => (m as any).isCompleted);
 
   const contractInformation: ContractInformation = {
-    title: selectedApplication?.program?.title || '',
-    applicationId: selectedApplication?.id || '',
-    programId: selectedApplication?.program?.id || '',
-    sponsor: selectedApplication?.program?.sponsor || null,
-    applicant: selectedApplication?.applicant || null,
-    networkId: selectedApplication?.program?.networkId || null,
-    chatRoomId: selectedApplication?.chatroomMessageId || null,
-    applicationStatus: selectedApplication?.status || null,
+    programInfo: {
+      id: program?.id || '',
+      title: program?.title || '',
+      sponser: program?.sponsor || null,
+      networkId: program?.networkId || null,
+      tokenId: program?.token?.id || null,
+      price: program?.price || null,
+    },
+    applicationInfo: {
+      id: selectedApplication?.id || '',
+      applicant: selectedApplication?.applicant || null,
+      status: selectedApplication?.status || null,
+      chatRoomId: selectedApplication?.chatroomMessageId || null,
+    },
   };
 
-  const getInitials = (name: string) => {
-    if (!name) return '??';
-    const parts = name.split(' ');
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return name[0]?.toUpperCase() || '??';
-  };
+  const token = getTokenById(Number(contractInformation.programInfo.tokenId));
 
   const handleMilestoneClick = (milestone: MilestoneV2) => {
     setSelectedMilestone(milestone);
@@ -237,20 +234,16 @@ const RecruitmentMessage: React.FC<{}> = () => {
     return () => clearTimeout(timeoutId);
   }, [selectedApplication?.chatroomMessageId]);
 
-  const currentNetwork = networksWithTokens.find(
-    (network) => Number(network.id) === contractInformation.networkId,
-  );
-
   const isHandleMakeNewMilestone = useMemo(() => {
-    if (contractInformation.applicationStatus === ApplicationStatusV2.PendingSignature) {
+    if (contractInformation.applicationInfo.status === ApplicationStatusV2.PendingSignature) {
       return false;
     }
 
-    if (filteredMilestones.length === 0) {
+    if (sortedMilestones.length === 0) {
       return true;
     }
 
-    const allDeadlinesPassed = filteredMilestones.every((milestone) => {
+    const allDeadlinesPassed = sortedMilestones.every((milestone) => {
       if (!milestone.deadline) return false;
       const deadline = fromUTCString(milestone.deadline);
       if (!deadline) return false;
@@ -258,17 +251,7 @@ const RecruitmentMessage: React.FC<{}> = () => {
     });
 
     return !allDeadlinesPassed;
-  }, [contractInformation, filteredMilestones]);
-
-  const isUnderReviewMilestone = useMemo(() => {
-    const isUnderReviewMilestones =
-      filteredMilestones.filter((m) => m.status === MilestoneStatusV2.UnderReview).length > 0;
-
-    return (
-      isUnderReviewMilestones &&
-      contractInformation.applicationStatus !== ApplicationStatusV2.PendingSignature
-    );
-  }, [filteredMilestones, contractInformation.applicationStatus]);
+  }, [contractInformation, sortedMilestones]);
 
   return (
     <div className="flex gap-4 h-[calc(100vh-200px)]">
@@ -330,35 +313,31 @@ const RecruitmentMessage: React.FC<{}> = () => {
                     />
                     <AvatarFallback className="text-sm font-semibold">
                       {userId === selectedApplication.applicant?.id
-                        ? getInitials(
-                            `${program?.sponsor?.firstName || ''} ${
-                              program?.sponsor?.lastName || ''
-                            }`.trim() ||
-                              program?.sponsor?.email ||
-                              '',
+                        ? getUserInitialName(
+                            program?.sponsor?.firstName,
+                            program?.sponsor?.lastName,
+                            program?.sponsor?.email,
                           )
-                        : getInitials(
-                            `${selectedApplication.applicant?.firstName || ''} ${
-                              selectedApplication.applicant?.lastName || ''
-                            }`.trim() ||
-                              selectedApplication.applicant?.email ||
-                              '',
+                        : getUserInitialName(
+                            selectedApplication.applicant?.firstName,
+                            selectedApplication.applicant?.lastName,
+                            selectedApplication.applicant?.email,
                           )}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col">
                     <h3 className="font-bold text-lg">
                       {userId === selectedApplication.applicant?.id
-                        ? `${program?.sponsor?.firstName || ''} ${
-                            program?.sponsor?.lastName || ''
-                          }`.trim() ||
-                          program?.sponsor?.email ||
-                          'Unknown'
-                        : `${selectedApplication.applicant?.firstName || ''} ${
-                            selectedApplication.applicant?.lastName || ''
-                          }`.trim() ||
-                          selectedApplication.applicant?.email ||
-                          'Unknown'}
+                        ? getUserDisplayName(
+                            program?.sponsor?.firstName,
+                            program?.sponsor?.lastName,
+                            program?.sponsor?.email,
+                          )
+                        : getUserDisplayName(
+                            selectedApplication.applicant?.firstName,
+                            selectedApplication.applicant?.lastName,
+                            selectedApplication.applicant?.email,
+                          )}
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       {userId === selectedApplication.applicant?.id
@@ -370,12 +349,12 @@ const RecruitmentMessage: React.FC<{}> = () => {
                 {program?.sponsor?.id === userId && (
                   <HireButton
                     contractInformation={contractInformation}
-                    disabled={!isUnderReviewMilestone}
+                    milestones={activeMilestones}
                   />
                 )}
               </div>
               <div className="flex-1 overflow-hidden">
-                <ChatBox selectedMessage={selectedApplication} />
+                <ChatBox contractInformation={contractInformation} />
               </div>
             </>
           ) : (
@@ -423,17 +402,20 @@ const RecruitmentMessage: React.FC<{}> = () => {
         onRefetch={refetchMilestones}
         isSponsor={isSponsor}
         isHandleMakeNewMilestone={isHandleMakeNewMilestone}
-        currentNetwork={currentNetwork}
+        tokenName={token?.tokenName}
+        programPrice={program?.price}
       />
 
       {selectedContract && (
         <ContractModal
           open={isContractModalOpen}
           onOpenChange={setIsContractModalOpen}
-          contractInformation={contractInformation}
+          contractInformation={{
+            ...contractInformation,
+            contractSnapshot: selectedContract,
+          }}
           assistantId={undefined}
           readOnly={true}
-          contractSnapshot={selectedContract}
         />
       )}
     </div>

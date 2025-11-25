@@ -230,41 +230,43 @@ const RecruitmentOverview: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="w-full" disabled={program.hasApplied || false}>
-                    {program.hasApplied ? 'Applied' : 'Submit application'}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-3xl! max-h-[90vh] overflow-y-auto">
-                  <DialogHeader className="flex-row items-center justify-between space-y-0">
-                    <DialogTitle>Add Cover Letter</DialogTitle>
-                  </DialogHeader>
-                  <div className="mt-4">
-                    <InputLabel
-                      labelId="coverLetter"
-                      title="Highlight your skills and explain why you're a great fit for this role."
-                      isPrimary
-                      inputClassName="hidden"
-                    >
-                      <MarkdownEditor
-                        onChange={(value: string) => {
-                          setCoverLetter(value);
-                        }}
-                        content={coverLetter}
-                      />
-                    </InputLabel>
-                  </div>
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={handleSubmitApplication}
-                      disabled={submitting || !coverLetter.trim()}
-                    >
-                      {submitting ? 'Submitting...' : 'Submit application'}
+              userId && (
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full" disabled={program.hasApplied || false}>
+                      {program.hasApplied ? 'Applied' : 'Submit application'}
                     </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-3xl! max-h-[90vh] overflow-y-auto">
+                    <DialogHeader className="flex-row items-center justify-between space-y-0">
+                      <DialogTitle>Add Cover Letter</DialogTitle>
+                    </DialogHeader>
+                    <div className="mt-4">
+                      <InputLabel
+                        labelId="coverLetter"
+                        title="Highlight your skills and explain why you're a great fit for this role."
+                        isPrimary
+                        inputClassName="hidden"
+                      >
+                        <MarkdownEditor
+                          onChange={(value: string) => {
+                            setCoverLetter(value);
+                          }}
+                          content={coverLetter}
+                        />
+                      </InputLabel>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button
+                        onClick={handleSubmitApplication}
+                        disabled={submitting || !coverLetter.trim()}
+                      >
+                        {submitting ? 'Submitting...' : 'Submit application'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )
             )}
 
             <div>

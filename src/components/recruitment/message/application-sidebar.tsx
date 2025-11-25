@@ -25,6 +25,7 @@ export function ApplicationSidebar({
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
+  const filterContracts = contracts.filter((contract) => contract.contract_snapshot_cotents);
 
   return (
     <div className="h-full p-4 bg-[#FBF5FF] overflow-y-auto rounded-r-xl space-y-3 relative z-0">
@@ -84,10 +85,10 @@ export function ApplicationSidebar({
             <span className="font-medium text-base">Contract</span>
           </AccordionTrigger>
           <AccordionContent className="flex flex-col gap-3 pb-3">
-            {contracts.length === 0 ? (
+            {filterContracts.length === 0 ? (
               <div className="text-sm text-muted-foreground text-center py-4">No contracts yet</div>
             ) : (
-              contracts.map((contract, idx) => (
+              filterContracts.map((contract, idx) => (
                 <button
                   key={contract.id}
                   onClick={() => onContractClick(contract)}
@@ -97,7 +98,7 @@ export function ApplicationSidebar({
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-900">
                       Contract #{idx + 1}
-                      {contracts.length === idx + 1 && (
+                      {filterContracts.length === idx + 1 && (
                         <span className="text-xs text-green-500 ml-2">(Latest)</span>
                       )}
                     </p>

@@ -8,18 +8,19 @@ export type CreateOnchainProgramInfoV2MutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateOnchainProgramInfoV2Mutation = { __typename?: 'Mutation', createOnchainProgramInfoV2?: { __typename?: 'OnchainProgramInfoV2', programId?: number | null, networkId?: number | null, onchainProgramId?: number | null, smartContractId?: number | null, status?: Types.OnchainProgramStatusV2 | null, tx?: string | null } | null };
+export type CreateOnchainProgramInfoV2Mutation = { __typename?: 'Mutation', createOnchainProgramInfoV2?: { __typename?: 'OnchainProgramInfoV2', id?: string | null, networkId?: number | null, onchainProgramId?: number | null, smartContractId?: number | null, status?: Types.OnchainProgramStatusV2 | null, tx?: string | null, createdAt?: any | null } | null };
 
 
 export const CreateOnchainProgramInfoV2Document = gql`
     mutation createOnchainProgramInfoV2($input: CreateOnchainProgramInfoV2Input!) {
   createOnchainProgramInfoV2(input: $input) {
-    programId
+    id
     networkId
     onchainProgramId
     smartContractId
     status
     tx
+    createdAt
   }
 }
     `;

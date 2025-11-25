@@ -2,7 +2,7 @@ query onchainProgramInfosV2($pagination: PaginationInput) {
   onchainProgramInfosV2(pagination: $pagination) {
     data {
       id
-      programId
+      networkId
       smartContractId
       onchainProgramId
       status

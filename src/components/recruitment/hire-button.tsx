@@ -7,29 +7,36 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { ContractInformation } from '@/types/recruitment';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ContractModal } from './contract/contract-modal';
-import { useGetMilestonesV2Query } from '@/apollo/queries/milestones-v2.generated';
+import { ApplicationStatusV2, MilestoneStatusV2, MilestoneV2 } from '@/types/types.generated';
 
 interface HireButtonProps {
   contractInformation: ContractInformation;
-  disabled?: boolean;
+  milestones: MilestoneV2[];
 }
 
-export function HireButton({ contractInformation, disabled = false }: HireButtonProps) {
+export function HireButton({ contractInformation, milestones }: HireButtonProps) {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
-  const { data: milestonesData } = useGetMilestonesV2Query({
-    variables: {
-      query: {
-        applicantId: contractInformation.applicant?.id,
-        programId: contractInformation.programId,
-      },
-    },
-  });
-  const milestones = milestonesData?.milestonesV2?.data || [];
-  const hasMilestones = milestones.length > 0;
+  const isActiveHireButton = useMemo(() => {
+    const isUnderReviewMilestones =
+      milestones.filter((m) => m.status === MilestoneStatusV2.UnderReview).length > 0;
+
+    return (
+      isUnderReviewMilestones &&
+      contractInformation.applicationInfo.status !== ApplicationStatusV2.PendingSignature
+    );
+  }, [milestones, contractInformation.applicationInfo.status]);
+
+  const isMilestoneUpdate =
+    milestones.filter(
+      (milestone) =>
+        milestone.status === MilestoneStatusV2.Completed ||
+        milestone.status === MilestoneStatusV2.InProgress ||
+        milestone.status === MilestoneStatusV2.Update,
+    ).length > 0;
 
   const handleHireClick = () => {
     setIsConfirmModalOpen(true);
@@ -42,8 +49,12 @@ export function HireButton({ contractInformation, disabled = false }: HireButton
 
   return (
     <>
-      <Button className="mr-4 px-8 bg-primary" onClick={handleHireClick} disabled={disabled}>
-        {hasMilestones ? 'Send Contract' : 'Hire'}
+      <Button
+        className="mr-4 px-8 bg-primary"
+        onClick={handleHireClick}
+        disabled={!isActiveHireButton}
+      >
+        {isMilestoneUpdate ? 'Send Contract' : 'Hire'}
       </Button>
 
       <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>

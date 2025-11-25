@@ -584,7 +584,8 @@ export enum MilestoneStatusV2 {
   Completed = 'completed',
   Draft = 'draft',
   InProgress = 'in_progress',
-  UnderReview = 'under_review'
+  UnderReview = 'under_review',
+  Update = 'update'
 }
 
 export type MilestoneV2 = {
@@ -603,6 +604,8 @@ export type MilestoneV2 = {
   files?: Maybe<Array<Scalars['String']['output']>>;
   /** Milestone unique identifier */
   id?: Maybe<Scalars['ID']['output']>;
+  /** The onchain contract metadata associated with this milestone (matched by programId and applicantId) */
+  onchainMetadata?: Maybe<OnchainContractInfoV2>;
   /** Milestone payout amount */
   payout?: Maybe<Scalars['String']['output']>;
   /** Transaction hash for the milestone payout */
@@ -723,6 +726,8 @@ export type Mutation = {
   updateContractV2?: Maybe<ContractV2>;
   updateInvestmentTerm?: Maybe<InvestmentTerm>;
   updateMilestone?: Maybe<Milestone>;
+  /** Update milestone payout_tx and status by relayer service */
+  updateMilestoneByRelayerV2?: Maybe<MilestoneV2>;
   /** Update an existing milestone */
   updateMilestoneV2?: Maybe<MilestoneV2>;
   updateNetworkV2?: Maybe<NetworkV2>;
@@ -733,6 +738,8 @@ export type Mutation = {
   /** Update current authenticated user profile */
   updateProfileV2?: Maybe<UserV2>;
   updateProgram?: Maybe<Program>;
+  /** Update program status from open to closed by relayer service */
+  updateProgramByRelayerV2?: Maybe<ProgramV2>;
   updateProgramV2?: Maybe<ProgramV2>;
   updateSmartContractV2?: Maybe<SmartContractV2>;
   updateTokenV2?: Maybe<TokenV2>;
@@ -1167,6 +1174,12 @@ export type MutationUpdateMilestoneArgs = {
 };
 
 
+export type MutationUpdateMilestoneByRelayerV2Args = {
+  id: Scalars['ID']['input'];
+  input: UpdateMilestoneByRelayerV2Input;
+};
+
+
 export type MutationUpdateMilestoneV2Args = {
   id: Scalars['ID']['input'];
   input: UpdateMilestoneV2Input;
@@ -1208,6 +1221,12 @@ export type MutationUpdateProfileV2Args = {
 
 export type MutationUpdateProgramArgs = {
   input: UpdateProgramInput;
+};
+
+
+export type MutationUpdateProgramByRelayerV2Args = {
+  id: Scalars['ID']['input'];
+  input: UpdateProgramByRelayerV2Input;
 };
 
 
@@ -1296,8 +1315,12 @@ export type OnchainContractInfoV2 = {
   applicantId?: Maybe<Scalars['Int']['output']>;
   createdAt?: Maybe<Scalars['DateTime']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
+  /** The network associated with this onchain contract info (via smart contract) */
+  network?: Maybe<NetworkV2>;
   onchainContractId?: Maybe<Scalars['Int']['output']>;
   programId?: Maybe<Scalars['Int']['output']>;
+  /** The smart contract associated with this onchain contract info */
+  smartContract?: Maybe<SmartContractV2>;
   smartContractId?: Maybe<Scalars['Int']['output']>;
   sponsorId?: Maybe<Scalars['Int']['output']>;
   status?: Maybe<OnchainContractStatusV2>;
@@ -1323,9 +1346,12 @@ export type OnchainProgramInfoV2 = {
   __typename?: 'OnchainProgramInfoV2';
   createdAt?: Maybe<Scalars['DateTime']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
+  /** The network associated with this onchain program info */
+  network?: Maybe<NetworkV2>;
   networkId?: Maybe<Scalars['Int']['output']>;
   onchainProgramId?: Maybe<Scalars['Int']['output']>;
-  programId?: Maybe<Scalars['Int']['output']>;
+  /** The smart contract associated with this onchain program info */
+  smartContract?: Maybe<SmartContractV2>;
   smartContractId?: Maybe<Scalars['Int']['output']>;
   status?: Maybe<OnchainProgramStatusV2>;
   tx?: Maybe<Scalars['String']['output']>;
@@ -1438,8 +1464,18 @@ export type PaginatedPrograms = {
 
 export type PaginatedProgramsV2 = {
   __typename?: 'PaginatedProgramsV2';
+  /** Total number of programs matching the query */
   count?: Maybe<Scalars['Int']['output']>;
+  /** Current page number */
+  currentPage?: Maybe<Scalars['Int']['output']>;
+  /** List of programs for the current page */
   data?: Maybe<Array<ProgramV2>>;
+  /** Whether there is a next page */
+  hasNextPage?: Maybe<Scalars['Boolean']['output']>;
+  /** Whether there is a previous page */
+  hasPreviousPage?: Maybe<Scalars['Boolean']['output']>;
+  /** Total number of pages */
+  totalPages?: Maybe<Scalars['Int']['output']>;
 };
 
 export type PaginatedSmartContractsV2 = {
@@ -1621,6 +1657,8 @@ export type ProgramV2 = {
   /** The network associated with this program */
   network?: Maybe<NetworkV2>;
   networkId?: Maybe<Scalars['Int']['output']>;
+  /** The onchain program information associated with this program */
+  onchain?: Maybe<OnchainProgramInfoV2>;
   price?: Maybe<Scalars['String']['output']>;
   skills?: Maybe<Array<Scalars['String']['output']>>;
   /** The sponsor (creator) of this program */
@@ -1645,6 +1683,13 @@ export enum ProgramVisibilityV2 {
   Public = 'public',
   Restricted = 'restricted'
 }
+
+export type ProgramsV2QueryInput = {
+  /** Number of items per page */
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  /** Page number (1-based) */
+  page?: InputMaybe<Scalars['Int']['input']>;
+};
 
 export type Query = {
   __typename?: 'Query';
@@ -1681,6 +1726,8 @@ export type Query = {
   /** Get a single milestone by ID */
   milestoneV2?: Maybe<MilestoneV2>;
   milestones?: Maybe<PaginatedMilestones>;
+  /** Get paginated list of milestones with status in_progress */
+  milestonesInProgressV2?: Maybe<PaginatedMilestonesV2>;
   /** Get paginated list of milestones with filtering options */
   milestonesV2?: Maybe<PaginatedMilestonesV2>;
   /** Get all applications submitted by the current user */
@@ -1710,6 +1757,8 @@ export type Query = {
   programsByBuilderIdV2?: Maybe<PaginatedProgramsV2>;
   /** Get all programs by sponsor ID with pagination. Default limit is 10, default offset is 0. Returns all programs created by a specific sponsor. */
   programsBysponsorIdV2?: Maybe<PaginatedProgramsV2>;
+  /** Get all programs that are currently in progress (status: open) with pagination. Default page is 1, default limit is 10. */
+  programsInProgressV2?: Maybe<PaginatedProgramsV2>;
   /** Get all programs with pagination. Default limit is 10, default offset is 0. */
   programsV2?: Maybe<PaginatedProgramsV2>;
   /** Query users with dynamic field=value filters (AND condition, no pagination) */
@@ -1873,6 +1922,11 @@ export type QueryMilestonesArgs = {
 };
 
 
+export type QueryMilestonesInProgressV2Args = {
+  query?: InputMaybe<MilestonesV2QueryInput>;
+};
+
+
 export type QueryMilestonesV2Args = {
   query?: InputMaybe<MilestonesV2QueryInput>;
 };
@@ -1976,6 +2030,11 @@ export type QueryProgramsByBuilderIdV2Args = {
 export type QueryProgramsBysponsorIdV2Args = {
   pagination?: InputMaybe<PaginationInput>;
   sponsorId: Scalars['ID']['input'];
+};
+
+
+export type QueryProgramsInProgressV2Args = {
+  query?: InputMaybe<ProgramsV2QueryInput>;
 };
 
 
@@ -2198,6 +2257,13 @@ export type UpdateInvestmentTermInput = {
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateMilestoneByRelayerV2Input = {
+  /** Transaction hash for the milestone payout */
+  payout_tx: Scalars['String']['input'];
+  /** Milestone status (typically set to completed when payout_tx is set) */
+  status?: InputMaybe<MilestoneStatusV2>;
+};
+
 export type UpdateMilestoneInput = {
   currency?: InputMaybe<Scalars['String']['input']>;
   deadline?: InputMaybe<Scalars['DateTime']['input']>;
@@ -2270,6 +2336,11 @@ export type UpdateProfileV2Input = {
   profileImage?: InputMaybe<Scalars['Upload']['input']>;
   /** User skills array */
   skills?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type UpdateProgramByRelayerV2Input = {
+  /** Program status (relayer can only change from open to closed) */
+  status: ProgramStatusV2;
 };
 
 export type UpdateProgramInput = {
@@ -2409,6 +2480,7 @@ export enum UserRole {
 
 export enum UserRoleV2 {
   Admin = 'admin',
+  Relayer = 'relayer',
   User = 'user'
 }
 

@@ -5,9 +5,7 @@ import { useUpdateContractV2Mutation } from '@/apollo/mutation/update-contract-v
 import { useUpdateMilestoneV2Mutation } from '@/apollo/mutation/update-milestone-v2.generated';
 import { ApplicationsByProgramV2Document } from '@/apollo/queries/applications-by-program-v2.generated';
 import { useContractsByProgramV2Query } from '@/apollo/queries/contracts-by-program-v2.generated';
-import { useGetMilestonesV2Query } from '@/apollo/queries/milestones-v2.generated';
 import { useOnchainProgramInfosByProgramV2Query } from '@/apollo/queries/onchain-program-infos-by-program-v2.generated';
-import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useNetworks } from '@/contexts/networks-context';
@@ -23,10 +21,10 @@ import {
 } from '@/types/types.generated';
 import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
-import { useParams } from 'react-router';
 import { ContractForm } from './contract-form';
+import { useGetMilestonesV2Query } from '@/apollo/queries/milestones-v2.generated';
 
 interface ContractModalProps {
   open: boolean;
@@ -34,7 +32,7 @@ interface ContractModalProps {
   contractInformation: ContractInformation;
   assistantId?: string;
   readOnly?: boolean;
-  contractSnapshot?: any;
+  isChatBox?: boolean;
 }
 
 export function ContractModal({
@@ -43,80 +41,92 @@ export function ContractModal({
   contractInformation,
   assistantId,
   readOnly = false,
-  contractSnapshot,
+  isChatBox = false,
 }: ContractModalProps) {
-  const { id } = useParams();
-  const { userId } = useAuth();
   const { user } = usePrivy();
+  const { userId } = useAuth();
   const { networks: networksWithTokens, getContractByNetworkId } = useNetworks();
 
-  const { data: programData } = useGetProgramV2Query({
-    variables: {
-      id: id || '',
-    },
-    skip: !id,
-  });
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [isSigningMessage, setIsSigningMessage] = useState(false);
+  const [contractData, setContractData] = useState<any>(null);
+
+  const { programInfo, applicationInfo, contractSnapshot } = contractInformation;
 
   const { data: milestonesData } = useGetMilestonesV2Query({
     variables: {
       query: {
-        applicantId: contractInformation.applicant?.id,
-        programId: contractInformation.programId,
+        applicantId: applicationInfo.applicant?.id,
+        programId: programInfo.id,
       },
     },
+    skip: !applicationInfo.applicant?.id || !programInfo.id,
   });
+
   const milestones = milestonesData?.milestonesV2?.data || [];
 
-  const [isSendingMessage, setIsSendingMessage] = useState(false);
-  const [isSigningMessage, setIsSigningMessage] = useState(false);
+  const { data: onchainProgramInfosData } = useOnchainProgramInfosByProgramV2Query({
+    variables: { programId: Number(programInfo.id) || 0 },
+    skip: !programInfo.id,
+  });
+
+  const { data: contractsData } = useContractsByProgramV2Query({
+    variables: {
+      programId: Number(programInfo.id) || 0,
+      pagination: { limit: 1000, offset: 0 },
+    },
+    skip: !programInfo.id,
+  });
+
   const [createContractV2Mutation] = useCreateContractV2Mutation();
   const [updateContractV2Mutation] = useUpdateContractV2Mutation();
   const [updateMilestoneV2Mutation] = useUpdateMilestoneV2Mutation();
   const [createOnchainContractInfoV2Mutation] = useCreateOnchainContractInfoV2Mutation();
   const [updateApplicationV2Mutation] = useUpdateApplicationV2Mutation();
 
-  const { data: onchainProgramInfosData } = useOnchainProgramInfosByProgramV2Query({
-    variables: { programId: Number(contractInformation.programId) || 0 },
-    skip: !contractInformation.programId,
-  });
   const onchainProgramId =
-    onchainProgramInfosData?.onchainProgramInfosByProgramV2?.data?.[0]?.onchainProgramId ?? 0;
-
-  const { data: contractsData } = useContractsByProgramV2Query({
-    variables: {
-      programId: Number(programData?.programV2?.id) || 0,
-      pagination: { limit: 1000, offset: 0 },
-    },
-    skip: !contractInformation.programId,
-  });
+    onchainProgramInfosData?.onchainProgramInfosByProgramV2?.data?.[0]?.onchainProgramId || null;
 
   const existingContract = contractsData?.contractsByProgramV2?.data?.find(
-    (c) => c?.applicantId === Number(contractInformation.applicant?.id),
+    (c) => c?.applicantId === Number(applicationInfo.applicant?.id),
   );
 
   const currentNetwork = networksWithTokens.find(
-    (network) => Number(network.id) === contractInformation.networkId,
+    (network) => Number(network.id) === programInfo.networkId,
   );
   const currentContract = getContractByNetworkId(Number(currentNetwork?.id));
 
   const contract = useContract(currentNetwork?.chainName || 'educhain', currentContract?.address);
 
-  const isSponser = contractInformation.sponsor?.id === userId;
-  const isBuilder = contractInformation.applicant?.id === userId;
+  const isSponser = programInfo.sponser?.id === userId;
+  const isBuilder = applicationInfo.applicant?.id === userId;
 
   const decimals = useMemo(() => {
     if (currentNetwork?.tokens && currentNetwork.tokens.length > 0) {
       return (
-        currentNetwork.tokens.find((token) => token.id === programData?.programV2?.token?.id)
-          ?.decimals ?? 18
+        currentNetwork.tokens.find((token) => token.id === programInfo.tokenId)?.decimals ?? 18
       );
     }
 
     return 18;
-  }, [currentNetwork, programData?.programV2?.token?.id]);
+  }, [currentNetwork, programInfo.tokenId]);
 
-  const { pendingPrice, totalPrice, pendingPriceString, totalPriceString } = useMemo(() => {
-    let pending = ethers.BigNumber.from(0);
+  useEffect(() => {
+    const fetchContractData = async () => {
+      if (existingContract?.onchainContractId && contract) {
+        try {
+          const data = await contract.getContract(existingContract.onchainContractId);
+          setContractData(data);
+        } catch (error) {
+          console.error('Failed to fetch contract data:', error);
+        }
+      }
+    };
+
+    fetchContractData();
+  }, [existingContract?.onchainContractId]);
+
+  const totalPrice = useMemo(() => {
     let total = ethers.BigNumber.from(0);
 
     milestones.forEach((milestone) => {
@@ -124,40 +134,43 @@ export function ContractModal({
         const payout = milestone.payout || '0';
         const payoutBN = ethers.utils.parseUnits(payout, decimals);
         total = total.add(payoutBN);
-
-        if (milestone.status === MilestoneStatusV2.UnderReview) {
-          pending = pending.add(payoutBN);
-        }
       }
     });
 
-    return {
-      pendingPrice: Number.parseFloat(ethers.utils.formatUnits(pending, decimals)),
-      totalPrice: Number.parseFloat(ethers.utils.formatUnits(total, decimals)),
-      pendingPriceString: ethers.utils.formatUnits(pending, decimals),
-      totalPriceString: ethers.utils.formatUnits(total, decimals),
-    };
+    return Number.parseFloat(ethers.utils.formatUnits(total, decimals));
   }, [milestones, decimals]);
 
   const targetFundingWei = useMemo(() => {
-    if (pendingPrice <= 0) {
-      return ethers.utils.parseUnits('0', decimals);
+    const totalPriceBN = ethers.utils.parseUnits(totalPrice.toString(), decimals);
+
+    if (contractData?.totalAmount) {
+      const currentTotalBN = ethers.utils.parseUnits(contractData.totalAmount, decimals);
+      const difference = totalPriceBN.sub(currentTotalBN);
+
+      if (difference.lte(0)) {
+        return ethers.BigNumber.from(0);
+      }
+      return difference;
     }
-    return ethers.utils.parseUnits(pendingPriceString, decimals);
-  }, [pendingPrice, pendingPriceString, decimals]);
+
+    if (totalPriceBN.lte(0)) {
+      return ethers.BigNumber.from(0);
+    }
+    return totalPriceBN;
+  }, [totalPrice, contractData, decimals]);
 
   const handleSendMessage = async () => {
-    if (!userId || !contractInformation.applicant?.id) {
+    if (!userId || !applicationInfo.applicant?.id) {
       notify('Missing user information', 'error');
       return;
     }
 
     setIsSendingMessage(true);
     try {
-      if (contractInformation.applicationId) {
+      if (applicationInfo.id) {
         await updateApplicationV2Mutation({
           variables: {
-            id: contractInformation.applicationId,
+            id: applicationInfo.id,
             input: {
               status: ApplicationStatusV2.PendingSignature,
             },
@@ -165,7 +178,7 @@ export function ContractModal({
         });
       }
 
-      await sendMessage(contractInformation.chatRoomId || '', '', '-1');
+      await sendMessage(applicationInfo.chatRoomId || '', '', '-1');
 
       notify('Contract sent to builder for signature', 'success');
       onOpenChange(false);
@@ -173,7 +186,7 @@ export function ContractModal({
       setTimeout(() => {
         updateApplicationV2Mutation({
           variables: {
-            id: contractInformation.applicationId || '',
+            id: applicationInfo.id || '',
             input: {
               status: ApplicationStatusV2.PendingSignature,
             },
@@ -183,7 +196,7 @@ export function ContractModal({
               query: ApplicationsByProgramV2Document,
               variables: {
                 query: {
-                  programId: contractInformation.programId,
+                  programId: programInfo.id,
                 },
               },
             },
@@ -200,7 +213,13 @@ export function ContractModal({
 
   const handleAddSignature = async () => {
     setIsSigningMessage(true);
-    if (!userId || !contractInformation.applicant?.walletAddress) {
+
+    if (!onchainProgramId) {
+      notify('Onchain program ID not found', 'error');
+      return;
+    }
+
+    if (!userId || !applicationInfo.applicant?.walletAddress) {
       notify('Missing user information', 'error');
       return;
     }
@@ -210,7 +229,7 @@ export function ContractModal({
       return;
     }
 
-    if (!currentContract?.id || !contractInformation.sponsor?.id) {
+    if (!currentContract?.id || !programInfo.sponser?.id) {
       notify('Missing contract or sponsor information', 'error');
       return;
     }
@@ -218,28 +237,29 @@ export function ContractModal({
     try {
       const signature = await contract.createBuilderSignature(
         onchainProgramId,
-        contractInformation.applicant.walletAddress as `0x${string}`,
+        applicationInfo.applicant?.walletAddress as `0x${string}`,
         BigInt(targetFundingWei.toString()),
-        3n,
+        2n,
       );
 
       await createContractV2Mutation({
         variables: {
           input: {
-            programId: Number(programData?.programV2?.id) || 0,
-            applicantId: Number(contractInformation.applicant.id),
-            sponsorId: Number(contractInformation.sponsor.id),
+            programId: Number(programInfo.id) || 0,
+            applicantId: Number(applicationInfo.applicant?.id),
+            sponsorId: Number(programInfo.sponser?.id),
             smartContractId: Number(currentContract.id),
             builder_signature: signature,
-            applicationId: Number(contractInformation.applicationId),
+            applicationId: Number(applicationInfo.id),
+            onchainContractId: existingContract?.onchainContractId || null,
           },
         },
       });
 
-      await sendMessage(contractInformation.chatRoomId || '', '', '-2');
+      await sendMessage(applicationInfo.chatRoomId || '', '', '-2');
 
-      if (contractInformation.chatRoomId) {
-        await deactivateContractMessages(contractInformation.chatRoomId, ['-1']);
+      if (applicationInfo.chatRoomId) {
+        await deactivateContractMessages(applicationInfo.chatRoomId, ['-1']);
       }
 
       toast.success('Signature added successfully');
@@ -258,24 +278,18 @@ export function ContractModal({
 
   const handleSubmit = async () => {
     setIsSigningMessage(true);
-    if (!userId || !contractInformation.applicant?.id || !contractInformation.sponsor?.id) {
+    if (!onchainProgramId) {
+      notify('Onchain program ID not found', 'error');
+      return;
+    }
+
+    if (!userId || !applicationInfo.applicant?.id || !programInfo.sponser?.id) {
       notify('Missing user information', 'error');
       return;
     }
 
     if (!currentContract?.id) {
       notify('Contract address is not configured for this network', 'error');
-      return;
-    }
-
-    if (!existingContract?.id) {
-      toast.error('Contract not found');
-      notify('Contract not found', 'error');
-      return;
-    }
-
-    if (!existingContract.builder_signature) {
-      notify('Builder signature not found. Please wait for builder to sign the contract.', 'error');
       return;
     }
 
@@ -287,29 +301,124 @@ export function ContractModal({
           return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
         });
 
-      const tokenInfo = currentNetwork?.tokens?.find(
-        (token) => token.id === programData?.programV2?.token?.id,
-      );
+      const tokenInfo = currentNetwork?.tokens?.find((token) => token.id === programInfo.tokenId);
       const tokenAddress = tokenInfo?.tokenAddress;
       const tokenName = tokenInfo?.tokenName;
       const tokenDecimals = tokenInfo?.decimals ?? decimals;
       const userWalletAddress = user?.wallet?.address;
 
-      const txResult = await contract.createContract(
-        onchainProgramId,
-        contractInformation.applicant?.walletAddress as `0x${string}`,
-        BigInt(targetFundingWei.toString()),
-        existingContract.builder_signature as `0x${string}`,
-        contractSnapshotHash as `0x${string}`,
-        3n,
-        tokenAddress as `0x${string}` | undefined,
-        userWalletAddress,
-        tokenName,
-        tokenDecimals,
-      );
+      let txResult: {
+        txHash: `0x${string}`;
+        onchainContractId?: number | null;
+      } | null = null;
 
-      if (!txResult.onchainContractId) {
-        throw new Error('Failed to get contract ID from transaction receipt');
+      if (existingContract?.onchainContractId) {
+        if (!existingContract.builder_signature) {
+          notify(
+            'Builder signature not found. Please wait for builder to sign the contract.',
+            'error',
+          );
+          return;
+        }
+
+        const currentContractData = await contract.getContract(existingContract.onchainContractId);
+        const currentAmount = ethers.utils.parseUnits(currentContractData.totalAmount, decimals);
+        const newAmount = targetFundingWei;
+        const isPriceChanged = !newAmount.eq(currentAmount);
+
+        if (isPriceChanged) {
+          txResult = await contract.updateContract(
+            existingContract.onchainContractId,
+            BigInt(targetFundingWei.toString()),
+            2n,
+            existingContract.builder_signature as `0x${string}`,
+            contractSnapshotHash as `0x${string}`,
+            tokenAddress as `0x${string}` | undefined,
+            userWalletAddress,
+            tokenName,
+            tokenDecimals,
+          );
+
+          if (existingContract?.id) {
+            await updateContractV2Mutation({
+              variables: {
+                id: existingContract.id,
+                input: {
+                  contract_snapshot_cotents: contractJson,
+                  contract_snapshot_hash: `0x${contractSnapshotHash}`,
+                },
+              },
+            });
+          }
+        } else {
+          if (existingContract?.id) {
+            await updateContractV2Mutation({
+              variables: {
+                id: existingContract.id,
+                input: {
+                  contract_snapshot_cotents: contractJson,
+                  contract_snapshot_hash: `0x${contractSnapshotHash}`,
+                },
+              },
+            });
+          }
+        }
+      } else {
+        if (!existingContract?.id) {
+          toast.error('Contract not found');
+          notify('Contract not found', 'error');
+          return;
+        }
+
+        if (!existingContract.builder_signature) {
+          notify(
+            'Builder signature not found. Please wait for builder to sign the contract.',
+            'error',
+          );
+          return;
+        }
+
+        txResult = await contract.createContract(
+          onchainProgramId,
+          applicationInfo.applicant?.walletAddress as `0x${string}`,
+          BigInt(targetFundingWei.toString()),
+          existingContract.builder_signature as `0x${string}`,
+          contractSnapshotHash as `0x${string}`,
+          2n,
+          tokenAddress as `0x${string}` | undefined,
+          userWalletAddress,
+          tokenName,
+          tokenDecimals,
+        );
+
+        if (!txResult.onchainContractId) {
+          throw new Error('Failed to get contract ID from transaction receipt');
+        }
+
+        await createOnchainContractInfoV2Mutation({
+          variables: {
+            input: {
+              programId: Number(programInfo.id) || 0,
+              applicantId: Number(applicationInfo.applicant?.id) || 0,
+              sponsorId: Number(programInfo.sponser?.id) || 0,
+              onchainContractId: txResult.onchainContractId,
+              smartContractId: Number(currentContract.id),
+              tx: txResult.txHash,
+              status: OnchainContractStatusV2.Active,
+            },
+          },
+        });
+
+        await updateContractV2Mutation({
+          variables: {
+            id: existingContract.id,
+            input: {
+              contract_snapshot_cotents: contractJson,
+              contract_snapshot_hash: `0x${contractSnapshotHash}`,
+              onchainContractId: txResult.onchainContractId,
+            },
+          },
+        });
       }
 
       const milestoneUpdatePromises = milestones
@@ -326,19 +435,9 @@ export function ContractModal({
         );
 
       await Promise.all([
-        updateContractV2Mutation({
-          variables: {
-            id: existingContract.id,
-            input: {
-              contract_snapshot_cotents: contractJson,
-              contract_snapshot_hash: `0x${contractSnapshotHash}`,
-              onchainContractId: txResult.onchainContractId,
-            },
-          },
-        }),
         updateApplicationV2Mutation({
           variables: {
-            id: contractInformation.applicationId,
+            id: applicationInfo.id,
             input: {
               status: ApplicationStatusV2.InProgress,
             },
@@ -347,22 +446,8 @@ export function ContractModal({
         ...milestoneUpdatePromises,
       ]);
 
-      await createOnchainContractInfoV2Mutation({
-        variables: {
-          input: {
-            programId: Number(contractInformation.programId) || 0,
-            applicantId: Number(contractInformation.applicant?.id) || 0,
-            sponsorId: Number(contractInformation.sponsor?.id) || 0,
-            onchainContractId: txResult.onchainContractId,
-            smartContractId: Number(currentContract.id),
-            tx: txResult.txHash,
-            status: OnchainContractStatusV2.Active,
-          },
-        },
-      });
-
-      if (contractInformation.chatRoomId) {
-        await deactivateContractMessages(contractInformation.chatRoomId);
+      if (applicationInfo.chatRoomId) {
+        await deactivateContractMessages(applicationInfo.chatRoomId);
       }
 
       toast.success('Contract created successfully!');
@@ -379,46 +464,69 @@ export function ContractModal({
     }
   };
 
-  const contractJson: ContractFormProps = contractSnapshot?.contract_snapshot_cotents || {
-    programTitle: contractInformation.title,
-    milestones: milestones
-      .map((milestone) => {
-        return {
-          id: milestone.id,
-          status: milestone.status || MilestoneStatusV2.UnderReview,
-          title: milestone.title,
-          description: milestone.description,
-          deadline: milestone.deadline,
-          payout: milestone.payout,
-        };
-      })
+  const contractJson: ContractFormProps = useMemo(() => {
+    if (!isChatBox && contractSnapshot?.contract_snapshot_cotents) {
+      return contractSnapshot.contract_snapshot_cotents;
+    }
+
+    const sortedMilestones = milestones
+      .map((milestone) => ({
+        id: milestone.id,
+        status: milestone.status || MilestoneStatusV2.UnderReview,
+        title: milestone.title,
+        description: milestone.description,
+        deadline: milestone.deadline,
+        payout: milestone.payout,
+      }))
       .sort((a, b) => {
         if (a.deadline && b.deadline) {
           return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
         }
         return 0;
-      }),
-    sponsor: {
-      firstName: contractInformation.sponsor?.firstName,
-      lastName: contractInformation.sponsor?.lastName,
-      email: contractInformation.sponsor?.email,
-    },
-    applicant: {
-      firstName: contractInformation.applicant?.firstName,
-      lastName: contractInformation.applicant?.lastName,
-      email: contractInformation.applicant?.email,
-    },
-    totalPrice: totalPrice,
-    pendingPrice: pendingPrice,
-    totalPriceString: totalPriceString,
-    pendingPriceString: pendingPriceString,
-    tokenId: Number(programData?.programV2?.token?.id) || null,
-  };
+      });
+
+    return {
+      programTitle: programInfo.title,
+      milestones: sortedMilestones,
+      sponsor: {
+        firstName: programInfo.sponser?.firstName,
+        lastName: programInfo.sponser?.lastName,
+        email: programInfo.sponser?.email,
+      },
+      applicant: {
+        firstName: applicationInfo.applicant?.firstName,
+        lastName: applicationInfo.applicant?.lastName,
+        email: applicationInfo.applicant?.email,
+      },
+      totalPrice,
+      tokenId: Number(programInfo.tokenId) || null,
+    };
+  }, [
+    isChatBox,
+    contractSnapshot?.contract_snapshot_cotents,
+    milestones,
+    programInfo.title,
+    programInfo.sponser?.firstName,
+    programInfo.sponser?.lastName,
+    programInfo.sponser?.email,
+    applicationInfo.applicant?.firstName,
+    applicationInfo.applicant?.lastName,
+    applicationInfo.applicant?.email,
+    totalPrice,
+    programInfo.tokenId,
+  ]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col">
-        <ContractForm contractJson={contractJson} isSponsor={isSponser} />
+        <ContractForm
+          contractJson={contractJson}
+          isSponsor={isSponser}
+          onchainContractId={
+            contractSnapshot?.onchainContractId || existingContract?.onchainContractId || undefined
+          }
+          networkId={programInfo.networkId}
+        />
 
         {(() => {
           if (readOnly) {

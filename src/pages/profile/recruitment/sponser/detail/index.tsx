@@ -4,13 +4,25 @@ import RecruitmentOverview from '@/components/recruitment/overview/recruitment-o
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChevronLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { Link, useParams, useSearchParams } from 'react-router';
+import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
+import { useAuth } from '@/lib/hooks/use-auth';
 
 const ProfileRecuitmentDetail: React.FC = () => {
+  const { id } = useParams();
+  const { userId } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
 
   const [selectedTab, setSelectedTab] = useState(tabParam || 'overview');
+
+  const { data: programData, loading } = useGetProgramV2Query({
+    variables: { id: id || '' },
+    skip: !id,
+  });
+
+  const program = programData?.programV2;
+  const isSponsor = program?.sponsor?.id === userId;
 
   useEffect(() => {
     if (tabParam) {
@@ -23,12 +35,29 @@ const ProfileRecuitmentDetail: React.FC = () => {
     setSearchParams({ tab: value });
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col justify-center items-center h-[60vh]">
+        <p className="text-gray-500">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!loading && !isSponsor) {
+    return (
+      <div className="flex flex-col justify-center items-center h-[60vh] gap-4">
+        <p className="text-xl font-semibold text-gray-dark">Access Denied</p>
+        <p className="text-gray-500">You do not have permission to view this page.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col justify-between bg-white px-10 py-7 rounded-2xl">
       <div className="mb-3">
         <Link
           to={`/profile/recruitment/sponser`}
-          className="flex items-center mb-5 text-sm font-semibold text-gray-text"
+          className="flex items-center w-fit mb-5 text-sm font-semibold text-gray-text"
         >
           <ChevronLeft className="w-4" />
           My Job Posts

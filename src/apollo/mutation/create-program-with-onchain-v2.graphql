@@ -1,14 +1,16 @@
 mutation CreateProgramWithOnchainV2($input: CreateProgramWithOnchainV2Input!) {
   createProgramWithOnchainV2(input: $input) {
     onchain {
+      id
       networkId
       onchainProgramId
-      programId
       smartContractId
       status
       tx
+      createdAt
     }
     program {
+      id
       deadline
       description
       invitedMembers

@@ -1,3 +1,4 @@
+import { useContractsByApplicationV2Query } from '@/apollo/queries/contracts-by-application-v2.generated';
 import { useUserV2Query } from '@/apollo/queries/user-v2.generated';
 import contractLogo from '@/assets/icons/contract.svg';
 import ludiumAssignmentLogo from '@/assets/ludium-assignment.svg';
@@ -17,7 +18,7 @@ import {
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import { cn, getUserDisplayName } from '@/lib/utils';
-import type { ApplicationV2 } from '@/types/types.generated';
+import { ContractInformation } from '@/types/recruitment';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   type DocumentData,
@@ -40,25 +41,39 @@ type MessageFormData = z.infer<typeof messageFormSchema>;
 interface MessageItemProps {
   message: ChatMessage;
   timestamp: Timestamp;
-  applicant?: {
-    id?: string | null;
-    firstName?: string | null;
-    lastName?: string | null;
-    email?: string | null;
-    profileImage?: string | null;
-  };
-  application: ApplicationV2;
+  contractInformation: ContractInformation;
 }
 
-function MessageItem({ message, timestamp, applicant, application }: MessageItemProps) {
+function MessageItem({ message, timestamp, contractInformation }: MessageItemProps) {
   const { userId } = useAuth();
-  const shouldUseApplicant = applicant && applicant.id === message.senderId;
+  const { programInfo, applicationInfo } = contractInformation;
+  const shouldUseApplicant =
+    applicationInfo.applicant && applicationInfo.applicant.id === message.senderId;
   const isMyMessage = userId === message.senderId;
   const isLudiumAssistant = Number(message.senderId) < 0;
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
-  const isUserSponsor = userId === application.program?.sponsor?.id;
-  const isUserBuilder = userId === application.applicant?.id;
+  const isUserSponsor = userId === programInfo.sponser?.id;
+  const isUserBuilder = userId === applicationInfo.applicant?.id;
+
+  const { data: contractsData } = useContractsByApplicationV2Query({
+    variables: {
+      applicationId: Number(applicationInfo.id) || 0,
+      pagination: { limit: 1000, offset: 0 },
+    },
+    skip: !applicationInfo.id,
+  });
+
+  const latestContract = contractsData?.contractsByApplicationV2?.data
+    ?.filter((contract) => contract.onchainContractId != null)
+    .sort((a, b) => {
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      if (a.createdAt && !b.createdAt) return -1;
+      if (!a.createdAt && b.createdAt) return 1;
+      return 0;
+    })[0];
 
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return bytes + ' B';
@@ -75,10 +90,14 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
   let senderImage = '';
 
   if (!isMyMessage) {
-    if (shouldUseApplicant && applicant) {
-      const fullName = getUserDisplayName(applicant.firstName, applicant.lastName, applicant.email);
+    if (shouldUseApplicant && applicationInfo.applicant) {
+      const fullName = getUserDisplayName(
+        applicationInfo.applicant.firstName,
+        applicationInfo.applicant.lastName,
+        applicationInfo.applicant.email,
+      );
       senderName = fullName;
-      senderImage = applicant.profileImage || '';
+      senderImage = applicationInfo.applicant.profileImage || '';
     } else {
       const user = userData?.userV2;
       const fullName = getUserDisplayName(user?.firstName, user?.lastName, user?.email);
@@ -220,17 +239,30 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
                   open={isContractModalOpen}
                   onOpenChange={setIsContractModalOpen}
                   contractInformation={{
-                    title: application.program?.title || '',
-                    programId: application.program?.id || '',
-                    sponsor: application.program?.sponsor || null,
-                    applicant: application.applicant || null,
-                    networkId: application.program?.networkId || null,
-                    chatRoomId: application.chatroomMessageId || null,
-                    applicationId: application.id || '',
-                    applicationStatus: application.status || null,
+                    programInfo: {
+                      id: programInfo.id || '',
+                      title: programInfo.title || '',
+                      sponser: programInfo.sponser || null,
+                      networkId: programInfo.networkId || null,
+                      tokenId: programInfo.tokenId || null,
+                      price: programInfo.price || null,
+                    },
+                    applicationInfo: {
+                      id: applicationInfo.id || '',
+                      applicant: applicationInfo.applicant || null,
+                      status: applicationInfo.status || null,
+                      chatRoomId: applicationInfo.chatRoomId || null,
+                    },
+                    contractSnapshot: latestContract
+                      ? {
+                          ...latestContract,
+                          onchainContractId: latestContract.onchainContractId ?? undefined,
+                        }
+                      : undefined,
                   }}
                   assistantId={message.senderId}
                   readOnly={!message.is_active}
+                  isChatBox={true}
                 />
               </div>
             ) : (
@@ -308,9 +340,9 @@ function MessageItem({ message, timestamp, applicant, application }: MessageItem
 }
 
 export function ChatBox({
-  selectedMessage,
+  contractInformation,
 }: {
-  selectedMessage: ApplicationV2;
+  contractInformation: ContractInformation;
 }) {
   const totalMessages = 50;
 
@@ -333,7 +365,7 @@ export function ChatBox({
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
-  const chatRoomId = selectedMessage.chatroomMessageId;
+  const chatRoomId = contractInformation.applicationInfo.chatRoomId;
 
   const form = useForm<MessageFormData>({
     resolver: zodResolver(messageFormSchema),
@@ -484,6 +516,10 @@ export function ChatBox({
       },
       (error) => {
         console.error('❌ Realtime subscription error:', error);
+      },
+      (updatedMsg) => {
+        setMessages((prev) => prev.map((m) => (m.id === updatedMsg.id ? updatedMsg : m)));
+        lastActivityRef.current = Date.now();
       },
     );
 
@@ -717,8 +753,7 @@ export function ChatBox({
               <MessageItem
                 message={message}
                 timestamp={message.timestamp}
-                applicant={selectedMessage.applicant || undefined}
-                application={selectedMessage}
+                contractInformation={contractInformation}
               />
             )}
           </div>

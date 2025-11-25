@@ -8,14 +8,14 @@ export type OnchainProgramInfoV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type OnchainProgramInfoV2Query = { __typename?: 'Query', onchainProgramInfoV2?: { __typename?: 'OnchainProgramInfoV2', id?: string | null, programId?: number | null, smartContractId?: number | null, onchainProgramId?: number | null, status?: Types.OnchainProgramStatusV2 | null, createdAt?: any | null, tx?: string | null } | null };
+export type OnchainProgramInfoV2Query = { __typename?: 'Query', onchainProgramInfoV2?: { __typename?: 'OnchainProgramInfoV2', id?: string | null, networkId?: number | null, smartContractId?: number | null, onchainProgramId?: number | null, status?: Types.OnchainProgramStatusV2 | null, createdAt?: any | null, tx?: string | null } | null };
 
 
 export const OnchainProgramInfoV2Document = gql`
     query onchainProgramInfoV2($id: ID!) {
   onchainProgramInfoV2(id: $id) {
     id
-    programId
+    networkId
     smartContractId
     onchainProgramId
     status

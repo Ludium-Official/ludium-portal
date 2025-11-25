@@ -3,7 +3,13 @@ import { useUpdateMilestoneV2Mutation } from '@/apollo/mutation/update-milestone
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
-import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,7 +66,7 @@ export function MilestoneModal({
   onRefetch,
   isSponsor,
   isHandleMakeNewMilestone,
-  currentNetwork,
+  tokenName,
   programPrice,
 }: MilestoneModalProps) {
   const [createMilestone, { loading: creatingMilestone }] = useCreateMilestoneV2Mutation();
@@ -178,6 +184,15 @@ export function MilestoneModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[1200px] max-h-[90vh] overflow-hidden flex flex-col p-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>
+            {isNewMilestoneMode
+              ? selectedMilestone
+                ? 'Edit Milestone'
+                : 'Create New Milestone'
+              : 'View Milestone'}
+          </DialogTitle>
+        </DialogHeader>
         <div className="flex flex-1 overflow-hidden">
           <div className="flex-1 min-h-[500px] p-6 overflow-y-auto border-r bg-white">
             {isNewMilestoneMode ? (
@@ -213,14 +228,13 @@ export function MilestoneModal({
                             <FormLabel>
                               <div className="flex items-center justify-between w-full">
                                 <div>
-                                  Budget
+                                  Budget&nbsp;
                                   <span className="text-destructive">*</span>
                                 </div>
 
                                 {programPrice && (
                                   <div className="text-gray-text text-xs">
-                                    Offered Budget: {programPrice}{' '}
-                                    {currentNetwork?.tokens?.[0]?.tokenName}
+                                    Offered Budget: {programPrice} {tokenName}
                                   </div>
                                 )}
                               </div>
@@ -289,7 +303,7 @@ export function MilestoneModal({
                       <div className="flex items-center gap-2">
                         Budget
                         <div className="ml-2 text-gray-dark">
-                          {selectedMilestone?.payout} {currentNetwork?.tokens?.[0]?.tokenName}
+                          {selectedMilestone?.payout} {tokenName}
                         </div>
                       </div>
                     </Badge>

@@ -1,7 +1,7 @@
 query onchainProgramInfoV2($id: ID!) {
   onchainProgramInfoV2(id: $id) {
     id
-    programId
+    networkId
     smartContractId
     onchainProgramId
     status

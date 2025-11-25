@@ -1,6 +1,12 @@
 import type { Control, FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import type { LabelValueProps, VisibilityProps } from './common';
-import type { ApplicationStatusV2, MilestoneV2, ProgramStatusV2, UserV2 } from './types.generated';
+import type {
+  ApplicationStatusV2,
+  ContractV2,
+  MilestoneV2,
+  ProgramStatusV2,
+  UserV2,
+} from './types.generated';
 
 export interface ProgramFormData {
   id?: string;
@@ -103,14 +109,21 @@ export interface RecruitmentApplicant {
 }
 
 export interface ContractInformation {
-  title: string;
-  applicationId: string;
-  programId: string;
-  sponsor: UserV2 | null;
-  applicant: UserV2 | null;
-  networkId: number | null;
-  chatRoomId: string | null;
-  applicationStatus: ApplicationStatusV2 | null;
+  programInfo: {
+    id: string;
+    title: string;
+    sponser: UserV2 | null;
+    networkId: number | null;
+    tokenId: string | null;
+    price: string | null;
+  };
+  applicationInfo: {
+    id: string;
+    applicant: UserV2 | null;
+    status: ApplicationStatusV2 | null;
+    chatRoomId: string | null;
+  };
+  contractSnapshot?: ContractV2 | null;
 }
 
 export interface ContractFormProps {
@@ -119,13 +132,9 @@ export interface ContractFormProps {
   sponsor: UserV2;
   applicant: UserV2;
   totalPrice: number;
-  pendingPrice: number;
-  totalPriceString?: string;
-  pendingPriceString?: string;
   tokenId: number | null;
 }
 
-// Component Props Types
 export interface MilestoneCardProps {
   milestone: MilestoneV2 & { isCompleted?: boolean };
   onClick: (milestone: MilestoneV2) => void;
@@ -135,7 +144,7 @@ export interface MilestoneCardProps {
 export interface ApplicationSidebarProps {
   activeMilestones: MilestoneV2[];
   completedMilestones: MilestoneV2[];
-  files: any[]; // ChatMessageFile[]
+  files: any[];
   contracts: any[];
   isSponsor: boolean;
   isHandleMakeNewMilestone: boolean;
@@ -158,5 +167,6 @@ export interface MilestoneModalProps {
   onRefetch: () => void;
   isSponsor: boolean;
   isHandleMakeNewMilestone: boolean;
-  currentNetwork: any;
+  tokenName?: string;
+  programPrice?: string | null;
 }
