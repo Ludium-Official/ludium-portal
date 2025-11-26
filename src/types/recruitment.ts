@@ -83,7 +83,7 @@ export interface RecruitmentProgram {
   builders?: builderProps[];
   status?: string;
   applicantCount?: string;
-  sponser?: builderProps;
+  sponsor?: builderProps;
 }
 
 export interface RecruitmentApplicant {
@@ -98,6 +98,7 @@ export interface RecruitmentApplicant {
     image?: string | null;
     firstName?: string | null;
     lastName?: string | null;
+    email?: string | null;
     cv?: string | null;
     location?: string | null;
     hourlyRate?: string | null;
@@ -112,7 +113,7 @@ export interface ContractInformation {
   programInfo: {
     id: string;
     title: string;
-    sponser: UserV2 | null;
+    sponsor: UserV2 | null;
     networkId: number | null;
     tokenId: string | null;
     price: string | null;
@@ -162,11 +163,8 @@ export interface MilestoneModalProps {
   setIsNewMilestoneMode: (mode: boolean) => void;
   activeMilestones: MilestoneV2[];
   completedMilestones: MilestoneV2[];
-  applicantId: string;
-  programId: string;
   onRefetch: () => void;
   isSponsor: boolean;
   isHandleMakeNewMilestone: boolean;
-  tokenName?: string;
-  programPrice?: string | null;
+  contractInformation: ContractInformation;
 }

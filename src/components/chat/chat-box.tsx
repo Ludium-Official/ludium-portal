@@ -53,7 +53,7 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
   const isLudiumAssistant = Number(message.senderId) < 0;
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
-  const isUserSponsor = userId === programInfo.sponser?.id;
+  const isUserSponsor = userId === programInfo.sponsor?.id;
   const isUserBuilder = userId === applicationInfo.applicant?.id;
 
   const { data: contractsData } = useContractsByApplicationV2Query({
@@ -242,7 +242,7 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
                     programInfo: {
                       id: programInfo.id || '',
                       title: programInfo.title || '',
-                      sponser: programInfo.sponser || null,
+                      sponsor: programInfo.sponsor || null,
                       networkId: programInfo.networkId || null,
                       tokenId: programInfo.tokenId || null,
                       price: programInfo.price || null,

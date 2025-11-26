@@ -56,6 +56,7 @@ const RecruitmentApplicants: React.FC = () => {
         image: application.applicant?.profileImage,
         firstName: application.applicant?.firstName,
         lastName: application.applicant?.lastName,
+        email: application.applicant?.email,
         cv: application.content,
         // TODO: profile 변경되고 추가될 데이터
         location: null, // Not in GraphQL schema

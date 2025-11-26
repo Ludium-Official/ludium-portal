@@ -18,6 +18,7 @@ query applicationsByProgramV2($query: ApplicationsByProgramV2QueryInput!) {
         bio
         skills
         walletAddress
+        email
       }
       program {
         id

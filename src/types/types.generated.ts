@@ -44,6 +44,16 @@ export type Application = {
   walletAddress?: Maybe<Scalars['String']['output']>;
 };
 
+export type ApplicationMilestoneStatus = {
+  __typename?: 'ApplicationMilestoneStatus';
+  /** Whether all milestones for the application are completed */
+  allCompleted?: Maybe<Scalars['Boolean']['output']>;
+  /** Number of completed milestones */
+  completedCount?: Maybe<Scalars['Int']['output']>;
+  /** Total number of milestones for the application */
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
+
 export enum ApplicationStatus {
   Accepted = 'accepted',
   Completed = 'completed',
@@ -139,6 +149,13 @@ export enum CarouselItemType {
   Post = 'post',
   Program = 'program'
 }
+
+export type CheckCompleteProgramResponse = {
+  __typename?: 'CheckCompleteProgramResponse';
+  allCompleted?: Maybe<Scalars['Boolean']['output']>;
+  completedCount?: Maybe<Scalars['Int']['output']>;
+  totalCount?: Maybe<Scalars['Int']['output']>;
+};
 
 export type CheckMilestoneInput = {
   id: Scalars['String']['input'];
@@ -270,8 +287,8 @@ export type CreateMilestoneInput = {
 };
 
 export type CreateMilestoneV2Input = {
-  /** ID of the applicant (user) */
-  applicantId: Scalars['ID']['input'];
+  /** ID of the application */
+  applicationId: Scalars['ID']['input'];
   /** Milestone deadline */
   deadline: Scalars['DateTime']['input'];
   /** Milestone description */
@@ -282,6 +299,8 @@ export type CreateMilestoneV2Input = {
   payout: Scalars['String']['input'];
   /** ID of the program */
   programId: Scalars['ID']['input'];
+  /** ID of the sponsor (user) */
+  sponsorId: Scalars['ID']['input'];
   /** Milestone status */
   status: MilestoneStatusV2;
   /** Milestone title */
@@ -592,8 +611,8 @@ export type MilestoneV2 = {
   __typename?: 'MilestoneV2';
   /** User who owns this milestone */
   applicant?: Maybe<UserV2>;
-  /** ID of the applicant (user) who owns this milestone */
-  applicantId?: Maybe<Scalars['Int']['output']>;
+  /** ID of the application this milestone belongs to */
+  applicationId?: Maybe<Scalars['Int']['output']>;
   /** Milestone creation timestamp */
   createdAt?: Maybe<Scalars['DateTime']['output']>;
   /** Milestone deadline */
@@ -614,6 +633,10 @@ export type MilestoneV2 = {
   program?: Maybe<ProgramV2>;
   /** ID of the program this milestone belongs to */
   programId?: Maybe<Scalars['Int']['output']>;
+  /** Sponsor user who created this milestone */
+  sponsor?: Maybe<UserV2>;
+  /** ID of the sponsor (user) who created this milestone */
+  sponsorId?: Maybe<Scalars['Int']['output']>;
   /** Milestone status: draft, under_review, in_progress, or completed */
   status?: Maybe<MilestoneStatusV2>;
   /** Milestone title */
@@ -623,8 +646,8 @@ export type MilestoneV2 = {
 };
 
 export type MilestonesV2QueryInput = {
-  /** Filter by applicant ID */
-  applicantId?: InputMaybe<Scalars['ID']['input']>;
+  /** Filter by application ID */
+  applicationId?: InputMaybe<Scalars['ID']['input']>;
   /** Number of items per page */
   limit?: InputMaybe<Scalars['Int']['input']>;
   /** Page number (1-based) */
@@ -643,6 +666,10 @@ export type Mutation = {
   banUser?: Maybe<User>;
   checkMilestone?: Maybe<Milestone>;
   claimProgramFees?: Maybe<FeeClaim>;
+  /** Complete an application after verifying all milestones are completed (only by applicant) */
+  completeApplicationV2?: Maybe<ApplicationV2>;
+  /** Complete a program by changing its status to closed. Requires all applications to be completed. */
+  completeProgramV2?: Maybe<ProgramV2>;
   createApplication?: Maybe<Application>;
   /** Create a new application */
   createApplicationV2?: Maybe<ApplicationV2>;
@@ -794,6 +821,16 @@ export type MutationCheckMilestoneArgs = {
 export type MutationClaimProgramFeesArgs = {
   programId: Scalars['ID']['input'];
   txHash: Scalars['String']['input'];
+};
+
+
+export type MutationCompleteApplicationV2Args = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationCompleteProgramV2Args = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1689,6 +1726,8 @@ export type ProgramsV2QueryInput = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   /** Page number (1-based) */
   page?: InputMaybe<Scalars['Int']['input']>;
+  /** Filter by program status */
+  status?: InputMaybe<ProgramStatusV2>;
 };
 
 export type Query = {
@@ -1703,6 +1742,10 @@ export type Query = {
   /** Get paginated list of applications with filtering options */
   applicationsV2?: Maybe<PaginatedApplicationsV2>;
   carouselItems?: Maybe<Array<EnrichedCarouselItem>>;
+  /** Check if all milestones for a specific application are completed. Returns completion statistics. */
+  checkApplicationMilestonesCompletedV2?: Maybe<ApplicationMilestoneStatus>;
+  /** Check if a program can be completed (i.e., all applications are completed). */
+  checkCompleteProgram?: Maybe<CheckCompleteProgramResponse>;
   claimableFees?: Maybe<ClaimableFees>;
   comment?: Maybe<Comment>;
   comments?: Maybe<PaginatedComments>;
@@ -1761,6 +1804,8 @@ export type Query = {
   programsInProgressV2?: Maybe<PaginatedProgramsV2>;
   /** Get all programs with pagination. Default limit is 10, default offset is 0. */
   programsV2?: Maybe<PaginatedProgramsV2>;
+  /** Get all programs with filtering options (status, pagination). */
+  programsWithFilterV2?: Maybe<PaginatedProgramsV2>;
   /** Query users with dynamic field=value filters (AND condition, no pagination) */
   queryUsersV2?: Maybe<Array<UserV2>>;
   smartContractV2?: Maybe<SmartContractV2>;
@@ -1807,6 +1852,16 @@ export type QueryApplicationsByProgramV2Args = {
 
 export type QueryApplicationsV2Args = {
   query?: InputMaybe<ApplicationsV2QueryInput>;
+};
+
+
+export type QueryCheckApplicationMilestonesCompletedV2Args = {
+  applicationId: Scalars['ID']['input'];
+};
+
+
+export type QueryCheckCompleteProgramArgs = {
+  programId: Scalars['ID']['input'];
 };
 
 
@@ -2040,6 +2095,11 @@ export type QueryProgramsInProgressV2Args = {
 
 export type QueryProgramsV2Args = {
   pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryProgramsWithFilterV2Args = {
+  query?: InputMaybe<ProgramsV2QueryInput>;
 };
 
 

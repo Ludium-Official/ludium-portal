@@ -80,7 +80,7 @@ const CreateProgram: React.FC = () => {
           },
           onCompleted: async () => {
             notify('Successfully created the program', 'success');
-            navigate('/profile/recruitment/sponser');
+            navigate('/profile/recruitment/sponsor');
             client.refetchQueries({ include: [GetProgramsV2Document] });
           },
           onError: (error) => {

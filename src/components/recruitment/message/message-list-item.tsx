@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ludiumAssignmentLogo from '@/assets/ludium-assignment.svg';
-import { cn } from '@/lib/utils';
+import { cn, getUserInitialName, getUserDisplayName } from '@/lib/utils';
 import type { ApplicationV2 } from '@/types/types.generated';
 import type { Timestamp } from 'firebase/firestore';
 
@@ -24,10 +24,8 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
   currentUserId,
 }) => {
   const { applicant } = message;
-  const fullName = `${applicant?.firstName || ''} ${applicant?.lastName || ''}`.trim();
-  const initials = `${applicant?.firstName?.[0] || ''}${
-    applicant?.lastName?.[0] || ''
-  }`.toUpperCase();
+  const fullName = getUserDisplayName(applicant?.firstName, applicant?.lastName, applicant?.email);
+  const initials = getUserInitialName(applicant?.firstName, applicant?.lastName, applicant?.email);
 
   const formatDate = (timestamp: Timestamp | null | undefined) => {
     if (!timestamp) return '';

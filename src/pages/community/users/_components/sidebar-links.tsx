@@ -10,7 +10,7 @@ export const sidebarLinks = [
         label: 'Recruitment',
         // path: "program/recruitment",
         children: [
-          { label: 'Sponsor', path: 'profile/recruitment/sponser' },
+          { label: 'Sponsor', path: 'profile/recruitment/sponsor' },
           { label: 'Builder', path: 'profile/recruitment/builder' },
           // { label: 'Reclaim', path: 'my-profile/program/recruitment/reclaim' },
         ],
