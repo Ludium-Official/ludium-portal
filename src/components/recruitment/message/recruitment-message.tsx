@@ -15,7 +15,6 @@ import { ApplicationStatusV2, MilestoneStatusV2, type MilestoneV2 } from '@/type
 import type { Timestamp } from 'firebase/firestore';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
-import { useNetworks } from '@/contexts/networks-context';
 import MessageListItem from './message-list-item';
 import { MilestoneModal } from './milestone-modal';
 import { ApplicationSidebar } from './application-sidebar';
@@ -23,7 +22,6 @@ import { ApplicationSidebar } from './application-sidebar';
 const RecruitmentMessage: React.FC = () => {
   const { id } = useParams();
   const { userId } = useAuth();
-  const { getTokenById } = useNetworks();
 
   const { data } = useApplicationsByProgramV2Query({
     variables: {
@@ -80,7 +78,7 @@ const RecruitmentMessage: React.FC = () => {
   const { data: milestonesData, refetch: refetchMilestones } = useGetMilestonesV2Query({
     variables: {
       query: {
-        applicantId: selectedApplication?.applicant?.id,
+        applicationId: selectedApplication?.id,
         programId: selectedApplication?.program?.id,
       },
     },
@@ -137,7 +135,7 @@ const RecruitmentMessage: React.FC = () => {
     programInfo: {
       id: program?.id || '',
       title: program?.title || '',
-      sponser: program?.sponsor || null,
+      sponsor: program?.sponsor || null,
       networkId: program?.networkId || null,
       tokenId: program?.token?.id || null,
       price: program?.price || null,
@@ -149,8 +147,6 @@ const RecruitmentMessage: React.FC = () => {
       chatRoomId: selectedApplication?.chatroomMessageId || null,
     },
   };
-
-  const token = getTokenById(Number(contractInformation.programInfo.tokenId));
 
   const handleMilestoneClick = (milestone: MilestoneV2) => {
     setSelectedMilestone(milestone);
@@ -397,13 +393,10 @@ const RecruitmentMessage: React.FC = () => {
         setIsNewMilestoneMode={setIsNewMilestoneMode}
         activeMilestones={activeMilestones}
         completedMilestones={completedMilestones}
-        applicantId={selectedApplication?.applicant?.id || ''}
-        programId={selectedApplication?.program?.id || ''}
         onRefetch={refetchMilestones}
         isSponsor={isSponsor}
         isHandleMakeNewMilestone={isHandleMakeNewMilestone}
-        tokenName={token?.tokenName}
-        programPrice={program?.price}
+        contractInformation={contractInformation}
       />
 
       {selectedContract && (

@@ -16,7 +16,7 @@ function ProgramCard({ program }: { program: ProgramV2 }) {
         <div className="text-lg font-bold line-clamp-1 min-h-[28px]">{title}</div>
         <div className="flex items-center gap-3">
           <Avatar className="w-7 h-7">
-            <AvatarImage src={sponsor?.profileImage || ''} alt="sponser-img" />
+            <AvatarImage src={sponsor?.profileImage || ''} alt="sponsor-img" />
             <AvatarFallback className="text-xs">
               {getInitials(`${program.sponsor?.firstName} ${program.sponsor?.lastName}`)}
             </AvatarFallback>

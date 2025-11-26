@@ -58,7 +58,7 @@ const EditProgram: React.FC = () => {
         },
         onCompleted: async () => {
           notify('Successfully updated the program', 'success');
-          navigate('/profile/recruitment/sponser');
+          navigate('/profile/recruitment/sponsor');
           client.refetchQueries({ include: [GetProgramV2Document] });
         },
         onError: (error) => {

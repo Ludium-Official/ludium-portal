@@ -28,8 +28,8 @@ import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Navigate, Route, Routes } from 'react-router';
 import ProfileRecruitmentBuilder from './pages/profile/recruitment/builder';
 import ProfileRecruitmentBuilderDetail from './pages/profile/recruitment/builder/detail';
-import ProfileRecruitment from './pages/profile/recruitment/sponser';
-import ProfileRecuitmentDetail from './pages/profile/recruitment/sponser/detail';
+import ProfileRecruitment from './pages/profile/recruitment/sponsor';
+import ProfileRecuitmentDetail from './pages/profile/recruitment/sponsor/detail';
 import CreateProgram from './pages/programs/create';
 import ProfilePage from './pages/profile/profile';
 
@@ -85,7 +85,7 @@ function App() {
           <Route path="profile">
             <Route path="edit" element={<EditProfilePage />} />
             <Route path="recruitment">
-              <Route path="sponser">
+              <Route path="sponsor">
                 <Route index element={<ProfileRecruitment />} />
                 <Route path=":id" element={<ProfileRecuitmentDetail />} />
               </Route>

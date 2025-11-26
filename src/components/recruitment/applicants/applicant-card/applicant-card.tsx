@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import notify from '@/lib/notify';
-import { formatDate } from '@/lib/utils';
+import { formatDate, getUserDisplayName, getUserInitialName } from '@/lib/utils';
 import type { RecruitmentApplicant } from '@/types/recruitment';
 import { Heart, MapPin, Star } from 'lucide-react';
 import { useState } from 'react';
@@ -23,8 +23,8 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
   const [updateApplicationChatroom, { loading: isUpdatingChatroom }] =
     useUpdateApplicationChatroomV2Mutation();
 
-  const fullName = `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim();
-  const initials = `${userInfo.firstName?.[0] || ''}${userInfo.lastName?.[0] || ''}`.toUpperCase();
+  const fullName = getUserDisplayName(userInfo.firstName, userInfo.lastName, userInfo.email);
+  const initials = getUserInitialName(userInfo.firstName, userInfo.lastName, userInfo.email);
 
   const handleMessageClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -38,7 +38,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
     try {
       if (chatroomMessageId) {
         navigate(
-          `/profile/recruitment/sponser/${applicant.programId}?tab=message&chatroomId=${chatroomMessageId}`,
+          `/profile/recruitment/sponsor/${applicant.programId}?tab=message&chatroomId=${chatroomMessageId}`,
         );
         return;
       }
@@ -53,7 +53,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
       if (result.data?.updateApplicationChatroomV2?.chatroomMessageId) {
         const newChatroomId = result.data.updateApplicationChatroomV2.chatroomMessageId;
         navigate(
-          `/profile/recruitment/sponser/${applicant.programId}?tab=message&chatroomId=${newChatroomId}`,
+          `/profile/recruitment/sponsor/${applicant.programId}?tab=message&chatroomId=${newChatroomId}`,
         );
         notify('Chatroom created successfully', 'success');
       } else {
@@ -77,9 +77,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
               <div className="flex items-cetner gap-3">
                 <Avatar className="h-16 w-16">
                   <AvatarImage src={userInfo.image || ''} alt={fullName} />
-                  <AvatarFallback className="text-lg font-semibold">
-                    {initials || '??'}
-                  </AvatarFallback>
+                  <AvatarFallback className="text-lg font-semibold">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col justify-around">
                   <div className="flex items-center gap-3 text-xl text-neutral-700">
@@ -177,9 +175,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
             <div className="flex items-start gap-4 mb-6">
               <Avatar className="h-16 w-16">
                 <AvatarImage src={userInfo.image || ''} alt={fullName} />
-                <AvatarFallback className="text-lg font-semibold">
-                  {initials || '??'}
-                </AvatarFallback>
+                <AvatarFallback className="text-lg font-semibold">{initials}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
                 <div className="flex items-center gap-3 text-xl text-neutral-700 mb-2">

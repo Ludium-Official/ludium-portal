@@ -40,6 +40,7 @@ import MarkdownEditor from '@/components/markdown/markdown-editor';
 import { MarkdownPreviewer } from '@/components/markdown';
 import { MilestoneAccordion } from './milestone-accordion';
 import type { MilestoneModalProps } from '@/types/recruitment';
+import { useNetworks } from '@/contexts/networks-context';
 
 const milestoneFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -61,14 +62,19 @@ export function MilestoneModal({
   setIsNewMilestoneMode,
   activeMilestones,
   completedMilestones,
-  applicantId,
-  programId,
   onRefetch,
   isSponsor,
   isHandleMakeNewMilestone,
-  tokenName,
-  programPrice,
+  contractInformation,
 }: MilestoneModalProps) {
+  const { getTokenById } = useNetworks();
+
+  const applicationId = contractInformation.applicationInfo.id;
+  const sponsorId = contractInformation.programInfo.sponsor?.id;
+  const programId = contractInformation.programInfo.id;
+  const programPrice = contractInformation.programInfo.price;
+  const token = getTokenById(Number(contractInformation.programInfo.tokenId));
+  const tokenName = token?.tokenName;
   const [createMilestone, { loading: creatingMilestone }] = useCreateMilestoneV2Mutation();
   const [updateMilestone, { loading: updatingMilestone }] = useUpdateMilestoneV2Mutation();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
@@ -92,7 +98,7 @@ export function MilestoneModal({
   const onSubmitMilestone = async () => {
     if (!pendingFormData) return;
 
-    if (!applicantId || !programId) {
+    if (!sponsorId || !programId) {
       toast.error('Missing applicant or program information');
       return;
     }
@@ -102,7 +108,8 @@ export function MilestoneModal({
         await createMilestone({
           variables: {
             input: {
-              applicantId,
+              applicationId,
+              sponsorId,
               programId,
               title: pendingFormData.title,
               description: pendingFormData.description,

@@ -291,7 +291,7 @@ const ProfileRecruitment: React.FC = () => {
                       key={row.id}
                       data-state={row.getIsSelected() && 'selected'}
                       className="cursor-pointer hover:bg-gray-50 border-b border-[#E4E4E7] last:border-b-0 text-[#4B5563]"
-                      onClick={() => navigate(`/profile/recruitment/sponser/${row.original.id}`)}
+                      onClick={() => navigate(`/profile/recruitment/sponsor/${row.original.id}`)}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell

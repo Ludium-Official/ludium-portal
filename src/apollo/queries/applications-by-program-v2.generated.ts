@@ -32,6 +32,7 @@ export const ApplicationsByProgramV2Document = gql`
         bio
         skills
         walletAddress
+        email
       }
       program {
         id

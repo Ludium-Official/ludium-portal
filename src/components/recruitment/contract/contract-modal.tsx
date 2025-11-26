@@ -56,7 +56,7 @@ export function ContractModal({
   const { data: milestonesData } = useGetMilestonesV2Query({
     variables: {
       query: {
-        applicantId: applicationInfo.applicant?.id,
+        applicationId: applicationInfo.id,
         programId: programInfo.id,
       },
     },
@@ -98,7 +98,7 @@ export function ContractModal({
 
   const contract = useContract(currentNetwork?.chainName || 'educhain', currentContract?.address);
 
-  const isSponser = programInfo.sponser?.id === userId;
+  const isSponsor = programInfo.sponsor?.id === userId;
   const isBuilder = applicationInfo.applicant?.id === userId;
 
   const decimals = useMemo(() => {
@@ -229,7 +229,7 @@ export function ContractModal({
       return;
     }
 
-    if (!currentContract?.id || !programInfo.sponser?.id) {
+    if (!currentContract?.id || !programInfo.sponsor?.id) {
       notify('Missing contract or sponsor information', 'error');
       return;
     }
@@ -247,7 +247,7 @@ export function ContractModal({
           input: {
             programId: Number(programInfo.id) || 0,
             applicantId: Number(applicationInfo.applicant?.id),
-            sponsorId: Number(programInfo.sponser?.id),
+            sponsorId: Number(programInfo.sponsor?.id),
             smartContractId: Number(currentContract.id),
             builder_signature: signature,
             applicationId: Number(applicationInfo.id),
@@ -283,7 +283,7 @@ export function ContractModal({
       return;
     }
 
-    if (!userId || !applicationInfo.applicant?.id || !programInfo.sponser?.id) {
+    if (!userId || !applicationInfo.applicant?.id || !programInfo.sponsor?.id) {
       notify('Missing user information', 'error');
       return;
     }
@@ -400,7 +400,7 @@ export function ContractModal({
             input: {
               programId: Number(programInfo.id) || 0,
               applicantId: Number(applicationInfo.applicant?.id) || 0,
-              sponsorId: Number(programInfo.sponser?.id) || 0,
+              sponsorId: Number(programInfo.sponsor?.id) || 0,
               onchainContractId: txResult.onchainContractId,
               smartContractId: Number(currentContract.id),
               tx: txResult.txHash,
@@ -489,9 +489,9 @@ export function ContractModal({
       programTitle: programInfo.title,
       milestones: sortedMilestones,
       sponsor: {
-        firstName: programInfo.sponser?.firstName,
-        lastName: programInfo.sponser?.lastName,
-        email: programInfo.sponser?.email,
+        firstName: programInfo.sponsor?.firstName,
+        lastName: programInfo.sponsor?.lastName,
+        email: programInfo.sponsor?.email,
       },
       applicant: {
         firstName: applicationInfo.applicant?.firstName,
@@ -506,9 +506,9 @@ export function ContractModal({
     contractSnapshot?.contract_snapshot_cotents,
     milestones,
     programInfo.title,
-    programInfo.sponser?.firstName,
-    programInfo.sponser?.lastName,
-    programInfo.sponser?.email,
+    programInfo.sponsor?.firstName,
+    programInfo.sponsor?.lastName,
+    programInfo.sponsor?.email,
     applicationInfo.applicant?.firstName,
     applicationInfo.applicant?.lastName,
     applicationInfo.applicant?.email,
@@ -521,7 +521,7 @@ export function ContractModal({
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col">
         <ContractForm
           contractJson={contractJson}
-          isSponsor={isSponser}
+          isSponsor={isSponsor}
           onchainContractId={
             contractSnapshot?.onchainContractId || existingContract?.onchainContractId || undefined
           }
@@ -534,7 +534,7 @@ export function ContractModal({
           }
 
           if (assistantId === undefined) {
-            if (isSponser && !isBuilder) {
+            if (isSponsor && !isBuilder) {
               return (
                 <div className="flex justify-end">
                   <Button
@@ -553,7 +553,7 @@ export function ContractModal({
           }
 
           if (assistantId === '-1') {
-            if (isBuilder && !isSponser) {
+            if (isBuilder && !isSponsor) {
               return (
                 <div className="flex justify-end">
                   <Button
@@ -572,7 +572,7 @@ export function ContractModal({
           }
 
           if (assistantId === '-2') {
-            if (isSponser && !isBuilder) {
+            if (isSponsor && !isBuilder) {
               return (
                 <div className="flex justify-end">
                   <Button
