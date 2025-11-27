@@ -33,7 +33,8 @@ export function DatePicker({
       </PopoverTrigger>
       <PopoverContent align={align} className="w-auto p-0 z-[10000] pointer-events-auto">
         <Calendar
-          disabled={disabled}
+          // TODO: disabled={disabled}
+          // disabled={disabled}
           mode="single"
           selected={date}
           onSelect={(day) => {

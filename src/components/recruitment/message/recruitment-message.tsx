@@ -11,7 +11,12 @@ import { type ChatMessageFile, getAllFiles, getLatestMessage } from '@/lib/fireb
 import { useAuth } from '@/lib/hooks/use-auth';
 import { fromUTCString, getUserDisplayName, getUserInitialName } from '@/lib/utils';
 import type { ContractInformation } from '@/types/recruitment';
-import { ApplicationStatusV2, MilestoneStatusV2, type MilestoneV2 } from '@/types/types.generated';
+import {
+  ApplicationStatusV2,
+  ContractV2,
+  MilestoneStatusV2,
+  type MilestoneV2,
+} from '@/types/types.generated';
 import type { Timestamp } from 'firebase/firestore';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
@@ -51,7 +56,7 @@ const RecruitmentMessage: React.FC = () => {
     Record<string, { text: string; timestamp: Timestamp; senderId: string; isFile: boolean }>
   >({});
   const [files, setFiles] = useState<ChatMessageFile[]>([]);
-  const [selectedContract, setSelectedContract] = useState<any>(null);
+  const [selectedContract, setSelectedContract] = useState<ContractV2 | null>(null);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
   useEffect(() => {

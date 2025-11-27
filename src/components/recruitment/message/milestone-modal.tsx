@@ -180,6 +180,10 @@ export function MilestoneModal({
     }
   };
 
+  const handleCompleteClick = () => {
+    console.log(contractInformation, selectedMilestone?.payout);
+  };
+
   useEffect(() => {
     if (!open) {
       setSelectedMilestone(null);
@@ -371,7 +375,12 @@ export function MilestoneModal({
           ) : (
             isSponsor &&
             isHandleMakeNewMilestone && (
-              <div className="flex items-center justify-end w-full">
+              <div className="flex items-center justify-end gap-2">
+                {selectedMilestone && selectedMilestone.status === MilestoneStatusV2.InProgress && (
+                  <Button type="button" variant="purple" onClick={handleCompleteClick}>
+                    Complete
+                  </Button>
+                )}
                 <Button type="button" variant="default" onClick={handleEditClick}>
                   Edit
                 </Button>
