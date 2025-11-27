@@ -110,7 +110,9 @@ const RecruitmentMessage: React.FC = () => {
     .filter((m) =>
       isSponsor
         ? true
-        : m.status === MilestoneStatusV2.InProgress || m.status === MilestoneStatusV2.Completed,
+        : m.status === MilestoneStatusV2.InProgress ||
+          m.status === MilestoneStatusV2.Update ||
+          m.status === MilestoneStatusV2.Completed,
     )
     .sort((a, b) => {
       const aIsDraft = (a as any).status === MilestoneStatusV2.Draft;

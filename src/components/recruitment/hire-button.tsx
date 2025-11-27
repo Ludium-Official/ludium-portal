@@ -22,7 +22,9 @@ export function HireButton({ contractInformation, milestones }: HireButtonProps)
 
   const isActiveHireButton = useMemo(() => {
     const isUnderReviewMilestones =
-      milestones.filter((m) => m.status === MilestoneStatusV2.UnderReview).length > 0;
+      milestones.filter(
+        (m) => m.status === MilestoneStatusV2.UnderReview || m.status === MilestoneStatusV2.Update,
+      ).length > 0;
 
     return (
       isUnderReviewMilestones &&

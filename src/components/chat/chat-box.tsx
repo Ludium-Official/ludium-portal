@@ -46,13 +46,14 @@ interface MessageItemProps {
 
 function MessageItem({ message, timestamp, contractInformation }: MessageItemProps) {
   const { userId } = useAuth();
+
+  const [isContractModalOpen, setIsContractModalOpen] = useState(false);
+
   const { programInfo, applicationInfo } = contractInformation;
   const shouldUseApplicant =
     applicationInfo.applicant && applicationInfo.applicant.id === message.senderId;
   const isMyMessage = userId === message.senderId;
   const isLudiumAssistant = Number(message.senderId) < 0;
-  const [isContractModalOpen, setIsContractModalOpen] = useState(false);
-
   const isUserSponsor = userId === programInfo.sponsor?.id;
   const isUserBuilder = userId === applicationInfo.applicant?.id;
 
@@ -202,7 +203,6 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
 
         <div className="space-y-2">
           {message.senderId === '-1' || message.senderId === '-2' ? (
-            // Only show contract message if user is the intended recipient
             (message.senderId === '-1' && isUserBuilder) ||
             (message.senderId === '-2' && isUserSponsor) ? (
               <div
@@ -489,7 +489,6 @@ export function ChatBox({
   useEffect(() => {
     if (!chatRoomId) return;
 
-    // Clean up existing subscriptions
     if (unsubscribeRef.current) {
       unsubscribeRef.current();
       unsubscribeRef.current = null;
@@ -499,10 +498,8 @@ export function ChatBox({
       pollingIntervalRef.current = null;
     }
 
-    // Wait for newestTimestampRef to be set
     if (!newestTimestampRef.current) return;
 
-    // Setup realtime subscription
     const unsubscribe = subscribeToNewMessages(
       chatRoomId,
       newestTimestampRef.current,
@@ -525,7 +522,6 @@ export function ChatBox({
 
     unsubscribeRef.current = unsubscribe;
 
-    // Setup polling interval
     const pollingInterval = setInterval(async () => {
       if (!newestTimestampRef.current) return;
 

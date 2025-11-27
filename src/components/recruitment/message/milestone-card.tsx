@@ -16,17 +16,19 @@ export function MilestoneCard({ milestone, onClick, isCompleted = false }: Miles
   const daysLeft = getDaysLeft();
   const isDraft = milestone.status === MilestoneStatusV2.Draft;
   const isUnderReview = milestone.status === MilestoneStatusV2.UnderReview;
+  const isUpdate = milestone.status === MilestoneStatusV2.Update;
   const isUrgent =
     !isCompleted &&
     !isDraft &&
     !isUnderReview &&
+    !isUpdate &&
     daysLeft !== null &&
     daysLeft <= 3 &&
     daysLeft >= 0;
 
   const getBackgroundColor = () => {
     if (isDraft) return 'bg-[#F5F5F5] border-l-[#9CA3AF] hover:bg-[#E5E5E5]';
-    if (isUnderReview) return 'bg-[#F0FFF5] border-l-[#4ADE80] hover:bg-[#E0FFE5]';
+    if (isUnderReview || isUpdate) return 'bg-[#F0FFF5] border-l-[#4ADE80] hover:bg-[#E0FFE5]';
     if (isCompleted) return 'bg-[#F0EDFF] border-l-[#9E71C9] hover:bg-[#E5DDFF]';
     if (isUrgent) return 'bg-[#FFF9FC] border-l-[#EC4899] hover:bg-[#FFF0F7]';
     return 'bg-[#F5F8FF] border-l-[#60A5FA] hover:bg-[#EBF2FF]';

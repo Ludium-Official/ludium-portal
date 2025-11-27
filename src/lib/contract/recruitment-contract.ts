@@ -393,8 +393,7 @@ class RecruitmentContract {
         throw new Error('signMessage function is not available');
       }
 
-      const contractHashBytes = ethers.utils.arrayify(contractHash);
-      const signature = await this.signMessage(contractHashBytes);
+      const signature = await this.signMessage(contractHash);
 
       return signature as `0x${string}`;
     } catch (err) {

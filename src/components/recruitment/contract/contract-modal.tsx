@@ -582,7 +582,7 @@ export function ContractModal({
                     disabled={isSigningMessage}
                     className="w-fit"
                   >
-                    {isSigningMessage ? 'Creating...' : 'Create Contract'}
+                    {isSigningMessage ? 'Signing...' : 'Sign'}
                   </Button>
                 </div>
               );

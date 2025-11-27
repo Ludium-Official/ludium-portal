@@ -134,7 +134,7 @@ export function MilestoneModal({
               description: pendingFormData.description,
               payout: pendingFormData.price,
               deadline: toUTCString(pendingFormData.deadline),
-              status: MilestoneStatusV2.UnderReview,
+              status: MilestoneStatusV2.Update,
             },
           },
         });
