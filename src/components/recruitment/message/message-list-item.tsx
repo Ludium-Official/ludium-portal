@@ -49,7 +49,11 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
   };
 
   const getDisplayText = () => {
-    if (latestMessageSenderId === '-1' || latestMessageSenderId === '-2') {
+    if (
+      latestMessageSenderId === '0' ||
+      latestMessageSenderId === '-1' ||
+      latestMessageSenderId === '-2'
+    ) {
       return (
         <div className="flex items-center gap-1">
           <img src={ludiumAssignmentLogo} alt="Ludium Assignment" className="w-4 h-4" />
