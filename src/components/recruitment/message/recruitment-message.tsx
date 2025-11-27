@@ -106,7 +106,31 @@ const RecruitmentMessage: React.FC = () => {
   const program = programData?.programV2;
 
   const allMilestones = milestonesData?.milestonesV2?.data || [];
-  const sortedMilestones = [...allMilestones]
+
+  const latestContract = contracts
+    .filter((contract) => contract.contract_snapshot_cotents)
+    .sort((a, b) => {
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      return 0;
+    })[0];
+
+  const hasUpdateStatus =
+    !isSponsor && allMilestones.some((m) => m.status === MilestoneStatusV2.Update);
+
+  const milestonesToUse = useMemo(() => {
+    if (hasUpdateStatus && latestContract?.contract_snapshot_cotents?.milestones) {
+      return latestContract.contract_snapshot_cotents.milestones.map((m: MilestoneV2) => ({
+        ...m,
+        id: m.id?.toString(),
+        status: MilestoneStatusV2.InProgress,
+      }));
+    }
+    return allMilestones;
+  }, [hasUpdateStatus, latestContract, allMilestones]);
+
+  const sortedMilestones = [...milestonesToUse]
     .filter((m) =>
       isSponsor
         ? true

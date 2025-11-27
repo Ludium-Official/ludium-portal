@@ -143,19 +143,6 @@ export function ContractModal({
   const targetFundingWei = useMemo(() => {
     const totalPriceBN = ethers.utils.parseUnits(totalPrice.toString(), decimals);
 
-    if (contractData?.totalAmount) {
-      const currentTotalBN = ethers.utils.parseUnits(contractData.totalAmount, decimals);
-      const difference = totalPriceBN.sub(currentTotalBN);
-
-      if (difference.lte(0)) {
-        return ethers.BigNumber.from(0);
-      }
-      return difference;
-    }
-
-    if (totalPriceBN.lte(0)) {
-      return ethers.BigNumber.from(0);
-    }
     return totalPriceBN;
   }, [totalPrice, contractData, decimals]);
 
@@ -323,8 +310,7 @@ export function ContractModal({
 
         const currentContractData = await contract.getContract(existingContract.onchainContractId);
         const currentAmount = ethers.utils.parseUnits(currentContractData.totalAmount, decimals);
-        const newAmount = targetFundingWei;
-        const isPriceChanged = !newAmount.eq(currentAmount);
+        const isPriceChanged = !targetFundingWei.eq(currentAmount);
 
         if (isPriceChanged) {
           txResult = await contract.updateContract(
