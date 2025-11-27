@@ -17,6 +17,7 @@ export function DatePicker({
   disabled?: Matcher | Matcher[] | undefined;
   align?: 'center' | 'start' | 'end' | undefined;
 }) {
+  console.log(disabled);
   return (
     <Popover>
       <PopoverTrigger asChild>
