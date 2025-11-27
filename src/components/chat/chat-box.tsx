@@ -9,10 +9,10 @@ import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import {
   type ChatMessage,
   type Unsubscribe,
-  getNewMessages,
   loadInitialMessages,
   loadMoreMessages as loadMoreMessagesFromFirebase,
   sendMessage,
+  subscribeToContractMessages,
   subscribeToNewMessages,
 } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
@@ -46,13 +46,14 @@ interface MessageItemProps {
 
 function MessageItem({ message, timestamp, contractInformation }: MessageItemProps) {
   const { userId } = useAuth();
+
+  const [isContractModalOpen, setIsContractModalOpen] = useState(false);
+
   const { programInfo, applicationInfo } = contractInformation;
   const shouldUseApplicant =
     applicationInfo.applicant && applicationInfo.applicant.id === message.senderId;
   const isMyMessage = userId === message.senderId;
   const isLudiumAssistant = Number(message.senderId) < 0;
-  const [isContractModalOpen, setIsContractModalOpen] = useState(false);
-
   const isUserSponsor = userId === programInfo.sponsor?.id;
   const isUserBuilder = userId === applicationInfo.applicant?.id;
 
@@ -202,7 +203,6 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
 
         <div className="space-y-2">
           {message.senderId === '-1' || message.senderId === '-2' ? (
-            // Only show contract message if user is the intended recipient
             (message.senderId === '-1' && isUserBuilder) ||
             (message.senderId === '-2' && isUserSponsor) ? (
               <div
@@ -363,7 +363,7 @@ export function ChatBox({
   const prevchatRoomId = useRef<string>('');
   const newestTimestampRef = useRef<Timestamp | null>(null);
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const contractUnsubscribeRef = useRef<Unsubscribe | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
   const chatRoomId = contractInformation.applicationInfo.chatRoomId;
 
@@ -489,20 +489,17 @@ export function ChatBox({
   useEffect(() => {
     if (!chatRoomId) return;
 
-    // Clean up existing subscriptions
     if (unsubscribeRef.current) {
       unsubscribeRef.current();
       unsubscribeRef.current = null;
     }
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
+    if (contractUnsubscribeRef.current) {
+      contractUnsubscribeRef.current();
+      contractUnsubscribeRef.current = null;
     }
 
-    // Wait for newestTimestampRef to be set
     if (!newestTimestampRef.current) return;
 
-    // Setup realtime subscription
     const unsubscribe = subscribeToNewMessages(
       chatRoomId,
       newestTimestampRef.current,
@@ -523,44 +520,32 @@ export function ChatBox({
       },
     );
 
+    const contractUnsubscribe = subscribeToContractMessages(
+      chatRoomId,
+      (updatedMsg) => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === updatedMsg.id && m.is_active !== updatedMsg.is_active ? updatedMsg : m,
+          ),
+        );
+        lastActivityRef.current = Date.now();
+      },
+      (error) => {
+        console.error('❌ Contract message subscription error:', error);
+      },
+    );
+
     unsubscribeRef.current = unsubscribe;
-
-    // Setup polling interval
-    const pollingInterval = setInterval(async () => {
-      if (!newestTimestampRef.current) return;
-
-      try {
-        const newMessages = await getNewMessages(chatRoomId, newestTimestampRef.current);
-
-        if (newMessages.length > 0) {
-          setMessages((prev) => {
-            const existingIds = new Set(prev.map((m) => m.id));
-            const uniqueNewMessages = newMessages.filter((m) => !existingIds.has(m.id));
-
-            if (uniqueNewMessages.length === 0) return prev;
-
-            return [...prev, ...uniqueNewMessages];
-          });
-
-          const latestMessage = newMessages[newMessages.length - 1];
-          newestTimestampRef.current = latestMessage.timestamp;
-          lastActivityRef.current = Date.now();
-        }
-      } catch (error) {
-        console.error('❌ Error polling new messages:', error);
-      }
-    }, 1000);
-
-    pollingIntervalRef.current = pollingInterval;
+    contractUnsubscribeRef.current = contractUnsubscribe;
 
     return () => {
       if (unsubscribeRef.current) {
         unsubscribeRef.current();
         unsubscribeRef.current = null;
       }
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-        pollingIntervalRef.current = null;
+      if (contractUnsubscribeRef.current) {
+        contractUnsubscribeRef.current();
+        contractUnsubscribeRef.current = null;
       }
     };
   }, [chatRoomId, messages.length]);

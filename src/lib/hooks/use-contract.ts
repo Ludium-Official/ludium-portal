@@ -82,7 +82,8 @@ export function useContract(network: string, contractAddress?: string) {
       const provider = new ethers.providers.Web3Provider(eip1193Provider);
       const signer = provider.getSigner();
 
-      const signature = await signer.signMessage(message);
+      const contractHashBytes = ethers.utils.arrayify(message);
+      const signature = await signer.signMessage(contractHashBytes);
       return signature;
     } catch (error) {
       console.error('Error signing message:', error);

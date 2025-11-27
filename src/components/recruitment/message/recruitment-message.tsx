@@ -11,7 +11,12 @@ import { type ChatMessageFile, getAllFiles, getLatestMessage } from '@/lib/fireb
 import { useAuth } from '@/lib/hooks/use-auth';
 import { fromUTCString, getUserDisplayName, getUserInitialName } from '@/lib/utils';
 import type { ContractInformation } from '@/types/recruitment';
-import { ApplicationStatusV2, MilestoneStatusV2, type MilestoneV2 } from '@/types/types.generated';
+import {
+  ApplicationStatusV2,
+  ContractV2,
+  MilestoneStatusV2,
+  type MilestoneV2,
+} from '@/types/types.generated';
 import type { Timestamp } from 'firebase/firestore';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
@@ -51,7 +56,7 @@ const RecruitmentMessage: React.FC = () => {
     Record<string, { text: string; timestamp: Timestamp; senderId: string; isFile: boolean }>
   >({});
   const [files, setFiles] = useState<ChatMessageFile[]>([]);
-  const [selectedContract, setSelectedContract] = useState<any>(null);
+  const [selectedContract, setSelectedContract] = useState<ContractV2 | null>(null);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
   useEffect(() => {
@@ -106,11 +111,37 @@ const RecruitmentMessage: React.FC = () => {
   const program = programData?.programV2;
 
   const allMilestones = milestonesData?.milestonesV2?.data || [];
-  const sortedMilestones = [...allMilestones]
+
+  const latestContract = contracts
+    .filter((contract) => contract.contract_snapshot_cotents)
+    .sort((a, b) => {
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      return 0;
+    })[0];
+
+  const hasUpdateStatus =
+    !isSponsor && allMilestones.some((m) => m.status === MilestoneStatusV2.Update);
+
+  const milestonesToUse = useMemo(() => {
+    if (hasUpdateStatus && latestContract?.contract_snapshot_cotents?.milestones) {
+      return latestContract.contract_snapshot_cotents.milestones.map((m: MilestoneV2) => ({
+        ...m,
+        id: m.id?.toString(),
+        status: MilestoneStatusV2.InProgress,
+      }));
+    }
+    return allMilestones;
+  }, [hasUpdateStatus, latestContract, allMilestones]);
+
+  const sortedMilestones = [...milestonesToUse]
     .filter((m) =>
       isSponsor
         ? true
-        : m.status === MilestoneStatusV2.InProgress || m.status === MilestoneStatusV2.Completed,
+        : m.status === MilestoneStatusV2.InProgress ||
+          m.status === MilestoneStatusV2.Update ||
+          m.status === MilestoneStatusV2.Completed,
     )
     .sort((a, b) => {
       const aIsDraft = (a as any).status === MilestoneStatusV2.Draft;

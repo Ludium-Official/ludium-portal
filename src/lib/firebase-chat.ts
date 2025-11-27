@@ -324,3 +324,78 @@ export async function deactivateContractMessages(
     throw error;
   }
 }
+
+export async function getContractMessages(
+  chatRoomId: string,
+  senderIds: string[] = ['-1', '-2'],
+): Promise<ChatMessage[]> {
+  if (!chatRoomId) {
+    return [];
+  }
+
+  try {
+    const messagesRef = collection(db, 'chats');
+    const q = query(
+      messagesRef,
+      where('chatRoomId', '==', chatRoomId),
+      where('senderId', 'in', senderIds),
+    );
+
+    const snapshot = await getDocs(q);
+
+    const messages = snapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      .sort((a, b) => {
+        const aTime = (a as ChatMessage).timestamp?.toMillis() || 0;
+        const bTime = (b as ChatMessage).timestamp?.toMillis() || 0;
+        return aTime - bTime;
+      }) as ChatMessage[];
+
+    return messages;
+  } catch (error) {
+    console.error('❌ Error getting contract messages:', error);
+    return [];
+  }
+}
+
+export function subscribeToContractMessages(
+  chatRoomId: string,
+  onMessageUpdate: (message: ChatMessage) => void,
+  onError?: (error: Error) => void,
+  senderIds: string[] = ['-1', '-2'],
+): Unsubscribe {
+  const messagesRef = collection(db, 'chats');
+  const q = query(
+    messagesRef,
+    where('chatRoomId', '==', chatRoomId),
+    where('senderId', 'in', senderIds),
+  );
+
+  const unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        const msg = {
+          id: change.doc.id,
+          ...change.doc.data(),
+        } as ChatMessage;
+
+        if (change.type === 'added' || change.type === 'modified') {
+          onMessageUpdate(msg);
+        }
+      });
+    },
+    (error) => {
+      if (onError) {
+        onError(error);
+      } else {
+        console.error('❌ Contract message subscription error:', error);
+      }
+    },
+  );
+
+  return unsubscribe;
+}

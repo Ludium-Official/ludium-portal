@@ -134,7 +134,7 @@ export function MilestoneModal({
               description: pendingFormData.description,
               payout: pendingFormData.price,
               deadline: toUTCString(pendingFormData.deadline),
-              status: MilestoneStatusV2.UnderReview,
+              status: MilestoneStatusV2.Update,
             },
           },
         });
@@ -178,6 +178,10 @@ export function MilestoneModal({
       }
       setIsNewMilestoneMode(true);
     }
+  };
+
+  const handleCompleteClick = () => {
+    console.log(contractInformation, selectedMilestone?.payout);
   };
 
   useEffect(() => {
@@ -371,7 +375,12 @@ export function MilestoneModal({
           ) : (
             isSponsor &&
             isHandleMakeNewMilestone && (
-              <div className="flex items-center justify-end w-full">
+              <div className="flex items-center justify-end gap-2">
+                {selectedMilestone && selectedMilestone.status === MilestoneStatusV2.InProgress && (
+                  <Button type="button" variant="purple" onClick={handleCompleteClick}>
+                    Complete
+                  </Button>
+                )}
                 <Button type="button" variant="default" onClick={handleEditClick}>
                   Edit
                 </Button>
