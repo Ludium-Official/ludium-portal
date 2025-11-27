@@ -9,10 +9,10 @@ import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import {
   type ChatMessage,
   type Unsubscribe,
-  getNewMessages,
   loadInitialMessages,
   loadMoreMessages as loadMoreMessagesFromFirebase,
   sendMessage,
+  subscribeToContractMessages,
   subscribeToNewMessages,
 } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
@@ -363,7 +363,7 @@ export function ChatBox({
   const prevchatRoomId = useRef<string>('');
   const newestTimestampRef = useRef<Timestamp | null>(null);
   const unsubscribeRef = useRef<Unsubscribe | null>(null);
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const contractUnsubscribeRef = useRef<Unsubscribe | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
   const chatRoomId = contractInformation.applicationInfo.chatRoomId;
 
@@ -493,9 +493,9 @@ export function ChatBox({
       unsubscribeRef.current();
       unsubscribeRef.current = null;
     }
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
+    if (contractUnsubscribeRef.current) {
+      contractUnsubscribeRef.current();
+      contractUnsubscribeRef.current = null;
     }
 
     if (!newestTimestampRef.current) return;
@@ -520,43 +520,32 @@ export function ChatBox({
       },
     );
 
+    const contractUnsubscribe = subscribeToContractMessages(
+      chatRoomId,
+      (updatedMsg) => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === updatedMsg.id && m.is_active !== updatedMsg.is_active ? updatedMsg : m,
+          ),
+        );
+        lastActivityRef.current = Date.now();
+      },
+      (error) => {
+        console.error('❌ Contract message subscription error:', error);
+      },
+    );
+
     unsubscribeRef.current = unsubscribe;
-
-    const pollingInterval = setInterval(async () => {
-      if (!newestTimestampRef.current) return;
-
-      try {
-        const newMessages = await getNewMessages(chatRoomId, newestTimestampRef.current);
-
-        if (newMessages.length > 0) {
-          setMessages((prev) => {
-            const existingIds = new Set(prev.map((m) => m.id));
-            const uniqueNewMessages = newMessages.filter((m) => !existingIds.has(m.id));
-
-            if (uniqueNewMessages.length === 0) return prev;
-
-            return [...prev, ...uniqueNewMessages];
-          });
-
-          const latestMessage = newMessages[newMessages.length - 1];
-          newestTimestampRef.current = latestMessage.timestamp;
-          lastActivityRef.current = Date.now();
-        }
-      } catch (error) {
-        console.error('❌ Error polling new messages:', error);
-      }
-    }, 1000);
-
-    pollingIntervalRef.current = pollingInterval;
+    contractUnsubscribeRef.current = contractUnsubscribe;
 
     return () => {
       if (unsubscribeRef.current) {
         unsubscribeRef.current();
         unsubscribeRef.current = null;
       }
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-        pollingIntervalRef.current = null;
+      if (contractUnsubscribeRef.current) {
+        contractUnsubscribeRef.current();
+        contractUnsubscribeRef.current = null;
       }
     };
   }, [chatRoomId, messages.length]);
