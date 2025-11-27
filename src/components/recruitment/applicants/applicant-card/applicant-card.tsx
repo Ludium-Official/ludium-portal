@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { sendMessage } from '@/lib/firebase-chat';
 import notify from '@/lib/notify';
 import { formatDate, getUserDisplayName, getUserInitialName } from '@/lib/utils';
 import type { RecruitmentApplicant } from '@/types/recruitment';
@@ -54,6 +55,12 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
         const newChatroomId = result.data.updateApplicationChatroomV2.chatroomMessageId;
         navigate(
           `/profile/recruitment/sponsor/${applicant.programId}?tab=message&chatroomId=${newChatroomId}`,
+        );
+
+        await sendMessage(
+          newChatroomId || '',
+          'Start by greeting the builder and sharing project details.',
+          '0',
         );
         notify('Chatroom created successfully', 'success');
       } else {

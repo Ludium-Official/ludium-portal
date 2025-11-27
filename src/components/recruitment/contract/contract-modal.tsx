@@ -436,6 +436,8 @@ export function ContractModal({
         await deactivateContractMessages(applicationInfo.chatRoomId);
       }
 
+      await sendMessage(applicationInfo.chatRoomId || '', 'The contract is now active.', '0');
+
       toast.success('Contract created successfully!');
       notify('Contract created on-chain and in database', 'success');
 

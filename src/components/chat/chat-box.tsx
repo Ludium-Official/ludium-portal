@@ -53,7 +53,7 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
   const shouldUseApplicant =
     applicationInfo.applicant && applicationInfo.applicant.id === message.senderId;
   const isMyMessage = userId === message.senderId;
-  const isLudiumAssistant = Number(message.senderId) < 0;
+  const isLudiumAssistant = Number(message.senderId) <= 0;
   const isUserSponsor = userId === programInfo.sponsor?.id;
   const isUserBuilder = userId === applicationInfo.applicant?.id;
 
@@ -183,25 +183,34 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
 
   return (
     <div className="flex gap-3 items-start">
-      <Avatar className="h-10 w-10">
-        <AvatarImage src={isLudiumAssistant ? ludiumAssignmentLogo : senderImage} />
-        <AvatarFallback className="text-sm">{getInitials(senderName)}</AvatarFallback>
-      </Avatar>
+      {message.senderId !== '0' && (
+        <Avatar className="h-10 w-10">
+          <AvatarImage src={isLudiumAssistant ? ludiumAssignmentLogo : senderImage} />
+          <AvatarFallback className="text-sm">{getInitials(senderName)}</AvatarFallback>
+        </Avatar>
+      )}
 
       <div className="flex flex-col flex-1">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-sm font-semibold text-slate-700">
-            {isLudiumAssistant ? 'Ludium Assistant' : senderName}
-          </span>
-          <span className="text-xs text-slate-400">
-            {timestamp.toDate().toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </span>
-        </div>
+        {message.senderId !== '0' && (
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-sm font-semibold text-slate-700">
+              {isLudiumAssistant ? 'Ludium Assistant' : senderName}
+            </span>
+            <span className="text-xs text-slate-400">
+              {timestamp.toDate().toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
+            </span>
+          </div>
+        )}
 
         <div className="space-y-2">
+          {message.senderId === '0' && (
+            <div className="flex justify-center w-full italic mt-3">
+              <p className="text-sm text-[#7C7C7C]">{message.text}</p>
+            </div>
+          )}
           {message.senderId === '-1' || message.senderId === '-2' ? (
             (message.senderId === '-1' && isUserBuilder) ||
             (message.senderId === '-2' && isUserSponsor) ? (
@@ -215,16 +224,11 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
                 <div>
                   <img src={contractLogo} alt="contract" className="mb-3" />
                   <div className="font-bold text-lg">Employment Contract</div>
-                  <div className="mt-1 mb-5 font-semibold">
+                  <div className={cn('mt-1 text-sm', message.is_active && 'mb-5')}>
                     {message.senderId === '-1'
-                      ? 'Sponsor sent a contract for review and signature.'
-                      : 'Builder sent a contract for review and signature.'}
+                      ? 'The sponsor has sent you a contract. Review the terms and sign electronically to proceed with the agreement.'
+                      : 'The builder has signed the contract. Complete your final signature to confirm the agreement.'}
                   </div>
-                  {!message.is_active && (
-                    <div className="mb-3 text-sm text-slate-500 italic">
-                      This contract has been completed and is no longer active.
-                    </div>
-                  )}
                   {message.is_active && (
                     <Button
                       variant="purple"
@@ -272,16 +276,16 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
                   isLudiumAssistant && 'py-4 bg-white border border-primary',
                 )}
               >
-                <p className="text-sm text-slate-600 italic">
+                <p className="text-sm text-slate-600">
                   {message.senderId === '-1'
-                    ? 'The builder is reviewing the contract. While it is under review, you cannot modify or add milestones.'
-                    : 'Contract review has been completed, and the sponsor is currently proceeding with signing and funding.'}
+                    ? 'The contract has been sent. The builder is reviewing and signing it. Please wait.'
+                    : "You've signed the contract. Please wait for the sponsor to complete the final signature to activate the agreement."}
                 </p>
               </div>
             )
           ) : (
             <>
-              {message.text && (
+              {message.senderId !== '0' && message.text && (
                 <div
                   className={cn(
                     'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
@@ -717,8 +721,8 @@ export function ChatBox({
         )}
 
         {!isLoading && messages.length === 0 && (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">
-            No messages yet. Start the conversation!
+          <div className="flex-1 flex justify-center mt-5 text-muted-foreground text-sm italic">
+            The chat has been created. Start by greeting the builder and sharing project details.
           </div>
         )}
 
