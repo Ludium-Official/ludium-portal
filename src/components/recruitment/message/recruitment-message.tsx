@@ -159,8 +159,10 @@ const RecruitmentMessage: React.FC = () => {
       if (!aDate || !bDate) return 0;
       return aDate.getTime() - bDate.getTime();
     });
-  const activeMilestones = sortedMilestones.filter((m) => !(m as any).isCompleted);
-  const completedMilestones = sortedMilestones.filter((m) => (m as any).isCompleted);
+  const activeMilestones = sortedMilestones.filter((m) => m.status !== MilestoneStatusV2.Completed);
+  const completedMilestones = sortedMilestones.filter(
+    (m) => m.status === MilestoneStatusV2.Completed,
+  );
 
   const contractInformation: ContractInformation = {
     programInfo: {
