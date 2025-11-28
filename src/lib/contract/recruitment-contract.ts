@@ -523,6 +523,88 @@ class RecruitmentContract {
 
     return tx;
   }
+
+  async completeMilestone(contractId: number | string | bigint, amount: bigint) {
+    try {
+      const data = encodeFunctionData({
+        abi: LdRecruitmentAbi,
+        functionName: 'completeMilestone',
+        args: [BigInt(contractId), amount],
+      });
+
+      const tx = await this.sendTransaction(
+        {
+          to: this.contractAddress,
+          data,
+          value: 0n,
+          chainId: this.chainId,
+        },
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            description: `Complete Milestone`,
+            buttonText: 'Submit Transaction',
+            transactionInfo: {
+              title: 'Transaction Details',
+              action: 'Complete Milestone',
+            },
+            successHeader: 'Milestone Completed Successfully!',
+            successDescription: 'The milestone has been completed.',
+          },
+        },
+      );
+
+      await this.client.waitForTransactionReceipt({
+        hash: tx.hash,
+      });
+
+      return { txHash: tx.hash };
+    } catch (err) {
+      console.error('Failed to complete milestone - Full error:', err);
+      throw err;
+    }
+  }
+
+  async completeProgram(programId: number | string | bigint) {
+    try {
+      const data = encodeFunctionData({
+        abi: LdRecruitmentAbi,
+        functionName: 'completeProgram',
+        args: [BigInt(programId)],
+      });
+
+      const tx = await this.sendTransaction(
+        {
+          to: this.contractAddress,
+          data,
+          value: 0n,
+          chainId: this.chainId,
+        },
+        {
+          uiOptions: {
+            showWalletUIs: true,
+            description: `Complete Program`,
+            buttonText: 'Submit Transaction',
+            transactionInfo: {
+              title: 'Transaction Details',
+              action: 'Complete Program',
+            },
+            successHeader: 'Program Completed Successfully!',
+            successDescription: 'The program has been completed.',
+          },
+        },
+      );
+
+      await this.client.waitForTransactionReceipt({
+        hash: tx.hash,
+      });
+
+      return { txHash: tx.hash };
+    } catch (err) {
+      console.error('Failed to complete program - Full error:', err);
+      throw err;
+    }
+  }
 }
 
 export default RecruitmentContract;

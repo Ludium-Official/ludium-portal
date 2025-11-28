@@ -25,7 +25,7 @@ export function MilestoneAccordion({
   onNewMilestoneClick,
   isSponsor = false,
   isHandleMakeNewMilestone = false,
-  defaultOpen = ['milestone'],
+  defaultOpen = ['milestone', 'completed'],
 }: MilestoneAccordionProps) {
   return (
     <Accordion type="multiple" defaultValue={defaultOpen} className="bg-white rounded-lg">
