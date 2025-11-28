@@ -1,0 +1,36 @@
+query GetProgramsByBuilderV2($builderId: ID!, $pagination: PaginationInput) {
+  programsByBuilderIdV2(builderId: $builderId, pagination: $pagination) {
+    data {
+      id
+      title
+      description
+      price
+      createdAt
+      deadline
+      status
+      applicationCount
+      sponsor {
+        id
+        walletAddress
+        email
+        firstName
+        lastName
+        profileImage
+      }
+      network {
+        id
+        chainId
+        chainName
+        mainnet
+        exploreUrl
+      }
+      token {
+        id
+        chainInfoId
+        tokenName
+        tokenAddress
+      }
+    }
+    count
+  }
+}

@@ -1,34 +1,11 @@
-import { useLoginMutation } from '@/apollo/mutation/login.generated';
-import { useProfileQuery } from '@/apollo/queries/profile.generated';
-import { UserRole } from '@/types/types.generated';
+import { useLoginV2Mutation } from '@/apollo/mutation/loginV2.generated';
+import { useProfileV2Query } from '@/apollo/queries/profile-v2.generated';
+import type { AuthProps, LoginProps } from '@/types/auth';
+import { UserRoleV2 } from '@/types/types.generated';
 import { createContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-interface AuthValues {
-  email?: string | null;
-  token?: string | null;
-  roles?: string[] | null;
-  userId: string;
-  isLoggedIn?: boolean;
-  isAuthed?: boolean;
-  isSponsor?: boolean;
-  isValidator?: boolean;
-  isBuilder?: boolean;
-  isAdmin?: boolean | null;
-  isSuperadmin?: boolean | null;
-  login: ({
-    email,
-    walletAddress,
-    loginType,
-  }: {
-    email: string | null;
-    walletAddress: string;
-    loginType: string;
-  }) => Promise<void>;
-  logout: () => Promise<void>;
-}
-
-export const AuthContext = createContext<AuthValues>({
+export const AuthContext = createContext<AuthProps>({
   email: null,
   token: null,
   roles: null,
@@ -42,53 +19,29 @@ export const AuthContext = createContext<AuthValues>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const navigate = useNavigate();
+
   const [token, setToken] = useState<string | null>();
   const [email, setEmail] = useState<string | null>();
   const [userId, setUserId] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState<boolean | null>();
   const [isSuperadmin, setIsSuperadmin] = useState<boolean | null>();
-  const navigate = useNavigate();
 
-  const { data: profileData, error } = useProfileQuery({
+  const { data: userProfile, error } = useProfileV2Query({
     skip: !token,
     fetchPolicy: 'network-only',
   });
 
-  const [loginMutation] = useLoginMutation();
+  const [loginMutation] = useLoginV2Mutation();
 
-  useEffect(() => {
-    setUserId(profileData?.profile?.id ?? '');
-    setIsAdmin(
-      profileData?.profile?.role === UserRole.Admin ||
-        profileData?.profile?.role === UserRole.Superadmin,
-    );
-    setIsSuperadmin(profileData?.profile?.role === UserRole.Superadmin);
-  }, [profileData]);
-
-  useEffect(() => {
-    const tkn = localStorage.getItem('token');
-    if (tkn) setToken(tkn);
-  }, []);
-
-  const login = async ({
-    email,
-    walletAddress,
-    loginType,
-  }: {
-    email: string | null;
-    walletAddress: string;
-    loginType: string;
-  }) => {
+  const login = async (props: LoginProps) => {
     await loginMutation({
-      variables: {
-        email,
-        walletAddress,
-        loginType,
-      },
+      variables: props,
       onCompleted: (data) => {
-        setToken(data.login);
+        setToken(data.loginV2);
         setEmail(email);
-        localStorage.setItem('token', data.login ?? '');
+
+        localStorage.setItem('token', data.loginV2 ?? '');
       },
     });
   };
@@ -96,9 +49,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async () => {
     localStorage.removeItem('token');
     localStorage.removeItem('roles');
+
     setToken(null);
+
     navigate('/');
   };
+
+  useEffect(() => {
+    if (userProfile) {
+      setUserId(userProfile.profileV2?.id ?? '');
+      setIsAdmin(userProfile.profileV2?.role === UserRoleV2.Admin);
+      setIsSuperadmin(userProfile.profileV2?.role === UserRoleV2.Admin);
+    }
+  }, [userProfile]);
+
+  useEffect(() => {
+    const tkn = localStorage.getItem('token');
+
+    if (tkn) setToken(tkn);
+  }, []);
 
   useEffect(() => {
     if (error) {
@@ -114,7 +83,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         token,
         isLoggedIn: !!token,
-        isAuthed: !!token && !!profileData?.profile?.email,
+        isAuthed: !!token && !!userProfile?.profileV2?.email,
         login,
         logout,
         isAdmin,

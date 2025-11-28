@@ -1,0 +1,19 @@
+mutation updateApplicationV2($id: ID!, $input: UpdateApplicationV2Input!) {
+  updateApplicationV2(id: $id, input: $input) {
+    id
+    status
+    createdAt
+    updatedAt
+    applicant {
+      id
+      email
+      firstName
+      lastName
+      profileImage
+    }
+    program {
+      id
+      title
+    }
+  }
+}

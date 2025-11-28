@@ -1,0 +1,18 @@
+mutation updateUserV2($input: UpdateUserV2Input!) {
+  updateUserV2(input: $input) {
+    id
+    role
+    loginType
+    walletAddress
+    email
+    firstName
+    lastName
+    organizationName
+    profileImage
+    bio
+    skills
+    links
+    createdAt
+    updatedAt
+  }
+}

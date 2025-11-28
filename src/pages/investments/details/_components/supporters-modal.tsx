@@ -1,16 +1,17 @@
 import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
 import { useRemoveUserFromProgramMutation } from '@/apollo/mutation/remove-user-from-program.generated';
-import { useUsersQuery } from '@/apollo/queries/users.generated';
+import { useUsersV2Query } from '@/apollo/queries/users-v2.generated';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
 import { getCurrencyIcon, sortTierSettings } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
+import type { LabelValueProps } from '@/types/common';
 import type { InvestmentTier, Program, Supporter } from '@/types/types.generated';
+import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 import { ChevronDown, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -40,9 +41,7 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
 }) => {
   const [supportersTab, setSupportersTab] = useState<'invite' | 'supporters'>('invite');
   const [selectedSupporter, setSelectedSupporter] = useState<string[]>([]);
-  const [selectedSupporterItems, setSelectedSupporterItems] = useState<
-    { label: string; value: string }[]
-  >([]);
+  const [selectedSupporterItems, setSelectedSupporterItems] = useState<LabelValueProps[]>([]);
   const [supporterInput, setSupporterInput] = useState<string>();
   const [debouncedSupporterInput, setDebouncedSupporterInput] = useState<string>();
   const [selectedTier, setSelectedTier] = useState<string | undefined>(undefined);
@@ -50,7 +49,6 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
 
   const [inviteUserToProgram] = useInviteUserToProgramMutation();
   const [removeUserFromProgram] = useRemoveUserFromProgramMutation();
-  const investmentContract = useInvestmentContract(program?.network || null);
 
   // Debounce supporter input
   useEffect(() => {
@@ -61,23 +59,17 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
   }, [supporterInput]);
 
   // Query for supporters/users
-  const { data: supportersData, loading: supportersLoading } = useUsersQuery({
+  const { data: supportersData, loading: supportersLoading } = useUsersV2Query({
     variables: {
-      input: {
+      query: {
         limit: 5,
-        offset: 0,
-        filter: [
-          {
-            field: 'search',
-            value: debouncedSupporterInput ?? '',
-          },
-        ],
+        search: debouncedSupporterInput ?? '',
       },
     },
     skip: !supporterInput,
   });
 
-  const supporterOptions = supportersData?.users?.data?.map((v) => ({
+  const supporterOptions = supportersData?.usersV2?.users?.map((v) => ({
     value: v.id ?? '',
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
   }));
@@ -103,23 +95,20 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
     const supporterId = selectedSupporter[0];
     const supporterItem = selectedSupporterItems[0];
 
-    // Check if supporter is already in the list
     const isAlreadyAdded = storedSupporters.some((supporter) => supporter.id === supporterId);
     if (isAlreadyAdded) {
       console.error('Supporter is already in the list');
       return;
     }
 
-    // Find the user data to get wallet address
-    const userData = supportersData?.users?.data?.find((u) => u.id === supporterId);
+    const userData = supportersData?.usersV2?.users?.find((u) => u.id === supporterId);
 
-    // Add supporter to stored list with wallet address
     const newSupporter = {
       id: supporterId,
       name: supporterItem?.label || 'Unknown User',
-      email: supporterItem?.label.split(' ')[0] || 'unknown@email.com', // Extract email from label
+      email: supporterItem?.label.split(' ')[0] || 'unknown@email.com',
       tier: selectedTier || 'gold',
-      walletAddress: userData?.walletAddress || undefined, // Store wallet address here!
+      walletAddress: userData?.walletAddress || undefined,
     };
 
     if (!userData?.walletAddress) {
@@ -130,7 +119,6 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
 
     setStoredSupporters((prev) => [...prev, newSupporter]);
 
-    // Reset selection
     setSelectedSupporter([]);
     setSelectedSupporterItems([]);
     setSupporterInput('');
@@ -140,7 +128,6 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
     setStoredSupporters((prev) => prev.filter((supporter) => supporter.id !== supporterId));
   };
 
-  // Helper function to sort supporters by tier (highest to lowest)
   const sortSupportersByTier = (supporters: StoredSupporter[]) => {
     const tierOrder = ['platinum', 'gold', 'silver', 'bronze'];
     return [...supporters].sort((a, b) => {
@@ -150,7 +137,6 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
     });
   };
 
-  // Helper function to sort existing supporters by tier (highest to lowest)
   const sortExistingSupportersByTier = (supporters: Supporter[]) => {
     const tierOrder = ['platinum', 'gold', 'silver', 'bronze'];
     return [...supporters].sort((a, b) => {
@@ -160,7 +146,6 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
     });
   };
 
-  // Helper function to calculate total amount for stored supporters
   const calculateStoredSupportersTotal = () => {
     return storedSupporters.reduce((total, supporter) => {
       const tierSettings = program?.tierSettings;
@@ -169,14 +154,13 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
       const tierValue = (tierSettings as Record<string, { maxAmount?: number }>)[
         supporter.tier ?? ''
       ];
-      const amount = Number(tierValue?.maxAmount) || 0;
-      return total + amount;
-    }, 0);
+      const amount = new BigNumber(tierValue?.maxAmount ?? 0);
+      return total.plus(amount);
+    }, new BigNumber(0));
   };
 
-  // Helper function to calculate total amount for existing supporters
   const calculateExistingSupportersTotal = () => {
-    if (!program?.supporters) return 0;
+    if (!program?.supporters) return new BigNumber(0);
 
     return program.supporters.reduce((total, supporter) => {
       const tierSettings = program?.tierSettings;
@@ -185,19 +169,18 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
       const tierValue = (tierSettings as Record<string, { maxAmount?: number }>)[
         supporter.tier ?? ''
       ];
-      const amount = Number(tierValue?.maxAmount) || 0;
-      return total + amount;
-    }, 0);
+      const amount = new BigNumber(tierValue?.maxAmount ?? 0);
+      return total.plus(amount);
+    }, new BigNumber(0));
   };
 
-  // Helper function to check if total amount exceeds program price
   const isAmountExceeded = () => {
     const storedTotal = calculateStoredSupportersTotal();
     const existingTotal = calculateExistingSupportersTotal();
-    const totalAmount = storedTotal + existingTotal;
-    const programPrice = Number(program?.price) || 0;
+    const totalAmount = storedTotal.plus(existingTotal);
+    const programPrice = new BigNumber(program?.price ?? 0);
 
-    return totalAmount > programPrice;
+    return totalAmount.gt(programPrice);
   };
 
   const handleSendInvitation = async () => {
@@ -207,14 +190,12 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
         return;
       }
 
-      // Get on-chain program ID from the program
       const onChainProgramId = program?.educhainProgramId;
       if (!onChainProgramId) {
         notify('Program not yet deployed on blockchain', 'error');
         return;
       }
 
-      // Use wallet addresses from stored supporters
       console.log('📋 Processing supporters with their wallet addresses...');
       for (const supporter of storedSupporters) {
         if (supporter.walletAddress) {
@@ -224,17 +205,15 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
         }
       }
 
-      // Send invitations to all stored supporters
       const invitedSupporters: Array<{
         supporter: StoredSupporter;
         walletAddress?: string;
       }> = [];
-      let syncedCount = 0;
+      const syncedCount = 0;
       let failedCount = 0;
 
       for (const supporter of storedSupporters) {
         try {
-          // First, save to database
           await inviteUserToProgram({
             variables: {
               programId: programId,
@@ -250,20 +229,18 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
             },
           });
 
-          const walletAddress = supporter.walletAddress; // Use wallet from stored supporter
+          const walletAddress = supporter.walletAddress;
           invitedSupporters.push({
             supporter,
             walletAddress,
           });
 
-          // Then sync to blockchain if wallet address is available
           if (walletAddress && program?.fundingCondition === 'tier') {
             try {
               const maxAmount =
                 program?.tierSettings?.[supporter.tier as keyof typeof program.tierSettings]
                   ?.maxAmount || '0';
 
-              // Get token decimals based on currency
               const decimals = program?.currency === 'EDU' || program?.currency === 'ETH' ? 18 : 6;
               const maxInvestmentWei = ethers.utils
                 .parseUnits(maxAmount.toString(), decimals)
@@ -278,36 +255,20 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
                 decimals: decimals,
               });
 
-              const result = await investmentContract.assignUserTierToProgram({
-                programId: onChainProgramId,
-                user: walletAddress,
-                tierName: supporter.tier.toLowerCase(), // Ensure lowercase
-                maxInvestment: maxInvestmentWei,
-              });
-
-              console.log(`✅ Tier sync transaction hash: ${result.txHash}`);
-
-              // Verify the tier was actually synced
-              const verifyTier = await investmentContract.getProgramUserTier(
-                onChainProgramId,
-                walletAddress,
-              );
-
-              if (verifyTier?.isAssigned) {
-                syncedCount++;
-                console.log(
-                  `✅ Successfully synced and verified tier for ${supporter.name} (${walletAddress})`,
-                );
-                notify(`Tier synced for ${supporter.name}`, 'success');
-              } else {
-                throw new Error(
-                  'Tier sync verification failed - tier not found on chain after transaction',
-                );
-              }
+              // if (verifyTier?.isAssigned) {
+              //   syncedCount++;
+              //   console.log(
+              //     `✅ Successfully synced and verified tier for ${supporter.name} (${walletAddress})`,
+              //   );
+              //   notify(`Tier synced for ${supporter.name}`, 'success');
+              // } else {
+              //   throw new Error(
+              //     'Tier sync verification failed - tier not found on chain after transaction',
+              //   );
+              // }
             } catch (error) {
               console.error(`❌ Failed to sync tier for ${supporter.name}:`, error);
 
-              // Provide specific error messages
               let errorMsg = 'Failed to sync tier to blockchain. ';
               const errorMessage = error instanceof Error ? error.message : String(error);
               if (errorMessage.includes('Only program creator')) {
@@ -324,7 +285,6 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
               notify(errorMsg, 'error');
               console.error('Full error details:', error);
 
-              // Track failed syncs
               failedCount++;
             }
           } else if (!walletAddress) {
@@ -389,7 +349,6 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
       <DialogContent className="sm:max-w-[800px]">
         <DialogTitle className="text-2xl font-semibold">Invite Supporter</DialogTitle>
 
-        {/* Tabs */}
         <div className="flex border-b mb-6">
           <button
             type="button"
@@ -415,10 +374,8 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
           </button>
         </div>
 
-        {/* Invite Tab */}
         {supportersTab === 'invite' && (
           <div className="space-y-6">
-            {/* Supporter Tier Management */}
             <div>
               <h3 className="text-sm font-medium mb-3">Supporter Tier Management</h3>
               <div className="space-y-3 bg-secondary rounded-md p-3">
@@ -465,7 +422,6 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
               </div>
             </div>
 
-            {/* Invite Supporter Input */}
             <div className="">
               <div className="flex items-center gap-2 mt-2">
                 <MultiSelect
@@ -532,7 +488,6 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
             </div>
 
             <div className="min-h-[200px]">
-              {/* Stored Supporters List */}
               {storedSupporters.length > 0 && (
                 <div className="mt-6">
                   <h3 className="text-sm font-semibold mb-3">Added Supporters</h3>
@@ -570,7 +525,6 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
               )}
             </div>
 
-            {/* Summary Section */}
             {storedSupporters.length > 0 && (
               <div className="mt-6 flex justify-between items-center bg-muted p-4">
                 <div className="text-sm flex items-center gap-8">
@@ -579,7 +533,7 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
                 </div>
                 <div className="text-sm font-medium flex items-center gap-2">
                   <span className={`font-bold text-lg ${isAmountExceeded() ? 'text-red-600' : ''}`}>
-                    {calculateStoredSupportersTotal()}
+                    {calculateStoredSupportersTotal().toString()}
                   </span>
                   <span>{getCurrencyIcon(program?.currency)}</span>
                   <span>{program?.currency}</span>
@@ -587,7 +541,6 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
               </div>
             )}
 
-            {/* Send Invitation Button */}
             <div className="flex justify-between items-center mt-6 border-t pt-[22px]">
               {isAmountExceeded() && (
                 <div className="text-sm bg-red-600 text-white font-medium px-6 py-3 rounded-md">
@@ -605,7 +558,6 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
           </div>
         )}
 
-        {/* Supporters Tab */}
         {supportersTab === 'supporters' && (
           <div className="">
             <div className="grid grid-cols-3 gap-4 p-3 border-b text-sm font-medium">
@@ -653,18 +605,7 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
               </div>
               <div className="text-sm font-medium flex items-center gap-2">
                 <span className="font-bold text-lg">
-                  {(
-                    program?.supporters?.reduce((total: number, supporter) => {
-                      const tierSettings = program?.tierSettings;
-                      if (!tierSettings) return total;
-
-                      const tierValue = (tierSettings as Record<string, { maxAmount?: number }>)[
-                        supporter.tier ?? ''
-                      ];
-                      const amount = Number(tierValue?.maxAmount) || 0;
-                      return total + amount;
-                    }, 0) || 0
-                  ).toLocaleString()}
+                  {calculateExistingSupportersTotal().toString()}
                 </span>
                 <span>{getCurrencyIcon(program?.currency)}</span>
                 <span>{program?.currency}</span>

@@ -1,0 +1,20 @@
+mutation updateApplicationChatroomV2($id: ID!, $input: UpdateApplicationChatroomV2Input!) {
+  updateApplicationChatroomV2(id: $id, input: $input) {
+    id
+    chatroomMessageId
+    status
+    createdAt
+    updatedAt
+    applicant {
+      id
+      email
+      firstName
+      lastName
+      profileImage
+    }
+    program {
+      id
+      title
+    }
+  }
+}

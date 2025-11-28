@@ -33,6 +33,7 @@ import RejectProgramForm from '@/pages/programs/details/_components/reject-progr
 import { FundingCondition, ProgramStatus, ProgramVisibility } from '@/types/types.generated';
 import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { format } from 'date-fns';
+import { ethers } from 'ethers';
 import { CircleAlert, Settings, TriangleAlert } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
@@ -252,8 +253,7 @@ const InvestmentDetailsPage: React.FC = () => {
           );
 
           // Get validator wallet addresses from the form data
-          const currentUserAddress =
-            user?.wallet?.address || '0x0000000000000000000000000000000000000000';
+          const currentUserAddress = user?.wallet?.address || ethers.constants.AddressZero;
 
           let validatorAddresses: string[] = [];
 
@@ -279,7 +279,7 @@ const InvestmentDetailsPage: React.FC = () => {
           }
 
           // Determine the funding token address based on the program's currency
-          let fundingTokenAddress = '0x0000000000000000000000000000000000000000'; // Default to native token
+          let fundingTokenAddress = ethers.constants.AddressZero; // Default to native token
 
           // Check if it's not a native token (EDU, ETH)
           if (program?.currency && program.currency !== 'EDU' && program.currency !== 'ETH') {
@@ -537,7 +537,7 @@ const InvestmentDetailsPage: React.FC = () => {
                       onClick={(e) => {
                         if (!isAuthed) {
                           notify('Please add your email', 'success');
-                          navigate('/my-profile/edit');
+                          navigate('/profile/edit');
                           return;
                         }
 

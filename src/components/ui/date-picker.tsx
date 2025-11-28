@@ -1,11 +1,9 @@
-import { format } from 'date-fns';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import type * as React from 'react';
-
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import type { Matcher } from 'react-day-picker';
 
 export function DatePicker({
@@ -15,7 +13,7 @@ export function DatePicker({
   align = 'start',
 }: {
   date?: Date;
-  setDate: React.Dispatch<React.SetStateAction<Date | undefined>>;
+  setDate: (date: Date) => void;
   disabled?: Matcher | Matcher[] | undefined;
   align?: 'center' | 'start' | 'end' | undefined;
 }) {
@@ -25,7 +23,7 @@ export function DatePicker({
         <Button
           variant={'outline'}
           className={cn(
-            'w-full justify-start text-left font-normal rounded-[6px] h-10 ',
+            'w-full justify-start text-left font-normal rounded-[6px] h-10',
             !date && 'text-muted-foreground',
           )}
         >
@@ -33,12 +31,16 @@ export function DatePicker({
           {date ? format(date, 'PPP') : <span>Pick a date</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align={align} className="w-auto p-0">
+      <PopoverContent align={align} className="w-auto p-0 z-[10000] pointer-events-auto">
         <Calendar
           disabled={disabled}
           mode="single"
           selected={date}
-          onSelect={setDate}
+          onSelect={(day) => {
+            if (day) {
+              setDate(day);
+            }
+          }}
           initialFocus
         />
       </PopoverContent>

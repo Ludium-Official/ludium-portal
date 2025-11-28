@@ -1,26 +1,99 @@
 import client from '@/apollo/client';
-import { useAssignValidatorToProgramMutation } from '@/apollo/mutation/assign-validator-to-program.generated';
-import { useCreateProgramMutation } from '@/apollo/mutation/create-program.generated';
-import { useInviteUserToProgramMutation } from '@/apollo/mutation/invite-user-to-program.generated';
-import { ProgramsDocument } from '@/apollo/queries/programs.generated';
-import type { OnSubmitProgramFunc } from '@/components/program-form';
-import ProgramForm from '@/components/program-form';
+import { useCreateProgramV2Mutation } from '@/apollo/mutation/create-program-v2.generated';
+import { useCreateProgramWithOnchainV2Mutation } from '@/apollo/mutation/create-program-with-onchain-v2.generated';
+import { GetProgramsV2Document } from '@/apollo/queries/programs-v2.generated';
+import ProgramForm from '@/components/program/program-form/program-form';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { useProgramDraft } from '@/lib/hooks/use-program-draft';
 import notify from '@/lib/notify';
-import { type ProgramStatus, ProgramType, type ProgramVisibility } from '@/types/types.generated';
+import { toUTCString } from '@/lib/utils';
+import type { OnSubmitProgramFunc } from '@/types/recruitment';
+import {
+  OnchainProgramStatusV2,
+  ProgramStatusV2,
+  type ProgramVisibilityV2,
+} from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 
 const CreateProgram: React.FC = () => {
   const navigate = useNavigate();
-  const [createProgram, { loading }] = useCreateProgramMutation();
-
-  const [assignValidatorToProgram] = useAssignValidatorToProgramMutation();
-  const [inviteUserToProgram] = useInviteUserToProgramMutation();
 
   const { isLoggedIn, isAuthed } = useAuth();
-  const { clearDraft: clearProgramDraft } = useProgramDraft();
+  const [createProgram, { loading }] = useCreateProgramWithOnchainV2Mutation();
+  const [createProgramV2] = useCreateProgramV2Mutation();
+
+  const onSubmit: OnSubmitProgramFunc = (args) => {
+    try {
+      if (args.status === ProgramStatusV2.Draft) {
+        createProgramV2({
+          variables: {
+            input: {
+              title: args.title,
+              networkId: Number(args.networkId),
+              token_id: args.token_id,
+              price: args.price,
+              description: args.description,
+              deadline: toUTCString(args.deadline),
+              visibility: args.visibility as ProgramVisibilityV2,
+              skills: args.skills,
+              status: args.status,
+            },
+          },
+          onCompleted: async () => {
+            notify('Successfully saved the draft program', 'success');
+            navigate('/programs');
+            client.refetchQueries({ include: [GetProgramsV2Document] });
+          },
+          onError: (error) => {
+            console.error('Failed to saved draft program:', error);
+            notify('Failed to saved draft program', 'error');
+          },
+        });
+      } else {
+        if (!args.contractId) {
+          notify('Contract ID is required for creating a program', 'error');
+          return;
+        }
+
+        createProgram({
+          variables: {
+            input: {
+              onchain: {
+                onchainProgramId: args.txResult?.programId ?? 0,
+                smartContractId: Number(args.contractId),
+                status: OnchainProgramStatusV2.Active,
+                tx: args.txResult?.txHash ?? '',
+              },
+              program: {
+                title: args.title,
+                networkId: Number(args.networkId),
+                token_id: args.token_id,
+                price: args.price ?? '0',
+                description: args.description,
+                deadline: toUTCString(args.deadline),
+                skills: Array.isArray(args.skills) ? args.skills : [],
+                visibility: args.visibility as ProgramVisibilityV2,
+                status: args.status ?? ProgramStatusV2.Open,
+                invitedMembers: args.invitedMembers ?? [],
+              },
+            },
+          },
+          onCompleted: async () => {
+            notify('Successfully created the program', 'success');
+            navigate('/profile/recruitment/sponsor');
+            client.refetchQueries({ include: [GetProgramsV2Document] });
+          },
+          onError: (error) => {
+            console.error('Failed to create program:', error);
+            notify('Failed to create program', 'error');
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Invalid network or token:', error);
+      notify((error as Error).message, 'error');
+    }
+  };
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -29,72 +102,15 @@ const CreateProgram: React.FC = () => {
       return;
     }
     if (!isAuthed) {
-      navigate('/my-profile/edit');
+      navigate('/profile/edit');
       notify('Please add your email', 'success');
       return;
     }
   }, [isLoggedIn, isAuthed]);
 
-  const onSubmit: OnSubmitProgramFunc = (args) => {
-    createProgram({
-      variables: {
-        input: {
-          name: args.programName,
-          currency: args.currency,
-          price: args.price ?? '0',
-          description: args.description,
-          summary: args.summary,
-          deadline: args.deadline ?? '',
-          keywords: args.keywords,
-          links: args.links,
-          network: args.network,
-          image: args.image,
-          type: ProgramType.Regular,
-
-          visibility: args.visibility as ProgramVisibility,
-          status: args.status as ProgramStatus,
-        },
-      },
-      onCompleted: async (data) => {
-        const results = await Promise.allSettled(
-          args.validators.map((validatorId) =>
-            assignValidatorToProgram({
-              variables: { validatorId, programId: data.createProgram?.id ?? '' },
-            }),
-          ),
-        );
-
-        if (results.some((r) => r.status === 'rejected')) {
-          notify('Failed to assign validators to the program due to an unexpected error.', 'error');
-        }
-        // Invite builders if private
-        if (
-          args.visibility === 'private' &&
-          Array.isArray(args.builders) &&
-          args.builders.length > 0
-        ) {
-          const inviteResults = await Promise.allSettled(
-            args.builders.map((userId) =>
-              inviteUserToProgram({
-                variables: { programId: data.createProgram?.id ?? '', userId },
-              }),
-            ),
-          );
-          if (inviteResults.some((r) => r.status === 'rejected')) {
-            notify('Failed to invite some builders to the program.', 'error');
-          }
-        }
-        navigate('/programs');
-        client.refetchQueries({ include: [ProgramsDocument] });
-        // Clear local program draft after successful creation
-        clearProgramDraft();
-      },
-    });
-  };
-
   return (
-    <div className="w-full bg-[#f7f7f7] p-10 pr-[55px]" defaultValue="edit">
-      <ProgramForm isEdit={false} onSubmitProgram={onSubmit} createLoading={loading} />
+    <div className="w-full bg-gray-light p-10 pr-[55px]" defaultValue="edit">
+      <ProgramForm onSubmitProgram={onSubmit} createLoading={loading} />
     </div>
   );
 };

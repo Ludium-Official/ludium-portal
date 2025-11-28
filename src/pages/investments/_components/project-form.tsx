@@ -1,5 +1,5 @@
 import { useProgramQuery } from '@/apollo/queries/program.generated';
-import { useUsersQuery } from '@/apollo/queries/users.generated';
+import { useUsersV2Query } from '@/apollo/queries/users-v2.generated';
 import { MarkdownEditor } from '@/components/markdown';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -17,7 +17,9 @@ import { useProjectDraft } from '@/lib/hooks/use-project-draft';
 import notify from '@/lib/notify';
 import { cn, getCurrency, getCurrencyIcon, sortTierSettings } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
+import type { LabelValueProps, VisibilityProps } from '@/types/common';
 import { type LinkInput, ProgramStatus } from '@/types/types.generated';
+import BigNumber from 'bignumber.js';
 import { Check, ChevronRight, TriangleAlert, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -58,7 +60,7 @@ export type OnSubmitProjectFunc = (data: {
   links?: LinkInput[];
   // isPublish?: boolean;
   image?: File;
-  visibility: 'public' | 'restricted' | 'private';
+  visibility: VisibilityProps;
   builders?: string[];
   milestones?: Milestone[];
   investmentTerms?: Term[];
@@ -84,11 +86,9 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
   const [content, setContent] = useState<string>('');
   const [links, setLinks] = useState<string[]>(['']);
-  const [visibility, setVisibility] = useState<'public' | 'restricted' | 'private'>('public');
+  const [visibility, setVisibility] = useState<VisibilityProps>('public');
   const [selectedBuilders, setSelectedBuilders] = useState<string[]>([]);
-  const [selectedBuilderItems, setSelectedBuilderItems] = useState<
-    { label: string; value: string }[]
-  >([]);
+  const [selectedBuilderItems, setSelectedBuilderItems] = useState<LabelValueProps[]>([]);
   const [builderInput, setBuilderInput] = useState<string>();
   const [debouncedBuilderInput, setDebouncedBuilderInput] = useState<string>();
 
@@ -152,23 +152,17 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
     return () => clearTimeout(timer);
   }, [builderInput]);
 
-  const { data: buildersData, loading: buildersLoading } = useUsersQuery({
+  const { data: buildersData, loading: buildersLoading } = useUsersV2Query({
     variables: {
-      input: {
+      query: {
         limit: 5,
-        offset: 0,
-        filter: [
-          {
-            field: 'search',
-            value: debouncedBuilderInput ?? '',
-          },
-        ],
+        search: debouncedBuilderInput ?? '',
       },
     },
     skip: !builderInput,
   });
 
-  const builderOptions = buildersData?.users?.data?.map((v) => ({
+  const builderOptions = buildersData?.usersV2?.users?.map((v) => ({
     value: v.id ?? '',
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
   }));
@@ -364,7 +358,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
     // Check if total sum of terms doesn't exceed funding to be raised
     const fundingToBeRaised = Number.parseFloat(watch('fundingToBeRaised') ?? '0');
-    const totalSum = terms
+    const totalSumBN = terms
       .filter((term) => term.title && term.prize && term.purchaseLimit)
       .reduce((sum, term) => {
         const prize = data?.program?.tierSettings
@@ -372,10 +366,11 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
               ?.maxAmount || 0
           : Number.parseFloat(term.prize) || 0;
         const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
-        return sum + prize * purchaseLimit;
-      }, 0);
+        const termTotal = new BigNumber(prize).times(purchaseLimit);
+        return sum.plus(termTotal);
+      }, new BigNumber(0));
 
-    return totalSum <= fundingToBeRaised;
+    return totalSumBN.lte(new BigNumber(fundingToBeRaised));
   };
 
   // Prefill from draft on mount when creating (not editing)
@@ -972,9 +967,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         onChange={(value) => {
                           if (typeof value === 'string') {
                             updateTerm(index, 'description', value);
-                          } else if (typeof value === 'function') {
-                            const newValue = value(term.description);
-                            updateTerm(index, 'description', newValue);
                           }
                         }}
                       />
@@ -1015,7 +1007,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                             ]?.maxAmount || 0
                           : Number.parseFloat(term.prize) || 0;
                         const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
-                        const totalPrice = prize * purchaseLimit;
+                        const totalPrice = new BigNumber(prize).times(purchaseLimit);
 
                         return (
                           <div
@@ -1037,7 +1029,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                             </div>
                             <div className="text-gray-600">{purchaseLimit}</div>
                             <div className="font-medium  justify-self-end text-right">
-                              {totalPrice} {data?.program?.currency}
+                              {totalPrice.toString()} {data?.program?.currency}
                             </div>
                           </div>
                         );
@@ -1046,7 +1038,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
                   {/* Total Row */}
                   {(() => {
-                    const totalSum = terms
+                    const totalSumBN = terms
                       .filter((term) => term.title && term.prize && term.purchaseLimit)
                       .reduce((sum, term) => {
                         const prize = data?.program?.tierSettings
@@ -1055,11 +1047,12 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                             ]?.maxAmount || 0
                           : Number.parseFloat(term.prize) || 0;
                         const purchaseLimit = Number.parseInt(term.purchaseLimit, 10) || 0;
-                        return sum + prize * purchaseLimit;
-                      }, 0);
+                        const termTotal = new BigNumber(prize).times(purchaseLimit);
+                        return sum.plus(termTotal);
+                      }, new BigNumber(0));
 
-                    const fundingToBeRaised = Number.parseFloat(watch('fundingToBeRaised') ?? '0');
-                    const exceedsFunding = totalSum > fundingToBeRaised;
+                    const fundingToBeRaisedBN = new BigNumber(watch('fundingToBeRaised') ?? '0');
+                    const exceedsFunding = totalSumBN.gt(fundingToBeRaisedBN);
 
                     return (
                       <>
@@ -1071,15 +1064,15 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                               exceedsFunding ? 'text-destructive' : 'text-primary'
                             }`}
                           >
-                            {totalSum.toLocaleString()} {data?.program?.currency}
+                            {totalSumBN.toString()} {data?.program?.currency}
                           </div>
                         </div>
                         {exceedsFunding && (
                           <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
                             <p className="text-destructive text-sm font-medium">
-                              Total terms amount ({totalSum.toLocaleString()}{' '}
-                              {data?.program?.currency}) exceeds funding to be raised (
-                              {fundingToBeRaised.toLocaleString()} {data?.program?.currency})
+                              Total terms amount ({totalSumBN.toString()} {data?.program?.currency})
+                              exceeds funding to be raised ({fundingToBeRaisedBN.toString()}{' '}
+                              {data?.program?.currency})
                             </p>
                           </div>
                         )}
@@ -1218,9 +1211,6 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
                         onChange={(value) => {
                           if (typeof value === 'string') {
                             updateMilestone(index, 'description', value);
-                          } else if (typeof value === 'function') {
-                            const newValue = value(milestone.description);
-                            updateMilestone(index, 'description', newValue);
                           }
                         }}
                       />

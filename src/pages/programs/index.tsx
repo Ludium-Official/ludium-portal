@@ -1,12 +1,12 @@
-import { useProgramsQuery } from '@/apollo/queries/programs.generated';
+import { useGetProgramsV2Query } from '@/apollo/queries/programs-v2.generated';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import ProgramCard from '@/pages/programs/_components/program-card';
-import { ProgramStatus, ProgramType, SortEnum } from '@/types/types.generated';
+import { ProgramStatusV2 } from '@/types/types.generated';
 import { CirclePlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
@@ -14,111 +14,61 @@ import { useNavigate, useSearchParams } from 'react-router';
 const PageSize = 12;
 
 const ProgramsPage: React.FC = () => {
-  const [selectedTab, setSelectedTab] = useState('newest');
-
-  const { isLoggedIn, isAuthed, userId } = useAuth();
-
   const navigate = useNavigate();
 
+  const { isLoggedIn, isAuthed, userId } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const [selectedTab, setSelectedTab] = useState('newest');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
   const currentPage = Number(searchParams.get('page')) || 1;
 
-  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchParams.get('search') ?? '');
-    }, 300); // Adjust the debounce delay as needed
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [searchParams.get('search')]);
-
-  useEffect(() => {
-    setSearchParams(new URLSearchParams());
-  }, [selectedTab]);
-
-  const filter = [
-    ...(selectedTab === 'my-programs'
+  // TODO: filtering
+  const createFilter = (tab: string, search: string, userId?: string) => [
+    ...(tab === 'my-programs' && userId ? [{ field: 'creatorId', value: userId }] : []),
+    ...(tab === 'newest'
       ? [
-          {
-            field: 'userId',
-            value: userId,
-          },
+          { field: 'status', value: ProgramStatusV2.Open },
+          { field: 'visibility', value: 'public' },
         ]
       : []),
-    ...(selectedTab === 'newest'
+    ...(tab === 'completed'
       ? [
-          {
-            field: 'status',
-            values: [
-              ProgramStatus.Published,
-              ProgramStatus.Completed,
-              ProgramStatus.Pending,
-              ProgramStatus.PaymentRequired,
-              ProgramStatus.Cancelled,
-              ProgramStatus.Closed,
-              ProgramStatus.Rejected,
-            ],
-          },
-          {
-            field: 'visibility',
-            value: 'public',
-          },
+          { field: 'status', value: ProgramStatusV2.Closed },
+          { field: 'visibility', value: 'public' },
         ]
       : []),
-    ...(selectedTab === 'imminent'
-      ? [
-          {
-            field: 'status',
-            value: 'published',
-          },
-          {
-            field: 'visibility',
-            value: 'public',
-          },
-
-          {
-            field: 'imminent',
-            value: 'true',
-          },
-        ]
-      : []),
-    ...(selectedTab === 'completed'
-      ? [
-          {
-            field: 'status',
-            value: 'completed',
-          },
-          {
-            field: 'visibility',
-            value: 'public',
-          },
-        ]
-      : []),
-    {
-      field: 'name',
-      value: debouncedSearch,
-    },
-    {
-      field: 'type',
-      value: ProgramType.Regular,
-    },
+    ...(search ? [{ field: 'search', value: search }] : []),
   ];
 
-  const { data } = useProgramsQuery({
+  const filter = createFilter(selectedTab, debouncedSearch, userId);
+
+  const { data, loading, error } = useGetProgramsV2Query({
     variables: {
       pagination: {
         limit: PageSize,
         offset: (currentPage - 1) * PageSize,
         filter: filter,
-        sort: SortEnum.Desc,
       },
     },
   });
 
-  const totalCount = data?.programs?.count ?? 0;
+  if (error) {
+    console.error('Error fetching programs:', error);
+  }
+
+  const totalCount = data?.programsV2?.count ?? 0;
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchParams.get('search') ?? '');
+    }, 300);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchParams.get('search')]);
 
   return (
     <div className="bg-white rounded-2xl p-10 pr-[55px]">
@@ -127,58 +77,62 @@ const ProgramsPage: React.FC = () => {
           <h1 className="text-3xl font-bold">Recruitment</h1>
         </div>
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <section className="flex justify-between items-center py-[14px]">
-            <TabsList className="">
-              <TabsTrigger value="newest">Newest</TabsTrigger>
-              <TabsTrigger value="imminent">Imminent</TabsTrigger>
-              <TabsTrigger value="my-programs">My programs</TabsTrigger>
-              <TabsTrigger value="completed">Completed</TabsTrigger>
-            </TabsList>
-            <div className="h-10 flex items-center gap-3">
+          <section className="flex justify-between items-center py-2">
+            {/* TODO: dropdown으로 filtering */}
+            <div></div>
+            <div className="flex items-center gap-3 h-10">
               <Input
                 className="h-full w-[432px]"
                 placeholder="Search..."
                 value={searchParams.get('search') ?? ''}
                 onChange={(e) => {
                   const value = e.target.value;
-                  const newSP = new URLSearchParams();
+                  const newSP = new URLSearchParams(searchParams);
 
-                  newSP.set('search', value);
+                  if (value) {
+                    newSP.set('search', value);
+                  } else {
+                    newSP.delete('search');
+                  }
+                  newSP.delete('page');
                   setSearchParams(newSP);
                 }}
               />
 
               {isLoggedIn && (
                 <Button
-                  className="rounded-[6px] gap-2 px-3"
+                  className="gap-2 rounded-[6px] px-3"
                   onClick={() => {
                     if (!isAuthed) {
                       notify('Please add your email', 'success');
-                      navigate('/my-profile/edit');
+                      navigate('/profile/edit');
                       return;
                     }
 
                     navigate('create');
                   }}
                 >
-                  <CirclePlus /> Create Program
+                  <CirclePlus />
+                  Create Program
                 </Button>
               )}
             </div>
           </section>
 
-          <section className="w-full space-y-4 my-5 grid grid-cols-2 gap-5">
-            {data?.programs?.data?.map((program) => (
-              <ProgramCard key={program.id} program={program} />
-            ))}
-            {/* {data?.programs?.data?.map((program) => (
-              <ProgramCard key={program.id} program={program} />
-            ))}
-
-            {Array.isArray(data?.programs?.data) &&
-              [...data.programs.data].reverse().map((program) => (
-                <ProgramCard key={`${program.id}-reverse`} program={program} />
-              ))} */}
+          <section className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full my-5">
+            {loading ? (
+              <div className="col-span-full py-8 text-center">Loading programs...</div>
+            ) : error ? (
+              <div className="col-span-full py-8 text-center text-red-500">
+                Error loading programs. Please try again.
+              </div>
+            ) : data?.programsV2?.data?.length ? (
+              data.programsV2.data.map((program) => (
+                <ProgramCard key={program?.id} program={program} />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8 text-gray-500">No programs found.</div>
+            )}
           </section>
 
           <Pagination totalCount={totalCount} pageSize={PageSize} />

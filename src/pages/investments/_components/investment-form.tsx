@@ -1,5 +1,5 @@
 import { useProgramQuery } from '@/apollo/queries/program.generated';
-import { useUsersQuery } from '@/apollo/queries/users.generated';
+import { useUsersV2Query } from '@/apollo/queries/users-v2.generated';
 import CurrencySelector from '@/components/currency-selector';
 import { MarkdownEditor } from '@/components/markdown';
 import NetworkSelector from '@/components/network-selector';
@@ -14,11 +14,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useNetworks } from '@/contexts/networks-context';
 import { useInvestmentDraft } from '@/lib/hooks/use-investment-draft';
 import notify from '@/lib/notify';
-import { cn, mainnetDefaultNetwork } from '@/lib/utils';
+import { cn, fromUTCString, mainnetDefaultNetwork, toUTCString } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
+import type { LabelValueProps, VisibilityProps } from '@/types/common';
 import { type LinkInput, ProgramStatus } from '@/types/types.generated';
+import { ethers } from 'ethers';
 import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -38,7 +41,7 @@ export type OnSubmitInvestmentFunc = (data: {
   validators: string[];
   validatorWalletAddresses?: string[];
   image?: File;
-  visibility: 'public' | 'restricted' | 'private';
+  visibility: VisibilityProps;
   status: ProgramStatus;
   builders?: string[];
   applicationStartDate?: string;
@@ -71,6 +74,8 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     skip: !isEdit,
   });
 
+  const { networks: networksWithTokens } = useNetworks();
+
   const [selectedTab, setSelectedTab] = useState<string>('overview');
 
   // Check if program is published - only allow editing title, keywords, summary, and description
@@ -89,23 +94,37 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
   const [network, setNetwork] = useState(isEdit ? undefined : mainnetDefaultNetwork);
   const [currency, setCurrency] = useState('');
   const [selectedImage, setSelectedImage] = useState<File>();
-  const [visibility, setVisibility] = useState<'public' | 'restricted' | 'private'>('public');
+  const [visibility, setVisibility] = useState<VisibilityProps>('public');
   const [imageError, setImageError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedBuilders, setSelectedBuilders] = useState<string[]>([]);
-  const [selectedBuilderItems, setSelectedBuilderItems] = useState<
-    { label: string; value: string }[]
-  >([]);
+  const [selectedBuilderItems, setSelectedBuilderItems] = useState<LabelValueProps[]>([]);
   const [builderInput, setBuilderInput] = useState<string>();
   const [debouncedBuilderInput, setDebouncedBuilderInput] = useState<string>();
 
   // Condition tab state
   const [conditionType, setConditionType] = useState<'open' | 'tier'>('open');
   const [tiers, setTiers] = useState([
-    { name: 'Bronze', enabled: false, maxAmount: undefined as string | undefined },
-    { name: 'Silver', enabled: false, maxAmount: undefined as string | undefined },
-    { name: 'Gold', enabled: false, maxAmount: undefined as string | undefined },
-    { name: 'Platinum', enabled: false, maxAmount: undefined as string | undefined },
+    {
+      name: 'Bronze',
+      enabled: false,
+      maxAmount: undefined as string | undefined,
+    },
+    {
+      name: 'Silver',
+      enabled: false,
+      maxAmount: undefined as string | undefined,
+    },
+    {
+      name: 'Gold',
+      enabled: false,
+      maxAmount: undefined as string | undefined,
+    },
+    {
+      name: 'Platinum',
+      enabled: false,
+      maxAmount: undefined as string | undefined,
+    },
   ]);
   const [feeType, setFeeType] = useState<'default' | 'custom'>('default');
   const [customFee, setCustomFee] = useState<string | undefined>(undefined);
@@ -121,17 +140,11 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     return () => clearTimeout(timer);
   }, [validatorInput]);
 
-  const { data: validators, loading } = useUsersQuery({
+  const { data: validators, loading } = useUsersV2Query({
     variables: {
-      input: {
+      query: {
         limit: 5,
-        offset: 0,
-        filter: [
-          {
-            field: 'search',
-            value: debouncedValidatorInput ?? '',
-          },
-        ],
+        search: debouncedValidatorInput ?? '',
       },
     },
     skip: !validatorInput,
@@ -145,7 +158,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     dates: false,
   });
 
-  const validatorOptions = validators?.users?.data?.map((v) => ({
+  const validatorOptions = validators?.usersV2?.users?.map((v) => ({
     value: v.id ?? '',
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
   }));
@@ -171,7 +184,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
         })) ?? [],
       );
     }
-    if (data?.program?.deadline) setDeadline(new Date(data?.program?.deadline));
+    if (data?.program?.deadline) setDeadline(fromUTCString(data?.program?.deadline) ?? undefined);
     if (data?.program?.links) setLinks(data?.program?.links.map((l) => l.url ?? ''));
     if (data?.program?.description) setContent(data?.program.description);
     if (data?.program?.network) setNetwork(data?.program?.network);
@@ -179,16 +192,17 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     if (data?.program?.image) setImagePreview(data?.program?.image);
     if (data?.program?.visibility) setVisibility(data?.program?.visibility);
 
-    // Prefill application dates
+    // Prefill application dates (convert from UTC to local)
     if (data?.program?.applicationStartDate)
-      setApplicationStartDate(new Date(data?.program?.applicationStartDate));
+      setApplicationStartDate(fromUTCString(data?.program?.applicationStartDate) ?? undefined);
     if (data?.program?.applicationEndDate)
-      setApplicationDueDate(new Date(data?.program?.applicationEndDate));
+      setApplicationDueDate(fromUTCString(data?.program?.applicationEndDate) ?? undefined);
 
-    // Prefill funding dates
+    // Prefill funding dates (convert from UTC to local)
     if (data?.program?.fundingStartDate)
-      setFundingStartDate(new Date(data?.program?.fundingStartDate));
-    if (data?.program?.fundingEndDate) setFundingDueDate(new Date(data?.program?.fundingEndDate));
+      setFundingStartDate(fromUTCString(data?.program?.fundingStartDate) ?? undefined);
+    if (data?.program?.fundingEndDate)
+      setFundingDueDate(fromUTCString(data?.program?.fundingEndDate) ?? undefined);
 
     // Prefill funding condition
     if (data?.program?.fundingCondition) setConditionType(data?.program?.fundingCondition);
@@ -236,23 +250,17 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     return () => clearTimeout(timer);
   }, [builderInput]);
 
-  const { data: buildersData, loading: buildersLoading } = useUsersQuery({
+  const { data: buildersData, loading: buildersLoading } = useUsersV2Query({
     variables: {
-      input: {
+      query: {
         limit: 5,
-        offset: 0,
-        filter: [
-          {
-            field: 'search',
-            value: debouncedBuilderInput ?? '',
-          },
-        ],
+        search: debouncedBuilderInput ?? '',
       },
     },
     skip: !builderInput,
   });
 
-  const builderOptions = buildersData?.users?.data?.map((v) => ({
+  const builderOptions = buildersData?.usersV2?.users?.map((v) => ({
     value: v.id ?? '',
     label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
   }));
@@ -345,7 +353,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     const validatorWalletAddresses = selectedValidatorItems
       .map((item) => {
         // Find the validator in the data
-        const validator = validators?.users?.data?.find((u) => u.id === item.value);
+        const validator = validators?.usersV2?.users?.find((u) => u.id === item.value);
         return validator?.walletAddress || null;
       })
       .filter((address) => address !== null) as string[];
@@ -378,7 +386,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
           isEdit && data?.program?.status !== ProgramStatus.Pending
             ? (data?.program?.currency as string)
             : currency,
-        deadline: deadline ? deadline.toISOString() : undefined,
+        deadline: deadline ? toUTCString(deadline) : undefined,
         keywords: selectedKeywords,
         validators: selectedValidators ?? [],
         validatorWalletAddresses,
@@ -399,10 +407,10 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
             ? (data?.program?.status ?? ProgramStatus.Pending)
             : ProgramStatus.Pending,
         builders: selectedBuilders,
-        applicationStartDate: applicationStartDate ? applicationStartDate.toISOString() : undefined,
-        applicationEndDate: applicationDueDate ? applicationDueDate.toISOString() : undefined,
-        fundingStartDate: fundingStartDate ? fundingStartDate.toISOString() : undefined,
-        fundingEndDate: fundingDueDate ? fundingDueDate.toISOString() : undefined,
+        applicationStartDate: applicationStartDate ? toUTCString(applicationStartDate) : undefined,
+        applicationEndDate: applicationDueDate ? toUTCString(applicationDueDate) : undefined,
+        fundingStartDate: fundingStartDate ? toUTCString(fundingStartDate) : undefined,
+        fundingEndDate: fundingDueDate ? toUTCString(fundingDueDate) : undefined,
         fundingCondition: conditionType,
         tierSettings:
           conditionType === 'tier'
@@ -503,7 +511,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     setValue('price', draft.price ?? '');
     setValue('summary', draft.summary ?? '');
     setContent(draft.description ?? '');
-    setDeadline(draft.deadline ? new Date(draft.deadline) : undefined);
+    setDeadline(draft.deadline ? (fromUTCString(draft.deadline) ?? undefined) : undefined);
     setSelectedKeywords(draft.keywords ?? []);
     setSelectedValidators(draft.validators ?? []);
     setLinks(draft.links?.length ? draft.links : ['']);
@@ -512,13 +520,19 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
     setVisibility(draft.visibility ?? 'public');
     setSelectedBuilders(draft.builders ?? []);
     setApplicationStartDate(
-      draft.applicationStartDate ? new Date(draft.applicationStartDate) : undefined,
+      draft.applicationStartDate
+        ? (fromUTCString(draft.applicationStartDate) ?? undefined)
+        : undefined,
     );
     setApplicationDueDate(
-      draft.applicationEndDate ? new Date(draft.applicationEndDate) : undefined,
+      draft.applicationEndDate ? (fromUTCString(draft.applicationEndDate) ?? undefined) : undefined,
     );
-    setFundingStartDate(draft.fundingStartDate ? new Date(draft.fundingStartDate) : undefined);
-    setFundingDueDate(draft.fundingEndDate ? new Date(draft.fundingEndDate) : undefined);
+    setFundingStartDate(
+      draft.fundingStartDate ? (fromUTCString(draft.fundingStartDate) ?? undefined) : undefined,
+    );
+    setFundingDueDate(
+      draft.fundingEndDate ? (fromUTCString(draft.fundingEndDate) ?? undefined) : undefined,
+    );
     setConditionType(draft.fundingCondition ?? 'open');
     setFeeType(draft.feeType ?? 'default');
     setCustomFee(draft.customFee ?? '0');
@@ -822,7 +836,11 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                       }}
                       // Allow selecting today and future dates
                       disabled={
-                        isPublished ? true : { before: new Date(new Date().setHours(0, 0, 0, 0)) }
+                        isPublished
+                          ? true
+                          : {
+                              before: new Date(new Date().setHours(0, 0, 0, 0)),
+                            }
                       }
                     />
                   </div>
@@ -887,7 +905,11 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                       }}
                       // Allow selecting today and future dates (can overlap with application period per PRD)
                       disabled={
-                        isPublished ? true : { before: new Date(new Date().setHours(0, 0, 0, 0)) }
+                        isPublished
+                          ? true
+                          : {
+                              before: new Date(new Date().setHours(0, 0, 0, 0)),
+                            }
                       }
                     />
                   </div>
@@ -1085,8 +1107,26 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     </p>
                     <NetworkSelector
                       disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
-                      value={network ?? mainnetDefaultNetwork}
-                      onValueChange={setNetwork}
+                      value={
+                        networksWithTokens.find((n) => n.chainName === network)?.id ||
+                        networksWithTokens.find((n) => n.chainName === mainnetDefaultNetwork)?.id ||
+                        undefined
+                      }
+                      onValueChange={(value: string) => {
+                        const selectedNetwork = networksWithTokens.find((n) => n.id === value);
+                        if (selectedNetwork) {
+                          setNetwork(selectedNetwork.chainName);
+                          // Reset currency when network changes
+                          const availableTokens = selectedNetwork.tokens || [];
+                          const nativeToken = availableTokens.find(
+                            (t) => t.tokenAddress === ethers.constants.AddressZero,
+                          );
+                          if (nativeToken) {
+                            setCurrency(nativeToken.id);
+                          }
+                        }
+                      }}
+                      networks={networksWithTokens}
                       className="min-w-[120px] h-10 w-full flex justify-between bg-white text-gray-dark border border-input shadow-sm hover:bg-white"
                     />
                   </div>
@@ -1109,7 +1149,12 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
                     disabled={isEdit && data?.program?.status !== ProgramStatus.Pending}
                     value={currency}
                     onValueChange={setCurrency}
-                    network={network ?? mainnetDefaultNetwork}
+                    tokens={
+                      networksWithTokens.find((n) => n.chainName === network)?.tokens ||
+                      networksWithTokens.find((n) => n.chainName === mainnetDefaultNetwork)
+                        ?.tokens ||
+                      []
+                    }
                     className="w-[108px] h-10"
                   />
                 </div>

@@ -1,22 +1,20 @@
 import type React from 'react';
 
 interface SvgIconProps {
-  width?: number;
-  height?: number;
+  size?: number;
   fill?: string;
   secondaryFill?: string;
 }
 
 const UsdtIcon: React.FC<SvgIconProps> = ({
-  width = 24,
-  height = 24,
+  size = 24,
   fill = '#26A17B',
   secondaryFill = 'white',
 }) => {
   return (
     <svg
-      width={width}
-      height={height}
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

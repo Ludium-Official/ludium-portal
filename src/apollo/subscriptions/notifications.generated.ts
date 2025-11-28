@@ -3,23 +3,29 @@ import * as Types from '../../types/types.generated';
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type NotificationsSubscriptionVariables = Types.Exact<{ [key: string]: never; }>;
+export type NotificationsSubscriptionVariables = Types.Exact<{
+  input?: Types.InputMaybe<Types.PaginationInput>;
+}>;
 
 
-export type NotificationsSubscription = { __typename?: 'Subscription', notifications?: Array<{ __typename?: 'Notification', action?: Types.NotificationAction | null, content?: string | null, entityId?: string | null, id?: string | null, metadata?: any | null, readAt?: any | null, title?: string | null, type?: Types.NotificationType | null }> | null };
+export type NotificationsSubscription = { __typename?: 'Subscription', notifications?: { __typename?: 'NotificationResult', count?: number | null, data?: Array<{ __typename?: 'Notification', id?: string | null, title?: string | null, content?: string | null, type?: Types.NotificationType | null, action?: Types.NotificationAction | null, entityId?: string | null, metadata?: any | null, readAt?: any | null, createdAt?: any | null }> | null } | null };
 
 
 export const NotificationsDocument = gql`
-    subscription notifications {
-  notifications {
-    action
-    content
-    entityId
-    id
-    metadata
-    readAt
-    title
-    type
+    subscription notifications($input: PaginationInput) {
+  notifications(pagination: $input) {
+    count
+    data {
+      id
+      title
+      content
+      type
+      action
+      entityId
+      metadata
+      readAt
+      createdAt
+    }
   }
 }
     `;
@@ -36,6 +42,7 @@ export const NotificationsDocument = gql`
  * @example
  * const { data, loading, error } = useNotificationsSubscription({
  *   variables: {
+ *      input: // value for 'input'
  *   },
  * });
  */

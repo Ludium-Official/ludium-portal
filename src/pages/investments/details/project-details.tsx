@@ -39,11 +39,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { tokenAddresses } from '@/constant/token-address';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { useContract } from '@/lib/hooks/use-contract';
 import { useInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import { handleInvestment } from '@/lib/investment-helpers';
 import notify from '@/lib/notify';
-import { cn, getCurrencyIcon, getUserName, mainnetDefaultNetwork } from '@/lib/utils';
+import { cn, getCurrencyIcon, getUserName } from '@/lib/utils';
 import { TierBadge, type TierType } from '@/pages/investments/_components/tier-badge';
 import EditApplicationForm from '@/pages/programs/details/_components/edit-application-from';
 import EditMilestoneForm from '@/pages/programs/details/_components/edit-milestone-form';
@@ -171,7 +170,7 @@ function ProjectDetailsPage() {
     program?.fundingEndDate,
   ]);
 
-  const contract = useContract(network || mainnetDefaultNetwork);
+  // const contract = useContract(network || mainnetDefaultNetwork);
   const investmentContract = useInvestmentContract(network || 'educhain-testnet');
 
   const applicationMutationParams = {
@@ -945,7 +944,7 @@ function ProjectDetailsPage() {
   };
 
   const callTx = async (
-    price?: string | null,
+    _price?: string | null,
     milestoneId?: string | null,
     milestoneIndex?: number,
   ) => {
@@ -1008,16 +1007,20 @@ function ProjectDetailsPage() {
           }
         } else {
           // For regular programs, use the old flow (validator pays)
-          const network = program.network as keyof typeof tokenAddresses;
-          const tokens = tokenAddresses[network] || [];
-          const targetToken = tokens.find((token) => token.name === program.currency);
+          // const network = program.network as keyof typeof tokenAddresses;
+          // const tokens = tokenAddresses[network] || [];
+          // const targetToken = tokens.find(
+          //   (token) => token.name === program.currency
+          // );
 
-          const tx = await contract.acceptMilestone(
-            Number(program?.educhainProgramId),
-            data?.application?.applicant?.walletAddress ?? '',
-            price ?? '',
-            targetToken ?? { name: program.currency as string },
-          );
+          // TODO: funding 개발수정필요
+          // const tx = await contract.acceptMilestone(
+          //   Number(program?.educhainProgramId),
+          //   data?.application?.applicant?.walletAddress ?? '',
+          //   price ?? '',
+          //   targetToken ?? { name: program.currency as string },
+          // );
+          const tx = null;
 
           if (tx) {
             await checkMilestone({

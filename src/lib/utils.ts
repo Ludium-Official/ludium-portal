@@ -7,6 +7,7 @@ import {
   type User,
 } from '@/types/types.generated';
 import { type ClassValue, clsx } from 'clsx';
+import { format } from 'date-fns';
 import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
@@ -63,6 +64,32 @@ export const getUserName = (user?: User | null) => {
   return user.firstName ?? user.lastName ?? user.email ?? user.organizationName ?? '';
 };
 
+export const getUserDisplayName = (
+  firstName?: string | null,
+  lastName?: string | null,
+  email?: string | null,
+): string => {
+  if (firstName && lastName) {
+    return `${firstName} ${lastName}`.trim();
+  }
+  return email || 'Unknown';
+};
+
+export const getUserInitialName = (
+  firstName?: string | null,
+  lastName?: string | null,
+  email?: string | null,
+): string => {
+  const name = getUserDisplayName(firstName, lastName, email);
+
+  if (!name) return '??';
+  const parts = name.split(' ');
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  }
+  return name[0]?.toUpperCase() || '??';
+};
+
 export const mainnetDefaultNetwork =
   import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet' ? 'educhain' : 'educhain-testnet';
 
@@ -88,5 +115,133 @@ export const sortTierSettings = (
     const indexA = tierOrder.indexOf(keyA);
     const indexB = tierOrder.indexOf(keyB);
     return indexA - indexB;
+  });
+};
+
+const userAgent = navigator.userAgent || navigator.vendor;
+export const isMobileDevice = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+  userAgent,
+);
+
+export const dDay = (deadline: Date) => {
+  const deadlineDate = new Date(deadline);
+  const today = new Date();
+
+  deadlineDate.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+
+  const diffTime = deadlineDate.getTime() - today.getTime();
+  const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+  return `D-${daysRemaining}`;
+};
+
+export const formatDate = (date: Date | string) => {
+  const dateObj = typeof date === 'string' ? fromUTCString(date) : date;
+  if (!dateObj) return '';
+  return format(dateObj, 'MMMM d, yyyy');
+};
+
+export const addDaysToDate = (date: string | null | undefined, days = 0): string => {
+  if (!date) return 'YYYY-MM-DD';
+  try {
+    const localDate = fromUTCString(date);
+    if (!localDate) return 'YYYY-MM-DD';
+    localDate.setDate(localDate.getDate() + days);
+    return localDate.toLocaleDateString([], {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  } catch {
+    return 'YYYY-MM-DD';
+  }
+};
+
+export const formatPrice = (price: string | number) => {
+  return Number.parseInt(price.toString()).toLocaleString('en-US');
+};
+
+export const timeAgo = (date: Date | string) => {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const now = new Date();
+  const diffInMs = now.getTime() - d.getTime();
+  const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+  const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+  const diffInWeeks = Math.floor(diffInDays / 7);
+  const diffInMonths = Math.floor(diffInDays / 30);
+  const diffInYears = Math.floor(diffInDays / 365);
+
+  if (diffInMinutes < 1) {
+    return 'just now';
+  } else if (diffInMinutes < 60) {
+    return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
+  } else if (diffInHours < 24) {
+    return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
+  } else if (diffInDays < 7) {
+    return `${diffInDays} day${diffInDays === 1 ? '' : 's'} ago`;
+  } else if (diffInWeeks < 4) {
+    return `${diffInWeeks} week${diffInWeeks === 1 ? '' : 's'} ago`;
+  } else if (diffInMonths < 12) {
+    return `${diffInMonths} month${diffInMonths === 1 ? '' : 's'} ago`;
+  } else {
+    return `${diffInYears} year${diffInYears === 1 ? '' : 's'} ago`;
+  }
+};
+
+export const toUTCString = (date: Date | string | null | undefined): string | undefined => {
+  if (!date) return undefined;
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  return dateObj.toISOString();
+};
+
+export const fromUTCString = (utcDateString: string | null | undefined): Date | null => {
+  if (!utcDateString) return null;
+  try {
+    return new Date(utcDateString);
+  } catch {
+    return null;
+  }
+};
+
+export const formatUTCDate = (utcDateString: string | null | undefined): string => {
+  if (!utcDateString) return '';
+  const localDate = fromUTCString(utcDateString);
+  if (!localDate) return '';
+  return format(localDate, 'MMMM d, yyyy');
+};
+
+export const formatUTCDateLocal = (utcDateString: string | null | undefined): string => {
+  if (!utcDateString) return 'YYYY-MM-DD';
+  const localDate = fromUTCString(utcDateString);
+  if (!localDate) return 'YYYY-MM-DD';
+  return localDate.toLocaleDateString([], {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+};
+
+export const formatUTCTime = (utcDateString: string | null | undefined): string => {
+  if (!utcDateString) return '';
+  const localDate = fromUTCString(utcDateString);
+  if (!localDate) return '';
+  return localDate.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
+export const formatUTCDateTime = (utcDateString: string | null | undefined): string => {
+  if (!utcDateString) return '';
+  const localDate = fromUTCString(utcDateString);
+  if (!localDate) return '';
+  return localDate.toLocaleString([], {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 };

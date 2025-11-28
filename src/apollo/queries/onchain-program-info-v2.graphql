@@ -1,0 +1,11 @@
+query onchainProgramInfoV2($id: ID!) {
+  onchainProgramInfoV2(id: $id) {
+    id
+    networkId
+    smartContractId
+    onchainProgramId
+    status
+    createdAt
+    tx
+  }
+}

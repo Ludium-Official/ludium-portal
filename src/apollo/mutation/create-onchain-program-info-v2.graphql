@@ -1,0 +1,11 @@
+mutation createOnchainProgramInfoV2($input: CreateOnchainProgramInfoV2Input!) {
+  createOnchainProgramInfoV2(input: $input) {
+    id
+    networkId
+    onchainProgramId
+    smartContractId
+    status
+    tx
+    createdAt
+  }
+}

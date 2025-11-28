@@ -1,0 +1,8 @@
+query smartContractV2($id: ID!) {
+  smartContractV2(id: $id) {
+    id
+    chainInfoId
+    address
+    name
+  }
+}

@@ -1,34 +1,36 @@
 import { Link, useLocation, useParams } from 'react-router';
 
 export const sidebarLinks = [
-  { label: 'Overview', path: 'overview' },
-  { label: 'Description', path: 'description' },
+  { label: 'Overview', path: 'profile' },
+  { label: 'Description', path: 'profile/description' },
   {
     label: 'Program',
     children: [
       {
         label: 'Recruitment',
-        path: 'program/recruitment',
+        // path: "program/recruitment",
         children: [
-          { label: 'Sponsor', path: 'program/recruitment/sponsor' },
-          { label: 'Validator', path: 'program/recruitment/validator' },
-          { label: 'Builder', path: 'program/recruitment/builder' },
-          // { label: 'Reclaim', path: 'program/recruitment/reclaim' },
+          { label: 'Sponsor', path: 'profile/recruitment/sponsor' },
+          { label: 'Builder', path: 'profile/recruitment/builder' },
+          // { label: 'Reclaim', path: 'my-profile/program/recruitment/reclaim' },
         ],
       },
-      {
-        label: 'Funding',
-        path: 'program/investment',
-        children: [
-          { label: 'Host', path: 'program/investment/host' },
-          { label: 'Project', path: 'program/investment/project' },
-          { label: 'Supporter', path: 'program/investment/supporter' },
-          // { label: 'Reclaim', path: 'program/investment/reclaim' },
-        ],
-      },
+      // {
+      //   label: 'Funding',
+      //   path: 'my-profile/program/investment',
+      //   children: [
+      //     { label: 'Host', path: 'my-profile/program/investment/host' },
+      //     { label: 'Project', path: 'my-profile/program/investment/project' },
+      //     {
+      //       label: 'Supporter',
+      //       path: 'my-profile/program/investment/supporter',
+      //     },
+      //     // { label: 'Reclaim', path: 'my-profile/program/investment/reclaim' },
+      //   ],
+      // },
     ],
   },
-  { label: 'Community', path: 'community' },
+  { label: 'Community', path: 'profile/community' },
 ];
 
 export type SidebarItemType = {
@@ -47,11 +49,7 @@ export function SidebarLinks({
   const { id } = useParams();
   const location = useLocation();
 
-  const fullPath = myProfile
-    ? `/my-profile/${item.path}`
-    : item.path
-      ? `/users/${id}/${item.path}`
-      : '';
+  const fullPath = myProfile ? `/${item.path}` : item.path ? `/users/${id}/${item.path}` : '';
 
   const isActive = location.pathname === fullPath;
 
@@ -74,7 +72,7 @@ export function SidebarLinks({
         </div>
       )}
       {item.children && (
-        <div className={`ml-4 pl-2 ${item.path && 'border-l'} border-gray-200 space-y-1`}>
+        <div className={`ml-4 pl-2 border-l border-gray-200 space-y-1`}>
           {item.children
             .filter((child) => myProfile || child.label !== 'Reclaim')
             .map((child) => (

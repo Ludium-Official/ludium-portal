@@ -1,101 +1,63 @@
-import { ProgramStatusBadge } from '@/components/status-badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/lib/hooks/use-auth';
-import { getCurrency, getCurrencyIcon } from '@/lib/utils';
-import { ApplicationStatus, type Program } from '@/types/types.generated';
+import { getNetworkDisplayName, getTokenIcon } from '@/constant/network-icons';
+import { dDay, getInitials, reduceString, timeAgo } from '@/lib/utils';
+import type { ProgramV2 } from '@/types/types.generated';
 import { format } from 'date-fns';
-import { Settings } from 'lucide-react';
 import { Link } from 'react-router';
 
-function ProgramCard({ program }: { program: Program }) {
-  const { isSponsor } = useAuth();
-  const { id, name, keywords, summary } = program ?? {};
+function ProgramCard({ program }: { program: ProgramV2 }) {
+  const { id, createdAt, deadline, price, title, network, sponsor, token, applicationCount } =
+    program ?? {};
 
   return (
-    <div className="block w-full border border-gray-border rounded-lg p-5 max-h-[292px]">
-      <div className="flex justify-between mb-2">
-        <div className="flex gap-2 mb-1">
-          {keywords?.slice(0, 3)?.map((k) => (
-            <Badge key={k.id} variant="secondary">
-              {k.name}
-            </Badge>
-          ))}
-
-          {(program?.keywords?.length ?? 0) > 3 && (
-            <Badge variant="secondary">+{(program?.keywords?.length ?? 0) - 3} more</Badge>
-          )}
+    <div className="block w-full max-w-full max-h-[292px] border border-gray-border rounded-lg p-5">
+      <Link to={`/programs/${id}`} className="flex flex-col gap-3 mb-4">
+        <div className="text-lg font-bold line-clamp-1 min-h-[28px]">{title}</div>
+        <div className="flex items-center gap-3">
+          <Avatar className="w-7 h-7">
+            <AvatarImage src={sponsor?.profileImage || ''} alt="sponsor-img" />
+            <AvatarFallback className="text-xs">
+              {getInitials(`${program.sponsor?.firstName} ${program.sponsor?.lastName}`)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="text-muted-foreground text-sm">
+            {sponsor?.firstName && sponsor?.lastName
+              ? `${sponsor?.firstName} ${sponsor?.lastName}`
+              : reduceString(sponsor?.walletAddress || '', 6, 6)}
+          </div>
         </div>
-        <div className="font-medium flex gap-2 items-center text-sm">
-          <ProgramStatusBadge program={program} />
-          {isSponsor && (
-            <Link to={`/programs/${program?.id}/edit`}>
-              <Settings className="w-4 h-4" />
-            </Link>
-          )}
-        </div>
-      </div>
 
-      <Link to={`/programs/${id}`} className="flex items-stretch gap-4 mb-4">
-        {program.image ? (
-          <img src={program.image} className="w-[104px] h-[104px] rounded-md" alt="Program" />
-        ) : (
-          <div className="w-[104px] h-[104px] bg-slate-200 rounded-md " />
-        )}
-        <div className="flex flex-col justify-between">
-          <h2 className="text-lg font-bold text-[#18181B] truncate max-w-[394px]">{name}</h2>
-          <div className="inline-flex self-start text-sm bg-secondary py-1 px-2 items-center rounded-md">
-            <span className="text-neutral-400 mr-3">PRICE</span>{' '}
-            <span className="flex items-center text-muted-foreground gap-1 font-medium">
-              {getCurrencyIcon(program?.currency)} {program?.price} {program?.currency}
-            </span>
-            <span className="block ml-2 border-l pl-2 text-muted-foreground font-medium">
-              {getCurrency(program?.network)?.display}
+        <div className="flex gap-3">
+          <div className="inline-flex items-center self-start bg-secondary text-sm py-1 px-2 rounded-md">
+            <span className="mr-3 text-xs font-semibold text-neutral-400">PRICE</span>
+            {price ? (
+              <span className="flex items-center gap-1 text-muted-foreground font-medium">
+                {token && getTokenIcon(token.tokenName || 'EDU')} {price}
+                <span className="ml-1">{token?.tokenName}</span>
+              </span>
+            ) : (
+              <span className="text-muted-foreground font-medium">Negotiable</span>
+            )}
+            <span className="block ml-2 pl-2 border-l text-muted-foreground font-medium">
+              {network && getNetworkDisplayName(network.chainName || 'educhain')}
             </span>
           </div>
-          <div className="inline-flex self-start text-sm bg-secondary py-1 px-2 items-center rounded-md">
-            <span className="text-neutral-400 mr-3">DEADLINE</span>
+          <div className="inline-flex items-center self-start py-1 px-2 rounded-md text-sm bg-secondary">
+            <span className="mr-3 text-xs font-semibold text-neutral-400">DEADLINE</span>
             <span className="font-medium text-muted-foreground">
-              {format(new Date(program?.deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
+              {format(new Date(deadline ?? new Date()), 'dd . MMM . yyyy').toUpperCase()}
             </span>
-            {program?.deadline &&
-              (() => {
-                const deadlineDate = new Date(program.deadline);
-                const today = new Date();
-                // Zero out the time for both dates to get full days difference
-                deadlineDate.setHours(0, 0, 0, 0);
-                today.setHours(0, 0, 0, 0);
-                const diffTime = deadlineDate.getTime() - today.getTime();
-                const daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-                return <Badge className="ml-2">D-{daysRemaining}</Badge>;
-              })()}
+            {deadline && <Badge className="ml-2">{dDay(deadline)}</Badge>}
           </div>
         </div>
       </Link>
-
-      <div className="mb-6">
-        <p className="text-slate-500 text-sm font-normal leading-5 line-clamp-2 h-10">{summary}</p>
-      </div>
-
-      <div className="flex justify-between">
-        <Link
-          to={`/programs/${id}#applications`}
-          className="text-xs font-semibold bg-gray-light rounded-md px-3 py-2 leading-4"
-        >
-          Submitted Application{' '}
-          <span className="text-primary">{program.applications?.length ?? 0}</span>
-        </Link>
-        <Link
-          to={`/programs/${id}#applications`}
-          className="text-xs font-semibold bg-gray-light rounded-md px-3 py-2 leading-4"
-        >
-          Approved Application{' '}
-          <span className="text-green-600">
-            {program.applications?.filter(
-              (a) =>
-                a.status === ApplicationStatus.Accepted || a.status === ApplicationStatus.Completed,
-            ).length ?? 0}
-          </span>
-        </Link>
+      <div className="flex items-center justify-between text-sm text-[#8C8C8C]">
+        <div>{createdAt ? timeAgo(createdAt) : ''}</div>
+        <div className="px-3 py-2 leading-4">
+          Applicants:
+          <span className="ml-1 font-semibold">{applicationCount ?? 0}</span>
+        </div>
       </div>
     </div>
   );

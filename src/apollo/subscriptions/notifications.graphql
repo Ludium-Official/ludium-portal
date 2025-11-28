@@ -1,12 +1,16 @@
-subscription notifications {
-  notifications {
-    action
-    content
-    entityId
-    id
-    metadata
-    readAt
-    title
-    type
+subscription notifications($input: PaginationInput) {
+  notifications(pagination: $input) {
+    count
+    data {
+      id
+      title
+      content
+      type
+      action
+      entityId
+      metadata
+      readAt
+      createdAt
+    }
   }
 }

@@ -1,4 +1,5 @@
 import client from '@/apollo/client';
+import { NetworksProvider } from '@/contexts/networks-context';
 import { AuthProvider } from '@/providers/auth-provider';
 import { ApolloProvider } from '@apollo/client';
 import { PrivyProvider } from '@privy-io/react-auth';
@@ -46,7 +47,9 @@ function Providers({ children }: { children: React.ReactNode }) {
               },
             }}
           >
-            <SmartWalletsProvider>{children}</SmartWalletsProvider>
+            <SmartWalletsProvider>
+              <NetworksProvider>{children}</NetworksProvider>
+            </SmartWalletsProvider>
           </PrivyProvider>
         </AuthProvider>
       </BrowserRouter>

@@ -1,4 +1,5 @@
 import { useAuth } from '@/lib/hooks/use-auth';
+import type { LabelValueProps, VisibilityProps } from '@/types/common';
 import { useCallback, useMemo } from 'react';
 
 export type InvestmentDraft = {
@@ -10,12 +11,12 @@ export type InvestmentDraft = {
   deadline?: string; // yyyy-MM-dd
   keywords?: string[];
   validators?: string[];
-  selectedValidatorItems?: Array<{ label: string; value: string }>;
+  selectedValidatorItems?: Array<LabelValueProps>;
   links?: string[];
   network?: string;
-  visibility?: 'public' | 'restricted' | 'private';
+  visibility?: VisibilityProps;
   builders?: string[];
-  selectedBuilderItems?: Array<{ label: string; value: string }>;
+  selectedBuilderItems?: Array<LabelValueProps>;
   applicationStartDate?: string;
   applicationEndDate?: string;
   fundingStartDate?: string;

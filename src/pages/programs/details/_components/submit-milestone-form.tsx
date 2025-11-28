@@ -38,7 +38,9 @@ function SubmitMilestoneForm({
   const validateFile = (selectedFile: File): string | null => {
     // Check file size
     if (selectedFile.size > MAX_FILE_SIZE) {
-      return `File size must be less than 5MB. Current size: ${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`;
+      return `File size must be less than 5MB. Current size: ${(
+        selectedFile.size / 1024 / 1024
+      ).toFixed(2)} MB`;
     }
 
     // Check file type
@@ -73,7 +75,9 @@ function SubmitMilestoneForm({
     // Check if funding period has ended
     if (program?.fundingEndDate && new Date() <= new Date(program.fundingEndDate)) {
       notify(
-        `Milestones cannot be submitted until funding ends on ${new Date(program.fundingEndDate).toLocaleDateString()}`,
+        `Milestones cannot be submitted until funding ends on ${new Date(
+          program.fundingEndDate,
+        ).toLocaleDateString()}`,
         'error',
       );
       return;
@@ -177,7 +181,6 @@ function SubmitMilestoneForm({
         )}
       </label>
 
-      {/* File upload section - will work once backend schema is updated */}
       <div className="w-full mb-10">
         <p className="text-sm font-medium mb-2">File</p>
         <Input

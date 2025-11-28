@@ -1,21 +1,21 @@
 import { useAuth } from '@/lib/hooks/use-auth';
+import type { LabelValueProps, VisibilityProps } from '@/types/common';
 import { useCallback, useMemo } from 'react';
 
 export type ProgramDraft = {
-  programName?: string;
+  programTitle?: string;
   price?: string;
   description?: string;
-  summary?: string;
   currency?: string;
-  deadline?: string; // yyyy-MM-dd
-  keywords?: string[];
-  validators?: string[];
-  selectedValidatorItems?: Array<{ label: string; value: string }>;
+  deadline?: Date;
+  skills?: string[];
+  selectedSkillItems?: Array<LabelValueProps>;
   links?: string[];
   network?: string;
-  visibility?: 'public' | 'restricted' | 'private';
+  visibility?: VisibilityProps;
   builders?: string[];
-  selectedBuilderItems?: Array<{ label: string; value: string }>;
+  selectedBuilderItems?: Array<LabelValueProps>;
+  budget?: string;
 };
 
 const PROGRAM_DRAFT_KEY_PREFIX = 'programDraft';

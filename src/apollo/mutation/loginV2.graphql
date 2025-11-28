@@ -1,0 +1,3 @@
+mutation loginV2($email: String, $walletAddress: String!, $loginType: LoginTypeEnum!) {
+  loginV2(email: $email, walletAddress: $walletAddress, loginType: $loginType)
+}

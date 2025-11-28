@@ -1,0 +1,16 @@
+query getNotifications($input: PaginationInput) {
+  notifications(pagination: $input) {
+    count
+    data {
+      action
+      content
+      entityId
+      id
+      metadata
+      readAt
+      title
+      type
+      createdAt
+    }
+  }
+}

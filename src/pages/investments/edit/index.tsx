@@ -44,7 +44,7 @@ const EditInvestmentPage: React.FC = () => {
       return;
     }
     if (!isAuthed) {
-      navigate('/my-profile/edit');
+      navigate('/profile/edit');
       notify('Please add your email', 'success');
       return;
     }
@@ -158,14 +158,18 @@ const EditInvestmentPage: React.FC = () => {
 
         if (duplicateAssigns.length > 0) {
           notify(
-            `Duplicate validators found in assign list: ${duplicateAssigns.join(', ')}. Duplicates will be skipped.`,
+            `Duplicate validators found in assign list: ${duplicateAssigns.join(
+              ', ',
+            )}. Duplicates will be skipped.`,
             'error',
           );
         }
 
         if (duplicateUnassigns.length > 0) {
           notify(
-            `Duplicate validators found in unassign list: ${duplicateUnassigns.join(', ')}. Duplicates will be skipped.`,
+            `Duplicate validators found in unassign list: ${duplicateUnassigns.join(
+              ', ',
+            )}. Duplicates will be skipped.`,
             'error',
           );
         }
@@ -180,7 +184,9 @@ const EditInvestmentPage: React.FC = () => {
         );
         if (conflictingValidators.length > 0) {
           notify(
-            `Validators found in both assign and unassign lists: ${conflictingValidators.join(', ')}. These will be skipped.`,
+            `Validators found in both assign and unassign lists: ${conflictingValidators.join(
+              ', ',
+            )}. These will be skipped.`,
             'error',
           );
           // Remove conflicting validators from both arrays

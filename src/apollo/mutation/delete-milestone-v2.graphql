@@ -1,0 +1,11 @@
+mutation DeleteMilestoneV2($id: ID!) {
+  deleteMilestoneV2(id: $id) {
+    id
+    title
+    description
+    payout
+    deadline
+    createdAt
+    updatedAt
+  }
+}

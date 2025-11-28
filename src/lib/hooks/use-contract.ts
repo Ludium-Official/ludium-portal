@@ -1,17 +1,9 @@
 import { type ConnectedWallet, usePrivy, useWallets } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
-import type { Chain, PublicClient } from 'viem';
-import { createPublicClient, http } from 'viem';
-import {
-  arbitrum,
-  arbitrumSepolia,
-  base,
-  baseSepolia,
-  creditCoin3Mainnet,
-  eduChain,
-  eduChainTestnet,
-} from 'viem/chains';
-import ChainContract from '../contract';
+import type { Chain } from 'viem';
+import { http, createPublicClient } from 'viem';
+import RecruitmentContract from '../contract/recruitment-contract';
+import { checkNetwork } from '../functions/checkNetwork';
 
 async function getSigner(checkNetwork: Chain, currentWallet: ConnectedWallet) {
   const eip1193Provider = await currentWallet.getEthereumProvider();
@@ -38,55 +30,25 @@ async function getSigner(checkNetwork: Chain, currentWallet: ConnectedWallet) {
   return provider.getSigner();
 }
 
-export function useContract(network: string) {
+export function useContract(network: string, contractAddress?: string) {
   const { user, sendTransaction } = usePrivy();
 
   const { wallets } = useWallets();
   const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
 
-  // Check if the user is using an external wallet (like MetaMask)
-  // External wallets have connectorType like 'injected', 'wallet_connect', etc.
-  // Only 'embedded' wallets are Privy's internal wallets
   const isExternalWallet = user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
 
   let sendTx = sendTransaction;
 
-  // If no currentWallet found but user has a wallet, try to use the first available wallet
   const activeWallet =
     currentWallet || (isExternalWallet && wallets.length > 0 ? wallets[0] : null);
 
-  const checkNetwork: Chain = (() => {
-    if (network === 'base') {
-      return base;
-    }
-    if (network === 'base-sepolia') {
-      return baseSepolia;
-    }
-    if (network === 'educhain-testnet') {
-      return eduChainTestnet;
-    }
-    if (network === 'arbitrum') {
-      return arbitrum;
-    }
-    if (network === 'arbitrum-sepolia') {
-      return arbitrumSepolia;
-    }
-    if (network === 'creditcoin') {
-      return creditCoin3Mainnet;
-    }
-
-    return eduChain;
-  })();
-
   if (isExternalWallet && activeWallet) {
-    console.log('Using external wallet for transactions:', activeWallet.address);
     sendTx = async (input, _uiOptions?: unknown) => {
-      // Note: _uiOptions is ignored for external wallets since they use their own UI
       try {
-        console.log('Sending transaction with external wallet...', input);
-        const signer = await getSigner(checkNetwork, activeWallet);
+        const signer = await getSigner(checkNetwork(network), activeWallet);
         const txResponse = await signer.sendTransaction(input);
-        console.log('Transaction sent successfully:', txResponse.hash);
+
         return { hash: txResponse.hash as `0x${string}` };
       } catch (error) {
         console.error('Error sending transaction with external wallet:', error);
@@ -95,7 +57,6 @@ export function useContract(network: string) {
     };
   } else if (isExternalWallet && !activeWallet) {
     console.warn('User has an external wallet but no active wallet found. Transactions may fail.');
-    // Throw a more helpful error
     sendTx = async () => {
       throw new Error(
         'External wallet detected but not properly connected. Please reconnect your wallet.',
@@ -105,30 +66,43 @@ export function useContract(network: string) {
     sendTx = async () => {
       throw new Error('No wallet connected. Please connect a wallet to continue.');
     };
-  } else {
   }
 
-  const checkContract = (() => {
-    if (network === 'base' || network === 'base-sepolia') {
-      return import.meta.env.VITE_BASE_CONTRACT_ADDRESS;
-    }
-    if (network === 'arbitrum' || network === 'arbitrum-sepolia') {
-      return import.meta.env.VITE_ARBITRUM_CONTRACT_ADDRESS;
-    }
-    if (network === 'creditcoin') {
-      return import.meta.env.VITE_CREDITCOIN_CONTRACT_ADDRESS;
+  const signMessageFn = async (
+    message: string | Uint8Array<ArrayBufferLike>,
+    wallet?: ConnectedWallet,
+  ): Promise<string> => {
+    const targetWallet = wallet || activeWallet;
+    if (!targetWallet) {
+      throw new Error('No wallet available for signing');
     }
 
-    return import.meta.env.VITE_EDUCHAIN_CONTRACT_ADDRESS;
-  })();
+    try {
+      const eip1193Provider = await targetWallet.getEthereumProvider();
+      const provider = new ethers.providers.Web3Provider(eip1193Provider);
+      const signer = provider.getSigner();
 
-  // @ts-ignore
-  const client: PublicClient = createPublicClient({
-    chain: checkNetwork,
-    transport: http(checkNetwork.rpcUrls.default.http[0]),
+      const contractHashBytes = ethers.utils.arrayify(message);
+      const signature = await signer.signMessage(contractHashBytes);
+      return signature;
+    } catch (error) {
+      console.error('Error signing message:', error);
+      throw error;
+    }
+  };
+
+  const client = createPublicClient({
+    chain: checkNetwork(network),
+    transport: http(checkNetwork(network).rpcUrls.default.http[0]),
   });
 
-  const callContract = new ChainContract(checkContract, checkNetwork.id, sendTx, client);
+  const callContract = new RecruitmentContract(
+    contractAddress || '',
+    checkNetwork(network).id,
+    sendTx,
+    client,
+    signMessageFn,
+  );
 
   return callContract;
 }
