@@ -2,11 +2,14 @@ import { useContractsByApplicationV2Query } from '@/apollo/queries/contracts-by-
 import { useGetMilestonesV2Query } from '@/apollo/queries/milestones-v2.generated';
 import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
 import { useApplicationsByProgramV2Query } from '@/apollo/queries/applications-by-program-v2.generated';
+import { useOnchainProgramInfosByProgramV2Query } from '@/apollo/queries/onchain-program-infos-by-program-v2.generated';
 import { ChatBox } from '@/components/chat/chat-box';
 import { ContractModal } from '@/components/recruitment/contract/contract-modal';
 import { HireButton } from '@/components/recruitment/hire-button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNetworks } from '@/contexts/networks-context';
+import { useContract } from '@/lib/hooks/use-contract';
 import { type ChatMessageFile, getAllFiles, getLatestMessage } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { fromUTCString, getUserDisplayName, getUserInitialName } from '@/lib/utils';
@@ -27,6 +30,7 @@ import { ApplicationSidebar } from './application-sidebar';
 const RecruitmentMessage: React.FC = () => {
   const { id } = useParams();
   const { userId } = useAuth();
+  const { networks: networksWithTokens, getContractByNetworkId } = useNetworks();
 
   const { data } = useApplicationsByProgramV2Query({
     variables: {
@@ -108,7 +112,41 @@ const RecruitmentMessage: React.FC = () => {
         return 0;
       }) || [];
 
+  const existingContract = contracts.find(
+    (c) => c?.applicantId === Number(selectedApplication?.applicant?.id),
+  );
+
   const program = programData?.programV2;
+
+  const { data: onchainProgramInfosData } = useOnchainProgramInfosByProgramV2Query({
+    variables: { programId: Number(program?.id) || 0 },
+    skip: !program?.id,
+  });
+
+  const onchainProgramId =
+    onchainProgramInfosData?.onchainProgramInfosByProgramV2?.data?.[0]?.onchainProgramId || null;
+
+  const { data: allApplicationsData } = useApplicationsByProgramV2Query({
+    variables: {
+      query: {
+        programId: program?.id || '',
+      },
+    },
+    skip: !program?.id,
+  });
+
+  const currentNetwork = networksWithTokens.find(
+    (network) => Number(network.id) === program?.networkId,
+  );
+  const currentContract = getContractByNetworkId(Number(currentNetwork?.id));
+  const contract = useContract(currentNetwork?.chainName || 'educhain', currentContract?.address);
+
+  const tokenDecimals = useMemo(() => {
+    if (currentNetwork?.tokens && currentNetwork.tokens.length > 0) {
+      return currentNetwork.tokens.find((t) => t.id === program?.token?.id)?.decimals ?? 18;
+    }
+    return 18;
+  }, [currentNetwork, program?.token?.id]);
 
   const allMilestones = milestonesData?.milestonesV2?.data || [];
 
@@ -172,6 +210,7 @@ const RecruitmentMessage: React.FC = () => {
       networkId: program?.networkId || null,
       tokenId: program?.token?.id || null,
       price: program?.price || null,
+      deadline: program?.deadline || null,
     },
     applicationInfo: {
       id: selectedApplication?.id || '',
@@ -264,7 +303,15 @@ const RecruitmentMessage: React.FC = () => {
   }, [selectedApplication?.chatroomMessageId]);
 
   const isHandleMakeNewMilestone = useMemo(() => {
-    if (contractInformation.applicationInfo.status === ApplicationStatusV2.PendingSignature) {
+    if (
+      contractInformation.applicationInfo.status === ApplicationStatusV2.PendingSignature ||
+      contractInformation.applicationInfo.status === ApplicationStatusV2.Completed
+    ) {
+      return false;
+    }
+
+    // If there are completed milestones but no active milestones, return false
+    if (completedMilestones.length > 0 && activeMilestones.length === 0) {
       return false;
     }
 
@@ -280,7 +327,7 @@ const RecruitmentMessage: React.FC = () => {
     });
 
     return !allDeadlinesPassed;
-  }, [contractInformation, sortedMilestones]);
+  }, [contractInformation, sortedMilestones, completedMilestones, activeMilestones]);
 
   return (
     <div className="flex gap-4 h-[calc(100vh-200px)]">
@@ -430,6 +477,12 @@ const RecruitmentMessage: React.FC = () => {
         isSponsor={isSponsor}
         isHandleMakeNewMilestone={isHandleMakeNewMilestone}
         contractInformation={contractInformation}
+        existingContract={existingContract}
+        onchainProgramId={onchainProgramId}
+        allApplicationsData={allApplicationsData}
+        allMilestonesData={milestonesData}
+        contract={contract}
+        tokenDecimals={tokenDecimals}
       />
 
       {selectedContract && (

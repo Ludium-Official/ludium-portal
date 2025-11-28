@@ -38,7 +38,7 @@ export function ApplicationSidebar({
         isHandleMakeNewMilestone={isHandleMakeNewMilestone}
       />
 
-      <Accordion type="multiple" className="bg-white rounded-lg">
+      <Accordion type="multiple" defaultValue={['contract']} className="bg-white rounded-lg">
         <AccordionItem value="file" className="px-3 border-none">
           <AccordionTrigger className="hover:no-underline py-3">
             <span className="font-medium text-base">File</span>

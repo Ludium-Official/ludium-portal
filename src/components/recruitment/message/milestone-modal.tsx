@@ -1,5 +1,7 @@
 import { useCreateMilestoneV2Mutation } from '@/apollo/mutation/create-milestone-v2.generated';
 import { useUpdateMilestoneV2Mutation } from '@/apollo/mutation/update-milestone-v2.generated';
+import { useUpdateApplicationV2Mutation } from '@/apollo/mutation/update-application-v2.generated';
+import { useUpdateProgramV2Mutation } from '@/apollo/mutation/update-program-v2.generated';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -30,7 +32,14 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { dDay, formatUTCDateLocal, fromUTCString, toUTCString } from '@/lib/utils';
-import { MilestoneStatusV2, type MilestoneV2 } from '@/types/types.generated';
+import { useNetworks } from '@/contexts/networks-context';
+import { ethers } from 'ethers';
+import {
+  ApplicationStatusV2,
+  MilestoneStatusV2,
+  ProgramStatusV2,
+  type MilestoneV2,
+} from '@/types/types.generated';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -40,7 +49,7 @@ import MarkdownEditor from '@/components/markdown/markdown-editor';
 import { MarkdownPreviewer } from '@/components/markdown';
 import { MilestoneAccordion } from './milestone-accordion';
 import type { MilestoneModalProps } from '@/types/recruitment';
-import { useNetworks } from '@/contexts/networks-context';
+import { sendMessage } from '@/lib/firebase-chat';
 
 const milestoneFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -66,6 +75,12 @@ export function MilestoneModal({
   isSponsor,
   isHandleMakeNewMilestone,
   contractInformation,
+  existingContract,
+  onchainProgramId,
+  allApplicationsData,
+  allMilestonesData,
+  contract,
+  tokenDecimals = 18,
 }: MilestoneModalProps) {
   const { getTokenById } = useNetworks();
 
@@ -77,8 +92,11 @@ export function MilestoneModal({
   const tokenName = token?.tokenName;
   const [createMilestone, { loading: creatingMilestone }] = useCreateMilestoneV2Mutation();
   const [updateMilestone, { loading: updatingMilestone }] = useUpdateMilestoneV2Mutation();
+  const [updateApplication] = useUpdateApplicationV2Mutation();
+  const [updateProgram] = useUpdateProgramV2Mutation();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [pendingFormData, setPendingFormData] = useState<MilestoneFormData | null>(null);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const form = useForm<MilestoneFormData>({
     resolver: zodResolver(milestoneFormSchema),
@@ -180,8 +198,127 @@ export function MilestoneModal({
     }
   };
 
-  const handleCompleteClick = () => {
-    console.log(contractInformation, selectedMilestone?.payout);
+  const handleCompleteClick = async () => {
+    if (!selectedMilestone?.id || !selectedMilestone?.payout) {
+      toast.error('Milestone information is missing');
+      return;
+    }
+
+    if (!existingContract?.onchainContractId) {
+      toast.error('Contract not found. Please create a contract first.');
+      return;
+    }
+
+    if (!contract) {
+      toast.error('Contract instance not available');
+      return;
+    }
+
+    setIsCompleting(true);
+
+    try {
+      const payoutAmount = ethers.utils.parseUnits(selectedMilestone.payout, tokenDecimals);
+      const payoutBigInt = BigInt(payoutAmount._hex);
+
+      await contract.completeMilestone(existingContract.onchainContractId, payoutBigInt);
+
+      await updateMilestone({
+        variables: {
+          id: selectedMilestone.id,
+          input: {
+            status: MilestoneStatusV2.Completed,
+          },
+        },
+      });
+
+      await sendMessage(
+        contractInformation.applicationInfo.chatRoomId || '',
+        'The reward has been successfully distributed.',
+        '0',
+      );
+      toast.success('Milestone completed successfully');
+
+      const updatedActiveMilestones = activeMilestones.filter((m) => m.id !== selectedMilestone.id);
+      const updatedCompletedMilestones = [
+        ...completedMilestones,
+        { ...selectedMilestone, status: MilestoneStatusV2.Completed },
+      ];
+      const allMilestones = [...updatedActiveMilestones, ...updatedCompletedMilestones];
+      const allMilestonesCompleted = allMilestones.every(
+        (m: MilestoneV2) => m.status === MilestoneStatusV2.Completed,
+      );
+
+      if (allMilestonesCompleted) {
+        await updateApplication({
+          variables: {
+            id: applicationId,
+            input: {
+              status: ApplicationStatusV2.Completed,
+            },
+          },
+        });
+
+        await sendMessage(
+          contractInformation.applicationInfo.chatRoomId || '',
+          'All milestones have been completed. The application will now be closed.',
+          '0',
+        );
+
+        const allApplications = allApplicationsData?.applicationsByProgramV2?.data || [];
+        const allApplicationsCompleted = allApplications.every(
+          (app: { status?: ApplicationStatusV2 | null }) =>
+            app.status === ApplicationStatusV2.Completed,
+        );
+
+        if (allApplicationsCompleted) {
+          const programDeadline = contractInformation.programInfo.deadline;
+          if (programDeadline) {
+            const deadlineDate = fromUTCString(programDeadline);
+            const now = new Date();
+
+            if (deadlineDate && deadlineDate.getTime() > now.getTime()) {
+              return;
+            }
+          }
+
+          if (onchainProgramId) {
+            await updateProgram({
+              variables: {
+                id: programId,
+                input: {
+                  status: ProgramStatusV2.Closed,
+                },
+              },
+            });
+
+            await contract.completeProgram(onchainProgramId);
+
+            toast.success(
+              'All applications completed. Program status updated to Closed and completed on-chain.',
+            );
+          } else {
+            await updateProgram({
+              variables: {
+                id: programId,
+                input: {
+                  status: ProgramStatusV2.Closed,
+                },
+              },
+            });
+
+            toast.success('All applications completed. Program status updated to Closed.');
+          }
+        }
+      }
+
+      await onRefetch();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Failed to complete milestone:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to complete milestone');
+    } finally {
+      setIsCompleting(false);
+    }
   };
 
   useEffect(() => {
@@ -377,8 +514,13 @@ export function MilestoneModal({
             isHandleMakeNewMilestone && (
               <div className="flex items-center justify-end gap-2">
                 {selectedMilestone && selectedMilestone.status === MilestoneStatusV2.InProgress && (
-                  <Button type="button" variant="purple" onClick={handleCompleteClick}>
-                    Complete
+                  <Button
+                    type="button"
+                    variant="purple"
+                    onClick={handleCompleteClick}
+                    disabled={isCompleting}
+                  >
+                    {isCompleting ? 'Completing...' : 'Complete'}
                   </Button>
                 )}
                 <Button type="button" variant="default" onClick={handleEditClick}>

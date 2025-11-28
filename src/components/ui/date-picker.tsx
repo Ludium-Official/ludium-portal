@@ -17,7 +17,6 @@ export function DatePicker({
   disabled?: Matcher | Matcher[] | undefined;
   align?: 'center' | 'start' | 'end' | undefined;
 }) {
-  console.log(disabled);
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -34,8 +33,7 @@ export function DatePicker({
       </PopoverTrigger>
       <PopoverContent align={align} className="w-auto p-0 z-[10000] pointer-events-auto">
         <Calendar
-          // TODO: disabled={disabled}
-          // disabled={disabled}
+          disabled={disabled}
           mode="single"
           selected={date}
           onSelect={(day) => {

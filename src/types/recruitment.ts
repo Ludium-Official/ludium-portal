@@ -117,6 +117,7 @@ export interface ContractInformation {
     networkId: number | null;
     tokenId: string | null;
     price: string | null;
+    deadline?: string | null;
   };
   applicationInfo: {
     id: string;
@@ -167,4 +168,13 @@ export interface MilestoneModalProps {
   isSponsor: boolean;
   isHandleMakeNewMilestone: boolean;
   contractInformation: ContractInformation;
+  existingContract?: {
+    onchainContractId?: number | null;
+    applicantId?: number | null;
+  } | null;
+  onchainProgramId?: number | null;
+  allApplicationsData?: any;
+  allMilestonesData?: any;
+  contract?: any;
+  tokenDecimals?: number;
 }
