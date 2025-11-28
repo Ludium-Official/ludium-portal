@@ -85,7 +85,8 @@ export function ContractModal({
   const [updateApplicationV2Mutation] = useUpdateApplicationV2Mutation();
 
   const onchainProgramId =
-    onchainProgramInfosData?.onchainProgramInfosByProgramV2?.data?.[0]?.onchainProgramId || null;
+    onchainProgramInfosData?.onchainProgramInfosByProgramV2?.data?.[0]?.onchainProgramId?.toString() ||
+    null;
 
   const existingContract = contractsData?.contractsByProgramV2?.data?.find(
     (c) => c?.applicantId === Number(applicationInfo.applicant?.id),
@@ -200,8 +201,9 @@ export function ContractModal({
 
   const handleAddSignature = async () => {
     setIsSigningMessage(true);
+    console.log(onchainProgramId);
 
-    if (!onchainProgramId) {
+    if (onchainProgramId === null) {
       notify('Onchain program ID not found', 'error');
       return;
     }
@@ -223,7 +225,7 @@ export function ContractModal({
 
     try {
       const signature = await contract.createBuilderSignature(
-        onchainProgramId,
+        Number(onchainProgramId),
         applicationInfo.applicant?.walletAddress as `0x${string}`,
         BigInt(targetFundingWei.toString()),
         2n,
@@ -265,7 +267,8 @@ export function ContractModal({
 
   const handleSubmit = async () => {
     setIsSigningMessage(true);
-    if (!onchainProgramId) {
+
+    if (onchainProgramId === null) {
       notify('Onchain program ID not found', 'error');
       return;
     }
@@ -365,7 +368,7 @@ export function ContractModal({
         }
 
         txResult = await contract.createContract(
-          onchainProgramId,
+          Number(onchainProgramId),
           applicationInfo.applicant?.walletAddress as `0x${string}`,
           BigInt(targetFundingWei.toString()),
           existingContract.builder_signature as `0x${string}`,
