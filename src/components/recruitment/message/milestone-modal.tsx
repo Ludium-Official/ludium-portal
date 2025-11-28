@@ -78,7 +78,6 @@ export function MilestoneModal({
   existingContract,
   onchainProgramId,
   allApplicationsData,
-  allMilestonesData,
   contract,
   tokenDecimals = 18,
 }: MilestoneModalProps) {
