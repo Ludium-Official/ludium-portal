@@ -480,7 +480,6 @@ const RecruitmentMessage: React.FC = () => {
         existingContract={existingContract}
         onchainProgramId={onchainProgramId}
         allApplicationsData={allApplicationsData}
-        allMilestonesData={milestonesData}
         contract={contract}
         tokenDecimals={tokenDecimals}
       />

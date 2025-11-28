@@ -174,7 +174,6 @@ export interface MilestoneModalProps {
   } | null;
   onchainProgramId?: number | null;
   allApplicationsData?: any;
-  allMilestonesData?: any;
   contract?: any;
   tokenDecimals?: number;
 }
