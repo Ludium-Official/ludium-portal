@@ -8,6 +8,7 @@ query GetProgramsBySponsorV2($sponsorId: ID!, $pagination: PaginationInput) {
       createdAt
       deadline
       status
+      applicationCount
       sponsor {
         id
         walletAddress

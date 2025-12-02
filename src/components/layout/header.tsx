@@ -257,7 +257,7 @@ function Header() {
               <Notifications />
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90 h-fit">
+                  <Button size="sm" className="bg-primary hover:bg-primary/90">
                     <span className="hidden sm:inline">
                       {profileData?.profileV2?.firstName && profileData?.profileV2?.lastName
                         ? `${profileData.profileV2.firstName} ${profileData.profileV2.lastName}`

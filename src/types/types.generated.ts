@@ -1361,6 +1361,8 @@ export type OnchainContractInfoV2 = {
   smartContractId?: Maybe<Scalars['Int']['output']>;
   sponsorId?: Maybe<Scalars['Int']['output']>;
   status?: Maybe<OnchainContractStatusV2>;
+  /** The token associated with the program of this contract info */
+  token?: Maybe<TokenV2>;
   tx?: Maybe<Scalars['String']['output']>;
 };
 

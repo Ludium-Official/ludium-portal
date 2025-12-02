@@ -19,14 +19,23 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ShareButton } from '@/components/ui/share-button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
-import { formatDate, formatPrice, getCurrencyIcon, reduceString } from '@/lib/utils';
+import {
+  formatDate,
+  formatPrice,
+  getCurrencyIcon,
+  getInitials,
+  getUserDisplayName,
+  reduceString,
+} from '@/lib/utils';
 import { ProgramStatusV2, ProgramVisibilityV2 } from '@/types/types.generated';
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import StatusBadge from '../statusBadge/statusBadge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const RecruitmentOverview: React.FC = () => {
   const { id } = useParams();
@@ -123,6 +132,7 @@ const RecruitmentOverview: React.FC = () => {
   const formattedCreatedAt = program.createdAt && formatDate(program.createdAt);
   const formattedDeadline = program.deadline && formatDate(program.deadline);
   const formattedPriceValue = program.price && formatPrice(program.price);
+  const isDeadlinePassed = program.deadline && new Date(program.deadline).getTime() < Date.now();
 
   return (
     <div className="bg-white rounded-2xl p-10">
@@ -135,7 +145,7 @@ const RecruitmentOverview: React.FC = () => {
 
       <h1 className="flex justify-between mb-8 text-3xl font-bold text-gray-900">
         {program.title}
-        <ShareButton />
+        <ShareButton linkToCopy={`${window.location.origin}/programs/${program.id}`} />
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -153,7 +163,7 @@ const RecruitmentOverview: React.FC = () => {
         <div className="lg:col-span-1">
           <div className="p-6 space-y-6">
             <div className="flex items-center justify-between pb-5 border-b">
-              <div className="text-muted-foreground text-sm font-medium">Price</div>
+              <div className="text-muted-foreground text-sm font-medium">Budget</div>
               <div>
                 <div className="text-sm text-right">{program.network?.chainName}</div>
                 <div className="font-bold text-xl">
@@ -192,7 +202,12 @@ const RecruitmentOverview: React.FC = () => {
                     className="h-11 flex-1"
                     disabled={program.status !== ProgramStatusV2.Open && !isDraft}
                   >
-                    <Link to={`/programs/${program.id}/edit`}>Edit</Link>
+                    <Link
+                      className="flex items-center justify-center w-full h-full"
+                      to={`/programs/${program.id}/edit`}
+                    >
+                      Edit
+                    </Link>
                   </Button>
                   {program.status === 'under_review' ? (
                     <Button disabled className="h-11 flex-1">
@@ -231,45 +246,66 @@ const RecruitmentOverview: React.FC = () => {
               </div>
             ) : (
               userId && (
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="w-full" disabled={program.hasApplied || false}>
-                      {program.hasApplied ? 'Applied' : 'Submit application'}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-3xl! max-h-[90vh] overflow-y-auto">
-                    <DialogHeader className="flex-row items-center justify-between space-y-0">
-                      <DialogTitle>Add Cover Letter</DialogTitle>
-                    </DialogHeader>
-                    <div className="mt-4">
-                      <InputLabel
-                        labelId="coverLetter"
-                        title="Highlight your skills and explain why you're a great fit for this role."
-                        isPrimary
-                        inputClassName="hidden"
-                      >
-                        <MarkdownEditor
-                          onChange={(value: string) => {
-                            setCoverLetter(value);
-                          }}
-                          content={coverLetter}
-                        />
-                      </InputLabel>
-                    </div>
-                    <div className="flex justify-end">
-                      <Button
-                        onClick={handleSubmitApplication}
-                        disabled={submitting || !coverLetter.trim()}
-                      >
-                        {submitting ? 'Submitting...' : 'Submit application'}
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                <TooltipProvider>
+                  <Tooltip>
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                      <TooltipTrigger asChild>
+                        <span className="w-full">
+                          <DialogTrigger asChild>
+                            <Button
+                              className="w-full"
+                              disabled={
+                                program.status !== ProgramStatusV2.Open ||
+                                program.hasApplied ||
+                                isDeadlinePassed ||
+                                false
+                              }
+                            >
+                              {program.hasApplied ? 'Applied' : 'Submit application'}
+                            </Button>
+                          </DialogTrigger>
+                        </span>
+                      </TooltipTrigger>
+                      {isDeadlinePassed && (
+                        <TooltipContent>
+                          <p className="text-red-500">Deadline has passed</p>
+                        </TooltipContent>
+                      )}
+                      <DialogContent className="max-w-3xl! max-h-[90vh] overflow-y-auto">
+                        <DialogHeader className="flex-row items-center justify-between space-y-0">
+                          <DialogTitle>Add Cover Letter</DialogTitle>
+                        </DialogHeader>
+                        <div className="mt-4">
+                          <InputLabel
+                            labelId="coverLetter"
+                            title="Highlight your skills and explain why you're a great fit for this role."
+                            isPrimary
+                            inputClassName="hidden"
+                          >
+                            <MarkdownEditor
+                              onChange={(value: string) => {
+                                setCoverLetter(value);
+                              }}
+                              content={coverLetter}
+                            />
+                          </InputLabel>
+                        </div>
+                        <div className="flex justify-end">
+                          <Button
+                            onClick={handleSubmitApplication}
+                            disabled={submitting || !coverLetter.trim()}
+                          >
+                            {submitting ? 'Submitting...' : 'Submit application'}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </Tooltip>
+                </TooltipProvider>
               )
             )}
 
-            <div>
+            <div className="mt-4">
               <div className="mb-2 text-muted-foreground text-sm font-medium">Skills</div>
               <div className="flex flex-wrap gap-3 text-sm">
                 {program.skills?.map((skill: string) => (
@@ -282,10 +318,24 @@ const RecruitmentOverview: React.FC = () => {
 
             <div>
               <div className="mb-2 text-muted-foreground text-sm font-medium">Sponsor</div>
-              <div className="flex gap-3 text-sm text-muted-foreground">
-                {program.sponsor?.firstName && program.sponsor?.lastName
-                  ? `${program.sponsor?.firstName} ${program.sponsor?.lastName}`
-                  : reduceString(program.sponsor?.walletAddress || '', 6, 6)}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Avatar className="w-6 h-6">
+                  <AvatarImage src={program.sponsor?.profileImage || ''} />
+                  <AvatarFallback className="text-xs">
+                    {getInitials(
+                      getUserDisplayName(
+                        program.sponsor?.firstName,
+                        program.sponsor?.lastName,
+                        program.sponsor?.email,
+                      ),
+                    )}
+                  </AvatarFallback>
+                </Avatar>
+                {getUserDisplayName(
+                  program.sponsor?.firstName,
+                  program.sponsor?.lastName,
+                  program.sponsor?.email,
+                )}
               </div>
             </div>
 

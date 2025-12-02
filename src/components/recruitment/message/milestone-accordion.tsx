@@ -29,9 +29,9 @@ export function MilestoneAccordion({
 }: MilestoneAccordionProps) {
   return (
     <Accordion type="multiple" defaultValue={defaultOpen} className="bg-white rounded-lg">
-      <AccordionItem value="milestone" className="px-3 border-none">
+      <AccordionItem value="milestone" className="px-3">
         <AccordionTrigger className="hover:no-underline py-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between w-full">
             <span className="font-medium text-base">Milestone</span>
             {isSponsor && isHandleMakeNewMilestone && onNewMilestoneClick && (
               <Plus
@@ -51,7 +51,7 @@ export function MilestoneAccordion({
         </AccordionContent>
       </AccordionItem>
 
-      <AccordionItem value="completed" className="px-3 border-none">
+      <AccordionItem value="completed" className="px-3">
         <AccordionTrigger className="hover:no-underline py-3">
           <span className="font-medium text-base">Completed</span>
         </AccordionTrigger>

@@ -59,6 +59,7 @@ const ProfileRecruitment: React.FC = () => {
   });
 
   const programs = data?.programsBysponsorIdV2?.data || [];
+  console.log(programs);
   const totalCount = data?.programsBysponsorIdV2?.count || 0;
   const totalPages = Math.ceil(totalCount / PageSize);
 
@@ -173,7 +174,7 @@ const ProfileRecruitment: React.FC = () => {
             className="flex items-center cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            Price
+            Budget
             <ChevronsUpDown className="ml-2 h-4 w-4" />
           </div>
         );
@@ -220,6 +221,12 @@ const ProfileRecruitment: React.FC = () => {
         return <div className="font-bold">{formatDate(row.getValue('createdAt'))}</div>;
       },
       sortingFn: 'datetime',
+      size: 100,
+    },
+    {
+      accessorKey: 'applicationCount',
+      header: 'Applicants',
+      cell: ({ row }) => <div className="font-bold">{row.getValue('applicationCount')}</div>,
       size: 100,
     },
   ];

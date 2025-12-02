@@ -73,11 +73,10 @@ const SaveButton: React.FC<SaveButtonProps> = ({
 
   return (
     <Popover>
-      <PopoverTrigger>
+      <PopoverTrigger disabled={isAllFill || loading}>
         <Button
           type="button"
           className="min-w-[97px] bg-primary hover:bg-primary/90"
-          size="lg"
           disabled={isAllFill || loading}
         >
           Publish

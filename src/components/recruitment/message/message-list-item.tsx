@@ -1,5 +1,4 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import ludiumAssignmentLogo from '@/assets/ludium-assignment.svg';
 import { cn, getUserInitialName, getUserDisplayName } from '@/lib/utils';
 import type { ApplicationV2 } from '@/types/types.generated';
 import type { Timestamp } from 'firebase/firestore';
@@ -54,12 +53,7 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
       latestMessageSenderId === '-1' ||
       latestMessageSenderId === '-2'
     ) {
-      return (
-        <div className="flex items-center gap-1">
-          <img src={ludiumAssignmentLogo} alt="Ludium Assignment" className="w-4 h-4" />
-          Ludium Assistant Message
-        </div>
-      );
+      return <div className="flex items-center gap-1">Ludium Assistant Message</div>;
     }
 
     if (!latestMessageText) return 'No messages yet';
@@ -86,7 +80,7 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
 
       <div className="flex-1 min-w-0">
         <h4 className="mb-1 font-semibold text-gray-900 truncate">{fullName}</h4>
-        <p className="max-w-[200px] text-sm text-gray-600 truncate">{getDisplayText()}</p>
+        <p className="max-w-[200px] text-xs text-muted-foreground truncate">{getDisplayText()}</p>
         {latestMessageTimestamp && (
           <span className="text-xs text-muted-foreground whitespace-nowrap">
             {formatDate(latestMessageTimestamp)}

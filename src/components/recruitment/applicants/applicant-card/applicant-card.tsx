@@ -121,10 +121,10 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
                           <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                           <span>{userInfo.star}</span>
                         </div>
+                        <span className="mx-1">∙</span>
                       </div>
                     )}
                     <div className="flex items-center">
-                      <span className="mx-1">∙</span>
                       <div className="flex items-center gap-1">
                         Applied {appliedDate && formatDate(appliedDate)}
                       </div>
@@ -179,47 +179,63 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
           </DialogHeader>
 
           <div className="mt-4">
-            <div className="flex items-start gap-4 mb-6">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={userInfo.image || ''} alt={fullName} />
-                <AvatarFallback className="text-lg font-semibold">{initials}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 text-xl text-neutral-700 mb-2">
-                  <Link to={`/users/${userInfo.userId}`} className="font-bold hover:underline">
-                    {fullName}
-                  </Link>
-                  {userInfo.role && (
-                    <p className="text-sm text-muted-foreground">{userInfo.role}</p>
-                  )}
-                </div>
-                <div className="flex items-center text-slate-500 text-sm">
-                  {userInfo.location && (
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>{userInfo.location}</span>
-                    </div>
-                  )}
-                  {userInfo.hourlyRate && (
-                    <div className="flex items-center">
-                      <span className="mx-1">∙</span>
-                      <span>${userInfo.hourlyRate}/hour</span>
-                    </div>
-                  )}
-                  {userInfo.star && (
-                    <div className="flex items-center">
-                      <span className="mx-1">∙</span>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-start gap-4">
+                <Avatar className="h-16 w-16">
+                  <AvatarImage src={userInfo.image || ''} alt={fullName} />
+                  <AvatarFallback className="text-lg font-semibold">{initials}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 text-xl text-neutral-700 mb-2">
+                    <Link to={`/users/${userInfo.userId}`} className="font-bold hover:underline">
+                      {fullName}
+                    </Link>
+                    {userInfo.role && (
+                      <p className="text-sm text-muted-foreground">{userInfo.role}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center text-slate-500 text-sm">
+                    {userInfo.location && (
                       <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span>{userInfo.star}</span>
+                        <MapPin className="h-4 w-4" />
+                        <span>{userInfo.location}</span>
                       </div>
+                    )}
+                    {userInfo.hourlyRate && (
+                      <div className="flex items-center">
+                        <span className="mx-1">∙</span>
+                        <span>${userInfo.hourlyRate}/hour</span>
+                      </div>
+                    )}
+                    {userInfo.star && (
+                      <div className="flex items-center">
+                        <span className="mx-1">∙</span>
+                        <div className="flex items-center gap-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span>{userInfo.star}</span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex items-center">
+                      <span className="mx-1">∙</span>
+                      <span>Applied {appliedDate && formatDate(appliedDate)}</span>
                     </div>
-                  )}
-                  <div className="flex items-center">
-                    <span className="mx-1">∙</span>
-                    <span>Applied {appliedDate && formatDate(appliedDate)}</span>
                   </div>
                 </div>
+              </div>
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTogglePick?.(id, picked);
+                  }}
+                >
+                  {picked ? <Heart className="fill-red-500 text-red-500" /> : <Heart />}
+                </Button>
+                <Button onClick={handleMessageClick} disabled={isUpdatingChatroom}>
+                  {isUpdatingChatroom ? 'Creating...' : 'Message'}
+                </Button>
               </div>
             </div>
 
@@ -258,21 +274,6 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
                   </div>
                 </div>
               )}
-            </div>
-
-            <div className="flex justify-end gap-3 mt-6 pt-6 border-t">
-              <Button
-                variant="ghost"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onTogglePick?.(id, picked);
-                }}
-              >
-                {picked ? <Heart className="fill-red-500 text-red-500" /> : <Heart />}
-              </Button>
-              <Button onClick={handleMessageClick} disabled={isUpdatingChatroom}>
-                {isUpdatingChatroom ? 'Creating...' : 'Message'}
-              </Button>
             </div>
           </div>
         </DialogContent>

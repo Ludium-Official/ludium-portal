@@ -4,7 +4,6 @@ import {
   AdmonitionDirectiveDescriptor,
   BlockTypeSelect,
   BoldItalicUnderlineToggles,
-  CreateLink,
   DiffSourceToggleWrapper,
   InsertCodeBlock,
   InsertTable,
@@ -34,22 +33,6 @@ import '@mdxeditor/editor/style.css';
 import { useEffect, useRef, useState } from 'react';
 
 import './style.css';
-
-// const simpleSandpackConfig: SandpackConfig = {
-//   defaultPreset: 'react',
-//   presets: [
-//     {
-//       label: 'React',
-//       name: 'react',
-//       meta: 'live react',
-//       sandpackTemplate: 'react',
-//       sandpackTheme: 'light',
-//       snippetFileName: '/App.js',
-//       snippetLanguage: 'jsx',
-//       initialSnippetContent: defaultSnippetContent,
-//     },
-//   ],
-// };
 
 export async function expressImageUploadHandler(image: File) {
   const formData = new FormData();
@@ -107,7 +90,7 @@ function MarkdownEditor({
       ref={mdxRef}
       markdown={content}
       className="overflow-auto max-h-[600px] border rounded-md"
-      contentEditableClassName="prose min-h-[400px] cursor-text w-full"
+      contentEditableClassName="prose min-h-[400px] cursor-text max-w-full"
       onChange={(value) => debouncedOnChange(value)}
       plugins={[
         listsPlugin(),
@@ -157,7 +140,6 @@ function MarkdownEditor({
                 <BoldItalicUnderlineToggles />
                 <InsertThematicBreak />
                 <BlockTypeSelect />
-                <CreateLink />
                 <InsertTable />
                 <ListsToggle />
                 <InsertCodeBlock />

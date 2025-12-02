@@ -22,6 +22,7 @@ const ProfileRecuitmentDetail: React.FC = () => {
   });
 
   const program = programData?.programV2;
+  console.log(program);
   const isSponsor = program?.sponsor?.id === userId;
 
   useEffect(() => {
@@ -56,7 +57,7 @@ const ProfileRecuitmentDetail: React.FC = () => {
     <div className="flex flex-col justify-between bg-white px-10 py-7 rounded-2xl">
       <div className="mb-3">
         <Link
-          to={`/profile/recruitment/sponser`}
+          to={`/profile/recruitment/sponsor`}
           className="flex items-center w-fit mb-5 text-sm font-semibold text-gray-text"
         >
           <ChevronLeft className="w-4" />
@@ -69,6 +70,7 @@ const ProfileRecuitmentDetail: React.FC = () => {
             </TabsTrigger>
             <TabsTrigger value="applicants" className="rounded-sm px-10">
               Applicants
+              <span className="text-primary font-bold">{program?.applicationCount}</span>
             </TabsTrigger>
             <TabsTrigger value="message" className="rounded-sm px-10">
               Message
