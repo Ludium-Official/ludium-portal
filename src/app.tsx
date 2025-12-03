@@ -26,12 +26,12 @@ import ProgramDetailsPage from '@/pages/programs/details';
 import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Navigate, Route, Routes } from 'react-router';
+import ProfilePage from './pages/profile/profile';
 import ProfileRecruitmentBuilder from './pages/profile/recruitment/builder';
 import ProfileRecruitmentBuilderDetail from './pages/profile/recruitment/builder/detail';
 import ProfileRecruitment from './pages/profile/recruitment/sponsor';
 import ProfileRecuitmentDetail from './pages/profile/recruitment/sponsor/detail';
 import CreateProgram from './pages/programs/create';
-import ProfilePage from './pages/profile/profile';
 
 function App() {
   return (

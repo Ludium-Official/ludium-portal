@@ -1,50 +1,41 @@
-import { useContractsByApplicationV2Query } from "@/apollo/queries/contracts-by-application-v2.generated";
-import { useGetMilestonesV2Query } from "@/apollo/queries/milestones-v2.generated";
-import { useGetProgramV2Query } from "@/apollo/queries/program-v2.generated";
-import { useApplicationsByProgramV2Query } from "@/apollo/queries/applications-by-program-v2.generated";
-import { useOnchainProgramInfosByProgramV2Query } from "@/apollo/queries/onchain-program-infos-by-program-v2.generated";
-import { ChatBox } from "@/components/chat/chat-box";
-import { ContractModal } from "@/components/recruitment/contract/contract-modal";
-import { HireButton } from "@/components/recruitment/hire-button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNetworks } from "@/contexts/networks-context";
-import { useContract } from "@/lib/hooks/use-contract";
-import {
-  type ChatMessageFile,
-  getAllFiles,
-  getLatestMessage,
-} from "@/lib/firebase-chat";
-import { useAuth } from "@/lib/hooks/use-auth";
-import {
-  fromUTCString,
-  getUserDisplayName,
-  getUserInitialName,
-} from "@/lib/utils";
-import type { ContractInformation } from "@/types/recruitment";
+import { useApplicationsByProgramV2Query } from '@/apollo/queries/applications-by-program-v2.generated';
+import { useContractsByApplicationV2Query } from '@/apollo/queries/contracts-by-application-v2.generated';
+import { useGetMilestonesV2Query } from '@/apollo/queries/milestones-v2.generated';
+import { useOnchainProgramInfosByProgramV2Query } from '@/apollo/queries/onchain-program-infos-by-program-v2.generated';
+import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
+import { ChatBox } from '@/components/chat/chat-box';
+import { ContractModal } from '@/components/recruitment/contract/contract-modal';
+import { HireButton } from '@/components/recruitment/hire-button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNetworks } from '@/contexts/networks-context';
+import { type ChatMessageFile, getAllFiles, getLatestMessage } from '@/lib/firebase-chat';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { useContract } from '@/lib/hooks/use-contract';
+import { fromUTCString, getUserDisplayName, getUserInitialName } from '@/lib/utils';
+import type { ContractInformation } from '@/types/recruitment';
 import {
   ApplicationStatusV2,
-  ContractV2,
+  type ContractV2,
   MilestoneStatusV2,
   type MilestoneV2,
-} from "@/types/types.generated";
-import type { Timestamp } from "firebase/firestore";
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router";
-import MessageListItem from "./message-list-item";
-import { MilestoneModal } from "./milestone-modal";
-import { ApplicationSidebar } from "./application-sidebar";
+} from '@/types/types.generated';
+import type { Timestamp } from 'firebase/firestore';
+import { useEffect, useMemo, useState } from 'react';
+import { useParams } from 'react-router';
+import { ApplicationSidebar } from './application-sidebar';
+import MessageListItem from './message-list-item';
+import { MilestoneModal } from './milestone-modal';
 
 const RecruitmentMessage: React.FC = () => {
   const { id } = useParams();
   const { userId } = useAuth();
-  const { networks: networksWithTokens, getContractByNetworkId } =
-    useNetworks();
+  const { networks: networksWithTokens, getContractByNetworkId } = useNetworks();
 
   const { data } = useApplicationsByProgramV2Query({
     variables: {
       query: {
-        programId: id || "",
+        programId: id || '',
       },
     },
     skip: !id,
@@ -54,30 +45,22 @@ const RecruitmentMessage: React.FC = () => {
 
   const isSponsor = useMemo(
     () => applications[0]?.program?.sponsor?.id === userId,
-    [applications, userId]
+    [applications, userId],
   );
   const hasMessageIdRoom = useMemo(
     () => applications.filter((application) => application.chatroomMessageId),
-    [applications]
+    [applications],
   );
 
-  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(
-    null
-  );
+  const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
-  const [selectedMilestone, setSelectedMilestone] =
-    useState<MilestoneV2 | null>(null);
+  const [selectedMilestone, setSelectedMilestone] = useState<MilestoneV2 | null>(null);
   const [isNewMilestoneMode, setIsNewMilestoneMode] = useState(true);
   const [latestMessages, setLatestMessages] = useState<
-    Record<
-      string,
-      { text: string; timestamp: Timestamp; senderId: string; isFile: boolean }
-    >
+    Record<string, { text: string; timestamp: Timestamp; senderId: string; isFile: boolean }>
   >({});
   const [files, setFiles] = useState<ChatMessageFile[]>([]);
-  const [selectedContract, setSelectedContract] = useState<ContractV2 | null>(
-    null
-  );
+  const [selectedContract, setSelectedContract] = useState<ContractV2 | null>(null);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
   useEffect(() => {
@@ -85,9 +68,7 @@ const RecruitmentMessage: React.FC = () => {
       const firstChatroomId = hasMessageIdRoom[0].chatroomMessageId;
       const isSelectedValid =
         selectedMessageId &&
-        hasMessageIdRoom.find(
-          (app) => app.chatroomMessageId === selectedMessageId
-        );
+        hasMessageIdRoom.find((app) => app.chatroomMessageId === selectedMessageId);
       if (!isSelectedValid) {
         setSelectedMessageId(firstChatroomId);
       }
@@ -95,26 +76,23 @@ const RecruitmentMessage: React.FC = () => {
   }, [isSponsor, hasMessageIdRoom, selectedMessageId]);
 
   const selectedApplication = hasMessageIdRoom.find(
-    (applicant) => applicant.chatroomMessageId === selectedMessageId
+    (applicant) => applicant.chatroomMessageId === selectedMessageId,
   );
 
   const { data: programData } = useGetProgramV2Query({
-    variables: { id: selectedApplication?.program?.id || "" },
+    variables: { id: selectedApplication?.program?.id || '' },
     skip: !selectedApplication?.program?.id,
   });
 
-  const { data: milestonesData, refetch: refetchMilestones } =
-    useGetMilestonesV2Query({
-      variables: {
-        query: {
-          applicationId: selectedApplication?.id,
-          programId: selectedApplication?.program?.id,
-        },
+  const { data: milestonesData, refetch: refetchMilestones } = useGetMilestonesV2Query({
+    variables: {
+      query: {
+        applicationId: selectedApplication?.id,
+        programId: selectedApplication?.program?.id,
       },
-      skip:
-        !selectedApplication?.applicant?.id ||
-        !selectedApplication?.program?.id,
-    });
+    },
+    skip: !selectedApplication?.applicant?.id || !selectedApplication?.program?.id,
+  });
 
   const { data: contractsData } = useContractsByApplicationV2Query({
     variables: {
@@ -129,53 +107,43 @@ const RecruitmentMessage: React.FC = () => {
       ?.filter((contract) => contract.onchainContractId)
       .sort((a, b) => {
         if (a.createdAt && b.createdAt) {
-          return (
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-          );
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         }
         return 0;
       }) || [];
 
   const existingContract = contracts.find(
-    (c) => c?.applicantId === Number(selectedApplication?.applicant?.id)
+    (c) => c?.applicantId === Number(selectedApplication?.applicant?.id),
   );
 
   const program = programData?.programV2;
 
-  const { data: onchainProgramInfosData } =
-    useOnchainProgramInfosByProgramV2Query({
-      variables: { programId: Number(program?.id) || 0 },
-      skip: !program?.id,
-    });
+  const { data: onchainProgramInfosData } = useOnchainProgramInfosByProgramV2Query({
+    variables: { programId: Number(program?.id) || 0 },
+    skip: !program?.id,
+  });
 
   const onchainProgramId =
-    onchainProgramInfosData?.onchainProgramInfosByProgramV2?.data?.[0]
-      ?.onchainProgramId || null;
+    onchainProgramInfosData?.onchainProgramInfosByProgramV2?.data?.[0]?.onchainProgramId || null;
 
   const { data: allApplicationsData } = useApplicationsByProgramV2Query({
     variables: {
       query: {
-        programId: program?.id || "",
+        programId: program?.id || '',
       },
     },
     skip: !program?.id,
   });
 
   const currentNetwork = networksWithTokens.find(
-    (network) => Number(network.id) === program?.networkId
+    (network) => Number(network.id) === program?.networkId,
   );
   const currentContract = getContractByNetworkId(Number(currentNetwork?.id));
-  const contract = useContract(
-    currentNetwork?.chainName || "educhain",
-    currentContract?.address
-  );
+  const contract = useContract(currentNetwork?.chainName || 'educhain', currentContract?.address);
 
   const tokenDecimals = useMemo(() => {
     if (currentNetwork?.tokens && currentNetwork.tokens.length > 0) {
-      return (
-        currentNetwork.tokens.find((t) => t.id === program?.token?.id)
-          ?.decimals ?? 18
-      );
+      return currentNetwork.tokens.find((t) => t.id === program?.token?.id)?.decimals ?? 18;
     }
     return 18;
   }, [currentNetwork, program?.token?.id]);
@@ -186,29 +154,21 @@ const RecruitmentMessage: React.FC = () => {
     .filter((contract) => contract.contract_snapshot_cotents)
     .sort((a, b) => {
       if (a.createdAt && b.createdAt) {
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       }
       return 0;
     })[0];
 
   const hasUpdateStatus =
-    !isSponsor &&
-    allMilestones.some((m) => m.status === MilestoneStatusV2.Update);
+    !isSponsor && allMilestones.some((m) => m.status === MilestoneStatusV2.Update);
 
   const milestonesToUse = useMemo(() => {
-    if (
-      hasUpdateStatus &&
-      latestContract?.contract_snapshot_cotents?.milestones
-    ) {
-      return latestContract.contract_snapshot_cotents.milestones.map(
-        (m: MilestoneV2) => ({
-          ...m,
-          id: m.id?.toString(),
-          status: MilestoneStatusV2.InProgress,
-        })
-      );
+    if (hasUpdateStatus && latestContract?.contract_snapshot_cotents?.milestones) {
+      return latestContract.contract_snapshot_cotents.milestones.map((m: MilestoneV2) => ({
+        ...m,
+        id: m.id?.toString(),
+        status: MilestoneStatusV2.InProgress,
+      }));
     }
     return allMilestones;
   }, [hasUpdateStatus, latestContract, allMilestones]);
@@ -219,7 +179,7 @@ const RecruitmentMessage: React.FC = () => {
         ? true
         : m.status === MilestoneStatusV2.InProgress ||
           m.status === MilestoneStatusV2.Update ||
-          m.status === MilestoneStatusV2.Completed
+          m.status === MilestoneStatusV2.Completed,
     )
     .sort((a, b) => {
       const aIsDraft = (a as any).status === MilestoneStatusV2.Draft;
@@ -237,17 +197,15 @@ const RecruitmentMessage: React.FC = () => {
       if (!aDate || !bDate) return 0;
       return aDate.getTime() - bDate.getTime();
     });
-  const activeMilestones = sortedMilestones.filter(
-    (m) => m.status !== MilestoneStatusV2.Completed
-  );
+  const activeMilestones = sortedMilestones.filter((m) => m.status !== MilestoneStatusV2.Completed);
   const completedMilestones = sortedMilestones.filter(
-    (m) => m.status === MilestoneStatusV2.Completed
+    (m) => m.status === MilestoneStatusV2.Completed,
   );
 
   const contractInformation: ContractInformation = {
     programInfo: {
-      id: program?.id || "",
-      title: program?.title || "",
+      id: program?.id || '',
+      title: program?.title || '',
       sponsor: program?.sponsor || null,
       networkId: program?.networkId || null,
       tokenId: program?.token?.id || null,
@@ -255,7 +213,7 @@ const RecruitmentMessage: React.FC = () => {
       deadline: program?.deadline || null,
     },
     applicationInfo: {
-      id: selectedApplication?.id || "",
+      id: selectedApplication?.id || '',
       applicant: selectedApplication?.applicant || null,
       status: selectedApplication?.status || null,
       chatRoomId: selectedApplication?.chatroomMessageId || null,
@@ -279,8 +237,9 @@ const RecruitmentMessage: React.FC = () => {
       const fetchLatestMessages = async () => {
         const messagePromises = hasMessageIdRoom.map(async (application) => {
           if (!application.chatroomMessageId) return null;
-          const { message, timestamp, senderId, isFile } =
-            await getLatestMessage(application.chatroomMessageId);
+          const { message, timestamp, senderId, isFile } = await getLatestMessage(
+            application.chatroomMessageId,
+          );
           if (message && timestamp && senderId) {
             return {
               chatroomMessageId: application.chatroomMessageId,
@@ -330,9 +289,7 @@ const RecruitmentMessage: React.FC = () => {
     const timeoutId = setTimeout(() => {
       const fetchFiles = async () => {
         if (selectedApplication?.chatroomMessageId) {
-          const allFiles = await getAllFiles(
-            selectedApplication.chatroomMessageId
-          );
+          const allFiles = await getAllFiles(selectedApplication.chatroomMessageId);
           setFiles(allFiles);
         } else {
           setFiles([]);
@@ -347,10 +304,8 @@ const RecruitmentMessage: React.FC = () => {
 
   const isHandleMakeNewMilestone = useMemo(() => {
     if (
-      contractInformation.applicationInfo.status ===
-        ApplicationStatusV2.PendingSignature ||
-      contractInformation.applicationInfo.status ===
-        ApplicationStatusV2.Completed
+      contractInformation.applicationInfo.status === ApplicationStatusV2.PendingSignature ||
+      contractInformation.applicationInfo.status === ApplicationStatusV2.Completed
     ) {
       return false;
     }
@@ -372,12 +327,7 @@ const RecruitmentMessage: React.FC = () => {
     });
 
     return !allDeadlinesPassed;
-  }, [
-    contractInformation,
-    sortedMilestones,
-    completedMilestones,
-    activeMilestones,
-  ]);
+  }, [contractInformation, sortedMilestones, completedMilestones, activeMilestones]);
 
   return (
     <div className="flex gap-4 h-[calc(100vh-200px)]">
@@ -396,13 +346,9 @@ const RecruitmentMessage: React.FC = () => {
                   key={applicant.chatroomMessageId}
                   message={applicant}
                   isSelected={selectedMessageId === applicant.chatroomMessageId}
-                  onClick={() =>
-                    setSelectedMessageId(applicant.chatroomMessageId || null)
-                  }
+                  onClick={() => setSelectedMessageId(applicant.chatroomMessageId || null)}
                   latestMessageText={
-                    latestMessage?.isFile
-                      ? "File uploaded"
-                      : latestMessage?.text ?? null
+                    latestMessage?.isFile ? 'File uploaded' : (latestMessage?.text ?? null)
                   }
                   latestMessageTimestamp={latestMessage?.timestamp || null}
                   latestMessageSenderId={latestMessage?.senderId || null}
@@ -424,23 +370,21 @@ const RecruitmentMessage: React.FC = () => {
                     <AvatarImage
                       src={
                         userId === selectedApplication.applicant?.id
-                          ? program?.sponsor?.profileImage || ""
-                          : selectedApplication.applicant?.profileImage || ""
+                          ? program?.sponsor?.profileImage || ''
+                          : selectedApplication.applicant?.profileImage || ''
                       }
                       alt={
                         userId === selectedApplication.applicant?.id
-                          ? `${program?.sponsor?.firstName || ""} ${
-                              program?.sponsor?.lastName || ""
+                          ? `${program?.sponsor?.firstName || ''} ${
+                              program?.sponsor?.lastName || ''
                             }`.trim() ||
                             program?.sponsor?.email ||
-                            "Unknown"
-                          : `${
-                              selectedApplication.applicant?.firstName || ""
-                            } ${
-                              selectedApplication.applicant?.lastName || ""
+                            'Unknown'
+                          : `${selectedApplication.applicant?.firstName || ''} ${
+                              selectedApplication.applicant?.lastName || ''
                             }`.trim() ||
                             selectedApplication.applicant?.email ||
-                            "Unknown"
+                            'Unknown'
                       }
                     />
                     <AvatarFallback className="text-sm font-semibold">
@@ -448,12 +392,12 @@ const RecruitmentMessage: React.FC = () => {
                         ? getUserInitialName(
                             program?.sponsor?.firstName,
                             program?.sponsor?.lastName,
-                            program?.sponsor?.email
+                            program?.sponsor?.email,
                           )
                         : getUserInitialName(
                             selectedApplication.applicant?.firstName,
                             selectedApplication.applicant?.lastName,
-                            selectedApplication.applicant?.email
+                            selectedApplication.applicant?.email,
                           )}
                     </AvatarFallback>
                   </Avatar>
@@ -463,12 +407,12 @@ const RecruitmentMessage: React.FC = () => {
                         ? getUserDisplayName(
                             program?.sponsor?.firstName,
                             program?.sponsor?.lastName,
-                            program?.sponsor?.email
+                            program?.sponsor?.email,
                           )
                         : getUserDisplayName(
                             selectedApplication.applicant?.firstName,
                             selectedApplication.applicant?.lastName,
-                            selectedApplication.applicant?.email
+                            selectedApplication.applicant?.email,
                           )}
                     </h3>
                     <p className="text-sm text-muted-foreground">

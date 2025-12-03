@@ -59,7 +59,6 @@ const ProfileRecruitment: React.FC = () => {
   });
 
   const programs = data?.programsBysponsorIdV2?.data || [];
-  console.log(programs);
   const totalCount = data?.programsBysponsorIdV2?.count || 0;
   const totalPages = Math.ceil(totalCount / PageSize);
 

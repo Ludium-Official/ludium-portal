@@ -1,6 +1,6 @@
 import { formatUTCDateLocal, fromUTCString } from '@/lib/utils';
-import { MilestoneStatusV2 } from '@/types/types.generated';
 import type { MilestoneCardProps } from '@/types/recruitment';
+import { MilestoneStatusV2 } from '@/types/types.generated';
 
 export function MilestoneCard({ milestone, onClick, isCompleted = false }: MilestoneCardProps) {
   const getDaysLeft = () => {

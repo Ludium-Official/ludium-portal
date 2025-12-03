@@ -1,12 +1,12 @@
+import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
 import RecruitmentApplicants from '@/components/recruitment/applicants/recruitment-applicants';
 import RecruitmentMessage from '@/components/recruitment/message/recruitment-message';
 import RecruitmentOverview from '@/components/recruitment/overview/recruitment-overview';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { ChevronLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
-import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
-import { useAuth } from '@/lib/hooks/use-auth';
 
 const ProfileRecuitmentDetail: React.FC = () => {
   const { id } = useParams();
@@ -22,7 +22,6 @@ const ProfileRecuitmentDetail: React.FC = () => {
   });
 
   const program = programData?.programV2;
-  console.log(program);
   const isSponsor = program?.sponsor?.id === userId;
 
   useEffect(() => {

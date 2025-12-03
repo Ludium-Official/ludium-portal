@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn, getUserInitialName, getUserDisplayName } from '@/lib/utils';
+import { cn, getUserDisplayName, getUserInitialName } from '@/lib/utils';
 import type { ApplicationV2 } from '@/types/types.generated';
 import type { Timestamp } from 'firebase/firestore';
 
