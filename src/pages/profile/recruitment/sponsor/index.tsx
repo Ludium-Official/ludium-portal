@@ -1,11 +1,17 @@
-import { useGetProgramsBySponsorV2Query } from '@/apollo/queries/get-programs-by-sponser.generated';
-import type { GetProgramsV2Query } from '@/apollo/queries/programs-v2.generated';
+import {
+  useGetProgramsBySponsorV2Query,
+  type GetProgramsBySponsorV2Query,
+} from '@/apollo/queries/get-programs-by-sponser.generated';
+import { useDeleteProgramV2Mutation } from '@/apollo/mutation/delete-program-v2.generated';
 import StatusBadge from '@/components/recruitment/statusBadge/statusBadge';
 import { Button } from '@/components/ui/button';
+import { ProgramStatusV2 } from '@/types/types.generated';
+import toast from 'react-hot-toast';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -29,13 +35,15 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronsUpDown } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronsUpDown, Ellipsis } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 
 const PageSize = 10;
 
-type ProgramData = NonNullable<NonNullable<GetProgramsV2Query['programsV2']>['data']>[number];
+type ProgramData = NonNullable<
+  NonNullable<GetProgramsBySponsorV2Query['programsBysponsorIdV2']>['data']
+>[number];
 
 const ProfileRecruitment: React.FC = () => {
   const navigate = useNavigate();
@@ -47,7 +55,7 @@ const ProfileRecruitment: React.FC = () => {
   const { userId } = useAuth();
   const currentPage = Number(searchParams.get('page')) || 1;
 
-  const { data, loading, error } = useGetProgramsBySponsorV2Query({
+  const { data, loading, error, refetch } = useGetProgramsBySponsorV2Query({
     variables: {
       sponsorId: userId,
       pagination: {
@@ -57,6 +65,8 @@ const ProfileRecruitment: React.FC = () => {
     },
     skip: !userId,
   });
+
+  const [deleteProgram] = useDeleteProgramV2Mutation();
 
   const programs = data?.programsBysponsorIdV2?.data || [];
   const totalCount = data?.programsBysponsorIdV2?.count || 0;
@@ -144,7 +154,7 @@ const ProfileRecruitment: React.FC = () => {
       filterFn: (row, id, value) => {
         return value.includes(row.getValue(id));
       },
-      size: 100,
+      size: 110,
     },
     {
       accessorKey: 'deadline',
@@ -163,7 +173,7 @@ const ProfileRecruitment: React.FC = () => {
         return <div className="font-bold">{formatDate(row.getValue('deadline'))}</div>;
       },
       sortingFn: 'datetime',
-      size: 100,
+      size: 130,
     },
     {
       accessorKey: 'price',
@@ -201,7 +211,7 @@ const ProfileRecruitment: React.FC = () => {
         const priceB = Number.parseFloat(rowB.original.price || '0');
         return priceA - priceB;
       },
-      size: 100,
+      size: 130,
     },
     {
       accessorKey: 'createdAt',
@@ -220,13 +230,72 @@ const ProfileRecruitment: React.FC = () => {
         return <div className="font-bold">{formatDate(row.getValue('createdAt'))}</div>;
       },
       sortingFn: 'datetime',
-      size: 100,
+      size: 130,
     },
     {
       accessorKey: 'applicationCount',
       header: 'Applicants',
       cell: ({ row }) => <div className="font-bold">{row.getValue('applicationCount')}</div>,
       size: 100,
+    },
+    {
+      accessorKey: 'actions',
+      header: '',
+      cell: ({ row }) => {
+        const program = row.original;
+        const programId = program.id;
+        const programStatus = program.status;
+        const isClosed = programStatus === ProgramStatusV2.Closed;
+
+        const handleEdit = (e: React.MouseEvent) => {
+          e.stopPropagation();
+          if (programId) {
+            navigate(`/programs/${programId}/edit`);
+          }
+        };
+
+        const handleDelete = async (e: React.MouseEvent) => {
+          e.stopPropagation();
+          if (!programId) return;
+
+          try {
+            await deleteProgram({
+              variables: {
+                id: programId,
+              },
+            });
+            toast.success('Program deleted successfully');
+            refetch();
+          } catch (error) {
+            console.error('Failed to delete program:', error);
+            toast.error('Failed to delete program');
+          }
+        };
+
+        const handleDropdownClick = (e: React.MouseEvent) => {
+          e.stopPropagation();
+        };
+
+        return (
+          <div onClick={handleDropdownClick}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0" onClick={handleDropdownClick}>
+                  <Ellipsis className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" onClick={handleDropdownClick}>
+                <DropdownMenuItem onClick={handleEdit} disabled={isClosed}>
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleDelete}>Delete</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        );
+      },
+      size: 50,
     },
   ];
 

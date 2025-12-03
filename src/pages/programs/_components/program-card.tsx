@@ -61,7 +61,9 @@ function ProgramCard({ program }: { program: ProgramV2 }) {
         <div>{createdAt ? timeAgo(createdAt) : ''}</div>
         <div className="px-3 py-2 leading-4">
           Applicants:
-          <span className="ml-1 font-semibold">{applicationCount ?? 0}</span>
+          <span className="ml-1 font-semibold">
+            {applicationCount && applicationCount > 10 ? '10+' : (applicationCount ?? 0)}
+          </span>
         </div>
       </div>
     </div>
