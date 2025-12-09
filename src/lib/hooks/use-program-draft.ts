@@ -1,22 +1,8 @@
 import { useAuth } from '@/lib/hooks/use-auth';
-import type { LabelValueProps, VisibilityProps } from '@/types/common';
+import type { ProgramDraft } from '@/types/draft';
 import { useCallback, useMemo } from 'react';
 
-export type ProgramDraft = {
-  programTitle?: string;
-  price?: string;
-  description?: string;
-  currency?: string;
-  deadline?: Date;
-  skills?: string[];
-  selectedSkillItems?: Array<LabelValueProps>;
-  links?: string[];
-  network?: string;
-  visibility?: VisibilityProps;
-  builders?: string[];
-  selectedBuilderItems?: Array<LabelValueProps>;
-  budget?: string;
-};
+export type { ProgramDraft };
 
 const PROGRAM_DRAFT_KEY_PREFIX = 'programDraft';
 
@@ -34,7 +20,6 @@ export const useProgramDraft = () => {
       try {
         localStorage.setItem(storageKey, JSON.stringify(draft));
       } catch (err) {
-        // Intentionally swallow storage errors. Consumer may notify user.
         console.error('Failed to save program draft', err);
       }
     },

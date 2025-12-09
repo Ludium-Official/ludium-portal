@@ -1,4 +1,5 @@
 import { db, storage } from "@/lib/firebase";
+import type { ChatMessage, ChatMessageFile } from "@/types/firebase";
 import {
   type DocumentData,
   type QueryDocumentSnapshot,
@@ -17,8 +18,6 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-
-export type { Unsubscribe };
 import {
   getDownloadURL,
   getMetadata,
@@ -27,27 +26,12 @@ import {
   uploadBytes,
 } from "firebase/storage";
 
+export type { ChatMessage, ChatMessageFile, Unsubscribe };
+
 // Determine collection name based on environment
 const isProduction = import.meta.env.VITE_VERCEL_ENVIRONMENT === "mainnet";
 const CHATS_COLLECTION = isProduction ? "chats" : "chats_dev";
 const STORAGE_FOLDER = isProduction ? "chat-files" : "chat-files-dev";
-
-export interface ChatMessageFile {
-  name: string;
-  url: string;
-  type: string;
-  size: number;
-}
-
-export interface ChatMessage {
-  id: string;
-  chatRoomId: string;
-  text: string;
-  senderId: string;
-  timestamp: Timestamp;
-  files?: ChatMessageFile[];
-  is_active?: boolean;
-}
 
 export async function loadInitialMessages(
   chatRoomId: string,
