@@ -29,7 +29,7 @@ const EditProgram: React.FC = () => {
         createOnchainProgramInfo({
           variables: {
             input: {
-              programId: Number(id),
+              programId: id || '',
               networkId: Number(args.networkId),
               onchainProgramId: args.txResult?.programId ?? 0,
               smartContractId: Number(args.contractId),
