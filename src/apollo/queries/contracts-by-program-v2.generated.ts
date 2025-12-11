@@ -4,16 +4,16 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type ContractsByProgramV2QueryVariables = Types.Exact<{
-  programId: Types.Scalars['Int']['input'];
+  programId: Types.Scalars['String']['input'];
   pagination?: Types.InputMaybe<Types.PaginationInput>;
 }>;
 
 
-export type ContractsByProgramV2Query = { __typename?: 'Query', contractsByProgramV2?: { __typename?: 'PaginatedContractV2', count?: number | null, data?: Array<{ __typename?: 'ContractV2', id?: string | null, programId?: number | null, applicantId?: number | null, sponsorId?: number | null, onchainContractId?: number | null, smartContractId?: number | null, builder_signature?: string | null, contract_snapshot_hash?: string | null, contract_snapshot_cotents?: any | null, createdAt?: any | null }> | null } | null };
+export type ContractsByProgramV2Query = { __typename?: 'Query', contractsByProgramV2?: { __typename?: 'PaginatedContractV2', count?: number | null, data?: Array<{ __typename?: 'ContractV2', id?: string | null, programId?: string | null, applicantId?: number | null, sponsorId?: number | null, onchainContractId?: number | null, smartContractId?: number | null, builder_signature?: string | null, contract_snapshot_hash?: string | null, contract_snapshot_cotents?: any | null, createdAt?: any | null }> | null } | null };
 
 
 export const ContractsByProgramV2Document = gql`
-    query contractsByProgramV2($programId: Int!, $pagination: PaginationInput) {
+    query contractsByProgramV2($programId: String!, $pagination: PaginationInput) {
   contractsByProgramV2(programId: $programId, pagination: $pagination) {
     data {
       id

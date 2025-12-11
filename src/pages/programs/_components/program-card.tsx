@@ -1,31 +1,36 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { getNetworkDisplayName, getTokenIcon } from '@/constant/network-icons';
-import { dDay, getInitials, reduceString, timeAgo } from '@/lib/utils';
+import { dDay, getInitials, getUserDisplayName, timeAgo } from '@/lib/utils';
 import type { ProgramV2 } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { Link } from 'react-router';
 
 function ProgramCard({ program }: { program: ProgramV2 }) {
-  const { id, createdAt, deadline, price, title, network, sponsor, token, applicationCount } =
-    program ?? {};
+  const { id, createdAt, deadline, price, title, network, token, applicationCount } = program ?? {};
 
   return (
     <div className="block w-full max-w-full max-h-[292px] border border-gray-border rounded-lg p-5">
       <Link to={`/programs/${id}`} className="flex flex-col gap-3 mb-4">
         <div className="text-lg font-bold line-clamp-1 min-h-[28px]">{title}</div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Avatar className="w-7 h-7">
-            <AvatarImage src={sponsor?.profileImage || ''} alt="sponsor-img" />
+            <AvatarImage src={program.sponsor?.profileImage || ''} />
             <AvatarFallback className="text-xs">
-              {getInitials(`${program.sponsor?.firstName} ${program.sponsor?.lastName}`)}
+              {getInitials(
+                getUserDisplayName(
+                  program.sponsor?.firstName,
+                  program.sponsor?.lastName,
+                  program.sponsor?.email,
+                ),
+              )}
             </AvatarFallback>
           </Avatar>
-          <div className="text-muted-foreground text-sm">
-            {sponsor?.firstName && sponsor?.lastName
-              ? `${sponsor?.firstName} ${sponsor?.lastName}`
-              : reduceString(sponsor?.walletAddress || '', 6, 6)}
-          </div>
+          {getUserDisplayName(
+            program.sponsor?.firstName,
+            program.sponsor?.lastName,
+            program.sponsor?.email,
+          )}
         </div>
 
         <div className="flex gap-3">
@@ -56,7 +61,9 @@ function ProgramCard({ program }: { program: ProgramV2 }) {
         <div>{createdAt ? timeAgo(createdAt) : ''}</div>
         <div className="px-3 py-2 leading-4">
           Applicants:
-          <span className="ml-1 font-semibold">{applicationCount ?? 0}</span>
+          <span className="ml-1 font-semibold">
+            {applicationCount && applicationCount > 10 ? '10+' : (applicationCount ?? 0)}
+          </span>
         </div>
       </div>
     </div>

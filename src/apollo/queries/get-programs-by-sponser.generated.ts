@@ -9,7 +9,7 @@ export type GetProgramsBySponsorV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type GetProgramsBySponsorV2Query = { __typename?: 'Query', programsBysponsorIdV2?: { __typename?: 'PaginatedProgramsV2', count?: number | null, data?: Array<{ __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, price?: string | null, createdAt?: any | null, deadline?: any | null, status?: Types.ProgramStatusV2 | null, sponsor?: { __typename?: 'UserV2', id?: string | null, walletAddress?: string | null, email?: string | null } | null, network?: { __typename?: 'NetworkV2', id?: string | null, chainName?: string | null } | null, token?: { __typename?: 'TokenV2', id?: string | null, tokenName?: string | null } | null }> | null } | null };
+export type GetProgramsBySponsorV2Query = { __typename?: 'Query', programsBysponsorIdV2?: { __typename?: 'PaginatedProgramsV2', count?: number | null, data?: Array<{ __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, price?: string | null, createdAt?: any | null, deadline?: any | null, status?: Types.ProgramStatusV2 | null, applicationCount?: number | null, sponsor?: { __typename?: 'UserV2', id?: string | null, walletAddress?: string | null, email?: string | null } | null, network?: { __typename?: 'NetworkV2', id?: string | null, chainName?: string | null } | null, token?: { __typename?: 'TokenV2', id?: string | null, tokenName?: string | null } | null }> | null } | null };
 
 
 export const GetProgramsBySponsorV2Document = gql`
@@ -23,6 +23,7 @@ export const GetProgramsBySponsorV2Document = gql`
       createdAt
       deadline
       status
+      applicationCount
       sponsor {
         id
         walletAddress

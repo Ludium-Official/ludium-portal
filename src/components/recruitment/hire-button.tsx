@@ -7,9 +7,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { ContractInformation } from '@/types/recruitment';
+import { ApplicationStatusV2, MilestoneStatusV2, type MilestoneV2 } from '@/types/types.generated';
 import { useMemo, useState } from 'react';
 import { ContractModal } from './contract/contract-modal';
-import { ApplicationStatusV2, MilestoneStatusV2, MilestoneV2 } from '@/types/types.generated';
 
 interface HireButtonProps {
   contractInformation: ContractInformation;
@@ -56,14 +56,14 @@ export function HireButton({ contractInformation, milestones }: HireButtonProps)
         onClick={handleHireClick}
         disabled={!isActiveHireButton}
       >
-        {isMilestoneUpdate ? 'Send Contract' : 'Hire'}
+        {isMilestoneUpdate ? 'Update Contract' : 'Hire'}
       </Button>
 
       <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle className="flex justify-center text-center">
-              <div className="w-60">Are you sure you want to hire this candidate?</div>
+              <div className="w-60 leading-7">Are you sure you want to hire this candidate?</div>
             </DialogTitle>
           </DialogHeader>
           <p className="text-center text-sm text-muted-foreground">

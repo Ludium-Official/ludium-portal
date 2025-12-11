@@ -1,36 +1,8 @@
 import { useAuth } from '@/lib/hooks/use-auth';
-import type { LabelValueProps, VisibilityProps } from '@/types/common';
+import type { InvestmentDraft } from '@/types/draft';
 import { useCallback, useMemo } from 'react';
 
-export type InvestmentDraft = {
-  programName?: string;
-  price?: string;
-  description?: string;
-  summary?: string;
-  currency?: string;
-  deadline?: string; // yyyy-MM-dd
-  keywords?: string[];
-  validators?: string[];
-  selectedValidatorItems?: Array<LabelValueProps>;
-  links?: string[];
-  network?: string;
-  visibility?: VisibilityProps;
-  builders?: string[];
-  selectedBuilderItems?: Array<LabelValueProps>;
-  applicationStartDate?: string;
-  applicationEndDate?: string;
-  fundingStartDate?: string;
-  fundingEndDate?: string;
-  fundingCondition?: 'open' | 'tier';
-  tierSettings?: {
-    bronze?: { enabled: boolean; maxAmount: string };
-    silver?: { enabled: boolean; maxAmount: string };
-    gold?: { enabled: boolean; maxAmount: string };
-    platinum?: { enabled: boolean; maxAmount: string };
-  };
-  feeType?: 'default' | 'custom';
-  customFee?: string;
-};
+export type { InvestmentDraft };
 
 const INVESTMENT_DRAFT_KEY_PREFIX = 'investmentDraft';
 
@@ -48,7 +20,6 @@ export const useInvestmentDraft = () => {
       try {
         localStorage.setItem(storageKey, JSON.stringify(draft));
       } catch (err) {
-        // Intentionally swallow storage errors. Consumer may notify user.
         console.error('Failed to save funding draft', err);
       }
     },

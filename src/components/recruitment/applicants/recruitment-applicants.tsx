@@ -1,10 +1,10 @@
 import { usePickApplicationV2Mutation } from '@/apollo/mutation/pick-application-v2.generated';
+import { useApplicationsByProgramV2Query } from '@/apollo/queries/applications-by-program-v2.generated';
 import notify from '@/lib/notify';
 import type { RecruitmentApplicant } from '@/types/recruitment';
-import ApplicantCard from './applicant-card/applicant-card';
+import type { ApplicationV2 } from '@/types/types.generated';
 import { useParams } from 'react-router';
-import { useApplicationsByProgramV2Query } from '@/apollo/queries/applications-by-program-v2.generated';
-import { ApplicationV2 } from '@/types/types.generated';
+import ApplicantCard from './applicant-card/applicant-card';
 
 const RecruitmentApplicants: React.FC = () => {
   const { id } = useParams();

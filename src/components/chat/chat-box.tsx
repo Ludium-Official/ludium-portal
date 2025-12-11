@@ -18,7 +18,7 @@ import {
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import { cn, getUserDisplayName } from '@/lib/utils';
-import { ContractInformation } from '@/types/recruitment';
+import type { ContractInformation } from '@/types/recruitment';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   type DocumentData,
@@ -226,7 +226,7 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
                   <div className="font-bold text-lg">Employment Contract</div>
                   <div className={cn('mt-1 text-sm', message.is_active && 'mb-5')}>
                     {message.senderId === '-1'
-                      ? 'The sponsor has sent you a contract. Review the terms and sign electronically to proceed with the agreement.'
+                      ? 'The sponsor has sent you a contract. Review the terms and complete your signature to confirm the agreement.'
                       : 'The builder has signed the contract. Complete your final signature to confirm the agreement.'}
                   </div>
                   {message.is_active && (

@@ -1,24 +1,8 @@
 import { useAuth } from '@/lib/hooks/use-auth';
+import type { ApplicationDraft } from '@/types/draft';
 import { useCallback, useMemo } from 'react';
 
-export type ApplicationDraft = {
-  overview: {
-    name: string;
-    links: string[];
-    price: string;
-  };
-  description: {
-    summary: string;
-    content: string;
-  };
-  milestones: Array<{
-    title: string;
-    price: string;
-    deadline: string; // yyyy-MM-dd
-    summary: string;
-    description: string;
-  }>;
-};
+export type { ApplicationDraft };
 
 const APPLICATION_DRAFT_KEY_PREFIX = 'applicationDraft';
 

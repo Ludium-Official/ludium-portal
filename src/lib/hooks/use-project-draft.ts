@@ -1,39 +1,8 @@
 import { useAuth } from '@/lib/hooks/use-auth';
-import type { VisibilityProps } from '@/types/common';
+import type { ProjectDraft, ProjectMilestone, ProjectTerm } from '@/types/draft';
 import { useCallback, useMemo } from 'react';
 
-// Terms state
-interface Term {
-  id: number;
-  title: string;
-  prize: string;
-  purchaseLimit: string;
-  description: string;
-}
-
-// Milestones state
-interface Milestone {
-  id: number;
-  title: string;
-  payoutPercentage: string;
-  endDate: Date | undefined;
-  summary: string;
-  description: string;
-}
-
-export type ProjectDraft = {
-  name?: string;
-  fundingToBeRaised?: string;
-  description?: string;
-  summary?: string;
-  links?: string[];
-  visibility?: VisibilityProps;
-  builders?: string[];
-  selectedBuilderItems?: Array<{ label: string; value: string }>;
-  supporterTierConfirmed?: boolean;
-  terms?: Term[];
-  milestones?: Milestone[];
-};
+export type { ProjectDraft, ProjectMilestone, ProjectTerm };
 
 const PROJECT_DRAFT_KEY_PREFIX = 'projectDraft';
 
@@ -51,7 +20,6 @@ export const useProjectDraft = () => {
       try {
         localStorage.setItem(storageKey, JSON.stringify(draft));
       } catch (err) {
-        // Intentionally swallow storage errors. Consumer may notify user.
         console.error('Failed to save project draft', err);
       }
     },
