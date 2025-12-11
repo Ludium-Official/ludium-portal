@@ -8,7 +8,7 @@ export type CreateOnchainContractInfoV2MutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateOnchainContractInfoV2Mutation = { __typename?: 'Mutation', createOnchainContractInfoV2?: { __typename?: 'OnchainContractInfoV2', id?: string | null, programId?: number | null, applicantId?: number | null, sponsorId?: number | null, onchainContractId?: number | null, smartContractId?: number | null, status?: Types.OnchainContractStatusV2 | null, tx?: string | null, createdAt?: any | null } | null };
+export type CreateOnchainContractInfoV2Mutation = { __typename?: 'Mutation', createOnchainContractInfoV2?: { __typename?: 'OnchainContractInfoV2', id?: string | null, programId?: string | null, applicantId?: number | null, sponsorId?: number | null, onchainContractId?: number | null, smartContractId?: number | null, status?: Types.OnchainContractStatusV2 | null, tx?: string | null, createdAt?: any | null } | null };
 
 
 export const CreateOnchainContractInfoV2Document = gql`

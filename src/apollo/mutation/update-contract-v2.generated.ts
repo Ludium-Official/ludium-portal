@@ -9,7 +9,7 @@ export type UpdateContractV2MutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateContractV2Mutation = { __typename?: 'Mutation', updateContractV2?: { __typename?: 'ContractV2', id?: string | null, programId?: number | null, applicantId?: number | null, sponsorId?: number | null, onchainContractId?: number | null, smartContractId?: number | null, builder_signature?: string | null, contract_snapshot_hash?: string | null, contract_snapshot_cotents?: any | null, createdAt?: any | null } | null };
+export type UpdateContractV2Mutation = { __typename?: 'Mutation', updateContractV2?: { __typename?: 'ContractV2', id?: string | null, programId?: string | null, applicantId?: number | null, sponsorId?: number | null, onchainContractId?: number | null, smartContractId?: number | null, builder_signature?: string | null, contract_snapshot_hash?: string | null, contract_snapshot_cotents?: any | null, createdAt?: any | null } | null };
 
 
 export const UpdateContractV2Document = gql`

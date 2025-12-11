@@ -9,7 +9,7 @@ export type ContractsByApplicationV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type ContractsByApplicationV2Query = { __typename?: 'Query', contractsByApplicationV2?: { __typename?: 'PaginatedContractV2', count?: number | null, data?: Array<{ __typename?: 'ContractV2', id?: string | null, programId?: number | null, applicantId?: number | null, sponsorId?: number | null, onchainContractId?: number | null, smartContractId?: number | null, builder_signature?: string | null, contract_snapshot_hash?: string | null, contract_snapshot_cotents?: any | null, createdAt?: any | null }> | null } | null };
+export type ContractsByApplicationV2Query = { __typename?: 'Query', contractsByApplicationV2?: { __typename?: 'PaginatedContractV2', count?: number | null, data?: Array<{ __typename?: 'ContractV2', id?: string | null, programId?: string | null, applicantId?: number | null, sponsorId?: number | null, onchainContractId?: number | null, smartContractId?: number | null, builder_signature?: string | null, contract_snapshot_hash?: string | null, contract_snapshot_cotents?: any | null, createdAt?: any | null }> | null } | null };
 
 
 export const ContractsByApplicationV2Document = gql`

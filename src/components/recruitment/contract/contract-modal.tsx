@@ -66,13 +66,13 @@ export function ContractModal({
   const milestones = milestonesData?.milestonesV2?.data || [];
 
   const { data: onchainProgramInfosData } = useOnchainProgramInfosByProgramV2Query({
-    variables: { programId: Number(programInfo.id) || 0 },
+    variables: { programId: programInfo.id || '' },
     skip: !programInfo.id,
   });
 
   const { data: contractsData } = useContractsByProgramV2Query({
     variables: {
-      programId: Number(programInfo.id) || 0,
+      programId: programInfo.id || '',
       pagination: { limit: 1000, offset: 0 },
     },
     skip: !programInfo.id,
@@ -233,7 +233,7 @@ export function ContractModal({
       await createContractV2Mutation({
         variables: {
           input: {
-            programId: Number(programInfo.id) || 0,
+            programId: programInfo.id || '',
             applicantId: Number(applicationInfo.applicant?.id),
             sponsorId: Number(programInfo.sponsor?.id),
             smartContractId: Number(currentContract.id),
@@ -386,7 +386,7 @@ export function ContractModal({
         await createOnchainContractInfoV2Mutation({
           variables: {
             input: {
-              programId: Number(programInfo.id) || 0,
+              programId: programInfo.id || '',
               applicantId: Number(applicationInfo.applicant?.id) || 0,
               sponsorId: Number(programInfo.sponsor?.id) || 0,
               onchainContractId: txResult.onchainContractId,

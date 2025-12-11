@@ -119,7 +119,7 @@ const RecruitmentMessage: React.FC = () => {
   const program = programData?.programV2;
 
   const { data: onchainProgramInfosData } = useOnchainProgramInfosByProgramV2Query({
-    variables: { programId: Number(program?.id) || 0 },
+    variables: { programId: program?.id || '' },
     skip: !program?.id,
   });
 

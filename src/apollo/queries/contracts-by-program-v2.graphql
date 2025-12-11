@@ -1,4 +1,4 @@
-query contractsByProgramV2($programId: Int!, $pagination: PaginationInput) {
+query contractsByProgramV2($programId: String!, $pagination: PaginationInput) {
   contractsByProgramV2(programId: $programId, pagination: $pagination) {
     data {
       id

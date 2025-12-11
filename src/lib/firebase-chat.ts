@@ -1,5 +1,5 @@
-import { db, storage } from "@/lib/firebase";
-import type { ChatMessage, ChatMessageFile } from "@/types/firebase";
+import { db, storage } from '@/lib/firebase';
+import type { ChatMessage, ChatMessageFile } from '@/types/firebase';
 import {
   type DocumentData,
   type QueryDocumentSnapshot,
@@ -17,25 +17,19 @@ import {
   startAfter,
   updateDoc,
   where,
-} from "firebase/firestore";
-import {
-  getDownloadURL,
-  getMetadata,
-  listAll,
-  ref,
-  uploadBytes,
-} from "firebase/storage";
+} from 'firebase/firestore';
+import { getDownloadURL, getMetadata, listAll, ref, uploadBytes } from 'firebase/storage';
 
 export type { ChatMessage, ChatMessageFile, Unsubscribe };
 
 // Determine collection name based on environment
-const isProduction = import.meta.env.VITE_VERCEL_ENVIRONMENT === "mainnet";
-const CHATS_COLLECTION = isProduction ? "chats" : "chats_dev";
-const STORAGE_FOLDER = isProduction ? "chat-files" : "chat-files-dev";
+const isProduction = import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet';
+const CHATS_COLLECTION = isProduction ? 'chats' : 'chats_dev';
+const STORAGE_FOLDER = isProduction ? 'chat-files' : 'chat-files-dev';
 
 export async function loadInitialMessages(
   chatRoomId: string,
-  limitCount = 50
+  limitCount = 50,
 ): Promise<{
   messages: ChatMessage[];
   oldestDoc: QueryDocumentSnapshot<DocumentData> | null;
@@ -43,9 +37,9 @@ export async function loadInitialMessages(
   const messagesRef = collection(db, CHATS_COLLECTION);
   const q = query(
     messagesRef,
-    where("chatRoomId", "==", chatRoomId),
-    orderBy("timestamp", "desc"),
-    limit(limitCount)
+    where('chatRoomId', '==', chatRoomId),
+    orderBy('timestamp', 'desc'),
+    limit(limitCount),
   );
 
   const snapshot = await getDocs(q);
@@ -57,8 +51,7 @@ export async function loadInitialMessages(
     }))
     .reverse() as ChatMessage[];
 
-  const oldestDoc =
-    snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
+  const oldestDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
 
   return { messages, oldestDoc };
 }
@@ -66,7 +59,7 @@ export async function loadInitialMessages(
 export async function loadMoreMessages(
   chatRoomId: string,
   oldestDoc: QueryDocumentSnapshot<DocumentData>,
-  limitCount = 50
+  limitCount = 50,
 ): Promise<{
   messages: ChatMessage[];
   oldestDoc: QueryDocumentSnapshot<DocumentData> | null;
@@ -74,10 +67,10 @@ export async function loadMoreMessages(
   const messagesRef = collection(db, CHATS_COLLECTION);
   const q = query(
     messagesRef,
-    where("chatRoomId", "==", chatRoomId),
-    orderBy("timestamp", "desc"),
+    where('chatRoomId', '==', chatRoomId),
+    orderBy('timestamp', 'desc'),
     startAfter(oldestDoc),
-    limit(limitCount)
+    limit(limitCount),
   );
 
   const snapshot = await getDocs(q);
@@ -89,15 +82,14 @@ export async function loadMoreMessages(
     }))
     .reverse() as ChatMessage[];
 
-  const newOldestDoc =
-    snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
+  const newOldestDoc = snapshot.docs.length > 0 ? snapshot.docs[snapshot.docs.length - 1] : null;
 
   return { messages, oldestDoc: newOldestDoc };
 }
 
 export async function uploadFile(
   chatRoomId: string,
-  file: File
+  file: File,
 ): Promise<{ name: string; url: string; type: string; size: number }> {
   const timestamp = Date.now();
   const fileName = `${chatRoomId}/${timestamp}_${file.name}`;
@@ -118,19 +110,17 @@ export async function sendMessage(
   chatRoomId: string,
   text: string,
   senderId: string,
-  files?: File[]
+  files?: File[],
 ): Promise<string> {
   let uploadedFiles: ChatMessageFile[] | undefined;
 
   if (files && files.length > 0) {
-    uploadedFiles = await Promise.all(
-      files.map((file) => uploadFile(chatRoomId, file))
-    );
+    uploadedFiles = await Promise.all(files.map((file) => uploadFile(chatRoomId, file)));
   }
 
   const messageData = {
     chatRoomId,
-    text: text.trim() || "",
+    text: text.trim() || '',
     senderId,
     timestamp: serverTimestamp(),
     is_active: true,
@@ -146,14 +136,14 @@ export async function sendMessage(
  */
 export async function getNewMessages(
   chatRoomId: string,
-  afterTimestamp: Timestamp
+  afterTimestamp: Timestamp,
 ): Promise<ChatMessage[]> {
   const messagesRef = collection(db, CHATS_COLLECTION);
   const q = query(
     messagesRef,
-    where("chatRoomId", "==", chatRoomId),
-    where("timestamp", ">", afterTimestamp),
-    orderBy("timestamp", "asc")
+    where('chatRoomId', '==', chatRoomId),
+    where('timestamp', '>', afterTimestamp),
+    orderBy('timestamp', 'asc'),
   );
 
   const snapshot = await getDocs(q);
@@ -171,14 +161,14 @@ export function subscribeToNewMessages(
   afterTimestamp: Timestamp,
   onNewMessage: (message: ChatMessage) => void,
   onError?: (error: Error) => void,
-  onMessageUpdate?: (message: ChatMessage) => void
+  onMessageUpdate?: (message: ChatMessage) => void,
 ): Unsubscribe {
   const messagesRef = collection(db, CHATS_COLLECTION);
   const q = query(
     messagesRef,
-    where("chatRoomId", "==", chatRoomId),
-    where("timestamp", ">", afterTimestamp),
-    orderBy("timestamp", "asc")
+    where('chatRoomId', '==', chatRoomId),
+    where('timestamp', '>', afterTimestamp),
+    orderBy('timestamp', 'asc'),
   );
 
   const unsubscribe = onSnapshot(
@@ -190,9 +180,9 @@ export function subscribeToNewMessages(
           ...change.doc.data(),
         } as ChatMessage;
 
-        if (change.type === "added") {
+        if (change.type === 'added') {
           onNewMessage(msg);
-        } else if (change.type === "modified" && onMessageUpdate) {
+        } else if (change.type === 'modified' && onMessageUpdate) {
           onMessageUpdate(msg);
         }
       });
@@ -201,9 +191,9 @@ export function subscribeToNewMessages(
       if (onError) {
         onError(error);
       } else {
-        console.error("❌ Snapshot error:", error);
+        console.error('❌ Snapshot error:', error);
       }
-    }
+    },
   );
 
   return unsubscribe;
@@ -223,9 +213,9 @@ export async function getLatestMessage(chatRoomId: string): Promise<{
     const messagesRef = collection(db, CHATS_COLLECTION);
     const q = query(
       messagesRef,
-      where("chatRoomId", "==", chatRoomId),
-      orderBy("timestamp", "desc"),
-      limit(1)
+      where('chatRoomId', '==', chatRoomId),
+      orderBy('timestamp', 'desc'),
+      limit(1),
     );
 
     const snapshot = await getDocs(q);
@@ -247,14 +237,12 @@ export async function getLatestMessage(chatRoomId: string): Promise<{
       isFile: Array.isArray(message.files) && message.files.length > 0,
     };
   } catch (error) {
-    console.error("❌ Error getting latest message:", error);
+    console.error('❌ Error getting latest message:', error);
     return { message: null, timestamp: null, senderId: null, isFile: false };
   }
 }
 
-export async function getAllFiles(
-  chatRoomId: string
-): Promise<ChatMessageFile[]> {
+export async function getAllFiles(chatRoomId: string): Promise<ChatMessageFile[]> {
   if (!chatRoomId) {
     return [];
   }
@@ -268,15 +256,13 @@ export async function getAllFiles(
       const downloadURL = await getDownloadURL(itemRef);
 
       const timestampMatch = itemRef.name.match(/^(\d+)_(.+)$/);
-      const timestamp = timestampMatch
-        ? Number.parseInt(timestampMatch[1], 10)
-        : 0;
+      const timestamp = timestampMatch ? Number.parseInt(timestampMatch[1], 10) : 0;
       const originalName = timestampMatch ? timestampMatch[2] : itemRef.name;
 
       return {
         name: originalName,
         url: downloadURL,
-        type: metadata.contentType || "application/octet-stream",
+        type: metadata.contentType || 'application/octet-stream',
         size: metadata.size,
         timestamp,
       } as ChatMessageFile & { timestamp: number };
@@ -288,7 +274,7 @@ export async function getAllFiles(
       .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
       .map(({ timestamp, ...file }) => file);
   } catch (error) {
-    console.error("❌ Error getting all files from Storage:", error);
+    console.error('❌ Error getting all files from Storage:', error);
     return [];
   }
 }
@@ -300,7 +286,7 @@ export async function getAllFiles(
  */
 export async function deactivateContractMessages(
   chatRoomId: string,
-  senderIds: string[] = ["-1", "-2"]
+  senderIds: string[] = ['-1', '-2'],
 ): Promise<void> {
   if (!chatRoomId) {
     return;
@@ -310,8 +296,8 @@ export async function deactivateContractMessages(
     const messagesRef = collection(db, CHATS_COLLECTION);
     const q = query(
       messagesRef,
-      where("chatRoomId", "==", chatRoomId),
-      where("senderId", "in", senderIds)
+      where('chatRoomId', '==', chatRoomId),
+      where('senderId', 'in', senderIds),
     );
 
     const snapshot = await getDocs(q);
@@ -323,14 +309,14 @@ export async function deactivateContractMessages(
 
     await Promise.all(updatePromises);
   } catch (error) {
-    console.error("❌ Error deactivating contract messages:", error);
+    console.error('❌ Error deactivating contract messages:', error);
     throw error;
   }
 }
 
 export async function getContractMessages(
   chatRoomId: string,
-  senderIds: string[] = ["-1", "-2"]
+  senderIds: string[] = ['-1', '-2'],
 ): Promise<ChatMessage[]> {
   if (!chatRoomId) {
     return [];
@@ -340,8 +326,8 @@ export async function getContractMessages(
     const messagesRef = collection(db, CHATS_COLLECTION);
     const q = query(
       messagesRef,
-      where("chatRoomId", "==", chatRoomId),
-      where("senderId", "in", senderIds)
+      where('chatRoomId', '==', chatRoomId),
+      where('senderId', 'in', senderIds),
     );
 
     const snapshot = await getDocs(q);
@@ -359,7 +345,7 @@ export async function getContractMessages(
 
     return messages;
   } catch (error) {
-    console.error("❌ Error getting contract messages:", error);
+    console.error('❌ Error getting contract messages:', error);
     return [];
   }
 }
@@ -368,13 +354,13 @@ export function subscribeToContractMessages(
   chatRoomId: string,
   onMessageUpdate: (message: ChatMessage) => void,
   onError?: (error: Error) => void,
-  senderIds: string[] = ["-1", "-2"]
+  senderIds: string[] = ['-1', '-2'],
 ): Unsubscribe {
   const messagesRef = collection(db, CHATS_COLLECTION);
   const q = query(
     messagesRef,
-    where("chatRoomId", "==", chatRoomId),
-    where("senderId", "in", senderIds)
+    where('chatRoomId', '==', chatRoomId),
+    where('senderId', 'in', senderIds),
   );
 
   const unsubscribe = onSnapshot(
@@ -386,7 +372,7 @@ export function subscribeToContractMessages(
           ...change.doc.data(),
         } as ChatMessage;
 
-        if (change.type === "added" || change.type === "modified") {
+        if (change.type === 'added' || change.type === 'modified') {
           onMessageUpdate(msg);
         }
       });
@@ -395,9 +381,9 @@ export function subscribeToContractMessages(
       if (onError) {
         onError(error);
       } else {
-        console.error("❌ Contract message subscription error:", error);
+        console.error('❌ Contract message subscription error:', error);
       }
-    }
+    },
   );
 
   return unsubscribe;
