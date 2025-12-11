@@ -296,7 +296,6 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
             <InputLabel
               labelId="description"
               title="Description"
-              className="mb-10"
               isPrimary
               isError={errors.description}
               placeholder="Description"
@@ -309,34 +308,34 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                 content={description}
               />
             </InputLabel>
-
-            <InputLabel
-              labelId="skills"
-              title="Skills"
-              isPrimary
-              isError={!!errors.skills}
-              inputClassName="hidden"
-            >
-              <MultiSelect
-                options={skillOptions ?? []}
-                value={skills}
-                onValueChange={(value: string[]) => {
-                  setValue('skills', value);
-                }}
-                placeholder="ex. React, NodeJS"
-                animation={2}
-                maxCount={20}
-                inputValue={skillInput}
-                setInputValue={setSkillInput}
-                selectedItems={selectedSkillItems}
-                setSelectedItems={setSelectedSkillItems}
-                emptyText="Search skills"
-                loading={skillsLoading}
-              />
-            </InputLabel>
           </div>
           <div className="flex flex-col gap-3 w-full max-w-[500px]">
             <div className="bg-white py-8 px-10 rounded-lg">
+              <InputLabel
+                labelId="skills"
+                title="Skills"
+                className="mb-10"
+                isPrimary
+                isError={!!errors.skills}
+                inputClassName="hidden"
+              >
+                <MultiSelect
+                  options={skillOptions ?? []}
+                  value={skills}
+                  onValueChange={(value: string[]) => {
+                    setValue('skills', value);
+                  }}
+                  placeholder="ex. React, NodeJS"
+                  animation={2}
+                  maxCount={20}
+                  inputValue={skillInput}
+                  setInputValue={setSkillInput}
+                  selectedItems={selectedSkillItems}
+                  setSelectedItems={setSelectedSkillItems}
+                  emptyText="Search skills"
+                  loading={skillsLoading}
+                />
+              </InputLabel>
               <InputLabel
                 labelId="deadline"
                 title="Deadline"
@@ -456,6 +455,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
               {currentStatus !== ProgramStatusV2.Open && (
                 <Button
                   type="button"
+                  variant="outline"
                   onClick={() => {
                     setSubmitStatus(ProgramStatusV2.Draft);
                     setTimeout(() => {

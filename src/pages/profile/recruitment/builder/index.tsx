@@ -173,7 +173,7 @@ const ProfileRecruitmentBuilder: React.FC = () => {
             className="flex items-center cursor-pointer"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           >
-            Price
+            Budget
             <ChevronsUpDown className="ml-2 h-4 w-4" />
           </div>
         );

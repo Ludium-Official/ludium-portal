@@ -34,7 +34,7 @@ function MarkdownPreviewer({
     <MDXEditor
       readOnly
       markdown={value}
-      contentEditableClassName={cn('prose no-padding', className)}
+      contentEditableClassName={cn('prose no-padding max-w-full', className)}
       plugins={[
         listsPlugin(),
         quotePlugin(),

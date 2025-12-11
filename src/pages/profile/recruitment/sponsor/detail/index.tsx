@@ -1,12 +1,12 @@
+import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
 import RecruitmentApplicants from '@/components/recruitment/applicants/recruitment-applicants';
 import RecruitmentMessage from '@/components/recruitment/message/recruitment-message';
 import RecruitmentOverview from '@/components/recruitment/overview/recruitment-overview';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { ChevronLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
-import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
-import { useAuth } from '@/lib/hooks/use-auth';
 
 const ProfileRecuitmentDetail: React.FC = () => {
   const { id } = useParams();
@@ -56,7 +56,7 @@ const ProfileRecuitmentDetail: React.FC = () => {
     <div className="flex flex-col justify-between bg-white px-10 py-7 rounded-2xl">
       <div className="mb-3">
         <Link
-          to={`/profile/recruitment/sponser`}
+          to={`/profile/recruitment/sponsor`}
           className="flex items-center w-fit mb-5 text-sm font-semibold text-gray-text"
         >
           <ChevronLeft className="w-4" />
@@ -69,6 +69,7 @@ const ProfileRecuitmentDetail: React.FC = () => {
             </TabsTrigger>
             <TabsTrigger value="applicants" className="rounded-sm px-10">
               Applicants
+              <span className="text-primary font-bold">{program?.applicationCount}</span>
             </TabsTrigger>
             <TabsTrigger value="message" className="rounded-sm px-10">
               Message

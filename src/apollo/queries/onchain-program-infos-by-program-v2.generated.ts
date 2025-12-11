@@ -4,7 +4,7 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type OnchainProgramInfosByProgramV2QueryVariables = Types.Exact<{
-  programId: Types.Scalars['Int']['input'];
+  programId: Types.Scalars['String']['input'];
   pagination?: Types.InputMaybe<Types.PaginationInput>;
 }>;
 
@@ -13,7 +13,7 @@ export type OnchainProgramInfosByProgramV2Query = { __typename?: 'Query', onchai
 
 
 export const OnchainProgramInfosByProgramV2Document = gql`
-    query onchainProgramInfosByProgramV2($programId: Int!, $pagination: PaginationInput) {
+    query onchainProgramInfosByProgramV2($programId: String!, $pagination: PaginationInput) {
   onchainProgramInfosByProgramV2(programId: $programId, pagination: $pagination) {
     data {
       id

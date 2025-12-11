@@ -246,7 +246,8 @@ function Header() {
         <div>
           {!authenticated && (
             <Button
-              className="bg-primary hover:bg-primary/90 h-fit px-3 md:px-4 text-sm"
+              size="sm"
+              className="bg-primary hover:bg-primary/90 px-3 md:px-4 text-sm"
               onClick={login}
             >
               Login
@@ -257,7 +258,7 @@ function Header() {
               <Notifications />
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button className="bg-primary hover:bg-primary/90 h-fit">
+                  <Button size="sm" className="bg-primary hover:bg-primary/90">
                     <span className="hidden sm:inline">
                       {profileData?.profileV2?.firstName && profileData?.profileV2?.lastName
                         ? `${profileData.profileV2.firstName} ${profileData.profileV2.lastName}`

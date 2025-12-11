@@ -1,7 +1,19 @@
 import { useCreateMilestoneV2Mutation } from '@/apollo/mutation/create-milestone-v2.generated';
-import { useUpdateMilestoneV2Mutation } from '@/apollo/mutation/update-milestone-v2.generated';
 import { useUpdateApplicationV2Mutation } from '@/apollo/mutation/update-application-v2.generated';
+import { useUpdateMilestoneV2Mutation } from '@/apollo/mutation/update-milestone-v2.generated';
 import { useUpdateProgramV2Mutation } from '@/apollo/mutation/update-program-v2.generated';
+import { MarkdownPreviewer } from '@/components/markdown';
+import MarkdownEditor from '@/components/markdown/markdown-editor';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -13,16 +25,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import {
   Form,
   FormControl,
   FormField,
@@ -31,25 +33,24 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { dDay, formatUTCDateLocal, fromUTCString, toUTCString } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNetworks } from '@/contexts/networks-context';
-import { ethers } from 'ethers';
+import { sendMessage } from '@/lib/firebase-chat';
+import { dDay, formatUTCDateLocal, fromUTCString, toUTCString } from '@/lib/utils';
+import type { MilestoneModalProps } from '@/types/recruitment';
 import {
   ApplicationStatusV2,
   MilestoneStatusV2,
-  ProgramStatusV2,
   type MilestoneV2,
+  ProgramStatusV2,
 } from '@/types/types.generated';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import * as z from 'zod';
-import MarkdownEditor from '@/components/markdown/markdown-editor';
-import { MarkdownPreviewer } from '@/components/markdown';
 import { MilestoneAccordion } from './milestone-accordion';
-import type { MilestoneModalProps } from '@/types/recruitment';
-import { sendMessage } from '@/lib/firebase-chat';
 
 const milestoneFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -180,19 +181,26 @@ export function MilestoneModal({
   const handleNewMilestoneClick = () => {
     setSelectedMilestone(null);
     setIsNewMilestoneMode(true);
+    form.reset({
+      title: '',
+      price: '',
+      deadline: undefined,
+      description: '',
+    });
   };
 
   const handleEditClick = () => {
     if (selectedMilestone) {
-      form.setValue('title', selectedMilestone.title || '');
-      form.setValue('price', selectedMilestone.payout || '');
-      form.setValue('description', selectedMilestone.description || '');
-      if (selectedMilestone.deadline) {
-        const deadlineDate = fromUTCString(selectedMilestone.deadline);
-        if (deadlineDate) {
-          form.setValue('deadline', deadlineDate);
-        }
-      }
+      const deadlineDate = selectedMilestone.deadline
+        ? fromUTCString(selectedMilestone.deadline) || undefined
+        : undefined;
+
+      form.reset({
+        title: selectedMilestone.title || '',
+        price: selectedMilestone.payout || '',
+        description: selectedMilestone.description || '',
+        deadline: deadlineDate,
+      });
       setIsNewMilestoneMode(true);
     }
   };
@@ -219,13 +227,17 @@ export function MilestoneModal({
       const payoutAmount = ethers.utils.parseUnits(selectedMilestone.payout, tokenDecimals);
       const payoutBigInt = BigInt(payoutAmount._hex);
 
-      await contract.completeMilestone(existingContract.onchainContractId, payoutBigInt);
+      const payoutTx = await contract.completeMilestone(
+        existingContract.onchainContractId,
+        payoutBigInt,
+      );
 
       await updateMilestone({
         variables: {
           id: selectedMilestone.id,
           input: {
             status: MilestoneStatusV2.Completed,
+            payout_tx: payoutTx.txHash,
           },
         },
       });
@@ -264,7 +276,11 @@ export function MilestoneModal({
         );
 
         const allApplications = allApplicationsData?.applicationsByProgramV2?.data || [];
-        const allApplicationsCompleted = allApplications.every(
+        const updatedApplications = allApplications.map(
+          (app: { id?: string | null; status?: ApplicationStatusV2 | null }) =>
+            app.id === applicationId ? { ...app, status: ApplicationStatusV2.Completed } : app,
+        );
+        const allApplicationsCompleted = updatedApplications.every(
           (app: { status?: ApplicationStatusV2 | null }) =>
             app.status === ApplicationStatusV2.Completed,
         );
@@ -280,33 +296,35 @@ export function MilestoneModal({
             }
           }
 
-          if (onchainProgramId) {
-            await updateProgram({
-              variables: {
-                id: programId,
-                input: {
-                  status: ProgramStatusV2.Closed,
-                },
+          await updateProgram({
+            variables: {
+              id: programId,
+              input: {
+                status: ProgramStatusV2.Closed,
               },
-            });
+            },
+          });
 
-            await contract.completeProgram(onchainProgramId);
-
-            toast.success(
-              'All applications completed. Program status updated to Closed and completed on-chain.',
-            );
+          if (onchainProgramId && contract) {
+            try {
+              await contract.completeProgram(onchainProgramId);
+              toast.success(
+                'All applications completed. Program status updated to Closed and completed on-chain.',
+              );
+            } catch (error) {
+              toast.error('Program status updated to Closed, but on-chain completion failed.');
+            }
           } else {
-            await updateProgram({
-              variables: {
-                id: programId,
-                input: {
-                  status: ProgramStatusV2.Closed,
-                },
-              },
-            });
-
+            if (!onchainProgramId) {
+              console.warn('onchainProgramId is missing:', onchainProgramId);
+            }
+            if (!contract) {
+              console.warn('Contract instance is missing');
+            }
             toast.success('All applications completed. Program status updated to Closed.');
           }
+        } else {
+          console.log('Not all applications are completed yet');
         }
       }
 
@@ -493,38 +511,69 @@ export function MilestoneModal({
 
         <DialogFooter className="px-6 py-4 border-t">
           {isNewMilestoneMode ? (
-            <Button
-              type="submit"
-              form="milestone-form"
-              variant="default"
-              className="ml-auto"
-              disabled={creatingMilestone || updatingMilestone}
-            >
-              {selectedMilestone
-                ? updatingMilestone
-                  ? 'Updating...'
-                  : 'Update'
-                : creatingMilestone
-                  ? 'Creating...'
-                  : 'Submit'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="submit"
+                form="milestone-form"
+                variant="default"
+                className="ml-auto"
+                disabled={
+                  creatingMilestone ||
+                  updatingMilestone ||
+                  (!selectedMilestone
+                    ? !form.formState.isValid ||
+                      !form.watch('title') ||
+                      !form.watch('price') ||
+                      !form.watch('deadline') ||
+                      !form.watch('description')
+                    : !form.formState.isDirty)
+                }
+              >
+                {selectedMilestone
+                  ? updatingMilestone
+                    ? 'Updating...'
+                    : 'Update'
+                  : creatingMilestone
+                    ? 'Creating...'
+                    : 'Submit'}
+              </Button>
+            </div>
           ) : (
-            isSponsor &&
-            isHandleMakeNewMilestone && (
-              <div className="flex items-center justify-end gap-2">
-                {selectedMilestone && selectedMilestone.status === MilestoneStatusV2.InProgress && (
-                  <Button
-                    type="button"
-                    variant="purple"
-                    onClick={handleCompleteClick}
-                    disabled={isCompleting}
-                  >
-                    {isCompleting ? 'Completing...' : 'Complete'}
-                  </Button>
-                )}
-                <Button type="button" variant="default" onClick={handleEditClick}>
-                  Edit
-                </Button>
+            isSponsor && (
+              <div className="flex items-center justify-between gap-2 w-full">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span tabIndex={0}>
+                        <Button
+                          type="button"
+                          variant="default"
+                          onClick={handleEditClick}
+                          disabled={!isHandleMakeNewMilestone}
+                        >
+                          Edit
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    {!isHandleMakeNewMilestone && (
+                      <TooltipContent>
+                        <p className="text-black">Locked until contract confirmation</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+                {selectedMilestone &&
+                  isHandleMakeNewMilestone &&
+                  selectedMilestone.status === MilestoneStatusV2.InProgress && (
+                    <Button
+                      type="button"
+                      variant="purple"
+                      onClick={handleCompleteClick}
+                      disabled={isCompleting}
+                    >
+                      {isCompleting ? 'Completing...' : 'Complete'}
+                    </Button>
+                  )}
               </div>
             )
           )}
@@ -534,13 +583,11 @@ export function MilestoneModal({
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {selectedMilestone ? 'Update Milestone' : 'Create Milestone'}
-            </AlertDialogTitle>
+            <AlertDialogTitle>Are you sure you want to proceed?</AlertDialogTitle>
             <AlertDialogDescription>
               {selectedMilestone
-                ? 'Once you update this milestone, the changes cannot be undone. Are you sure you want to proceed?'
-                : 'Once you create this milestone, it cannot be deleted. Are you sure you want to proceed?'}
+                ? 'Once you update this milestone, the changes cannot be undone.'
+                : 'Once you create this milestone, it cannot be deleted'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

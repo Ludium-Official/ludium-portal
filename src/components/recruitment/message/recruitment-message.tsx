@@ -1,31 +1,31 @@
+import { useApplicationsByProgramV2Query } from '@/apollo/queries/applications-by-program-v2.generated';
 import { useContractsByApplicationV2Query } from '@/apollo/queries/contracts-by-application-v2.generated';
 import { useGetMilestonesV2Query } from '@/apollo/queries/milestones-v2.generated';
-import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
-import { useApplicationsByProgramV2Query } from '@/apollo/queries/applications-by-program-v2.generated';
 import { useOnchainProgramInfosByProgramV2Query } from '@/apollo/queries/onchain-program-infos-by-program-v2.generated';
+import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
 import { ChatBox } from '@/components/chat/chat-box';
 import { ContractModal } from '@/components/recruitment/contract/contract-modal';
 import { HireButton } from '@/components/recruitment/hire-button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNetworks } from '@/contexts/networks-context';
-import { useContract } from '@/lib/hooks/use-contract';
 import { type ChatMessageFile, getAllFiles, getLatestMessage } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useContract } from '@/lib/hooks/use-contract';
 import { fromUTCString, getUserDisplayName, getUserInitialName } from '@/lib/utils';
 import type { ContractInformation } from '@/types/recruitment';
 import {
   ApplicationStatusV2,
-  ContractV2,
+  type ContractV2,
   MilestoneStatusV2,
   type MilestoneV2,
 } from '@/types/types.generated';
 import type { Timestamp } from 'firebase/firestore';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
+import { ApplicationSidebar } from './application-sidebar';
 import MessageListItem from './message-list-item';
 import { MilestoneModal } from './milestone-modal';
-import { ApplicationSidebar } from './application-sidebar';
 
 const RecruitmentMessage: React.FC = () => {
   const { id } = useParams();
@@ -107,7 +107,7 @@ const RecruitmentMessage: React.FC = () => {
       ?.filter((contract) => contract.onchainContractId)
       .sort((a, b) => {
         if (a.createdAt && b.createdAt) {
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         }
         return 0;
       }) || [];
@@ -119,7 +119,7 @@ const RecruitmentMessage: React.FC = () => {
   const program = programData?.programV2;
 
   const { data: onchainProgramInfosData } = useOnchainProgramInfosByProgramV2Query({
-    variables: { programId: Number(program?.id) || 0 },
+    variables: { programId: program?.id || '' },
     skip: !program?.id,
   });
 
@@ -348,7 +348,7 @@ const RecruitmentMessage: React.FC = () => {
                   isSelected={selectedMessageId === applicant.chatroomMessageId}
                   onClick={() => setSelectedMessageId(applicant.chatroomMessageId || null)}
                   latestMessageText={
-                    latestMessage?.isFile ? '📂 File uploaded' : (latestMessage?.text ?? null)
+                    latestMessage?.isFile ? 'File uploaded' : (latestMessage?.text ?? null)
                   }
                   latestMessageTimestamp={latestMessage?.timestamp || null}
                   latestMessageSenderId={latestMessage?.senderId || null}

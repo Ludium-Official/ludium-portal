@@ -1,3 +1,4 @@
+import { useProfileV2Query } from '@/apollo/queries/profile-v2.generated';
 import avatarPlaceholder from '@/assets/avatar-placeholder.png';
 import NetworkSelector from '@/components/network-selector';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +20,6 @@ import { ArrowUpRight, Building2, CircleCheck, Settings, Sparkle, UserCog } from
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router';
 import { SidebarLinks, sidebarLinks } from '../community/users/_components/sidebar-links';
-import { useProfileV2Query } from '@/apollo/queries/profile-v2.generated';
 
 const adminLinks = [
   { label: 'Banner', path: 'admin/banner' },

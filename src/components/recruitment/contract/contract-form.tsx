@@ -13,11 +13,13 @@ export function ContractForm({
   isSponsor = false,
   onchainContractId,
   networkId,
+  readOnly = false,
 }: {
   contractJson: ContractFormProps;
   isSponsor?: boolean;
   onchainContractId?: number | string;
   networkId?: number | null;
+  readOnly?: boolean;
 }) {
   const { getTokenById, networks: networksWithTokens, getContractByNetworkId } = useNetworks();
 
@@ -314,11 +316,11 @@ export function ContractForm({
                   if (actualPaymentAmount > 0) {
                     return (
                       <>
-                        {isSponsor && (
-                          <span className="mr-2 text-primary">
-                            {`(You will pay only ${actualPaymentAmount
+                        {isSponsor && !readOnly && (
+                          <span className="mr-2 text-gray-400">
+                            {`* You will pay only ${actualPaymentAmount
                               .toFixed(6)
-                              .replace(/\.?0+$/, '')} ${token?.tokenName})`}
+                              .replace(/\.?0+$/, '')} ${token?.tokenName}`}
                           </span>
                         )}
                         {Number.parseFloat(newTotalPrice.toString())
@@ -330,11 +332,11 @@ export function ContractForm({
                   } else if (actualPaymentAmount < 0) {
                     return (
                       <>
-                        {isSponsor && (
-                          <span className="mr-2 text-primary">
-                            {`(${Math.abs(actualPaymentAmount)
+                        {isSponsor && !readOnly && (
+                          <span className="mr-2 text-gray-400">
+                            {`* ${Math.abs(actualPaymentAmount)
                               .toFixed(6)
-                              .replace(/\.?0+$/, '')} ${token?.tokenName} will be refund)`}
+                              .replace(/\.?0+$/, '')} ${token?.tokenName} will be refund`}
                           </span>
                         )}
                         {Number.parseFloat(newTotalPrice.toString())

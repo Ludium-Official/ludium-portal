@@ -5,6 +5,7 @@ import { useUpdateContractV2Mutation } from '@/apollo/mutation/update-contract-v
 import { useUpdateMilestoneV2Mutation } from '@/apollo/mutation/update-milestone-v2.generated';
 import { ApplicationsByProgramV2Document } from '@/apollo/queries/applications-by-program-v2.generated';
 import { useContractsByProgramV2Query } from '@/apollo/queries/contracts-by-program-v2.generated';
+import { useGetMilestonesV2Query } from '@/apollo/queries/milestones-v2.generated';
 import { useOnchainProgramInfosByProgramV2Query } from '@/apollo/queries/onchain-program-infos-by-program-v2.generated';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -24,7 +25,6 @@ import { ethers } from 'ethers';
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ContractForm } from './contract-form';
-import { useGetMilestonesV2Query } from '@/apollo/queries/milestones-v2.generated';
 
 interface ContractModalProps {
   open: boolean;
@@ -66,13 +66,13 @@ export function ContractModal({
   const milestones = milestonesData?.milestonesV2?.data || [];
 
   const { data: onchainProgramInfosData } = useOnchainProgramInfosByProgramV2Query({
-    variables: { programId: Number(programInfo.id) || 0 },
+    variables: { programId: programInfo.id || '' },
     skip: !programInfo.id,
   });
 
   const { data: contractsData } = useContractsByProgramV2Query({
     variables: {
-      programId: Number(programInfo.id) || 0,
+      programId: programInfo.id || '',
       pagination: { limit: 1000, offset: 0 },
     },
     skip: !programInfo.id,
@@ -201,7 +201,6 @@ export function ContractModal({
 
   const handleAddSignature = async () => {
     setIsSigningMessage(true);
-    console.log(onchainProgramId);
 
     if (onchainProgramId === null) {
       notify('Onchain program ID not found', 'error');
@@ -234,7 +233,7 @@ export function ContractModal({
       await createContractV2Mutation({
         variables: {
           input: {
-            programId: Number(programInfo.id) || 0,
+            programId: programInfo.id || '',
             applicantId: Number(applicationInfo.applicant?.id),
             sponsorId: Number(programInfo.sponsor?.id),
             smartContractId: Number(currentContract.id),
@@ -387,7 +386,7 @@ export function ContractModal({
         await createOnchainContractInfoV2Mutation({
           variables: {
             input: {
-              programId: Number(programInfo.id) || 0,
+              programId: programInfo.id || '',
               applicantId: Number(applicationInfo.applicant?.id) || 0,
               sponsorId: Number(programInfo.sponsor?.id) || 0,
               onchainContractId: txResult.onchainContractId,
@@ -517,6 +516,7 @@ export function ContractModal({
             contractSnapshot?.onchainContractId || existingContract?.onchainContractId || undefined
           }
           networkId={programInfo.networkId}
+          readOnly={readOnly}
         />
 
         {(() => {
