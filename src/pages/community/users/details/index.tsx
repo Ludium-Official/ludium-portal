@@ -1,19 +1,19 @@
-import { useUserQuery } from "@/apollo/queries/user.generated";
-import avatarDefault from "@/assets/avatar-default.svg";
-import { Badge } from "@/components/ui/badge";
-import { ShareButton } from "@/components/ui/share-button";
-import SocialIcon from "@/components/ui/social-icon";
-import { Separator } from "@radix-ui/react-dropdown-menu";
-import { Outlet, useParams } from "react-router";
-import { SidebarLinks, sidebarLinks } from "../_components/sidebar-links";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { useUserQuery } from '@/apollo/queries/user.generated';
+import avatarDefault from '@/assets/avatar-default.svg';
+import { Badge } from '@/components/ui/badge';
+import { ShareButton } from '@/components/ui/share-button';
+import SocialIcon from '@/components/ui/social-icon';
+import { Separator } from '@radix-ui/react-dropdown-menu';
+import { Outlet, useParams } from 'react-router';
+import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 
 function UserDetailsPage() {
   const { id } = useParams();
 
   const { data: userData } = useUserQuery({
     variables: {
-      id: id ?? "",
+      id: id ?? '',
     },
   });
 
@@ -27,11 +27,7 @@ function UserDetailsPage() {
                 <div className="p-[7.5px]">
                   <Avatar className="w-[121px] h-[121px]">
                     <AvatarImage
-                      src={
-                        userData?.user?.image
-                          ? userData?.user?.image
-                          : avatarDefault
-                      }
+                      src={userData?.user?.image ? userData?.user?.image : avatarDefault}
                     />
                   </Avatar>
                 </div>
@@ -40,9 +36,7 @@ function UserDetailsPage() {
                     <p className="font-bold text-xl text-gray-dark">
                       {userData?.user?.firstName} {userData?.user?.lastName}
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      {userData?.user?.email}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{userData?.user?.email}</p>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {userData?.user?.organizationName}
@@ -50,9 +44,7 @@ function UserDetailsPage() {
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="font-bold text-sm text-muted-foreground">
-                  SUMMARY
-                </p>
+                <p className="font-bold text-sm text-muted-foreground">SUMMARY</p>
                 <p className="text-sm text-slate-600 line-clamp-4 font-inter">
                   {userData?.user?.summary}
                 </p>
@@ -79,16 +71,12 @@ function UserDetailsPage() {
                     </Badge>
                   ))}
                   {!userData?.user?.roleKeywords?.length && (
-                    <p className="text-sm text-muted-foreground">
-                      No roles defined
-                    </p>
+                    <p className="text-sm text-muted-foreground">No roles defined</p>
                   )}
                 </div>
               </div>
               <div className="space-y-2">
-                <p className="font-bold text-sm text-muted-foreground">
-                  SKILLS
-                </p>
+                <p className="font-bold text-sm text-muted-foreground">SKILLS</p>
                 <div className="flex gap-[6px] flex-wrap">
                   {userData?.user?.skillKeywords?.map((keyword) => (
                     <Badge
@@ -99,16 +87,12 @@ function UserDetailsPage() {
                     </Badge>
                   ))}
                   {!userData?.user?.skillKeywords?.length && (
-                    <p className="text-sm text-muted-foreground">
-                      No skills defined
-                    </p>
+                    <p className="text-sm text-muted-foreground">No skills defined</p>
                   )}
                 </div>
               </div>
               <div className="space-y-3">
-                <p className="font-bold text-sm text-muted-foreground">
-                  CONTACT
-                </p>
+                <p className="font-bold text-sm text-muted-foreground">CONTACT</p>
                 <div className="space-y-2">
                   <div className="space-y-2">
                     {userData?.user?.links?.length ? (
@@ -117,25 +101,23 @@ function UserDetailsPage() {
                           <div key={index} className="flex items-center gap-2">
                             <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
                               <SocialIcon
-                                value={link.url ?? ""}
+                                value={link.url ?? ''}
                                 className="w-4 h-4 text-secondary-foreground"
                               />
                             </div>
                             <a
                               target="_blank"
-                              href={link.url || "#"}
+                              href={link.url || '#'}
                               className="text-sm text-slate-600 break-all"
                               rel="noreferrer"
                             >
-                              {link.url || "No link"}
+                              {link.url || 'No link'}
                             </a>
                           </div>
                         );
                       })
                     ) : (
-                      <p className="text-sm text-muted-foreground">
-                        No links available
-                      </p>
+                      <p className="text-sm text-muted-foreground">No links available</p>
                     )}
                   </div>
                 </div>

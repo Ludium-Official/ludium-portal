@@ -1,9 +1,12 @@
-import { ChevronRight } from 'lucide-react';
-import { useState } from 'react';
-import { Link } from 'react-router';
-import { MyJobPostsTable } from '../_components/my-job-posts-table';
+import { useGetProgramsBySponsorV2Query } from '@/apollo/queries/get-programs-by-sponser.generated';
+import { PageSize } from '@/components/ui/pagination';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { cn, commaNumber } from '@/lib/utils';
 import { HiringActivityFilterOption } from '@/types/dashboard';
+import { ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+import { Link, useSearchParams } from 'react-router';
+import { MyJobPostsTable } from '../_components/my-job-posts-table';
 
 // TODO: Remove mock data
 const activityCounts = {
@@ -14,6 +17,10 @@ const activityCounts = {
 };
 
 const RecruitmentDashboardSponsor: React.FC = () => {
+  const { userId } = useAuth();
+  const [searchParams] = useSearchParams();
+  const currentPage = Number(searchParams.get('page')) || 1;
+
   const [activityFilter, setActivityFilter] = useState<HiringActivityFilterOption>({
     key: 'all',
     label: 'All Programs',
@@ -30,6 +37,21 @@ const RecruitmentDashboardSponsor: React.FC = () => {
     { key: 'ongoing', label: 'Ongoing Program', dotColor: 'bg-blue-500' },
     { key: 'completed', label: 'Completed Program', dotColor: 'bg-primary' },
   ];
+
+  // TODO: Fetch programs by filter conditions (activityFilter.key)
+  const { data, loading, error, refetch } = useGetProgramsBySponsorV2Query({
+    variables: {
+      sponsorId: userId,
+      pagination: {
+        limit: PageSize,
+        offset: (currentPage - 1) * PageSize,
+      },
+    },
+    skip: !userId,
+  });
+
+  const programs = data?.programsBysponsorIdV2?.data || [];
+  const totalCount = data?.programsBysponsorIdV2?.count || 0;
 
   return (
     <div className="flex flex-col justify-between bg-white px-10 py-7 rounded-2xl">
@@ -68,7 +90,15 @@ const RecruitmentDashboardSponsor: React.FC = () => {
         <div className="mb-8 font-bold text-xl text-gray-600">My Job Posts</div>
       </div>
 
-      <MyJobPostsTable activityFilter={activityFilter} />
+      <MyJobPostsTable
+        activityFilter={activityFilter}
+        programs={programs}
+        totalCount={totalCount}
+        loading={loading}
+        error={error}
+        onRefetch={refetch}
+        variant="sponsor"
+      />
     </div>
   );
 };

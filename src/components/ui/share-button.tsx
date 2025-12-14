@@ -37,11 +37,11 @@ export function ShareButton({
     }
     if (shareType === 'farcaster') {
       navigator.clipboard.writeText(
-        `https://ludium-farcaster.vercel.app/api/programs/${
-          program?.name
-        }/${program?.id}/${Math.floor(
-          new Date(program?.deadline).getTime() / 1000,
-        )}/${program?.price}/${program?.currency}`,
+        `https://ludium-farcaster.vercel.app/api/programs/${program?.name}/${
+          program?.id
+        }/${Math.floor(new Date(program?.deadline).getTime() / 1000)}/${
+          program?.price
+        }/${program?.currency}`,
       );
       notify('Copied program frame!', 'success');
     }
@@ -50,9 +50,13 @@ export function ShareButton({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant={variant} size={size} className={cn('flex gap-2 items-center', className)}>
+        <Button
+          variant={variant}
+          size={size}
+          className={cn('flex gap-2 items-center text-xs', className)}
+        >
           {children || 'Share'}
-          <Share2Icon className="size-4" />
+          <Share2Icon className="size-3" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-6 min-w-[400px]" align="end">
