@@ -19,7 +19,7 @@ const EditProgram: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const { isLoggedIn, isAuthed } = useAuth();
+  const { isAuthed } = useAuth();
   const [updateProgram, { loading }] = useUpdateProgramV2Mutation();
   const [createOnchainProgramInfo] = useCreateOnchainProgramInfoV2Mutation();
 
@@ -58,7 +58,7 @@ const EditProgram: React.FC = () => {
         },
         onCompleted: async () => {
           notify('Successfully updated the program', 'success');
-          navigate('/profile/recruitment/sponsor');
+          navigate('/dashboard/recruitment/sponsor');
           client.refetchQueries({ include: [GetProgramV2Document] });
         },
         onError: (error) => {
@@ -73,17 +73,11 @@ const EditProgram: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      navigate('/');
-      notify('Please login first', 'success');
-      return;
-    }
     if (!isAuthed) {
       navigate('/profile/edit');
       notify('Please add your email', 'success');
-      return;
     }
-  }, [isLoggedIn, isAuthed]);
+  }, [isAuthed, navigate]);
 
   return (
     <div className="w-full bg-[#f7f7f7] p-10 pr-[55px]" defaultValue="edit">

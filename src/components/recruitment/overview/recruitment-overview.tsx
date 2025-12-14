@@ -98,7 +98,7 @@ const RecruitmentOverview: React.FC = () => {
 
       if (result.data?.createApplicationV2) {
         notify('Application submitted successfully!', 'success');
-        navigate('/profile/recruitment/builder');
+        navigate('/dashboard/recruitment/builder');
 
         return;
       }

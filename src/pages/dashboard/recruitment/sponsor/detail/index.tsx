@@ -8,7 +8,7 @@ import { ChevronLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 
-const ProfileRecuitmentDetail: React.FC = () => {
+const RecruitmentDashboardSponsorDetail: React.FC = () => {
   const { id } = useParams();
   const { userId } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -56,7 +56,7 @@ const ProfileRecuitmentDetail: React.FC = () => {
     <div className="flex flex-col justify-between bg-white px-10 py-7 rounded-2xl">
       <div className="mb-3">
         <Link
-          to={`/profile/recruitment/sponsor`}
+          to={`/dashboard/recruitment/sponsor`}
           className="flex items-center w-fit mb-5 text-sm font-semibold text-gray-text"
         >
           <ChevronLeft className="w-4" />
@@ -84,4 +84,4 @@ const ProfileRecuitmentDetail: React.FC = () => {
   );
 };
 
-export default ProfileRecuitmentDetail;
+export default RecruitmentDashboardSponsorDetail;

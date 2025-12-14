@@ -37,7 +37,7 @@ const PageSize = 10;
 
 type ProgramData = NonNullable<NonNullable<GetProgramsV2Query['programsV2']>['data']>[number];
 
-const ProfileRecruitmentBuilder: React.FC = () => {
+const RecruitmentDashboardBuilder: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -291,7 +291,7 @@ const ProfileRecruitmentBuilder: React.FC = () => {
                       key={row.id}
                       data-state={row.getIsSelected() && 'selected'}
                       className="cursor-pointer hover:bg-gray-50 border-b border-[#E4E4E7] last:border-b-0 text-[#4B5563]"
-                      onClick={() => navigate(`/profile/recruitment/builder/${row.original.id}`)}
+                      onClick={() => navigate(`/dashboard/recruitment/builder/${row.original.id}`)}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
@@ -361,4 +361,4 @@ const ProfileRecruitmentBuilder: React.FC = () => {
   );
 };
 
-export default ProfileRecruitmentBuilder;
+export default RecruitmentDashboardBuilder;

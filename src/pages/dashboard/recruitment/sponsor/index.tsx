@@ -45,7 +45,7 @@ type ProgramData = NonNullable<
   NonNullable<GetProgramsBySponsorV2Query['programsBysponsorIdV2']>['data']
 >[number];
 
-const ProfileRecruitment: React.FC = () => {
+const RecruitmentDashboardSponsor: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -319,7 +319,7 @@ const ProfileRecruitment: React.FC = () => {
     <div className="flex flex-col justify-between bg-white px-10 py-7 rounded-2xl">
       <div>
         <Link
-          to={`/profile`}
+          to={`/dashboard`}
           className="flex items-center w-fit mb-5 text-sm font-semibold text-gray-text"
         >
           <ChevronLeft className="w-4" />
@@ -366,7 +366,7 @@ const ProfileRecruitment: React.FC = () => {
                       key={row.id}
                       data-state={row.getIsSelected() && 'selected'}
                       className="cursor-pointer hover:bg-gray-50 border-b border-[#E4E4E7] last:border-b-0 text-[#4B5563]"
-                      onClick={() => navigate(`/profile/recruitment/sponsor/${row.original.id}`)}
+                      onClick={() => navigate(`/dashboard/recruitment/sponsor/${row.original.id}`)}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
@@ -436,4 +436,4 @@ const ProfileRecruitment: React.FC = () => {
   );
 };
 
-export default ProfileRecruitment;
+export default RecruitmentDashboardSponsor;

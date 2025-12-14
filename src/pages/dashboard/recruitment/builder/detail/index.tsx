@@ -5,7 +5,7 @@ import { ChevronLeft } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
-const ProfileRecruitmentBuilderDetail: React.FC = () => {
+const RecruitmentDashboardBuilderDetail: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
 
@@ -26,7 +26,7 @@ const ProfileRecruitmentBuilderDetail: React.FC = () => {
     <div className="flex flex-col justify-between bg-white px-10 py-7 rounded-2xl">
       <div className="mb-3">
         <Link
-          to={`/profile/recruitment/builder`}
+          to={`/dashboard/recruitment/builder`}
           className="flex items-center w-fit mb-5 text-sm font-semibold text-gray-text"
         >
           <ChevronLeft className="w-4" />
@@ -49,4 +49,4 @@ const ProfileRecruitmentBuilderDetail: React.FC = () => {
   );
 };
 
-export default ProfileRecruitmentBuilderDetail;
+export default RecruitmentDashboardBuilderDetail;
