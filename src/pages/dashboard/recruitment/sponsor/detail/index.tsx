@@ -4,7 +4,7 @@ import RecruitmentMessage from '@/components/recruitment/message/recruitment-mes
 import RecruitmentOverview from '@/components/recruitment/overview/recruitment-overview';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 
@@ -55,13 +55,13 @@ const RecruitmentDashboardSponsorDetail: React.FC = () => {
   return (
     <div className="flex flex-col justify-between bg-white px-10 py-7 rounded-2xl">
       <div className="mb-3">
-        <Link
-          to={`/dashboard/recruitment/sponsor`}
-          className="flex items-center w-fit mb-5 text-sm font-semibold text-gray-text"
-        >
-          <ChevronLeft className="w-4" />
-          My Job Posts
-        </Link>
+        <div className="flex items-center w-fit mb-6 text-sm text-muted-foreground">
+          <Link to="/dashboard">Dashboard</Link>
+          <ChevronRight className="w-4 mx-2" />
+          <Link to="/dashboard/recruitment/sponsor">Hiring Activity</Link>
+          <ChevronRight className="w-4 mx-2" />
+          <span className="text-foreground">Program Overview</span>
+        </div>
         <Tabs value={selectedTab} onValueChange={handleTabChange}>
           <TabsList className="rounded-md">
             <TabsTrigger value="overview" className="rounded-sm px-10">
@@ -77,7 +77,13 @@ const RecruitmentDashboardSponsorDetail: React.FC = () => {
           </TabsList>
         </Tabs>
       </div>
-      <div>{selectedTab === 'overview' && <RecruitmentOverview />}</div>
+      <div>
+        {selectedTab === 'overview' && (
+          <div className="border border-gray-200 rounded-lg">
+            <RecruitmentOverview className="px-4 py-5" isFoldable={true} />
+          </div>
+        )}
+      </div>
       <div>{selectedTab === 'applicants' && <RecruitmentApplicants />}</div>
       <div>{selectedTab === 'message' && <RecruitmentMessage />}</div>
     </div>

@@ -1,11 +1,13 @@
 import { useProfileV2Query } from "@/apollo/queries/profile-v2.generated";
-import avatarPlaceholder from "@/assets/avatar-placeholder.png";
+import avatarDefault from "@/assets/avatar-default.svg";
 import { WalletCard } from "@/components/common/wallet-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import { PaymentOverview } from "./_components/payment-overview";
 import { Link } from "react-router";
-import { commaNumber } from "@/lib/utils";
+import { cn, commaNumber } from "@/lib/utils";
+import { Avatar } from "@/components/ui/avatar";
+import { AvatarImage } from "@radix-ui/react-avatar";
 
 const mockHiringActivity = {
   openProgram: 1000,
@@ -27,11 +29,11 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="mx-auto p-10 space-y-5">
       <div className="flex items-center gap-3">
-        <img
-          src={user?.profileImage ?? avatarPlaceholder}
-          alt="avatar"
-          className="w-18 h-18 rounded-full object-cover"
-        />
+        <Avatar className="h-10 w-10">
+          <AvatarImage
+            src={user?.profileImage ? user?.profileImage : avatarDefault}
+          />
+        </Avatar>
         <div className="flex flex-col">
           <h2 className="font-bold text-lg text-gray-900">
             {user?.firstName} {user?.lastName}

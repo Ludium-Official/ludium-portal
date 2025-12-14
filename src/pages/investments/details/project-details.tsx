@@ -1013,7 +1013,7 @@ function ProjectDetailsPage() {
           //   (token) => token.name === program.currency
           // );
 
-          // TODO: funding 개발수정필요
+          // funding 개발수정필요
           // const tx = await contract.acceptMilestone(
           //   Number(program?.educhainProgramId),
           //   data?.application?.applicant?.walletAddress ?? '',
