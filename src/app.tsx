@@ -27,6 +27,7 @@ import RecruitmentDashboardBuilder from './pages/dashboard/recruitment/builder';
 import RecruitmentDashboardBuilderDetail from './pages/dashboard/recruitment/builder/detail';
 import RecruitmentDashboardSponsor from './pages/dashboard/recruitment/sponsor';
 import RecruitmentDashboardSponsorDetail from './pages/dashboard/recruitment/sponsor/detail';
+import ProfilePage from './pages/profile/profile';
 
 function App() {
   return (
@@ -49,6 +50,11 @@ function App() {
                 </Route>
               </Route>
             </Route>
+
+            <Route path="profile">
+              <Route index element={<ProfilePage />} />
+            </Route>
+
             <Route path="programs">
               <Route path="recruitment">
                 <Route path="create" element={<CreateProgram />} />

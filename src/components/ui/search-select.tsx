@@ -25,6 +25,8 @@ interface SearchSelectProps {
   setInputValue?: React.Dispatch<React.SetStateAction<string | undefined>>;
   emptyText?: string;
   loading?: boolean;
+  showValue?: boolean;
+  modal?: boolean;
 }
 
 export function SearchSelect({
@@ -36,11 +38,16 @@ export function SearchSelect({
   setInputValue,
   emptyText = 'No result found.',
   loading,
+  showValue = false,
+  modal = true,
 }: SearchSelectProps) {
   const [open, setOpen] = React.useState(false);
 
+  const selectedOption = options.find((option) => option.value === value);
+  const displayText = showValue ? selectedOption?.value : selectedOption?.label;
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={modal}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -50,15 +57,22 @@ export function SearchSelect({
           className="flex w-full h-10 justify-between "
         >
           {value ? (
-            options.find((option) => option.value === value)?.label
+            <span className="truncate">{displayText}</span>
           ) : (
             <span className="text-sm text-muted-foreground">{placeholder}</span>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-full max-w-[586px] p-0">
+      <PopoverContent
+        align="start"
+        className="w-full max-w-[586px] p-0 z-[10000] pointer-events-auto"
+        onOpenAutoFocus={(e) => {
+          if (!modal) e.preventDefault();
+        }}
+      >
         <Command
+          className="pointer-events-auto"
           filter={(value, search) => {
             if (!search) return 1;
             const label = options.find((option) => option.value === value)?.label;
@@ -66,7 +80,7 @@ export function SearchSelect({
           }}
         >
           <CommandInput value={inputValue} onValueChange={setInputValue} placeholder="Search..." />
-          <CommandList>
+          <CommandList className="pointer-events-auto">
             <CommandEmpty className="p-4">{loading ? 'Loading...' : emptyText}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
@@ -85,7 +99,7 @@ export function SearchSelect({
                       value === option.value ? 'opacity-100' : 'opacity-0',
                     )}
                   />
-                  <span>{option.label}</span>
+                  <span>{showValue ? option.value : option.label}</span>
                 </CommandItem>
               ))}
             </CommandGroup>

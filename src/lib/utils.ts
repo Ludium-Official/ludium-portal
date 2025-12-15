@@ -245,3 +245,56 @@ export const formatUTCDateTime = (utcDateString: string | null | undefined): str
     minute: '2-digit',
   });
 };
+
+export const getFormattedTimezone = (): string => {
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const offsetMinutes = new Date().getTimezoneOffset();
+  const offsetHours = Math.abs(Math.floor(offsetMinutes / 60));
+  const offsetMins = Math.abs(offsetMinutes % 60);
+  const sign = offsetMinutes <= 0 ? '+' : '-';
+  const gmtOffset = `GMT${sign}${String(offsetHours).padStart(2, '0')}:${String(
+    offsetMins,
+  ).padStart(2, '0')}`;
+
+  // Extract city name from timezone (e.g., "Asia/Seoul" -> "Seoul")
+  const city = timeZone.split('/').pop()?.replace(/_/g, ' ') || '';
+
+  // Get long timezone name
+  const longName =
+    new Intl.DateTimeFormat('en', {
+      timeZone,
+      timeZoneName: 'long',
+    })
+      .formatToParts(new Date())
+      .find((part) => part.type === 'timeZoneName')?.value || '';
+
+  return `(${gmtOffset}) ${longName} - ${city}`;
+};
+
+export const getBrowserTimezone = <T extends { label: string; value: string }>(
+  timezoneOptions: T[],
+): T | undefined => {
+  if (timezoneOptions.length === 0) return undefined;
+
+  const ianaTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const cityName = ianaTimezone.split('/').pop()?.replace(/_/g, ' ');
+
+  if (cityName) {
+    const matchByCity = timezoneOptions.find((tz) =>
+      tz.label.toLowerCase().includes(cityName.toLowerCase()),
+    );
+    if (matchByCity) return matchByCity;
+  }
+
+  const browserTz = getFormattedTimezone();
+  const matchByValue = timezoneOptions.find((tz) => tz.value === browserTz);
+  if (matchByValue) return matchByValue;
+
+  const offsetMatch = browserTz.match(/\(GMT[+-]\d{2}:\d{2}\)/);
+  if (offsetMatch) {
+    const matchByOffset = timezoneOptions.find((tz) => tz.value.startsWith(offsetMatch[0]));
+    if (matchByOffset) return matchByOffset;
+  }
+
+  return undefined;
+};

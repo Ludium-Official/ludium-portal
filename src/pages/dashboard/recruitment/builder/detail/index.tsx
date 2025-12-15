@@ -1,14 +1,14 @@
-import RecruitmentMessage from "@/components/recruitment/message/recruitment-message";
-import RecruitmentOverview from "@/components/recruitment/overview/recruitment-overview";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router";
-import BuilderMilestonesTable from "@/pages/dashboard/recruitment/_components/builder-milestones-table";
-import MilestoneProgress from "@/pages/dashboard/recruitment/_components/milestone-progress";
-import UpcomingPayments from "@/pages/dashboard/recruitment/_components/upcoming-payments";
-import { MilestoneProgressData } from "@/types/dashboard";
-import { BuilderPayments } from "@/types/dashboard";
+import RecruitmentMessage from '@/components/recruitment/message/recruitment-message';
+import RecruitmentOverview from '@/components/recruitment/overview/recruitment-overview';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ChevronRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router';
+import BuilderMilestonesTable from '@/pages/dashboard/recruitment/_components/builder-milestones-table';
+import MilestoneProgress from '@/pages/dashboard/recruitment/_components/milestone-progress';
+import UpcomingPayments from '@/pages/dashboard/recruitment/_components/upcoming-payments';
+import { MilestoneProgressData } from '@/types/dashboard';
+import { BuilderPayments } from '@/types/dashboard';
 
 // TODO: Mock data for milestone progress
 const mockMilestoneProgress: MilestoneProgressData = {
@@ -20,30 +20,30 @@ const mockMilestoneProgress: MilestoneProgressData = {
 const mockUpcomingPayments: BuilderPayments[] = [
   {
     builder: {
-      id: "1",
-      name: "William Smith",
+      id: '1',
+      name: 'William Smith',
     },
     payments: [
       {
-        id: "1-1",
+        id: '1-1',
         dueDate: new Date().toISOString(), // Today
-        amount: "40000",
-        tokenId: "12",
+        amount: '40000',
+        tokenId: '12',
       },
       {
-        id: "1-2",
+        id: '1-2',
         dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // D-2
-        amount: "20000",
-        tokenId: "12",
+        amount: '20000',
+        tokenId: '12',
       },
     ],
   },
 ];
 const RecruitmentDashboardBuilderDetail: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const tabParam = searchParams.get("tab");
+  const tabParam = searchParams.get('tab');
 
-  const [selectedTab, setSelectedTab] = useState(tabParam || "overview");
+  const [selectedTab, setSelectedTab] = useState(tabParam || 'overview');
 
   useEffect(() => {
     if (tabParam) {
@@ -78,14 +78,14 @@ const RecruitmentDashboardBuilderDetail: React.FC = () => {
         </Tabs>
       </div>
       <div>
-        {selectedTab === "overview" && (
+        {selectedTab === 'overview' && (
           <>
             <div className="border border-gray-200 rounded-lg">
               <RecruitmentOverview className="px-4 py-5" isFoldable={true} />
             </div>
             <div
               className="grid gap-4 mt-7 items-start"
-              style={{ gridTemplateColumns: "2.2fr 1fr" }}
+              style={{ gridTemplateColumns: '2.2fr 1fr' }}
             >
               <BuilderMilestonesTable />
               <div className="space-y-6">
@@ -96,7 +96,7 @@ const RecruitmentDashboardBuilderDetail: React.FC = () => {
           </>
         )}
       </div>
-      <div>{selectedTab === "message" && <RecruitmentMessage />}</div>
+      <div>{selectedTab === 'message' && <RecruitmentMessage />}</div>
     </div>
   );
 };
