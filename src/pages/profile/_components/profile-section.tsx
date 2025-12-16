@@ -1,28 +1,28 @@
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Form } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { SearchSelect } from '@/components/ui/search-select';
-import { fetchTimezones, type Timezone } from '@/lib/api/timezones';
-import { getBrowserTimezone } from '@/lib/utils';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Pencil, Upload } from 'lucide-react';
-import avatarDefault from '@/assets/avatar-default.svg';
-import { useEffect, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
+} from "@/components/ui/dialog";
+import { Form } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { SearchSelect } from "@/components/ui/search-select";
+import { fetchTimezones, type Timezone } from "@/lib/api/timezones";
+import { getBrowserTimezone } from "@/lib/utils";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Pen, Upload } from "lucide-react";
+import avatarDefault from "@/assets/avatar-default.svg";
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
 const profileFormSchema = z.object({
-  nickname: z.string().min(1, 'Nickname is required'),
-  email: z.string().email('Invalid email address'),
-  timezone: z.string().min(1, 'Location is required'),
+  nickname: z.string().min(1, "Nickname is required"),
+  email: z.string().email("Invalid email address"),
+  timezone: z.string().min(1, "Location is required"),
 });
 
 type ProfileFormData = z.infer<typeof profileFormSchema>;
@@ -42,26 +42,30 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
   nickname,
   timezone: savedTimezone,
 }) => {
-  const [displayTimezone, setDisplayTimezone] = useState<string>('');
+  const [displayTimezone, setDisplayTimezone] = useState<string>("");
   const [isOpen, setIsOpen] = useState(false);
   const [timezoneOptions, setTimezoneOptions] = useState<Timezone[]>([]);
   const [timezonesLoading, setTimezonesLoading] = useState(false);
   const [timezoneInput, setTimezoneInput] = useState<string>();
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [selectedAvatar, setSelectedAvatar] = useState<File | undefined>(undefined);
+  const [selectedAvatar, setSelectedAvatar] = useState<File | undefined>(
+    undefined
+  );
   const [imageError, setImageError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Track the resolved timezone value for form sync
-  const [resolvedTimezone, setResolvedTimezone] = useState<string>(savedTimezone || '');
+  const [resolvedTimezone, setResolvedTimezone] = useState<string>(
+    savedTimezone || ""
+  );
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileFormSchema),
-    mode: 'onChange',
+    mode: "onChange",
     values: {
-      nickname: nickname || '',
-      email: email || '',
+      nickname: nickname || "",
+      email: email || "",
       timezone: resolvedTimezone,
     },
   });
@@ -73,7 +77,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
     watch,
   } = form;
 
-  const formTimezone = watch('timezone');
+  const formTimezone = watch("timezone");
 
   useEffect(() => {
     if (savedTimezone) {
@@ -99,7 +103,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
           }
         }
       } catch (error) {
-        console.error('Failed to fetch timezones:', error);
+        console.error("Failed to fetch timezones:", error);
       } finally {
         setTimezonesLoading(false);
       }
@@ -116,15 +120,15 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
-      setImageError('Only PNG, JPG, or JPEG files are allowed.');
+    if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
+      setImageError("Only PNG, JPG, or JPEG files are allowed.");
       setSelectedAvatar(undefined);
       setImagePreview(null);
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      setImageError('Image must be under 2MB.');
+      setImageError("Image must be under 2MB.");
       setSelectedAvatar(undefined);
       setImagePreview(null);
       return;
@@ -133,7 +137,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
     const img = new window.Image();
     img.onload = () => {
       if (img.width !== img.height) {
-        setImageError('Image must be square (1:1).');
+        setImageError("Image must be square (1:1).");
         setSelectedAvatar(undefined);
         setImagePreview(null);
       } else {
@@ -142,7 +146,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
       }
     };
     img.onerror = () => {
-      setImageError('Invalid image file.');
+      setImageError("Invalid image file.");
       setSelectedAvatar(undefined);
       setImagePreview(null);
     };
@@ -159,7 +163,8 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
   };
 
   const handleCancel = () => {
-    const matchedTz = savedTimezone || getBrowserTimezone(timezoneOptions)?.value || '';
+    const matchedTz =
+      savedTimezone || getBrowserTimezone(timezoneOptions)?.value || "";
     setResolvedTimezone(matchedTz);
     setImagePreview(profileImage || null);
     setSelectedAvatar(undefined);
@@ -174,7 +179,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button variant="outline" size="icon" className="h-9 w-10">
-              <Pencil className="h-4 w-4" />
+              <Pen className="h-4 w-4" />
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[782px] px-10 py-4">
@@ -185,10 +190,20 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                     Profile
                   </DialogTitle>
                   <div className="flex items-center gap-2">
-                    <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancel}
+                    >
                       Cancel
                     </Button>
-                    <Button type="submit" variant="default" size="sm" disabled={!isValid}>
+                    <Button
+                      type="submit"
+                      variant="default"
+                      size="sm"
+                      disabled={!isValid}
+                    >
                       Save
                     </Button>
                   </div>
@@ -197,12 +212,16 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                 <div className="space-y-6 my-4">
                   <div className="flex items-center gap-6">
                     <Avatar className="w-20 h-20">
-                      <AvatarImage className="bg-neutral-300" src={imagePreview || avatarDefault} />
+                      <AvatarImage
+                        className="bg-neutral-300"
+                        src={imagePreview || avatarDefault}
+                      />
                     </Avatar>
                     <div className="space-y-2">
                       <p className="font-medium text-sm">Profile image</p>
                       <p className="text-xs text-gray-500">
-                        Profile image must be under 2MB, and in PNG, JPG, or JPEG format.
+                        Profile image must be under 2MB, and in PNG, JPG, or
+                        JPEG format.
                       </p>
                       <input
                         ref={fileInputRef}
@@ -211,7 +230,9 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                         className="hidden"
                         onChange={handleImageChange}
                       />
-                      {imageError && <p className="text-sm text-red-500">{imageError}</p>}
+                      {imageError && (
+                        <p className="text-sm text-red-500">{imageError}</p>
+                      )}
                       <Button
                         type="button"
                         variant="outline"
@@ -229,9 +250,14 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                     <p className="text-sm font-medium text-gray-900 mb-2">
                       Nickname <span className="text-red-500">*</span>
                     </p>
-                    <Input placeholder="Enter Nickname" {...register('nickname')} />
+                    <Input
+                      placeholder="Enter Nickname"
+                      {...register("nickname")}
+                    />
                     {errors.nickname && (
-                      <p className="text-sm text-red-500 mt-1">{errors.nickname.message}</p>
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.nickname.message}
+                      </p>
                     )}
                   </div>
 
@@ -240,20 +266,28 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                       Email <span className="text-red-500">*</span>
                     </p>
                     <div className="flex gap-6">
-                      <Input placeholder="Enter Email" {...register('email')} className="flex-1" />
+                      <Input
+                        placeholder="Enter Email"
+                        {...register("email")}
+                        className="flex-1"
+                      />
                       <Button type="button" variant="default" size="sm">
                         Send code
                       </Button>
                     </div>
                     {errors.email && (
-                      <p className="text-sm text-red-500 mt-1">{errors.email.message}</p>
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.email.message}
+                      </p>
                     )}
                   </div>
 
                   <div>
-                    <p className="text-sm font-medium text-gray-900 mb-2">Wallet</p>
+                    <p className="text-sm font-medium text-gray-900 mb-2">
+                      Wallet
+                    </p>
                     <Input
-                      value={walletAddress || ''}
+                      value={walletAddress || ""}
                       disabled
                       className="bg-gray-50 text-gray-500"
                     />
@@ -268,11 +302,11 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                       placeholder="Select timezone"
                       value={formTimezone}
                       setValue={(value) => {
-                        if (typeof value === 'function') {
-                          const newValue = value(formTimezone) || '';
+                        if (typeof value === "function") {
+                          const newValue = value(formTimezone) || "";
                           setResolvedTimezone(newValue);
                         } else {
-                          setResolvedTimezone(value || '');
+                          setResolvedTimezone(value || "");
                         }
                       }}
                       inputValue={timezoneInput}
@@ -282,7 +316,9 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                       showValue
                     />
                     {errors.timezone && (
-                      <p className="text-sm text-red-500 mt-1">{errors.timezone.message}</p>
+                      <p className="text-sm text-red-500 mt-1">
+                        {errors.timezone.message}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -294,7 +330,10 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
 
       <div className="flex items-center gap-6 mb-6">
         <Avatar className="w-20 h-20">
-          <AvatarImage className="bg-neutral-300" src={profileImage || avatarDefault} />
+          <AvatarImage
+            className="bg-neutral-300"
+            src={profileImage || avatarDefault}
+          />
         </Avatar>
         <div className="space-y-2">
           <p className="font-medium">Profile image</p>
@@ -310,22 +349,24 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
 
       <div className="mb-6">
         <p className="text-sm font-medium text-gray-900 mb-4">Nickname</p>
-        <p className="text-sm text-slate-600">{nickname || 'Ludium.user_1101'}</p>
+        <p className="text-sm text-slate-600">
+          {nickname || "Ludium.user_1101"}
+        </p>
       </div>
 
       <div className="mb-6">
         <p className="text-sm font-medium text-gray-900 mb-4">Email</p>
-        <p className="text-sm text-slate-600">{email || '-'}</p>
+        <p className="text-sm text-slate-600">{email || "-"}</p>
       </div>
 
       <div className="mb-6">
         <p className="text-sm font-medium text-gray-900 mb-4">Wallet</p>
-        <p className="text-sm text-slate-600">{walletAddress || '-'}</p>
+        <p className="text-sm text-slate-600">{walletAddress || "-"}</p>
       </div>
 
       <div className="mb-4">
         <p className="text-sm font-medium text-gray-900 mb-4">Location</p>
-        <p className="text-sm text-slate-600">{displayTimezone || '-'}</p>
+        <p className="text-sm text-slate-600">{displayTimezone || "-"}</p>
       </div>
     </div>
   );

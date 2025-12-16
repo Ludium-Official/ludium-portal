@@ -49,7 +49,11 @@ export function SearchSelect({
   const displayText = showValue ? selectedOption?.value : selectedOption?.label;
 
   return (
-    <Popover open={disabled ? false : open} onOpenChange={disabled ? undefined : setOpen} modal={modal}>
+    <Popover
+      open={disabled ? false : open}
+      onOpenChange={disabled ? undefined : setOpen}
+      modal={modal}
+    >
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -57,7 +61,10 @@ export function SearchSelect({
           role="combobox"
           aria-expanded={open}
           disabled={disabled}
-          className={cn("flex w-full h-10 justify-between", disabled && "opacity-50 cursor-not-allowed")}
+          className={cn(
+            'flex w-full h-10 justify-between',
+            disabled && 'opacity-50 cursor-not-allowed',
+          )}
         >
           {value ? (
             <span className="truncate">{displayText}</span>

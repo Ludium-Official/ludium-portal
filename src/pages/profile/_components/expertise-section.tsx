@@ -15,7 +15,7 @@ import {
 } from "@/constant/profile-related";
 import { fetchSkills } from "@/lib/api/skills";
 import type { LabelValueProps } from "@/types/common";
-import { Minus, Pencil, Plus } from "lucide-react";
+import { Minus, Pen, Plus } from "lucide-react";
 import ExpertiseIcon from "@/assets/icons/profile/expertise.svg";
 import { useEffect, useState } from "react";
 
@@ -133,7 +133,7 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
           {role && (
             <DialogTrigger asChild>
               <Button variant="outline" size="icon" className="h-9 w-10">
-                <Pencil className="h-4 w-4" />
+                <Pen className="h-4 w-4" />
               </Button>
             </DialogTrigger>
           )}

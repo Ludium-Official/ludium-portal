@@ -1,18 +1,18 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { SearchSelect } from "@/components/ui/search-select";
-import { DEGREE_OPTIONS } from "@/constant/profile-related";
-import type { LabelValueProps } from "@/types/common";
-import { Pen, Plus } from "lucide-react";
-import EducationIcon from "@/assets/icons/profile/education.svg";
-import { useState } from "react";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { SearchSelect } from '@/components/ui/search-select';
+import { DEGREE_OPTIONS } from '@/constant/profile-related';
+import type { LabelValueProps } from '@/types/common';
+import { Pen, Plus } from 'lucide-react';
+import EducationIcon from '@/assets/icons/profile/education.svg';
+import { useState } from 'react';
 
 interface Education {
   id?: string;
@@ -34,19 +34,18 @@ const YEAR_OPTIONS: LabelValueProps[] = Array.from({ length: 50 }, (_, i) => ({
 }));
 
 const emptyEducation: Education = {
-  school: "",
-  degree: "",
-  fieldOfStudy: "",
-  startYear: "",
-  endYear: "",
+  school: '',
+  degree: '',
+  fieldOfStudy: '',
+  startYear: '',
+  endYear: '',
 };
 
 export const EducationSection: React.FC<EducationSectionProps> = ({
   educations: initialEducations = [],
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [localEducations, setLocalEducations] =
-    useState<Education[]>(initialEducations);
+  const [localEducations, setLocalEducations] = useState<Education[]>(initialEducations);
   const [formData, setFormData] = useState<Education>(emptyEducation);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
@@ -78,9 +77,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
   const handleSave = () => {
     // TODO: Implement API call to save education
     if (editingIndex !== null) {
-      setLocalEducations((prev) =>
-        prev.map((edu, i) => (i === editingIndex ? formData : edu))
-      );
+      setLocalEducations((prev) => prev.map((edu, i) => (i === editingIndex ? formData : edu)));
     } else {
       setLocalEducations((prev) => [...prev, formData]);
     }
@@ -110,7 +107,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
     } else if (edu.endYear) {
       parts.push(`${edu.endYear}`);
     }
-    return parts.join(" · ");
+    return parts.join(' · ');
   };
 
   return (
@@ -119,12 +116,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-base font-semibold">Education</h2>
           {localEducations.length > 0 && (
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-9 w-10"
-              onClick={handleAddNew}
-            >
+            <Button variant="outline" size="icon" className="h-9 w-10" onClick={handleAddNew}>
               <Plus className="h-4 w-4" />
             </Button>
           )}
@@ -163,21 +155,10 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
           </div>
         ) : (
           <div className="border border-gray-200 rounded-lg p-10 flex flex-col items-center justify-center">
-            <img
-              src={EducationIcon}
-              alt="Education"
-              className="h-12 w-12 text-gray-300 mb-1"
-            />
-            <p className="text-slate-500 mb-2 font-light">
-              No education details added yet.
-            </p>
+            <img src={EducationIcon} alt="Education" className="h-12 w-12 text-gray-300 mb-1" />
+            <p className="text-slate-500 mb-2 font-light">No education details added yet.</p>
             <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={handleAddNew}
-              >
+              <Button variant="outline" size="sm" className="gap-2" onClick={handleAddNew}>
                 <Plus className="h-4 w-4" />
                 Add Details
               </Button>
@@ -187,16 +168,9 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
 
         <DialogContent className="sm:max-w-[782px] px-10 py-4">
           <DialogHeader className="flex flex-row items-center justify-between">
-            <DialogTitle className="text-base font-semibold text-slate-800">
-              Education
-            </DialogTitle>
+            <DialogTitle className="text-base font-semibold text-slate-800">Education</DialogTitle>
             <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleCancel}
-              >
+              <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
                 Cancel
               </Button>
               <Button
@@ -219,7 +193,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
               <Input
                 placeholder="e.g., Harvard University"
                 value={formData.school}
-                onChange={(e) => updateField("school", e.target.value)}
+                onChange={(e) => updateField('school', e.target.value)}
               />
             </div>
 
@@ -229,10 +203,10 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
                 options={DEGREE_OPTIONS}
                 value={formData.degree || undefined}
                 setValue={(value) => {
-                  if (typeof value === "function") {
-                    updateField("degree", value(formData.degree) || "");
+                  if (typeof value === 'function') {
+                    updateField('degree', value(formData.degree) || '');
                   } else {
-                    updateField("degree", value || "");
+                    updateField('degree', value || '');
                   }
                 }}
                 placeholder="Select Degree type"
@@ -240,29 +214,25 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
             </div>
 
             <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">
-                Field of study
-              </p>
+              <p className="text-sm font-medium text-gray-900 mb-2">Field of study</p>
               <Input
                 placeholder="e.g., Computer Science"
                 value={formData.fieldOfStudy}
-                onChange={(e) => updateField("fieldOfStudy", e.target.value)}
+                onChange={(e) => updateField('fieldOfStudy', e.target.value)}
               />
             </div>
 
             <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">
-                Dates Attended
-              </p>
+              <p className="text-sm font-medium text-gray-900 mb-2">Dates Attended</p>
               <div className="grid grid-cols-2 gap-4">
                 <SearchSelect
                   options={YEAR_OPTIONS}
                   value={formData.startYear || undefined}
                   setValue={(value) => {
-                    if (typeof value === "function") {
-                      updateField("startYear", value(formData.startYear) || "");
+                    if (typeof value === 'function') {
+                      updateField('startYear', value(formData.startYear) || '');
                     } else {
-                      updateField("startYear", value || "");
+                      updateField('startYear', value || '');
                     }
                   }}
                   placeholder="Start year"
@@ -271,10 +241,10 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
                   options={YEAR_OPTIONS}
                   value={formData.endYear || undefined}
                   setValue={(value) => {
-                    if (typeof value === "function") {
-                      updateField("endYear", value(formData.endYear) || "");
+                    if (typeof value === 'function') {
+                      updateField('endYear', value(formData.endYear) || '');
                     } else {
-                      updateField("endYear", value || "");
+                      updateField('endYear', value || '');
                     }
                   }}
                   placeholder="End (expected) year"

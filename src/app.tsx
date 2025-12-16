@@ -27,7 +27,8 @@ import RecruitmentDashboardBuilder from './pages/dashboard/recruitment/builder';
 import RecruitmentDashboardBuilderDetail from './pages/dashboard/recruitment/builder/detail';
 import RecruitmentDashboardSponsor from './pages/dashboard/recruitment/sponsor';
 import RecruitmentDashboardSponsorDetail from './pages/dashboard/recruitment/sponsor/detail';
-import ProfilePage from './pages/profile/profile';
+import ProfilePage from './pages/profile';
+import PortfolioPage from './pages/portfolio';
 
 function App() {
   return (
@@ -53,6 +54,10 @@ function App() {
 
             <Route path="profile">
               <Route index element={<ProfilePage />} />
+            </Route>
+
+            <Route path="portfolio">
+              <Route index element={<PortfolioPage />} />
             </Route>
 
             <Route path="programs">
