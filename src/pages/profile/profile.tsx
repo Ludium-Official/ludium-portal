@@ -8,7 +8,48 @@ import { EducationSection } from "./_components/education-section";
 const languages = [
   { name: "English", proficiency: "Native" },
   { name: "Korean", proficiency: "Native" },
-  { name: "Spanish", proficiency: "Proficient" },
+  { name: "Spanish", proficiency: "Fluent" },
+];
+
+const workExperiences = [
+  {
+    id: "1",
+    company: "Google",
+    role: "Software Engineer",
+    employmentType: "Full-time",
+    isCurrentlyWorking: false,
+    startMonth: "January",
+    startYear: "2020",
+    endMonth: "December",
+    endYear: "2023",
+  },
+  {
+    id: "2",
+    company: "Apple",
+    role: "Software Engineer",
+    employmentType: "Full-time",
+    isCurrentlyWorking: true,
+    startMonth: "January",
+    startYear: "2020",
+    endMonth: "",
+    endYear: "",
+  },
+];
+
+const educations = [
+  {
+    id: "1",
+    school: "University of California, Los Angeles",
+    degree: "Bachelor's",
+  },
+  {
+    id: "2",
+    school: "University of California, Los Angeles",
+    degree: "High School Diploma",
+    fieldOfStudy: "Computer Science",
+    startYear: "2020",
+    endYear: "2024",
+  },
 ];
 
 const ProfilePage: React.FC = () => {
@@ -19,7 +60,7 @@ const ProfilePage: React.FC = () => {
   const user = profileData?.profileV2;
 
   return (
-    <div className="mx-auto mt-10 space-y-5 max-w-[784px]">
+    <div className="mx-auto my-10 space-y-5 max-w-[784px]">
       <div className="text-xl font-bold mb-6">Profile Information</div>
 
       <ProfileSection
@@ -38,9 +79,9 @@ const ProfilePage: React.FC = () => {
         languages={languages}
       />
 
-      <WorkExperienceSection />
+      <WorkExperienceSection experiences={workExperiences} />
 
-      <EducationSection />
+      <EducationSection educations={educations} />
     </div>
   );
 };

@@ -27,6 +27,7 @@ interface SearchSelectProps {
   loading?: boolean;
   showValue?: boolean;
   modal?: boolean;
+  disabled?: boolean;
 }
 
 export function SearchSelect({
@@ -40,6 +41,7 @@ export function SearchSelect({
   loading,
   showValue = false,
   modal = true,
+  disabled = false,
 }: SearchSelectProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -47,14 +49,15 @@ export function SearchSelect({
   const displayText = showValue ? selectedOption?.value : selectedOption?.label;
 
   return (
-    <Popover open={open} onOpenChange={setOpen} modal={modal}>
+    <Popover open={disabled ? false : open} onOpenChange={disabled ? undefined : setOpen} modal={modal}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           // biome-ignore lint/a11y/useSemanticElements: <Tag <select> doesn't fit the functionality, I need a button>
           role="combobox"
           aria-expanded={open}
-          className="flex w-full h-10 justify-between "
+          disabled={disabled}
+          className={cn("flex w-full h-10 justify-between", disabled && "opacity-50 cursor-not-allowed")}
         >
           {value ? (
             <span className="truncate">{displayText}</span>
