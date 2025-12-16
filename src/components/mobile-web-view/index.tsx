@@ -8,17 +8,17 @@ function MobileWebView() {
   return (
     <main className="mx-[16px]">
       <header className="my-[14px]">
-        <img className="w-[53px]" src={logo} alt="LUDIUM" />
+        <img className="w-[53px]" src={logo} alt="BAS" />
       </header>
       <body className="flex flex-col items-center">
         <div className="w-full bg-gradient-to-t from-primary via-primary to-primary bg-opacity-100 rounded-lg">
           <div className="relative flex flex-col items-center bg-gradient-to-b from-[rgba(255,255,255,0.12)] to-[rgba(0,0,0,0.2)] p-[12px] rounded-lg">
-            <img className="absolute top-[-50px]" src={ludiumMobileView} alt="LUDIUM Mobile View" />
+            <img className="absolute top-[-50px]" src={ludiumMobileView} alt="BAS Mobile View" />
             <div className="w-full mt-[353px] p-[12px] bg-gray-dark rounded-lg text-white text-center text-[14px]">
               <div>
                 For the best Web3 builder experience,
                 <br />
-                please use Ludium on a PC web browser.
+                please use BAS on a PC web browser.
               </div>
             </div>
           </div>
@@ -30,11 +30,6 @@ function MobileWebView() {
           >
             DESKTOP ACCESS ONLY
           </Button>
-          <Link to="https://ludium.oopy.io/" target="_blank">
-            <Button className="w-full text-gray-light leading-[20px] rounded-lg">
-              ABOUT LUDIUM
-            </Button>
-          </Link>
           <Link to={window.location.origin}>
             <Button className="w-full text-gray-light leading-[20px] rounded-lg">
               GO BACK MAIN

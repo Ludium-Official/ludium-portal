@@ -394,7 +394,7 @@ function InvestmentCard({ program }: InvestmentCardProps) {
               {/* Description */}
               <p className="text-sm text-gray-600 line-clamp-2">
                 {program.summary ||
-                  "Ludium's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) to ensure secure, private, and verifiable task-based payments. It enables seamless collaboration between sponsors and builders, automating fund disbursement upon task completion while maintaining privacy and trust."}
+                  "Bas's zkTLS Builder Escrow Payment Service is a decentralized payment solution that leverages smart contracts and Zero-Knowledge TLS (zkTLS) to ensure secure, private, and verifiable task-based payments. It enables seamless collaboration between sponsors and builders, automating fund disbursement upon task completion while maintaining privacy and trust."}
               </p>
             </div>
           </div>

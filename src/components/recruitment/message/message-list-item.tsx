@@ -53,7 +53,7 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
       latestMessageSenderId === '-1' ||
       latestMessageSenderId === '-2'
     ) {
-      return <div className="flex items-center gap-1">Ludium Assistant Message</div>;
+      return <div className="flex items-center gap-1">Bas Assistant Message</div>;
     }
 
     if (!latestMessageText) return 'No messages yet';

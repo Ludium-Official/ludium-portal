@@ -1,10 +1,6 @@
 import logoFooter from '@/assets/logo-footer.svg';
 import customerService from '@/assets/social/customer-service.svg';
-import twitter from '@/assets/social/twitter.svg';
 import { Link } from 'react-router';
-import Discord from '../../assets/social/discord.svg?react';
-// import youtube from '@/assets/social/youtube.svg';
-import Youtube from '../../assets/social/youtube.svg?react';
 
 function Footer() {
   return (
@@ -18,40 +14,20 @@ function Footer() {
           </div>
           <div className="text-center md:text-left">
             <h3 className="text-xs font-bold leading-[25px] mb-1">Contact us</h3>
-            <a
-              target="_blank"
-              href="https://x.com/ludium_official"
-              className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
-              rel="noreferrer"
-            >
-              <img src={twitter} alt="twitter" /> Twitter
-            </a>
-            <a
-              target="_blank"
-              href="https://www.youtube.com/@Ludium"
-              className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
-              rel="noreferrer"
-            >
-              <Youtube className="w-4 h-4 fill-gray-text" /> Youtube
-            </a>
-            <a
-              target="_blank"
-              href="https://discord.gg/Ur6rJGjdAd"
-              className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
-              rel="noreferrer"
-            >
-              <Discord className="w-4 h-4 fill-gray-text" /> Discord
-            </a>
+
             <a href="/" className="flex items-center gap-2 leading-[25px] mb-1 text-xs">
               <img src={customerService} alt="customer-service" /> Customer Service{' '}
             </a>
           </div>
         </div>
         <div className="text-xs md:text-sm text-center md:text-left mt-4 md:mt-0">
-          <p className="leading-[25px]">주식회사 루디움</p>
-          <p className="leading-[25px]">대표자 : 임동선 l 사업자등록번호: 379-87-03224</p>
-          <p className="leading-[25px]">서울시 서초구 강남대로 305 B117-14</p>
-          <p className="leading-[25px]">이용약관 l 개인정보처리방침 l 운영 정책</p>
+          <p className="leading-[25px]">
+            © 2025 Blockchain Alliance Syndicate(BAS) Project. All rights reserved.
+          </p>
+          <p className="leading-[25px]">Powered by BAS</p>
+          <p className="leading-[25px]">
+            본 사이트는 준비 중인 서비스로, 정식 사업자 등록 전까지 사업자정보는 기재되지 않습니다.
+          </p>
         </div>
       </div>
     </footer>

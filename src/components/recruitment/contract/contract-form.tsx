@@ -51,7 +51,7 @@ export function ContractForm({
       <div>
         <div className="flex items-center justify-between text-3xl font-bold">
           Employment Contract
-          <img src={logo} alt="LUDIUM" className="h-8" />
+          <img src={logo} alt="BAS" className="h-8" />
         </div>
       </div>
       <div className="flex-1 overflow-hidden flex flex-col">
@@ -63,7 +63,7 @@ export function ContractForm({
               <h3 className="text-lg font-bold mb-2">1. Contract Overview</h3>
               <p className="mb-2">
                 This contract (hereinafter referred to as the &ldquo;Contract&rdquo;) is a project
-                execution agreement between the Sponsor and the Builder through Ludium.
+                execution agreement between the Sponsor and the Builder through Bas.
               </p>
               <p>
                 Both parties agree to faithfully perform the project in accordance with the terms
@@ -236,9 +236,9 @@ export function ContractForm({
                       <strong>Unfair Contract Termination</strong>
                       <br />
                       The Sponsor shall not unilaterally suspend or terminate the project without
-                      just cause. If project suspension is necessary, Ludium&apos;s mediation
-                      procedure must be followed, and contracts terminated without platform approval
-                      shall be invalid.
+                      just cause. If project suspension is necessary, Bas&apos;s mediation procedure
+                      must be followed, and contracts terminated without platform approval shall be
+                      invalid.
                     </li>
                   </ul>
                 </div>
@@ -252,18 +252,18 @@ export function ContractForm({
               <ul className="list-disc list-inside space-y-1 ml-2">
                 <li>
                   After contract execution, the Sponsor and Builder shall communicate only through
-                  Ludium&apos;s chat system.
+                  Bas&apos;s chat system.
                 </li>
                 <li>
                   Sharing personal contact information (email, SNS, phone numbers, etc.) to induce
                   or conduct <strong>off-platform transactions</strong> is prohibited.
                 </li>
                 <li>
-                  Direct transactions outside Ludium are excluded from Ludium&apos;s guarantee,
-                  escrow, and dispute mediation, and detection may result in immediate account
-                  suspension or permanent ban.
+                  Direct transactions outside Bas are excluded from Bas&apos;s guarantee, escrow,
+                  and dispute mediation, and detection may result in immediate account suspension or
+                  permanent ban.
                 </li>
-                <li>All transactions are guaranteed only through Ludium.</li>
+                <li>All transactions are guaranteed only through Bas.</li>
               </ul>
             </div>
 

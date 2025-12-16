@@ -3,7 +3,6 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { cn } from '@/lib/utils';
 import type { PathLinkProps } from '@/types/pathLink';
 import {
-  CircleAlert,
   MessageCircle,
   PanelRightClose,
   PanelRightOpen,
@@ -198,27 +197,6 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
               </li>
             );
           })}
-          <li>
-            <a
-              href="https://ludium.oopy.io/"
-              className={cn(
-                'group flex items-center px-4 py-3 rounded-xl transition-colors text-lg font-medium hover:bg-[var(--primary-tranparent)] hover:text-primary',
-                isCollapsed ? 'justify-center' : 'gap-2',
-              )}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <CircleAlert className="flex-shrink-0 w-[20px] h-[20px]" />
-              <span
-                className={cn(
-                  'transition-opacity duration-200 whitespace-nowrap text-base font-semibold',
-                  isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100',
-                )}
-              >
-                About
-              </span>
-            </a>
-          </li>
         </ul>
       </nav>
     </aside>

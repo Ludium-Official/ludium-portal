@@ -1,4 +1,4 @@
-# Ludium Portal Architecture Documentation
+# Bas Portal Architecture Documentation
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@
 
 ## Introduction
 
-The Ludium Portal is a React + TypeScript single-page application that enables users to explore programs, apply to them, invest in projects, and participate in community discussions. It integrates with a GraphQL backend and on-chain wallets to deliver a cohesive experience for builders, validators, sponsors, and admins.
+The Bas Portal is a React + TypeScript single-page application that enables users to explore programs, apply to them, invest in projects, and participate in community discussions. It integrates with a GraphQL backend and on-chain wallets to deliver a cohesive experience for builders, validators, sponsors, and admins.
 
 Primary goals:
 
