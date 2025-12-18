@@ -8,7 +8,7 @@ export type GetProgramsV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type GetProgramsV2Query = { __typename?: 'Query', programsV2?: { __typename?: 'PaginatedProgramsV2', count?: number | null, data?: Array<{ __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, price?: string | null, createdAt?: any | null, deadline?: any | null, applicationCount?: number | null, hasApplied?: boolean | null, sponsor?: { __typename?: 'UserV2', id?: string | null, walletAddress?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null, profileImage?: string | null } | null, network?: { __typename?: 'NetworkV2', id?: string | null, chainId?: number | null, chainName?: string | null, mainnet?: boolean | null, exploreUrl?: string | null } | null, token?: { __typename?: 'TokenV2', id?: string | null, chainInfoId?: number | null, tokenName?: string | null, tokenAddress?: string | null } | null }> | null } | null };
+export type GetProgramsV2Query = { __typename?: 'Query', programsV2?: { __typename?: 'PaginatedProgramsV2', count?: number | null, data?: Array<{ __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, price?: string | null, createdAt?: any | null, deadline?: any | null, applicationCount?: number | null, hasApplied?: boolean | null, sponsor?: { __typename?: 'UserV2', id?: string | null, walletAddress?: string | null, email?: string | null, nickname?: string | null, profileImage?: string | null } | null, network?: { __typename?: 'NetworkV2', id?: string | null, chainId?: number | null, chainName?: string | null, mainnet?: boolean | null, exploreUrl?: string | null } | null, token?: { __typename?: 'TokenV2', id?: string | null, chainInfoId?: number | null, tokenName?: string | null, tokenAddress?: string | null } | null }> | null } | null };
 
 
 export const GetProgramsV2Document = gql`
@@ -27,8 +27,7 @@ export const GetProgramsV2Document = gql`
         id
         walletAddress
         email
-        firstName
-        lastName
+        nickname
         profileImage
       }
       network {

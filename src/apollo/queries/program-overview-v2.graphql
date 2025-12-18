@@ -1,0 +1,45 @@
+query programOverviewV2($input: ProgramOverviewV2Input!) {
+  programOverviewV2(input: $input) {
+    milestoneProgress {
+      completed
+      total
+    }
+    hiredBuilders {
+      data {
+        id
+        nickname
+        profileImage
+        role
+        status
+        milestoneCount
+        paidAmount
+        totalAmount
+        tokenId
+      }
+      count
+    }
+    milestones {
+      data {
+        id
+        title
+        payout
+        deadline
+        status
+        tokenId
+      }
+      count
+    }
+    upcomingPayments {
+      builder {
+        nickname
+        profileImage
+      }
+      payment {
+        payout
+        deadline
+        tokenId
+      }
+    }
+  }
+}
+

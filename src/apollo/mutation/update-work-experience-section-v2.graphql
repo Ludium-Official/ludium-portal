@@ -1,0 +1,29 @@
+mutation updateWorkExperienceSectionV2($input: UpdateWorkExperienceSectionV2Input!) {
+  updateWorkExperienceSectionV2(input: $input) {
+    id
+    email
+    nickname
+    role
+    loginType
+    walletAddress
+    profileImage
+    skills
+    about
+    location
+    userRole
+    workExperiences {
+      id
+      company
+      role
+      employmentType
+      startMonth
+      startYear
+      endMonth
+      endYear
+      currentWork
+      userId
+    }
+    createdAt
+    updatedAt
+  }
+}

@@ -17,20 +17,10 @@ function ProgramCard({ program }: { program: ProgramV2 }) {
           <Avatar className="w-7 h-7">
             <AvatarImage src={program.sponsor?.profileImage || ''} />
             <AvatarFallback className="text-xs">
-              {getInitials(
-                getUserDisplayName(
-                  program.sponsor?.firstName,
-                  program.sponsor?.lastName,
-                  program.sponsor?.email,
-                ),
-              )}
+              {getInitials(getUserDisplayName(program.sponsor?.nickname, program.sponsor?.email))}
             </AvatarFallback>
           </Avatar>
-          {getUserDisplayName(
-            program.sponsor?.firstName,
-            program.sponsor?.lastName,
-            program.sponsor?.email,
-          )}
+          {getUserDisplayName(program.sponsor?.nickname, program.sponsor?.email)}
         </div>
 
         <div className="flex gap-3">

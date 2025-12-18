@@ -44,7 +44,12 @@ import { Pagination, PageSize } from '@/components/ui/pagination';
 import { ChevronDown, ChevronsUpDown, Ellipsis } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { MyJobPostsTableProps, SponsorProgramData } from '@/types/dashboard';
+import {
+  BuilderProgramData,
+  MyJobPostsTableProps,
+  ProgramData,
+  SponsorProgramData,
+} from '@/types/dashboard';
 
 export const MyJobPostsTable: React.FC<MyJobPostsTableProps> = ({
   activityFilter,
@@ -90,7 +95,7 @@ export const MyJobPostsTable: React.FC<MyJobPostsTableProps> = ({
     setDeleteDialogOpen(true);
   };
 
-  const baseColumns: ColumnDef<SponsorProgramData>[] = useMemo(
+  const baseColumns: ColumnDef<ProgramData>[] = useMemo(
     () => [
       {
         accessorKey: 'title',
@@ -163,7 +168,7 @@ export const MyJobPostsTable: React.FC<MyJobPostsTableProps> = ({
     [variant],
   );
 
-  const sponsorColumns: ColumnDef<SponsorProgramData>[] = useMemo(
+  const sponsorColumns: ColumnDef<ProgramData>[] = useMemo(
     () => [
       {
         accessorKey: 'status',
@@ -267,7 +272,7 @@ export const MyJobPostsTable: React.FC<MyJobPostsTableProps> = ({
         accessorKey: 'actions',
         header: '',
         cell: ({ row }) => {
-          const program = row.original;
+          const program = row.original as SponsorProgramData;
           const programId = program.id;
           const programStatus = program.status;
           const isClosed = programStatus === ProgramStatusV2.Closed;
@@ -314,11 +319,11 @@ export const MyJobPostsTable: React.FC<MyJobPostsTableProps> = ({
     [navigate],
   );
 
-  // TODO: appliedAt column is not implemented yet
-  const builderColumns: ColumnDef<SponsorProgramData>[] = useMemo(
+  const builderColumns: ColumnDef<ProgramData>[] = useMemo(
     () => [
       {
-        accessorKey: 'appliedAt',
+        id: 'appliedDate',
+        accessorFn: (row) => (row as BuilderProgramData).myApplication?.createdAt,
         header: ({ column }) => {
           return (
             <div
@@ -331,7 +336,8 @@ export const MyJobPostsTable: React.FC<MyJobPostsTableProps> = ({
           );
         },
         cell: ({ row }) => {
-          return <div className="font-bold">{formatDate(row.getValue('appliedAt'))}</div>;
+          const appliedDate = (row.original as BuilderProgramData).myApplication?.createdAt;
+          return <div className="font-bold">{appliedDate ? formatDate(appliedDate) : '-'}</div>;
         },
         sortingFn: 'datetime',
         size: 130,

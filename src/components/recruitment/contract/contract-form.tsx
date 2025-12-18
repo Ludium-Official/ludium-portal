@@ -286,21 +286,13 @@ export function ContractForm({
           <div className="flex items-center justify-between">
             <div className="text-sm font-semibold text-muted-foreground">Sponsor</div>
             <div className="text-sm">
-              {getUserDisplayName(
-                contractJson.sponsor?.firstName,
-                contractJson.sponsor?.lastName,
-                contractJson.sponsor?.email,
-              )}
+              {getUserDisplayName(contractJson.sponsor?.nickname, contractJson.sponsor?.email)}
             </div>
           </div>
           <div className="flex items-center justify-between">
             <div className="text-sm font-semibold text-muted-foreground">Builder</div>
             <div className="text-sm">
-              {getUserDisplayName(
-                contractJson.applicant?.firstName,
-                contractJson.applicant?.lastName,
-                contractJson.applicant?.email,
-              )}
+              {getUserDisplayName(contractJson.applicant?.nickname, contractJson.applicant?.email)}
             </div>
           </div>
           <div className="flex items-center justify-between">

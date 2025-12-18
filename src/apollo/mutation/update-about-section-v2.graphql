@@ -1,0 +1,17 @@
+mutation updateAboutSectionV2($input: UpdateAboutSectionV2Input!) {
+  updateAboutSectionV2(input: $input) {
+    id
+    email
+    nickname
+    role
+    loginType
+    walletAddress
+    profileImage
+    skills
+    about
+    location
+    userRole
+    createdAt
+    updatedAt
+  }
+}

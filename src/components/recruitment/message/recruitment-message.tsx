@@ -375,28 +375,17 @@ const RecruitmentMessage: React.FC = () => {
                       }
                       alt={
                         userId === selectedApplication.applicant?.id
-                          ? `${program?.sponsor?.firstName || ''} ${
-                              program?.sponsor?.lastName || ''
-                            }`.trim() ||
-                            program?.sponsor?.email ||
-                            'Unknown'
-                          : `${selectedApplication.applicant?.firstName || ''} ${
-                              selectedApplication.applicant?.lastName || ''
-                            }`.trim() ||
+                          ? program?.sponsor?.nickname || program?.sponsor?.email || 'Unknown'
+                          : selectedApplication.applicant?.nickname ||
                             selectedApplication.applicant?.email ||
                             'Unknown'
                       }
                     />
                     <AvatarFallback className="text-sm font-semibold">
                       {userId === selectedApplication.applicant?.id
-                        ? getUserInitialName(
-                            program?.sponsor?.firstName,
-                            program?.sponsor?.lastName,
-                            program?.sponsor?.email,
-                          )
+                        ? getUserInitialName(program?.sponsor?.nickname, program?.sponsor?.email)
                         : getUserInitialName(
-                            selectedApplication.applicant?.firstName,
-                            selectedApplication.applicant?.lastName,
+                            selectedApplication.applicant?.nickname,
                             selectedApplication.applicant?.email,
                           )}
                     </AvatarFallback>
@@ -404,22 +393,12 @@ const RecruitmentMessage: React.FC = () => {
                   <div className="flex flex-col">
                     <h3 className="font-bold text-lg">
                       {userId === selectedApplication.applicant?.id
-                        ? getUserDisplayName(
-                            program?.sponsor?.firstName,
-                            program?.sponsor?.lastName,
-                            program?.sponsor?.email,
-                          )
+                        ? getUserDisplayName(program?.sponsor?.nickname, program?.sponsor?.email)
                         : getUserDisplayName(
-                            selectedApplication.applicant?.firstName,
-                            selectedApplication.applicant?.lastName,
+                            selectedApplication.applicant?.nickname,
                             selectedApplication.applicant?.email,
                           )}
                     </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {userId === selectedApplication.applicant?.id
-                        ? program?.sponsor?.organizationName
-                        : selectedApplication.applicant?.organizationName}
-                    </p>
                   </div>
                 </div>
                 {program?.sponsor?.id === userId && (

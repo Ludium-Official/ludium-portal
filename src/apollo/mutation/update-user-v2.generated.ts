@@ -8,7 +8,7 @@ export type UpdateUserV2MutationVariables = Types.Exact<{
 }>;
 
 
-export type UpdateUserV2Mutation = { __typename?: 'Mutation', updateUserV2?: { __typename?: 'UserV2', id?: string | null, role?: Types.UserRoleV2 | null, loginType?: Types.LoginTypeEnum | null, walletAddress?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null, organizationName?: string | null, profileImage?: string | null, bio?: string | null, skills?: Array<string> | null, links?: Array<string> | null, createdAt?: any | null, updatedAt?: any | null } | null };
+export type UpdateUserV2Mutation = { __typename?: 'Mutation', updateUserV2?: { __typename?: 'UserV2', id?: string | null, role?: Types.UserRoleV2 | null, loginType?: Types.LoginTypeEnum | null, walletAddress?: string | null, email?: string | null, nickname?: string | null, profileImage?: string | null, skills?: Array<string> | null, about?: string | null, location?: string | null, userRole?: string | null, createdAt?: any | null, updatedAt?: any | null } | null };
 
 
 export const UpdateUserV2Document = gql`
@@ -19,13 +19,12 @@ export const UpdateUserV2Document = gql`
     loginType
     walletAddress
     email
-    firstName
-    lastName
-    organizationName
+    nickname
     profileImage
-    bio
     skills
-    links
+    about
+    location
+    userRole
     createdAt
     updatedAt
   }

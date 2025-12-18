@@ -8,8 +8,7 @@ mutation pickApplicationV2($id: ID!, $input: PickApplicationV2Input!) {
     applicant {
       id
       email
-      firstName
-      lastName
+      nickname
       profileImage
     }
     program {
