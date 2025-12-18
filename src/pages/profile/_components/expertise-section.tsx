@@ -1,33 +1,30 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { MultiSelect } from "@/components/ui/multi-select";
-import { SearchSelect } from "@/components/ui/search-select";
-import {
-  LANGUAGE_OPTIONS,
-  PROFICIENCY_OPTIONS,
-} from "@/constant/profile-related";
-import { fetchSkills } from "@/lib/api/skills";
-import type { LabelValueProps } from "@/types/common";
-import { Minus, Pen, Plus } from "lucide-react";
-import ExpertiseIcon from "@/assets/icons/profile/expertise.svg";
-import { useEffect, useState } from "react";
-
-interface Language {
-  name: string;
-  proficiency: string;
-}
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { SearchSelect } from '@/components/ui/search-select';
+import { LANGUAGE_OPTIONS, PROFICIENCY_OPTIONS } from '@/constant/profile-related';
+import { fetchSkills } from '@/lib/api/skills';
+import type { LabelValueProps } from '@/types/common';
+import { Minus, Pen, Plus } from 'lucide-react';
+import ExpertiseIcon from '@/assets/icons/profile/expertise.svg';
+import { useEffect, useState } from 'react';
+import { useUpdateExpertiseSectionV2Mutation } from '@/apollo/mutation/update-expertise-section-v2.generated';
+import notify from '@/lib/notify';
+import client from '@/apollo/client';
+import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
+import { LanguageV2 } from '@/types/types.generated';
 
 interface ExpertiseSectionProps {
   role?: string | null;
   skills?: string[] | null;
-  languages?: Language[];
+  languages?: LanguageV2[];
 }
 
 export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
@@ -39,15 +36,16 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
   const [skillsLoading, setSkillsLoading] = useState(false);
   const [selectedSkills, setSelectedSkills] = useState<{ name: string }[]>([]);
   const [skillInput, setSkillInput] = useState<string>();
-  const [selectedSkillItems, setSelectedSkillItems] = useState<
-    LabelValueProps[]
-  >(skills?.map((s) => ({ label: s, value: s })) || []);
-
-  const [formRole, setFormRole] = useState(role || "");
-  const [formSkills, setFormSkills] = useState<string[]>(skills || []);
-  const [formLanguages, setFormLanguages] = useState<Language[]>(
-    languages.length > 0 ? languages : [{ name: "", proficiency: "" }]
+  const [selectedSkillItems, setSelectedSkillItems] = useState<LabelValueProps[]>(
+    skills?.map((s) => ({ label: s, value: s })) || [],
   );
+  const [formRole, setFormRole] = useState(role || '');
+  const [formSkills, setFormSkills] = useState<string[]>(skills || []);
+  const [formLanguages, setFormLanguages] = useState<LanguageV2[]>(
+    languages.length > 0 ? languages : [{ language: '', proficiency: '' }],
+  );
+
+  const [updateExpertiseSectionV2] = useUpdateExpertiseSectionV2Mutation();
 
   useEffect(() => {
     const loadSkills = async () => {
@@ -56,7 +54,7 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
         const skillsData = await fetchSkills();
         setSelectedSkills(skillsData);
       } catch (error) {
-        console.error("Failed to fetch skills:", error);
+        console.error('Failed to fetch skills:', error);
       } finally {
         setSkillsLoading(false);
       }
@@ -77,49 +75,60 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
 
   const handleOpenChange = (open: boolean) => {
     if (open) {
-      setFormRole(role || "");
+      setFormRole(role || '');
       setFormSkills(skills || []);
       setSelectedSkillItems(skills?.map((s) => ({ label: s, value: s })) || []);
-      setFormLanguages(
-        languages.length > 0 ? languages : [{ name: "", proficiency: "" }]
-      );
+      setFormLanguages(languages.length > 0 ? languages : [{ language: '', proficiency: '' }]);
     }
     setIsOpen(open);
   };
 
   const handleSave = () => {
-    // TODO: Implement API call to save expertise
-    console.log({
-      role: formRole,
-      skills: formSkills,
-      languages: formLanguages.filter((l) => l.name && l.proficiency),
+    // Filter out empty language entries
+    const validLanguages = formLanguages
+      .filter((lang) => lang.language && lang.proficiency)
+      .map((language) => ({
+        language: language.language || '',
+        proficiency: language.proficiency || '',
+      }));
+
+    updateExpertiseSectionV2({
+      variables: {
+        input: {
+          role: formRole,
+          skills: formSkills,
+          languages: validLanguages,
+        },
+      },
+      onCompleted: async () => {
+        notify('Successfully updated the expertise', 'success');
+        client.refetchQueries({ include: [ProfileV2Document] });
+        setIsOpen(false);
+      },
+      onError: (error) => {
+        console.error('Failed to update expertise:', error);
+        notify('Failed to update expertise', 'error');
+      },
     });
-    setIsOpen(false);
   };
 
   const handleCancel = () => {
-    setFormRole(role || "");
+    setFormRole(role || '');
     setFormSkills(skills || []);
     setSelectedSkillItems(skills?.map((s) => ({ label: s, value: s })) || []);
-    setFormLanguages(
-      languages.length > 0 ? languages : [{ name: "", proficiency: "" }]
-    );
+    setFormLanguages(languages.length > 0 ? languages : [{ language: '', proficiency: '' }]);
     setIsOpen(false);
   };
 
   const addLanguage = () => {
-    setFormLanguages([...formLanguages, { name: "", proficiency: "" }]);
+    setFormLanguages([...formLanguages, { language: '', proficiency: '' }]);
   };
 
   const removeLanguage = (index: number) => {
     setFormLanguages(formLanguages.filter((_, i) => i !== index));
   };
 
-  const updateLanguage = (
-    index: number,
-    field: "name" | "proficiency",
-    value: string
-  ) => {
+  const updateLanguage = (index: number, field: 'language' | 'proficiency', value: string) => {
     const updated = [...formLanguages];
     updated[index] = { ...updated[index], [field]: value };
     setFormLanguages(updated);
@@ -168,20 +177,16 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
               <div className="mb-4">
                 <div className="grid grid-cols-2 items-center justify-between mb-4">
                   <p className="text-sm font-medium text-gray-900">Language</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    Proficiency
-                  </p>
+                  <p className="text-sm font-medium text-gray-900">Proficiency</p>
                 </div>
                 <div className="space-y-2">
                   {languages.map((language) => (
                     <div
-                      key={language.name}
+                      key={language.language}
                       className="grid grid-cols-2 items-center justify-between"
                     >
-                      <p className="text-sm text-slate-600">{language.name}</p>
-                      <p className="text-sm text-slate-600">
-                        {language.proficiency}
-                      </p>
+                      <p className="text-sm text-slate-600">{language.language}</p>
+                      <p className="text-sm text-slate-600">{language.proficiency}</p>
                     </div>
                   ))}
                 </div>
@@ -190,14 +195,8 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
           </>
         ) : (
           <div className="border border-gray-200 rounded-lg p-10 flex flex-col items-center justify-center">
-            <img
-              src={ExpertiseIcon}
-              alt="Expertise"
-              className="h-12 w-12 text-gray-300 mb-1"
-            />
-            <p className="text-slate-500 mb-2 font-light">
-              No expertise details added yet.
-            </p>
+            <img src={ExpertiseIcon} alt="Expertise" className="h-12 w-12 text-gray-300 mb-1" />
+            <p className="text-slate-500 mb-2 font-light">No expertise details added yet.</p>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
                 <Plus className="h-4 w-4" />
@@ -209,16 +208,9 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
 
         <DialogContent className="sm:max-w-[782px] px-10 py-4">
           <DialogHeader className="flex flex-row items-center justify-between">
-            <DialogTitle className="text-base font-semibold text-slate-800">
-              Expertise
-            </DialogTitle>
+            <DialogTitle className="text-base font-semibold text-slate-800">Expertise</DialogTitle>
             <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleCancel}
-              >
+              <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
                 Cancel
               </Button>
               <Button
@@ -276,34 +268,27 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
               </div>
               <div className="space-y-3">
                 {formLanguages.map((lang, index) => (
-                  <div
-                    key={index}
-                    className="grid grid-cols-[1fr_1fr_40px] gap-4"
-                  >
+                  <div key={index} className="grid grid-cols-[1fr_1fr_40px] gap-4">
                     <SearchSelect
                       options={LANGUAGE_OPTIONS}
-                      value={lang.name || undefined}
+                      value={lang.language || ''}
                       setValue={(value) => {
-                        if (typeof value === "function") {
-                          updateLanguage(index, "name", value(lang.name) || "");
+                        if (typeof value === 'function') {
+                          updateLanguage(index, 'language', value(lang.language || '') || '');
                         } else {
-                          updateLanguage(index, "name", value || "");
+                          updateLanguage(index, 'language', value || '');
                         }
                       }}
                       placeholder="Select a language"
                     />
                     <SearchSelect
                       options={PROFICIENCY_OPTIONS}
-                      value={lang.proficiency || undefined}
+                      value={lang.proficiency || ''}
                       setValue={(value) => {
-                        if (typeof value === "function") {
-                          updateLanguage(
-                            index,
-                            "proficiency",
-                            value(lang.proficiency) || ""
-                          );
+                        if (typeof value === 'function') {
+                          updateLanguage(index, 'proficiency', value(lang.proficiency || '') || '');
                         } else {
-                          updateLanguage(index, "proficiency", value || "");
+                          updateLanguage(index, 'proficiency', value || '');
                         }
                       }}
                       placeholder="Select proficiency"

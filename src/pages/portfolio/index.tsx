@@ -1,22 +1,21 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Pen, Plus, Trash2 } from "lucide-react";
-import { useRef, useState } from "react";
-import LudiumBadgeLogo from "@/assets/icons/profile/ludium-badge.svg";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Pen, Plus, Trash2 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import LudiumBadgeLogo from '@/assets/icons/profile/ludium-badge.svg';
 
 interface ProjectContent {
   id: string;
-  type: "image";
+  type: 'image';
   url: string;
   file?: File;
 }
@@ -31,10 +30,10 @@ interface Project {
 }
 
 const emptyProject: Project = {
-  title: "",
+  title: '',
   isCompletedOnLudium: false,
-  role: "",
-  description: "",
+  role: '',
+  description: '',
   contents: [],
 };
 
@@ -68,9 +67,7 @@ const PortfolioPage: React.FC = () => {
   const handleSave = () => {
     // TODO: Implement API call to save project
     if (editingIndex !== null) {
-      setProjects((prev) =>
-        prev.map((proj, i) => (i === editingIndex ? formData : proj))
-      );
+      setProjects((prev) => prev.map((proj, i) => (i === editingIndex ? formData : proj)));
     } else {
       setProjects((prev) => [...prev, formData]);
     }
@@ -85,10 +82,7 @@ const PortfolioPage: React.FC = () => {
     setIsOpen(false);
   };
 
-  const updateField = (
-    field: keyof Project,
-    value: string | boolean | ProjectContent[]
-  ) => {
+  const updateField = (field: keyof Project, value: string | boolean | ProjectContent[]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -100,21 +94,13 @@ const PortfolioPage: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (
-      ![
-        "image/png",
-        "image/jpeg",
-        "image/jpg",
-        "image/gif",
-        "image/webp",
-      ].includes(file.type)
-    ) {
+    if (!['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'].includes(file.type)) {
       return;
     }
 
     const newContent: ProjectContent = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      type: "image",
+      type: 'image',
       url: URL.createObjectURL(file),
       file,
     };
@@ -125,7 +111,7 @@ const PortfolioPage: React.FC = () => {
     }));
 
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = '';
     }
   };
 
@@ -167,9 +153,7 @@ const PortfolioPage: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-slate-800">{project.title}</p>
-                  {project.isCompletedOnLudium && (
-                    <img src={LudiumBadgeLogo} alt="Ludium Badge" />
-                  )}
+                  {project.isCompletedOnLudium && <img src={LudiumBadgeLogo} alt="Ludium Badge" />}
                 </div>
                 <Button
                   variant="outline"
@@ -181,14 +165,10 @@ const PortfolioPage: React.FC = () => {
                 </Button>
               </div>
 
-              {project.role && (
-                <p className="text-sm text-slate-600 mb-2">{project.role}</p>
-              )}
+              {project.role && <p className="text-sm text-slate-600 mb-2">{project.role}</p>}
 
               {project.description && (
-                <p className="text-sm text-slate-500 mb-4">
-                  {project.description}
-                </p>
+                <p className="text-sm text-slate-500 mb-4">{project.description}</p>
               )}
 
               {(project.contents?.length ?? 0) > 0 && (
@@ -220,12 +200,7 @@ const PortfolioPage: React.FC = () => {
           <div className="bg-white border border-gray-200 rounded-lg px-10 py-5">
             <div className="flex items-center justify-center border border-gray-200 rounded-lg py-12">
               <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={handleAddNew}
-                >
+                <Button variant="outline" size="sm" className="gap-2" onClick={handleAddNew}>
                   <Plus className="h-4 w-4" /> Add Project
                 </Button>
               </DialogTrigger>
@@ -239,12 +214,7 @@ const PortfolioPage: React.FC = () => {
               {getProjectTitle()}
             </DialogTitle>
             <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleCancel}
-              >
+              <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
                 Cancel
               </Button>
               <Button
@@ -267,7 +237,7 @@ const PortfolioPage: React.FC = () => {
               <Input
                 placeholder="Enter a title"
                 value={formData.title}
-                onChange={(e) => updateField("title", e.target.value)}
+                onChange={(e) => updateField('title', e.target.value)}
               />
             </div>
 
@@ -275,9 +245,7 @@ const PortfolioPage: React.FC = () => {
               <Checkbox
                 id="completedOnLudium"
                 checked={formData.isCompletedOnLudium}
-                onCheckedChange={(checked) =>
-                  updateField("isCompletedOnLudium", checked === true)
-                }
+                onCheckedChange={(checked) => updateField('isCompletedOnLudium', checked === true)}
               />
               <label
                 htmlFor="completedOnLudium"
@@ -294,7 +262,7 @@ const PortfolioPage: React.FC = () => {
               <Input
                 placeholder="Enter your role"
                 value={formData.role}
-                onChange={(e) => updateField("role", e.target.value)}
+                onChange={(e) => updateField('role', e.target.value)}
               />
             </div>
 
@@ -307,13 +275,13 @@ const PortfolioPage: React.FC = () => {
                 value={formData.description}
                 onChange={(e) => {
                   if (e.target.value.length <= 1000) {
-                    updateField("description", e.target.value);
+                    updateField('description', e.target.value);
                   }
                 }}
                 className="min-h-[150px] resize-none"
               />
               <p className="text-sm text-gray-400 text-right mt-1">
-                {(formData.description || "").length}/1000 characters
+                {(formData.description || '').length}/1000 characters
               </p>
             </div>
 

@@ -1,22 +1,14 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useNetworks } from "@/contexts/networks-context";
-import {
-  commaNumber,
-  dDay,
-  fromUTCString,
-  getCurrencyIcon,
-  getInitials,
-} from "@/lib/utils";
-import { UpcomingPayment } from "@/types/types.generated";
-import dayjs from "dayjs";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useNetworks } from '@/contexts/networks-context';
+import { commaNumber, dDay, fromUTCString, getCurrencyIcon, getInitials } from '@/lib/utils';
+import { UpcomingPayment } from '@/types/types.generated';
+import dayjs from 'dayjs';
 
 interface UpcomingPaymentsProps {
   upcomingPayments: UpcomingPayment[];
 }
 
-export const UpcomingPayments: React.FC<UpcomingPaymentsProps> = ({
-  upcomingPayments,
-}) => {
+export const UpcomingPayments: React.FC<UpcomingPaymentsProps> = ({ upcomingPayments }) => {
   const { getTokenById } = useNetworks();
 
   return (
@@ -37,11 +29,9 @@ export const UpcomingPayments: React.FC<UpcomingPaymentsProps> = ({
             >
               <div className="flex items-center gap-2 mb-2">
                 <Avatar className="w-6 h-6">
-                  <AvatarImage
-                    src={upcomingPayment.builder?.profileImage || undefined}
-                  />
+                  <AvatarImage src={upcomingPayment.builder?.profileImage || undefined} />
                   <AvatarFallback className="text-xs bg-gray-100">
-                    {getInitials(upcomingPayment.builder?.nickname || "")}
+                    {getInitials(upcomingPayment.builder?.nickname || '')}
                   </AvatarFallback>
                 </Avatar>
                 <span className="text-xs font-medium text-gray-900">
@@ -51,12 +41,8 @@ export const UpcomingPayments: React.FC<UpcomingPaymentsProps> = ({
               <div className="flex flex-col gap-3">
                 {upcomingPayment.payment?.map((payment, idx) => {
                   const token = getTokenById(Number(payment.tokenId));
-                  const dueLabel = dDay(
-                    fromUTCString(payment.deadline) || new Date()
-                  );
-                  const formattedDate = dayjs(payment.deadline).format(
-                    "DD.MMM.YYYY"
-                  );
+                  const dueLabel = dDay(fromUTCString(payment.deadline) || new Date());
+                  const formattedDate = dayjs(payment.deadline).format('DD.MMM.YYYY');
 
                   return (
                     <div

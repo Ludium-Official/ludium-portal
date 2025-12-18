@@ -12,19 +12,15 @@ import { DEGREE_OPTIONS } from '@/constant/profile-related';
 import type { LabelValueProps } from '@/types/common';
 import { Pen, Plus } from 'lucide-react';
 import EducationIcon from '@/assets/icons/profile/education.svg';
-import { useState } from 'react';
-
-interface Education {
-  id?: string;
-  school: string;
-  degree?: string;
-  fieldOfStudy?: string;
-  startYear?: string;
-  endYear?: string;
-}
+import { useEffect, useState } from 'react';
+import { EducationV2 } from '@/types/types.generated';
+import { useUpdateEducationSectionV2Mutation } from '@/apollo/mutation/update-education-section-v2.generated';
+import notify from '@/lib/notify';
+import client from '@/apollo/client';
+import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
 
 interface EducationSectionProps {
-  educations?: Education[];
+  educations?: EducationV2[];
 }
 
 const currentYear = new Date().getFullYear();
@@ -33,33 +29,37 @@ const YEAR_OPTIONS: LabelValueProps[] = Array.from({ length: 50 }, (_, i) => ({
   value: String(currentYear - i + 10),
 }));
 
-const emptyEducation: Education = {
+const getEmptyEducation = (): EducationV2 => ({
   school: '',
   degree: '',
-  fieldOfStudy: '',
-  startYear: '',
-  endYear: '',
-};
+  study: '',
+  attendedStartDate: 0,
+  attendedEndDate: 0,
+});
 
-export const EducationSection: React.FC<EducationSectionProps> = ({
-  educations: initialEducations = [],
-}) => {
+export const EducationSection: React.FC<EducationSectionProps> = ({ educations = [] }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [localEducations, setLocalEducations] = useState<Education[]>(initialEducations);
-  const [formData, setFormData] = useState<Education>(emptyEducation);
+  const [localEducations, setLocalEducations] = useState<EducationV2[]>(educations);
+  const [formData, setFormData] = useState<EducationV2>(getEmptyEducation);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  const [updateEducationSectionV2] = useUpdateEducationSectionV2Mutation();
+
+  useEffect(() => {
+    setLocalEducations(educations);
+  }, [educations]);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       setEditingIndex(null);
-      setFormData(emptyEducation);
+      setFormData(getEmptyEducation());
     }
     setIsOpen(open);
   };
 
   const handleAddNew = () => {
     setEditingIndex(null);
-    setFormData(emptyEducation);
+    setFormData(getEmptyEducation());
     setIsOpen(true);
   };
 
@@ -75,37 +75,62 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
   };
 
   const handleSave = () => {
-    // TODO: Implement API call to save education
+    let updatedEducations: EducationV2[];
     if (editingIndex !== null) {
-      setLocalEducations((prev) => prev.map((edu, i) => (i === editingIndex ? formData : edu)));
+      updatedEducations = localEducations.map((edu, index) =>
+        index === editingIndex ? formData : edu,
+      );
     } else {
-      setLocalEducations((prev) => [...prev, formData]);
+      updatedEducations = [...localEducations, formData];
     }
-    setIsOpen(false);
-    setEditingIndex(null);
-    setFormData(emptyEducation);
+
+    updateEducationSectionV2({
+      variables: {
+        input: {
+          educations: updatedEducations.map((edu) => ({
+            school: edu.school || '',
+            degree: edu.degree || '',
+            study: edu.study || '',
+            attendedStartDate: edu.attendedStartDate || 0,
+            attendedEndDate: edu.attendedEndDate || 0,
+          })),
+        },
+      },
+      onCompleted: async () => {
+        notify('Education updated successfully', 'success');
+        setLocalEducations(updatedEducations);
+        client.refetchQueries({ include: [ProfileV2Document] });
+        setFormData(getEmptyEducation());
+        setEditingIndex(null);
+        setIsOpen(false);
+      },
+      onError: (error) => {
+        console.error('Failed to update education:', error);
+        notify('Failed to update education', 'error');
+      },
+    });
   };
 
   const handleCancel = () => {
-    setFormData(emptyEducation);
+    setFormData(getEmptyEducation());
     setEditingIndex(null);
     setIsOpen(false);
   };
 
-  const updateField = (field: keyof Education, value: string) => {
+  const updateField = (field: keyof EducationV2, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const formatEducationDetails = (edu: Education) => {
+  const formatEducationDetails = (edu: EducationV2) => {
     const parts = [];
     if (edu.degree) parts.push(edu.degree);
-    if (edu.fieldOfStudy) parts.push(edu.fieldOfStudy);
-    if (edu.startYear && edu.endYear) {
-      parts.push(`${edu.startYear}- ${edu.endYear}`);
-    } else if (edu.startYear) {
-      parts.push(`${edu.startYear}`);
-    } else if (edu.endYear) {
-      parts.push(`${edu.endYear}`);
+    if (edu.study) parts.push(edu.study);
+    if (edu.attendedStartDate && edu.attendedEndDate) {
+      parts.push(`${edu.attendedStartDate} - ${edu.attendedEndDate}`);
+    } else if (edu.attendedStartDate) {
+      parts.push(`${edu.attendedStartDate}`);
+    } else if (edu.attendedEndDate) {
+      parts.push(`${edu.attendedEndDate}`);
     }
     return parts.join(' · ');
   };
@@ -178,7 +203,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
                 variant="default"
                 size="sm"
                 onClick={handleSave}
-                disabled={!formData.school.trim()}
+                disabled={!formData.school?.trim()}
               >
                 Save
               </Button>
@@ -192,7 +217,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
               </p>
               <Input
                 placeholder="e.g., Harvard University"
-                value={formData.school}
+                value={formData.school || ''}
                 onChange={(e) => updateField('school', e.target.value)}
               />
             </div>
@@ -201,10 +226,10 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
               <p className="text-sm font-medium text-gray-900 mb-2">Degree</p>
               <SearchSelect
                 options={DEGREE_OPTIONS}
-                value={formData.degree || undefined}
+                value={formData.degree || ''}
                 setValue={(value) => {
                   if (typeof value === 'function') {
-                    updateField('degree', value(formData.degree) || '');
+                    updateField('degree', value(formData.degree || '') || '');
                   } else {
                     updateField('degree', value || '');
                   }
@@ -217,8 +242,8 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
               <p className="text-sm font-medium text-gray-900 mb-2">Field of study</p>
               <Input
                 placeholder="e.g., Computer Science"
-                value={formData.fieldOfStudy}
-                onChange={(e) => updateField('fieldOfStudy', e.target.value)}
+                value={formData.study || ''}
+                onChange={(e) => updateField('study', e.target.value)}
               />
             </div>
 
@@ -227,24 +252,30 @@ export const EducationSection: React.FC<EducationSectionProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <SearchSelect
                   options={YEAR_OPTIONS}
-                  value={formData.startYear || undefined}
+                  value={formData.attendedStartDate ? String(formData.attendedStartDate) : ''}
                   setValue={(value) => {
                     if (typeof value === 'function') {
-                      updateField('startYear', value(formData.startYear) || '');
+                      const newValue = value(
+                        formData.attendedStartDate ? String(formData.attendedStartDate) : '',
+                      );
+                      updateField('attendedStartDate', newValue ? parseInt(newValue, 10) : 0);
                     } else {
-                      updateField('startYear', value || '');
+                      updateField('attendedStartDate', value ? parseInt(value, 10) : 0);
                     }
                   }}
                   placeholder="Start year"
                 />
                 <SearchSelect
                   options={YEAR_OPTIONS}
-                  value={formData.endYear || undefined}
+                  value={formData.attendedEndDate ? String(formData.attendedEndDate) : ''}
                   setValue={(value) => {
                     if (typeof value === 'function') {
-                      updateField('endYear', value(formData.endYear) || '');
+                      const newValue = value(
+                        formData.attendedEndDate ? String(formData.attendedEndDate) : '',
+                      );
+                      updateField('attendedEndDate', newValue ? parseInt(newValue, 10) : 0);
                     } else {
-                      updateField('endYear', value || '');
+                      updateField('attendedEndDate', value ? parseInt(value, 10) : 0);
                     }
                   }}
                   placeholder="End (expected) year"

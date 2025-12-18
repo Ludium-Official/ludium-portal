@@ -1,36 +1,36 @@
-import { useGetProgramV2Query } from "@/apollo/queries/program-v2.generated";
-import RecruitmentApplicants from "@/components/recruitment/applicants/recruitment-applicants";
-import RecruitmentMessage from "@/components/recruitment/message/recruitment-message";
-import RecruitmentOverview from "@/components/recruitment/overview/recruitment-overview";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router";
-import { HiredBuildersTable } from "@/pages/dashboard/recruitment/_components/hired-builders-table";
-import MilestoneProgress from "@/pages/dashboard/recruitment/_components/milestone-progress";
-import UpcomingPayments from "@/pages/dashboard/recruitment/_components/upcoming-payments";
-import { useProgramOverviewV2Query } from "@/apollo/queries/program-overview-v2.generated";
-import { PageSize } from "@/components/ui/pagination";
+import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
+import RecruitmentApplicants from '@/components/recruitment/applicants/recruitment-applicants';
+import RecruitmentMessage from '@/components/recruitment/message/recruitment-message';
+import RecruitmentOverview from '@/components/recruitment/overview/recruitment-overview';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { ChevronRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router';
+import { HiredBuildersTable } from '@/pages/dashboard/recruitment/_components/hired-builders-table';
+import MilestoneProgress from '@/pages/dashboard/recruitment/_components/milestone-progress';
+import UpcomingPayments from '@/pages/dashboard/recruitment/_components/upcoming-payments';
+import { useProgramOverviewV2Query } from '@/apollo/queries/program-overview-v2.generated';
+import { PageSize } from '@/components/ui/pagination';
 
 const RecruitmentDashboardSponsorDetail: React.FC = () => {
   const { id } = useParams();
   const { userId } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const tabParam = searchParams.get("tab");
-  const currentPage = Number(searchParams.get("page")) || 1;
+  const tabParam = searchParams.get('tab');
+  const currentPage = Number(searchParams.get('page')) || 1;
 
-  const [selectedTab, setSelectedTab] = useState(tabParam || "overview");
+  const [selectedTab, setSelectedTab] = useState(tabParam || 'overview');
 
   const { data: programData, loading } = useGetProgramV2Query({
-    variables: { id: id || "" },
+    variables: { id: id || '' },
     skip: !id,
   });
 
   const { data: programOverviewData } = useProgramOverviewV2Query({
     variables: {
       input: {
-        programId: id || "",
+        programId: id || '',
         pagination: {
           limit: PageSize,
           offset: (currentPage - 1) * PageSize,
@@ -67,9 +67,7 @@ const RecruitmentDashboardSponsorDetail: React.FC = () => {
     return (
       <div className="flex flex-col justify-center items-center h-[60vh] gap-4">
         <p className="text-xl font-semibold text-gray-dark">Access Denied</p>
-        <p className="text-gray-500">
-          You do not have permission to view this page.
-        </p>
+        <p className="text-gray-500">You do not have permission to view this page.</p>
       </div>
     );
   }
@@ -91,9 +89,7 @@ const RecruitmentDashboardSponsorDetail: React.FC = () => {
             </TabsTrigger>
             <TabsTrigger value="applicants" className="rounded-sm px-10">
               Applicants
-              <span className="text-primary font-bold">
-                {program?.applicationCount}
-              </span>
+              <span className="text-primary font-bold">{program?.applicationCount}</span>
             </TabsTrigger>
             <TabsTrigger value="message" className="rounded-sm px-10">
               Message
@@ -102,33 +98,29 @@ const RecruitmentDashboardSponsorDetail: React.FC = () => {
         </Tabs>
       </div>
       <div>
-        {selectedTab === "overview" && (
+        {selectedTab === 'overview' && (
           <>
             <div className="border border-gray-200 rounded-lg">
               <RecruitmentOverview className="px-4 py-5" isFoldable={true} />
             </div>
             <div
               className="grid gap-4 mt-7 items-start"
-              style={{ gridTemplateColumns: "2.2fr 1fr" }}
+              style={{ gridTemplateColumns: '2.2fr 1fr' }}
             >
               <HiredBuildersTable
                 hiredBuilders={programOverview?.hiredBuilders?.data || []}
                 totalCount={programOverview?.hiredBuilders?.count || 0}
               />
               <div className="space-y-6">
-                <MilestoneProgress
-                  milestoneProgress={programOverview?.milestoneProgress}
-                />
-                <UpcomingPayments
-                  upcomingPayments={programOverview?.upcomingPayments || []}
-                />
+                <MilestoneProgress milestoneProgress={programOverview?.milestoneProgress} />
+                <UpcomingPayments upcomingPayments={programOverview?.upcomingPayments || []} />
               </div>
             </div>
           </>
         )}
       </div>
-      <div>{selectedTab === "applicants" && <RecruitmentApplicants />}</div>
-      <div>{selectedTab === "message" && <RecruitmentMessage />}</div>
+      <div>{selectedTab === 'applicants' && <RecruitmentApplicants />}</div>
+      <div>{selectedTab === 'message' && <RecruitmentMessage />}</div>
     </div>
   );
 };

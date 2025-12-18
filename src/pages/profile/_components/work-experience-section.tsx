@@ -13,22 +13,15 @@ import { EMPLOYMENT_TYPE_OPTIONS, MONTH_OPTIONS } from '@/constant/profile-relat
 import type { LabelValueProps } from '@/types/common';
 import { Pen, Plus } from 'lucide-react';
 import WorkIcon from '@/assets/icons/profile/work.svg';
-import { useState } from 'react';
-
-interface WorkExperience {
-  id?: string;
-  company: string;
-  role: string;
-  employmentType: string;
-  isCurrentlyWorking: boolean;
-  startMonth: string;
-  startYear: string;
-  endMonth: string;
-  endYear: string;
-}
+import { useEffect, useState } from 'react';
+import { WorkExperienceV2 } from '@/types/types.generated';
+import { useUpdateWorkExperienceSectionV2Mutation } from '@/apollo/mutation/update-work-experience-section-v2.generated';
+import client from '@/apollo/client';
+import notify from '@/lib/notify';
+import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
 
 interface WorkExperienceSectionProps {
-  experiences?: WorkExperience[];
+  experiences?: WorkExperienceV2[];
 }
 
 const currentYear = new Date().getFullYear();
@@ -37,36 +30,42 @@ const YEAR_OPTIONS: LabelValueProps[] = Array.from({ length: 50 }, (_, i) => ({
   value: String(currentYear - i),
 }));
 
-const emptyExperience: WorkExperience = {
+const getEmptyExperience = (): WorkExperienceV2 => ({
   company: '',
   role: '',
   employmentType: '',
-  isCurrentlyWorking: false,
+  currentWork: false,
   startMonth: '',
-  startYear: '',
+  startYear: 0,
   endMonth: '',
-  endYear: '',
-};
+  endYear: 0,
+});
 
 export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
-  experiences: initialExperiences = [],
+  experiences = [],
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [localExperiences, setLocalExperiences] = useState<WorkExperience[]>(initialExperiences);
-  const [formData, setFormData] = useState<WorkExperience>(emptyExperience);
+  const [localExperiences, setLocalExperiences] = useState<WorkExperienceV2[]>(experiences);
+  const [formData, setFormData] = useState<WorkExperienceV2>(getEmptyExperience);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  const [updateWorkExperienceSectionV2] = useUpdateWorkExperienceSectionV2Mutation();
+
+  useEffect(() => {
+    setLocalExperiences(experiences);
+  }, [experiences]);
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       setEditingIndex(null);
-      setFormData(emptyExperience);
+      setFormData(getEmptyExperience());
     }
     setIsOpen(open);
   };
 
   const handleAddNew = () => {
     setEditingIndex(null);
-    setFormData(emptyExperience);
+    setFormData(getEmptyExperience());
     setIsOpen(true);
   };
 
@@ -82,30 +81,58 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
   };
 
   const handleSave = () => {
-    // TODO: Implement API call to save work experience
+    let updatedExperiences: WorkExperienceV2[];
     if (editingIndex !== null) {
-      setLocalExperiences((prev) => prev.map((exp, i) => (i === editingIndex ? formData : exp)));
+      updatedExperiences = localExperiences.map((exp, index) =>
+        index === editingIndex ? formData : exp,
+      );
     } else {
-      setLocalExperiences((prev) => [...prev, formData]);
+      updatedExperiences = [...localExperiences, formData];
     }
-    setIsOpen(false);
-    setEditingIndex(null);
-    setFormData(emptyExperience);
+
+    updateWorkExperienceSectionV2({
+      variables: {
+        input: {
+          workExperiences: updatedExperiences.map((exp) => ({
+            company: exp.company || '',
+            currentWork: exp.currentWork || false,
+            role: exp.role || '',
+            employmentType: exp.employmentType || '',
+            startMonth: exp.startMonth || '',
+            startYear: exp.startYear || 0,
+            endMonth: exp.endMonth || '',
+            endYear: exp.endYear || 0,
+          })),
+        },
+      },
+      onCompleted: async () => {
+        notify('Work experience updated successfully', 'success');
+        setLocalExperiences(updatedExperiences);
+        client.refetchQueries({ include: [ProfileV2Document] });
+        setFormData(getEmptyExperience());
+        setEditingIndex(null);
+        setIsOpen(false);
+      },
+      onError: (error) => {
+        console.error('Failed to update work experience:', error);
+        notify('Failed to update work experience', 'error');
+      },
+    });
   };
 
   const handleCancel = () => {
-    setFormData(emptyExperience);
+    setFormData(getEmptyExperience());
     setEditingIndex(null);
     setIsOpen(false);
   };
 
-  const updateField = (field: keyof WorkExperience, value: string | boolean) => {
+  const updateField = (field: keyof WorkExperienceV2, value: string | boolean | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const formatDateRange = (exp: WorkExperience) => {
+  const formatDateRange = (exp: WorkExperienceV2) => {
     const start = exp.startMonth && exp.startYear ? `${exp.startMonth} ${exp.startYear}` : '';
-    const end = exp.isCurrentlyWorking
+    const end = exp.currentWork
       ? 'Present'
       : exp.endMonth && exp.endYear
         ? `${exp.endMonth} ${exp.endYear}`
@@ -187,7 +214,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                 variant="default"
                 size="sm"
                 onClick={handleSave}
-                disabled={!formData.company.trim() || !formData.role.trim()}
+                disabled={!formData.company?.trim() || !formData.role?.trim()}
               >
                 Save
               </Button>
@@ -201,7 +228,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
               </p>
               <Input
                 placeholder="e.g., Google"
-                value={formData.company}
+                value={formData.company || ''}
                 onChange={(e) => updateField('company', e.target.value)}
               />
             </div>
@@ -213,7 +240,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                 </p>
                 <Input
                   placeholder="e.g., Software Engineer"
-                  value={formData.role}
+                  value={formData.role || ''}
                   onChange={(e) => updateField('role', e.target.value)}
                 />
               </div>
@@ -221,10 +248,10 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                 <p className="text-sm font-medium text-gray-900 mb-2">Employment type</p>
                 <SearchSelect
                   options={EMPLOYMENT_TYPE_OPTIONS}
-                  value={formData.employmentType || undefined}
+                  value={formData.employmentType || ''}
                   setValue={(value) => {
                     if (typeof value === 'function') {
-                      updateField('employmentType', value(formData.employmentType) || '');
+                      updateField('employmentType', value(formData.employmentType || '') || '');
                     } else {
                       updateField('employmentType', value || '');
                     }
@@ -237,8 +264,8 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="currentlyWorking"
-                checked={formData.isCurrentlyWorking}
-                onCheckedChange={(checked) => updateField('isCurrentlyWorking', checked === true)}
+                checked={formData.currentWork || false}
+                onCheckedChange={(checked) => updateField('currentWork', checked === true)}
               />
               <label
                 htmlFor="currentlyWorking"
@@ -253,10 +280,10 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <SearchSelect
                   options={MONTH_OPTIONS}
-                  value={formData.startMonth || undefined}
+                  value={formData.startMonth || ''}
                   setValue={(value) => {
                     if (typeof value === 'function') {
-                      updateField('startMonth', value(formData.startMonth) || '');
+                      updateField('startMonth', value(formData.startMonth || '') || '');
                     } else {
                       updateField('startMonth', value || '');
                     }
@@ -265,12 +292,13 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                 />
                 <SearchSelect
                   options={YEAR_OPTIONS}
-                  value={formData.startYear || undefined}
+                  value={formData.startYear ? String(formData.startYear) : ''}
                   setValue={(value) => {
                     if (typeof value === 'function') {
-                      updateField('startYear', value(formData.startYear) || '');
+                      const newValue = value(formData.startYear ? String(formData.startYear) : '');
+                      updateField('startYear', newValue ? parseInt(newValue, 10) : 0);
                     } else {
-                      updateField('startYear', value || '');
+                      updateField('startYear', value ? parseInt(value, 10) : 0);
                     }
                   }}
                   placeholder="Year"
@@ -283,29 +311,30 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <SearchSelect
                   options={MONTH_OPTIONS}
-                  value={formData.endMonth || undefined}
+                  value={formData.endMonth || ''}
                   setValue={(value) => {
                     if (typeof value === 'function') {
-                      updateField('endMonth', value(formData.endMonth) || '');
+                      updateField('endMonth', value(formData.endMonth || '') || '');
                     } else {
                       updateField('endMonth', value || '');
                     }
                   }}
                   placeholder="Month"
-                  disabled={formData.isCurrentlyWorking}
+                  disabled={formData.currentWork || false}
                 />
                 <SearchSelect
                   options={YEAR_OPTIONS}
-                  value={formData.endYear || undefined}
+                  value={formData.endYear ? String(formData.endYear) : ''}
                   setValue={(value) => {
                     if (typeof value === 'function') {
-                      updateField('endYear', value(formData.endYear) || '');
+                      const newValue = value(formData.endYear ? String(formData.endYear) : '');
+                      updateField('endYear', newValue ? parseInt(newValue, 10) : 0);
                     } else {
-                      updateField('endYear', value || '');
+                      updateField('endYear', value ? parseInt(value, 10) : 0);
                     }
                   }}
                   placeholder="Year"
-                  disabled={formData.isCurrentlyWorking}
+                  disabled={formData.currentWork || false}
                 />
               </div>
             </div>

@@ -13,5 +13,30 @@ query profileV2 {
     userRole
     createdAt
     updatedAt
+    languages {
+      id
+      language
+      proficiency
+    }
+    workExperiences {
+      id
+      company
+      currentWork
+      employmentType
+      endMonth
+      endYear
+      role
+      startMonth
+      startYear
+    }
+    educations {
+      id
+      attendedEndDate
+      attendedStartDate
+      degree
+      school
+      study
+      userId
+    }
   }
 }

@@ -42,4 +42,3 @@ query programOverviewV2($input: ProgramOverviewV2Input!) {
     }
   }
 }
-

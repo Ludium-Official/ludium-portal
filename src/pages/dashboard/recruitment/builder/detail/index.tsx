@@ -1,27 +1,27 @@
-import RecruitmentMessage from "@/components/recruitment/message/recruitment-message";
-import RecruitmentOverview from "@/components/recruitment/overview/recruitment-overview";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router";
-import BuilderMilestonesTable from "@/pages/dashboard/recruitment/_components/builder-milestones-table";
-import MilestoneProgress from "@/pages/dashboard/recruitment/_components/milestone-progress";
-import UpcomingPayments from "@/pages/dashboard/recruitment/_components/upcoming-payments";
-import { useProgramOverviewV2Query } from "@/apollo/queries/program-overview-v2.generated";
-import { PageSize } from "@/components/ui/pagination";
+import RecruitmentMessage from '@/components/recruitment/message/recruitment-message';
+import RecruitmentOverview from '@/components/recruitment/overview/recruitment-overview';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ChevronRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router';
+import BuilderMilestonesTable from '@/pages/dashboard/recruitment/_components/builder-milestones-table';
+import MilestoneProgress from '@/pages/dashboard/recruitment/_components/milestone-progress';
+import UpcomingPayments from '@/pages/dashboard/recruitment/_components/upcoming-payments';
+import { useProgramOverviewV2Query } from '@/apollo/queries/program-overview-v2.generated';
+import { PageSize } from '@/components/ui/pagination';
 
 const RecruitmentDashboardBuilderDetail: React.FC = () => {
   const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const tabParam = searchParams.get("tab");
-  const currentPage = Number(searchParams.get("page")) || 1;
+  const tabParam = searchParams.get('tab');
+  const currentPage = Number(searchParams.get('page')) || 1;
 
-  const [selectedTab, setSelectedTab] = useState(tabParam || "overview");
+  const [selectedTab, setSelectedTab] = useState(tabParam || 'overview');
 
   const { data: programOverviewData } = useProgramOverviewV2Query({
     variables: {
       input: {
-        programId: id || "",
+        programId: id || '',
         pagination: {
           limit: PageSize,
           offset: (currentPage - 1) * PageSize,
@@ -66,32 +66,28 @@ const RecruitmentDashboardBuilderDetail: React.FC = () => {
         </Tabs>
       </div>
       <div>
-        {selectedTab === "overview" && (
+        {selectedTab === 'overview' && (
           <>
             <div className="border border-gray-200 rounded-lg">
               <RecruitmentOverview className="px-4 py-5" isFoldable={true} />
             </div>
             <div
               className="grid gap-4 mt-7 items-start"
-              style={{ gridTemplateColumns: "2.2fr 1fr" }}
+              style={{ gridTemplateColumns: '2.2fr 1fr' }}
             >
               <BuilderMilestonesTable
                 milestones={programOverview?.milestones?.data || []}
                 totalCount={programOverview?.milestones?.count || 0}
               />
               <div className="space-y-6">
-                <MilestoneProgress
-                  milestoneProgress={programOverview?.milestoneProgress}
-                />
-                <UpcomingPayments
-                  upcomingPayments={programOverview?.upcomingPayments || []}
-                />
+                <MilestoneProgress milestoneProgress={programOverview?.milestoneProgress} />
+                <UpcomingPayments upcomingPayments={programOverview?.upcomingPayments || []} />
               </div>
             </div>
           </>
         )}
       </div>
-      <div>{selectedTab === "message" && <RecruitmentMessage />}</div>
+      <div>{selectedTab === 'message' && <RecruitmentMessage />}</div>
     </div>
   );
 };
