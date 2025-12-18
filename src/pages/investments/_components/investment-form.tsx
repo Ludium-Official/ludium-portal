@@ -160,7 +160,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
   const validatorOptions = validators?.usersV2?.users?.map((v) => ({
     value: v.id ?? '',
-    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
+    label: v.nickname ? `${v.nickname} (${v.email})` : (v.email ?? ''),
   }));
 
   useEffect(() => {
@@ -171,7 +171,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
       setSelectedValidatorItems(
         data?.program.validators?.map((k) => ({
           value: k.id ?? '',
-          label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
+          label: k.firstName ? `${k.firstName} ${k.lastName || ''} (${k.email})` : (k.email ?? ''),
         })) ?? [],
       );
     }
@@ -180,7 +180,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
       setSelectedBuilderItems(
         data?.program.invitedBuilders?.map((k) => ({
           value: k.id ?? '',
-          label: `${k.email} ${k.organizationName ? `(${k.organizationName})` : ''}`,
+          label: k.firstName ? `${k.firstName} ${k.lastName || ''} (${k.email})` : (k.email ?? ''),
         })) ?? [],
       );
     }
@@ -262,7 +262,7 @@ function InvestmentForm({ onSubmitInvestment, isEdit }: InvestmentFormProps) {
 
   const builderOptions = buildersData?.usersV2?.users?.map((v) => ({
     value: v.id ?? '',
-    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
+    label: v.nickname ? `${v.nickname} (${v.email})` : (v.email ?? ''),
   }));
 
   const {

@@ -61,7 +61,6 @@ function Header() {
   const contract = useContract(network);
   const walletInfo = user?.wallet;
 
-  // Use ref to track previous network to prevent unnecessary re-fetches
   const prevNetworkRef = useRef<string>(network);
   const prevWalletRef = useRef<string | undefined>(walletInfo?.address);
   const injectedWallet = user?.wallet?.connectorType !== 'embedded';
@@ -260,15 +259,13 @@ function Header() {
                 <DialogTrigger asChild>
                   <Button size="sm" className="bg-primary hover:bg-primary/90">
                     <span className="hidden sm:inline">
-                      {profileData?.profileV2?.firstName && profileData?.profileV2?.lastName
-                        ? `${profileData.profileV2.firstName} ${profileData.profileV2.lastName}`
+                      {profileData?.profileV2?.nickname
+                        ? profileData.profileV2.nickname
                         : reduceString(walletInfo?.address || '', 6, 6)}
                     </span>
                     <span className="sm:hidden">
-                      {profileData?.profileV2?.firstName && profileData?.profileV2?.lastName
-                        ? `${profileData.profileV2.firstName.charAt(
-                            0,
-                          )}${profileData.profileV2.lastName.charAt(0)}`
+                      {profileData?.profileV2?.nickname
+                        ? profileData.profileV2.nickname.charAt(0).toUpperCase()
                         : reduceString(walletInfo?.address || '', 4, 4)}
                     </span>
                   </Button>

@@ -61,26 +61,18 @@ export const getUserName = (user?: User | null) => {
     return `${user.firstName} ${user.lastName}`;
   }
 
-  return user.firstName ?? user.lastName ?? user.email ?? user.organizationName ?? '';
+  return user.firstName ?? user.lastName ?? user.email ?? '';
 };
 
-export const getUserDisplayName = (
-  firstName?: string | null,
-  lastName?: string | null,
-  email?: string | null,
-): string => {
-  if (firstName && lastName) {
-    return `${firstName} ${lastName}`.trim();
+export const getUserDisplayName = (nickname?: string | null, email?: string | null): string => {
+  if (nickname) {
+    return nickname;
   }
   return email || 'Unknown';
 };
 
-export const getUserInitialName = (
-  firstName?: string | null,
-  lastName?: string | null,
-  email?: string | null,
-): string => {
-  const name = getUserDisplayName(firstName, lastName, email);
+export const getUserInitialName = (nickname?: string | null, email?: string | null): string => {
+  const name = getUserDisplayName(nickname, email);
 
   if (!name) return '??';
   const parts = name.split(' ');

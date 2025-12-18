@@ -54,15 +54,14 @@ const RecruitmentApplicants: React.FC = () => {
       userInfo: {
         userId: application.applicant?.id,
         image: application.applicant?.profileImage,
-        firstName: application.applicant?.firstName,
-        lastName: application.applicant?.lastName,
+        nickname: application.applicant?.nickname,
         email: application.applicant?.email,
         cv: application.content,
         // TODO: profile 변경되고 추가될 데이터
         location: null, // Not in GraphQL schema
         hourlyRate: null, // Not in GraphQL schema
         star: null, // Not in GraphQL schema
-        role: application.applicant?.organizationName,
+        role: null,
         skills: application.applicant?.skills,
         tools: null, // Not in GraphQL schema
       },

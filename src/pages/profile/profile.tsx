@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { ShareButton } from '@/components/ui/share-button';
-import SocialIcon from '@/components/ui/social-icon';
 import { tokenAddresses } from '@/constant/token-address';
 import { useNetworks } from '@/contexts/networks-context';
 import type RecruitmentContract from '@/lib/contract/recruitment-contract';
@@ -16,7 +15,15 @@ import { cn, commaNumber, mainnetDefaultNetwork, reduceString } from '@/lib/util
 import type { BalanceProps } from '@/types/asset';
 import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
-import { ArrowUpRight, Building2, CircleCheck, Settings, Sparkle, UserCog } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Briefcase,
+  CircleCheck,
+  MapPin,
+  Settings,
+  Sparkle,
+  UserCog,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router';
 import { SidebarLinks, sidebarLinks } from '../community/users/_components/sidebar-links';
@@ -53,11 +60,7 @@ function ProfilePage() {
 
   const user = profileData?.profileV2;
 
-  const isProfileIncomplete =
-    !user?.firstName?.trim() ||
-    !user?.lastName?.trim() ||
-    !user?.email?.trim() ||
-    !user?.organizationName?.trim();
+  const isProfileIncomplete = !user?.nickname?.trim() || !user?.email?.trim();
 
   const currentNetwork = networksWithTokens.find(
     (n) => n.id === networkId || (!networkId && n.chainName === mainnetDefaultNetwork),
@@ -142,14 +145,20 @@ function ProfilePage() {
                 <div className="flex flex-col gap-2">
                   <div className="space-y-0.5">
                     <p className="font-bold text-xl text-gray-dark">
-                      {user?.firstName} {user?.lastName}
+                      {user?.nickname || 'Unknown'}
                     </p>
                     <p className="text-sm text-muted-foreground">{user?.email}</p>
                   </div>
-                  <p className="text-sm text-muted-foreground flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-muted-foreground" />{' '}
-                    {user?.organizationName?.length ? user?.organizationName : '-'}
-                  </p>
+                  {user?.userRole && (
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Briefcase className="w-4 h-4" /> {user.userRole}
+                    </p>
+                  )}
+                  {user?.location && (
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <MapPin className="w-4 h-4" /> {user.location}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2">
@@ -286,38 +295,6 @@ function ProfilePage() {
                       {s}
                     </Badge>
                   ))}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <p className="font-bold text-sm text-muted-foreground">LINKS</p>
-                <div className="space-y-2">
-                  <div className="space-y-2">
-                    {user?.links?.length ? (
-                      user.links.map((link, index) => {
-                        return (
-                          <div key={index} className="flex items-center gap-2">
-                            <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
-                              <SocialIcon
-                                value={link ?? ''}
-                                className="w-4 h-4 text-secondary-foreground"
-                              />
-                            </div>
-                            <a
-                              target="_blank"
-                              href={link || '#'}
-                              className="text-sm text-slate-600 break-all"
-                              rel="noreferrer"
-                            >
-                              {link || 'No link'}
-                            </a>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <p className="text-sm text-muted-foreground">No links available</p>
-                    )}
-                  </div>
                 </div>
               </div>
             </div>

@@ -8,7 +8,7 @@ export type MyApplicationsV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type MyApplicationsV2Query = { __typename?: 'Query', myApplicationsV2?: { __typename?: 'PaginatedApplicationsV2', count?: number | null, totalPages?: number | null, currentPage?: number | null, hasNextPage?: boolean | null, hasPreviousPage?: boolean | null, data?: Array<{ __typename?: 'ApplicationV2', id?: string | null, status?: Types.ApplicationStatusV2 | null, content?: string | null, picked?: boolean | null, rejectedReason?: string | null, createdAt?: any | null, updatedAt?: any | null, applicant?: { __typename?: 'UserV2', id?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null, profileImage?: string | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, deadline?: any | null, status?: Types.ProgramStatusV2 | null } | null }> | null } | null };
+export type MyApplicationsV2Query = { __typename?: 'Query', myApplicationsV2?: { __typename?: 'PaginatedApplicationsV2', count?: number | null, totalPages?: number | null, currentPage?: number | null, hasNextPage?: boolean | null, hasPreviousPage?: boolean | null, data?: Array<{ __typename?: 'ApplicationV2', id?: string | null, status?: Types.ApplicationStatusV2 | null, content?: string | null, picked?: boolean | null, rejectedReason?: string | null, createdAt?: any | null, updatedAt?: any | null, applicant?: { __typename?: 'UserV2', id?: string | null, email?: string | null, nickname?: string | null, profileImage?: string | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, deadline?: any | null, status?: Types.ProgramStatusV2 | null } | null }> | null } | null };
 
 
 export const MyApplicationsV2Document = gql`
@@ -25,8 +25,7 @@ export const MyApplicationsV2Document = gql`
       applicant {
         id
         email
-        firstName
-        lastName
+        nickname
         profileImage
       }
       program {

@@ -3,47 +3,35 @@ import RecruitmentOverview from "@/components/recruitment/overview/recruitment-o
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router";
+import { Link, useParams, useSearchParams } from "react-router";
 import BuilderMilestonesTable from "@/pages/dashboard/recruitment/_components/builder-milestones-table";
 import MilestoneProgress from "@/pages/dashboard/recruitment/_components/milestone-progress";
 import UpcomingPayments from "@/pages/dashboard/recruitment/_components/upcoming-payments";
-import { MilestoneProgressData } from "@/types/dashboard";
-import { BuilderPayments } from "@/types/dashboard";
+import { useProgramOverviewV2Query } from "@/apollo/queries/program-overview-v2.generated";
+import { PageSize } from "@/components/ui/pagination";
 
-// TODO: Mock data for milestone progress
-const mockMilestoneProgress: MilestoneProgressData = {
-  completed: 6,
-  total: 10,
-};
-
-// TODO: Mock data for upcoming payments
-const mockUpcomingPayments: BuilderPayments[] = [
-  {
-    builder: {
-      id: "1",
-      name: "William Smith",
-    },
-    payments: [
-      {
-        id: "1-1",
-        dueDate: new Date().toISOString(), // Today
-        amount: "40000",
-        tokenId: "12",
-      },
-      {
-        id: "1-2",
-        dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // D-2
-        amount: "20000",
-        tokenId: "12",
-      },
-    ],
-  },
-];
 const RecruitmentDashboardBuilderDetail: React.FC = () => {
+  const { id } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
+  const currentPage = Number(searchParams.get("page")) || 1;
 
   const [selectedTab, setSelectedTab] = useState(tabParam || "overview");
+
+  const { data: programOverviewData } = useProgramOverviewV2Query({
+    variables: {
+      input: {
+        programId: id || "",
+        pagination: {
+          limit: PageSize,
+          offset: (currentPage - 1) * PageSize,
+        },
+      },
+    },
+    skip: !id,
+  });
+
+  const programOverview = programOverviewData?.programOverviewV2;
 
   useEffect(() => {
     if (tabParam) {
@@ -87,10 +75,17 @@ const RecruitmentDashboardBuilderDetail: React.FC = () => {
               className="grid gap-4 mt-7 items-start"
               style={{ gridTemplateColumns: "2.2fr 1fr" }}
             >
-              <BuilderMilestonesTable />
+              <BuilderMilestonesTable
+                milestones={programOverview?.milestones?.data || []}
+                totalCount={programOverview?.milestones?.count || 0}
+              />
               <div className="space-y-6">
-                <MilestoneProgress data={mockMilestoneProgress} />
-                <UpcomingPayments data={mockUpcomingPayments} />
+                <MilestoneProgress
+                  milestoneProgress={programOverview?.milestoneProgress}
+                />
+                <UpcomingPayments
+                  upcomingPayments={programOverview?.upcomingPayments || []}
+                />
               </div>
             </div>
           </>

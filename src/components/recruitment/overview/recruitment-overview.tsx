@@ -381,19 +381,11 @@ const RecruitmentOverview: React.FC<{
                     <AvatarImage src={program.sponsor?.profileImage || ''} />
                     <AvatarFallback className="text-xs">
                       {getInitials(
-                        getUserDisplayName(
-                          program.sponsor?.firstName,
-                          program.sponsor?.lastName,
-                          program.sponsor?.email,
-                        ),
+                        getUserDisplayName(program.sponsor?.nickname, program.sponsor?.email),
                       )}
                     </AvatarFallback>
                   </Avatar>
-                  {getUserDisplayName(
-                    program.sponsor?.firstName,
-                    program.sponsor?.lastName,
-                    program.sponsor?.email,
-                  )}
+                  {getUserDisplayName(program.sponsor?.nickname, program.sponsor?.email)}
                 </div>
               </div>
 

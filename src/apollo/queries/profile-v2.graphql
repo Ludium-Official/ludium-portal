@@ -2,16 +2,15 @@ query profileV2 {
   profileV2 {
     id
     email
-    firstName
-    lastName
+    nickname
     role
     loginType
     walletAddress
-    organizationName
     profileImage
-    bio
     skills
-    links
+    about
+    location
+    userRole
     createdAt
     updatedAt
   }

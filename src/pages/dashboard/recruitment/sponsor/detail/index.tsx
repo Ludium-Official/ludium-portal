@@ -4,81 +4,21 @@ import RecruitmentMessage from "@/components/recruitment/message/recruitment-mes
 import RecruitmentOverview from "@/components/recruitment/overview/recruitment-overview";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/hooks/use-auth";
-import type { BuilderPayments, MilestoneProgressData } from "@/types/dashboard";
 import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
-import HiredBuildersTable from "@/pages/dashboard/recruitment/_components/hired-builders-table";
+import { HiredBuildersTable } from "@/pages/dashboard/recruitment/_components/hired-builders-table";
 import MilestoneProgress from "@/pages/dashboard/recruitment/_components/milestone-progress";
 import UpcomingPayments from "@/pages/dashboard/recruitment/_components/upcoming-payments";
-
-// TODO:Mock data for milestone progress
-const mockMilestoneProgress: MilestoneProgressData = {
-  completed: 6,
-  total: 10,
-};
-
-// TODO: Mock data for upcoming payments
-const mockUpcomingPayments: BuilderPayments[] = [
-  {
-    builder: {
-      id: "1",
-      name: "William Smith",
-    },
-    payments: [
-      {
-        id: "1-1",
-        dueDate: new Date().toISOString(), // Today
-        amount: "40000",
-        tokenId: "12",
-      },
-    ],
-  },
-  {
-    builder: {
-      id: "2",
-      name: "Daniel Smith",
-    },
-    payments: [
-      {
-        id: "2-1",
-        dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // D-2
-        amount: "40000",
-        tokenId: "12",
-      },
-      {
-        id: "2-2",
-        dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // D-5
-        amount: "40000",
-        tokenId: "12",
-      },
-      {
-        id: "2-3",
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // D-7
-        amount: "40000",
-        tokenId: "12",
-      },
-      {
-        id: "2-4",
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // D-7
-        amount: "40000",
-        tokenId: "12",
-      },
-      {
-        id: "2-5",
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // D-7
-        amount: "40000",
-        tokenId: "12",
-      },
-    ],
-  },
-];
+import { useProgramOverviewV2Query } from "@/apollo/queries/program-overview-v2.generated";
+import { PageSize } from "@/components/ui/pagination";
 
 const RecruitmentDashboardSponsorDetail: React.FC = () => {
   const { id } = useParams();
   const { userId } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
+  const currentPage = Number(searchParams.get("page")) || 1;
 
   const [selectedTab, setSelectedTab] = useState(tabParam || "overview");
 
@@ -87,7 +27,21 @@ const RecruitmentDashboardSponsorDetail: React.FC = () => {
     skip: !id,
   });
 
+  const { data: programOverviewData } = useProgramOverviewV2Query({
+    variables: {
+      input: {
+        programId: id || "",
+        pagination: {
+          limit: PageSize,
+          offset: (currentPage - 1) * PageSize,
+        },
+      },
+    },
+    skip: !id,
+  });
+
   const program = programData?.programV2;
+  const programOverview = programOverviewData?.programOverviewV2;
   const isSponsor = program?.sponsor?.id === userId;
 
   useEffect(() => {
@@ -157,10 +111,17 @@ const RecruitmentDashboardSponsorDetail: React.FC = () => {
               className="grid gap-4 mt-7 items-start"
               style={{ gridTemplateColumns: "2.2fr 1fr" }}
             >
-              <HiredBuildersTable />
+              <HiredBuildersTable
+                hiredBuilders={programOverview?.hiredBuilders?.data || []}
+                totalCount={programOverview?.hiredBuilders?.count || 0}
+              />
               <div className="space-y-6">
-                <MilestoneProgress data={mockMilestoneProgress} />
-                <UpcomingPayments data={mockUpcomingPayments} />
+                <MilestoneProgress
+                  milestoneProgress={programOverview?.milestoneProgress}
+                />
+                <UpcomingPayments
+                  upcomingPayments={programOverview?.upcomingPayments || []}
+                />
               </div>
             </div>
           </>

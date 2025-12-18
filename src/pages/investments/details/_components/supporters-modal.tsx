@@ -71,7 +71,7 @@ const SupportersModal: React.FC<SupportersModalProps> = ({
 
   const supporterOptions = supportersData?.usersV2?.users?.map((v) => ({
     value: v.id ?? '',
-    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
+    label: v.nickname ? `${v.nickname} (${v.email})` : (v.email ?? ''),
   }));
 
   // Set initial tier when tierSettings are available
