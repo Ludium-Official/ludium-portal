@@ -159,14 +159,16 @@ export type BuilderMilestoneV2 = {
   deadline?: Maybe<Scalars['DateTime']['output']>;
   /** Milestone unique identifier */
   id?: Maybe<Scalars['ID']['output']>;
-  /** Milestone payout amount */
-  payout?: Maybe<Scalars['String']['output']>;
+  /** Current paid amount (if status is completed and payout_tx exists) */
+  paidAmount?: Maybe<Scalars['String']['output']>;
   /** Milestone status */
   status?: Maybe<Scalars['String']['output']>;
   /** Milestone title */
   title?: Maybe<Scalars['String']['output']>;
   /** Token ID for the milestone */
   tokenId?: Maybe<Scalars['Int']['output']>;
+  /** Unpaid amount (amount not yet paid) */
+  unpaidAmount?: Maybe<Scalars['String']['output']>;
 };
 
 export type BulkAssignTiersInput = {
@@ -300,6 +302,14 @@ export type CreateContractV2Input = {
   programId: Scalars['String']['input'];
   smartContractId: Scalars['Int']['input'];
   sponsorId: Scalars['Int']['input'];
+};
+
+export type CreateEducationV2Input = {
+  attendedEndDate?: InputMaybe<Scalars['Int']['input']>;
+  attendedStartDate?: InputMaybe<Scalars['Int']['input']>;
+  degree?: InputMaybe<Scalars['String']['input']>;
+  school: Scalars['String']['input'];
+  study?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateInvestmentInput = {
@@ -466,6 +476,17 @@ export type CreateUserV2Input = {
   walletAddress: Scalars['String']['input'];
 };
 
+export type CreateWorkExperienceV2Input = {
+  company: Scalars['String']['input'];
+  currentWork?: InputMaybe<Scalars['Boolean']['input']>;
+  employmentType?: InputMaybe<Scalars['String']['input']>;
+  endMonth?: InputMaybe<Scalars['String']['input']>;
+  endYear?: InputMaybe<Scalars['Int']['input']>;
+  role: Scalars['String']['input'];
+  startMonth?: InputMaybe<Scalars['String']['input']>;
+  startYear?: InputMaybe<Scalars['Int']['input']>;
+};
+
 export type DashboardV2 = {
   __typename?: 'DashboardV2';
   /** Payment overview by week for builder (4 weeks) */
@@ -487,16 +508,6 @@ export type EducationV2 = {
   school?: Maybe<Scalars['String']['output']>;
   study?: Maybe<Scalars['String']['output']>;
   userId?: Maybe<Scalars['Int']['output']>;
-};
-
-export type EducationV2Input = {
-  attendedEndDate?: InputMaybe<Scalars['Int']['input']>;
-  attendedStartDate?: InputMaybe<Scalars['Int']['input']>;
-  degree?: InputMaybe<Scalars['String']['input']>;
-  /** Education ID (for update, omit for create) */
-  id?: InputMaybe<Scalars['ID']['input']>;
-  school: Scalars['String']['input'];
-  study?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type EnrichedCarouselItem = {
@@ -830,6 +841,8 @@ export type Mutation = {
   createCarouselItem?: Maybe<CarouselItem>;
   createComment?: Maybe<Comment>;
   createContractV2?: Maybe<ContractV2>;
+  /** Create a new education */
+  createEducationV2?: Maybe<EducationV2>;
   createInvestment?: Maybe<Investment>;
   createInvestmentTerm?: Maybe<InvestmentTerm>;
   /** Create a new milestone */
@@ -846,10 +859,14 @@ export type Mutation = {
   createUser?: Maybe<User>;
   /** Create a new user */
   createUserV2?: Maybe<UserV2>;
+  /** Create a new work experience */
+  createWorkExperienceV2?: Maybe<WorkExperienceV2>;
   /** Delete an application by ID (only by the applicant) */
   deleteApplicationV2?: Maybe<ApplicationV2>;
   deleteCarouselItem?: Maybe<CarouselItem>;
   deleteContractV2?: Maybe<ContractV2>;
+  /** Delete an education (hard delete) */
+  deleteEducationV2?: Maybe<Scalars['Boolean']['output']>;
   deleteInvestmentTerm?: Maybe<Scalars['Boolean']['output']>;
   /** Delete a milestone by ID */
   deleteMilestoneV2?: Maybe<MilestoneV2>;
@@ -863,6 +880,8 @@ export type Mutation = {
   deleteUser?: Maybe<User>;
   /** Delete a user by ID */
   deleteUserV2?: Maybe<Scalars['Boolean']['output']>;
+  /** Delete a work experience (hard delete) */
+  deleteWorkExperienceV2?: Maybe<Scalars['Boolean']['output']>;
   demoteFromAdmin?: Maybe<User>;
   generateSwappedUrl?: Maybe<SwappedUrlResponse>;
   hidePost?: Maybe<Post>;
@@ -909,8 +928,8 @@ export type Mutation = {
   updateCarouselItem?: Maybe<CarouselItem>;
   updateComment?: Maybe<Comment>;
   updateContractV2?: Maybe<ContractV2>;
-  /** Update education section */
-  updateEducationSectionV2?: Maybe<UserV2>;
+  /** Update an existing education */
+  updateEducationV2?: Maybe<EducationV2>;
   /** Update expertise section (role, skills, languages) */
   updateExpertiseSectionV2?: Maybe<UserV2>;
   updateInvestmentTerm?: Maybe<InvestmentTerm>;
@@ -935,8 +954,8 @@ export type Mutation = {
   updateUser?: Maybe<User>;
   /** Update an existing user */
   updateUserV2?: Maybe<UserV2>;
-  /** Update work experience section */
-  updateWorkExperienceSectionV2?: Maybe<UserV2>;
+  /** Update an existing work experience */
+  updateWorkExperienceV2?: Maybe<WorkExperienceV2>;
   /** Verify email with verification code */
   verifyEmailV2?: Maybe<Scalars['Boolean']['output']>;
 };
@@ -1025,6 +1044,11 @@ export type MutationCreateContractV2Args = {
 };
 
 
+export type MutationCreateEducationV2Args = {
+  input: CreateEducationV2Input;
+};
+
+
 export type MutationCreateInvestmentArgs = {
   input: CreateInvestmentInput;
 };
@@ -1096,6 +1120,11 @@ export type MutationCreateUserV2Args = {
 };
 
 
+export type MutationCreateWorkExperienceV2Args = {
+  input: CreateWorkExperienceV2Input;
+};
+
+
 export type MutationDeleteApplicationV2Args = {
   id: Scalars['ID']['input'];
 };
@@ -1107,6 +1136,11 @@ export type MutationDeleteCarouselItemArgs = {
 
 
 export type MutationDeleteContractV2Args = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteEducationV2Args = {
   id: Scalars['ID']['input'];
 };
 
@@ -1162,6 +1196,11 @@ export type MutationDeleteUserArgs = {
 
 
 export type MutationDeleteUserV2Args = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteWorkExperienceV2Args = {
   id: Scalars['ID']['input'];
 };
 
@@ -1377,8 +1416,8 @@ export type MutationUpdateContractV2Args = {
 };
 
 
-export type MutationUpdateEducationSectionV2Args = {
-  input: UpdateEducationSectionV2Input;
+export type MutationUpdateEducationV2Args = {
+  input: UpdateEducationV2Input;
 };
 
 
@@ -1481,8 +1520,8 @@ export type MutationUpdateUserV2Args = {
 };
 
 
-export type MutationUpdateWorkExperienceSectionV2Args = {
-  input: UpdateWorkExperienceSectionV2Input;
+export type MutationUpdateWorkExperienceV2Args = {
+  input: UpdateWorkExperienceV2Input;
 };
 
 
@@ -2616,9 +2655,14 @@ export type UpdateContractV2Input = {
   onchainContractId?: InputMaybe<Scalars['Int']['input']>;
 };
 
-export type UpdateEducationSectionV2Input = {
-  /** List of educations (for delete, send empty array or omit the item) */
-  educations: Array<EducationV2Input>;
+export type UpdateEducationV2Input = {
+  attendedEndDate?: InputMaybe<Scalars['Int']['input']>;
+  attendedStartDate?: InputMaybe<Scalars['Int']['input']>;
+  degree?: InputMaybe<Scalars['String']['input']>;
+  /** Education ID to update */
+  id: Scalars['ID']['input'];
+  school: Scalars['String']['input'];
+  study?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateExpertiseSectionV2Input = {
@@ -2791,9 +2835,17 @@ export type UpdateUserV2Input = {
   walletAddress?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type UpdateWorkExperienceSectionV2Input = {
-  /** List of work experiences (for delete, send empty array or omit the item) */
-  workExperiences: Array<WorkExperienceV2Input>;
+export type UpdateWorkExperienceV2Input = {
+  company: Scalars['String']['input'];
+  currentWork?: InputMaybe<Scalars['Boolean']['input']>;
+  employmentType?: InputMaybe<Scalars['String']['input']>;
+  endMonth?: InputMaybe<Scalars['String']['input']>;
+  endYear?: InputMaybe<Scalars['Int']['input']>;
+  /** Work experience ID to update */
+  id: Scalars['ID']['input'];
+  role: Scalars['String']['input'];
+  startMonth?: InputMaybe<Scalars['String']['input']>;
+  startYear?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type User = {
@@ -2965,17 +3017,4 @@ export type WorkExperienceV2 = {
   startMonth?: Maybe<Scalars['String']['output']>;
   startYear?: Maybe<Scalars['Int']['output']>;
   userId?: Maybe<Scalars['Int']['output']>;
-};
-
-export type WorkExperienceV2Input = {
-  company: Scalars['String']['input'];
-  currentWork: Scalars['Boolean']['input'];
-  employmentType: Scalars['String']['input'];
-  endMonth?: InputMaybe<Scalars['String']['input']>;
-  endYear?: InputMaybe<Scalars['Int']['input']>;
-  /** Work experience ID (for update, omit for create) */
-  id?: InputMaybe<Scalars['ID']['input']>;
-  role: Scalars['String']['input'];
-  startMonth?: InputMaybe<Scalars['String']['input']>;
-  startYear: Scalars['Int']['input'];
 };

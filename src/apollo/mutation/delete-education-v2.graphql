@@ -1,0 +1,4 @@
+mutation deleteEducationV2($id: ID!) {
+  deleteEducationV2(id: $id)
+}
+

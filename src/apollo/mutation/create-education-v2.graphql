@@ -1,0 +1,11 @@
+mutation createEducationV2($input: CreateEducationV2Input!) {
+  createEducationV2(input: $input) {
+    id
+    school
+    degree
+    study
+    attendedStartDate
+    attendedEndDate
+  }
+}
+

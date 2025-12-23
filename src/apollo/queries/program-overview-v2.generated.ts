@@ -8,7 +8,7 @@ export type ProgramOverviewV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type ProgramOverviewV2Query = { __typename?: 'Query', programOverviewV2?: { __typename?: 'ProgramOverviewV2', milestoneProgress?: { __typename?: 'MilestoneProgress', completed?: number | null, total?: number | null } | null, hiredBuilders?: { __typename?: 'PaginatedHiredBuildersV2', count?: number | null, data?: Array<{ __typename?: 'HiredBuilderV2', id?: number | null, nickname?: string | null, profileImage?: string | null, role?: string | null, status?: string | null, milestoneCount?: number | null, paidAmount?: string | null, totalAmount?: string | null, tokenId?: number | null }> | null } | null, milestones?: { __typename?: 'PaginatedBuilderMilestonesV2', count?: number | null, data?: Array<{ __typename?: 'BuilderMilestoneV2', id?: string | null, title?: string | null, payout?: string | null, deadline?: any | null, status?: string | null, tokenId?: number | null }> | null } | null, upcomingPayments?: Array<{ __typename?: 'UpcomingPayment', builder?: { __typename?: 'BuilderInfo', nickname?: string | null, profileImage?: string | null } | null, payment?: Array<{ __typename?: 'PaymentInfo', payout?: string | null, deadline?: any | null, tokenId?: number | null }> | null }> | null } | null };
+export type ProgramOverviewV2Query = { __typename?: 'Query', programOverviewV2?: { __typename?: 'ProgramOverviewV2', milestoneProgress?: { __typename?: 'MilestoneProgress', completed?: number | null, total?: number | null } | null, hiredBuilders?: { __typename?: 'PaginatedHiredBuildersV2', count?: number | null, data?: Array<{ __typename?: 'HiredBuilderV2', id?: number | null, nickname?: string | null, profileImage?: string | null, role?: string | null, status?: string | null, milestoneCount?: number | null, paidAmount?: string | null, totalAmount?: string | null, tokenId?: number | null }> | null } | null, milestones?: { __typename?: 'PaginatedBuilderMilestonesV2', count?: number | null, data?: Array<{ __typename?: 'BuilderMilestoneV2', id?: string | null, title?: string | null, deadline?: any | null, status?: string | null, tokenId?: number | null, unpaidAmount?: string | null, paidAmount?: string | null }> | null } | null, upcomingPayments?: Array<{ __typename?: 'UpcomingPayment', builder?: { __typename?: 'BuilderInfo', nickname?: string | null, profileImage?: string | null } | null, payment?: Array<{ __typename?: 'PaymentInfo', payout?: string | null, deadline?: any | null, tokenId?: number | null }> | null }> | null } | null };
 
 
 export const ProgramOverviewV2Document = gql`
@@ -36,10 +36,11 @@ export const ProgramOverviewV2Document = gql`
       data {
         id
         title
-        payout
         deadline
         status
         tokenId
+        unpaidAmount
+        paidAmount
       }
       count
     }

@@ -1,0 +1,4 @@
+mutation deleteWorkExperienceV2($id: ID!) {
+  deleteWorkExperienceV2(id: $id)
+}
+
