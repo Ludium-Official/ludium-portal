@@ -52,7 +52,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
       path: '/community',
       icon: MessageCircle,
     },
-    { name: 'Agent', path: '/users', icon: Users },
+    // { name: 'Agent', path: '/users', icon: Users },
   ];
 
   return (

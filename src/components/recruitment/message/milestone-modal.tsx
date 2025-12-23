@@ -323,8 +323,6 @@ export function MilestoneModal({
             }
             toast.success('All applications completed. Program status updated to Closed.');
           }
-        } else {
-          console.log('Not all applications are completed yet');
         }
       }
 

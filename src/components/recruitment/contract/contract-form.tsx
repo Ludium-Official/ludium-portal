@@ -305,7 +305,6 @@ export function ContractForm({
                 );
                 const totalPrice = contractData?.totalAmount;
 
-                console.log(newTotalPrice, totalPrice);
                 if (newTotalPrice?.toString() !== totalPrice?.toString()) {
                   const actualPaymentAmount = newTotalPrice - totalPrice;
 

@@ -82,7 +82,7 @@ function App() {
             <Route path="posts/:id/edit" element={<EditCommunityPage />} />
           </Route>
 
-          <Route path="users">
+          {/* <Route path="users">
             <Route index element={<UsersPage />} />
             <Route path=":id" element={<UserDetailsPage />}>
               <Route index element={<Navigate to="overview" />} />
@@ -96,7 +96,7 @@ function App() {
               <Route path="program/investment/supporter" element={<UserInvestmentProjectTab />} />
               <Route path="community" element={<UserCommunityTab />} />
             </Route>
-          </Route>
+          </Route> */}
 
           <Route path="admin" element={<AdminOutlet />}>
             <Route index element={<AdminPage />} />
