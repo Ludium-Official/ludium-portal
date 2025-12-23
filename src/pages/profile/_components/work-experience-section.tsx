@@ -15,7 +15,9 @@ import { Pen, Plus } from 'lucide-react';
 import WorkIcon from '@/assets/icons/profile/work.svg';
 import { useEffect, useState } from 'react';
 import { WorkExperienceV2 } from '@/types/types.generated';
-import { useUpdateWorkExperienceSectionV2Mutation } from '@/apollo/mutation/update-work-experience-section-v2.generated';
+import { useCreateWorkExperienceV2Mutation } from '@/apollo/mutation/create-work-experience-v2.generated';
+import { useUpdateWorkExperienceV2Mutation } from '@/apollo/mutation/update-work-experience-v2.generated';
+import { useDeleteWorkExperienceV2Mutation } from '@/apollo/mutation/delete-work-experience-v2.generated';
 import client from '@/apollo/client';
 import notify from '@/lib/notify';
 import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
@@ -49,7 +51,9 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
   const [formData, setFormData] = useState<WorkExperienceV2>(getEmptyExperience);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  const [updateWorkExperienceSectionV2] = useUpdateWorkExperienceSectionV2Mutation();
+  const [createWorkExperienceV2] = useCreateWorkExperienceV2Mutation();
+  const [updateWorkExperienceV2] = useUpdateWorkExperienceV2Mutation();
+  const [deleteWorkExperienceV2] = useDeleteWorkExperienceV2Mutation();
 
   useEffect(() => {
     setLocalExperiences(experiences);
@@ -76,48 +80,84 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
   };
 
   const handleDelete = (index: number) => {
-    // TODO: Implement API call to delete
-    setLocalExperiences((prev) => prev.filter((_, i) => i !== index));
+    const experience = localExperiences[index];
+    if (!experience.id) {
+      setLocalExperiences((prev) => prev.filter((_, i) => i !== index));
+      return;
+    }
+
+    deleteWorkExperienceV2({
+      variables: { id: experience.id },
+      onCompleted: () => {
+        notify('Work experience deleted successfully', 'success');
+        setLocalExperiences((prev) => prev.filter((_, i) => i !== index));
+        client.refetchQueries({ include: [ProfileV2Document] });
+      },
+      onError: (error) => {
+        console.error('Failed to delete work experience:', error);
+        notify('Failed to delete work experience', 'error');
+      },
+    });
   };
 
   const handleSave = () => {
-    let updatedExperiences: WorkExperienceV2[];
-    if (editingIndex !== null) {
-      updatedExperiences = localExperiences.map((exp, index) =>
-        index === editingIndex ? formData : exp,
-      );
-    } else {
-      updatedExperiences = [...localExperiences, formData];
-    }
+    const input = {
+      company: formData.company || '',
+      role: formData.role || '',
+      employmentType: formData.employmentType || '',
+      currentWork: formData.currentWork || false,
+      startMonth: formData.startMonth || '',
+      startYear: formData.startYear || 0,
+      endMonth: formData.endMonth || '',
+      endYear: formData.endYear || 0,
+    };
 
-    updateWorkExperienceSectionV2({
-      variables: {
-        input: {
-          workExperiences: updatedExperiences.map((exp) => ({
-            company: exp.company || '',
-            currentWork: exp.currentWork || false,
-            role: exp.role || '',
-            employmentType: exp.employmentType || '',
-            startMonth: exp.startMonth || '',
-            startYear: exp.startYear || 0,
-            endMonth: exp.endMonth || '',
-            endYear: exp.endYear || 0,
-          })),
+    if (editingIndex !== null && formData.id) {
+      updateWorkExperienceV2({
+        variables: {
+          input: {
+            id: formData.id,
+            ...input,
+          },
         },
-      },
-      onCompleted: async () => {
-        notify('Work experience updated successfully', 'success');
-        setLocalExperiences(updatedExperiences);
-        client.refetchQueries({ include: [ProfileV2Document] });
-        setFormData(getEmptyExperience());
-        setEditingIndex(null);
-        setIsOpen(false);
-      },
-      onError: (error) => {
-        console.error('Failed to update work experience:', error);
-        notify('Failed to update work experience', 'error');
-      },
-    });
+        onCompleted: (data) => {
+          notify('Work experience updated successfully', 'success');
+          if (data.updateWorkExperienceV2) {
+            setLocalExperiences((prev) =>
+              prev.map((exp, index) =>
+                index === editingIndex ? data.updateWorkExperienceV2! : exp,
+              ),
+            );
+          }
+          client.refetchQueries({ include: [ProfileV2Document] });
+          setFormData(getEmptyExperience());
+          setEditingIndex(null);
+          setIsOpen(false);
+        },
+        onError: (error) => {
+          console.error('Failed to update work experience:', error);
+          notify('Failed to update work experience', 'error');
+        },
+      });
+    } else {
+      createWorkExperienceV2({
+        variables: { input },
+        onCompleted: (data) => {
+          notify('Work experience added successfully', 'success');
+          if (data.createWorkExperienceV2) {
+            setLocalExperiences((prev) => [...prev, data.createWorkExperienceV2!]);
+          }
+          client.refetchQueries({ include: [ProfileV2Document] });
+          setFormData(getEmptyExperience());
+          setEditingIndex(null);
+          setIsOpen(false);
+        },
+        onError: (error) => {
+          console.error('Failed to create work experience:', error);
+          notify('Failed to add work experience', 'error');
+        },
+      });
+    }
   };
 
   const handleCancel = () => {

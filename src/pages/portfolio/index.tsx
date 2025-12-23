@@ -137,7 +137,7 @@ const PortfolioPage: React.FC = () => {
   const isSaveDisabled = !formData.title.trim();
 
   return (
-    <div className="mx-auto my-10 space-y-5 max-w-[784px]">
+    <div className="mx-auto my-10 space-y-5 max-w-[820px]">
       <div className="mb-2 text-xl font-bold">Portfolio</div>
       <div className="mb-6 text-gray-500 text-sm">
         Show your work and highlight your best projects.

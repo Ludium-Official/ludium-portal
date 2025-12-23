@@ -33,7 +33,6 @@ export const BuilderMilestonesTable: React.FC<{
   totalCount: number;
 }> = ({ milestones, totalCount }) => {
   const { getTokenById } = useNetworks();
-  console.log(milestones);
 
   return (
     <div className="border border-gray-200 rounded-lg p-4">
@@ -104,9 +103,7 @@ export const BuilderMilestonesTable: React.FC<{
             </TableBody>
           </Table>
 
-          <div className="mt-6">
-            <Pagination totalCount={totalCount} pageSize={PageSize} />
-          </div>
+          <Pagination totalCount={totalCount} pageSize={PageSize} />
         </>
       )}
     </div>

@@ -14,7 +14,9 @@ import { Pen, Plus } from 'lucide-react';
 import EducationIcon from '@/assets/icons/profile/education.svg';
 import { useEffect, useState } from 'react';
 import { EducationV2 } from '@/types/types.generated';
-import { useUpdateEducationSectionV2Mutation } from '@/apollo/mutation/update-education-section-v2.generated';
+import { useCreateEducationV2Mutation } from '@/apollo/mutation/create-education-v2.generated';
+import { useUpdateEducationV2Mutation } from '@/apollo/mutation/update-education-v2.generated';
+import { useDeleteEducationV2Mutation } from '@/apollo/mutation/delete-education-v2.generated';
 import notify from '@/lib/notify';
 import client from '@/apollo/client';
 import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
@@ -43,7 +45,9 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations =
   const [formData, setFormData] = useState<EducationV2>(getEmptyEducation);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  const [updateEducationSectionV2] = useUpdateEducationSectionV2Mutation();
+  const [createEducationV2] = useCreateEducationV2Mutation();
+  const [updateEducationV2] = useUpdateEducationV2Mutation();
+  const [deleteEducationV2] = useDeleteEducationV2Mutation();
 
   useEffect(() => {
     setLocalEducations(educations);
@@ -70,45 +74,79 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations =
   };
 
   const handleDelete = (index: number) => {
-    // TODO: Implement API call to delete
-    setLocalEducations((prev) => prev.filter((_, i) => i !== index));
+    const education = localEducations[index];
+    if (!education.id) {
+      setLocalEducations((prev) => prev.filter((_, i) => i !== index));
+      return;
+    }
+
+    deleteEducationV2({
+      variables: { id: education.id },
+      onCompleted: () => {
+        notify('Education deleted successfully', 'success');
+        setLocalEducations((prev) => prev.filter((_, i) => i !== index));
+        client.refetchQueries({ include: [ProfileV2Document] });
+      },
+      onError: (error) => {
+        console.error('Failed to delete education:', error);
+        notify('Failed to delete education', 'error');
+      },
+    });
   };
 
   const handleSave = () => {
-    let updatedEducations: EducationV2[];
-    if (editingIndex !== null) {
-      updatedEducations = localEducations.map((edu, index) =>
-        index === editingIndex ? formData : edu,
-      );
-    } else {
-      updatedEducations = [...localEducations, formData];
-    }
+    const input = {
+      school: formData.school || '',
+      degree: formData.degree || '',
+      study: formData.study || '',
+      attendedStartDate: formData.attendedStartDate || 0,
+      attendedEndDate: formData.attendedEndDate || 0,
+    };
 
-    updateEducationSectionV2({
-      variables: {
-        input: {
-          educations: updatedEducations.map((edu) => ({
-            school: edu.school || '',
-            degree: edu.degree || '',
-            study: edu.study || '',
-            attendedStartDate: edu.attendedStartDate || 0,
-            attendedEndDate: edu.attendedEndDate || 0,
-          })),
+    if (editingIndex !== null && formData.id) {
+      updateEducationV2({
+        variables: {
+          input: {
+            id: formData.id,
+            ...input,
+          },
         },
-      },
-      onCompleted: async () => {
-        notify('Education updated successfully', 'success');
-        setLocalEducations(updatedEducations);
-        client.refetchQueries({ include: [ProfileV2Document] });
-        setFormData(getEmptyEducation());
-        setEditingIndex(null);
-        setIsOpen(false);
-      },
-      onError: (error) => {
-        console.error('Failed to update education:', error);
-        notify('Failed to update education', 'error');
-      },
-    });
+        onCompleted: (data) => {
+          notify('Education updated successfully', 'success');
+          if (data.updateEducationV2) {
+            setLocalEducations((prev) =>
+              prev.map((edu, index) => (index === editingIndex ? data.updateEducationV2! : edu)),
+            );
+          }
+          client.refetchQueries({ include: [ProfileV2Document] });
+          setFormData(getEmptyEducation());
+          setEditingIndex(null);
+          setIsOpen(false);
+        },
+        onError: (error) => {
+          console.error('Failed to update education:', error);
+          notify('Failed to update education', 'error');
+        },
+      });
+    } else {
+      createEducationV2({
+        variables: { input },
+        onCompleted: (data) => {
+          notify('Education added successfully', 'success');
+          if (data.createEducationV2) {
+            setLocalEducations((prev) => [...prev, data.createEducationV2!]);
+          }
+          client.refetchQueries({ include: [ProfileV2Document] });
+          setFormData(getEmptyEducation());
+          setEditingIndex(null);
+          setIsOpen(false);
+        },
+        onError: (error) => {
+          console.error('Failed to create education:', error);
+          notify('Failed to add education', 'error');
+        },
+      });
+    }
   };
 
   const handleCancel = () => {
