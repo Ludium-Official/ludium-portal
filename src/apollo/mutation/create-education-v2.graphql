@@ -8,4 +8,3 @@ mutation createEducationV2($input: CreateEducationV2Input!) {
     attendedEndDate
   }
 }
-

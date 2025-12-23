@@ -11,4 +11,3 @@ mutation updateWorkExperienceV2($input: UpdateWorkExperienceV2Input!) {
     endYear
   }
 }
-

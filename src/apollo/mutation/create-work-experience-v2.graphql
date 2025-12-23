@@ -11,4 +11,3 @@ mutation createWorkExperienceV2($input: CreateWorkExperienceV2Input!) {
     endYear
   }
 }
-
