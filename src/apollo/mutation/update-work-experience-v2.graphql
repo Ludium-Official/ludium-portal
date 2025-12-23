@@ -1,0 +1,14 @@
+mutation updateWorkExperienceV2($input: UpdateWorkExperienceV2Input!) {
+  updateWorkExperienceV2(input: $input) {
+    id
+    company
+    role
+    employmentType
+    currentWork
+    startMonth
+    startYear
+    endMonth
+    endYear
+  }
+}
+

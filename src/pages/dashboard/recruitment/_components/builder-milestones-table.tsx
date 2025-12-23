@@ -33,6 +33,7 @@ export const BuilderMilestonesTable: React.FC<{
   totalCount: number;
 }> = ({ milestones, totalCount }) => {
   const { getTokenById } = useNetworks();
+  console.log(milestones);
 
   return (
     <div className="border border-gray-200 rounded-lg p-4">
@@ -61,7 +62,7 @@ export const BuilderMilestonesTable: React.FC<{
                   Due Date
                 </TableHead>
                 <TableHead className="text-muted-foreground font-medium w-[25%]">
-                  Paid
+                  Budget
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -94,8 +95,10 @@ export const BuilderMilestonesTable: React.FC<{
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">
-                          {commaNumber(milestone.payout || 0)} /{" "}
-                          {commaNumber(milestone.payout || 0)}
+                          {commaNumber(
+                            Number(milestone.paidAmount || 0) +
+                              Number(milestone.unpaidAmount || 0)
+                          )}
                         </span>
                         <span className="flex items-center gap-1 text-xs text-gray-500 font-semibold [&_svg]:w-4 [&_svg]:h-4">
                           {getCurrencyIcon(token?.tokenName)}

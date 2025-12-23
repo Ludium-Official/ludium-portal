@@ -35,7 +35,7 @@ const RecruitmentDashboardBuilder: React.FC = () => {
   ];
 
   const {
-    data: hiringActivityData,
+    data: jobActivityData,
     loading,
     error,
     refetch,
@@ -53,9 +53,9 @@ const RecruitmentDashboardBuilder: React.FC = () => {
     skip: !userId,
   });
 
-  const jobActivityData = hiringActivityData?.jobActivityV2;
-  const programs = jobActivityData?.programs?.data || [];
-  const totalCount = jobActivityData?.programs?.count || 0;
+  const jobActivity = jobActivityData?.jobActivityV2;
+  const programs = jobActivity?.programs?.data || [];
+  const totalCount = jobActivity?.programs?.count || 0;
 
   return (
     <div className="flex flex-col justify-between bg-white px-10 py-7 rounded-2xl">
@@ -89,7 +89,7 @@ const RecruitmentDashboardBuilder: React.FC = () => {
                 </div>
                 <p className="flex justify-end text-xl font-bold">
                   {commaNumber(
-                    jobActivityData?.cards?.[
+                    jobActivity?.cards?.[
                       option.key as keyof BuilderJobActivityCards
                     ] ?? 0
                   )}
