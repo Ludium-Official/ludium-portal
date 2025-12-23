@@ -411,6 +411,7 @@ export function ContractModal({
 
       const milestoneUpdatePromises = milestones
         .filter((milestone) => milestone.id)
+        .filter((milestone) => milestone.status !== MilestoneStatusV2.Completed)
         .map((milestone) =>
           updateMilestoneV2Mutation({
             variables: {
@@ -460,6 +461,7 @@ export function ContractModal({
     }
 
     const sortedMilestones = milestones
+      .filter((milestone) => milestone.status !== MilestoneStatusV2.Completed)
       .map((milestone) => ({
         id: milestone.id,
         status: milestone.status || MilestoneStatusV2.UnderReview,

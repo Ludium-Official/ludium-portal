@@ -164,11 +164,24 @@ const RecruitmentMessage: React.FC = () => {
 
   const milestonesToUse = useMemo(() => {
     if (hasUpdateStatus && latestContract?.contract_snapshot_cotents?.milestones) {
-      return latestContract.contract_snapshot_cotents.milestones.map((m: MilestoneV2) => ({
-        ...m,
-        id: m.id?.toString(),
-        status: MilestoneStatusV2.InProgress,
-      }));
+      const completedMilestones = allMilestones.filter(
+        (m) => m.status === MilestoneStatusV2.Completed,
+      );
+
+      const updatedMilestones = latestContract.contract_snapshot_cotents.milestones
+        .filter((m: MilestoneV2) => {
+          const existingMilestone = allMilestones.find(
+            (am) => am.id?.toString() === m.id?.toString(),
+          );
+          return existingMilestone?.status !== MilestoneStatusV2.Completed;
+        })
+        .map((m: MilestoneV2) => ({
+          ...m,
+          id: m.id?.toString(),
+          status: MilestoneStatusV2.InProgress,
+        }));
+
+      return [...completedMilestones, ...updatedMilestones];
     }
     return allMilestones;
   }, [hasUpdateStatus, latestContract, allMilestones]);

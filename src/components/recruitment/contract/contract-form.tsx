@@ -89,7 +89,7 @@ export function ContractForm({
                       >
                         <div className="space-y-3">
                           <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground text-xs">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                               Milestone Title
                               {milestone.status === MilestoneStatusV2.InProgress ? (
                                 <span className="bg-[#60A5FA] px-2 py-[1px] rounded-full text-white">
@@ -299,11 +299,15 @@ export function ContractForm({
             <div className="text-sm font-semibold text-muted-foreground">Total price</div>
             <div className="text-sm">
               {(() => {
-                const newTotalPrice = contractJson.totalPrice;
+                const newTotalPrice = contractJson.milestones.reduce(
+                  (acc: number, milestone: any) => acc + Number(milestone.payout),
+                  0,
+                );
+                const totalPrice = contractData?.totalAmount;
 
-                if (contractData?.totalAmount) {
-                  const existingTotalAmount = Number.parseFloat(contractData.totalAmount);
-                  const actualPaymentAmount = newTotalPrice - existingTotalAmount;
+                console.log(newTotalPrice, totalPrice);
+                if (newTotalPrice?.toString() !== totalPrice?.toString()) {
+                  const actualPaymentAmount = newTotalPrice - totalPrice;
 
                   if (actualPaymentAmount > 0) {
                     return (
