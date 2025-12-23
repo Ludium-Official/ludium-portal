@@ -59,7 +59,6 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [resolvedTimezone, setResolvedTimezone] = useState<string>(savedTimezone || '');
 
-  // Email verification states
   const [verificationCode, setVerificationCode] = useState('');
   const [isCodeSent, setIsCodeSent] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -126,7 +125,6 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
     setImagePreview(profileImage || null);
   }, [profileImage]);
 
-  // Countdown timer effect
   useEffect(() => {
     if (countdown <= 0) {
       if (isCodeSent) {
@@ -142,7 +140,6 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
     return () => clearInterval(timer);
   }, [countdown, isCodeSent]);
 
-  // Reset verification state when email changes
   useEffect(() => {
     setIsCodeSent(false);
     setVerificationCode('');
@@ -249,7 +246,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
           location: data.timezone,
           nickname: data.nickname,
           profileImage: selectedAvatar,
-          // verifiedEmail: undefined,
+          verificationCode,
         },
       },
       onCompleted: async () => {
