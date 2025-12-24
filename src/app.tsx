@@ -1,25 +1,25 @@
-import ProtectedRoute from "@/components/auth/protected-route";
-import AdminOutlet from "@/components/layout/admin-outlet";
-import Layout from "@/components/layout/layout";
-import AdminPage from "@/pages/admin";
-import CommunityPage from "@/pages/community";
-import CreateCommunityPage from "@/pages/community/create";
-import CommunityDetailsPage from "@/pages/community/details";
-import EditCommunityPage from "@/pages/community/edit";
-import DashboardPage from "@/pages/dashboard";
-import MainPage from "@/pages/main";
-import ProgramsPage from "@/pages/programs";
-import CreateProgram from "@/pages/programs/create";
-import ProgramDetailsPage from "@/pages/programs/details";
-import EditProgramPage from "@/pages/programs/edit";
-import ScrollWrapper from "@/providers/scroll-wrapper";
-import { Route, Routes } from "react-router";
-import RecruitmentDashboardBuilder from "./pages/dashboard/recruitment/builder";
-import RecruitmentDashboardBuilderDetail from "./pages/dashboard/recruitment/builder/detail";
-import RecruitmentDashboardSponsor from "./pages/dashboard/recruitment/sponsor";
-import RecruitmentDashboardSponsorDetail from "./pages/dashboard/recruitment/sponsor/detail";
-import ProfilePage from "./pages/profile";
-import PortfolioPage from "./pages/portfolio";
+import ProtectedRoute from '@/components/auth/protected-route';
+import AdminOutlet from '@/components/layout/admin-outlet';
+import Layout from '@/components/layout/layout';
+import AdminPage from '@/pages/admin';
+import CommunityPage from '@/pages/community';
+import CreateCommunityPage from '@/pages/community/create';
+import CommunityDetailsPage from '@/pages/community/details';
+import EditCommunityPage from '@/pages/community/edit';
+import DashboardPage from '@/pages/dashboard';
+import MainPage from '@/pages/main';
+import ProgramsPage from '@/pages/programs';
+import CreateProgram from '@/pages/programs/create';
+import ProgramDetailsPage from '@/pages/programs/details';
+import EditProgramPage from '@/pages/programs/edit';
+import ScrollWrapper from '@/providers/scroll-wrapper';
+import { Route, Routes } from 'react-router';
+import RecruitmentDashboardBuilder from './pages/dashboard/recruitment/builder';
+import RecruitmentDashboardBuilderDetail from './pages/dashboard/recruitment/builder/detail';
+import RecruitmentDashboardSponsor from './pages/dashboard/recruitment/sponsor';
+import RecruitmentDashboardSponsorDetail from './pages/dashboard/recruitment/sponsor/detail';
+import ProfilePage from './pages/profile';
+import PortfolioPage from './pages/portfolio';
 
 function App() {
   return (
@@ -34,17 +34,11 @@ function App() {
               <Route path="recruitment">
                 <Route path="sponsor">
                   <Route index element={<RecruitmentDashboardSponsor />} />
-                  <Route
-                    path=":id"
-                    element={<RecruitmentDashboardSponsorDetail />}
-                  />
+                  <Route path=":id" element={<RecruitmentDashboardSponsorDetail />} />
                 </Route>
                 <Route path="builder">
                   <Route index element={<RecruitmentDashboardBuilder />} />
-                  <Route
-                    path=":id"
-                    element={<RecruitmentDashboardBuilderDetail />}
-                  />
+                  <Route path=":id" element={<RecruitmentDashboardBuilderDetail />} />
                 </Route>
               </Route>
             </Route>

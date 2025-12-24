@@ -1,7 +1,7 @@
-import logo from "@/assets/logo.svg";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { cn } from "@/lib/utils";
-import type { PathLinkProps } from "@/types/pathLink";
+import logo from '@/assets/logo.svg';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { cn } from '@/lib/utils';
+import type { PathLinkProps } from '@/types/pathLink';
 import {
   CircleAlert,
   MessageCircle,
@@ -9,10 +9,10 @@ import {
   PanelRightOpen,
   Scroll,
   UserRound,
-} from "lucide-react";
-import { useState } from "react";
-import { Link, NavLink, useLocation } from "react-router";
-import { Button } from "../ui/button";
+} from 'lucide-react';
+import { useState } from 'react';
+import { Link, NavLink, useLocation } from 'react-router';
+import { Button } from '../ui/button';
 
 interface SidebarProps {
   isCollapsed: boolean;
@@ -29,26 +29,26 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
     ...(isLoggedIn
       ? [
           {
-            name: "My Space",
-            path: "/dashboard",
+            name: 'My Space',
+            path: '/dashboard',
             icon: UserRound,
             submenu: [
-              { name: "Dashboard", path: "/dashboard" },
-              { name: "Profile", path: "/profile" },
-              { name: "Portfolio", path: "/portfolio" },
+              { name: 'Dashboard', path: '/dashboard' },
+              { name: 'Profile', path: '/profile' },
+              { name: 'Portfolio', path: '/portfolio' },
             ],
           },
         ]
       : []),
     {
-      name: "Program",
-      path: "/programs",
+      name: 'Program',
+      path: '/programs',
       icon: Scroll,
-      submenu: [{ name: "Recruitment", path: "/programs/recruitment" }],
+      submenu: [{ name: 'Recruitment', path: '/programs/recruitment' }],
     },
     {
-      name: "Community",
-      path: "/community",
+      name: 'Community',
+      path: '/community',
       icon: MessageCircle,
     },
     // { name: 'Agent', path: '/users', icon: Users },
@@ -57,32 +57,29 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
   return (
     <aside
       className={cn(
-        "h-[calc(100dvh-24px)] bg-white rounded-2xl sticky top-3 transition-all duration-300 z-[100]",
-        isCollapsed ? "w-[72px]" : "w-[168px]"
+        'h-[calc(100dvh-24px)] bg-white rounded-2xl sticky top-3 transition-all duration-300 z-[100]',
+        isCollapsed ? 'w-[72px]' : 'w-[168px]',
       )}
     >
       <div
         className={cn(
-          "flex items-center justify-between pt-10 mb-16 h-8",
-          !isCollapsed && "mr-4 ml-6"
+          'flex items-center justify-between pt-10 mb-16 h-8',
+          !isCollapsed && 'mr-4 ml-6',
         )}
       >
         <Link
           to="/"
-          className={cn(
-            "inline-block transition-opacity",
-            isCollapsed && "opacity-0 w-0"
-          )}
+          className={cn('inline-block transition-opacity', isCollapsed && 'opacity-0 w-0')}
         >
           <img src={logo} alt="LUDIUM" className="h-8" />
         </Link>
         <Button
           onClick={onToggle}
           className={cn(
-            "bg-white hover:bg-gray-100 rounded-lg transition-all flex-shrink-0 shadow-none",
-            isCollapsed && "mx-auto"
+            'bg-white hover:bg-gray-100 rounded-lg transition-all flex-shrink-0 shadow-none',
+            isCollapsed && 'mx-auto',
           )}
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {isCollapsed ? (
             <PanelRightClose className="text-black" />
@@ -95,7 +92,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
         <ul className="space-y-5 mx-2">
           {urlLinks.map((link) => {
             const isLinkSubMenu = link.submenu?.some((sMenu) =>
-              location.pathname.startsWith(sMenu.path)
+              location.pathname.startsWith(sMenu.path),
             );
 
             return (
@@ -109,17 +106,15 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                     <div
                       className={`group flex items-center w-full px-4 py-3 rounded-xl transition-colors text-base font-medium text-left ${
                         isLinkSubMenu
-                          ? "bg-[var(--primary-tranparent)] text-primary"
-                          : "hover:bg-[var(--primary-tranparent)] hover:text-primary"
-                      } ${isCollapsed ? "justify-center" : "gap-2"}`}
+                          ? 'bg-[var(--primary-tranparent)] text-primary'
+                          : 'hover:bg-[var(--primary-tranparent)] hover:text-primary'
+                      } ${isCollapsed ? 'justify-center' : 'gap-2'}`}
                     >
                       <link.icon className="group-active:text-primary group-hover:text-primary flex-shrink-0 w-[20px] h-[20px]" />
                       <span
                         className={cn(
-                          "transition-opacity duration-200 whitespace-nowrap",
-                          isCollapsed
-                            ? "opacity-0 w-0 overflow-hidden"
-                            : "opacity-100"
+                          'transition-opacity duration-200 whitespace-nowrap',
+                          isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100',
                         )}
                       >
                         {link.name}
@@ -138,10 +133,10 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                                 to={sublink.path}
                                 className={({ isActive }) =>
                                   cn(
-                                    "block px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                                    'block px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                                     isActive
-                                      ? "bg-[var(--primary-tranparent)] text-primary"
-                                      : "text-gray-700 hover:bg-gray-100 hover:text-primary"
+                                      ? 'bg-[var(--primary-tranparent)] text-primary'
+                                      : 'text-gray-700 hover:bg-gray-100 hover:text-primary',
                                   )
                                 }
                               >
@@ -157,10 +152,8 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                       <div className="overflow-hidden transition-all duration-300 ease-in-out">
                         <div
                           className={cn(
-                            "relative ml-6",
-                            openMenuPath === link.path || isLinkSubMenu
-                              ? "mt-2"
-                              : "h-0"
+                            'relative ml-6',
+                            openMenuPath === link.path || isLinkSubMenu ? 'mt-2' : 'h-0',
                           )}
                         >
                           <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300" />
@@ -171,22 +164,18 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                                   to={sublink.path}
                                   className={({ isActive }) =>
                                     cn(
-                                      "block px-4 py-2 rounded-lg transition-all duration-300 ease-in-out text-sm font-normal hover:text-primary",
-                                      isActive
-                                        ? "text-primary font-medium"
-                                        : "text-gray-600",
-                                      openMenuPath === link.path ||
-                                        isLinkSubMenu
-                                        ? "opacity-100 translate-y-0"
-                                        : "opacity-0 -translate-y-2"
+                                      'block px-4 py-2 rounded-lg transition-all duration-300 ease-in-out text-sm font-normal hover:text-primary',
+                                      isActive ? 'text-primary font-medium' : 'text-gray-600',
+                                      openMenuPath === link.path || isLinkSubMenu
+                                        ? 'opacity-100 translate-y-0'
+                                        : 'opacity-0 -translate-y-2',
                                     )
                                   }
                                   style={{
                                     transitionDelay:
-                                      openMenuPath === link.path ||
-                                      isLinkSubMenu
+                                      openMenuPath === link.path || isLinkSubMenu
                                         ? `${index * 50}ms`
-                                        : "0ms",
+                                        : '0ms',
                                   }}
                                 >
                                   {sublink.name}
@@ -204,18 +193,16 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                     className={({ isActive }) =>
                       `group flex items-center px-4 py-3 rounded-xl transition-colors text-base font-semibold ${
                         isActive
-                          ? "bg-[var(--primary-tranparent)] text-primary"
-                          : "hover:bg-[var(--primary-tranparent)] hover:text-primary"
-                      } ${isCollapsed ? "justify-center" : "gap-2"}`
+                          ? 'bg-[var(--primary-tranparent)] text-primary'
+                          : 'hover:bg-[var(--primary-tranparent)] hover:text-primary'
+                      } ${isCollapsed ? 'justify-center' : 'gap-2'}`
                     }
                   >
                     <link.icon className="group-active:text-primary group-hover:text-primary flex-shrink-0 w-[20px] h-[20px]" />
                     <span
                       className={cn(
-                        "transition-opacity duration-200 whitespace-nowrap",
-                        isCollapsed
-                          ? "opacity-0 w-0 overflow-hidden"
-                          : "opacity-100"
+                        'transition-opacity duration-200 whitespace-nowrap',
+                        isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100',
                       )}
                     >
                       {link.name}
@@ -229,8 +216,8 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
             <a
               href="https://ludium.oopy.io/"
               className={cn(
-                "group flex items-center px-4 py-3 rounded-xl transition-colors text-lg font-medium hover:bg-[var(--primary-tranparent)] hover:text-primary",
-                isCollapsed ? "justify-center" : "gap-2"
+                'group flex items-center px-4 py-3 rounded-xl transition-colors text-lg font-medium hover:bg-[var(--primary-tranparent)] hover:text-primary',
+                isCollapsed ? 'justify-center' : 'gap-2',
               )}
               target="_blank"
               rel="noreferrer"
@@ -238,8 +225,8 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
               <CircleAlert className="flex-shrink-0 w-[20px] h-[20px]" />
               <span
                 className={cn(
-                  "transition-opacity duration-200 whitespace-nowrap text-base font-semibold",
-                  isCollapsed ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
+                  'transition-opacity duration-200 whitespace-nowrap text-base font-semibold',
+                  isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100',
                 )}
               >
                 About

@@ -1,3 +1,5 @@
+import type { PortfolioV2 } from '@/types/types.generated';
+
 export interface ProjectContent {
   id: string;
   type: 'image';
@@ -14,3 +16,8 @@ export interface ProjectFormData {
   contents: ProjectContent[];
   existingImages: string[];
 }
+
+export type Portfolio = Pick<
+  PortfolioV2,
+  'id' | 'title' | 'description' | 'role' | 'isLudiumProject' | 'images' | 'createdAt' | 'updatedAt'
+>;
