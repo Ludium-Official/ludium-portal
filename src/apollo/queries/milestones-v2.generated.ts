@@ -8,7 +8,7 @@ export type GetMilestonesV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type GetMilestonesV2Query = { __typename?: 'Query', milestonesV2?: { __typename?: 'PaginatedMilestonesV2', count?: number | null, currentPage?: number | null, totalPages?: number | null, hasNextPage?: boolean | null, hasPreviousPage?: boolean | null, data?: Array<{ __typename?: 'MilestoneV2', id?: string | null, title?: string | null, description?: string | null, payout?: string | null, deadline?: any | null, createdAt?: any | null, updatedAt?: any | null, status?: Types.MilestoneStatusV2 | null, applicant?: { __typename?: 'UserV2', id?: string | null, walletAddress?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null, profileImage?: string | null, organizationName?: string | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, price?: string | null, deadline?: any | null, status?: Types.ProgramStatusV2 | null } | null }> | null } | null };
+export type GetMilestonesV2Query = { __typename?: 'Query', milestonesV2?: { __typename?: 'PaginatedMilestonesV2', count?: number | null, currentPage?: number | null, totalPages?: number | null, hasNextPage?: boolean | null, hasPreviousPage?: boolean | null, data?: Array<{ __typename?: 'MilestoneV2', id?: string | null, title?: string | null, description?: string | null, payout?: string | null, deadline?: any | null, createdAt?: any | null, updatedAt?: any | null, status?: Types.MilestoneStatusV2 | null, applicant?: { __typename?: 'UserV2', id?: string | null, walletAddress?: string | null, email?: string | null, nickname?: string | null, profileImage?: string | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, price?: string | null, deadline?: any | null, status?: Types.ProgramStatusV2 | null } | null }> | null } | null };
 
 
 export const GetMilestonesV2Document = gql`
@@ -32,10 +32,8 @@ export const GetMilestonesV2Document = gql`
         id
         walletAddress
         email
-        firstName
-        lastName
+        nickname
         profileImage
-        organizationName
       }
       program {
         id

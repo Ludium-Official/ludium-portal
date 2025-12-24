@@ -33,13 +33,17 @@ import {
   reduceString,
 } from '@/lib/utils';
 import { ProgramStatusV2, ProgramVisibilityV2 } from '@/types/types.generated';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Link, useNavigate, useParams } from 'react-router';
 import StatusBadge from '../statusBadge/statusBadge';
+import { cn } from '@/lib/utils';
 
-const RecruitmentOverview: React.FC = () => {
+const RecruitmentOverview: React.FC<{
+  className?: string;
+  isFoldable?: boolean;
+}> = ({ className, isFoldable = false }) => {
   const { id } = useParams();
   const { userId } = useAuth();
   const navigate = useNavigate();
@@ -58,6 +62,7 @@ const RecruitmentOverview: React.FC = () => {
   const [status, setStatus] = useState<ProgramStatusV2>(program?.status || ProgramStatusV2.Open);
   const [coverLetter, setCoverLetter] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(!isFoldable);
 
   useEffect(() => {
     if (program?.status) {
@@ -98,7 +103,7 @@ const RecruitmentOverview: React.FC = () => {
 
       if (result.data?.createApplicationV2) {
         notify('Application submitted successfully!', 'success');
-        navigate('/profile/recruitment/builder');
+        navigate('/dashboard/recruitment/builder');
 
         return;
       }
@@ -170,242 +175,253 @@ const RecruitmentOverview: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-10">
-      <div className="flex items-center mb-4">
-        <div className="mr-5">
-          <StatusBadge status={program.status || 'open'} />
+    <div className={cn('bg-white rounded-2xl p-10', className)}>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center">
+          <div className="mr-3 text-sm">
+            <StatusBadge status={program.status || 'open'} />
+          </div>
+          <div className="text-xs text-gray-500">Posted: {formattedCreatedAt}</div>
         </div>
-        <div className="text-sm text-gray-500">Posted: {formattedCreatedAt}</div>
+        {isFoldable && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="h-8 w-8 border border-gray-200 rounded-sm"
+          >
+            {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+          </Button>
+        )}
       </div>
 
-      <h1 className="flex justify-between mb-8 text-3xl font-bold text-gray-900">
+      <h1
+        className={cn(
+          'flex items-center justify-between text-2xl font-bold text-gray-900',
+          isExpanded ? 'mb-8' : 'mb-0',
+        )}
+      >
         {program.title}
-        <ShareButton linkToCopy={`${window.location.origin}/programs/${program.id}`} />
+        <ShareButton linkToCopy={`${window.location.origin}/programs/recruitment/${program.id}`} />
       </h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          <h3 className="flex items-end">
-            <span className="p-2 border-b border-b-primary font-medium text-sm">Details</span>
-            <span className="block border-b w-full" />
-          </h3>
+      {isExpanded && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <h3 className="flex items-end">
+              <span className="p-2 border-b border-b-primary font-medium text-sm">Details</span>
+              <span className="block border-b w-full" />
+            </h3>
 
-          <div className="mt-3">
-            {program.description && <MarkdownPreviewer value={program.description} />}
+            <div className={cn('mt-3', isFoldable && 'max-h-[672px] overflow-y-auto')}>
+              {program.description && <MarkdownPreviewer value={program.description} />}
+            </div>
           </div>
-        </div>
 
-        <div className="lg:col-span-1">
-          <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between pb-5 border-b">
-              <div className="text-muted-foreground text-sm font-medium">Budget</div>
-              <div>
-                <div className="text-sm text-right">{program.network?.chainName}</div>
-                <div className="font-bold text-xl">
-                  {!program.price ? (
-                    <div className="flex items-center gap-2">
-                      {getCurrencyIcon(program.token?.tokenName || '')}
-                      <span>Negotiable</span>
-                    </div>
-                  ) : program.price && program.token ? (
-                    <div className="flex items-center gap-3">
-                      {formattedPriceValue}{' '}
+          <div className="lg:col-span-1">
+            <div className="p-6 space-y-6">
+              <div className="flex items-center justify-between pb-5 border-b">
+                <div className="text-muted-foreground text-sm font-medium">Budget</div>
+                <div>
+                  <div className="text-sm text-right">{program.network?.chainName}</div>
+                  <div className="font-bold text-xl">
+                    {!program.price ? (
                       <div className="flex items-center gap-2">
-                        {getCurrencyIcon(program.token.tokenName || '')}
-                        {program.token.tokenName}
+                        {getCurrencyIcon(program.token?.tokenName || '')}
+                        <span>Negotiable</span>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="font-bold text-lg">-</div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="text-muted-foreground text-sm font-medium">Deadline</div>
-              <div>
-                <div className="font-bold text-xl">{formattedDeadline}</div>
-              </div>
-            </div>
-
-            {isOwner ? (
-              <div className="flex w-full">
-                <div className="flex justify-end gap-2 w-full">
-                  <Button
-                    variant="secondary"
-                    className="h-11 flex-1"
-                    disabled={!isDraft && isDeadlinePassed}
-                  >
-                    <Link
-                      className="flex items-center justify-center w-full h-full"
-                      to={`/programs/${program.id}/edit`}
-                    >
-                      Edit
-                    </Link>
-                  </Button>
-                  {program.status === 'under_review' ? (
-                    <Button disabled className="h-11 flex-1">
-                      Under Review
-                    </Button>
-                  ) : isDeadlinePassed || isDraft ? (
-                    <Button variant="outline" disabled className="border h-11 flex-1 gap-2">
-                      <StatusBadge status={status} />
-                      <ChevronDown className="ml-auto h-4 w-4" />
-                    </Button>
-                  ) : (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="border h-11 flex-1 gap-2">
-                          <StatusBadge status={status} />
-                          <ChevronDown className="ml-auto h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[180px]">
-                        <DropdownMenuItem
-                          onClick={() => handleStatusChange(ProgramStatusV2.Open)}
-                          className="cursor-pointer"
-                        >
-                          <StatusBadge status="open" />
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleStatusChange(ProgramStatusV2.Closed)}
-                          className="cursor-pointer"
-                        >
-                          <StatusBadge status="closed" />
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-              </div>
-            ) : (
-              userId && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                      <TooltipTrigger asChild>
-                        <span className="w-full">
-                          <DialogTrigger asChild>
-                            <Button
-                              className="w-full"
-                              disabled={
-                                program.status !== ProgramStatusV2.Open ||
-                                program.hasApplied ||
-                                isDeadlinePassed ||
-                                false
-                              }
-                            >
-                              {program.hasApplied ? 'Applied' : 'Submit application'}
-                            </Button>
-                          </DialogTrigger>
-                        </span>
-                      </TooltipTrigger>
-                      {isDeadlinePassed && (
-                        <TooltipContent>
-                          <p className="text-black">Deadline has passed</p>
-                        </TooltipContent>
-                      )}
-                      <DialogContent className="max-w-3xl! max-h-[90vh] overflow-y-auto">
-                        <DialogHeader className="flex-row items-center justify-between space-y-0">
-                          <DialogTitle>Add Cover Letter</DialogTitle>
-                        </DialogHeader>
-                        <div className="mt-4">
-                          <InputLabel
-                            labelId="coverLetter"
-                            title="Highlight your skills and explain why you're a great fit for this role."
-                            isPrimary
-                            inputClassName="hidden"
-                          >
-                            <MarkdownEditor
-                              onChange={(value: string) => {
-                                setCoverLetter(value);
-                              }}
-                              content={coverLetter}
-                            />
-                          </InputLabel>
+                    ) : program.price && program.token ? (
+                      <div className="flex items-center gap-3">
+                        {formattedPriceValue}{' '}
+                        <div className="flex items-center gap-2">
+                          {getCurrencyIcon(program.token.tokenName || '')}
+                          {program.token.tokenName}
                         </div>
-                        <div className="flex justify-end">
-                          <Button
-                            onClick={handleSubmitApplication}
-                            disabled={submitting || !coverLetter.trim()}
-                          >
-                            {submitting ? 'Submitting...' : 'Submit application'}
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </Tooltip>
-                </TooltipProvider>
-              )
-            )}
-
-            <div className="mt-4">
-              <div className="mb-2 text-muted-foreground text-sm font-medium">Skills</div>
-              <div className="flex flex-wrap gap-3 text-sm">
-                {program.skills?.map((skill: string) => (
-                  <Badge key={skill} variant="secondary" className="text-xs font-semibold">
-                    {skill.toUpperCase()}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <div className="mb-2 text-muted-foreground text-sm font-medium">Sponsor</div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Avatar className="w-6 h-6">
-                  <AvatarImage src={program.sponsor?.profileImage || ''} />
-                  <AvatarFallback className="text-xs">
-                    {getInitials(
-                      getUserDisplayName(
-                        program.sponsor?.firstName,
-                        program.sponsor?.lastName,
-                        program.sponsor?.email,
-                      ),
+                      </div>
+                    ) : (
+                      <div className="font-bold text-lg">-</div>
                     )}
-                  </AvatarFallback>
-                </Avatar>
-                {getUserDisplayName(
-                  program.sponsor?.firstName,
-                  program.sponsor?.lastName,
-                  program.sponsor?.email,
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="text-muted-foreground text-sm font-medium">Deadline</div>
+                <div>
+                  <div className="font-bold text-xl">{formattedDeadline}</div>
+                </div>
+              </div>
+
+              {isOwner ? (
+                <div className="flex w-full">
+                  <div className="flex justify-end gap-2 w-full">
+                    <Button
+                      variant="secondary"
+                      className="h-11 flex-1"
+                      disabled={!isDraft && isDeadlinePassed}
+                    >
+                      <Link
+                        className="flex items-center justify-center w-full h-full"
+                        to={`/programs/recruitment/${program.id}/edit`}
+                      >
+                        Edit
+                      </Link>
+                    </Button>
+                    {program.status === 'under_review' ? (
+                      <Button disabled className="h-11 flex-1">
+                        Under Review
+                      </Button>
+                    ) : isDeadlinePassed || isDraft ? (
+                      <Button variant="outline" disabled className="border h-11 flex-1 gap-2">
+                        <StatusBadge status={status} />
+                        <ChevronDown className="ml-auto h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" className="border h-11 flex-1 gap-2">
+                            <StatusBadge status={status} />
+                            <ChevronDown className="ml-auto h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-[180px]">
+                          <DropdownMenuItem
+                            onClick={() => handleStatusChange(ProgramStatusV2.Open)}
+                            className="cursor-pointer"
+                          >
+                            <StatusBadge status="open" />
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleStatusChange(ProgramStatusV2.Closed)}
+                            className="cursor-pointer"
+                          >
+                            <StatusBadge status="closed" />
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                userId && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <TooltipTrigger asChild>
+                          <span className="w-full">
+                            <DialogTrigger asChild>
+                              <Button
+                                className="w-full"
+                                disabled={
+                                  program.status !== ProgramStatusV2.Open ||
+                                  program.hasApplied ||
+                                  isDeadlinePassed ||
+                                  false
+                                }
+                              >
+                                {program.hasApplied ? 'Applied' : 'Submit application'}
+                              </Button>
+                            </DialogTrigger>
+                          </span>
+                        </TooltipTrigger>
+                        {isDeadlinePassed && (
+                          <TooltipContent>
+                            <p className="text-black">Deadline has passed</p>
+                          </TooltipContent>
+                        )}
+                        <DialogContent className="max-w-3xl! max-h-[90vh] overflow-y-auto">
+                          <DialogHeader className="flex-row items-center justify-between space-y-0">
+                            <DialogTitle>Add Cover Letter</DialogTitle>
+                          </DialogHeader>
+                          <div className="mt-4">
+                            <InputLabel
+                              labelId="coverLetter"
+                              title="Highlight your skills and explain why you're a great fit for this role."
+                              isPrimary
+                              inputClassName="hidden"
+                            >
+                              <MarkdownEditor
+                                onChange={(value: string) => {
+                                  setCoverLetter(value);
+                                }}
+                                content={coverLetter}
+                              />
+                            </InputLabel>
+                          </div>
+                          <div className="flex justify-end">
+                            <Button
+                              onClick={handleSubmitApplication}
+                              disabled={submitting || !coverLetter.trim()}
+                            >
+                              {submitting ? 'Submitting...' : 'Submit application'}
+                            </Button>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </Tooltip>
+                  </TooltipProvider>
+                )
+              )}
+
+              <div className="mt-4">
+                <div className="mb-2 text-muted-foreground text-sm font-medium">Skills</div>
+                <div className="flex flex-wrap gap-3 text-sm">
+                  {program.skills?.map((skill: string) => (
+                    <Badge key={skill} variant="secondary" className="text-xs font-semibold">
+                      {skill.toUpperCase()}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-2 text-muted-foreground text-sm font-medium">Sponsor</div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Avatar className="w-6 h-6">
+                    <AvatarImage src={program.sponsor?.profileImage || ''} />
+                    <AvatarFallback className="text-xs">
+                      {getInitials(
+                        getUserDisplayName(program.sponsor?.nickname, program.sponsor?.email),
+                      )}
+                    </AvatarFallback>
+                  </Avatar>
+                  {getUserDisplayName(program.sponsor?.nickname, program.sponsor?.email)}
+                </div>
+              </div>
+
+              <div className="text-sm font-medium">
+                <span className="mr-2 text-muted-foreground">Applicants</span>{' '}
+                <span className="text-primary">
+                  {program.applicationCount && program.applicationCount > 10
+                    ? '10+'
+                    : (program.applicationCount ?? 0)}
+                </span>
+              </div>
+
+              <div>
+                <div className="flex items-center mb-2 text-muted-foreground text-sm font-medium">
+                  Visibility
+                  <div className="ml-3 font-bold capitalize">
+                    <Badge variant="purple" className="text-xs font-semibold">
+                      {program.visibility}
+                    </Badge>
+                  </div>
+                </div>
+                {isOwner && (
+                  <div className="flex items-center gap-2">
+                    {program.invitedMembers &&
+                      program.invitedMembers.map((member: string) => (
+                        <Badge key={member} variant="secondary" className="text-xs font-semibold">
+                          {reduceString(member, 6, 6)}
+                        </Badge>
+                      ))}
+                  </div>
                 )}
               </div>
             </div>
-
-            <div className="text-sm font-medium">
-              <span className="mr-2 text-muted-foreground">Applicants</span>{' '}
-              <span className="text-primary">
-                {program.applicationCount && program.applicationCount > 10
-                  ? '10+'
-                  : (program.applicationCount ?? 0)}
-              </span>
-            </div>
-
-            <div>
-              <div className="flex items-center mb-2 text-muted-foreground text-sm font-medium">
-                Visibility
-                <div className="ml-3 font-bold capitalize">
-                  <Badge variant="purple" className="text-xs font-semibold">
-                    {program.visibility}
-                  </Badge>
-                </div>
-              </div>
-              {isOwner && (
-                <div className="flex items-center gap-2">
-                  {program.invitedMembers &&
-                    program.invitedMembers.map((member: string) => (
-                      <Badge key={member} variant="secondary" className="text-xs font-semibold">
-                        {reduceString(member, 6, 6)}
-                      </Badge>
-                    ))}
-                </div>
-              )}
-            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

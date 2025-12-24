@@ -6,7 +6,7 @@ const defaultOptions = {} as const;
 export type ProfileV2QueryVariables = Types.Exact<{ [key: string]: never; }>;
 
 
-export type ProfileV2Query = { __typename?: 'Query', profileV2?: { __typename?: 'UserV2', id?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null, role?: Types.UserRoleV2 | null, loginType?: Types.LoginTypeEnum | null, walletAddress?: string | null, organizationName?: string | null, profileImage?: string | null, bio?: string | null, skills?: Array<string> | null, links?: Array<string> | null, createdAt?: any | null, updatedAt?: any | null } | null };
+export type ProfileV2Query = { __typename?: 'Query', profileV2?: { __typename?: 'UserV2', id?: string | null, email?: string | null, nickname?: string | null, role?: Types.UserRoleV2 | null, loginType?: Types.LoginTypeEnum | null, walletAddress?: string | null, profileImage?: string | null, skills?: Array<string> | null, about?: string | null, location?: string | null, userRole?: string | null, createdAt?: any | null, updatedAt?: any | null, languages?: Array<{ __typename?: 'LanguageV2', id?: string | null, language?: string | null, proficiency?: string | null }> | null, workExperiences?: Array<{ __typename?: 'WorkExperienceV2', id?: string | null, company?: string | null, currentWork?: boolean | null, employmentType?: string | null, endMonth?: string | null, endYear?: number | null, role?: string | null, startMonth?: string | null, startYear?: number | null }> | null, educations?: Array<{ __typename?: 'EducationV2', id?: string | null, attendedEndDate?: number | null, attendedStartDate?: number | null, degree?: string | null, school?: string | null, study?: string | null, userId?: number | null }> | null } | null };
 
 
 export const ProfileV2Document = gql`
@@ -14,18 +14,42 @@ export const ProfileV2Document = gql`
   profileV2 {
     id
     email
-    firstName
-    lastName
+    nickname
     role
     loginType
     walletAddress
-    organizationName
     profileImage
-    bio
     skills
-    links
+    about
+    location
+    userRole
     createdAt
     updatedAt
+    languages {
+      id
+      language
+      proficiency
+    }
+    workExperiences {
+      id
+      company
+      currentWork
+      employmentType
+      endMonth
+      endYear
+      role
+      startMonth
+      startYear
+    }
+    educations {
+      id
+      attendedEndDate
+      attendedStartDate
+      degree
+      school
+      study
+      userId
+    }
   }
 }
     `;

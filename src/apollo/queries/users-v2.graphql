@@ -6,13 +6,12 @@ query usersV2($query: UsersV2QueryInput) {
       loginType
       walletAddress
       email
-      firstName
-      lastName
-      organizationName
+      nickname
       profileImage
-      bio
       skills
-      links
+      about
+      location
+      userRole
       createdAt
       updatedAt
     }

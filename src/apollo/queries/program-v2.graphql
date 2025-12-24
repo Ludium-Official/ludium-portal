@@ -18,10 +18,8 @@ query GetProgramV2($id: ID!) {
       id
       walletAddress
       email
-      firstName
-      lastName
+      nickname
       profileImage
-      organizationName
     }
     network {
       id

@@ -5,13 +5,12 @@ mutation createUserV2($input: CreateUserV2Input!) {
     loginType
     walletAddress
     email
-    firstName
-    lastName
-    organizationName
+    nickname
     profileImage
-    bio
     skills
-    links
+    about
+    location
+    userRole
     createdAt
     updatedAt
   }

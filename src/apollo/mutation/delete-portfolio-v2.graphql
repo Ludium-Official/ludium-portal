@@ -1,0 +1,3 @@
+mutation deletePortfolioV2($id: ID!) {
+  deletePortfolioV2(id: $id)
+}

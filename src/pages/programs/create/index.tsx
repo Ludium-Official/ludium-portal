@@ -18,7 +18,7 @@ import { useNavigate } from 'react-router';
 const CreateProgram: React.FC = () => {
   const navigate = useNavigate();
 
-  const { isLoggedIn, isAuthed } = useAuth();
+  const { isAuthed, isAuthLoading } = useAuth();
   const [createProgram, { loading }] = useCreateProgramWithOnchainV2Mutation();
   const [createProgramV2] = useCreateProgramV2Mutation();
 
@@ -41,7 +41,7 @@ const CreateProgram: React.FC = () => {
           },
           onCompleted: async () => {
             notify('Successfully saved the draft program', 'success');
-            navigate('/programs');
+            navigate('/programs/recruitment');
             client.refetchQueries({ include: [GetProgramsV2Document] });
           },
           onError: (error) => {
@@ -80,7 +80,7 @@ const CreateProgram: React.FC = () => {
           },
           onCompleted: async () => {
             notify('Successfully created the program', 'success');
-            navigate('/profile/recruitment/sponsor');
+            navigate('/dashboard/recruitment/sponsor');
             client.refetchQueries({ include: [GetProgramsV2Document] });
           },
           onError: (error) => {
@@ -96,17 +96,13 @@ const CreateProgram: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      navigate('/');
-      notify('Please login first', 'success');
-      return;
-    }
+    if (isAuthLoading) return;
+
     if (!isAuthed) {
-      navigate('/profile/edit');
+      navigate('/profile');
       notify('Please add your email', 'success');
-      return;
     }
-  }, [isLoggedIn, isAuthed]);
+  }, [isAuthed, isAuthLoading, navigate]);
 
   return (
     <div className="w-full bg-gray-light p-10 pr-[55px]" defaultValue="edit">

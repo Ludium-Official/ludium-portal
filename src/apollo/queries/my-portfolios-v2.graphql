@@ -1,0 +1,12 @@
+query myPortfoliosV2 {
+  myPortfoliosV2 {
+    id
+    title
+    description
+    role
+    isLudiumProject
+    images
+    createdAt
+    updatedAt
+  }
+}

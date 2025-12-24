@@ -66,10 +66,10 @@ function CommentableComment({
         <Avatar className="h-10 w-10">
           <AvatarImage
             src={comment.author?.image || ''}
-            alt={`${comment.author?.firstName} ${comment.author?.lastName}`}
+            alt={`${comment.author?.firstName || ''} ${comment.author?.lastName || ''}`}
           />
           <AvatarFallback className="bg-purple-600 text-white">
-            {getInitials(`${comment.author?.firstName} ${comment.author?.lastName}`)}
+            {getInitials(`${comment.author?.firstName || ''} ${comment.author?.lastName || ''}`)}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1">
@@ -137,10 +137,12 @@ function CommentableComment({
                   <Avatar className="h-10 w-10">
                     <AvatarImage
                       src={reply.author?.image || ''}
-                      alt={`${reply.author?.firstName} ${reply.author?.lastName}`}
+                      alt={`${reply.author?.firstName || ''} ${reply.author?.lastName || ''}`}
                     />
                     <AvatarFallback className="bg-purple-600 text-white">
-                      {getInitials(`${reply.author?.firstName} ${reply.author?.lastName}`)}
+                      {getInitials(
+                        `${reply.author?.firstName || ''} ${reply.author?.lastName || ''}`,
+                      )}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">

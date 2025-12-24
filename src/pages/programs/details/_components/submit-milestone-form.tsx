@@ -95,7 +95,7 @@ function SubmitMilestoneForm({
 
     document.getElementById('submit-milestone-dialog-close')?.click();
 
-    // TODO: Backend schema needs to be updated to include file field in SubmitMilestoneInput
+    // Backend schema needs to be updated to include file field in SubmitMilestoneInput
     // For now, we'll submit without the file until the schema is updated
     submitMutation({
       variables: {

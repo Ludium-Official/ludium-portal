@@ -1,11 +1,12 @@
 import { useUserQuery } from '@/apollo/queries/user.generated';
-import avatarPlaceholder from '@/assets/avatar-placeholder.png';
+import avatarDefault from '@/assets/avatar-default.svg';
 import { Badge } from '@/components/ui/badge';
 import { ShareButton } from '@/components/ui/share-button';
 import SocialIcon from '@/components/ui/social-icon';
 import { Separator } from '@radix-ui/react-dropdown-menu';
 import { Outlet, useParams } from 'react-router';
 import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 
 function UserDetailsPage() {
   const { id } = useParams();
@@ -24,11 +25,11 @@ function UserDetailsPage() {
             <div className="flex flex-col gap-6">
               <div className="flex items-center gap-[22px]">
                 <div className="p-[7.5px]">
-                  <img
-                    src={userData?.user?.image ?? avatarPlaceholder}
-                    alt="avatar"
-                    className="w-[121px] h-[121px] rounded-full object-cover"
-                  />
+                  <Avatar className="w-[121px] h-[121px]">
+                    <AvatarImage
+                      src={userData?.user?.image ? userData?.user?.image : avatarDefault}
+                    />
+                  </Avatar>
                 </div>
                 <div className="flex flex-col gap-2">
                   <div className="space-y-0.5">

@@ -11,10 +11,8 @@ query GetMilestoneV2($id: ID!) {
       id
       walletAddress
       email
-      firstName
-      lastName
+      nickname
       profileImage
-      organizationName
     }
     program {
       id

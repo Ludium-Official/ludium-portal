@@ -11,10 +11,8 @@ mutation CreateMilestoneV2($input: CreateMilestoneV2Input!) {
       id
       walletAddress
       email
-      firstName
-      lastName
+      nickname
       profileImage
-      organizationName
     }
     program {
       id
