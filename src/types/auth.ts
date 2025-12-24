@@ -7,6 +7,7 @@ export interface AuthProps {
   userId: string;
   isLoggedIn?: boolean;
   isAuthed?: boolean;
+  isAuthLoading?: boolean;
   isAdmin?: boolean | null;
   isSuperadmin?: boolean | null;
   login: ({

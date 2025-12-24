@@ -19,7 +19,7 @@ const EditProgram: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const { isAuthed } = useAuth();
+  const { isAuthed, isAuthLoading } = useAuth();
   const [updateProgram, { loading }] = useUpdateProgramV2Mutation();
   const [createOnchainProgramInfo] = useCreateOnchainProgramInfoV2Mutation();
 
@@ -73,11 +73,13 @@ const EditProgram: React.FC = () => {
   };
 
   useEffect(() => {
+    if (isAuthLoading) return;
+
     if (!isAuthed) {
-      navigate('/profile/edit');
+      navigate('/profile');
       notify('Please add your email', 'success');
     }
-  }, [isAuthed, navigate]);
+  }, [isAuthed, isAuthLoading, navigate]);
 
   return (
     <div className="w-full bg-[#f7f7f7] p-10 pr-[55px]" defaultValue="edit">

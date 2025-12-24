@@ -1,11 +1,16 @@
-import { simpleSandpackConfig } from '@/components/markdown/configs';
-import { YouTubeButton, YoutubeDescriptor } from '@/components/markdown/youtube';
+import { simpleSandpackConfig } from "@/components/markdown/configs";
+import {
+  YouTubeButton,
+  YoutubeDescriptor,
+} from "@/components/markdown/youtube";
+import { storage } from "@/lib/firebase";
 import {
   AdmonitionDirectiveDescriptor,
   BlockTypeSelect,
   BoldItalicUnderlineToggles,
   DiffSourceToggleWrapper,
   InsertCodeBlock,
+  InsertImage,
   InsertTable,
   InsertThematicBreak,
   ListsToggle,
@@ -28,21 +33,23 @@ import {
   tablePlugin,
   thematicBreakPlugin,
   toolbarPlugin,
-} from '@mdxeditor/editor';
-import '@mdxeditor/editor/style.css';
-import { useEffect, useRef, useState } from 'react';
+} from "@mdxeditor/editor";
+import "@mdxeditor/editor/style.css";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+import { useEffect, useRef, useState } from "react";
 
-import './style.css';
+import "./style.css";
 
-export async function expressImageUploadHandler(image: File) {
-  const formData = new FormData();
-  formData.append('image', image);
-  const response = await fetch('/uploads/new', {
-    method: 'POST',
-    body: formData,
-  });
-  const json = (await response.json()) as { url: string };
-  return json.url;
+const isProduction = import.meta.env.VITE_VERCEL_ENVIRONMENT === "mainnet";
+const STORAGE_FOLDER = isProduction ? "markdown-images" : "markdown-images-dev";
+
+async function imageUploadHandler(image: File): Promise<string> {
+  const timestamp = Date.now();
+  const fileName = `${STORAGE_FOLDER}/${timestamp}_${image.name}`;
+  const storageRef = ref(storage, fileName);
+
+  await uploadBytes(storageRef, image);
+  return await getDownloadURL(storageRef);
 }
 
 const debounce = (fn: (value: string) => void, delay: number) => {
@@ -63,7 +70,7 @@ function MarkdownEditor({
   content: string;
 }) {
   const mdxRef = useRef<MDXEditorMethods>(null);
-  const [prevVal, setPrevVal] = useState<string>('');
+  const [prevVal, setPrevVal] = useState<string>("");
 
   useEffect(() => {
     setPrevVal((val) => (!val ? content : val));
@@ -72,7 +79,7 @@ function MarkdownEditor({
   const debouncedChange = useRef(
     debounce((value: string) => {
       onChange(value);
-    }, 300),
+    }, 300)
   ).current;
 
   const debouncedOnChange = (value: string) => {
@@ -100,39 +107,38 @@ function MarkdownEditor({
         linkPlugin(),
         linkDialogPlugin(),
         imagePlugin({
-          imageAutocompleteSuggestions: [
-            'https://via.placeholder.com/150',
-            'https://via.placeholder.com/150',
-          ],
-          imageUploadHandler: async () => Promise.resolve('https://picsum.photos/200/300'),
+          imageUploadHandler,
         }),
         tablePlugin(),
         thematicBreakPlugin(),
         frontmatterPlugin(),
         directivesPlugin({
-          directiveDescriptors: [AdmonitionDirectiveDescriptor, YoutubeDescriptor],
+          directiveDescriptors: [
+            AdmonitionDirectiveDescriptor,
+            YoutubeDescriptor,
+          ],
         }),
-        diffSourcePlugin({ viewMode: 'rich-text', diffMarkdown: prevVal }),
-        codeBlockPlugin({ defaultCodeBlockLanguage: 'js' }),
+        diffSourcePlugin({ viewMode: "rich-text", diffMarkdown: prevVal }),
+        codeBlockPlugin({ defaultCodeBlockLanguage: "js" }),
         codeMirrorPlugin({
           codeMirrorExtensions: [],
           autoLoadLanguageSupport: true,
           codeBlockLanguages: {
-            js: 'JavaScript',
-            jsx: 'JavaScript (React)',
-            css: 'CSS',
-            txt: 'text',
-            tsx: 'TypeScript (React)',
-            ts: 'TypeScript',
-            bash: 'Bash',
-            sh: 'sh',
-            env: 'env',
-            '': 'Unspecified',
+            js: "JavaScript",
+            jsx: "JavaScript (React)",
+            css: "CSS",
+            txt: "text",
+            tsx: "TypeScript (React)",
+            ts: "TypeScript",
+            bash: "Bash",
+            sh: "sh",
+            env: "env",
+            "": "Unspecified",
           },
         }),
         markdownShortcutPlugin(),
         toolbarPlugin({
-          toolbarClassName: 'my-classname',
+          toolbarClassName: "my-classname",
           toolbarContents: () => (
             <>
               <DiffSourceToggleWrapper>
@@ -143,6 +149,7 @@ function MarkdownEditor({
                 <InsertTable />
                 <ListsToggle />
                 <InsertCodeBlock />
+                <InsertImage />
                 <YouTubeButton />
               </DiffSourceToggleWrapper>
             </>

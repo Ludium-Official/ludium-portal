@@ -18,7 +18,7 @@ import { useNavigate } from 'react-router';
 const CreateProgram: React.FC = () => {
   const navigate = useNavigate();
 
-  const { isAuthed } = useAuth();
+  const { isAuthed, isAuthLoading } = useAuth();
   const [createProgram, { loading }] = useCreateProgramWithOnchainV2Mutation();
   const [createProgramV2] = useCreateProgramV2Mutation();
 
@@ -96,11 +96,13 @@ const CreateProgram: React.FC = () => {
   };
 
   useEffect(() => {
+    if (isAuthLoading) return;
+
     if (!isAuthed) {
-      navigate('/profile/edit');
+      navigate('/profile');
       notify('Please add your email', 'success');
     }
-  }, [isAuthed, navigate]);
+  }, [isAuthed, isAuthLoading, navigate]);
 
   return (
     <div className="w-full bg-gray-light p-10 pr-[55px]" defaultValue="edit">
