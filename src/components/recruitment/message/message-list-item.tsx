@@ -23,8 +23,8 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
   currentUserId,
 }) => {
   const { applicant } = message;
-  const fullName = getUserDisplayName(applicant?.firstName, applicant?.lastName, applicant?.email);
-  const initials = getUserInitialName(applicant?.firstName, applicant?.lastName, applicant?.email);
+  const fullName = getUserDisplayName(applicant?.nickname, applicant?.email);
+  const initials = getUserInitialName(applicant?.nickname, applicant?.email);
 
   const formatDate = (timestamp: Timestamp | null | undefined) => {
     if (!timestamp) return '';

@@ -8,7 +8,7 @@ export type CreateMilestoneV2MutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateMilestoneV2Mutation = { __typename?: 'Mutation', createMilestoneV2?: { __typename?: 'MilestoneV2', id?: string | null, title?: string | null, description?: string | null, payout?: string | null, deadline?: any | null, createdAt?: any | null, updatedAt?: any | null, applicant?: { __typename?: 'UserV2', id?: string | null, walletAddress?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null, profileImage?: string | null, organizationName?: string | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, price?: string | null, deadline?: any | null, status?: Types.ProgramStatusV2 | null } | null } | null };
+export type CreateMilestoneV2Mutation = { __typename?: 'Mutation', createMilestoneV2?: { __typename?: 'MilestoneV2', id?: string | null, title?: string | null, description?: string | null, payout?: string | null, deadline?: any | null, createdAt?: any | null, updatedAt?: any | null, applicant?: { __typename?: 'UserV2', id?: string | null, walletAddress?: string | null, email?: string | null, nickname?: string | null, profileImage?: string | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, price?: string | null, deadline?: any | null, status?: Types.ProgramStatusV2 | null } | null } | null };
 
 
 export const CreateMilestoneV2Document = gql`
@@ -25,10 +25,8 @@ export const CreateMilestoneV2Document = gql`
       id
       walletAddress
       email
-      firstName
-      lastName
+      nickname
       profileImage
-      organizationName
     }
     program {
       id

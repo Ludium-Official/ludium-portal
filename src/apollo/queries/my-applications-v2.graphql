@@ -11,8 +11,7 @@ query myApplicationsV2($query: MyApplicationsV2QueryInput) {
       applicant {
         id
         email
-        firstName
-        lastName
+        nickname
         profileImage
       }
       program {

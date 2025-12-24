@@ -61,8 +61,7 @@ export interface ProgramDetailProps extends programFormProps {
 }
 
 export interface builderProps {
-  firstName?: string | null;
-  lastName?: string | null;
+  nickname?: string | null;
   walletAddress?: string;
   image?: string | null;
   email?: string | null;
@@ -96,8 +95,7 @@ export interface RecruitmentApplicant {
   userInfo: {
     userId?: string | null;
     image?: string | null;
-    firstName?: string | null;
-    lastName?: string | null;
+    nickname?: string | null;
     email?: string | null;
     cv?: string | null;
     location?: string | null;

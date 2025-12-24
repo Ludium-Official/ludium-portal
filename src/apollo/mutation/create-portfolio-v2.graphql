@@ -1,0 +1,12 @@
+mutation createPortfolioV2($input: CreatePortfolioV2Input!) {
+  createPortfolioV2(input: $input) {
+    id
+    title
+    description
+    role
+    isLudiumProject
+    images
+    createdAt
+    updatedAt
+  }
+}

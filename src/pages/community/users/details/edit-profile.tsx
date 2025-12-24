@@ -3,14 +3,12 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useForm } from 'react-hook-form';
 
-import { useUpdateProfileV2Mutation } from '@/apollo/mutation/update-profile-v2.generated';
+import { useUpdateUserV2Mutation } from '@/apollo/mutation/update-user-v2.generated';
 import { useProfileV2Query } from '@/apollo/queries/profile-v2.generated';
 import { MarkdownEditor } from '@/components/markdown';
 import { Badge } from '@/components/ui/badge';
-import SocialIcon from '@/components/ui/social-icon';
 import notify from '@/lib/notify';
-import { filterEmptyLinks, validateLinks } from '@/lib/validation';
-import { ChevronRight, Image as ImageIcon, Plus, X } from 'lucide-react';
+import { ChevronRight, Image as ImageIcon, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -21,43 +19,32 @@ function EditProfilePage() {
     fetchPolicy: 'network-only',
   });
 
-  const [content, setContent] = useState<string>('');
+  const [about, setAbout] = useState<string>('');
   const [selectedTab, setSelectedTab] = useState<string>('overview');
 
   useEffect(() => {
-    if (profileData?.profileV2?.bio) {
-      setContent(profileData?.profileV2?.bio);
+    if (profileData?.profileV2?.about) {
+      setAbout(profileData?.profileV2?.about);
     }
     if (profileData?.profileV2?.profileImage) {
       setImagePreview(profileData?.profileV2?.profileImage);
     }
   }, [profileData]);
 
-  useEffect(() => {
-    const links = profileData?.profileV2?.links;
-    if (links?.length) {
-      setLinks(links?.filter((l) => l));
-    }
-  }, [profileData]);
-
-  const [links, setLinks] = useState<string[]>(['']);
-
-  const [updateProfile] = useUpdateProfileV2Mutation();
+  const [updateUser] = useUpdateUserV2Mutation();
 
   const { register, handleSubmit, watch, setValue, getValues } = useForm<{
     email: string;
-    name: string;
-    firstName: string;
-    lastName: string;
-    roleKeywords: string[];
+    nickname: string;
+    userRole: string;
+    location: string;
     skillKeywords: string[];
   }>({
     values: {
       email: profileData?.profileV2?.email ?? '',
-      name: profileData?.profileV2?.organizationName ?? '',
-      firstName: profileData?.profileV2?.firstName ?? '',
-      lastName: profileData?.profileV2?.lastName ?? '',
-      roleKeywords: [],
+      nickname: profileData?.profileV2?.nickname ?? '',
+      userRole: profileData?.profileV2?.userRole ?? '',
+      location: profileData?.profileV2?.location ?? '',
       skillKeywords: profileData?.profileV2?.skills || [],
     },
   });
@@ -65,36 +52,38 @@ function EditProfilePage() {
   const [selectedAvatar, setSelectedAvatar] = useState<File>();
   const [imageError, setImageError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [linksError, setLinksError] = useState(false);
 
-  const onSubmit = (data: {
-    name: string;
+  const onSubmit = async (data: {
     email: string;
-    firstName: string;
-    lastName: string;
-    roleKeywords: string[];
+    nickname: string;
+    userRole: string;
+    location: string;
     skillKeywords: string[];
   }) => {
-    const { isValid } = validateLinks(links);
-    if (!isValid) {
-      setLinksError(true);
+    if (!profileData?.profileV2?.id) {
+      notify('Profile not found', 'error');
       return;
     }
 
-    updateProfile({
+    let profileImageUrl = profileData?.profileV2?.profileImage;
+
+    // TODO: Implement file upload logic if needed
+    if (selectedAvatar) {
+      notify('Image upload not yet implemented', 'error');
+      return;
+    }
+
+    updateUser({
       variables: {
         input: {
+          id: profileData.profileV2.id,
           email: data.email,
-          organizationName: data?.name,
-          firstName: data?.firstName,
-          lastName: data?.lastName,
-          bio: content,
+          nickname: data.nickname,
+          userRole: data.userRole || undefined,
+          location: data.location || undefined,
           skills: data.skillKeywords,
-          links: (() => {
-            const { shouldSend } = validateLinks(links);
-            return shouldSend ? filterEmptyLinks(links) : undefined;
-          })(),
-          profileImage: selectedAvatar,
+          about: about || undefined,
+          profileImage: profileImageUrl,
         },
       },
       onCompleted: () => {
@@ -113,44 +102,16 @@ function EditProfilePage() {
   };
 
   const isNoChanges =
-    profileData?.profileV2?.firstName === watch('firstName') &&
-    profileData?.profileV2?.lastName === watch('lastName') &&
-    profileData?.profileV2?.organizationName === watch('name') &&
+    profileData?.profileV2?.nickname === watch('nickname') &&
     profileData?.profileV2?.email === watch('email') &&
-    profileData?.profileV2?.bio === content &&
-    JSON.stringify(profileData?.profileV2?.links || []) === JSON.stringify(links) &&
+    profileData?.profileV2?.userRole === watch('userRole') &&
+    profileData?.profileV2?.location === watch('location') &&
+    profileData?.profileV2?.about === about &&
     JSON.stringify(profileData?.profileV2?.skills || []) ===
       JSON.stringify(watch('skillKeywords') || []);
 
-  const [roleKeywordInput, setRoleKeywordInput] = useState<string>('');
   const [skillKeywordInput, setSkillKeywordInput] = useState<string>('');
 
-  // Role keywords handlers
-  const handleRoleKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRoleKeywordInput(e.target.value);
-  };
-
-  const handleRoleKeywordInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if ((e.key === ' ' || e.key === 'Enter') && roleKeywordInput.trim()) {
-      e.preventDefault();
-      const newKeyword = roleKeywordInput.trim();
-      const currentKeywords = getValues('roleKeywords') || [];
-      if (newKeyword && !currentKeywords.includes(newKeyword)) {
-        setValue('roleKeywords', [...currentKeywords, newKeyword]);
-      }
-      setRoleKeywordInput('');
-    }
-  };
-
-  const removeRoleKeyword = (keywordToRemove: string) => {
-    const currentKeywords = getValues('roleKeywords') || [];
-    setValue(
-      'roleKeywords',
-      currentKeywords.filter((keyword) => keyword !== keywordToRemove),
-    );
-  };
-
-  // Skill keywords handlers
   const handleSkillKeywordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSkillKeywordInput(e.target.value);
   };
@@ -220,32 +181,17 @@ function EditProfilePage() {
 
           <TabsContent value="overview">
             <div className="bg-white py-6 px-10 rounded-lg mb-3">
-              <label htmlFor="firstName" className="space-y-2 block mb-10">
+              <label htmlFor="nickname" className="space-y-2 block mb-10">
                 <p className="text-sm font-medium">
-                  First name <span className="text-primary">*</span>
+                  Nickname <span className="text-primary">*</span>
                 </p>
                 <Input
-                  {...register('firstName', {
-                    required: 'First Name is required.',
+                  {...register('nickname', {
+                    required: 'Nickname is required.',
                   })}
-                  id="firstName"
+                  id="nickname"
                   type="text"
-                  placeholder="Input text"
-                  className="h-10"
-                />
-              </label>
-
-              <label htmlFor="lastName" className="space-y-2 block mb-10">
-                <p className="text-sm font-medium">
-                  Last name <span className="text-primary">*</span>
-                </p>
-                <Input
-                  {...register('lastName', {
-                    required: 'Last Name is required.',
-                  })}
-                  id="lastName"
-                  type="text"
-                  placeholder="Input text"
+                  placeholder="Enter your nickname"
                   className="h-10"
                 />
               </label>
@@ -260,76 +206,31 @@ function EditProfilePage() {
                   })}
                   id="email"
                   type="email"
-                  placeholder="Input text"
+                  placeholder="Enter your email"
                   className="h-10"
                 />
               </label>
 
-              <label htmlFor="name" className="space-y-2 block mb-10">
-                <p className="text-sm font-medium">
-                  Organization <span className="text-primary">*</span>
-                </p>
+              <label htmlFor="userRole" className="space-y-2 block mb-10">
+                <p className="text-sm font-medium">Professional Role</p>
                 <Input
-                  {...register('name', {
-                    required: 'Organization Name is required.',
-                  })}
-                  id="name"
+                  {...register('userRole')}
+                  id="userRole"
                   type="text"
-                  placeholder="Input text"
+                  placeholder="e.g., Web Developer, Designer"
                   className="h-10"
                 />
               </label>
 
-              <label htmlFor="roleKeyword" className="space-y-2 block mb-10">
-                <p className="text-sm font-medium">
-                  Roles <span className="text-primary">*</span>
-                </p>
-                <div className="space-y-3">
-                  <Input
-                    id="roleKeyword"
-                    type="text"
-                    placeholder="Enter directly"
-                    value={roleKeywordInput}
-                    onChange={handleRoleKeywordInputChange}
-                    onKeyDown={handleRoleKeywordInputKeyDown}
-                    className="h-10"
-                  />
-                  {watch('roleKeywords')?.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {watch('roleKeywords')?.map((keyword: string) => (
-                        <Badge
-                          key={keyword}
-                          className="text-black bg-[#F4F4F5] border-0 px-2.5 py-0.5 text-xs font-semibold"
-                        >
-                          {keyword}
-                          <button
-                            type="button"
-                            onClick={() => removeRoleKeyword(keyword)}
-                            className="ml-1 hover:cursor-pointer rounded-full p-0.5 transition-colors"
-                          >
-                            <svg
-                              width="12"
-                              height="12"
-                              viewBox="0 0 12 12"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                              aria-label="Remove keyword"
-                            >
-                              <title>Remove keyword</title>
-                              <path
-                                d="M9 3L3 9M3 3L9 9"
-                                stroke="currentColor"
-                                strokeWidth="1.4"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <label htmlFor="location" className="space-y-2 block mb-10">
+                <p className="text-sm font-medium">Location / Timezone</p>
+                <Input
+                  {...register('location')}
+                  id="location"
+                  type="text"
+                  placeholder="e.g., (GMT+09:00) Korea Standard Time - Seoul"
+                  className="h-10"
+                />
               </label>
 
               <label htmlFor="skillKeyword" className="space-y-2 block mb-10">
@@ -338,7 +239,7 @@ function EditProfilePage() {
                   <Input
                     id="skillKeyword"
                     type="text"
-                    placeholder="Enter directly"
+                    placeholder="Enter directly (press space or enter to add)"
                     value={skillKeywordInput}
                     onChange={handleSkillKeywordInputChange}
                     onKeyDown={handleSkillKeywordInputKeyDown}
@@ -423,83 +324,16 @@ function EditProfilePage() {
                 </div>
               </label>
             </div>
-
-            <div className="bg-white px-10 pt-6 pb-[32px] rounded-lg mb-3">
-              <label htmlFor="links" className="space-y-2 block">
-                <p className="text-sm font-medium">Links</p>
-                <span className="block text-[#71717A] text-sm">
-                  Add links to your website, blog, or social media profiles.
-                </span>
-
-                {links.map((l, idx) => {
-                  return (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                    <div key={idx} className="flex items-center gap-2">
-                      <div className="bg-[#F4F4F5] rounded-md min-w-10 w-10 h-10 flex items-center justify-center">
-                        <SocialIcon value={l} className="w-4 h-4 text-secondary-foreground" />
-                      </div>
-                      <Input
-                        className="h-10"
-                        value={l}
-                        onChange={(e) => {
-                          setLinks((prev) => {
-                            const newLinks = [...prev];
-                            newLinks[idx] = e.target.value;
-                            return newLinks;
-                          });
-                          // Clear error when user starts typing
-                          if (linksError) {
-                            setLinksError(false);
-                          }
-                        }}
-                      />
-                      {idx !== 0 && (
-                        <X
-                          className="hover:cursor-pointer"
-                          onClick={() =>
-                            setLinks((prev) => {
-                              const newLinks = [
-                                ...[...prev].slice(0, idx),
-                                ...[...prev].slice(idx + 1),
-                              ];
-
-                              return newLinks;
-                            })
-                          }
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-                <Button
-                  onClick={() => setLinks((prev) => [...prev, ''])}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="rounded-[6px]"
-                >
-                  Add URL
-                </Button>
-                {linksError && (
-                  <span className="text-destructive text-sm block">
-                    The provided link is not valid. All links must begin with{' '}
-                    <span className="font-bold">https://</span>.
-                  </span>
-                )}
-              </label>
-            </div>
           </TabsContent>
 
           <TabsContent value="details">
             <div className="px-10 py-6 bg-white rounded-lg">
-              <label htmlFor="bio" className="space-y-2 block">
-                <p className="text-sm font-medium">
-                  Description <span className="text-primary">*</span>
+              <label htmlFor="about" className="space-y-2 block">
+                <p className="text-sm font-medium">About</p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Tell others about yourself (max 1000 characters)
                 </p>
-                <MarkdownEditor onChange={setContent} content={content} />
-                {!content.length && (
-                  <span className="text-red-400 text-sm block">Content is required</span>
-                )}
+                <MarkdownEditor onChange={setAbout} content={about} />
               </label>
             </div>
           </TabsContent>

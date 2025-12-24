@@ -105,7 +105,7 @@ const ProgramsPage: React.FC = () => {
                   onClick={() => {
                     if (!isAuthed) {
                       notify('Please add your email', 'success');
-                      navigate('/profile/edit');
+                      navigate('/profile');
                       return;
                     }
 

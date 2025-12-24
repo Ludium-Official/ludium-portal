@@ -1,0 +1,13 @@
+mutation createWorkExperienceV2($input: CreateWorkExperienceV2Input!) {
+  createWorkExperienceV2(input: $input) {
+    id
+    company
+    role
+    employmentType
+    currentWork
+    startMonth
+    startYear
+    endMonth
+    endYear
+  }
+}

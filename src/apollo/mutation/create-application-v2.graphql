@@ -7,8 +7,7 @@ mutation createApplicationV2($input: CreateApplicationV2Input!) {
     applicant {
       id
       email
-      firstName
-      lastName
+      nickname
       profileImage
     }
     program {

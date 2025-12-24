@@ -268,11 +268,13 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-auto p-0"
+          className="w-auto p-0 z-[10000] pointer-events-auto"
           align="start"
           onEscapeKeyDown={() => setIsPopoverOpen(false)}
+          onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <Command
+            className="pointer-events-auto"
             filter={(value, search) => {
               if (!search) return 1;
               if (selectedValues.includes(value)) return 1;
@@ -288,7 +290,7 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
             <CommandEmpty className="px-3 py-6 text-sm text-center">
               {loading ? 'Loading...' : emptyText}
             </CommandEmpty>
-            <CommandList>
+            <CommandList className="pointer-events-auto">
               <CommandGroup>
                 {selectedItems
                   ?.filter((option) => {

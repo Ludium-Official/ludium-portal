@@ -8,7 +8,7 @@ export type GetMilestoneV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type GetMilestoneV2Query = { __typename?: 'Query', milestoneV2?: { __typename?: 'MilestoneV2', id?: string | null, title?: string | null, description?: string | null, payout?: string | null, deadline?: any | null, createdAt?: any | null, updatedAt?: any | null, applicant?: { __typename?: 'UserV2', id?: string | null, walletAddress?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null, profileImage?: string | null, organizationName?: string | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, price?: string | null, deadline?: any | null, status?: Types.ProgramStatusV2 | null } | null } | null };
+export type GetMilestoneV2Query = { __typename?: 'Query', milestoneV2?: { __typename?: 'MilestoneV2', id?: string | null, title?: string | null, description?: string | null, payout?: string | null, deadline?: any | null, createdAt?: any | null, updatedAt?: any | null, applicant?: { __typename?: 'UserV2', id?: string | null, walletAddress?: string | null, email?: string | null, nickname?: string | null, profileImage?: string | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, price?: string | null, deadline?: any | null, status?: Types.ProgramStatusV2 | null } | null } | null };
 
 
 export const GetMilestoneV2Document = gql`
@@ -25,10 +25,8 @@ export const GetMilestoneV2Document = gql`
       id
       walletAddress
       email
-      firstName
-      lastName
+      nickname
       profileImage
-      organizationName
     }
     program {
       id

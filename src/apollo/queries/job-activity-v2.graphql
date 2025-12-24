@@ -1,0 +1,34 @@
+query jobActivityV2($input: JobActivityV2Input!) {
+  jobActivityV2(input: $input) {
+    cards {
+      applied
+      ongoing
+      completed
+    }
+    programs {
+      data {
+        id
+        title
+        price
+        createdAt
+        myApplication {
+          createdAt
+        }
+        network {
+          id
+          chainId
+          chainName
+          mainnet
+          exploreUrl
+        }
+        token {
+          id
+          chainInfoId
+          tokenName
+          tokenAddress
+        }
+      }
+      count
+    }
+  }
+}

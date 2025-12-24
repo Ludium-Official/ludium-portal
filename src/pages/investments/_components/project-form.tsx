@@ -164,7 +164,7 @@ function ProjectForm({ onSubmitProject, isEdit }: ProjectFormProps) {
 
   const builderOptions = buildersData?.usersV2?.users?.map((v) => ({
     value: v.id ?? '',
-    label: `${v.email} ${v.organizationName ? `(${v.organizationName})` : ''}`,
+    label: v.nickname ? `${v.nickname} (${v.email})` : (v.email ?? ''),
   }));
 
   const {

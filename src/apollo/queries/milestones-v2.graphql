@@ -18,10 +18,8 @@ query GetMilestonesV2($query: MilestonesV2QueryInput) {
         id
         walletAddress
         email
-        firstName
-        lastName
+        nickname
         profileImage
-        organizationName
       }
       program {
         id

@@ -108,19 +108,14 @@ function MessageItem({
   if (!isMyMessage) {
     if (shouldUseApplicant && applicationInfo.applicant) {
       const fullName = getUserDisplayName(
-        applicationInfo.applicant.firstName,
-        applicationInfo.applicant.lastName,
+        applicationInfo.applicant.nickname,
         applicationInfo.applicant.email
       );
       senderName = fullName;
       senderImage = applicationInfo.applicant.profileImage || "";
     } else {
       const user = userData?.userV2;
-      const fullName = getUserDisplayName(
-        user?.firstName,
-        user?.lastName,
-        user?.email
-      );
+      const fullName = getUserDisplayName(user?.nickname, user?.email);
       senderName = fullName;
       senderImage = user?.profileImage || "";
     }

@@ -13,8 +13,7 @@ query GetProgramsV2($pagination: PaginationInput) {
         id
         walletAddress
         email
-        firstName
-        lastName
+        nickname
         profileImage
       }
       network {

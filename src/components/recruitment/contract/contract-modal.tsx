@@ -411,6 +411,7 @@ export function ContractModal({
 
       const milestoneUpdatePromises = milestones
         .filter((milestone) => milestone.id)
+        .filter((milestone) => milestone.status !== MilestoneStatusV2.Completed)
         .map((milestone) =>
           updateMilestoneV2Mutation({
             variables: {
@@ -460,6 +461,7 @@ export function ContractModal({
     }
 
     const sortedMilestones = milestones
+      .filter((milestone) => milestone.status !== MilestoneStatusV2.Completed)
       .map((milestone) => ({
         id: milestone.id,
         status: milestone.status || MilestoneStatusV2.UnderReview,
@@ -479,13 +481,11 @@ export function ContractModal({
       programTitle: programInfo.title,
       milestones: sortedMilestones,
       sponsor: {
-        firstName: programInfo.sponsor?.firstName,
-        lastName: programInfo.sponsor?.lastName,
+        nickname: programInfo.sponsor?.nickname,
         email: programInfo.sponsor?.email,
       },
       applicant: {
-        firstName: applicationInfo.applicant?.firstName,
-        lastName: applicationInfo.applicant?.lastName,
+        nickname: applicationInfo.applicant?.nickname,
         email: applicationInfo.applicant?.email,
       },
       totalPrice,
@@ -496,11 +496,9 @@ export function ContractModal({
     contractSnapshot?.contract_snapshot_cotents,
     milestones,
     programInfo.title,
-    programInfo.sponsor?.firstName,
-    programInfo.sponsor?.lastName,
+    programInfo.sponsor?.nickname,
     programInfo.sponsor?.email,
-    applicationInfo.applicant?.firstName,
-    applicationInfo.applicant?.lastName,
+    applicationInfo.applicant?.nickname,
     applicationInfo.applicant?.email,
     totalPrice,
     programInfo.tokenId,
