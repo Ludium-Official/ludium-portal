@@ -1,27 +1,29 @@
-import { simpleSandpackConfig } from '@/components/markdown/configs';
-import { YoutubeDescriptor } from '@/components/markdown/youtube';
-import {
-  AdmonitionDirectiveDescriptor,
-  MDXEditor,
-  codeBlockPlugin,
-  codeMirrorPlugin,
-  directivesPlugin,
-  frontmatterPlugin,
-  headingsPlugin,
-  imagePlugin,
-  linkDialogPlugin,
-  linkPlugin,
-  listsPlugin,
-  markdownShortcutPlugin,
-  quotePlugin,
-  sandpackPlugin,
-  tablePlugin,
-  thematicBreakPlugin,
-} from '@mdxeditor/editor';
-import '@mdxeditor/editor/style.css';
+import { cn } from "@/lib/utils";
+import MarkdownIt from "markdown-it";
+import { useMemo } from "react";
 
-import { cn } from '@/lib/utils';
-import './style.css';
+import "./style.css";
+
+const md = new MarkdownIt({
+  html: true,
+  breaks: true,
+  linkify: true,
+  typographer: true,
+});
+
+function unescapeHtml(text: string): string {
+  return text.replace(/\\</g, "<").replace(/\\>/g, ">").replace(/\\&/g, "&");
+}
+
+function processMarkdownInHtml(text: string): string {
+  return text.replace(
+    /(<(?:center|div|span|p|section|article|header|footer|aside|main|figure|figcaption)[^>]*>)([\s\S]*?)(<\/(?:center|div|span|p|section|article|header|footer|aside|main|figure|figcaption)>)/gi,
+    (_, openTag, content, closeTag) => {
+      const renderedContent = md.renderInline(content.trim());
+      return `${openTag}${renderedContent}${closeTag}`;
+    }
+  );
+}
 
 function MarkdownPreviewer({
   value,
@@ -30,49 +32,16 @@ function MarkdownPreviewer({
   value: string;
   className?: string;
 }) {
+  const htmlContent = useMemo(() => {
+    const unescaped = unescapeHtml(value);
+    const processed = processMarkdownInHtml(unescaped);
+    return md.render(processed);
+  }, [value]);
+
   return (
-    <MDXEditor
-      readOnly
-      markdown={value}
-      contentEditableClassName={cn('prose no-padding max-w-full', className)}
-      plugins={[
-        listsPlugin(),
-        quotePlugin(),
-        headingsPlugin({ allowedHeadingLevels: [1, 2, 3] }),
-        sandpackPlugin({ sandpackConfig: simpleSandpackConfig }),
-        linkPlugin(),
-        linkDialogPlugin(),
-        imagePlugin({
-          imageAutocompleteSuggestions: [
-            'https://via.placeholder.com/150',
-            'https://via.placeholder.com/150',
-          ],
-          imageUploadHandler: async () => Promise.resolve('https://picsum.photos/200/300'),
-        }),
-        tablePlugin(),
-        thematicBreakPlugin(),
-        frontmatterPlugin(),
-        directivesPlugin({
-          directiveDescriptors: [AdmonitionDirectiveDescriptor, YoutubeDescriptor],
-        }),
-        codeBlockPlugin({ defaultCodeBlockLanguage: 'js' }),
-        codeMirrorPlugin({
-          autoLoadLanguageSupport: true,
-          codeBlockLanguages: {
-            js: 'JavaScript',
-            jsx: 'JavaScript (React)',
-            css: 'CSS',
-            txt: 'text',
-            tsx: 'TypeScript (React)',
-            ts: 'TypeScript',
-            bash: 'Bash',
-            sh: 'sh',
-            env: 'env',
-            '': 'Unspecified',
-          },
-        }),
-        markdownShortcutPlugin(),
-      ]}
+    <div
+      className={cn("prose max-w-full", className)}
+      dangerouslySetInnerHTML={{ __html: htmlContent }}
     />
   );
 }
