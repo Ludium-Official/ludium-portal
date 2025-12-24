@@ -1,34 +1,30 @@
-import { useCreatePortfolioV2Mutation } from "@/apollo/mutation/create-portfolio-v2.generated";
-import { useDeletePortfolioV2Mutation } from "@/apollo/mutation/delete-portfolio-v2.generated";
-import { useUpdatePortfolioV2Mutation } from "@/apollo/mutation/update-portfolio-v2.generated";
-import { useMyPortfoliosV2Query } from "@/apollo/queries/my-portfolios-v2.generated";
-import LudiumBadgeLogo from "@/assets/icons/profile/ludium-badge.svg";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useCreatePortfolioV2Mutation } from '@/apollo/mutation/create-portfolio-v2.generated';
+import { useDeletePortfolioV2Mutation } from '@/apollo/mutation/delete-portfolio-v2.generated';
+import { useUpdatePortfolioV2Mutation } from '@/apollo/mutation/update-portfolio-v2.generated';
+import { useMyPortfoliosV2Query } from '@/apollo/queries/my-portfolios-v2.generated';
+import LudiumBadgeLogo from '@/assets/icons/profile/ludium-badge.svg';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import notify from "@/lib/notify";
-import type {
-  Portfolio,
-  ProjectContent,
-  ProjectFormData,
-} from "@/types/portfolio";
-import { Pen, Plus, Trash2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { PortfolioDetailModal } from "./_components/portfolio-detail-modal";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import notify from '@/lib/notify';
+import type { Portfolio, ProjectContent, ProjectFormData } from '@/types/portfolio';
+import { Pen, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { PortfolioDetailModal } from './_components/portfolio-detail-modal';
 
 const getEmptyFormData = (): ProjectFormData => ({
-  title: "",
+  title: '',
   isLudiumProject: false,
-  role: "",
-  description: "",
+  role: '',
+  description: '',
   contents: [],
   existingImages: [],
 });
@@ -37,9 +33,7 @@ const PortfolioPage: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState<ProjectFormData>(getEmptyFormData());
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(
-    null
-  );
+  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,15 +42,12 @@ const PortfolioPage: React.FC = () => {
     loading: isLoading,
     refetch,
   } = useMyPortfoliosV2Query({
-    fetchPolicy: "network-only",
+    fetchPolicy: 'network-only',
   });
 
-  const [createPortfolio, { loading: isCreating }] =
-    useCreatePortfolioV2Mutation();
-  const [updatePortfolio, { loading: isUpdating }] =
-    useUpdatePortfolioV2Mutation();
-  const [deletePortfolio, { loading: isDeleting }] =
-    useDeletePortfolioV2Mutation();
+  const [createPortfolio, { loading: isCreating }] = useCreatePortfolioV2Mutation();
+  const [updatePortfolio, { loading: isUpdating }] = useUpdatePortfolioV2Mutation();
+  const [deletePortfolio, { loading: isDeleting }] = useDeletePortfolioV2Mutation();
 
   const portfolios = data?.myPortfoliosV2 || [];
 
@@ -81,10 +72,10 @@ const PortfolioPage: React.FC = () => {
     setEditingId(portfolio.id || null);
     setFormData({
       id: portfolio.id || undefined,
-      title: portfolio.title || "",
+      title: portfolio.title || '',
       isLudiumProject: portfolio.isLudiumProject || false,
-      role: portfolio.role || "",
-      description: portfolio.description || "",
+      role: portfolio.role || '',
+      description: portfolio.description || '',
       contents: [],
       existingImages: portfolio.images || [],
     });
@@ -103,9 +94,7 @@ const PortfolioPage: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      const newImageFiles = formData.contents
-        .filter((c) => c.file)
-        .map((c) => c.file as File);
+      const newImageFiles = formData.contents.filter((c) => c.file).map((c) => c.file as File);
 
       if (editingId) {
         await updatePortfolio({
@@ -120,7 +109,7 @@ const PortfolioPage: React.FC = () => {
             },
           },
         });
-        notify("Portfolio updated successfully", "success");
+        notify('Portfolio updated successfully', 'success');
       } else {
         await createPortfolio({
           variables: {
@@ -133,7 +122,7 @@ const PortfolioPage: React.FC = () => {
             },
           },
         });
-        notify("Portfolio created successfully", "success");
+        notify('Portfolio created successfully', 'success');
       }
 
       await refetch();
@@ -141,8 +130,8 @@ const PortfolioPage: React.FC = () => {
       setEditingId(null);
       setFormData(getEmptyFormData());
     } catch (error) {
-      console.error("Failed to save portfolio:", error);
-      notify("Failed to save portfolio", "error");
+      console.error('Failed to save portfolio:', error);
+      notify('Failed to save portfolio', 'error');
     }
   };
 
@@ -154,7 +143,7 @@ const PortfolioPage: React.FC = () => {
 
   const updateField = (
     field: keyof ProjectFormData,
-    value: string | boolean | ProjectContent[] | string[]
+    value: string | boolean | ProjectContent[] | string[],
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -167,22 +156,14 @@ const PortfolioPage: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (
-      ![
-        "image/png",
-        "image/jpeg",
-        "image/jpg",
-        "image/gif",
-        "image/webp",
-      ].includes(file.type)
-    ) {
-      notify("Please upload a valid image file", "error");
+    if (!['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'].includes(file.type)) {
+      notify('Please upload a valid image file', 'error');
       return;
     }
 
     const newContent: ProjectContent = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      type: "image",
+      type: 'image',
       url: URL.createObjectURL(file),
       file,
     };
@@ -193,7 +174,7 @@ const PortfolioPage: React.FC = () => {
     }));
 
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = '';
     }
   };
 
@@ -226,21 +207,20 @@ const PortfolioPage: React.FC = () => {
       await deletePortfolio({
         variables: { id },
       });
-      notify("Portfolio deleted successfully", "success");
+      notify('Portfolio deleted successfully', 'success');
       await refetch();
     } catch (error) {
-      console.error("Failed to delete portfolio:", error);
-      notify("Failed to delete portfolio", "error");
+      console.error('Failed to delete portfolio:', error);
+      notify('Failed to delete portfolio', 'error');
     }
   };
 
-  const isSaveDisabled =
-    !formData.title.trim() || isCreating || isUpdating || isDeleting;
+  const isSaveDisabled = !formData.title.trim() || isCreating || isUpdating || isDeleting;
 
   useEffect(() => {
     return () => {
       formData.contents.forEach((content) => {
-        if (content.url.startsWith("blob:")) {
+        if (content.url.startsWith('blob:')) {
           URL.revokeObjectURL(content.url);
         }
       });
@@ -276,12 +256,8 @@ const PortfolioPage: React.FC = () => {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <p className="font-medium text-slate-800">
-                      {portfolio.title}
-                    </p>
-                    {portfolio.isLudiumProject && (
-                      <img src={LudiumBadgeLogo} alt="Ludium Badge" />
-                    )}
+                    <p className="font-medium text-slate-800">{portfolio.title}</p>
+                    {portfolio.isLudiumProject && <img src={LudiumBadgeLogo} alt="Ludium Badge" />}
                   </div>
                   <Button
                     variant="outline"
@@ -296,11 +272,7 @@ const PortfolioPage: React.FC = () => {
                   </Button>
                 </div>
 
-                {portfolio.role && (
-                  <p className="text-sm text-slate-600 mb-2">
-                    {portfolio.role}
-                  </p>
-                )}
+                {portfolio.role && <p className="text-sm text-slate-600 mb-2">{portfolio.role}</p>}
 
                 {portfolio.description && (
                   <p className="text-sm text-slate-500 mb-4 line-clamp-2">
@@ -311,8 +283,8 @@ const PortfolioPage: React.FC = () => {
                 {(portfolio.images?.length ?? 0) > 0 && (
                   <div className="flex items-center justify-center bg-slate-50 p-4 rounded-lg mb-4">
                     <img
-                      src={portfolio.images?.[0] || ""}
-                      alt={portfolio.title || "Portfolio image"}
+                      src={portfolio.images?.[0] || ''}
+                      alt={portfolio.title || 'Portfolio image'}
                       className="w-auto h-[343px] object-contain rounded-lg"
                     />
                   </div>
@@ -338,12 +310,7 @@ const PortfolioPage: React.FC = () => {
           <div className="bg-white border border-gray-200 rounded-lg px-10 py-5">
             <div className="flex items-center justify-center border border-gray-200 rounded-lg py-12">
               <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={handleAddNew}
-                >
+                <Button variant="outline" size="sm" className="gap-2" onClick={handleAddNew}>
                   <Plus className="h-4 w-4" /> Add Project
                 </Button>
               </DialogTrigger>
@@ -357,12 +324,7 @@ const PortfolioPage: React.FC = () => {
               {getProjectTitle()}
             </DialogTitle>
             <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleCancel}
-              >
+              <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
                 Cancel
               </Button>
               <Button
@@ -372,7 +334,7 @@ const PortfolioPage: React.FC = () => {
                 onClick={handleSave}
                 disabled={isSaveDisabled}
               >
-                {isCreating || isUpdating ? "Saving..." : "Save"}
+                {isCreating || isUpdating ? 'Saving...' : 'Save'}
               </Button>
             </div>
           </DialogHeader>
@@ -385,7 +347,7 @@ const PortfolioPage: React.FC = () => {
               <Input
                 placeholder="Enter a title"
                 value={formData.title}
-                onChange={(e) => updateField("title", e.target.value)}
+                onChange={(e) => updateField('title', e.target.value)}
               />
             </div>
 
@@ -393,9 +355,7 @@ const PortfolioPage: React.FC = () => {
               <Checkbox
                 id="completedOnLudium"
                 checked={formData.isLudiumProject}
-                onCheckedChange={(checked) =>
-                  updateField("isLudiumProject", checked === true)
-                }
+                onCheckedChange={(checked) => updateField('isLudiumProject', checked === true)}
               />
               <label
                 htmlFor="completedOnLudium"
@@ -410,20 +370,18 @@ const PortfolioPage: React.FC = () => {
               <Input
                 placeholder="Enter your role"
                 value={formData.role}
-                onChange={(e) => updateField("role", e.target.value)}
+                onChange={(e) => updateField('role', e.target.value)}
               />
             </div>
 
             <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">
-                Description
-              </p>
+              <p className="text-sm font-medium text-gray-900 mb-2">Description</p>
               <Textarea
                 placeholder="Enter a brief project description"
                 value={formData.description}
                 onChange={(e) => {
                   if (e.target.value.length <= 1000) {
-                    updateField("description", e.target.value);
+                    updateField('description', e.target.value);
                   }
                 }}
                 className="min-h-[150px] resize-none"
@@ -435,9 +393,7 @@ const PortfolioPage: React.FC = () => {
 
             {formData.existingImages.length > 0 && (
               <div className="space-y-4">
-                <p className="text-sm font-medium text-gray-900">
-                  Existing Images
-                </p>
+                <p className="text-sm font-medium text-gray-900">Existing Images</p>
                 {formData.existingImages.map((imageUrl, index) => (
                   <div
                     key={`existing-${index}`}

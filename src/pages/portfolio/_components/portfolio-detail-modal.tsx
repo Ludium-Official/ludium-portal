@@ -1,14 +1,9 @@
-import LudiumBadgeLogo from "@/assets/icons/profile/ludium-badge.svg";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import type { Portfolio } from "@/types/portfolio";
-import { ChevronLeft, ChevronRight, Pen, X } from "lucide-react";
-import { useState } from "react";
+import LudiumBadgeLogo from '@/assets/icons/profile/ludium-badge.svg';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import type { Portfolio } from '@/types/portfolio';
+import { ChevronLeft, ChevronRight, Pen, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface PortfolioDetailModalProps {
   portfolio: Portfolio | null;
@@ -58,21 +53,11 @@ export function PortfolioDetailModal({
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2"
-              onClick={() => onEdit(portfolio)}
-            >
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => onEdit(portfolio)}>
               <Pen className="h-4 w-4" />
               Edit
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={onClose}
-            >
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -120,9 +105,7 @@ export function PortfolioDetailModal({
                       key={index}
                       type="button"
                       className={`w-2 h-2 rounded-full transition-colors ${
-                        index === currentImageIndex
-                          ? "bg-slate-800"
-                          : "bg-slate-400"
+                        index === currentImageIndex ? 'bg-slate-800' : 'bg-slate-400'
                       }`}
                       onClick={() => setCurrentImageIndex(index)}
                     />
@@ -141,8 +124,8 @@ export function PortfolioDetailModal({
                   type="button"
                   className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
                     index === currentImageIndex
-                      ? "border-slate-800"
-                      : "border-transparent hover:border-slate-300"
+                      ? 'border-slate-800'
+                      : 'border-transparent hover:border-slate-300'
                   }`}
                   onClick={() => setCurrentImageIndex(index)}
                 >
@@ -167,12 +150,8 @@ export function PortfolioDetailModal({
           {/* Description */}
           {portfolio.description && (
             <div>
-              <h3 className="text-sm font-medium text-slate-500 mb-1">
-                Description
-              </h3>
-              <p className="text-slate-700 whitespace-pre-wrap">
-                {portfolio.description}
-              </p>
+              <h3 className="text-sm font-medium text-slate-500 mb-1">Description</h3>
+              <p className="text-slate-700 whitespace-pre-wrap">{portfolio.description}</p>
             </div>
           )}
         </div>
