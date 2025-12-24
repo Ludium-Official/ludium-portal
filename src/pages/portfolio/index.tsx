@@ -1,3 +1,8 @@
+import { useCreatePortfolioV2Mutation } from '@/apollo/mutation/create-portfolio-v2.generated';
+import { useDeletePortfolioV2Mutation } from '@/apollo/mutation/delete-portfolio-v2.generated';
+import { useUpdatePortfolioV2Mutation } from '@/apollo/mutation/update-portfolio-v2.generated';
+import { useMyPortfoliosV2Query } from '@/apollo/queries/my-portfolios-v2.generated';
+import LudiumBadgeLogo from '@/assets/icons/profile/ludium-badge.svg';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -9,80 +14,123 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import notify from '@/lib/notify';
+import type { ProjectContent, ProjectFormData } from '@/types/portfolio';
 import { Pen, Plus, Trash2 } from 'lucide-react';
-import { useRef, useState } from 'react';
-import LudiumBadgeLogo from '@/assets/icons/profile/ludium-badge.svg';
+import { useEffect, useRef, useState } from 'react';
 
-interface ProjectContent {
-  id: string;
-  type: 'image';
-  url: string;
-  file?: File;
-}
-
-interface Project {
-  id?: string;
-  title: string;
-  isCompletedOnLudium?: boolean;
-  role?: string;
-  description?: string;
-  contents?: ProjectContent[];
-}
-
-const emptyProject: Project = {
+const getEmptyFormData = (): ProjectFormData => ({
   title: '',
-  isCompletedOnLudium: false,
+  isLudiumProject: false,
   role: '',
   description: '',
   contents: [],
-};
+  existingImages: [],
+});
 
 const PortfolioPage: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [formData, setFormData] = useState<Project>(emptyProject);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [formData, setFormData] = useState<ProjectFormData>(getEmptyFormData());
+  const [editingId, setEditingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const {
+    data,
+    loading: isLoading,
+    refetch,
+  } = useMyPortfoliosV2Query({
+    fetchPolicy: 'network-only',
+  });
+
+  const [createPortfolio, { loading: isCreating }] = useCreatePortfolioV2Mutation();
+  const [updatePortfolio, { loading: isUpdating }] = useUpdatePortfolioV2Mutation();
+  const [deletePortfolio, { loading: isDeleting }] = useDeletePortfolioV2Mutation();
+
+  const portfolios = data?.myPortfoliosV2 || [];
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
-      setEditingIndex(null);
-      setFormData(emptyProject);
+      setEditingId(null);
+      setFormData(getEmptyFormData());
     }
     setIsOpen(open);
   };
 
   const handleAddNew = () => {
-    setEditingIndex(null);
-    setFormData(emptyProject);
+    setEditingId(null);
+    setFormData(getEmptyFormData());
     setIsOpen(true);
   };
 
-  const handleEdit = (index: number) => {
-    setEditingIndex(index);
-    setFormData(projects[index]);
+  const handleEdit = (portfolio: (typeof portfolios)[number]) => {
+    if (!portfolio) return;
+
+    setEditingId(portfolio.id || null);
+    setFormData({
+      id: portfolio.id || undefined,
+      title: portfolio.title || '',
+      isLudiumProject: portfolio.isLudiumProject || false,
+      role: portfolio.role || '',
+      description: portfolio.description || '',
+      contents: [],
+      existingImages: portfolio.images || [],
+    });
     setIsOpen(true);
   };
 
-  const handleSave = () => {
-    // TODO: Implement API call to save project
-    if (editingIndex !== null) {
-      setProjects((prev) => prev.map((proj, i) => (i === editingIndex ? formData : proj)));
-    } else {
-      setProjects((prev) => [...prev, formData]);
+  const handleSave = async () => {
+    try {
+      const newImageFiles = formData.contents.filter((c) => c.file).map((c) => c.file as File);
+
+      if (editingId) {
+        await updatePortfolio({
+          variables: {
+            input: {
+              id: editingId,
+              title: formData.title,
+              description: formData.description || undefined,
+              role: formData.role || undefined,
+              isLudiumProject: formData.isLudiumProject,
+              images: newImageFiles.length > 0 ? newImageFiles : undefined,
+            },
+          },
+        });
+        notify('Portfolio updated successfully', 'success');
+      } else {
+        await createPortfolio({
+          variables: {
+            input: {
+              title: formData.title,
+              description: formData.description || undefined,
+              role: formData.role || undefined,
+              isLudiumProject: formData.isLudiumProject,
+              images: newImageFiles.length > 0 ? newImageFiles : undefined,
+            },
+          },
+        });
+        notify('Portfolio created successfully', 'success');
+      }
+
+      await refetch();
+      setIsOpen(false);
+      setEditingId(null);
+      setFormData(getEmptyFormData());
+    } catch (error) {
+      console.error('Failed to save portfolio:', error);
+      notify('Failed to save portfolio', 'error');
     }
-    setIsOpen(false);
-    setEditingIndex(null);
-    setFormData(emptyProject);
   };
 
   const handleCancel = () => {
-    setFormData(emptyProject);
-    setEditingIndex(null);
+    setFormData(getEmptyFormData());
+    setEditingId(null);
     setIsOpen(false);
   };
 
-  const updateField = (field: keyof Project, value: string | boolean | ProjectContent[]) => {
+  const updateField = (
+    field: keyof ProjectFormData,
+    value: string | boolean | ProjectContent[] | string[],
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -95,6 +143,7 @@ const PortfolioPage: React.FC = () => {
     if (!file) return;
 
     if (!['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'].includes(file.type)) {
+      notify('Please upload a valid image file', 'error');
       return;
     }
 
@@ -107,7 +156,7 @@ const PortfolioPage: React.FC = () => {
 
     setFormData((prev) => ({
       ...prev,
-      contents: [...(prev.contents || []), newContent],
+      contents: [...prev.contents, newContent],
     }));
 
     if (fileInputRef.current) {
@@ -118,23 +167,60 @@ const PortfolioPage: React.FC = () => {
   const handleRemoveContent = (contentId: string) => {
     setFormData((prev) => ({
       ...prev,
-      contents: (prev.contents || []).filter((c) => c.id !== contentId),
+      contents: prev.contents.filter((c) => c.id !== contentId),
+    }));
+  };
+
+  const handleRemoveExistingImage = (imageUrl: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      existingImages: prev.existingImages.filter((img) => img !== imageUrl),
     }));
   };
 
   const getProjectTitle = () => {
-    if (editingIndex !== null) {
-      return `Project ${editingIndex + 1}`;
+    if (editingId) {
+      const index = portfolios.findIndex((p) => p?.id === editingId);
+      return `Project ${index + 1}`;
     }
-    return `Project ${projects.length + 1}`;
+    return `Project ${portfolios.length + 1}`;
   };
 
-  const handleDelete = (index: number) => {
-    // TODO: Implement API call to delete
-    setProjects((prev) => prev.filter((_, i) => i !== index));
+  const handleDelete = async (id: string) => {
+    if (!id) return;
+
+    try {
+      await deletePortfolio({
+        variables: { id },
+      });
+      notify('Portfolio deleted successfully', 'success');
+      await refetch();
+    } catch (error) {
+      console.error('Failed to delete portfolio:', error);
+      notify('Failed to delete portfolio', 'error');
+    }
   };
 
-  const isSaveDisabled = !formData.title.trim();
+  const isSaveDisabled = !formData.title.trim() || isCreating || isUpdating || isDeleting;
+
+  useEffect(() => {
+    return () => {
+      formData.contents.forEach((content) => {
+        if (content.url.startsWith('blob:')) {
+          URL.revokeObjectURL(content.url);
+        }
+      });
+    };
+  }, [formData.contents]);
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto my-10 space-y-5 max-w-[820px]">
+        <div className="mb-2 text-xl font-bold">Portfolio</div>
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto my-10 space-y-5 max-w-[820px]">
@@ -145,58 +231,62 @@ const PortfolioPage: React.FC = () => {
 
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <div className="space-y-4">
-          {projects.map((project, index) => (
-            <div
-              key={`${index}-${project.title}`}
-              className="bg-white border border-gray-200 rounded-lg p-5"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <p className="font-medium text-slate-800">{project.title}</p>
-                  {project.isCompletedOnLudium && <img src={LudiumBadgeLogo} alt="Ludium Badge" />}
+          {portfolios.map((portfolio, index) => {
+            if (!portfolio) return null;
+
+            return (
+              <div
+                key={portfolio.id || index}
+                className="bg-white border border-gray-200 rounded-lg p-5"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-slate-800">{portfolio.title}</p>
+                    {portfolio.isLudiumProject && <img src={LudiumBadgeLogo} alt="Ludium Badge" />}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-10"
+                    onClick={() => handleEdit(portfolio)}
+                  >
+                    <Pen className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-9 w-10"
-                  onClick={() => handleEdit(index)}
-                >
-                  <Pen className="h-4 w-4" />
-                </Button>
-              </div>
 
-              {project.role && <p className="text-sm text-slate-600 mb-2">{project.role}</p>}
+                {portfolio.role && <p className="text-sm text-slate-600 mb-2">{portfolio.role}</p>}
 
-              {project.description && (
-                <p className="text-sm text-slate-500 mb-4">{project.description}</p>
-              )}
+                {portfolio.description && (
+                  <p className="text-sm text-slate-500 mb-4">{portfolio.description}</p>
+                )}
 
-              {(project.contents?.length ?? 0) > 0 && (
-                <div className="space-y-3 mb-4">
-                  {project.contents?.map((content) => (
-                    <img
-                      key={content.id}
-                      src={content.url}
-                      alt={project.title}
-                      className="w-full h-auto object-contain rounded-lg"
-                    />
-                  ))}
+                {(portfolio.images?.length ?? 0) > 0 && (
+                  <div className="space-y-3 mb-4">
+                    {portfolio.images?.map((imageUrl, imgIndex) => (
+                      <img
+                        key={`${portfolio.id}-img-${imgIndex}`}
+                        src={imageUrl}
+                        alt={portfolio.title || 'Portfolio image'}
+                        className="w-full h-auto object-contain rounded-lg"
+                      />
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    className="cursor-pointer text-xs text-gray-400 underline disabled:opacity-50"
+                    onClick={() => portfolio.id && handleDelete(portfolio.id)}
+                    disabled={isDeleting}
+                  >
+                    delete
+                  </button>
                 </div>
-              )}
-
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  className="cursor-pointer text-xs text-gray-400 underline"
-                  onClick={() => handleDelete(index)}
-                >
-                  delete
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
-          {/* Add Project Card - Always visible */}
           <div className="bg-white border border-gray-200 rounded-lg px-10 py-5">
             <div className="flex items-center justify-center border border-gray-200 rounded-lg py-12">
               <DialogTrigger asChild>
@@ -224,7 +314,7 @@ const PortfolioPage: React.FC = () => {
                 onClick={handleSave}
                 disabled={isSaveDisabled}
               >
-                Save
+                {isCreating || isUpdating ? 'Saving...' : 'Save'}
               </Button>
             </div>
           </DialogHeader>
@@ -244,8 +334,8 @@ const PortfolioPage: React.FC = () => {
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="completedOnLudium"
-                checked={formData.isCompletedOnLudium}
-                onCheckedChange={(checked) => updateField('isCompletedOnLudium', checked === true)}
+                checked={formData.isLudiumProject}
+                onCheckedChange={(checked) => updateField('isLudiumProject', checked === true)}
               />
               <label
                 htmlFor="completedOnLudium"
@@ -256,9 +346,7 @@ const PortfolioPage: React.FC = () => {
             </div>
 
             <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">
-                Role <span className="text-red-500">*</span>
-              </p>
+              <p className="text-sm font-medium text-gray-900 mb-2">Role</p>
               <Input
                 placeholder="Enter your role"
                 value={formData.role}
@@ -267,9 +355,7 @@ const PortfolioPage: React.FC = () => {
             </div>
 
             <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">
-                Description <span className="text-red-500">*</span>
-              </p>
+              <p className="text-sm font-medium text-gray-900 mb-2">Description</p>
               <Textarea
                 placeholder="Enter a brief project description"
                 value={formData.description}
@@ -281,13 +367,41 @@ const PortfolioPage: React.FC = () => {
                 className="min-h-[150px] resize-none"
               />
               <p className="text-sm text-gray-400 text-right mt-1">
-                {(formData.description || '').length}/1000 characters
+                {formData.description.length}/1000 characters
               </p>
             </div>
 
-            {(formData.contents?.length ?? 0) > 0 && (
+            {formData.existingImages.length > 0 && (
               <div className="space-y-4">
-                {formData.contents?.map((content) => (
+                <p className="text-sm font-medium text-gray-900">Existing Images</p>
+                {formData.existingImages.map((imageUrl, index) => (
+                  <div
+                    key={`existing-${index}`}
+                    className="relative border border-gray-200 rounded-lg overflow-hidden"
+                  >
+                    <img
+                      src={imageUrl}
+                      alt="Project content"
+                      className="w-full h-auto object-contain"
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 bg-white/90 hover:bg-white shadow-sm"
+                      onClick={() => handleRemoveExistingImage(imageUrl)}
+                    >
+                      <Trash2 className="h-4 w-4 text-gray-600" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {formData.contents.length > 0 && (
+              <div className="space-y-4">
+                <p className="text-sm font-medium text-gray-900">New Images</p>
+                {formData.contents.map((content) => (
                   <div
                     key={content.id}
                     className="relative border border-gray-200 rounded-lg overflow-hidden"

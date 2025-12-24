@@ -1,9 +1,6 @@
-import { simpleSandpackConfig } from "@/components/markdown/configs";
-import {
-  YouTubeButton,
-  YoutubeDescriptor,
-} from "@/components/markdown/youtube";
-import { storage } from "@/lib/firebase";
+import { simpleSandpackConfig } from '@/components/markdown/configs';
+import { YouTubeButton, YoutubeDescriptor } from '@/components/markdown/youtube';
+import { storage } from '@/lib/firebase';
 import {
   AdmonitionDirectiveDescriptor,
   BlockTypeSelect,
@@ -33,15 +30,15 @@ import {
   tablePlugin,
   thematicBreakPlugin,
   toolbarPlugin,
-} from "@mdxeditor/editor";
-import "@mdxeditor/editor/style.css";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { useEffect, useRef, useState } from "react";
+} from '@mdxeditor/editor';
+import '@mdxeditor/editor/style.css';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { useEffect, useRef, useState } from 'react';
 
-import "./style.css";
+import './style.css';
 
-const isProduction = import.meta.env.VITE_VERCEL_ENVIRONMENT === "mainnet";
-const STORAGE_FOLDER = isProduction ? "markdown-images" : "markdown-images-dev";
+const isProduction = import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet';
+const STORAGE_FOLDER = isProduction ? 'markdown-images' : 'markdown-images-dev';
 
 async function imageUploadHandler(image: File): Promise<string> {
   const timestamp = Date.now();
@@ -70,7 +67,7 @@ function MarkdownEditor({
   content: string;
 }) {
   const mdxRef = useRef<MDXEditorMethods>(null);
-  const [prevVal, setPrevVal] = useState<string>("");
+  const [prevVal, setPrevVal] = useState<string>('');
 
   useEffect(() => {
     setPrevVal((val) => (!val ? content : val));
@@ -79,7 +76,7 @@ function MarkdownEditor({
   const debouncedChange = useRef(
     debounce((value: string) => {
       onChange(value);
-    }, 300)
+    }, 300),
   ).current;
 
   const debouncedOnChange = (value: string) => {
@@ -113,32 +110,29 @@ function MarkdownEditor({
         thematicBreakPlugin(),
         frontmatterPlugin(),
         directivesPlugin({
-          directiveDescriptors: [
-            AdmonitionDirectiveDescriptor,
-            YoutubeDescriptor,
-          ],
+          directiveDescriptors: [AdmonitionDirectiveDescriptor, YoutubeDescriptor],
         }),
-        diffSourcePlugin({ viewMode: "rich-text", diffMarkdown: prevVal }),
-        codeBlockPlugin({ defaultCodeBlockLanguage: "js" }),
+        diffSourcePlugin({ viewMode: 'rich-text', diffMarkdown: prevVal }),
+        codeBlockPlugin({ defaultCodeBlockLanguage: 'js' }),
         codeMirrorPlugin({
           codeMirrorExtensions: [],
           autoLoadLanguageSupport: true,
           codeBlockLanguages: {
-            js: "JavaScript",
-            jsx: "JavaScript (React)",
-            css: "CSS",
-            txt: "text",
-            tsx: "TypeScript (React)",
-            ts: "TypeScript",
-            bash: "Bash",
-            sh: "sh",
-            env: "env",
-            "": "Unspecified",
+            js: 'JavaScript',
+            jsx: 'JavaScript (React)',
+            css: 'CSS',
+            txt: 'text',
+            tsx: 'TypeScript (React)',
+            ts: 'TypeScript',
+            bash: 'Bash',
+            sh: 'sh',
+            env: 'env',
+            '': 'Unspecified',
           },
         }),
         markdownShortcutPlugin(),
         toolbarPlugin({
-          toolbarClassName: "my-classname",
+          toolbarClassName: 'my-classname',
           toolbarContents: () => (
             <>
               <DiffSourceToggleWrapper>

@@ -383,6 +383,19 @@ export type CreateOnchainProgramInfoV2Input = {
   tx: Scalars['String']['input'];
 };
 
+export type CreatePortfolioV2Input = {
+  /** Portfolio description (max 1000 characters) */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** Array of image files to upload */
+  images?: InputMaybe<Array<Scalars['Upload']['input']>>;
+  /** Whether this is a Ludium project */
+  isLudiumProject?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Role in the project (e.g., "Frontend Developer") */
+  role?: InputMaybe<Scalars['String']['input']>;
+  /** Portfolio title (required) */
+  title: Scalars['String']['input'];
+};
+
 export type CreatePostInput = {
   content: Scalars['String']['input'];
   image?: InputMaybe<Scalars['Upload']['input']>;
@@ -850,6 +863,8 @@ export type Mutation = {
   createNetworkV2?: Maybe<NetworkV2>;
   createOnchainContractInfoV2?: Maybe<OnchainContractInfoV2>;
   createOnchainProgramInfoV2?: Maybe<OnchainProgramInfoV2>;
+  /** Create a new portfolio */
+  createPortfolioV2?: Maybe<PortfolioV2>;
   createPost?: Maybe<Post>;
   createProgram?: Maybe<Program>;
   createProgramV2?: Maybe<ProgramV2>;
@@ -873,6 +888,8 @@ export type Mutation = {
   deleteNetworkV2?: Maybe<NetworkV2>;
   deleteOnchainContractInfoV2?: Maybe<OnchainContractInfoV2>;
   deleteOnchainProgramInfoV2?: Maybe<OnchainProgramInfoV2>;
+  /** Delete a portfolio (hard delete) */
+  deletePortfolioV2?: Maybe<Scalars['Boolean']['output']>;
   deleteProgram?: Maybe<Scalars['Boolean']['output']>;
   deleteProgramV2?: Maybe<Scalars['ID']['output']>;
   deleteSmartContractV2?: Maybe<SmartContractV2>;
@@ -941,6 +958,8 @@ export type Mutation = {
   updateNetworkV2?: Maybe<NetworkV2>;
   updateOnchainContractInfoV2?: Maybe<OnchainContractInfoV2>;
   updateOnchainProgramInfoV2?: Maybe<OnchainProgramInfoV2>;
+  /** Update an existing portfolio */
+  updatePortfolioV2?: Maybe<PortfolioV2>;
   updatePost?: Maybe<Post>;
   updateProfile?: Maybe<User>;
   /** Update profile section (nickname, email, location, profileImage) */
@@ -1080,6 +1099,11 @@ export type MutationCreateOnchainProgramInfoV2Args = {
 };
 
 
+export type MutationCreatePortfolioV2Args = {
+  input: CreatePortfolioV2Input;
+};
+
+
 export type MutationCreatePostArgs = {
   input: CreatePostInput;
 };
@@ -1166,6 +1190,11 @@ export type MutationDeleteOnchainContractInfoV2Args = {
 
 
 export type MutationDeleteOnchainProgramInfoV2Args = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeletePortfolioV2Args = {
   id: Scalars['ID']['input'];
 };
 
@@ -1463,6 +1492,11 @@ export type MutationUpdateOnchainContractInfoV2Args = {
 export type MutationUpdateOnchainProgramInfoV2Args = {
   id: Scalars['ID']['input'];
   input: UpdateOnchainProgramInfoV2Input;
+};
+
+
+export type MutationUpdatePortfolioV2Args = {
+  input: UpdatePortfolioV2Input;
 };
 
 
@@ -1840,6 +1874,26 @@ export type PickApplicationV2Input = {
   picked: Scalars['Boolean']['input'];
 };
 
+export type PortfolioV2 = {
+  __typename?: 'PortfolioV2';
+  /** Portfolio creation timestamp */
+  createdAt?: Maybe<Scalars['String']['output']>;
+  /** Portfolio description (max 1000 characters) */
+  description?: Maybe<Scalars['String']['output']>;
+  /** Portfolio unique identifier */
+  id?: Maybe<Scalars['ID']['output']>;
+  /** Array of image URLs */
+  images?: Maybe<Array<Scalars['String']['output']>>;
+  /** Whether this is a Ludium project */
+  isLudiumProject?: Maybe<Scalars['Boolean']['output']>;
+  /** Role in the project */
+  role?: Maybe<Scalars['String']['output']>;
+  /** Portfolio title */
+  title?: Maybe<Scalars['String']['output']>;
+  /** Portfolio last update timestamp */
+  updatedAt?: Maybe<Scalars['String']['output']>;
+};
+
 export type Post = {
   __typename?: 'Post';
   author?: Maybe<User>;
@@ -2068,6 +2122,8 @@ export type Query = {
   milestonesV2?: Maybe<PaginatedMilestonesV2>;
   /** Get all applications submitted by the current user */
   myApplicationsV2?: Maybe<PaginatedApplicationsV2>;
+  /** Get all portfolios for the current authenticated user */
+  myPortfoliosV2?: Maybe<Array<PortfolioV2>>;
   networkV2?: Maybe<NetworkV2>;
   networksV2?: Maybe<PaginatedNetworksV2>;
   notifications?: Maybe<NotificationResult>;
@@ -2079,6 +2135,10 @@ export type Query = {
   onchainProgramInfosByProgramV2?: Maybe<PaginatedOnchainProgramInfoV2>;
   onchainProgramInfosBySmartContractV2?: Maybe<PaginatedOnchainProgramInfoV2>;
   onchainProgramInfosV2?: Maybe<PaginatedOnchainProgramInfoV2>;
+  /** Get a single portfolio by ID */
+  portfolioV2?: Maybe<PortfolioV2>;
+  /** Get all portfolios for a specific user */
+  portfoliosByUserIdV2?: Maybe<Array<PortfolioV2>>;
   post?: Maybe<Post>;
   posts?: Maybe<PaginatedPosts>;
   /** Get current user profile (deprecated: use profileV2 instead) */
@@ -2353,6 +2413,16 @@ export type QueryOnchainProgramInfosBySmartContractV2Args = {
 
 export type QueryOnchainProgramInfosV2Args = {
   pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryPortfolioV2Args = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryPortfoliosByUserIdV2Args = {
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -2733,6 +2803,21 @@ export type UpdateOnchainContractInfoV2Input = {
 export type UpdateOnchainProgramInfoV2Input = {
   status?: InputMaybe<OnchainProgramStatusV2>;
   tx?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdatePortfolioV2Input = {
+  /** Portfolio description (max 1000 characters) */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** Portfolio ID to update */
+  id: Scalars['ID']['input'];
+  /** Array of image files to upload (replaces existing images) */
+  images?: InputMaybe<Array<Scalars['Upload']['input']>>;
+  /** Whether this is a Ludium project */
+  isLudiumProject?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Role in the project (e.g., "Frontend Developer") */
+  role?: InputMaybe<Scalars['String']['input']>;
+  /** Portfolio title (required) */
+  title: Scalars['String']['input'];
 };
 
 export type UpdatePostInput = {
