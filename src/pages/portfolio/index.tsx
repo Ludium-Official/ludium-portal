@@ -15,9 +15,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import notify from '@/lib/notify';
-import type { ProjectContent, ProjectFormData } from '@/types/portfolio';
+import type { Portfolio, ProjectContent, ProjectFormData } from '@/types/portfolio';
 import { Pen, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { PortfolioDetailModal } from './_components/portfolio-detail-modal';
 
 const getEmptyFormData = (): ProjectFormData => ({
   title: '',
@@ -32,6 +33,8 @@ const PortfolioPage: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState<ProjectFormData>(getEmptyFormData());
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -62,9 +65,10 @@ const PortfolioPage: React.FC = () => {
     setIsOpen(true);
   };
 
-  const handleEdit = (portfolio: (typeof portfolios)[number]) => {
+  const handleEdit = (portfolio: Portfolio) => {
     if (!portfolio) return;
 
+    setIsDetailOpen(false);
     setEditingId(portfolio.id || null);
     setFormData({
       id: portfolio.id || undefined,
@@ -76,6 +80,16 @@ const PortfolioPage: React.FC = () => {
       existingImages: portfolio.images || [],
     });
     setIsOpen(true);
+  };
+
+  const handleViewDetail = (portfolio: Portfolio) => {
+    setSelectedPortfolio(portfolio);
+    setIsDetailOpen(true);
+  };
+
+  const handleCloseDetail = () => {
+    setIsDetailOpen(false);
+    setSelectedPortfolio(null);
   };
 
   const handleSave = async () => {
@@ -237,7 +251,8 @@ const PortfolioPage: React.FC = () => {
             return (
               <div
                 key={portfolio.id || index}
-                className="bg-white border border-gray-200 rounded-lg p-5"
+                className="bg-white border border-gray-200 rounded-lg p-5 cursor-pointer hover:border-gray-300 transition-colors"
+                onClick={() => handleViewDetail(portfolio)}
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
@@ -248,7 +263,10 @@ const PortfolioPage: React.FC = () => {
                     variant="outline"
                     size="icon"
                     className="h-9 w-10"
-                    onClick={() => handleEdit(portfolio)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(portfolio);
+                    }}
                   >
                     <Pen className="h-4 w-4" />
                   </Button>
@@ -257,19 +275,18 @@ const PortfolioPage: React.FC = () => {
                 {portfolio.role && <p className="text-sm text-slate-600 mb-2">{portfolio.role}</p>}
 
                 {portfolio.description && (
-                  <p className="text-sm text-slate-500 mb-4">{portfolio.description}</p>
+                  <p className="text-sm text-slate-500 mb-4 line-clamp-2">
+                    {portfolio.description}
+                  </p>
                 )}
 
                 {(portfolio.images?.length ?? 0) > 0 && (
-                  <div className="space-y-3 mb-4">
-                    {portfolio.images?.map((imageUrl, imgIndex) => (
-                      <img
-                        key={`${portfolio.id}-img-${imgIndex}`}
-                        src={imageUrl}
-                        alt={portfolio.title || 'Portfolio image'}
-                        className="w-full h-auto object-contain rounded-lg"
-                      />
-                    ))}
+                  <div className="flex items-center justify-center bg-slate-50 p-4 rounded-lg mb-4">
+                    <img
+                      src={portfolio.images?.[0] || ''}
+                      alt={portfolio.title || 'Portfolio image'}
+                      className="w-auto h-[343px] object-contain rounded-lg"
+                    />
                   </div>
                 )}
 
@@ -277,7 +294,10 @@ const PortfolioPage: React.FC = () => {
                   <button
                     type="button"
                     className="cursor-pointer text-xs text-gray-400 underline disabled:opacity-50"
-                    onClick={() => portfolio.id && handleDelete(portfolio.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      portfolio.id && handleDelete(portfolio.id);
+                    }}
                     disabled={isDeleting}
                   >
                     delete
@@ -447,6 +467,13 @@ const PortfolioPage: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <PortfolioDetailModal
+        portfolio={selectedPortfolio}
+        isOpen={isDetailOpen}
+        onClose={handleCloseDetail}
+        onEdit={handleEdit}
+      />
     </div>
   );
 };

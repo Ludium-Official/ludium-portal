@@ -175,18 +175,18 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
 
             {languages.length > 0 && (
               <div className="mb-4">
-                <div className="grid grid-cols-2 items-center justify-between mb-4">
+                <div className="flex items-center mb-4">
                   <p className="text-sm font-medium text-gray-900">Language</p>
-                  <p className="text-sm font-medium text-gray-900">Proficiency</p>
                 </div>
                 <div className="space-y-2">
                   {languages.map((language) => (
                     <div
                       key={language.language}
-                      className="grid grid-cols-2 items-center justify-between"
+                      className="flex items-center gap-2 text-sm text-slate-600"
                     >
-                      <p className="text-sm text-slate-600">{language.language}</p>
-                      <p className="text-sm text-slate-600">{language.proficiency}</p>
+                      <p>{language.language}</p>
+                      <p>-</p>
+                      <p>{language.proficiency}</p>
                     </div>
                   ))}
                 </div>
@@ -259,11 +259,9 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
               />
             </div>
 
-            {/* Languages */}
             <div>
               <div className="grid grid-cols-[1fr_1fr_40px] gap-4 mb-2">
                 <p className="text-sm font-medium text-gray-900">Language</p>
-                <p className="text-sm font-medium text-gray-900">Proficiency</p>
                 <div />
               </div>
               <div className="space-y-3">
