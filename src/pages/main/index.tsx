@@ -106,7 +106,9 @@ function MainPage() {
                       <Button type="button" variant="purple" className="w-[152px] h-11" asChild>
                         <Link
                           to={`${
-                            item.data?.__typename === 'Post' ? '/community/posts/' : '/programs/'
+                            item.data?.__typename === 'Post'
+                              ? '/community/posts/'
+                              : '/programs/recruitment/'
                           }${item.itemId}`}
                         >
                           VIEW DETAIL
@@ -162,7 +164,7 @@ function MainPage() {
           <section className="mb-12">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
               <h2 className="text-xl md:text-2xl font-bold font-sans mb-0">Programs</h2>
-              <Link to="/programs" className="flex items-center gap-2">
+              <Link to="/programs/recruitment" className="flex items-center gap-2">
                 View more
                 <ArrowRight className="w-4 h-4" />
               </Link>
@@ -172,7 +174,7 @@ function MainPage() {
                 {programsData?.programsV2?.data?.map((program) => {
                   return (
                     <Link
-                      to={`/programs/${program.id}`}
+                      to={`/programs/recruitment/${program.id}`}
                       className="min-w-[280px] md:min-w-[624px] md:max-w-[624px] hover:shadow-md transition-shadow flex-shrink-0"
                       key={program.id}
                     >

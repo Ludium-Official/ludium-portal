@@ -8,8 +8,7 @@ mutation updateApplicationChatroomV2($id: ID!, $input: UpdateApplicationChatroom
     applicant {
       id
       email
-      firstName
-      lastName
+      nickname
       profileImage
     }
     program {

@@ -12,10 +12,8 @@ mutation UpdateMilestoneV2($id: ID!, $input: UpdateMilestoneV2Input!) {
       id
       walletAddress
       email
-      firstName
-      lastName
+      nickname
       profileImage
-      organizationName
     }
     program {
       id

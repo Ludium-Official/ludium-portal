@@ -1,0 +1,23 @@
+mutation updateExpertiseSectionV2($input: UpdateExpertiseSectionV2Input!) {
+  updateExpertiseSectionV2(input: $input) {
+    id
+    email
+    nickname
+    role
+    loginType
+    walletAddress
+    profileImage
+    skills
+    about
+    location
+    userRole
+    languages {
+      id
+      language
+      proficiency
+      userId
+    }
+    createdAt
+    updatedAt
+  }
+}

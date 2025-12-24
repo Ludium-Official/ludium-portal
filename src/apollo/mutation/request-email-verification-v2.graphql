@@ -1,0 +1,3 @@
+mutation requestEmailVerificationV2($input: RequestEmailVerificationV2Input!) {
+  requestEmailVerificationV2(input: $input)
+}

@@ -8,11 +8,8 @@ query applicationsV2($query: ApplicationsV2QueryInput) {
       applicant {
         id
         email
-        firstName
-        lastName
+        nickname
         profileImage
-        organizationName
-        bio
         skills
       }
       program {

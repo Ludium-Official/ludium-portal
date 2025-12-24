@@ -9,7 +9,6 @@ import {
   PanelRightOpen,
   Scroll,
   UserRound,
-  Users,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
@@ -24,22 +23,35 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
   const location = useLocation();
   const { isLoggedIn } = useAuth();
 
-  const [programMenuOpen, setProgramMenuOpen] = useState(false);
+  const [openMenuPath, setOpenMenuPath] = useState<string | null>(null);
 
   const urlLinks: PathLinkProps[] = [
-    ...(isLoggedIn ? [{ name: 'Profile', path: '/profile', icon: UserRound }] : []),
+    ...(isLoggedIn
+      ? [
+          {
+            name: 'My Space',
+            path: '/dashboard',
+            icon: UserRound,
+            submenu: [
+              { name: 'Dashboard', path: '/dashboard' },
+              { name: 'Profile', path: '/profile' },
+              { name: 'Portfolio', path: '/portfolio' },
+            ],
+          },
+        ]
+      : []),
     {
       name: 'Program',
       path: '/programs',
       icon: Scroll,
-      submenu: [{ name: 'Recruitment', path: '/programs' }],
+      submenu: [{ name: 'Recruitment', path: '/programs/recruitment' }],
     },
     {
       name: 'Community',
       path: '/community',
       icon: MessageCircle,
     },
-    { name: 'Agent', path: '/users', icon: Users },
+    // { name: 'Agent', path: '/users', icon: Users },
   ];
 
   return (
@@ -87,8 +99,8 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
               <li key={link.path} className="relative z-50 mb-[8px]">
                 {link.submenu ? (
                   <div
-                    onMouseEnter={() => setProgramMenuOpen(true)}
-                    onMouseLeave={() => setProgramMenuOpen(false)}
+                    onMouseEnter={() => setOpenMenuPath(link.path)}
+                    onMouseLeave={() => setOpenMenuPath(null)}
                     className="relative"
                   >
                     <div
@@ -109,7 +121,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                       </span>
                     </div>
 
-                    {isCollapsed && programMenuOpen && (
+                    {isCollapsed && openMenuPath === link.path && (
                       <div className="absolute z-50 left-full top-0 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[160px]">
                         <div className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase">
                           {link.name}
@@ -141,7 +153,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                         <div
                           className={cn(
                             'relative ml-6',
-                            programMenuOpen || isLinkSubMenu ? 'mt-2' : 'h-0',
+                            openMenuPath === link.path || isLinkSubMenu ? 'mt-2' : 'h-0',
                           )}
                         >
                           <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300" />
@@ -154,14 +166,16 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                                     cn(
                                       'block px-4 py-2 rounded-lg transition-all duration-300 ease-in-out text-sm font-normal hover:text-primary',
                                       isActive ? 'text-primary font-medium' : 'text-gray-600',
-                                      programMenuOpen || isLinkSubMenu
+                                      openMenuPath === link.path || isLinkSubMenu
                                         ? 'opacity-100 translate-y-0'
                                         : 'opacity-0 -translate-y-2',
                                     )
                                   }
                                   style={{
                                     transitionDelay:
-                                      programMenuOpen || isLinkSubMenu ? `${index * 50}ms` : '0ms',
+                                      openMenuPath === link.path || isLinkSubMenu
+                                        ? `${index * 50}ms`
+                                        : '0ms',
                                   }}
                                 >
                                   {sublink.name}

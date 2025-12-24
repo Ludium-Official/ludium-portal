@@ -8,7 +8,7 @@ export type UsersV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type UsersV2Query = { __typename?: 'Query', usersV2?: { __typename?: 'PaginatedUsersV2', totalCount?: number | null, totalPages?: number | null, currentPage?: number | null, hasNextPage?: boolean | null, hasPreviousPage?: boolean | null, users?: Array<{ __typename?: 'UserV2', id?: string | null, role?: Types.UserRoleV2 | null, loginType?: Types.LoginTypeEnum | null, walletAddress?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null, organizationName?: string | null, profileImage?: string | null, bio?: string | null, skills?: Array<string> | null, links?: Array<string> | null, createdAt?: any | null, updatedAt?: any | null }> | null } | null };
+export type UsersV2Query = { __typename?: 'Query', usersV2?: { __typename?: 'PaginatedUsersV2', totalCount?: number | null, totalPages?: number | null, currentPage?: number | null, hasNextPage?: boolean | null, hasPreviousPage?: boolean | null, users?: Array<{ __typename?: 'UserV2', id?: string | null, role?: Types.UserRoleV2 | null, loginType?: Types.LoginTypeEnum | null, walletAddress?: string | null, email?: string | null, nickname?: string | null, profileImage?: string | null, skills?: Array<string> | null, about?: string | null, location?: string | null, userRole?: string | null, createdAt?: any | null, updatedAt?: any | null }> | null } | null };
 
 
 export const UsersV2Document = gql`
@@ -20,13 +20,12 @@ export const UsersV2Document = gql`
       loginType
       walletAddress
       email
-      firstName
-      lastName
-      organizationName
+      nickname
       profileImage
-      bio
       skills
-      links
+      about
+      location
+      userRole
       createdAt
       updatedAt
     }

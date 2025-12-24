@@ -8,8 +8,7 @@ mutation reviewApplicationV2($id: ID!, $input: ReviewApplicationV2Input!) {
     applicant {
       id
       email
-      firstName
-      lastName
+      nickname
       profileImage
     }
     program {

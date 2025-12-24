@@ -164,11 +164,24 @@ const RecruitmentMessage: React.FC = () => {
 
   const milestonesToUse = useMemo(() => {
     if (hasUpdateStatus && latestContract?.contract_snapshot_cotents?.milestones) {
-      return latestContract.contract_snapshot_cotents.milestones.map((m: MilestoneV2) => ({
-        ...m,
-        id: m.id?.toString(),
-        status: MilestoneStatusV2.InProgress,
-      }));
+      const completedMilestones = allMilestones.filter(
+        (m) => m.status === MilestoneStatusV2.Completed,
+      );
+
+      const updatedMilestones = latestContract.contract_snapshot_cotents.milestones
+        .filter((m: MilestoneV2) => {
+          const existingMilestone = allMilestones.find(
+            (am) => am.id?.toString() === m.id?.toString(),
+          );
+          return existingMilestone?.status !== MilestoneStatusV2.Completed;
+        })
+        .map((m: MilestoneV2) => ({
+          ...m,
+          id: m.id?.toString(),
+          status: MilestoneStatusV2.InProgress,
+        }));
+
+      return [...completedMilestones, ...updatedMilestones];
     }
     return allMilestones;
   }, [hasUpdateStatus, latestContract, allMilestones]);
@@ -375,28 +388,17 @@ const RecruitmentMessage: React.FC = () => {
                       }
                       alt={
                         userId === selectedApplication.applicant?.id
-                          ? `${program?.sponsor?.firstName || ''} ${
-                              program?.sponsor?.lastName || ''
-                            }`.trim() ||
-                            program?.sponsor?.email ||
-                            'Unknown'
-                          : `${selectedApplication.applicant?.firstName || ''} ${
-                              selectedApplication.applicant?.lastName || ''
-                            }`.trim() ||
+                          ? program?.sponsor?.nickname || program?.sponsor?.email || 'Unknown'
+                          : selectedApplication.applicant?.nickname ||
                             selectedApplication.applicant?.email ||
                             'Unknown'
                       }
                     />
                     <AvatarFallback className="text-sm font-semibold">
                       {userId === selectedApplication.applicant?.id
-                        ? getUserInitialName(
-                            program?.sponsor?.firstName,
-                            program?.sponsor?.lastName,
-                            program?.sponsor?.email,
-                          )
+                        ? getUserInitialName(program?.sponsor?.nickname, program?.sponsor?.email)
                         : getUserInitialName(
-                            selectedApplication.applicant?.firstName,
-                            selectedApplication.applicant?.lastName,
+                            selectedApplication.applicant?.nickname,
                             selectedApplication.applicant?.email,
                           )}
                     </AvatarFallback>
@@ -404,22 +406,12 @@ const RecruitmentMessage: React.FC = () => {
                   <div className="flex flex-col">
                     <h3 className="font-bold text-lg">
                       {userId === selectedApplication.applicant?.id
-                        ? getUserDisplayName(
-                            program?.sponsor?.firstName,
-                            program?.sponsor?.lastName,
-                            program?.sponsor?.email,
-                          )
+                        ? getUserDisplayName(program?.sponsor?.nickname, program?.sponsor?.email)
                         : getUserDisplayName(
-                            selectedApplication.applicant?.firstName,
-                            selectedApplication.applicant?.lastName,
+                            selectedApplication.applicant?.nickname,
                             selectedApplication.applicant?.email,
                           )}
                     </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {userId === selectedApplication.applicant?.id
-                        ? program?.sponsor?.organizationName
-                        : selectedApplication.applicant?.organizationName}
-                    </p>
                   </div>
                 </div>
                 {program?.sponsor?.id === userId && (

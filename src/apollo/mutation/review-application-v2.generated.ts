@@ -9,7 +9,7 @@ export type ReviewApplicationV2MutationVariables = Types.Exact<{
 }>;
 
 
-export type ReviewApplicationV2Mutation = { __typename?: 'Mutation', reviewApplicationV2?: { __typename?: 'ApplicationV2', id?: string | null, status?: Types.ApplicationStatusV2 | null, rejectedReason?: string | null, createdAt?: any | null, updatedAt?: any | null, applicant?: { __typename?: 'UserV2', id?: string | null, email?: string | null, firstName?: string | null, lastName?: string | null, profileImage?: string | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null } | null } | null };
+export type ReviewApplicationV2Mutation = { __typename?: 'Mutation', reviewApplicationV2?: { __typename?: 'ApplicationV2', id?: string | null, status?: Types.ApplicationStatusV2 | null, rejectedReason?: string | null, createdAt?: any | null, updatedAt?: any | null, applicant?: { __typename?: 'UserV2', id?: string | null, email?: string | null, nickname?: string | null, profileImage?: string | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null } | null } | null };
 
 
 export const ReviewApplicationV2Document = gql`
@@ -23,8 +23,7 @@ export const ReviewApplicationV2Document = gql`
     applicant {
       id
       email
-      firstName
-      lastName
+      nickname
       profileImage
     }
     program {

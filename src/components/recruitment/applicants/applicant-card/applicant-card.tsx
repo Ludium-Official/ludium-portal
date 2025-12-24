@@ -24,8 +24,8 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
   const [updateApplicationChatroom, { loading: isUpdatingChatroom }] =
     useUpdateApplicationChatroomV2Mutation();
 
-  const fullName = getUserDisplayName(userInfo.firstName, userInfo.lastName, userInfo.email);
-  const initials = getUserInitialName(userInfo.firstName, userInfo.lastName, userInfo.email);
+  const fullName = getUserDisplayName(userInfo.nickname, userInfo.email);
+  const initials = getUserInitialName(userInfo.nickname, userInfo.email);
 
   const handleMessageClick = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -39,7 +39,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
     try {
       if (chatroomMessageId) {
         navigate(
-          `/profile/recruitment/sponsor/${applicant.programId}?tab=message&chatroomId=${chatroomMessageId}`,
+          `/dashboard/recruitment/sponsor/${applicant.programId}?tab=message&chatroomId=${chatroomMessageId}`,
         );
         return;
       }
@@ -54,7 +54,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
       if (result.data?.updateApplicationChatroomV2?.chatroomMessageId) {
         const newChatroomId = result.data.updateApplicationChatroomV2.chatroomMessageId;
         navigate(
-          `/profile/recruitment/sponsor/${applicant.programId}?tab=message&chatroomId=${newChatroomId}`,
+          `/dashboard/recruitment/sponsor/${applicant.programId}?tab=message&chatroomId=${newChatroomId}`,
         );
 
         await sendMessage(

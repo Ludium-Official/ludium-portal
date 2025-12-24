@@ -8,26 +8,11 @@ export const sidebarLinks = [
     children: [
       {
         label: 'Recruitment',
-        // path: "program/recruitment",
         children: [
-          { label: 'Sponsor', path: 'profile/recruitment/sponsor' },
-          { label: 'Builder', path: 'profile/recruitment/builder' },
-          // { label: 'Reclaim', path: 'my-profile/program/recruitment/reclaim' },
+          { label: 'Sponsor', path: 'dashboard/recruitment/sponsor' },
+          { label: 'Builder', path: 'dashboard/recruitment/builder' },
         ],
       },
-      // {
-      //   label: 'Funding',
-      //   path: 'my-profile/program/investment',
-      //   children: [
-      //     { label: 'Host', path: 'my-profile/program/investment/host' },
-      //     { label: 'Project', path: 'my-profile/program/investment/project' },
-      //     {
-      //       label: 'Supporter',
-      //       path: 'my-profile/program/investment/supporter',
-      //     },
-      //     // { label: 'Reclaim', path: 'my-profile/program/investment/reclaim' },
-      //   ],
-      // },
     ],
   },
   { label: 'Community', path: 'profile/community' },

@@ -14,6 +14,7 @@ export const AuthContext = createContext<AuthProps>({
   isAuthed: false,
   isAdmin: false,
   isSuperadmin: false,
+  isAuthLoading: true,
   login: async () => {},
   logout: async () => {},
 });
@@ -27,10 +28,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState<boolean | null>();
   const [isSuperadmin, setIsSuperadmin] = useState<boolean | null>();
 
-  const { data: userProfile, error } = useProfileV2Query({
+  const {
+    data: userProfile,
+    error,
+    loading: profileLoading,
+  } = useProfileV2Query({
     skip: !token,
     fetchPolicy: 'network-only',
   });
+
+  const isAuthLoading = !!token && profileLoading;
 
   const [loginMutation] = useLoginV2Mutation();
 
@@ -84,6 +91,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         token,
         isLoggedIn: !!token,
         isAuthed: !!token && !!userProfile?.profileV2?.email,
+        isAuthLoading,
         login,
         logout,
         isAdmin,

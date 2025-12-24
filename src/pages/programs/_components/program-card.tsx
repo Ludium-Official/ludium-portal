@@ -11,26 +11,16 @@ function ProgramCard({ program }: { program: ProgramV2 }) {
 
   return (
     <div className="block w-full max-w-full max-h-[292px] border border-gray-border rounded-lg p-5">
-      <Link to={`/programs/${id}`} className="flex flex-col gap-3 mb-4">
+      <Link to={`/programs/recruitment/${id}`} className="flex flex-col gap-3 mb-4">
         <div className="text-lg font-bold line-clamp-1 min-h-[28px]">{title}</div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Avatar className="w-7 h-7">
             <AvatarImage src={program.sponsor?.profileImage || ''} />
             <AvatarFallback className="text-xs">
-              {getInitials(
-                getUserDisplayName(
-                  program.sponsor?.firstName,
-                  program.sponsor?.lastName,
-                  program.sponsor?.email,
-                ),
-              )}
+              {getInitials(getUserDisplayName(program.sponsor?.nickname, program.sponsor?.email))}
             </AvatarFallback>
           </Avatar>
-          {getUserDisplayName(
-            program.sponsor?.firstName,
-            program.sponsor?.lastName,
-            program.sponsor?.email,
-          )}
+          {getUserDisplayName(program.sponsor?.nickname, program.sponsor?.email)}
         </div>
 
         <div className="flex gap-3">

@@ -1,0 +1,3 @@
+mutation verifyEmailV2($email: String!, $verificationCode: String!) {
+  verifyEmailV2(email: $email, verificationCode: $verificationCode)
+}

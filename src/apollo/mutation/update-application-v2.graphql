@@ -7,8 +7,7 @@ mutation updateApplicationV2($id: ID!, $input: UpdateApplicationV2Input!) {
     applicant {
       id
       email
-      firstName
-      lastName
+      nickname
       profileImage
     }
     program {

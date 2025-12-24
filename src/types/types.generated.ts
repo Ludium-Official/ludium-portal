@@ -129,6 +129,48 @@ export type AssignUserTierInput = {
   userId: Scalars['ID']['input'];
 };
 
+export type BuilderInfo = {
+  __typename?: 'BuilderInfo';
+  nickname?: Maybe<Scalars['String']['output']>;
+  profileImage?: Maybe<Scalars['String']['output']>;
+};
+
+export type BuilderJobActivity = {
+  __typename?: 'BuilderJobActivity';
+  /** Number of programs the builder has applied to (excluding deleted status) */
+  appliedPrograms?: Maybe<Scalars['Int']['output']>;
+  /** Number of programs with ongoing milestones (applications with in_progress or pending_signature status) */
+  ongoingPrograms?: Maybe<Scalars['Int']['output']>;
+};
+
+export type BuilderJobActivityCards = {
+  __typename?: 'BuilderJobActivityCards';
+  /** Total number of programs builder has applied to (excluding deleted) */
+  applied?: Maybe<Scalars['Int']['output']>;
+  /** Number of programs with status completed */
+  completed?: Maybe<Scalars['Int']['output']>;
+  /** Number of programs with ongoing milestones (applications with in_progress or pending_signature) */
+  ongoing?: Maybe<Scalars['Int']['output']>;
+};
+
+export type BuilderMilestoneV2 = {
+  __typename?: 'BuilderMilestoneV2';
+  /** Milestone deadline */
+  deadline?: Maybe<Scalars['DateTime']['output']>;
+  /** Milestone unique identifier */
+  id?: Maybe<Scalars['ID']['output']>;
+  /** Current paid amount (if status is completed and payout_tx exists) */
+  paidAmount?: Maybe<Scalars['String']['output']>;
+  /** Milestone status */
+  status?: Maybe<Scalars['String']['output']>;
+  /** Milestone title */
+  title?: Maybe<Scalars['String']['output']>;
+  /** Token ID for the milestone */
+  tokenId?: Maybe<Scalars['Int']['output']>;
+  /** Unpaid amount (amount not yet paid) */
+  unpaidAmount?: Maybe<Scalars['String']['output']>;
+};
+
 export type BulkAssignTiersInput = {
   assignments: Array<AssignUserTierInput>;
   programId: Scalars['ID']['input'];
@@ -262,6 +304,14 @@ export type CreateContractV2Input = {
   sponsorId: Scalars['Int']['input'];
 };
 
+export type CreateEducationV2Input = {
+  attendedEndDate?: InputMaybe<Scalars['Int']['input']>;
+  attendedStartDate?: InputMaybe<Scalars['Int']['input']>;
+  degree?: InputMaybe<Scalars['String']['input']>;
+  school: Scalars['String']['input'];
+  study?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type CreateInvestmentInput = {
   amount: Scalars['String']['input'];
   investmentTermId?: InputMaybe<Scalars['ID']['input']>;
@@ -331,6 +381,19 @@ export type CreateOnchainProgramInfoV2Input = {
   smartContractId: Scalars['Int']['input'];
   status?: InputMaybe<OnchainProgramStatusV2>;
   tx: Scalars['String']['input'];
+};
+
+export type CreatePortfolioV2Input = {
+  /** Portfolio description (max 1000 characters) */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** Array of image files to upload */
+  images?: InputMaybe<Array<Scalars['Upload']['input']>>;
+  /** Whether this is a Ludium project */
+  isLudiumProject?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Role in the project (e.g., "Frontend Developer") */
+  role?: InputMaybe<Scalars['String']['input']>;
+  /** Portfolio title (required) */
+  title: Scalars['String']['input'];
 };
 
 export type CreatePostInput = {
@@ -404,28 +467,60 @@ export type CreateTokenV2Input = {
 };
 
 export type CreateUserV2Input = {
-  /** User bio/description */
-  bio?: InputMaybe<Scalars['String']['input']>;
+  /** User about section (max 1000 characters) */
+  about?: InputMaybe<Scalars['String']['input']>;
   /** User email address */
   email?: InputMaybe<Scalars['String']['input']>;
-  /** User first name */
-  firstName?: InputMaybe<Scalars['String']['input']>;
-  /** User last name */
-  lastName?: InputMaybe<Scalars['String']['input']>;
-  /** User links array */
-  links?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** User location/timezone (e.g., "(GMT+09:00) Korea Standard Time - Seoul") */
+  location?: InputMaybe<Scalars['String']['input']>;
   /** User login type */
   loginType: LoginTypeEnum;
-  /** User organization name */
-  organizationName?: InputMaybe<Scalars['String']['input']>;
+  /** User nickname */
+  nickname?: InputMaybe<Scalars['String']['input']>;
   /** User profile image URL */
   profileImage?: InputMaybe<Scalars['String']['input']>;
   /** User role (defaults to user) */
   role?: InputMaybe<UserRoleV2>;
   /** User skills array */
   skills?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** User professional role (e.g., "Web Developer") */
+  userRole?: InputMaybe<Scalars['String']['input']>;
   /** User wallet address */
   walletAddress: Scalars['String']['input'];
+};
+
+export type CreateWorkExperienceV2Input = {
+  company: Scalars['String']['input'];
+  currentWork?: InputMaybe<Scalars['Boolean']['input']>;
+  employmentType?: InputMaybe<Scalars['String']['input']>;
+  endMonth?: InputMaybe<Scalars['String']['input']>;
+  endYear?: InputMaybe<Scalars['Int']['input']>;
+  role: Scalars['String']['input'];
+  startMonth?: InputMaybe<Scalars['String']['input']>;
+  startYear?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type DashboardV2 = {
+  __typename?: 'DashboardV2';
+  /** Payment overview by week for builder (4 weeks) */
+  builderPaymentOverview?: Maybe<Array<PaymentWeek>>;
+  /** Hiring activity statistics (as sponsor - programs created by user) */
+  hiringActivity?: Maybe<SponsorHiringActivity>;
+  /** Job activity statistics (as builder - programs user has applied to) */
+  jobActivity?: Maybe<BuilderJobActivity>;
+  /** Payment overview by week for sponsor (4 weeks) */
+  sponsorPaymentOverview?: Maybe<Array<PaymentWeek>>;
+};
+
+export type EducationV2 = {
+  __typename?: 'EducationV2';
+  attendedEndDate?: Maybe<Scalars['Int']['output']>;
+  attendedStartDate?: Maybe<Scalars['Int']['output']>;
+  degree?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  school?: Maybe<Scalars['String']['output']>;
+  study?: Maybe<Scalars['String']['output']>;
+  userId?: Maybe<Scalars['Int']['output']>;
 };
 
 export type EnrichedCarouselItem = {
@@ -460,6 +555,44 @@ export enum FundingCondition {
   Open = 'open',
   Tier = 'tier'
 }
+
+export type HiredBuilderV2 = {
+  __typename?: 'HiredBuilderV2';
+  id?: Maybe<Scalars['Int']['output']>;
+  milestoneCount?: Maybe<Scalars['Int']['output']>;
+  nickname?: Maybe<Scalars['String']['output']>;
+  paidAmount?: Maybe<Scalars['String']['output']>;
+  profileImage?: Maybe<Scalars['String']['output']>;
+  role?: Maybe<Scalars['String']['output']>;
+  status?: Maybe<Scalars['String']['output']>;
+  tokenId?: Maybe<Scalars['Int']['output']>;
+  totalAmount?: Maybe<Scalars['String']['output']>;
+};
+
+/** Filter for program status: ALL, OPEN, ONGOING, or COMPLETED */
+export enum HiringActivityProgramStatusFilter {
+  All = 'ALL',
+  Completed = 'COMPLETED',
+  Ongoing = 'ONGOING',
+  Open = 'OPEN'
+}
+
+export type HiringActivityV2 = {
+  __typename?: 'HiringActivityV2';
+  /** Card data with counts (for sponsor) */
+  cards?: Maybe<SponsorHiringActivityCards>;
+  /** Paginated list of programs */
+  programs?: Maybe<PaginatedProgramsV2>;
+};
+
+export type HiringActivityV2Input = {
+  /** Pagination options */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Search by program title */
+  search?: InputMaybe<Scalars['String']['input']>;
+  /** Filter by program status: ALL, OPEN, ONGOING, or COMPLETED */
+  status?: InputMaybe<HiringActivityProgramStatusFilter>;
+};
 
 export type Investment = {
   __typename?: 'Investment';
@@ -527,6 +660,30 @@ export type Investor = {
   userId?: Maybe<Scalars['ID']['output']>;
 };
 
+/** Filter for program status: APPLIED, ONGOING or COMPLETED */
+export enum JobActivityProgramStatusFilter {
+  Applied = 'APPLIED',
+  Completed = 'COMPLETED',
+  Ongoing = 'ONGOING'
+}
+
+export type JobActivityV2 = {
+  __typename?: 'JobActivityV2';
+  /** Card data with counts (for builder) */
+  cards?: Maybe<BuilderJobActivityCards>;
+  /** Paginated list of programs */
+  programs?: Maybe<PaginatedProgramsV2>;
+};
+
+export type JobActivityV2Input = {
+  /** Pagination options */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Search by program title */
+  search?: InputMaybe<Scalars['String']['input']>;
+  /** Filter by program status: APPLIED, ONGOING, or COMPLETED */
+  status?: InputMaybe<JobActivityProgramStatusFilter>;
+};
+
 export type Keyword = {
   __typename?: 'Keyword';
   id?: Maybe<Scalars['ID']['output']>;
@@ -537,6 +694,19 @@ export enum KeywordType {
   Role = 'role',
   Skill = 'skill'
 }
+
+export type LanguageV2 = {
+  __typename?: 'LanguageV2';
+  id?: Maybe<Scalars['ID']['output']>;
+  language?: Maybe<Scalars['String']['output']>;
+  proficiency?: Maybe<Scalars['String']['output']>;
+  userId?: Maybe<Scalars['Int']['output']>;
+};
+
+export type LanguageV2Input = {
+  language: Scalars['String']['input'];
+  proficiency: Scalars['String']['input'];
+};
 
 export type Link = {
   __typename?: 'Link';
@@ -589,6 +759,14 @@ export type MilestonePayout = {
   processedAt?: Maybe<Scalars['Date']['output']>;
   status?: Maybe<PayoutStatus>;
   txHash?: Maybe<Scalars['String']['output']>;
+};
+
+export type MilestoneProgress = {
+  __typename?: 'MilestoneProgress';
+  /** Number of completed milestones */
+  completed?: Maybe<Scalars['Int']['output']>;
+  /** Total number of milestones */
+  total?: Maybe<Scalars['Int']['output']>;
 };
 
 export enum MilestoneStatus {
@@ -676,6 +854,8 @@ export type Mutation = {
   createCarouselItem?: Maybe<CarouselItem>;
   createComment?: Maybe<Comment>;
   createContractV2?: Maybe<ContractV2>;
+  /** Create a new education */
+  createEducationV2?: Maybe<EducationV2>;
   createInvestment?: Maybe<Investment>;
   createInvestmentTerm?: Maybe<InvestmentTerm>;
   /** Create a new milestone */
@@ -683,6 +863,8 @@ export type Mutation = {
   createNetworkV2?: Maybe<NetworkV2>;
   createOnchainContractInfoV2?: Maybe<OnchainContractInfoV2>;
   createOnchainProgramInfoV2?: Maybe<OnchainProgramInfoV2>;
+  /** Create a new portfolio */
+  createPortfolioV2?: Maybe<PortfolioV2>;
   createPost?: Maybe<Post>;
   createProgram?: Maybe<Program>;
   createProgramV2?: Maybe<ProgramV2>;
@@ -692,16 +874,22 @@ export type Mutation = {
   createUser?: Maybe<User>;
   /** Create a new user */
   createUserV2?: Maybe<UserV2>;
+  /** Create a new work experience */
+  createWorkExperienceV2?: Maybe<WorkExperienceV2>;
   /** Delete an application by ID (only by the applicant) */
   deleteApplicationV2?: Maybe<ApplicationV2>;
   deleteCarouselItem?: Maybe<CarouselItem>;
   deleteContractV2?: Maybe<ContractV2>;
+  /** Delete an education (hard delete) */
+  deleteEducationV2?: Maybe<Scalars['Boolean']['output']>;
   deleteInvestmentTerm?: Maybe<Scalars['Boolean']['output']>;
   /** Delete a milestone by ID */
   deleteMilestoneV2?: Maybe<MilestoneV2>;
   deleteNetworkV2?: Maybe<NetworkV2>;
   deleteOnchainContractInfoV2?: Maybe<OnchainContractInfoV2>;
   deleteOnchainProgramInfoV2?: Maybe<OnchainProgramInfoV2>;
+  /** Delete a portfolio (hard delete) */
+  deletePortfolioV2?: Maybe<Scalars['Boolean']['output']>;
   deleteProgram?: Maybe<Scalars['Boolean']['output']>;
   deleteProgramV2?: Maybe<Scalars['ID']['output']>;
   deleteSmartContractV2?: Maybe<SmartContractV2>;
@@ -709,6 +897,8 @@ export type Mutation = {
   deleteUser?: Maybe<User>;
   /** Delete a user by ID */
   deleteUserV2?: Maybe<Scalars['Boolean']['output']>;
+  /** Delete a work experience (hard delete) */
+  deleteWorkExperienceV2?: Maybe<Scalars['Boolean']['output']>;
   demoteFromAdmin?: Maybe<User>;
   generateSwappedUrl?: Maybe<SwappedUrlResponse>;
   hidePost?: Maybe<Post>;
@@ -735,6 +925,8 @@ export type Mutation = {
   removeUserKeyword?: Maybe<Scalars['Boolean']['output']>;
   removeValidatorFromProgram?: Maybe<Program>;
   reorderCarouselItems?: Maybe<Array<CarouselItem>>;
+  /** Request email verification code */
+  requestEmailVerificationV2?: Maybe<Scalars['Boolean']['output']>;
   /** Review and accept/reject application (only by program creator) */
   reviewApplicationV2?: Maybe<ApplicationV2>;
   showPost?: Maybe<Post>;
@@ -743,6 +935,8 @@ export type Mutation = {
   submitProgram?: Maybe<Program>;
   syncApplicationTiers?: Maybe<TierSyncResult>;
   unbanUser?: Maybe<User>;
+  /** Update about section (max 1000 characters) */
+  updateAboutSectionV2?: Maybe<UserV2>;
   updateApplication?: Maybe<Application>;
   /** Update chatroom message ID for an application (only by program sponsor). Generates a random UUID. */
   updateApplicationChatroomV2?: Maybe<ApplicationV2>;
@@ -751,6 +945,10 @@ export type Mutation = {
   updateCarouselItem?: Maybe<CarouselItem>;
   updateComment?: Maybe<Comment>;
   updateContractV2?: Maybe<ContractV2>;
+  /** Update an existing education */
+  updateEducationV2?: Maybe<EducationV2>;
+  /** Update expertise section (role, skills, languages) */
+  updateExpertiseSectionV2?: Maybe<UserV2>;
   updateInvestmentTerm?: Maybe<InvestmentTerm>;
   updateMilestone?: Maybe<Milestone>;
   /** Update milestone payout_tx and status by relayer service */
@@ -760,10 +958,12 @@ export type Mutation = {
   updateNetworkV2?: Maybe<NetworkV2>;
   updateOnchainContractInfoV2?: Maybe<OnchainContractInfoV2>;
   updateOnchainProgramInfoV2?: Maybe<OnchainProgramInfoV2>;
+  /** Update an existing portfolio */
+  updatePortfolioV2?: Maybe<PortfolioV2>;
   updatePost?: Maybe<Post>;
   updateProfile?: Maybe<User>;
-  /** Update current authenticated user profile */
-  updateProfileV2?: Maybe<UserV2>;
+  /** Update profile section (nickname, email, location, profileImage) */
+  updateProfileSectionV2?: Maybe<UserV2>;
   updateProgram?: Maybe<Program>;
   /** Update program status from open to closed by relayer service */
   updateProgramByRelayerV2?: Maybe<ProgramV2>;
@@ -773,6 +973,10 @@ export type Mutation = {
   updateUser?: Maybe<User>;
   /** Update an existing user */
   updateUserV2?: Maybe<UserV2>;
+  /** Update an existing work experience */
+  updateWorkExperienceV2?: Maybe<WorkExperienceV2>;
+  /** Verify email with verification code */
+  verifyEmailV2?: Maybe<Scalars['Boolean']['output']>;
 };
 
 
@@ -859,6 +1063,11 @@ export type MutationCreateContractV2Args = {
 };
 
 
+export type MutationCreateEducationV2Args = {
+  input: CreateEducationV2Input;
+};
+
+
 export type MutationCreateInvestmentArgs = {
   input: CreateInvestmentInput;
 };
@@ -887,6 +1096,11 @@ export type MutationCreateOnchainContractInfoV2Args = {
 
 export type MutationCreateOnchainProgramInfoV2Args = {
   input: CreateOnchainProgramInfoV2Input;
+};
+
+
+export type MutationCreatePortfolioV2Args = {
+  input: CreatePortfolioV2Input;
 };
 
 
@@ -930,6 +1144,11 @@ export type MutationCreateUserV2Args = {
 };
 
 
+export type MutationCreateWorkExperienceV2Args = {
+  input: CreateWorkExperienceV2Input;
+};
+
+
 export type MutationDeleteApplicationV2Args = {
   id: Scalars['ID']['input'];
 };
@@ -941,6 +1160,11 @@ export type MutationDeleteCarouselItemArgs = {
 
 
 export type MutationDeleteContractV2Args = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteEducationV2Args = {
   id: Scalars['ID']['input'];
 };
 
@@ -966,6 +1190,11 @@ export type MutationDeleteOnchainContractInfoV2Args = {
 
 
 export type MutationDeleteOnchainProgramInfoV2Args = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeletePortfolioV2Args = {
   id: Scalars['ID']['input'];
 };
 
@@ -996,6 +1225,11 @@ export type MutationDeleteUserArgs = {
 
 
 export type MutationDeleteUserV2Args = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteWorkExperienceV2Args = {
   id: Scalars['ID']['input'];
 };
 
@@ -1130,6 +1364,11 @@ export type MutationReorderCarouselItemsArgs = {
 };
 
 
+export type MutationRequestEmailVerificationV2Args = {
+  input: RequestEmailVerificationV2Input;
+};
+
+
 export type MutationReviewApplicationV2Args = {
   id: Scalars['ID']['input'];
   input: ReviewApplicationV2Input;
@@ -1168,6 +1407,11 @@ export type MutationUnbanUserArgs = {
 };
 
 
+export type MutationUpdateAboutSectionV2Args = {
+  input: UpdateAboutSectionV2Input;
+};
+
+
 export type MutationUpdateApplicationArgs = {
   input: UpdateApplicationInput;
 };
@@ -1198,6 +1442,16 @@ export type MutationUpdateCommentArgs = {
 export type MutationUpdateContractV2Args = {
   id: Scalars['ID']['input'];
   input: UpdateContractV2Input;
+};
+
+
+export type MutationUpdateEducationV2Args = {
+  input: UpdateEducationV2Input;
+};
+
+
+export type MutationUpdateExpertiseSectionV2Args = {
+  input: UpdateExpertiseSectionV2Input;
 };
 
 
@@ -1241,6 +1495,11 @@ export type MutationUpdateOnchainProgramInfoV2Args = {
 };
 
 
+export type MutationUpdatePortfolioV2Args = {
+  input: UpdatePortfolioV2Input;
+};
+
+
 export type MutationUpdatePostArgs = {
   input: UpdatePostInput;
 };
@@ -1251,8 +1510,8 @@ export type MutationUpdateProfileArgs = {
 };
 
 
-export type MutationUpdateProfileV2Args = {
-  input: UpdateProfileV2Input;
+export type MutationUpdateProfileSectionV2Args = {
+  input: UpdateProfileSectionV2Input;
 };
 
 
@@ -1292,6 +1551,17 @@ export type MutationUpdateUserArgs = {
 
 export type MutationUpdateUserV2Args = {
   input: UpdateUserV2Input;
+};
+
+
+export type MutationUpdateWorkExperienceV2Args = {
+  input: UpdateWorkExperienceV2Input;
+};
+
+
+export type MutationVerifyEmailV2Args = {
+  email: Scalars['String']['input'];
+  verificationCode: Scalars['String']['input'];
 };
 
 export type MyApplicationsV2QueryInput = {
@@ -1425,6 +1695,12 @@ export type PaginatedApplicationsV2 = {
   totalPages?: Maybe<Scalars['Int']['output']>;
 };
 
+export type PaginatedBuilderMilestonesV2 = {
+  __typename?: 'PaginatedBuilderMilestonesV2';
+  count?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<BuilderMilestoneV2>>;
+};
+
 export type PaginatedComments = {
   __typename?: 'PaginatedComments';
   count?: Maybe<Scalars['Int']['output']>;
@@ -1435,6 +1711,12 @@ export type PaginatedContractV2 = {
   __typename?: 'PaginatedContractV2';
   count?: Maybe<Scalars['Int']['output']>;
   data?: Maybe<Array<ContractV2>>;
+};
+
+export type PaginatedHiredBuildersV2 = {
+  __typename?: 'PaginatedHiredBuildersV2';
+  count?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<HiredBuilderV2>>;
 };
 
 export type PaginatedInvestments = {
@@ -1565,6 +1847,21 @@ export type PaginationInputV2 = {
   sort?: InputMaybe<SortEnum>;
 };
 
+export type PaymentInfo = {
+  __typename?: 'PaymentInfo';
+  deadline?: Maybe<Scalars['DateTime']['output']>;
+  payout?: Maybe<Scalars['String']['output']>;
+  tokenId?: Maybe<Scalars['Int']['output']>;
+};
+
+export type PaymentWeek = {
+  __typename?: 'PaymentWeek';
+  /** Total budget for completed milestones in this week */
+  budget?: Maybe<Scalars['String']['output']>;
+  /** Week label (e.g., "1 week", "2 week") */
+  label?: Maybe<Scalars['String']['output']>;
+};
+
 export enum PayoutStatus {
   Completed = 'completed',
   Failed = 'failed',
@@ -1575,6 +1872,26 @@ export enum PayoutStatus {
 export type PickApplicationV2Input = {
   /** Whether to mark this application as picked (bookmark) */
   picked: Scalars['Boolean']['input'];
+};
+
+export type PortfolioV2 = {
+  __typename?: 'PortfolioV2';
+  /** Portfolio creation timestamp */
+  createdAt?: Maybe<Scalars['String']['output']>;
+  /** Portfolio description (max 1000 characters) */
+  description?: Maybe<Scalars['String']['output']>;
+  /** Portfolio unique identifier */
+  id?: Maybe<Scalars['ID']['output']>;
+  /** Array of image URLs */
+  images?: Maybe<Array<Scalars['String']['output']>>;
+  /** Whether this is a Ludium project */
+  isLudiumProject?: Maybe<Scalars['Boolean']['output']>;
+  /** Role in the project */
+  role?: Maybe<Scalars['String']['output']>;
+  /** Portfolio title */
+  title?: Maybe<Scalars['String']['output']>;
+  /** Portfolio last update timestamp */
+  updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
 export type Post = {
@@ -1645,6 +1962,25 @@ export type Program = {
   userTierAssignment?: Maybe<UserTierAssignment>;
   validators?: Maybe<Array<User>>;
   visibility?: Maybe<ProgramVisibility>;
+};
+
+export type ProgramOverviewV2 = {
+  __typename?: 'ProgramOverviewV2';
+  /** List of hired builders (for sponsor) */
+  hiredBuilders?: Maybe<PaginatedHiredBuildersV2>;
+  /** Milestone progress (completed/total) */
+  milestoneProgress?: Maybe<MilestoneProgress>;
+  /** List of milestones (for builder) */
+  milestones?: Maybe<PaginatedBuilderMilestonesV2>;
+  /** List of upcoming payments (within 7 days based on deadline + 2 days) */
+  upcomingPayments?: Maybe<Array<UpcomingPayment>>;
+};
+
+export type ProgramOverviewV2Input = {
+  /** Pagination options for hired builders or milestones */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Program ID */
+  programId: Scalars['ID']['input'];
 };
 
 export type ProgramStatsByStatus = {
@@ -1762,11 +2098,17 @@ export type Query = {
   contractsBySponsorV2?: Maybe<PaginatedContractV2>;
   contractsV2?: Maybe<PaginatedContractV2>;
   countNotifications?: Maybe<Scalars['Int']['output']>;
+  /** Get dashboard data for current authenticated user */
+  dashboardV2?: Maybe<DashboardV2>;
   getSwappedStatus?: Maybe<SwappedStatusResponse>;
+  /** Get hiring activity data (cards and programs list) */
+  hiringActivityV2?: Maybe<HiringActivityV2>;
   investment?: Maybe<Investment>;
   investmentTerm?: Maybe<InvestmentTerm>;
   investmentTermsByApplicationId?: Maybe<Array<InvestmentTerm>>;
   investments?: Maybe<PaginatedInvestments>;
+  /** Get job activity data (cards and programs list) */
+  jobActivityV2?: Maybe<JobActivityV2>;
   keywords?: Maybe<Array<Keyword>>;
   milestone?: Maybe<Milestone>;
   milestonePayout?: Maybe<MilestonePayout>;
@@ -1780,6 +2122,8 @@ export type Query = {
   milestonesV2?: Maybe<PaginatedMilestonesV2>;
   /** Get all applications submitted by the current user */
   myApplicationsV2?: Maybe<PaginatedApplicationsV2>;
+  /** Get all portfolios for the current authenticated user */
+  myPortfoliosV2?: Maybe<Array<PortfolioV2>>;
   networkV2?: Maybe<NetworkV2>;
   networksV2?: Maybe<PaginatedNetworksV2>;
   notifications?: Maybe<NotificationResult>;
@@ -1791,6 +2135,10 @@ export type Query = {
   onchainProgramInfosByProgramV2?: Maybe<PaginatedOnchainProgramInfoV2>;
   onchainProgramInfosBySmartContractV2?: Maybe<PaginatedOnchainProgramInfoV2>;
   onchainProgramInfosV2?: Maybe<PaginatedOnchainProgramInfoV2>;
+  /** Get a single portfolio by ID */
+  portfolioV2?: Maybe<PortfolioV2>;
+  /** Get all portfolios for a specific user */
+  portfoliosByUserIdV2?: Maybe<Array<PortfolioV2>>;
   post?: Maybe<Post>;
   posts?: Maybe<PaginatedPosts>;
   /** Get current user profile (deprecated: use profileV2 instead) */
@@ -1798,6 +2146,8 @@ export type Query = {
   /** Get current authenticated user profile */
   profileV2?: Maybe<UserV2>;
   program?: Maybe<Program>;
+  /** Get program overview data (hired builders/milestones, milestone progress, upcoming payments) */
+  programOverviewV2?: Maybe<ProgramOverviewV2>;
   /** Get a single program by ID. */
   programV2?: Maybe<ProgramV2>;
   programs?: Maybe<PaginatedPrograms>;
@@ -1931,6 +2281,11 @@ export type QueryGetSwappedStatusArgs = {
 };
 
 
+export type QueryHiringActivityV2Args = {
+  input: HiringActivityV2Input;
+};
+
+
 export type QueryInvestmentArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1950,6 +2305,11 @@ export type QueryInvestmentsArgs = {
   pagination?: InputMaybe<PaginationInput>;
   projectId?: InputMaybe<Scalars['ID']['input']>;
   supporterId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type QueryJobActivityV2Args = {
+  input: JobActivityV2Input;
 };
 
 
@@ -2056,6 +2416,16 @@ export type QueryOnchainProgramInfosV2Args = {
 };
 
 
+export type QueryPortfolioV2Args = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryPortfoliosByUserIdV2Args = {
+  userId: Scalars['ID']['input'];
+};
+
+
 export type QueryPostArgs = {
   id: Scalars['ID']['input'];
 };
@@ -2068,6 +2438,11 @@ export type QueryPostsArgs = {
 
 export type QueryProgramArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryProgramOverviewV2Args = {
+  input: ProgramOverviewV2Input;
 };
 
 
@@ -2169,6 +2544,11 @@ export type ReorderCarouselItemInput = {
   id: Scalars['String']['input'];
 };
 
+export type RequestEmailVerificationV2Input = {
+  /** Email address to verify */
+  email: Scalars['String']['input'];
+};
+
 export type ReviewApplicationV2Input = {
   /** Optional note when adjusting status (legacy compatibility) */
   rejectedReason?: InputMaybe<Scalars['String']['input']>;
@@ -2189,6 +2569,26 @@ export enum SortEnum {
   Asc = 'asc',
   Desc = 'desc'
 }
+
+export type SponsorHiringActivity = {
+  __typename?: 'SponsorHiringActivity';
+  /** Number of programs with ongoing milestones (applications with in_progress or pending_signature status) */
+  ongoingPrograms?: Maybe<Scalars['Int']['output']>;
+  /** Number of programs with status open */
+  openPrograms?: Maybe<Scalars['Int']['output']>;
+};
+
+export type SponsorHiringActivityCards = {
+  __typename?: 'SponsorHiringActivityCards';
+  /** Total number of programs created by sponsor (excluding deleted) */
+  all?: Maybe<Scalars['Int']['output']>;
+  /** Number of programs with status completed */
+  completed?: Maybe<Scalars['Int']['output']>;
+  /** Number of programs with ongoing milestones (applications with in_progress or pending_signature) */
+  ongoing?: Maybe<Scalars['Int']['output']>;
+  /** Number of programs with status open */
+  open?: Maybe<Scalars['Int']['output']>;
+};
 
 export type SubmitMilestoneInput = {
   description?: InputMaybe<Scalars['String']['input']>;
@@ -2271,6 +2671,17 @@ export type TokenV2 = {
   tokenName?: Maybe<Scalars['String']['output']>;
 };
 
+export type UpcomingPayment = {
+  __typename?: 'UpcomingPayment';
+  builder?: Maybe<BuilderInfo>;
+  payment?: Maybe<Array<PaymentInfo>>;
+};
+
+export type UpdateAboutSectionV2Input = {
+  /** User about section (max 1000 characters, required) */
+  about: Scalars['String']['input'];
+};
+
 export type UpdateApplicationChatroomV2Input = {
   /** Placeholder field (GraphQL requires at least one field in input types) */
   _placeholder?: InputMaybe<Scalars['Boolean']['input']>;
@@ -2312,6 +2723,25 @@ export type UpdateContractV2Input = {
   contract_snapshot_hash?: InputMaybe<Scalars['String']['input']>;
   /** On-chain contract ID (set after contract execution and payment) */
   onchainContractId?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type UpdateEducationV2Input = {
+  attendedEndDate?: InputMaybe<Scalars['Int']['input']>;
+  attendedStartDate?: InputMaybe<Scalars['Int']['input']>;
+  degree?: InputMaybe<Scalars['String']['input']>;
+  /** Education ID to update */
+  id: Scalars['ID']['input'];
+  school: Scalars['String']['input'];
+  study?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateExpertiseSectionV2Input = {
+  /** User languages list */
+  languages?: InputMaybe<Array<LanguageV2Input>>;
+  /** User professional role (required) */
+  role: Scalars['String']['input'];
+  /** User skills array */
+  skills?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 export type UpdateInvestmentTermInput = {
@@ -2375,6 +2805,21 @@ export type UpdateOnchainProgramInfoV2Input = {
   tx?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdatePortfolioV2Input = {
+  /** Portfolio description (max 1000 characters) */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** Portfolio ID to update */
+  id: Scalars['ID']['input'];
+  /** Array of image files to upload (replaces existing images) */
+  images?: InputMaybe<Array<Scalars['Upload']['input']>>;
+  /** Whether this is a Ludium project */
+  isLudiumProject?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Role in the project (e.g., "Frontend Developer") */
+  role?: InputMaybe<Scalars['String']['input']>;
+  /** Portfolio title (required) */
+  title: Scalars['String']['input'];
+};
+
 export type UpdatePostInput = {
   content?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
@@ -2384,23 +2829,17 @@ export type UpdatePostInput = {
   title?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type UpdateProfileV2Input = {
-  /** User bio/description */
-  bio?: InputMaybe<Scalars['String']['input']>;
-  /** User email address */
-  email?: InputMaybe<Scalars['String']['input']>;
-  /** User first name */
-  firstName?: InputMaybe<Scalars['String']['input']>;
-  /** User last name */
-  lastName?: InputMaybe<Scalars['String']['input']>;
-  /** User links array */
-  links?: InputMaybe<Array<Scalars['String']['input']>>;
-  /** User organization name */
-  organizationName?: InputMaybe<Scalars['String']['input']>;
-  /** User profile image URL */
+export type UpdateProfileSectionV2Input = {
+  /** User email address (required) */
+  email: Scalars['String']['input'];
+  /** User location/timezone (required) */
+  location: Scalars['String']['input'];
+  /** User nickname (required) */
+  nickname: Scalars['String']['input'];
+  /** User profile image (optional) */
   profileImage?: InputMaybe<Scalars['Upload']['input']>;
-  /** User skills array */
-  skills?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** Email verification code (required if email is new or changed) */
+  verificationCode?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateProgramByRelayerV2Input = {
@@ -2459,28 +2898,39 @@ export type UpdateTokenV2Input = {
 };
 
 export type UpdateUserV2Input = {
-  /** User bio/description */
-  bio?: InputMaybe<Scalars['String']['input']>;
+  /** User about section (max 1000 characters) */
+  about?: InputMaybe<Scalars['String']['input']>;
   /** User email address */
   email?: InputMaybe<Scalars['String']['input']>;
-  /** User first name */
-  firstName?: InputMaybe<Scalars['String']['input']>;
   /** User ID to update */
   id: Scalars['ID']['input'];
-  /** User last name */
-  lastName?: InputMaybe<Scalars['String']['input']>;
-  /** User links array */
-  links?: InputMaybe<Array<Scalars['String']['input']>>;
-  /** User organization name */
-  organizationName?: InputMaybe<Scalars['String']['input']>;
+  /** User location/timezone (e.g., "(GMT+09:00) Korea Standard Time - Seoul") */
+  location?: InputMaybe<Scalars['String']['input']>;
+  /** User nickname */
+  nickname?: InputMaybe<Scalars['String']['input']>;
   /** User profile image URL */
   profileImage?: InputMaybe<Scalars['String']['input']>;
   /** User role */
   role?: InputMaybe<UserRoleV2>;
   /** User skills array */
   skills?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** User professional role (e.g., "Web Developer") */
+  userRole?: InputMaybe<Scalars['String']['input']>;
   /** User wallet address */
   walletAddress?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateWorkExperienceV2Input = {
+  company: Scalars['String']['input'];
+  currentWork?: InputMaybe<Scalars['Boolean']['input']>;
+  employmentType?: InputMaybe<Scalars['String']['input']>;
+  endMonth?: InputMaybe<Scalars['String']['input']>;
+  endYear?: InputMaybe<Scalars['Int']['input']>;
+  /** Work experience ID to update */
+  id: Scalars['ID']['input'];
+  role: Scalars['String']['input'];
+  startMonth?: InputMaybe<Scalars['String']['input']>;
+  startYear?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type User = {
@@ -2578,26 +3028,26 @@ export type UserUpdateInput = {
 
 export type UserV2 = {
   __typename?: 'UserV2';
-  /** User biography */
-  bio?: Maybe<Scalars['String']['output']>;
+  /** User about (max 1000) */
+  about?: Maybe<Scalars['String']['output']>;
   /** User creation timestamp */
   createdAt?: Maybe<Scalars['Date']['output']>;
   /** Programs created by this user */
   createdPrograms?: Maybe<Array<ProgramV2>>;
+  /** User education history */
+  educations?: Maybe<Array<EducationV2>>;
   /** User email address */
   email?: Maybe<Scalars['String']['output']>;
-  /** User first name */
-  firstName?: Maybe<Scalars['String']['output']>;
   /** User unique identifier */
   id?: Maybe<Scalars['ID']['output']>;
-  /** User last name */
-  lastName?: Maybe<Scalars['String']['output']>;
-  /** User external links */
-  links?: Maybe<Array<Scalars['String']['output']>>;
+  /** User languages */
+  languages?: Maybe<Array<LanguageV2>>;
+  /** User location/timezone (e.g., "(GMT+09:00) Korea Standard Time - Seoul") */
+  location?: Maybe<Scalars['String']['output']>;
   /** Authentication method used by the user */
   loginType?: Maybe<LoginTypeEnum>;
-  /** User organization name */
-  organizationName?: Maybe<Scalars['String']['output']>;
+  /** User nickname */
+  nickname?: Maybe<Scalars['String']['output']>;
   /** User profile image URL */
   profileImage?: Maybe<Scalars['String']['output']>;
   /** User role (user or admin) */
@@ -2606,12 +3056,16 @@ export type UserV2 = {
   skills?: Maybe<Array<Scalars['String']['output']>>;
   /** User last update timestamp */
   updatedAt?: Maybe<Scalars['Date']['output']>;
+  /** User professional role (e.g., "Web Developer") */
+  userRole?: Maybe<Scalars['String']['output']>;
   /** User wallet address */
   walletAddress?: Maybe<Scalars['String']['output']>;
+  /** User work experiences */
+  workExperiences?: Maybe<Array<WorkExperienceV2>>;
 };
 
 export type UserV2QueryFilterInput = {
-  /** Field name to filter by (walletAddress, email, role, loginType, firstName, lastName, organizationName) */
+  /** Field name to filter by (walletAddress, email, role, loginType, nickname) */
   field: Scalars['String']['input'];
   /** Value to filter for */
   value?: InputMaybe<Scalars['String']['input']>;
@@ -2634,4 +3088,18 @@ export type UsersV2QueryInput = {
   sortBy?: InputMaybe<Scalars['String']['input']>;
   /** Sort order (asc/desc) */
   sortOrder?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type WorkExperienceV2 = {
+  __typename?: 'WorkExperienceV2';
+  company?: Maybe<Scalars['String']['output']>;
+  currentWork?: Maybe<Scalars['Boolean']['output']>;
+  employmentType?: Maybe<Scalars['String']['output']>;
+  endMonth?: Maybe<Scalars['String']['output']>;
+  endYear?: Maybe<Scalars['Int']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  role?: Maybe<Scalars['String']['output']>;
+  startMonth?: Maybe<Scalars['String']['output']>;
+  startYear?: Maybe<Scalars['Int']['output']>;
+  userId?: Maybe<Scalars['Int']['output']>;
 };
