@@ -76,7 +76,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
         <Button
           onClick={onToggle}
           className={cn(
-            'bg-white hover:bg-gray-100 rounded-lg transition-all flex-shrink-0 shadow-none',
+            'h-8 w-8 bg-white hover:bg-gray-100 rounded-lg transition-all flex-shrink-0 shadow-none',
             isCollapsed && 'mx-auto',
           )}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}

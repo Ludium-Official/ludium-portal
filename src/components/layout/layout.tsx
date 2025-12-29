@@ -14,7 +14,10 @@ function Layout() {
 
   const [isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const saved = localStorage.getItem('sidebar-collapsed');
+    return saved ? JSON.parse(saved) : false;
+  });
 
   useEffect(() => {
     const currentPath = location.pathname;
@@ -31,6 +34,10 @@ function Layout() {
 
     setLoading(false);
   }, [location]);
+
+  useEffect(() => {
+    localStorage.setItem('sidebar-collapsed', JSON.stringify(sidebarCollapsed));
+  }, [sidebarCollapsed]);
 
   return (
     <>
