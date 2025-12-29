@@ -305,7 +305,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
                 <div className="space-y-6 my-4">
                   <div className="flex items-center gap-6">
                     <Avatar className="w-20 h-20">
-                      <AvatarImage className="bg-neutral-300" src={imagePreview || avatarDefault} />
+                      <AvatarImage className="bg-neutral-100" src={imagePreview || avatarDefault} />
                     </Avatar>
                     <div className="space-y-2">
                       <p className="font-medium text-sm">Profile image</p>
@@ -445,26 +445,14 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
           </DialogContent>
         </Dialog>
       </div>
-
       <div className="flex items-center gap-6 mb-6">
-        <Avatar className="w-20 h-20">
-          <AvatarImage className="bg-neutral-300" src={profileImage || avatarDefault} />
+        <Avatar className="w-15 h-15">
+          <AvatarImage className="bg-neutral-100" src={profileImage || avatarDefault} />
         </Avatar>
-        <div className="space-y-2">
-          <p className="font-medium">Profile image</p>
-          <p className="text-sm text-gray-500">
-            Profile image must be under 2MB, and in PNG, JPG, or JPEG format.
-          </p>
-          <Button variant="outline" size="sm" className="gap-2">
-            <Upload className="h-4 w-4" />
-            Upload
-          </Button>
+        <div>
+          <p className="text-sm font-medium text-gray-900 mb-4">Nickname</p>
+          <p className="text-sm text-slate-600">{nickname || 'Ludium.user_1101'}</p>
         </div>
-      </div>
-
-      <div className="mb-6">
-        <p className="text-sm font-medium text-gray-900 mb-4">Nickname</p>
-        <p className="text-sm text-slate-600">{nickname || 'Ludium.user_1101'}</p>
       </div>
 
       <div className="mb-6">
