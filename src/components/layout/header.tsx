@@ -103,7 +103,7 @@ function Header() {
         });
       }
     } catch (error) {
-      notify('Failed to login', 'error');
+      notify((error as Error).message, 'error');
       console.error('Failed to login:', error);
     }
   };
@@ -118,7 +118,7 @@ function Header() {
 
       window.location.reload();
     } catch (error) {
-      notify('Error logging out', 'error');
+      notify((error as Error).message, 'error');
       console.error('Error logging out:', error);
     }
   };
