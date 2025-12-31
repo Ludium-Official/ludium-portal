@@ -37,7 +37,9 @@ function MarkdownPreviewer({
     const unescaped = unescapeHtml(value);
     const processed = processMarkdownInHtml(unescaped);
     const dirty = md.render(processed);
-    return DOMPurify.sanitize(dirty);
+    return DOMPurify.sanitize(dirty, {
+      ADD_TAGS: ['iframe'],
+    });
   }, [value]);
 
   return (

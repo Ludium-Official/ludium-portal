@@ -304,7 +304,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
 
                 <div className="space-y-6 my-4">
                   <div className="flex items-center gap-6">
-                    <Avatar className="w-20 h-20">
+                    <Avatar className="w-26 h-26">
                       <AvatarImage className="bg-neutral-100" src={imagePreview || avatarDefault} />
                     </Avatar>
                     <div className="space-y-2">
@@ -446,12 +446,12 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
         </Dialog>
       </div>
       <div className="flex items-center gap-6 mb-6">
-        <Avatar className="w-15 h-15">
+        <Avatar className="w-26 h-26">
           <AvatarImage className="bg-neutral-100" src={profileImage || avatarDefault} />
         </Avatar>
         <div>
           <p className="text-sm font-medium text-gray-900 mb-4">Nickname</p>
-          <p className="text-sm text-slate-600">{nickname || 'Ludium.user_1101'}</p>
+          <p className="text-lg text-slate-600">{nickname || 'Ludium_user'}</p>
         </div>
       </div>
 
