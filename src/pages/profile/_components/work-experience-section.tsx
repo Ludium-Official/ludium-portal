@@ -1,3 +1,9 @@
+import client from '@/apollo/client';
+import { useCreateWorkExperienceV2Mutation } from '@/apollo/mutation/create-work-experience-v2.generated';
+import { useDeleteWorkExperienceV2Mutation } from '@/apollo/mutation/delete-work-experience-v2.generated';
+import { useUpdateWorkExperienceV2Mutation } from '@/apollo/mutation/update-work-experience-v2.generated';
+import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
+import WorkIcon from '@/assets/icons/profile/work.svg';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -10,17 +16,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { SearchSelect } from '@/components/ui/search-select';
 import { EMPLOYMENT_TYPE_OPTIONS, MONTH_OPTIONS } from '@/constant/profile-related';
-import type { LabelValueProps } from '@/types/common';
-import { Pen, Plus } from 'lucide-react';
-import WorkIcon from '@/assets/icons/profile/work.svg';
-import { useEffect, useState } from 'react';
-import { WorkExperienceV2 } from '@/types/types.generated';
-import { useCreateWorkExperienceV2Mutation } from '@/apollo/mutation/create-work-experience-v2.generated';
-import { useUpdateWorkExperienceV2Mutation } from '@/apollo/mutation/update-work-experience-v2.generated';
-import { useDeleteWorkExperienceV2Mutation } from '@/apollo/mutation/delete-work-experience-v2.generated';
-import client from '@/apollo/client';
 import notify from '@/lib/notify';
-import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
+import type { LabelValueProps } from '@/types/common';
+import type { WorkExperienceV2 } from '@/types/types.generated';
+import { Pen, Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface WorkExperienceSectionProps {
   experiences?: WorkExperienceV2[];
@@ -336,9 +336,9 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                   setValue={(value) => {
                     if (typeof value === 'function') {
                       const newValue = value(formData.startYear ? String(formData.startYear) : '');
-                      updateField('startYear', newValue ? parseInt(newValue, 10) : 0);
+                      updateField('startYear', newValue ? Number.parseInt(newValue, 10) : 0);
                     } else {
-                      updateField('startYear', value ? parseInt(value, 10) : 0);
+                      updateField('startYear', value ? Number.parseInt(value, 10) : 0);
                     }
                   }}
                   placeholder="Year"
@@ -368,9 +368,9 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                   setValue={(value) => {
                     if (typeof value === 'function') {
                       const newValue = value(formData.endYear ? String(formData.endYear) : '');
-                      updateField('endYear', newValue ? parseInt(newValue, 10) : 0);
+                      updateField('endYear', newValue ? Number.parseInt(newValue, 10) : 0);
                     } else {
-                      updateField('endYear', value ? parseInt(value, 10) : 0);
+                      updateField('endYear', value ? Number.parseInt(value, 10) : 0);
                     }
                   }}
                   placeholder="Year"

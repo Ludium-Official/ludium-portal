@@ -32,13 +32,13 @@ import {
   getUserDisplayName,
   reduceString,
 } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { ProgramStatusV2, ProgramVisibilityV2 } from '@/types/types.generated';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Link, useNavigate, useParams } from 'react-router';
 import StatusBadge from '../statusBadge/statusBadge';
-import { cn } from '@/lib/utils';
 
 const RecruitmentOverview: React.FC<{
   className?: string;

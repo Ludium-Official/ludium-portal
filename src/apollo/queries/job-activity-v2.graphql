@@ -1,34 +1,35 @@
-query jobActivityV2($input: JobActivityV2Input!) {
-  jobActivityV2(input: $input) {
-    cards {
-      applied
-      ongoing
-      completed
-    }
-    programs {
-      data {
-        id
-        title
-        price
+query jobActivityCards {
+  jobActivityCards {
+    applied
+    ongoing
+    completed
+  }
+}
+
+query jobActivityPrograms($input: JobActivityProgramsInput!) {
+  jobActivityPrograms(input: $input) {
+    data {
+      id
+      title
+      price
+      createdAt
+      myApplication {
         createdAt
-        myApplication {
-          createdAt
-        }
-        network {
-          id
-          chainId
-          chainName
-          mainnet
-          exploreUrl
-        }
-        token {
-          id
-          chainInfoId
-          tokenName
-          tokenAddress
-        }
       }
-      count
+      network {
+        id
+        chainId
+        chainName
+        mainnet
+        exploreUrl
+      }
+      token {
+        id
+        chainInfoId
+        tokenName
+        tokenAddress
+      }
     }
+    count
   }
 }

@@ -1,12 +1,12 @@
 import { useUserQuery } from '@/apollo/queries/user.generated';
 import avatarDefault from '@/assets/avatar-default.svg';
+import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ShareButton } from '@/components/ui/share-button';
 import SocialIcon from '@/components/ui/social-icon';
 import { Separator } from '@radix-ui/react-dropdown-menu';
 import { Outlet, useParams } from 'react-router';
 import { SidebarLinks, sidebarLinks } from '../_components/sidebar-links';
-import { Avatar, AvatarImage } from '@/components/ui/avatar';
 
 function UserDetailsPage() {
   const { id } = useParams();

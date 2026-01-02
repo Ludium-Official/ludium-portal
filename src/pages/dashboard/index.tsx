@@ -1,16 +1,21 @@
+import {
+  useBuilderPaymentOverviewQuery,
+  useHiringActivityQuery,
+  useJobActivityQuery,
+  useSponsorPaymentOverviewQuery,
+} from '@/apollo/queries/dashboard-v2.generated';
 import { useProfileV2Query } from '@/apollo/queries/profile-v2.generated';
 import avatarDefault from '@/assets/avatar-default.svg';
 import { WalletCard } from '@/components/common/wallet-card';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowUpRight, MapPin } from 'lucide-react';
-import { PaymentOverview } from './_components/payment-overview';
-import { Link } from 'react-router';
-import { commaNumber } from '@/lib/utils';
 import { Avatar } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { type Timezone, fetchTimezones } from '@/lib/api/timezones';
+import { commaNumber } from '@/lib/utils';
 import { AvatarImage } from '@radix-ui/react-avatar';
-import { useDashboardV2Query } from '@/apollo/queries/dashboard-v2.generated';
+import { ArrowUpRight, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { fetchTimezones, Timezone } from '@/lib/api/timezones';
+import { Link } from 'react-router';
+import { PaymentOverview } from './_components/payment-overview';
 
 const DashboardPage: React.FC = () => {
   const [location, setLocation] = useState<Timezone | null>(null);
@@ -21,12 +26,25 @@ const DashboardPage: React.FC = () => {
 
   const user = profileData?.profileV2;
 
-  const { data: dashboardData } = useDashboardV2Query({
+  const { data: hiringActivityData } = useHiringActivityQuery({
     skip: !profileData?.profileV2?.id,
     fetchPolicy: 'network-only',
   });
 
-  const dashboard = dashboardData?.dashboardV2;
+  const { data: jobActivityData } = useJobActivityQuery({
+    skip: !profileData?.profileV2?.id,
+    fetchPolicy: 'network-only',
+  });
+
+  const { data: sponsorPaymentData } = useSponsorPaymentOverviewQuery({
+    skip: !profileData?.profileV2?.id,
+    fetchPolicy: 'network-only',
+  });
+
+  const { data: builderPaymentData } = useBuilderPaymentOverviewQuery({
+    skip: !profileData?.profileV2?.id,
+    fetchPolicy: 'network-only',
+  });
 
   useEffect(() => {
     const loadTimezones = async () => {
@@ -75,13 +93,13 @@ const DashboardPage: React.FC = () => {
             <div>
               <p className="font-light text-sm text-slate-500 mb-1">Open Program</p>
               <p className="text-xl font-semibold">
-                {commaNumber(dashboard?.hiringActivity?.openPrograms ?? 0)}
+                {commaNumber(hiringActivityData?.hiringActivity?.openPrograms ?? 0)}
               </p>
             </div>
             <div>
               <p className="font-light text-sm text-slate-500 mb-1">Ongoing Program</p>
               <p className="text-xl font-semibold">
-                {commaNumber(dashboard?.hiringActivity?.ongoingPrograms ?? 0)}
+                {commaNumber(hiringActivityData?.hiringActivity?.ongoingPrograms ?? 0)}
               </p>
             </div>
           </CardContent>
@@ -100,13 +118,13 @@ const DashboardPage: React.FC = () => {
             <div>
               <p className="font-light text-sm text-slate-500 mb-1">Applied</p>
               <p className="text-xl font-semibold">
-                {commaNumber(dashboard?.jobActivity?.appliedPrograms ?? 0)}
+                {commaNumber(jobActivityData?.jobActivity?.appliedPrograms ?? 0)}
               </p>
             </div>
             <div>
               <p className="font-light text-sm text-slate-500 mb-1">Ongoing Program</p>
               <p className="text-xl font-semibold">
-                {commaNumber(dashboard?.jobActivity?.ongoingPrograms ?? 0)}
+                {commaNumber(jobActivityData?.jobActivity?.ongoingPrograms ?? 0)}
               </p>
             </div>
           </CardContent>
@@ -115,8 +133,8 @@ const DashboardPage: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <PaymentOverview
-          sponsorPaymentOverview={dashboard?.sponsorPaymentOverview ?? []}
-          builderPaymentOverview={dashboard?.builderPaymentOverview ?? []}
+          sponsorPaymentOverview={sponsorPaymentData?.sponsorPaymentOverview ?? []}
+          builderPaymentOverview={builderPaymentData?.builderPaymentOverview ?? []}
         />
         <div className="lg:col-span-2">
           {/* TODO: Implement the empty space - not implemented */}

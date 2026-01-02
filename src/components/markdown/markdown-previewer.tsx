@@ -39,7 +39,7 @@ function MarkdownPreviewer({
     const dirty = md.render(processed);
     return DOMPurify.sanitize(dirty, {
       ADD_TAGS: ['iframe'],
-      ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'],
+      ADD_ATTR: ['frameborder', 'scrolling'],
     });
   }, [value]);
 
