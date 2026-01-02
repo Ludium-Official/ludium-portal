@@ -1,5 +1,5 @@
-import { HiringActivityV2Query } from '@/apollo/queries/hiring-activity-v2.generated';
-import { JobActivityV2Query } from '@/apollo/queries/job-activity-v2.generated';
+import type { HiringActivityProgramsQuery } from '@/apollo/queries/hiring-activity-v2.generated';
+import type { JobActivityProgramsQuery } from '@/apollo/queries/job-activity-v2.generated';
 
 export type SponsorHiringActivityFilter = 'all' | 'open' | 'ongoing' | 'completed';
 
@@ -12,11 +12,11 @@ export interface HiringActivityFilterOption {
 }
 
 export type SponsorProgramData = NonNullable<
-  NonNullable<NonNullable<HiringActivityV2Query['hiringActivityV2']>['programs']>['data']
+  NonNullable<HiringActivityProgramsQuery['hiringActivityPrograms']>['data']
 >[number];
 
 export type BuilderProgramData = NonNullable<
-  NonNullable<NonNullable<JobActivityV2Query['jobActivityV2']>['programs']>['data']
+  NonNullable<JobActivityProgramsQuery['jobActivityPrograms']>['data']
 >[number];
 
 export type ProgramData = SponsorProgramData | BuilderProgramData;

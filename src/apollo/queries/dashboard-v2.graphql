@@ -1,20 +1,27 @@
-query dashboardV2 {
-  dashboardV2 {
-    hiringActivity {
-      openPrograms
-      ongoingPrograms
-    }
-    jobActivity {
-      appliedPrograms
-      ongoingPrograms
-    }
-    sponsorPaymentOverview {
-      label
-      budget
-    }
-    builderPaymentOverview {
-      label
-      budget
-    }
+query hiringActivity {
+  hiringActivity {
+    openPrograms
+    ongoingPrograms
+  }
+}
+
+query jobActivity {
+  jobActivity {
+    appliedPrograms
+    ongoingPrograms
+  }
+}
+
+query sponsorPaymentOverview {
+  sponsorPaymentOverview {
+    label
+    budget
+  }
+}
+
+query builderPaymentOverview {
+  builderPaymentOverview {
+    label
+    budget
   }
 }

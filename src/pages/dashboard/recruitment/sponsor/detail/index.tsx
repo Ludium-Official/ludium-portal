@@ -1,17 +1,21 @@
+import {
+  useHiredBuildersQuery,
+  useMilestoneProgressQuery,
+  useUpcomingPaymentsQuery,
+} from '@/apollo/queries/program-overview-v2.generated';
 import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
 import RecruitmentApplicants from '@/components/recruitment/applicants/recruitment-applicants';
 import RecruitmentMessage from '@/components/recruitment/message/recruitment-message';
 import RecruitmentOverview from '@/components/recruitment/overview/recruitment-overview';
+import { PageSize } from '@/components/ui/pagination';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { ChevronRight } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router';
 import { HiredBuildersTable } from '@/pages/dashboard/recruitment/_components/hired-builders-table';
 import MilestoneProgress from '@/pages/dashboard/recruitment/_components/milestone-progress';
 import UpcomingPayments from '@/pages/dashboard/recruitment/_components/upcoming-payments';
-import { useProgramOverviewV2Query } from '@/apollo/queries/program-overview-v2.generated';
-import { PageSize } from '@/components/ui/pagination';
+import { ChevronRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router';
 
 const RecruitmentDashboardSponsorDetail: React.FC = () => {
   const { id } = useParams();
@@ -27,7 +31,7 @@ const RecruitmentDashboardSponsorDetail: React.FC = () => {
     skip: !id,
   });
 
-  const { data: programOverviewData } = useProgramOverviewV2Query({
+  const { data: hiredBuildersData } = useHiredBuildersQuery({
     variables: {
       input: {
         programId: id || '',
@@ -40,8 +44,25 @@ const RecruitmentDashboardSponsorDetail: React.FC = () => {
     skip: !id,
   });
 
+  const { data: milestoneProgressData } = useMilestoneProgressQuery({
+    variables: {
+      input: {
+        programId: id || '',
+      },
+    },
+    skip: !id,
+  });
+
+  const { data: upcomingPaymentsData } = useUpcomingPaymentsQuery({
+    variables: {
+      input: {
+        programId: id || '',
+      },
+    },
+    skip: !id,
+  });
+
   const program = programData?.programV2;
-  const programOverview = programOverviewData?.programOverviewV2;
   const isSponsor = program?.sponsor?.id === userId;
 
   useEffect(() => {
@@ -108,12 +129,12 @@ const RecruitmentDashboardSponsorDetail: React.FC = () => {
               style={{ gridTemplateColumns: '2.2fr 1fr' }}
             >
               <HiredBuildersTable
-                hiredBuilders={programOverview?.hiredBuilders?.data || []}
-                totalCount={programOverview?.hiredBuilders?.count || 0}
+                hiredBuilders={hiredBuildersData?.hiredBuilders?.data || []}
+                totalCount={hiredBuildersData?.hiredBuilders?.count || 0}
               />
               <div className="space-y-6">
-                <MilestoneProgress milestoneProgress={programOverview?.milestoneProgress} />
-                <UpcomingPayments upcomingPayments={programOverview?.upcomingPayments || []} />
+                <MilestoneProgress milestoneProgress={milestoneProgressData?.milestoneProgress} />
+                <UpcomingPayments upcomingPayments={upcomingPaymentsData?.upcomingPayments || []} />
               </div>
             </div>
           </>

@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useNetworks } from '@/contexts/networks-context';
 import { commaNumber, dDay, fromUTCString, getCurrencyIcon, getInitials } from '@/lib/utils';
-import { UpcomingPayment } from '@/types/types.generated';
+import type { UpcomingPayment } from '@/types/types.generated';
 import { format } from 'date-fns';
 
 interface UpcomingPaymentsProps {

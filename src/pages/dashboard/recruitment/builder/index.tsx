@@ -1,13 +1,19 @@
+import {
+  useJobActivityCardsQuery,
+  useJobActivityProgramsQuery,
+} from '@/apollo/queries/job-activity-v2.generated';
+import { PageSize } from '@/components/ui/pagination';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { cn, commaNumber } from '@/lib/utils';
-import { HiringActivityFilterOption } from '@/types/dashboard';
+import type { HiringActivityFilterOption } from '@/types/dashboard';
+import type {
+  BuilderJobActivityCards,
+  JobActivityProgramStatusFilter,
+} from '@/types/types.generated';
 import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { MyJobPostsTable } from '../_components/my-job-posts-table';
-import { useJobActivityV2Query } from '@/apollo/queries/job-activity-v2.generated';
-import { BuilderJobActivityCards, JobActivityProgramStatusFilter } from '@/types/types.generated';
-import { PageSize } from '@/components/ui/pagination';
 
 const RecruitmentDashboardBuilder: React.FC = () => {
   const { userId } = useAuth();
@@ -30,12 +36,16 @@ const RecruitmentDashboardBuilder: React.FC = () => {
     { key: 'completed', label: 'Completed Program', dotColor: 'bg-primary' },
   ];
 
+  const { data: cardsData } = useJobActivityCardsQuery({
+    skip: !userId,
+  });
+
   const {
-    data: jobActivityData,
+    data: programsData,
     loading,
     error,
     refetch,
-  } = useJobActivityV2Query({
+  } = useJobActivityProgramsQuery({
     variables: {
       input: {
         status: activityFilter.key.toUpperCase() as JobActivityProgramStatusFilter,
@@ -48,9 +58,9 @@ const RecruitmentDashboardBuilder: React.FC = () => {
     skip: !userId,
   });
 
-  const jobActivity = jobActivityData?.jobActivityV2;
-  const programs = jobActivity?.programs?.data || [];
-  const totalCount = jobActivity?.programs?.count || 0;
+  const cards = cardsData?.jobActivityCards;
+  const programs = programsData?.jobActivityPrograms?.data || [];
+  const totalCount = programsData?.jobActivityPrograms?.count || 0;
 
   return (
     <div className="flex flex-col justify-between bg-white px-10 py-7 rounded-2xl">
@@ -79,9 +89,7 @@ const RecruitmentDashboardBuilder: React.FC = () => {
                   <span className="text-sm text-slate-600">{option.label}</span>
                 </div>
                 <p className="flex justify-end text-xl font-bold">
-                  {commaNumber(
-                    jobActivity?.cards?.[option.key as keyof BuilderJobActivityCards] ?? 0,
-                  )}
+                  {commaNumber(cards?.[option.key as keyof BuilderJobActivityCards] ?? 0)}
                 </p>
               </div>
             </div>

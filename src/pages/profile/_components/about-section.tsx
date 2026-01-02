@@ -1,3 +1,7 @@
+import client from '@/apollo/client';
+import { useUpdateAboutSectionV2Mutation } from '@/apollo/mutation/update-about-section-v2.generated';
+import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
+import AboutIcon from '@/assets/icons/profile/about.svg';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -7,13 +11,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { Pen, Plus } from 'lucide-react';
-import AboutIcon from '@/assets/icons/profile/about.svg';
-import { useState } from 'react';
-import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
 import notify from '@/lib/notify';
-import client from '@/apollo/client';
-import { useUpdateAboutSectionV2Mutation } from '@/apollo/mutation/update-about-section-v2.generated';
+import { Pen, Plus } from 'lucide-react';
+import { useState } from 'react';
 
 interface AboutSectionProps {
   bio?: string | null;

@@ -1,3 +1,9 @@
+import client from '@/apollo/client';
+import { useRequestEmailVerificationV2Mutation } from '@/apollo/mutation/request-email-verification-v2.generated';
+import { useUpdateProfileSectionV2Mutation } from '@/apollo/mutation/update-profile-section-v2.generated';
+import { useVerifyEmailV2Mutation } from '@/apollo/mutation/verify-email-v2.generated';
+import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
+import avatarDefault from '@/assets/avatar-default.svg';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,20 +16,14 @@ import {
 import { Form } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { SearchSelect } from '@/components/ui/search-select';
-import { fetchTimezones, type Timezone } from '@/lib/api/timezones';
+import { type Timezone, fetchTimezones } from '@/lib/api/timezones';
+import notify from '@/lib/notify';
 import { getBrowserTimezone } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Pen, Upload } from 'lucide-react';
-import avatarDefault from '@/assets/avatar-default.svg';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { useUpdateProfileSectionV2Mutation } from '@/apollo/mutation/update-profile-section-v2.generated';
-import { useRequestEmailVerificationV2Mutation } from '@/apollo/mutation/request-email-verification-v2.generated';
-import { useVerifyEmailV2Mutation } from '@/apollo/mutation/verify-email-v2.generated';
-import notify from '@/lib/notify';
-import client from '@/apollo/client';
-import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
 
 const profileFormSchema = z.object({
   nickname: z.string().min(1, 'Nickname is required'),
