@@ -1,6 +1,6 @@
-import { ChartConfig, ChartContainer } from '@/components/ui/chart';
-import { Label, PolarRadiusAxis, RadialBar, RadialBarChart } from 'recharts';
+import { type ChartConfig, ChartContainer } from '@/components/ui/chart';
 import type { MilestoneProgress as MilestoneProgressType } from '@/types/types.generated';
+import { Label, PolarRadiusAxis, RadialBar, RadialBarChart } from 'recharts';
 
 interface MilestoneProgressProps {
   milestoneProgress?: MilestoneProgressType | null;

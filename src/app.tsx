@@ -18,8 +18,8 @@ import RecruitmentDashboardBuilder from './pages/dashboard/recruitment/builder';
 import RecruitmentDashboardBuilderDetail from './pages/dashboard/recruitment/builder/detail';
 import RecruitmentDashboardSponsor from './pages/dashboard/recruitment/sponsor';
 import RecruitmentDashboardSponsorDetail from './pages/dashboard/recruitment/sponsor/detail';
-import ProfilePage from './pages/profile';
 import PortfolioPage from './pages/portfolio';
+import ProfilePage from './pages/profile';
 
 function App() {
   return (

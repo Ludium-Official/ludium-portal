@@ -1,14 +1,18 @@
+import {
+  useBuilderMilestonesQuery,
+  useMilestoneProgressQuery,
+  useUpcomingPaymentsQuery,
+} from '@/apollo/queries/program-overview-v2.generated';
 import RecruitmentMessage from '@/components/recruitment/message/recruitment-message';
 import RecruitmentOverview from '@/components/recruitment/overview/recruitment-overview';
+import { PageSize } from '@/components/ui/pagination';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ChevronRight } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router';
 import BuilderMilestonesTable from '@/pages/dashboard/recruitment/_components/builder-milestones-table';
 import MilestoneProgress from '@/pages/dashboard/recruitment/_components/milestone-progress';
 import UpcomingPayments from '@/pages/dashboard/recruitment/_components/upcoming-payments';
-import { useProgramOverviewV2Query } from '@/apollo/queries/program-overview-v2.generated';
-import { PageSize } from '@/components/ui/pagination';
+import { ChevronRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router';
 
 const RecruitmentDashboardBuilderDetail: React.FC = () => {
   const { id } = useParams();
@@ -18,7 +22,7 @@ const RecruitmentDashboardBuilderDetail: React.FC = () => {
 
   const [selectedTab, setSelectedTab] = useState(tabParam || 'overview');
 
-  const { data: programOverviewData } = useProgramOverviewV2Query({
+  const { data: builderMilestonesData } = useBuilderMilestonesQuery({
     variables: {
       input: {
         programId: id || '',
@@ -31,7 +35,23 @@ const RecruitmentDashboardBuilderDetail: React.FC = () => {
     skip: !id,
   });
 
-  const programOverview = programOverviewData?.programOverviewV2;
+  const { data: milestoneProgressData } = useMilestoneProgressQuery({
+    variables: {
+      input: {
+        programId: id || '',
+      },
+    },
+    skip: !id,
+  });
+
+  const { data: upcomingPaymentsData } = useUpcomingPaymentsQuery({
+    variables: {
+      input: {
+        programId: id || '',
+      },
+    },
+    skip: !id,
+  });
 
   useEffect(() => {
     if (tabParam) {
@@ -76,12 +96,12 @@ const RecruitmentDashboardBuilderDetail: React.FC = () => {
               style={{ gridTemplateColumns: '2.2fr 1fr' }}
             >
               <BuilderMilestonesTable
-                milestones={programOverview?.milestones?.data || []}
-                totalCount={programOverview?.milestones?.count || 0}
+                milestones={builderMilestonesData?.builderMilestones?.data || []}
+                totalCount={builderMilestonesData?.builderMilestones?.count || 0}
               />
               <div className="space-y-6">
-                <MilestoneProgress milestoneProgress={programOverview?.milestoneProgress} />
-                <UpcomingPayments upcomingPayments={programOverview?.upcomingPayments || []} />
+                <MilestoneProgress milestoneProgress={milestoneProgressData?.milestoneProgress} />
+                <UpcomingPayments upcomingPayments={upcomingPaymentsData?.upcomingPayments || []} />
               </div>
             </div>
           </>

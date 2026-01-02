@@ -65,7 +65,7 @@ function EditProfilePage() {
       return;
     }
 
-    let profileImageUrl = profileData?.profileV2?.profileImage;
+    const profileImageUrl = profileData?.profileV2?.profileImage;
 
     // TODO: Implement file upload logic if needed
     if (selectedAvatar) {
