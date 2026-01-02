@@ -1,44 +1,45 @@
-query hiringActivityV2($input: HiringActivityV2Input!) {
-  hiringActivityV2(input: $input) {
-    cards {
-      all
-      open
-      ongoing
-      completed
-    }
-    programs {
-      data {
+query hiringActivityCards {
+  hiringActivityCards {
+    all
+    open
+    ongoing
+    completed
+  }
+}
+
+query hiringActivityPrograms($input: HiringActivityProgramsInput!) {
+  hiringActivityPrograms(input: $input) {
+    data {
+      id
+      title
+      description
+      price
+      status
+      createdAt
+      deadline
+      applicationCount
+      hasApplied
+      sponsor {
         id
-        title
-        description
-        price
-        status
-        createdAt
-        deadline
-        applicationCount
-        hasApplied
-        sponsor {
-          id
-          walletAddress
-          email
-          nickname
-          profileImage
-        }
-        network {
-          id
-          chainId
-          chainName
-          mainnet
-          exploreUrl
-        }
-        token {
-          id
-          chainInfoId
-          tokenName
-          tokenAddress
-        }
+        walletAddress
+        email
+        nickname
+        profileImage
       }
-      count
+      network {
+        id
+        chainId
+        chainName
+        mainnet
+        exploreUrl
+      }
+      token {
+        id
+        chainInfoId
+        tokenName
+        tokenAddress
+      }
     }
+    count
   }
 }

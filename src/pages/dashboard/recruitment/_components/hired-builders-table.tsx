@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { useNetworks } from '@/contexts/networks-context';
 import { cn, commaNumber, getCurrencyIcon, getInitials } from '@/lib/utils';
-import { HiredBuilderV2 } from '@/types/types.generated';
+import type { HiredBuilderV2 } from '@/types/types.generated';
 
 export const HiredBuildersTable: React.FC<{
   hiredBuilders: HiredBuilderV2[];

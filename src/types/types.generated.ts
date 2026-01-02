@@ -171,6 +171,13 @@ export type BuilderMilestoneV2 = {
   unpaidAmount?: Maybe<Scalars['String']['output']>;
 };
 
+export type BuilderMilestonesInput = {
+  /** Pagination options for milestones */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Program ID */
+  programId: Scalars['ID']['input'];
+};
+
 export type BulkAssignTiersInput = {
   assignments: Array<AssignUserTierInput>;
   programId: Scalars['ID']['input'];
@@ -569,6 +576,13 @@ export type HiredBuilderV2 = {
   totalAmount?: Maybe<Scalars['String']['output']>;
 };
 
+export type HiredBuildersInput = {
+  /** Pagination options for hired builders */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Program ID */
+  programId: Scalars['ID']['input'];
+};
+
 /** Filter for program status: ALL, OPEN, ONGOING, or COMPLETED */
 export enum HiringActivityProgramStatusFilter {
   All = 'ALL',
@@ -577,21 +591,21 @@ export enum HiringActivityProgramStatusFilter {
   Open = 'OPEN'
 }
 
-export type HiringActivityV2 = {
-  __typename?: 'HiringActivityV2';
-  /** Card data with counts (for sponsor) */
-  cards?: Maybe<SponsorHiringActivityCards>;
-  /** Paginated list of programs */
-  programs?: Maybe<PaginatedProgramsV2>;
-};
-
-export type HiringActivityV2Input = {
+export type HiringActivityProgramsInput = {
   /** Pagination options */
   pagination?: InputMaybe<PaginationInput>;
   /** Search by program title */
   search?: InputMaybe<Scalars['String']['input']>;
   /** Filter by program status: ALL, OPEN, ONGOING, or COMPLETED */
   status?: InputMaybe<HiringActivityProgramStatusFilter>;
+};
+
+export type HiringActivityV2 = {
+  __typename?: 'HiringActivityV2';
+  /** Card data with counts (for sponsor) */
+  cards?: Maybe<SponsorHiringActivityCards>;
+  /** Paginated list of programs */
+  programs?: Maybe<PaginatedProgramsV2>;
 };
 
 export type Investment = {
@@ -667,21 +681,21 @@ export enum JobActivityProgramStatusFilter {
   Ongoing = 'ONGOING'
 }
 
-export type JobActivityV2 = {
-  __typename?: 'JobActivityV2';
-  /** Card data with counts (for builder) */
-  cards?: Maybe<BuilderJobActivityCards>;
-  /** Paginated list of programs */
-  programs?: Maybe<PaginatedProgramsV2>;
-};
-
-export type JobActivityV2Input = {
+export type JobActivityProgramsInput = {
   /** Pagination options */
   pagination?: InputMaybe<PaginationInput>;
   /** Search by program title */
   search?: InputMaybe<Scalars['String']['input']>;
   /** Filter by program status: APPLIED, ONGOING, or COMPLETED */
   status?: InputMaybe<JobActivityProgramStatusFilter>;
+};
+
+export type JobActivityV2 = {
+  __typename?: 'JobActivityV2';
+  /** Card data with counts (for builder) */
+  cards?: Maybe<BuilderJobActivityCards>;
+  /** Paginated list of programs */
+  programs?: Maybe<PaginatedProgramsV2>;
 };
 
 export type Keyword = {
@@ -767,6 +781,11 @@ export type MilestoneProgress = {
   completed?: Maybe<Scalars['Int']['output']>;
   /** Total number of milestones */
   total?: Maybe<Scalars['Int']['output']>;
+};
+
+export type MilestoneProgressInput = {
+  /** Program ID */
+  programId: Scalars['ID']['input'];
 };
 
 export enum MilestoneStatus {
@@ -1695,6 +1714,12 @@ export type PaginatedApplicationsV2 = {
   totalPages?: Maybe<Scalars['Int']['output']>;
 };
 
+export type PaginatedBuilderMilestones = {
+  __typename?: 'PaginatedBuilderMilestones';
+  count?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<BuilderMilestoneV2>>;
+};
+
 export type PaginatedBuilderMilestonesV2 = {
   __typename?: 'PaginatedBuilderMilestonesV2';
   count?: Maybe<Scalars['Int']['output']>;
@@ -1711,6 +1736,12 @@ export type PaginatedContractV2 = {
   __typename?: 'PaginatedContractV2';
   count?: Maybe<Scalars['Int']['output']>;
   data?: Maybe<Array<ContractV2>>;
+};
+
+export type PaginatedHiredBuilders = {
+  __typename?: 'PaginatedHiredBuilders';
+  count?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<HiredBuilderV2>>;
 };
 
 export type PaginatedHiredBuildersV2 = {
@@ -1976,13 +2007,6 @@ export type ProgramOverviewV2 = {
   upcomingPayments?: Maybe<Array<UpcomingPayment>>;
 };
 
-export type ProgramOverviewV2Input = {
-  /** Pagination options for hired builders or milestones */
-  pagination?: InputMaybe<PaginationInput>;
-  /** Program ID */
-  programId: Scalars['ID']['input'];
-};
-
 export type ProgramStatsByStatus = {
   __typename?: 'ProgramStatsByStatus';
   completed?: Maybe<Scalars['Int']['output']>;
@@ -2082,6 +2106,10 @@ export type Query = {
   applicationsByProgramV2?: Maybe<PaginatedApplicationsV2>;
   /** Get paginated list of applications with filtering options */
   applicationsV2?: Maybe<PaginatedApplicationsV2>;
+  /** Get list of milestones (for builder) */
+  builderMilestones?: Maybe<PaginatedBuilderMilestones>;
+  /** Get payment overview by week for builder (4 weeks) */
+  builderPaymentOverview?: Maybe<Array<PaymentWeek>>;
   carouselItems?: Maybe<Array<EnrichedCarouselItem>>;
   /** Check if all milestones for a specific application are completed. Returns completion statistics. */
   checkApplicationMilestonesCompletedV2?: Maybe<ApplicationMilestoneStatus>;
@@ -2098,21 +2126,31 @@ export type Query = {
   contractsBySponsorV2?: Maybe<PaginatedContractV2>;
   contractsV2?: Maybe<PaginatedContractV2>;
   countNotifications?: Maybe<Scalars['Int']['output']>;
-  /** Get dashboard data for current authenticated user */
-  dashboardV2?: Maybe<DashboardV2>;
   getSwappedStatus?: Maybe<SwappedStatusResponse>;
-  /** Get hiring activity data (cards and programs list) */
-  hiringActivityV2?: Maybe<HiringActivityV2>;
+  /** Get list of hired builders (for sponsor) */
+  hiredBuilders?: Maybe<PaginatedHiredBuilders>;
+  /** Get hiring activity statistics (as sponsor - programs created by user) */
+  hiringActivity?: Maybe<SponsorHiringActivity>;
+  /** Get hiring activity cards (counts for sponsor) */
+  hiringActivityCards?: Maybe<SponsorHiringActivityCards>;
+  /** Get hiring activity programs list */
+  hiringActivityPrograms?: Maybe<PaginatedProgramsV2>;
   investment?: Maybe<Investment>;
   investmentTerm?: Maybe<InvestmentTerm>;
   investmentTermsByApplicationId?: Maybe<Array<InvestmentTerm>>;
   investments?: Maybe<PaginatedInvestments>;
-  /** Get job activity data (cards and programs list) */
-  jobActivityV2?: Maybe<JobActivityV2>;
+  /** Get job activity statistics (as builder - programs user has applied to) */
+  jobActivity?: Maybe<BuilderJobActivity>;
+  /** Get job activity cards (counts for builder) */
+  jobActivityCards?: Maybe<BuilderJobActivityCards>;
+  /** Get job activity programs list */
+  jobActivityPrograms?: Maybe<PaginatedProgramsV2>;
   keywords?: Maybe<Array<Keyword>>;
   milestone?: Maybe<Milestone>;
   milestonePayout?: Maybe<MilestonePayout>;
   milestonePayouts?: Maybe<PaginatedMilestonePayouts>;
+  /** Get milestone progress (completed/total) */
+  milestoneProgress?: Maybe<MilestoneProgress>;
   /** Get a single milestone by ID */
   milestoneV2?: Maybe<MilestoneV2>;
   milestones?: Maybe<PaginatedMilestones>;
@@ -2146,8 +2184,6 @@ export type Query = {
   /** Get current authenticated user profile */
   profileV2?: Maybe<UserV2>;
   program?: Maybe<Program>;
-  /** Get program overview data (hired builders/milestones, milestone progress, upcoming payments) */
-  programOverviewV2?: Maybe<ProgramOverviewV2>;
   /** Get a single program by ID. */
   programV2?: Maybe<ProgramV2>;
   programs?: Maybe<PaginatedPrograms>;
@@ -2165,9 +2201,13 @@ export type Query = {
   queryUsersV2?: Maybe<Array<UserV2>>;
   smartContractV2?: Maybe<SmartContractV2>;
   smartContractsV2?: Maybe<PaginatedSmartContractsV2>;
+  /** Get payment overview by week for sponsor (4 weeks) */
+  sponsorPaymentOverview?: Maybe<Array<PaymentWeek>>;
   tokenV2?: Maybe<TokenV2>;
   tokensByNetworkV2?: Maybe<PaginatedTokensV2>;
   tokensV2?: Maybe<PaginatedTokensV2>;
+  /** Get list of upcoming payments (within 7 days based on deadline + 2 days) */
+  upcomingPayments?: Maybe<Array<UpcomingPayment>>;
   user?: Maybe<User>;
   /** Get a single user by ID */
   userV2?: Maybe<UserV2>;
@@ -2207,6 +2247,11 @@ export type QueryApplicationsByProgramV2Args = {
 
 export type QueryApplicationsV2Args = {
   query?: InputMaybe<ApplicationsV2QueryInput>;
+};
+
+
+export type QueryBuilderMilestonesArgs = {
+  input: BuilderMilestonesInput;
 };
 
 
@@ -2281,8 +2326,13 @@ export type QueryGetSwappedStatusArgs = {
 };
 
 
-export type QueryHiringActivityV2Args = {
-  input: HiringActivityV2Input;
+export type QueryHiredBuildersArgs = {
+  input: HiredBuildersInput;
+};
+
+
+export type QueryHiringActivityProgramsArgs = {
+  input: HiringActivityProgramsInput;
 };
 
 
@@ -2308,8 +2358,8 @@ export type QueryInvestmentsArgs = {
 };
 
 
-export type QueryJobActivityV2Args = {
-  input: JobActivityV2Input;
+export type QueryJobActivityProgramsArgs = {
+  input: JobActivityProgramsInput;
 };
 
 
@@ -2328,6 +2378,11 @@ export type QueryMilestonePayoutsArgs = {
   milestoneId?: InputMaybe<Scalars['ID']['input']>;
   pagination?: InputMaybe<PaginationInput>;
   status?: InputMaybe<PayoutStatus>;
+};
+
+
+export type QueryMilestoneProgressArgs = {
+  input: MilestoneProgressInput;
 };
 
 
@@ -2441,11 +2496,6 @@ export type QueryProgramArgs = {
 };
 
 
-export type QueryProgramOverviewV2Args = {
-  input: ProgramOverviewV2Input;
-};
-
-
 export type QueryProgramV2Args = {
   id: Scalars['ID']['input'];
 };
@@ -2512,6 +2562,11 @@ export type QueryTokensByNetworkV2Args = {
 
 export type QueryTokensV2Args = {
   pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryUpcomingPaymentsArgs = {
+  input: UpcomingPaymentsInput;
 };
 
 
@@ -2675,6 +2730,11 @@ export type UpcomingPayment = {
   __typename?: 'UpcomingPayment';
   builder?: Maybe<BuilderInfo>;
   payment?: Maybe<Array<PaymentInfo>>;
+};
+
+export type UpcomingPaymentsInput = {
+  /** Program ID */
+  programId: Scalars['ID']['input'];
 };
 
 export type UpdateAboutSectionV2Input = {

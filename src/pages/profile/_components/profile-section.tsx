@@ -1,3 +1,9 @@
+import client from '@/apollo/client';
+import { useRequestEmailVerificationV2Mutation } from '@/apollo/mutation/request-email-verification-v2.generated';
+import { useUpdateProfileSectionV2Mutation } from '@/apollo/mutation/update-profile-section-v2.generated';
+import { useVerifyEmailV2Mutation } from '@/apollo/mutation/verify-email-v2.generated';
+import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
+import avatarDefault from '@/assets/avatar-default.svg';
 import { Avatar, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,20 +16,14 @@ import {
 import { Form } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { SearchSelect } from '@/components/ui/search-select';
-import { fetchTimezones, type Timezone } from '@/lib/api/timezones';
+import { type Timezone, fetchTimezones } from '@/lib/api/timezones';
+import notify from '@/lib/notify';
 import { getBrowserTimezone } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Pen, Upload } from 'lucide-react';
-import avatarDefault from '@/assets/avatar-default.svg';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { useUpdateProfileSectionV2Mutation } from '@/apollo/mutation/update-profile-section-v2.generated';
-import { useRequestEmailVerificationV2Mutation } from '@/apollo/mutation/request-email-verification-v2.generated';
-import { useVerifyEmailV2Mutation } from '@/apollo/mutation/verify-email-v2.generated';
-import notify from '@/lib/notify';
-import client from '@/apollo/client';
-import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
 
 const profileFormSchema = z.object({
   nickname: z.string().min(1, 'Nickname is required'),
@@ -304,8 +304,8 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
 
                 <div className="space-y-6 my-4">
                   <div className="flex items-center gap-6">
-                    <Avatar className="w-20 h-20">
-                      <AvatarImage className="bg-neutral-300" src={imagePreview || avatarDefault} />
+                    <Avatar className="w-26 h-26">
+                      <AvatarImage className="bg-neutral-100" src={imagePreview || avatarDefault} />
                     </Avatar>
                     <div className="space-y-2">
                       <p className="font-medium text-sm">Profile image</p>
@@ -445,26 +445,14 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
           </DialogContent>
         </Dialog>
       </div>
-
       <div className="flex items-center gap-6 mb-6">
-        <Avatar className="w-20 h-20">
-          <AvatarImage className="bg-neutral-300" src={profileImage || avatarDefault} />
+        <Avatar className="w-26 h-26">
+          <AvatarImage className="bg-neutral-100" src={profileImage || avatarDefault} />
         </Avatar>
-        <div className="space-y-2">
-          <p className="font-medium">Profile image</p>
-          <p className="text-sm text-gray-500">
-            Profile image must be under 2MB, and in PNG, JPG, or JPEG format.
-          </p>
-          <Button variant="outline" size="sm" className="gap-2">
-            <Upload className="h-4 w-4" />
-            Upload
-          </Button>
+        <div>
+          <p className="text-sm font-medium text-gray-900 mb-4">Nickname</p>
+          <p className="text-lg text-slate-600">{nickname || 'Ludium_user'}</p>
         </div>
-      </div>
-
-      <div className="mb-6">
-        <p className="text-sm font-medium text-gray-900 mb-4">Nickname</p>
-        <p className="text-sm text-slate-600">{nickname || 'Ludium.user_1101'}</p>
       </div>
 
       <div className="mb-6">

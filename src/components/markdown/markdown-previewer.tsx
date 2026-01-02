@@ -1,9 +1,9 @@
-import { cn } from "@/lib/utils";
-import DOMPurify from "dompurify";
-import MarkdownIt from "markdown-it";
-import { useMemo } from "react";
+import { cn } from '@/lib/utils';
+import DOMPurify from 'dompurify';
+import MarkdownIt from 'markdown-it';
+import { useMemo } from 'react';
 
-import "./style.css";
+import './style.css';
 
 const md = new MarkdownIt({
   html: true,
@@ -13,7 +13,7 @@ const md = new MarkdownIt({
 });
 
 function unescapeHtml(text: string): string {
-  return text.replace(/\\</g, "<").replace(/\\>/g, ">").replace(/\\&/g, "&");
+  return text.replace(/\\</g, '<').replace(/\\>/g, '>').replace(/\\&/g, '&');
 }
 
 function processMarkdownInHtml(text: string): string {
@@ -22,7 +22,7 @@ function processMarkdownInHtml(text: string): string {
     (_, openTag, content, closeTag) => {
       const renderedContent = md.renderInline(content.trim());
       return `${openTag}${renderedContent}${closeTag}`;
-    }
+    },
   );
 }
 
@@ -37,12 +37,15 @@ function MarkdownPreviewer({
     const unescaped = unescapeHtml(value);
     const processed = processMarkdownInHtml(unescaped);
     const dirty = md.render(processed);
-    return DOMPurify.sanitize(dirty);
+    return DOMPurify.sanitize(dirty, {
+      ADD_TAGS: ['iframe'],
+      ADD_ATTR: ['frameborder', 'scrolling'],
+    });
   }, [value]);
 
   return (
     <div
-      className={cn("prose max-w-full", className)}
+      className={cn('prose max-w-full', className)}
       dangerouslySetInnerHTML={{ __html: htmlContent }}
     />
   );

@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table';
 import { useNetworks } from '@/contexts/networks-context';
 import { cn, commaNumber, formatDate, getCurrencyIcon } from '@/lib/utils';
-import { BuilderMilestoneV2 } from '@/types/types.generated';
+import type { BuilderMilestoneV2 } from '@/types/types.generated';
 
 const getMilestoneStyle = (status: BuilderMilestoneV2['status']): string => {
   switch (status) {

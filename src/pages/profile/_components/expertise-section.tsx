@@ -1,3 +1,7 @@
+import client from '@/apollo/client';
+import { useUpdateExpertiseSectionV2Mutation } from '@/apollo/mutation/update-expertise-section-v2.generated';
+import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
+import ExpertiseIcon from '@/assets/icons/profile/expertise.svg';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -11,15 +15,11 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { SearchSelect } from '@/components/ui/search-select';
 import { LANGUAGE_OPTIONS, PROFICIENCY_OPTIONS } from '@/constant/profile-related';
 import { fetchSkills } from '@/lib/api/skills';
-import type { LabelValueProps } from '@/types/common';
-import { Minus, Pen, Plus } from 'lucide-react';
-import ExpertiseIcon from '@/assets/icons/profile/expertise.svg';
-import { useEffect, useState } from 'react';
-import { useUpdateExpertiseSectionV2Mutation } from '@/apollo/mutation/update-expertise-section-v2.generated';
 import notify from '@/lib/notify';
-import client from '@/apollo/client';
-import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
-import { LanguageV2 } from '@/types/types.generated';
+import type { LabelValueProps } from '@/types/common';
+import type { LanguageV2 } from '@/types/types.generated';
+import { Minus, Pen, Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface ExpertiseSectionProps {
   role?: string | null;

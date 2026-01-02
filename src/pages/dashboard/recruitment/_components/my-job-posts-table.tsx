@@ -11,7 +11,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import toast from 'react-hot-toast';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -20,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { PageSize, Pagination } from '@/components/ui/pagination';
 import {
   Table,
   TableBody,
@@ -29,6 +29,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { cn, commaNumber, formatDate, formatPrice, getCurrencyIcon } from '@/lib/utils';
+import type {
+  BuilderProgramData,
+  MyJobPostsTableProps,
+  ProgramData,
+  SponsorProgramData,
+} from '@/types/dashboard';
 import { ProgramStatusV2 } from '@/types/types.generated';
 import {
   type ColumnDef,
@@ -40,16 +46,10 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { Pagination, PageSize } from '@/components/ui/pagination';
 import { ChevronDown, ChevronsUpDown, Ellipsis } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
-import {
-  BuilderProgramData,
-  MyJobPostsTableProps,
-  ProgramData,
-  SponsorProgramData,
-} from '@/types/dashboard';
 
 export const MyJobPostsTable: React.FC<MyJobPostsTableProps> = ({
   activityFilter,

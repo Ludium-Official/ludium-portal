@@ -1,8 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useNetworks } from '@/contexts/networks-context';
 import { commaNumber, dDay, fromUTCString, getCurrencyIcon, getInitials } from '@/lib/utils';
-import { UpcomingPayment } from '@/types/types.generated';
-import dayjs from 'dayjs';
+import type { UpcomingPayment } from '@/types/types.generated';
+import { format } from 'date-fns';
 
 interface UpcomingPaymentsProps {
   upcomingPayments: UpcomingPayment[];
@@ -42,7 +42,7 @@ export const UpcomingPayments: React.FC<UpcomingPaymentsProps> = ({ upcomingPaym
                 {upcomingPayment.payment?.map((payment, idx) => {
                   const token = getTokenById(Number(payment.tokenId));
                   const dueLabel = dDay(fromUTCString(payment.deadline) || new Date());
-                  const formattedDate = dayjs(payment.deadline).format('DD.MMM.YYYY');
+                  const formattedDate = format(new Date(payment.deadline), 'dd.MMM.yyyy');
 
                   return (
                     <div

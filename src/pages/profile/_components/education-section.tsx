@@ -1,3 +1,9 @@
+import client from '@/apollo/client';
+import { useCreateEducationV2Mutation } from '@/apollo/mutation/create-education-v2.generated';
+import { useDeleteEducationV2Mutation } from '@/apollo/mutation/delete-education-v2.generated';
+import { useUpdateEducationV2Mutation } from '@/apollo/mutation/update-education-v2.generated';
+import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
+import EducationIcon from '@/assets/icons/profile/education.svg';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -9,17 +15,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { SearchSelect } from '@/components/ui/search-select';
 import { DEGREE_OPTIONS } from '@/constant/profile-related';
-import type { LabelValueProps } from '@/types/common';
-import { Pen, Plus } from 'lucide-react';
-import EducationIcon from '@/assets/icons/profile/education.svg';
-import { useEffect, useState } from 'react';
-import { EducationV2 } from '@/types/types.generated';
-import { useCreateEducationV2Mutation } from '@/apollo/mutation/create-education-v2.generated';
-import { useUpdateEducationV2Mutation } from '@/apollo/mutation/update-education-v2.generated';
-import { useDeleteEducationV2Mutation } from '@/apollo/mutation/delete-education-v2.generated';
 import notify from '@/lib/notify';
-import client from '@/apollo/client';
-import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
+import type { LabelValueProps } from '@/types/common';
+import type { EducationV2 } from '@/types/types.generated';
+import { Pen, Plus } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface EducationSectionProps {
   educations?: EducationV2[];
@@ -296,9 +296,12 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations =
                       const newValue = value(
                         formData.attendedStartDate ? String(formData.attendedStartDate) : '',
                       );
-                      updateField('attendedStartDate', newValue ? parseInt(newValue, 10) : 0);
+                      updateField(
+                        'attendedStartDate',
+                        newValue ? Number.parseInt(newValue, 10) : 0,
+                      );
                     } else {
-                      updateField('attendedStartDate', value ? parseInt(value, 10) : 0);
+                      updateField('attendedStartDate', value ? Number.parseInt(value, 10) : 0);
                     }
                   }}
                   placeholder="Start year"
@@ -311,9 +314,9 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations =
                       const newValue = value(
                         formData.attendedEndDate ? String(formData.attendedEndDate) : '',
                       );
-                      updateField('attendedEndDate', newValue ? parseInt(newValue, 10) : 0);
+                      updateField('attendedEndDate', newValue ? Number.parseInt(newValue, 10) : 0);
                     } else {
-                      updateField('attendedEndDate', value ? parseInt(value, 10) : 0);
+                      updateField('attendedEndDate', value ? Number.parseInt(value, 10) : 0);
                     }
                   }}
                   placeholder="End (expected) year"

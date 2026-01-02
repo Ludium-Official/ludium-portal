@@ -1,14 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  ChartConfig,
+  type ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { PaymentWeek } from '@/types/types.generated';
-import { format, subWeeks } from 'date-fns';
+import type { PaymentWeek } from '@/types/types.generated';
+import { format, subMonths } from 'date-fns';
 import { useMemo } from 'react';
 import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
 
@@ -47,7 +47,7 @@ export function PaymentOverview({
 
   const dateRange = useMemo(() => {
     const endDate = new Date();
-    const startDate = subWeeks(endDate, 1);
+    const startDate = subMonths(endDate, 1);
     return {
       startDate: format(startDate, 'MMM d, yyyy'),
       endDate: format(endDate, 'MMM d, yyyy'),
