@@ -20,6 +20,8 @@ import RecruitmentDashboardSponsor from './pages/dashboard/recruitment/sponsor';
 import RecruitmentDashboardSponsorDetail from './pages/dashboard/recruitment/sponsor/detail';
 import PortfolioPage from './pages/portfolio';
 import ProfilePage from './pages/profile';
+import ArticlesPage from './pages/community/articles';
+import ArticleDetailsPage from './pages/community/articles/detail';
 
 function App() {
   return (
@@ -67,10 +69,14 @@ function App() {
           </Route>
 
           <Route path="community">
-            <Route index element={<CommunityPage />} />
+            <Route path="articles">
+              <Route index element={<ArticlesPage />} />
+              <Route path=":id" element={<ArticleDetailsPage />} />
+            </Route>
+            {/* <Route index element={<CommunityPage />} />
             <Route path="create" element={<CreateCommunityPage />} />
             <Route path="posts/:id" element={<CommunityDetailsPage />} />
-            <Route path="posts/:id/edit" element={<EditCommunityPage />} />
+            <Route path="posts/:id/edit" element={<EditCommunityPage />} /> */}
           </Route>
 
           {/* <Route path="users">
