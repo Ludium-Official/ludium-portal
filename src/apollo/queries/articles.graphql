@@ -1,0 +1,27 @@
+query articles($input: ArticlesQueryInput) {
+  articles(input: $input) {
+    count
+    data {
+      id
+      title
+      description
+      coverImage
+      type
+      status
+      isPin
+      view
+      likeCount
+      commentCount
+      isLiked
+      createdAt
+      updatedAt
+      author {
+        id
+        nickname
+        profileImage
+        email
+        walletAddress
+      }
+    }
+  }
+}

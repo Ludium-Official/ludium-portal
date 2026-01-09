@@ -1,0 +1,3 @@
+mutation toggleArticleLike($articleId: ID!) {
+  toggleArticleLike(articleId: $articleId)
+}

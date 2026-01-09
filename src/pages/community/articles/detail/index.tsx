@@ -1,15 +1,15 @@
+import { CommentItem } from '@/components/community/comment-item';
 import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ShareButton } from '@/components/ui/share-button';
 import { Button } from '@/components/ui/button';
+import { ShareButton } from '@/components/ui/share-button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/lib/hooks/use-auth';
+import type { Comment } from '@/types/comment';
+import { Separator } from '@radix-ui/react-dropdown-menu';
 import { Eye, Heart, MessageCircleMore } from 'lucide-react';
 import { useState } from 'react';
 import { useParams } from 'react-router';
-import { CommentItem } from '@/components/community/comment-item';
-import type { Comment } from '@/types/comment';
-import { Separator } from '@radix-ui/react-dropdown-menu';
 
 // Mock article data
 const MOCK_ARTICLE = {

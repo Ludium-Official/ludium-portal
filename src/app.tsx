@@ -1,27 +1,25 @@
-import ProtectedRoute from '@/components/auth/protected-route';
-import AdminOutlet from '@/components/layout/admin-outlet';
-import Layout from '@/components/layout/layout';
-import AdminPage from '@/pages/admin';
-import CommunityPage from '@/pages/community';
-import CreateCommunityPage from '@/pages/community/create';
-import CommunityDetailsPage from '@/pages/community/details';
-import EditCommunityPage from '@/pages/community/edit';
-import DashboardPage from '@/pages/dashboard';
-import MainPage from '@/pages/main';
-import ProgramsPage from '@/pages/programs';
-import CreateProgram from '@/pages/programs/create';
-import ProgramDetailsPage from '@/pages/programs/details';
-import EditProgramPage from '@/pages/programs/edit';
-import ScrollWrapper from '@/providers/scroll-wrapper';
-import { Route, Routes } from 'react-router';
-import RecruitmentDashboardBuilder from './pages/dashboard/recruitment/builder';
-import RecruitmentDashboardBuilderDetail from './pages/dashboard/recruitment/builder/detail';
-import RecruitmentDashboardSponsor from './pages/dashboard/recruitment/sponsor';
-import RecruitmentDashboardSponsorDetail from './pages/dashboard/recruitment/sponsor/detail';
-import PortfolioPage from './pages/portfolio';
-import ProfilePage from './pages/profile';
-import ArticlesPage from './pages/community/articles';
-import ArticleDetailsPage from './pages/community/articles/detail';
+import ProtectedRoute from "@/components/auth/protected-route";
+import AdminOutlet from "@/components/layout/admin-outlet";
+import Layout from "@/components/layout/layout";
+import AdminPage from "@/pages/admin";
+import DashboardPage from "@/pages/dashboard";
+import MainPage from "@/pages/main";
+import ProgramsPage from "@/pages/programs";
+import CreateProgram from "@/pages/programs/create";
+import ProgramDetailsPage from "@/pages/programs/details";
+import EditProgramPage from "@/pages/programs/edit";
+import ScrollWrapper from "@/providers/scroll-wrapper";
+import { Route, Routes } from "react-router";
+import ArticlesPage from "./pages/community/articles";
+import CreateArticlePage from "./pages/community/articles/create";
+import ArticleDetailsPage from "./pages/community/articles/detail";
+import EditArticlePage from "./pages/community/articles/edit";
+import RecruitmentDashboardBuilder from "./pages/dashboard/recruitment/builder";
+import RecruitmentDashboardBuilderDetail from "./pages/dashboard/recruitment/builder/detail";
+import RecruitmentDashboardSponsor from "./pages/dashboard/recruitment/sponsor";
+import RecruitmentDashboardSponsorDetail from "./pages/dashboard/recruitment/sponsor/detail";
+import PortfolioPage from "./pages/portfolio";
+import ProfilePage from "./pages/profile";
 
 function App() {
   return (
@@ -30,17 +28,24 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<MainPage />} />
 
+          {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="dashboard">
               <Route index element={<DashboardPage />} />
               <Route path="recruitment">
                 <Route path="sponsor">
                   <Route index element={<RecruitmentDashboardSponsor />} />
-                  <Route path=":id" element={<RecruitmentDashboardSponsorDetail />} />
+                  <Route
+                    path=":id"
+                    element={<RecruitmentDashboardSponsorDetail />}
+                  />
                 </Route>
                 <Route path="builder">
                   <Route index element={<RecruitmentDashboardBuilder />} />
-                  <Route path=":id" element={<RecruitmentDashboardBuilderDetail />} />
+                  <Route
+                    path=":id"
+                    element={<RecruitmentDashboardBuilderDetail />}
+                  />
                 </Route>
               </Route>
             </Route>
@@ -59,6 +64,13 @@ function App() {
                 <Route path=":id/edit" element={<EditProgramPage />} />
               </Route>
             </Route>
+
+            <Route path="community">
+              <Route path="articles">
+                <Route path="create" element={<CreateArticlePage />} />
+                <Route path=":id/edit" element={<EditArticlePage />} />
+              </Route>
+            </Route>
           </Route>
 
           <Route path="programs">
@@ -73,10 +85,6 @@ function App() {
               <Route index element={<ArticlesPage />} />
               <Route path=":id" element={<ArticleDetailsPage />} />
             </Route>
-            {/* <Route index element={<CommunityPage />} />
-            <Route path="create" element={<CreateCommunityPage />} />
-            <Route path="posts/:id" element={<CommunityDetailsPage />} />
-            <Route path="posts/:id/edit" element={<EditCommunityPage />} /> */}
           </Route>
 
           {/* <Route path="users">

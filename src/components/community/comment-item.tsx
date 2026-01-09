@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/lib/hooks/use-auth';
 import type { Comment } from '@/types/comment';
-import { ThumbsUp, ThumbsDown, MoreHorizontal, MessageSquareMore } from 'lucide-react';
+import { MessageSquareMore, MoreHorizontal, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useState } from 'react';
 
 interface CommentItemProps {
