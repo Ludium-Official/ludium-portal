@@ -3,10 +3,13 @@ query articleChildComments($parentId: ID!) {
     id
     articleId
     authorId
+    authorNickname
+    authorProfileImage
     content
     parentId
     likeCount
     dislikeCount
+    replyCount
     isLiked
     isDisliked
     createdAt

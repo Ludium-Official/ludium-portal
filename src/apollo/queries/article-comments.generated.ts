@@ -8,7 +8,7 @@ export type ArticleCommentsQueryVariables = Types.Exact<{
 }>;
 
 
-export type ArticleCommentsQuery = { __typename?: 'Query', articleComments?: Array<{ __typename?: 'ArticleComment', id?: string | null, articleId?: string | null, authorId?: number | null, content?: string | null, parentId?: string | null, likeCount?: number | null, dislikeCount?: number | null, isLiked?: boolean | null, isDisliked?: boolean | null, createdAt?: any | null, updatedAt?: any | null, deletedAt?: any | null, replies?: Array<{ __typename?: 'ArticleComment', id?: string | null, articleId?: string | null, authorId?: number | null, content?: string | null, parentId?: string | null, likeCount?: number | null, dislikeCount?: number | null, isLiked?: boolean | null, isDisliked?: boolean | null, createdAt?: any | null, updatedAt?: any | null, deletedAt?: any | null }> | null }> | null };
+export type ArticleCommentsQuery = { __typename?: 'Query', articleComments?: Array<{ __typename?: 'ArticleComment', id?: string | null, articleId?: string | null, authorId?: number | null, authorNickname?: string | null, authorProfileImage?: string | null, content?: string | null, parentId?: string | null, likeCount?: number | null, replyCount?: number | null, isLiked?: boolean | null, isDisliked?: boolean | null, createdAt?: any | null, updatedAt?: any | null, deletedAt?: any | null }> | null };
 
 
 export const ArticleCommentsDocument = gql`
@@ -17,29 +17,17 @@ export const ArticleCommentsDocument = gql`
     id
     articleId
     authorId
+    authorNickname
+    authorProfileImage
     content
     parentId
     likeCount
-    dislikeCount
+    replyCount
     isLiked
     isDisliked
     createdAt
     updatedAt
     deletedAt
-    replies {
-      id
-      articleId
-      authorId
-      content
-      parentId
-      likeCount
-      dislikeCount
-      isLiked
-      isDisliked
-      createdAt
-      updatedAt
-      deletedAt
-    }
   }
 }
     `;

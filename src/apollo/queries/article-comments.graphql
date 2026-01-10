@@ -3,28 +3,16 @@ query articleComments($articleId: ID!) {
     id
     articleId
     authorId
+    authorNickname
+    authorProfileImage
     content
     parentId
     likeCount
-    dislikeCount
+    replyCount
     isLiked
     isDisliked
     createdAt
     updatedAt
     deletedAt
-    replies {
-      id
-      articleId
-      authorId
-      content
-      parentId
-      likeCount
-      dislikeCount
-      isLiked
-      isDisliked
-      createdAt
-      updatedAt
-      deletedAt
-    }
   }
 }

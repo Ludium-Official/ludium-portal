@@ -103,14 +103,23 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
 
     const img = new window.Image();
     img.onload = () => {
-      if (img.width < 510 || img.height < 367) {
-        setImageError("Cover image must be at least 510×367 px.");
-        setSelectedImage(undefined);
-        setImagePreview(null);
+      if (category === ArticleType.Campaign) {
+        if (img.width <= 333 || img.height <= 333) {
+          setImageError("Cover image must be 333x333 px.");
+          setSelectedImage(undefined);
+          setImagePreview(null);
+          return;
+        }
       } else {
-        setSelectedImage(file);
-        setImagePreview(URL.createObjectURL(file));
+        if (img.width <= 510 || img.height <= 367) {
+          setImageError("Cover image must be at least 510×367 px.");
+          setSelectedImage(undefined);
+          setImagePreview(null);
+          return;
+        }
       }
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
     };
     img.onerror = () => {
       setImageError("Invalid image file.");
@@ -209,7 +218,13 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
 
         <label htmlFor="image" className="space-y-2">
           <div className="flex items-start gap-6">
-            <div className="relative w-[320px] h-[180px] flex items-center justify-center bg-[#eaeaea] rounded-lg overflow-hidden group">
+            <div
+              className={`relative flex items-center justify-center bg-[#eaeaea] rounded-lg overflow-hidden group ${
+                category === ArticleType.Campaign
+                  ? "w-[180px] h-[180px]"
+                  : "w-[320px] h-[180px]"
+              }`}
+            >
               <input
                 id="image"
                 type="file"
@@ -237,8 +252,11 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
                 Cover image<span className="ml-[2px] text-red-500">*</span>
               </p>
               <p className="text-sm text-muted-foreground">
-                Cover image must be at least 510×367 px, under 4MB, and in PNG,
-                JPG, or JPEG format.
+                {`Cover image must be at least ${
+                  category === ArticleType.Campaign
+                    ? "333x333 px"
+                    : "510×367 px"
+                }, under 4MB, and in PNG, JPG, or JPEG format.`}
               </p>
               {imageError && (
                 <span className="text-destructive text-sm block mt-2">

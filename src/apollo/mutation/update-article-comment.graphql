@@ -3,10 +3,13 @@ mutation updateArticleComment($input: UpdateArticleCommentInput!) {
     id
     articleId
     authorId
+    authorNickname
+    authorProfileImage
     content
     parentId
     likeCount
     dislikeCount
+    replyCount
     isLiked
     isDisliked
     createdAt

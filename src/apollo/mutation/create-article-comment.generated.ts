@@ -8,7 +8,7 @@ export type CreateArticleCommentMutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateArticleCommentMutation = { __typename?: 'Mutation', createArticleComment?: { __typename?: 'ArticleComment', id?: string | null, articleId?: string | null, authorId?: number | null, content?: string | null, parentId?: string | null, likeCount?: number | null, dislikeCount?: number | null, isLiked?: boolean | null, isDisliked?: boolean | null, createdAt?: any | null, updatedAt?: any | null, deletedAt?: any | null } | null };
+export type CreateArticleCommentMutation = { __typename?: 'Mutation', createArticleComment?: { __typename?: 'ArticleComment', id?: string | null, articleId?: string | null, authorId?: number | null, authorNickname?: string | null, authorProfileImage?: string | null, content?: string | null, parentId?: string | null, likeCount?: number | null, dislikeCount?: number | null, replyCount?: number | null, isLiked?: boolean | null, isDisliked?: boolean | null, createdAt?: any | null, updatedAt?: any | null, deletedAt?: any | null } | null };
 
 
 export const CreateArticleCommentDocument = gql`
@@ -17,10 +17,13 @@ export const CreateArticleCommentDocument = gql`
     id
     articleId
     authorId
+    authorNickname
+    authorProfileImage
     content
     parentId
     likeCount
     dislikeCount
+    replyCount
     isLiked
     isDisliked
     createdAt

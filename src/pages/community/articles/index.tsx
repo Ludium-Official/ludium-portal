@@ -41,15 +41,18 @@ const ArticlesPage: React.FC = () => {
       <div className="relative overflow-hidden rounded-t-lg" ref={emblaRef}>
         <div className="flex">
           {shuffledBanners.map((banner) => (
-            <div key={banner.id} className="flex-[0_0_100%] min-w-0">
+            <div
+              key={banner.id}
+              className="flex-[0_0_100%] min-w-0 max-h-[380px] flex items-center justify-center"
+            >
               <Link
                 to={banner.link}
-                className="block relative overflow-hidden cursor-pointer"
+                className="block relative overflow-hidden cursor-pointer w-full"
               >
                 <img
                   src={banner.image}
                   alt={`Banner ${banner.id}`}
-                  className="w-full h-full object-cover transition-transform duration-700 ease-in-out"
+                  className="w-full object-cover transition-transform duration-700 ease-in-out"
                 />
               </Link>
             </div>

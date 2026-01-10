@@ -3,10 +3,13 @@ mutation createArticleComment($input: CreateArticleCommentInput!) {
     id
     articleId
     authorId
+    authorNickname
+    authorProfileImage
     content
     parentId
     likeCount
     dislikeCount
+    replyCount
     isLiked
     isDisliked
     createdAt

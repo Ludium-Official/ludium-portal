@@ -1,78 +1,39 @@
 import { useArticlesQuery } from "@/apollo/queries/articles.generated";
+import { usePinnedArticlesQuery } from "@/apollo/queries/pinned-articles.generated";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/ui/pagination";
-import { ArticleFilter } from "@/types/types.generated";
+import { ArticleFilter, ArticleType } from "@/types/types.generated";
 import { format } from "date-fns";
 import { Link, useSearchParams } from "react-router";
-import { useState } from "react";
 
-const MOCK_PINNED_ARTICLES = [
-  {
-    id: 1,
-    title:
-      "No Fixed Address designs a world-first No Fixed Address designs a world-first No Fixed Address designs a world-first No Fixed Address",
-    image:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-    author: {
-      name: "Waldorf Hegmann",
-      avatar: "https://i.pravatar.cc/150?img=1",
-    },
-    date: "February 3, 2022",
-    category: "Trending",
-  },
-  {
-    id: 2,
-    title: "No Fixed Address designs a world-first bio...",
-    image:
-      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=600&fit=crop",
-    author: {
-      name: "Waldorf Hegmann",
-      avatar: "https://i.pravatar.cc/150?img=2",
-    },
-    date: "February 3, 2022",
-    category: "Trending",
-  },
-  {
-    id: 3,
-    title:
-      "No Fixed Address designs a world-first No Fixed Address designs a world-first No Fixed Address designs a world-first No Fixed Address",
-    image:
-      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop",
-    author: {
-      name: "Waldorf Hegmann",
-      avatar: "https://i.pravatar.cc/150?img=1",
-    },
-    date: "February 3, 2022",
-    category: "Campaign",
-  },
-  {
-    id: 4,
-    title: "No Fixed Address designs a world-first bio...",
-    image:
-      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&h=600&fit=crop",
-    author: {
-      name: "Waldorf Hegmann",
-      avatar: "https://i.pravatar.cc/150?img=2",
-    },
-    date: "February 3, 2022",
-    category: "Campaign",
-  },
-];
+const CATEGORIES = ["latest", "trending", "newsletter", "campaign"] as const;
+type CategoryType = (typeof CATEGORIES)[number];
 
-const CATEGORIES = ["Latest", "Trending", "Newsletter", "Campaign"];
+const CATEGORY_FILTER_MAP: Record<CategoryType, ArticleFilter> = {
+  latest: ArticleFilter.Latest,
+  trending: ArticleFilter.Trending,
+  newsletter: ArticleFilter.Newsletter,
+  campaign: ArticleFilter.Campaign,
+};
 
-const CATEGORY_FILTER_MAP: Record<string, ArticleFilter | undefined> = {
-  Latest: ArticleFilter.Latest,
-  Trending: ArticleFilter.Trending,
-  Newsletter: ArticleFilter.Newsletter,
-  Campaign: ArticleFilter.Campaign,
+const CATEGORY_DISPLAY_MAP: Record<CategoryType, string> = {
+  latest: "Latest",
+  trending: "Trending",
+  newsletter: "Newsletter",
+  campaign: "Campaign",
 };
 
 const ArticlesContent: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedCategory, setSelectedCategory] = useState("Latest");
   const itemsPerPage = 9;
+
+  const categoryParam = searchParams.get("category") as CategoryType | null;
+  const selectedCategory: CategoryType = CATEGORIES.includes(
+    categoryParam as CategoryType
+  )
+    ? (categoryParam as CategoryType)
+    : "latest";
 
   const currentPage = Number(searchParams.get("page")) || 1;
 
@@ -88,10 +49,9 @@ const ArticlesContent: React.FC = () => {
     },
   });
 
-  const pinnedArticles = MOCK_PINNED_ARTICLES.filter(
-    (article) => article.category === selectedCategory
-  );
+  const { data: pinnedData } = usePinnedArticlesQuery();
 
+  const pinnedArticles = pinnedData?.pinnedArticles ?? [];
   const articles = articlesData?.articles?.data || [];
   const totalCount = articlesData?.articles?.count || 0;
 
@@ -103,14 +63,14 @@ const ArticlesContent: React.FC = () => {
             key={category}
             variant={selectedCategory === category ? "default" : "outline"}
             onClick={() => {
-              setSelectedCategory(category);
               const newSP = new URLSearchParams(searchParams);
+              newSP.set("category", category);
               newSP.set("page", "1");
               setSearchParams(newSP);
             }}
             className="rounded-full px-4 py-2 h-fit text-base"
           >
-            {category}
+            {CATEGORY_DISPLAY_MAP[category]}
           </Button>
         ))}
       </div>
@@ -119,21 +79,29 @@ const ArticlesContent: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-4 mb-12">
           {pinnedArticles.map((article) => (
             <div key={article.id} className="overflow-hidden">
-              <div className="overflow-hidden rounded-md">
+              <div
+                className={`overflow-hidden rounded-md ${
+                  article.type === ArticleType.Campaign
+                    ? "aspect-[1/1]"
+                    : "aspect-[5/3]"
+                }`}
+              >
                 <img
-                  src={article.image}
-                  alt={article.title}
+                  src={article.coverImage || ""}
+                  alt={article.title || ""}
                   className="w-full h-full hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <div className="pt-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Avatar className="w-7 h-7">
-                    <AvatarImage src={article.author.avatar} />
-                    <AvatarFallback>{article.author.name[0]}</AvatarFallback>
+                    <AvatarImage src={article.author?.profileImage || ""} />
+                    <AvatarFallback>
+                      {article.author?.nickname?.[0] || "U"}
+                    </AvatarFallback>
                   </Avatar>
                   <span className="text-sm text-muted-foreground">
-                    {article.author.name}
+                    {article.author?.nickname || "Anonymous"}
                   </span>
                 </div>
                 <Link
@@ -143,7 +111,9 @@ const ArticlesContent: React.FC = () => {
                   {article.title}
                 </Link>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  {article.date}
+                  {article.createdAt
+                    ? format(new Date(article.createdAt), "MMMM dd, yyyy")
+                    : ""}
                 </p>
               </div>
             </div>
@@ -163,11 +133,17 @@ const ArticlesContent: React.FC = () => {
         ) : (
           articles.map((article) => (
             <div key={article.id} className="overflow-hidden">
-              <div className="overflow-hidden rounded-md">
+              <div
+                className={`overflow-hidden rounded-lg ${
+                  article.type === ArticleType.Campaign
+                    ? "aspect-[1/1]"
+                    : "aspect-[5/3]"
+                }`}
+              >
                 <img
                   src={article.coverImage || ""}
                   alt={article.title || ""}
-                  className="w-full h-full hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <div className="pt-2">
@@ -205,4 +181,3 @@ const ArticlesContent: React.FC = () => {
 };
 
 export default ArticlesContent;
-

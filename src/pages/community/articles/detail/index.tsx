@@ -1,259 +1,214 @@
+import { useArticleQuery } from '@/apollo/queries/article.generated';
+import { useArticleCommentsQuery } from '@/apollo/queries/article-comments.generated';
+import { useToggleArticleLikeMutation } from '@/apollo/mutation/toggle-article-like.generated';
+import { useCreateArticleCommentMutation } from '@/apollo/mutation/create-article-comment.generated';
 import { CommentItem } from '@/components/community/comment-item';
+import { ArticleCommentData } from '@/types/comment';
 import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ShareButton } from '@/components/ui/share-button';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/lib/hooks/use-auth';
-import type { Comment } from '@/types/comment';
-import { Separator } from '@radix-ui/react-dropdown-menu';
-import { Eye, Heart, MessageCircleMore } from 'lucide-react';
+import { format } from 'date-fns';
+import { Eye, Heart, Loader2, MessageCircleMore } from 'lucide-react';
 import { useState } from 'react';
 import { useParams } from 'react-router';
-
-// Mock article data
-const MOCK_ARTICLE = {
-  id: 1,
-  title: '5 Essential Tips for Navigating the Web3 Ecosystem',
-  author: {
-    name: 'William Smith',
-    avatar: 'https://i.pravatar.cc/150?img=1',
-  },
-  date: 'December 23, 2025',
-  views: 122,
-  content: `# 5 Essential Tips for Navigating the Web3 Ecosystem
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus. Maecenas eget condimentum velit, sit amet feugiat lectus.
-
-![Web3 Ecosystem](https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=1200&h=600&fit=crop)
-
-Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Praesent auctor purus luctus enim egestas, ac scelerisque ante pulvinar. Donec ut rhoncus ex. Suspendisse ac rhoncus nisl, eu tempor urna.
-
-## 1. Understanding Decentralization
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus.
-
-- **Key Point 1**: Decentralization ensures no single point of failure
-- **Key Point 2**: Distributed networks increase security and resilience
-- **Key Point 3**: Community governance becomes possible
-
-Maecenas eget condimentum velit, sit amet feugiat lectus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.
-
-## 2. Wallet Security Best Practices
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus.
-
-> **Important**: Never share your private keys or seed phrases with anyone. Your wallet security is your responsibility.
-
-Praesent auctor purus luctus enim egestas, ac scelerisque ante pulvinar. Donec ut rhoncus ex. Suspendisse ac rhoncus nisl, eu tempor urna.
-
-## 3. Smart Contract Interactions
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus.
-
-### Common Use Cases
-
-1. **DeFi Protocols**: Lending, borrowing, and yield farming
-2. **NFT Marketplaces**: Buying, selling, and trading digital assets
-3. **DAOs**: Participating in decentralized governance
-
-Maecenas eget condimentum velit, sit amet feugiat lectus. Class aptent taciti sociosqu ad litora torquent per conubia nostra.
-
-## 4. Gas Fees and Network Optimization
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus.
-
-Understanding gas fees is crucial for cost-effective transactions. Monitor network congestion and choose optimal times for your transactions.
-
-## 5. Community and Resources
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus.
-
-Join communities, follow reputable sources, and stay updated with the latest developments in the Web3 space. Continuous learning is key to success in this rapidly evolving ecosystem.
-
----
-
-*This article is part of our Web3 educational series. Stay tuned for more insights and guides.*`,
-  likes: 0,
-  commentCount: 5,
-};
-
-// Mock comments
-const MOCK_COMMENTS: Comment[] = [
-  {
-    id: 1,
-    author: {
-      name: 'William Smith',
-      avatar: 'https://i.pravatar.cc/150?img=2',
-    },
-    date: 'December 23, 2025',
-    content:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.',
-    likes: 0,
-    replies: [
-      {
-        id: 11,
-        author: {
-          name: 'William Smith',
-          avatar: 'https://i.pravatar.cc/150?img=3',
-        },
-        date: 'December 23, 2025',
-        content:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.',
-        likes: 0,
-      },
-      {
-        id: 12,
-        author: {
-          name: 'Yohana Smith',
-          avatar: 'https://i.pravatar.cc/150?img=4',
-        },
-        date: 'December 23, 2025',
-        content:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.',
-        likes: 0,
-        replies: [
-          {
-            id: 11,
-            author: {
-              name: 'William Smith',
-              avatar: 'https://i.pravatar.cc/150?img=3',
-            },
-            date: 'December 23, 2025',
-            content:
-              'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.',
-            likes: 0,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 2,
-    author: {
-      name: 'William Smith',
-      avatar: 'https://i.pravatar.cc/150?img=5',
-    },
-    date: 'December 23, 2025',
-    content:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.',
-    likes: 0,
-    replies: [],
-  },
-  {
-    id: 3,
-    author: {
-      name: 'William Smith',
-      avatar: 'https://i.pravatar.cc/150?img=6',
-    },
-    date: 'December 23, 2025',
-    content:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus.',
-    likes: 0,
-    replies: [],
-  },
-];
+import RecommendedArticles from '../_components/recommended-articles';
 
 const ArticleDetailPage = () => {
   const { id } = useParams();
   const { isAuthed } = useAuth();
 
   const [comment, setComment] = useState('');
-  const [liked, setLiked] = useState(false);
   const [showComments, setShowComments] = useState(true);
 
-  console.log('article id: ', id);
+  const {
+    data: articleData,
+    loading: articleLoading,
+    refetch: refetchArticle,
+  } = useArticleQuery({
+    variables: { id: id! },
+    skip: !id,
+  });
 
-  const article = MOCK_ARTICLE;
+  const {
+    data: commentsData,
+    loading: commentsLoading,
+    refetch: refetchComments,
+  } = useArticleCommentsQuery({
+    variables: { articleId: id! },
+    skip: !id,
+  });
+
+  const [toggleLike] = useToggleArticleLikeMutation();
+  const [createComment, { loading: creatingComment }] = useCreateArticleCommentMutation();
+
+  const article = articleData?.article;
+  const comments = (commentsData?.articleComments ?? []) as ArticleCommentData[];
+
+  const handleToggleLike = async () => {
+    if (!isAuthed || !id) return;
+
+    try {
+      await toggleLike({
+        variables: { articleId: id },
+      });
+      await refetchArticle();
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    }
+  };
+
+  const handlePostComment = async () => {
+    if (!comment.trim() || !id) return;
+
+    try {
+      await createComment({
+        variables: {
+          input: {
+            articleId: id,
+            content: comment,
+          },
+        },
+      });
+
+      setComment('');
+
+      refetchComments();
+      refetchArticle();
+    } catch (error) {
+      console.error('Error posting comment:', error);
+    }
+  };
+
+  if (articleLoading) {
+    return (
+      <div className="bg-white min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!article) {
+    return (
+      <div className="bg-white min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Article not found</p>
+      </div>
+    );
+  }
+
+  const formattedDate = article.createdAt
+    ? format(new Date(article.createdAt), 'MMMM dd, yyyy')
+    : '';
 
   return (
-    <div className="bg-white min-h-screen">
-      <div className="max-w-[936px] mx-auto pt-23 pb-25">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-6">{article.title}</h1>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
+    <>
+      <div className="bg-white min-h-screen">
+        <div className="max-w-[936px] mx-auto pt-23 pb-25">
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold mb-6">{article.title}</h1>
+            <div className="flex items-center gap-3 mb-4">
               <Avatar className="w-7 h-7">
-                <AvatarImage src={article.author.avatar} />
-                <AvatarFallback>{article.author.name[0]}</AvatarFallback>
+                <AvatarImage src={article.author?.profileImage || ''} />
+                <AvatarFallback>{article.author?.nickname?.[0] || 'U'}</AvatarFallback>
               </Avatar>
               <div className="flex items-center gap-5">
-                <p className="font-semibold text-sm text-muted-foreground">{article.author.name}</p>
-                <p className="text-xs text-[#8C8C8C]">{article.date}</p>
+                <p className="font-semibold text-sm text-muted-foreground">
+                  {article.author?.nickname || 'Anonymous'}
+                </p>
+                <p className="text-xs text-[#8C8C8C]">{formattedDate}</p>
                 <p className="flex items-center gap-1 text-xs text-[#8C8C8C]">
                   <Eye className="w-4 h-4" />
-                  {article.views}
+                  {article.view ?? 0}
                 </p>
               </div>
             </div>
-            <ShareButton />
           </div>
-        </div>
 
-        <MarkdownPreviewer value={article.content} />
+          <MarkdownPreviewer value={article.description || ''} />
 
-        <div className="flex items-center gap-4 mt-19 mb-8">
-          <button
-            type="button"
-            onClick={() => isAuthed && setLiked(!liked)}
-            className="cursor-pointer flex items-center gap-2 border border-input rounded-md p-3 text-sm"
-          >
-            <Heart className={`w-4 h-4 ${liked ? 'fill-red-500 text-red-500' : ''}`} />
-          </button>
-          <div
-            onClick={() => setShowComments(!showComments)}
-            className="cursor-pointer flex items-center gap-2 border border-input rounded-md py-3 px-4 text-sm"
-          >
-            <MessageCircleMore className="w-4 h-4" />
-            <span>{article.commentCount}</span>
+          <div className="flex items-center justify-between mt-19 mb-8">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                onClick={handleToggleLike}
+                disabled={!isAuthed}
+                className="flex items-center gap-2 border rounded-md p-3 text-sm disabled:opacity-50"
+              >
+                <Heart
+                  className={`w-4 h-4 ${article.isLiked ? 'fill-red-500 text-red-500' : ''}`}
+                />
+                {(article.likeCount ?? 0) > 0 && <span>{article.likeCount}</span>}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowComments(!showComments)}
+                className="flex items-center gap-2 border rounded-md py-3 px-4 text-sm"
+              >
+                <MessageCircleMore className="w-4 h-4" />
+                <span>{article.commentCount ?? 0}</span>
+              </Button>
+            </div>
+            <ShareButton className="h-full border rounded-md py-3 px-4! text-sm" />
           </div>
-        </div>
 
-        {showComments && (
-          <div>
-            <h3 className="text-[20px] font-bold mb-2">Comments</h3>
-
-            {isAuthed && (
-              <div className="mb-8">
-                <div className="flex flex-col items-end gap-3">
-                  <Textarea
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    placeholder="Write a comment..."
-                    className="h-[100px] resize-none"
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-shrink-0"
-                    disabled={!comment.trim()}
-                  >
-                    Post
-                  </Button>
-                </div>
-              </div>
-            )}
-
+          {showComments && (
             <div>
-              {MOCK_COMMENTS.map((comment, index) => (
-                <div
-                  key={comment.id}
-                  className={`pt-[30px] pb-4 ${index < MOCK_COMMENTS.length - 1 ? 'border-b' : ''}`}
-                >
-                  <CommentItem comment={comment} />
+              <h3 className="text-[20px] font-bold mb-2">Comments</h3>
+
+              {isAuthed && (
+                <div className="mb-8">
+                  <div className="flex flex-col items-end gap-3">
+                    <Textarea
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="h-[100px] resize-none"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-shrink-0"
+                      disabled={!comment.trim() || creatingComment}
+                      onClick={handlePostComment}
+                    >
+                      {creatingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Post'}
+                    </Button>
+                  </div>
                 </div>
-              ))}
-            </div>
+              )}
 
-            <div className="mt-8 text-center">
-              <Button variant="outline">Load More Comments</Button>
+              <div>
+                {commentsLoading ? (
+                  <div className="text-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+                  </div>
+                ) : comments.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">No comments yet</p>
+                  </div>
+                ) : (
+                  comments.map((commentItem) => (
+                    <div key={commentItem.id} className="pt-[30px] pb-4 border-b">
+                      <CommentItem
+                        comment={commentItem}
+                        onCommentAdded={() => {
+                          refetchComments();
+                          refetchArticle();
+                        }}
+                      />
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          </div>
-        )}
-
-        <Separator />
+          )}
+        </div>
       </div>
-    </div>
+
+      {article?.type && <RecommendedArticles articleType={article.type} />}
+    </>
   );
 };
 
