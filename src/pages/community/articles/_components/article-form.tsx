@@ -1,8 +1,16 @@
 import { useArticleQuery } from "@/apollo/queries/article.generated";
+import { usePinnedArticlesQuery } from "@/apollo/queries/pinned-articles.generated";
 import InputLabel from "@/components/common/label/inputLabel";
 import { MarkdownEditor } from "@/components/markdown";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +20,15 @@ import {
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { ArticleType } from "@/types/types.generated";
-import { ChevronDown, Image as ImageIcon, Plus } from "lucide-react";
+import { format } from "date-fns";
+import {
+  ChevronDown,
+  Image as ImageIcon,
+  Pin,
+  PinOff,
+  Plus,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router";
@@ -25,6 +41,7 @@ export type OnSubmitArticleFunc = (
     coverImage: File | undefined;
     category: ArticleType;
     isPin: boolean;
+    unpinArticleId?: string;
   },
   action: "draft" | "publish"
 ) => void;
@@ -53,9 +70,18 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
     skip: !isEdit,
   });
 
+  const { data: pinnedData } = usePinnedArticlesQuery();
+
   const [selectedImage, setSelectedImage] = useState<File>();
   const [imageError, setImageError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [selectedUnpinId, setSelectedUnpinId] = useState<string | null>(null);
+  const [pendingFormData, setPendingFormData] =
+    useState<ArticleFormData | null>(null);
+  const [pendingAction, setPendingAction] = useState<
+    "draft" | "publish" | null
+  >(null);
 
   useEffect(() => {
     if (data?.article?.coverImage) {
@@ -129,8 +155,20 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
     img.src = URL.createObjectURL(file);
   };
 
+  const pinnedArticlesInCategory =
+    pinnedData?.pinnedArticles?.filter(
+      (article) => article.type === category && article.id !== id
+    ) ?? [];
+
   const onSubmit = (formData: ArticleFormData, action: "draft" | "publish") => {
     if (!formData.description.trim()) return;
+
+    if (!isEdit && formData.isPin && pinnedArticlesInCategory.length >= 2) {
+      setPendingFormData(formData);
+      setPendingAction(action);
+      setShowPinModal(true);
+      return;
+    }
 
     onSubmitArticle(
       {
@@ -143,6 +181,28 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
       },
       action
     );
+  };
+
+  const handlePinModalConfirm = () => {
+    if (!pendingFormData || !pendingAction || !selectedUnpinId) return;
+
+    onSubmitArticle(
+      {
+        id: data?.article?.id ?? id,
+        title: pendingFormData.title,
+        description: pendingFormData.description,
+        coverImage: selectedImage,
+        category: pendingFormData.category,
+        isPin: pendingFormData.isPin,
+        unpinArticleId: selectedUnpinId,
+      },
+      pendingAction
+    );
+
+    setShowPinModal(false);
+    setPendingFormData(null);
+    setPendingAction(null);
+    setSelectedUnpinId(null);
   };
 
   return (
@@ -195,10 +255,15 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
                 onCheckedChange={(checked) =>
                   setValue("isPin", checked as boolean)
                 }
+                disabled={isEdit}
               />
               <Label
                 htmlFor="isPin"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className={`text-sm font-medium leading-none ${
+                  isEdit
+                    ? "cursor-not-allowed opacity-50"
+                    : "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                }`}
               >
                 Pin to top of category
               </Label>
@@ -327,6 +392,111 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
           </Button>
         </div>
       )}
+
+      <Dialog open={showPinModal} onOpenChange={setShowPinModal}>
+        <DialogContent className="sm:max-w-[600px] px-10 py-6 gap-1">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">
+              Pinned article limit reached
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-4 top-4"
+              onClick={() => {
+                setShowPinModal(false);
+                setSelectedUnpinId(null);
+              }}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </DialogHeader>
+          <div className="flex flex-col gap-7">
+            <p className="text-sm">
+              You can pin up to <strong>2 articles</strong> per category.
+              <br />
+              To pin this article, please unpin one of the articles below.
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              {pinnedArticlesInCategory.slice(0, 2).map((article) => (
+                <div
+                  key={article.id}
+                  onClick={() => {
+                    if (!article.id) return;
+                    setSelectedUnpinId(
+                      selectedUnpinId === article.id ? null : article.id
+                    );
+                  }}
+                  className={`cursor-pointer rounded-lg px-5 pt-3 pb-5 border-1 transition-colors ${
+                    selectedUnpinId === article.id
+                      ? "border-none bg-gray-100 opacity-50"
+                      : "border-primary bg-primary-light"
+                  }`}
+                >
+                  <div
+                    className={`flex items-center justify-center bg-white w-10 h-10 mb-3 rounded-md border ${
+                      selectedUnpinId === article.id
+                        ? "border-gray-600"
+                        : "border-primary"
+                    }`}
+                  >
+                    {selectedUnpinId === article.id ? (
+                      <PinOff className="w-4 h-4 fill-gray-600 text-gray-600" />
+                    ) : (
+                      <Pin className="w-4 h-4 fill-primary text-primary" />
+                    )}
+                  </div>
+                  <div className="aspect-[5/3] rounded-md overflow-hidden mb-3">
+                    <img
+                      src={article.coverImage || ""}
+                      alt={article.title || ""}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Avatar className="w-5 h-5">
+                      <AvatarImage src={article.author?.profileImage || ""} />
+                      <AvatarFallback className="text-xs">
+                        {article.author?.nickname?.[0] || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs text-muted-foreground">
+                      {article.author?.nickname || "Anonymous"}
+                    </span>
+                  </div>
+                  <h4 className="font-semibold text-sm line-clamp-2">
+                    {article.title}
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {article.createdAt
+                      ? format(new Date(article.createdAt), "MMMM dd, yyyy")
+                      : ""}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowPinModal(false);
+                  setSelectedUnpinId(null);
+                }}
+                size="sm"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handlePinModalConfirm}
+                disabled={!selectedUnpinId || loading}
+                size="sm"
+              >
+                Publish
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }

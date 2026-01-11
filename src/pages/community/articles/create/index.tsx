@@ -33,6 +33,7 @@ const CreateArticlePage: React.FC = () => {
             coverImage: data.coverImage,
             category: data.category,
             isPin: data.isPin,
+            unpinArticleId: data.unpinArticleId,
           },
         },
         onCompleted: () => {
@@ -53,6 +54,7 @@ const CreateArticlePage: React.FC = () => {
             coverImage: data.coverImage,
             category: data.category,
             isPin: data.isPin,
+            unpinArticleId: data.unpinArticleId,
           },
         },
         onCompleted: (response) => {

@@ -28,6 +28,7 @@ const EditArticlePage: React.FC = () => {
           category: data.category,
           isPin: data.isPin,
           status: action === 'publish' ? ArticleStatus.Published : ArticleStatus.Pending,
+          unpinArticleId: data.unpinArticleId,
         },
       },
       onCompleted: () => {
