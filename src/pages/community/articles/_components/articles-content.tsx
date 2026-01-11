@@ -78,7 +78,7 @@ const ArticlesContent: React.FC = () => {
       {pinnedArticles.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-4 mb-12">
           {pinnedArticles.map((article) => (
-            <div key={article.id} className="overflow-hidden">
+            <Link to={`/community/articles/${article.id}`} key={article.id}>
               <div
                 className={`overflow-hidden rounded-md ${
                   article.type === ArticleType.Campaign
@@ -104,19 +104,14 @@ const ArticlesContent: React.FC = () => {
                     {article.author?.nickname || "Anonymous"}
                   </span>
                 </div>
-                <Link
-                  to={`/community/articles/${article.id}`}
-                  className="text-2xl font-semibold"
-                >
-                  {article.title}
-                </Link>
+                <div className="text-2xl font-semibold">{article.title}</div>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {article.createdAt
                     ? format(new Date(article.createdAt), "MMMM dd, yyyy")
                     : ""}
                 </p>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
@@ -132,7 +127,7 @@ const ArticlesContent: React.FC = () => {
           </div>
         ) : (
           articles.map((article) => (
-            <div key={article.id} className="overflow-hidden">
+            <Link to={`/community/articles/${article.id}`} key={article.id}>
               <div
                 className={`overflow-hidden rounded-lg ${
                   article.type === ArticleType.Campaign
@@ -158,19 +153,14 @@ const ArticlesContent: React.FC = () => {
                     {article.author?.nickname || "Anonymous"}
                   </span>
                 </div>
-                <Link
-                  to={`/community/articles/${article.id}`}
-                  className="text-lg font-semibold"
-                >
-                  {article.title}
-                </Link>
+                <div className="text-lg font-semibold">{article.title}</div>
                 <p className="mt-2 text-xs text-muted-foreground">
                   {article.createdAt
                     ? format(new Date(article.createdAt), "MMMM dd, yyyy")
                     : ""}
                 </p>
               </div>
-            </div>
+            </Link>
           ))
         )}
       </div>

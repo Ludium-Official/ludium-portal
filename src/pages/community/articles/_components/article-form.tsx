@@ -23,6 +23,7 @@ import { ArticleType } from "@/types/types.generated";
 import { format } from "date-fns";
 import {
   ChevronDown,
+  ChevronRight,
   Image as ImageIcon,
   Pin,
   PinOff,
@@ -31,7 +32,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 
 export type OnSubmitArticleFunc = (
   data: {
@@ -104,6 +105,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
     },
   });
 
+  const title = watch("title");
   const description = watch("description");
   const category = watch("category");
   const isPin = watch("isPin");
@@ -207,15 +209,31 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
 
   return (
     <form className="w-full mx-auto">
-      <h1 className="font-bold text-xl mb-6">
-        {isEdit ? "Edit Article" : "Create Article"}
-      </h1>
+      <div className="flex items-center w-fit mb-17 text-sm text-muted-foreground">
+        <Link to="/community/articles">Articles</Link>
+        {isEdit && (
+          <>
+            <ChevronRight className="w-4 mx-2" />
+            <Link to={`/community/articles/${id}`}>
+              {title && title.length > 20 ? `${title.slice(0, 20)}...` : title}
+            </Link>
+          </>
+        )}
+        <ChevronRight className="w-4 mx-2" />
+        <span className="text-foreground">
+          {isEdit ? "Edit Article" : "Create Article"}
+        </span>
+      </div>
 
-      <section className="bg-white py-8 px-10 rounded-lg mb-2">
+      <section className="px-12 mb-2">
         {isAdmin && (
           <div className="flex items-end gap-6 mb-8">
-            <div className="space-y-2 block">
-              <Label className="text-sm font-medium">Category</Label>
+            <InputLabel
+              labelId="category"
+              title="Category"
+              inputClassName="hidden"
+              isPrimary
+            >
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -246,7 +264,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
+            </InputLabel>
 
             <div className="flex items-center space-x-2 mb-3">
               <Checkbox
@@ -282,7 +300,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
         />
 
         <label htmlFor="image" className="space-y-2">
-          <div className="flex items-start gap-6">
+          <div className="flex items-start gap-6 mb-8">
             <div
               className={`relative flex items-center justify-center bg-[#eaeaea] rounded-lg overflow-hidden group ${
                 category === ArticleType.Campaign
@@ -331,9 +349,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
             </div>
           </div>
         </label>
-      </section>
 
-      <section className="bg-white py-8 px-10 rounded-lg mb-2">
         <InputLabel
           labelId="description"
           title="Description"
@@ -341,6 +357,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
           isError={errors.description}
           placeholder="Description"
           inputClassName="hidden"
+          className="mb-8"
         >
           <MarkdownEditor
             onChange={(value: string) => {
@@ -349,49 +366,49 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
             content={description}
           />
         </InputLabel>
-      </section>
 
-      {isEdit ? (
-        <div className="py-3 flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            className="min-w-[120px]"
-            onClick={handleSubmit((data) => onSubmit(data, "draft"))}
-            disabled={loading}
-          >
-            Save as Draft
-          </Button>
-          <Button
-            type="button"
-            className="min-w-[120px]"
-            onClick={handleSubmit((data) => onSubmit(data, "publish"))}
-            disabled={loading}
-          >
-            Update Article
-          </Button>
-        </div>
-      ) : (
-        <div className="py-3 flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            className="min-w-[120px]"
-            onClick={handleSubmit((data) => onSubmit(data, "draft"))}
-            disabled={loading}
-          >
-            Save Draft
-          </Button>
-          <Button
-            type="button"
-            className="min-w-[120px]"
-            onClick={handleSubmit((data) => onSubmit(data, "publish"))}
-            disabled={loading}
-          >
-            Publish
-          </Button>
-        </div>
-      )}
+        {isEdit ? (
+          <div className="flex justify-end gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="min-w-[120px]"
+              onClick={handleSubmit((data) => onSubmit(data, "draft"))}
+              disabled={loading}
+            >
+              Save as Draft
+            </Button>
+            <Button
+              type="button"
+              className="min-w-[120px]"
+              onClick={handleSubmit((data) => onSubmit(data, "publish"))}
+              disabled={loading}
+            >
+              Update Article
+            </Button>
+          </div>
+        ) : (
+          <div className="py-3 flex justify-end gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="min-w-[120px]"
+              onClick={handleSubmit((data) => onSubmit(data, "draft"))}
+              disabled={loading}
+            >
+              Save Draft
+            </Button>
+            <Button
+              type="button"
+              className="min-w-[120px]"
+              onClick={handleSubmit((data) => onSubmit(data, "publish"))}
+              disabled={loading}
+            >
+              Publish
+            </Button>
+          </div>
+        )}
+      </section>
 
       <Dialog open={showPinModal} onOpenChange={setShowPinModal}>
         <DialogContent className="sm:max-w-[600px] px-10 py-6 gap-1">
