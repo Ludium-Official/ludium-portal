@@ -7,6 +7,7 @@ export interface ArticleCommentData {
   content?: string | null;
   parentId?: string | null;
   likeCount?: number | null;
+  dislikeCount?: number | null;
   replyCount?: number | null;
   isLiked?: boolean | null;
   isDisliked?: boolean | null;

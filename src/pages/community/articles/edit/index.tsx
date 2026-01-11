@@ -1,12 +1,10 @@
-import client from "@/apollo/client";
-import { useUpdateArticleMutation } from "@/apollo/mutation/update-article.generated";
-import { ArticlesDocument } from "@/apollo/queries/articles.generated";
-import notify from "@/lib/notify";
-import { ArticleStatus } from "@/types/types.generated";
-import { useNavigate, useParams } from "react-router";
-import ArticleForm, {
-  type OnSubmitArticleFunc,
-} from "../_components/article-form";
+import client from '@/apollo/client';
+import { useUpdateArticleMutation } from '@/apollo/mutation/update-article.generated';
+import { ArticlesDocument } from '@/apollo/queries/articles.generated';
+import notify from '@/lib/notify';
+import { ArticleStatus } from '@/types/types.generated';
+import { useNavigate, useParams } from 'react-router';
+import ArticleForm, { type OnSubmitArticleFunc } from '../_components/article-form';
 
 const EditArticlePage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,7 +14,7 @@ const EditArticlePage: React.FC = () => {
 
   const onSubmit: OnSubmitArticleFunc = (data, action) => {
     if (!data.description.trim()) {
-      notify("Description is required", "error");
+      notify('Description is required', 'error');
       return;
     }
 
@@ -29,25 +27,20 @@ const EditArticlePage: React.FC = () => {
           coverImage: data.coverImage,
           category: data.category,
           isPin: data.isPin,
-          status:
-            action === "publish"
-              ? ArticleStatus.Published
-              : ArticleStatus.Pending,
+          status: action === 'publish' ? ArticleStatus.Published : ArticleStatus.Pending,
           unpinArticleId: data.unpinArticleId,
         },
       },
       onCompleted: () => {
         client.refetchQueries({ include: [ArticlesDocument] });
         notify(
-          action === "publish"
-            ? "Article updated successfully"
-            : "Article saved as draft",
-          "success"
+          action === 'publish' ? 'Article updated successfully' : 'Article saved as draft',
+          'success',
         );
         navigate(`/community/articles/${id}`);
       },
       onError: (error) => {
-        notify(error.message || "Failed to update article", "error");
+        notify(error.message || 'Failed to update article', 'error');
       },
     });
   };

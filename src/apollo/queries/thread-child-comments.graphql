@@ -1,0 +1,19 @@
+query threadChildComments($parentId: ID!) {
+  threadChildComments(parentId: $parentId) {
+    id
+    threadId
+    authorId
+    authorNickname
+    authorProfileImage
+    content
+    parentId
+    likeCount
+    dislikeCount
+    replyCount
+    isLiked
+    isDisliked
+    createdAt
+    updatedAt
+    deletedAt
+  }
+}

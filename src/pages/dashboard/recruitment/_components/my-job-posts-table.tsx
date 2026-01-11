@@ -46,7 +46,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ChevronDown, ChevronsUpDown, Ellipsis } from 'lucide-react';
+import { ChevronDown, ChevronsUpDown, Ellipsis, Pencil, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
@@ -303,11 +303,21 @@ export const MyJobPostsTable: React.FC<MyJobPostsTableProps> = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" onClick={handleDropdownClick}>
-                  <DropdownMenuItem onClick={handleEdit} disabled={isClosed}>
+                  <DropdownMenuItem
+                    onClick={handleEdit}
+                    disabled={isClosed}
+                    className="cursor-pointer"
+                  >
+                    <Pencil className="w-4 h-4 mr-2" />
                     Edit
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleDelete}>Delete</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={handleDelete}
+                    className="text-destructive focus:text-destructive cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

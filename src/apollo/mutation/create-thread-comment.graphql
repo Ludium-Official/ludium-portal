@@ -1,0 +1,19 @@
+mutation createThreadComment($input: CreateThreadCommentInput!) {
+  createThreadComment(input: $input) {
+    id
+    threadId
+    authorId
+    authorNickname
+    authorProfileImage
+    content
+    parentId
+    likeCount
+    dislikeCount
+    replyCount
+    isLiked
+    isDisliked
+    createdAt
+    updatedAt
+    deletedAt
+  }
+}

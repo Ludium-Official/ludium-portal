@@ -1,0 +1,3 @@
+mutation deleteThread($id: ID!) {
+  deleteThread(id: $id)
+}

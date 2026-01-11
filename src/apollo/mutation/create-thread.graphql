@@ -1,0 +1,15 @@
+mutation createThread($input: CreateThreadInput!) {
+  createThread(input: $input) {
+    id
+    content
+    authorNickname
+    authorProfileImage
+    likeCount
+    dislikeCount
+    replyCount
+    isLiked
+    isDisliked
+    createdAt
+    updatedAt
+  }
+}

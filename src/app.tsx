@@ -14,6 +14,7 @@ import ArticlesPage from './pages/community/articles';
 import CreateArticlePage from './pages/community/articles/create';
 import ArticleDetailsPage from './pages/community/articles/detail';
 import EditArticlePage from './pages/community/articles/edit';
+import ThreadsPage from './pages/community/threads';
 import RecruitmentDashboardBuilder from './pages/dashboard/recruitment/builder';
 import RecruitmentDashboardBuilderDetail from './pages/dashboard/recruitment/builder/detail';
 import RecruitmentDashboardSponsor from './pages/dashboard/recruitment/sponsor';
@@ -78,6 +79,9 @@ function App() {
             <Route path="articles">
               <Route index element={<ArticlesPage />} />
               <Route path=":id" element={<ArticleDetailsPage />} />
+            </Route>
+            <Route path="threads">
+              <Route index element={<ThreadsPage />} />
             </Route>
           </Route>
 

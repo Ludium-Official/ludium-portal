@@ -8,6 +8,8 @@
   margin-bottom: 30px;
   letter-spacing: -0.4px;
   h1 {
+    margin: 0;
+
     font-size: 36px;
     line-height: 40px;
     font-weight: 800;
@@ -29,6 +31,8 @@
     font-weight: 600;
   }
   p {
+    margin: 0;
+
     font-size: 16px;
     line-height: 20px;
     font-weight: 400;
@@ -70,6 +74,11 @@
 
   strong {
     color: var(--color-slate-600);
+  }
+
+  img {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
   }
 
   /* To hide language selector */

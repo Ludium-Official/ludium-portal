@@ -1,20 +1,37 @@
-import { useArticleChildCommentsLazyQuery } from '@/apollo/queries/article-child-comments.generated';
-import { useToggleArticleCommentReactionMutation } from '@/apollo/mutation/toggle-article-comment-reaction.generated';
-import { useCreateArticleCommentMutation } from '@/apollo/mutation/create-article-comment.generated';
-import { useUpdateArticleCommentMutation } from '@/apollo/mutation/update-article-comment.generated';
-import { useDeleteArticleCommentMutation } from '@/apollo/mutation/delete-article-comment.generated';
+import { useToggleThreadCommentReactionMutation } from '@/apollo/mutation/toggle-thread-comment-reaction.generated';
+import { useCreateThreadCommentMutation } from '@/apollo/mutation/create-thread-comment.generated';
+import { useUpdateThreadCommentMutation } from '@/apollo/mutation/update-thread-comment.generated';
+import { useDeleteThreadCommentMutation } from '@/apollo/mutation/delete-thread-comment.generated';
+import { useThreadChildCommentsLazyQuery } from '@/apollo/queries/thread-child-comments.generated';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { ArticleCommentData } from '@/types/comment';
-import { ArticleCommentReaction } from '@/types/types.generated';
+import { ThreadCommentReaction } from '@/types/types.generated';
 import { useState } from 'react';
-import { CommentItemUI } from './comment-item-ui';
+import { CommentItemUI } from '@/components/community/comment-item-ui';
 
-interface CommentItemProps {
-  comment: ArticleCommentData;
+interface ThreadCommentData {
+  id?: string | null;
+  threadId?: string | null;
+  authorId?: number | null;
+  authorNickname?: string | null;
+  authorProfileImage?: string | null;
+  content?: string | null;
+  parentId?: string | null;
+  likeCount?: number | null;
+  dislikeCount?: number | null;
+  replyCount?: number | null;
+  isLiked?: boolean | null;
+  isDisliked?: boolean | null;
+  createdAt?: string | null;
+  deletedAt?: string | null;
+}
+
+interface ThreadCommentItemProps {
+  comment: ThreadCommentData;
+  threadId: string;
   onCommentAdded?: () => void;
 }
 
-export const CommentItem = ({ comment, onCommentAdded }: CommentItemProps) => {
+const ThreadCommentItem = ({ comment, threadId, onCommentAdded }: ThreadCommentItemProps) => {
   const { isAuthed, userId, nickname, profileImage } = useAuth();
 
   const [showReplyInput, setShowReplyInput] = useState(false);
@@ -22,19 +39,19 @@ export const CommentItem = ({ comment, onCommentAdded }: CommentItemProps) => {
   const [liked, setLiked] = useState(comment.isLiked ?? false);
   const [disliked, setDisliked] = useState(comment.isDisliked ?? false);
   const [likeCount, setLikeCount] = useState(comment.likeCount ?? 0);
-  const [childComments, setChildComments] = useState<ArticleCommentData[]>(comment.replies ?? []);
-  const [childCommentsLoaded, setChildCommentsLoaded] = useState(!!comment.replies?.length);
+  const [dislikeCount, setDislikeCount] = useState(comment.dislikeCount ?? 0);
+  const [childComments, setChildComments] = useState<ThreadCommentData[]>([]);
+  const [childCommentsLoaded, setChildCommentsLoaded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content ?? '');
   const [currentContent, setCurrentContent] = useState(comment.content);
-  const [isDeleted, setIsDeleted] = useState(!comment.content);
+  const [isDeleted, setIsDeleted] = useState(!!comment.deletedAt || !comment.content);
 
-  const [fetchChildComments, { loading: childCommentsLoading }] =
-    useArticleChildCommentsLazyQuery();
-  const [toggleReaction] = useToggleArticleCommentReactionMutation();
-  const [createComment, { loading: creatingComment }] = useCreateArticleCommentMutation();
-  const [updateComment, { loading: updatingComment }] = useUpdateArticleCommentMutation();
-  const [deleteComment, { loading: deletingComment }] = useDeleteArticleCommentMutation();
+  const [fetchChildComments, { loading: childCommentsLoading }] = useThreadChildCommentsLazyQuery();
+  const [toggleReaction] = useToggleThreadCommentReactionMutation();
+  const [createComment, { loading: creatingComment }] = useCreateThreadCommentMutation();
+  const [updateComment, { loading: updatingComment }] = useUpdateThreadCommentMutation();
+  const [deleteComment, { loading: deletingComment }] = useDeleteThreadCommentMutation();
 
   const isAuthor = userId === String(comment.authorId);
 
@@ -43,8 +60,8 @@ export const CommentItem = ({ comment, onCommentAdded }: CommentItemProps) => {
       const { data } = await fetchChildComments({
         variables: { parentId: comment.id },
       });
-      if (data?.articleChildComments) {
-        setChildComments(data.articleChildComments as ArticleCommentData[]);
+      if (data?.threadChildComments) {
+        setChildComments(data.threadChildComments as ThreadCommentData[]);
         setChildCommentsLoaded(true);
       }
     }
@@ -59,14 +76,15 @@ export const CommentItem = ({ comment, onCommentAdded }: CommentItemProps) => {
         variables: {
           input: {
             commentId: comment.id,
-            reaction: ArticleCommentReaction.Like,
+            reaction: ThreadCommentReaction.Like,
           },
         },
       });
-      if (data?.toggleArticleCommentReaction) {
-        setLiked(data.toggleArticleCommentReaction.isLiked ?? false);
-        setDisliked(data.toggleArticleCommentReaction.isDisliked ?? false);
-        setLikeCount(data.toggleArticleCommentReaction.likeCount ?? 0);
+      if (data?.toggleThreadCommentReaction) {
+        setLiked(data.toggleThreadCommentReaction.isLiked ?? false);
+        setDisliked(data.toggleThreadCommentReaction.isDisliked ?? false);
+        setLikeCount(data.toggleThreadCommentReaction.likeCount ?? 0);
+        setDislikeCount(data.toggleThreadCommentReaction.dislikeCount ?? 0);
       }
     } catch (error) {
       console.error('Error toggling like:', error);
@@ -81,14 +99,15 @@ export const CommentItem = ({ comment, onCommentAdded }: CommentItemProps) => {
         variables: {
           input: {
             commentId: comment.id,
-            reaction: ArticleCommentReaction.Dislike,
+            reaction: ThreadCommentReaction.Dislike,
           },
         },
       });
-      if (data?.toggleArticleCommentReaction) {
-        setLiked(data.toggleArticleCommentReaction.isLiked ?? false);
-        setDisliked(data.toggleArticleCommentReaction.isDisliked ?? false);
-        setLikeCount(data.toggleArticleCommentReaction.likeCount ?? 0);
+      if (data?.toggleThreadCommentReaction) {
+        setLiked(data.toggleThreadCommentReaction.isLiked ?? false);
+        setDisliked(data.toggleThreadCommentReaction.isDisliked ?? false);
+        setLikeCount(data.toggleThreadCommentReaction.likeCount ?? 0);
+        setDislikeCount(data.toggleThreadCommentReaction.dislikeCount ?? 0);
       }
     } catch (error) {
       console.error('Error toggling dislike:', error);
@@ -96,13 +115,13 @@ export const CommentItem = ({ comment, onCommentAdded }: CommentItemProps) => {
   };
 
   const handlePostReply = async () => {
-    if (!replyText.trim() || !comment.articleId || !comment.id) return;
+    if (!replyText.trim() || !comment.id) return;
 
     try {
       const { data } = await createComment({
         variables: {
           input: {
-            articleId: comment.articleId,
+            threadId: threadId,
             content: replyText,
             parentId: comment.id,
           },
@@ -110,12 +129,12 @@ export const CommentItem = ({ comment, onCommentAdded }: CommentItemProps) => {
       });
       setReplyText('');
 
-      if (data?.createArticleComment) {
-        const newReply: ArticleCommentData = {
-          ...data.createArticleComment,
-          articleId: comment.articleId,
-          authorNickname: data.createArticleComment.authorNickname || nickname,
-          authorProfileImage: data.createArticleComment.authorProfileImage || profileImage,
+      // Add new reply to the top of the list with user info
+      if (data?.createThreadComment) {
+        const newReply: ThreadCommentData = {
+          ...data.createThreadComment,
+          authorNickname: data.createThreadComment.authorNickname || nickname,
+          authorProfileImage: data.createThreadComment.authorProfileImage || profileImage,
         };
         setChildComments((prev) => [newReply, ...prev]);
       }
@@ -137,8 +156,8 @@ export const CommentItem = ({ comment, onCommentAdded }: CommentItemProps) => {
           },
         },
       });
-      if (data?.updateArticleComment) {
-        setCurrentContent(data.updateArticleComment.content);
+      if (data?.updateThreadComment) {
+        setCurrentContent(data.updateThreadComment.content);
         setIsEditing(false);
       }
     } catch (error) {
@@ -186,7 +205,7 @@ export const CommentItem = ({ comment, onCommentAdded }: CommentItemProps) => {
       liked={liked}
       disliked={disliked}
       likeCount={likeCount}
-      dislikeCount={0}
+      dislikeCount={dislikeCount}
       onLike={handleLike}
       onDislike={handleDislike}
       showReplies={showReplyInput}
@@ -222,10 +241,17 @@ export const CommentItem = ({ comment, onCommentAdded }: CommentItemProps) => {
       childComments={
         childComments.length > 0
           ? childComments.map((reply) => (
-              <CommentItem key={reply.id} comment={reply} onCommentAdded={onCommentAdded} />
+              <ThreadCommentItem
+                key={reply.id}
+                comment={reply}
+                threadId={threadId}
+                onCommentAdded={onCommentAdded}
+              />
             ))
           : undefined
       }
     />
   );
 };
+
+export default ThreadCommentItem;

@@ -1,38 +1,25 @@
-import { useArticleQuery } from "@/apollo/queries/article.generated";
-import { usePinnedArticlesQuery } from "@/apollo/queries/pinned-articles.generated";
-import InputLabel from "@/components/common/label/inputLabel";
-import { MarkdownEditor } from "@/components/markdown";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { useArticleQuery } from '@/apollo/queries/article.generated';
+import { usePinnedArticlesQuery } from '@/apollo/queries/pinned-articles.generated';
+import InputLabel from '@/components/common/label/inputLabel';
+import { MarkdownEditor } from '@/components/markdown';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { ArticleType } from "@/types/types.generated";
-import { format } from "date-fns";
-import {
-  ChevronDown,
-  ChevronRight,
-  Image as ImageIcon,
-  Pin,
-  PinOff,
-  Plus,
-  X,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { Link, useParams } from "react-router";
+} from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { ArticleType } from '@/types/types.generated';
+import { format } from 'date-fns';
+import { ChevronDown, ChevronRight, Image as ImageIcon, Pin, PinOff, Plus, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Link, useParams } from 'react-router';
 
 export type OnSubmitArticleFunc = (
   data: {
@@ -44,7 +31,7 @@ export type OnSubmitArticleFunc = (
     isPin: boolean;
     unpinArticleId?: string;
   },
-  action: "draft" | "publish"
+  action: 'draft' | 'publish',
 ) => void;
 
 export interface ArticleFormProps {
@@ -66,7 +53,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
 
   const { data } = useArticleQuery({
     variables: {
-      id: id ?? "",
+      id: id ?? '',
     },
     skip: !isEdit,
   });
@@ -78,11 +65,8 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showPinModal, setShowPinModal] = useState(false);
   const [selectedUnpinId, setSelectedUnpinId] = useState<string | null>(null);
-  const [pendingFormData, setPendingFormData] =
-    useState<ArticleFormData | null>(null);
-  const [pendingAction, setPendingAction] = useState<
-    "draft" | "publish" | null
-  >(null);
+  const [pendingFormData, setPendingFormData] = useState<ArticleFormData | null>(null);
+  const [pendingAction, setPendingAction] = useState<'draft' | 'publish' | null>(null);
 
   useEffect(() => {
     if (data?.article?.coverImage) {
@@ -98,32 +82,32 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
     watch,
   } = useForm<ArticleFormData>({
     values: {
-      title: data?.article?.title ?? "",
-      description: data?.article?.description ?? "",
+      title: data?.article?.title ?? '',
+      description: data?.article?.description ?? '',
       category: data?.article?.type ?? ArticleType.Article,
       isPin: data?.article?.isPin ?? false,
     },
   });
 
-  const title = watch("title");
-  const description = watch("description");
-  const category = watch("category");
-  const isPin = watch("isPin");
+  const title = watch('title');
+  const description = watch('description');
+  const category = watch('category');
+  const isPin = watch('isPin');
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setImageError(null);
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
-      setImageError("Only PNG, JPG, or JPEG files are allowed.");
+    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+      setImageError('Only PNG, JPG, or JPEG files are allowed.');
       setSelectedImage(undefined);
       setImagePreview(null);
       return;
     }
 
     if (file.size > 4 * 1024 * 1024) {
-      setImageError("Image must be under 4MB.");
+      setImageError('Image must be under 4MB.');
       setSelectedImage(undefined);
       setImagePreview(null);
       return;
@@ -133,14 +117,14 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
     img.onload = () => {
       if (category === ArticleType.Campaign) {
         if (img.width <= 333 || img.height <= 333) {
-          setImageError("Cover image must be 333x333 px.");
+          setImageError('Cover image must be 333x333 px.');
           setSelectedImage(undefined);
           setImagePreview(null);
           return;
         }
       } else {
         if (img.width <= 510 || img.height <= 367) {
-          setImageError("Cover image must be at least 510×367 px.");
+          setImageError('Cover image must be at least 510×367 px.');
           setSelectedImage(undefined);
           setImagePreview(null);
           return;
@@ -150,7 +134,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
       setImagePreview(URL.createObjectURL(file));
     };
     img.onerror = () => {
-      setImageError("Invalid image file.");
+      setImageError('Invalid image file.');
       setSelectedImage(undefined);
       setImagePreview(null);
     };
@@ -159,10 +143,10 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
 
   const pinnedArticlesInCategory =
     pinnedData?.pinnedArticles?.filter(
-      (article) => article.type === category && article.id !== id
+      (article) => article.type === category && article.id !== id,
     ) ?? [];
 
-  const onSubmit = (formData: ArticleFormData, action: "draft" | "publish") => {
+  const onSubmit = (formData: ArticleFormData, action: 'draft' | 'publish') => {
     if (!formData.description.trim()) return;
 
     if (!isEdit && formData.isPin && pinnedArticlesInCategory.length >= 2) {
@@ -181,7 +165,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
         category: formData.category,
         isPin: formData.isPin,
       },
-      action
+      action,
     );
   };
 
@@ -198,7 +182,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
         isPin: pendingFormData.isPin,
         unpinArticleId: selectedUnpinId,
       },
-      pendingAction
+      pendingAction,
     );
 
     setShowPinModal(false);
@@ -220,46 +204,30 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
           </>
         )}
         <ChevronRight className="w-4 mx-2" />
-        <span className="text-foreground">
-          {isEdit ? "Edit Article" : "Create Article"}
-        </span>
+        <span className="text-foreground">{isEdit ? 'Edit Article' : 'Create Article'}</span>
       </div>
 
       <section className="px-12 mb-2">
         {isAdmin && (
           <div className="flex items-end gap-6 mb-8">
-            <InputLabel
-              labelId="category"
-              title="Category"
-              inputClassName="hidden"
-              isPrimary
-            >
+            <InputLabel labelId="category" title="Category" inputClassName="hidden" isPrimary>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-[400px] justify-between h-10"
-                  >
-                    {category === ArticleType.Article && "Article"}
-                    {category === ArticleType.Newsletter && "Newsletter"}
-                    {category === ArticleType.Campaign && "Campaign"}
+                  <Button variant="outline" className="w-[400px] justify-between h-10">
+                    {category === ArticleType.Article && 'Article'}
+                    {category === ArticleType.Newsletter && 'Newsletter'}
+                    {category === ArticleType.Campaign && 'Campaign'}
                     <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-[400px]">
-                  <DropdownMenuItem
-                    onClick={() => setValue("category", ArticleType.Article)}
-                  >
+                  <DropdownMenuItem onClick={() => setValue('category', ArticleType.Article)}>
                     Article
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setValue("category", ArticleType.Newsletter)}
-                  >
+                  <DropdownMenuItem onClick={() => setValue('category', ArticleType.Newsletter)}>
                     Newsletter
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setValue("category", ArticleType.Campaign)}
-                  >
+                  <DropdownMenuItem onClick={() => setValue('category', ArticleType.Campaign)}>
                     Campaign
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -270,17 +238,15 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
               <Checkbox
                 id="isPin"
                 checked={isPin}
-                onCheckedChange={(checked) =>
-                  setValue("isPin", checked as boolean)
-                }
+                onCheckedChange={(checked) => setValue('isPin', checked as boolean)}
                 disabled={isEdit}
               />
               <Label
                 htmlFor="isPin"
                 className={`text-sm font-medium leading-none ${
                   isEdit
-                    ? "cursor-not-allowed opacity-50"
-                    : "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    ? 'cursor-not-allowed opacity-50'
+                    : 'peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
                 }`}
               >
                 Pin to top of category
@@ -303,9 +269,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
           <div className="flex items-start gap-6 mb-8">
             <div
               className={`relative flex items-center justify-center bg-[#eaeaea] rounded-lg overflow-hidden group ${
-                category === ArticleType.Campaign
-                  ? "w-[180px] h-[180px]"
-                  : "w-[320px] h-[180px]"
+                category === ArticleType.Campaign ? 'w-[180px] h-[180px]' : 'w-[320px] h-[180px]'
               }`}
             >
               <input
@@ -316,11 +280,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
                 onChange={handleImageChange}
               />
               {imagePreview ? (
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  className="object-cover w-full h-full"
-                />
+                <img src={imagePreview} alt="Preview" className="object-cover w-full h-full" />
               ) : (
                 <div className="flex flex-col items-center justify-center w-full h-full">
                   <ImageIcon className="w-10 h-10 text-[#666666] mb-2" />
@@ -336,15 +296,11 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
               </p>
               <p className="text-sm text-muted-foreground">
                 {`Cover image must be at least ${
-                  category === ArticleType.Campaign
-                    ? "333x333 px"
-                    : "510×367 px"
+                  category === ArticleType.Campaign ? '333x333 px' : '510×367 px'
                 }, under 4MB, and in PNG, JPG, or JPEG format.`}
               </p>
               {imageError && (
-                <span className="text-destructive text-sm block mt-2">
-                  {imageError}
-                </span>
+                <span className="text-destructive text-sm block mt-2">{imageError}</span>
               )}
             </div>
           </div>
@@ -361,7 +317,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
         >
           <MarkdownEditor
             onChange={(value: string) => {
-              setValue("description", value);
+              setValue('description', value);
             }}
             content={description}
           />
@@ -373,7 +329,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
               type="button"
               variant="outline"
               className="min-w-[120px]"
-              onClick={handleSubmit((data) => onSubmit(data, "draft"))}
+              onClick={handleSubmit((data) => onSubmit(data, 'draft'))}
               disabled={loading}
             >
               Save as Draft
@@ -381,7 +337,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
             <Button
               type="button"
               className="min-w-[120px]"
-              onClick={handleSubmit((data) => onSubmit(data, "publish"))}
+              onClick={handleSubmit((data) => onSubmit(data, 'publish'))}
               disabled={loading}
             >
               Update Article
@@ -393,7 +349,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
               type="button"
               variant="outline"
               className="min-w-[120px]"
-              onClick={handleSubmit((data) => onSubmit(data, "draft"))}
+              onClick={handleSubmit((data) => onSubmit(data, 'draft'))}
               disabled={loading}
             >
               Save Draft
@@ -401,7 +357,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
             <Button
               type="button"
               className="min-w-[120px]"
-              onClick={handleSubmit((data) => onSubmit(data, "publish"))}
+              onClick={handleSubmit((data) => onSubmit(data, 'publish'))}
               disabled={loading}
             >
               Publish
@@ -440,21 +396,17 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
                   key={article.id}
                   onClick={() => {
                     if (!article.id) return;
-                    setSelectedUnpinId(
-                      selectedUnpinId === article.id ? null : article.id
-                    );
+                    setSelectedUnpinId(selectedUnpinId === article.id ? null : article.id);
                   }}
                   className={`cursor-pointer rounded-lg px-5 pt-3 pb-5 border-1 transition-colors ${
                     selectedUnpinId === article.id
-                      ? "border-none bg-gray-100 opacity-50"
-                      : "border-primary bg-primary-light"
+                      ? 'border-none bg-gray-100 opacity-50'
+                      : 'border-primary bg-primary-light'
                   }`}
                 >
                   <div
                     className={`flex items-center justify-center bg-white w-10 h-10 mb-3 rounded-md border ${
-                      selectedUnpinId === article.id
-                        ? "border-gray-600"
-                        : "border-primary"
+                      selectedUnpinId === article.id ? 'border-gray-600' : 'border-primary'
                     }`}
                   >
                     {selectedUnpinId === article.id ? (
@@ -465,29 +417,25 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
                   </div>
                   <div className="aspect-[5/3] rounded-md overflow-hidden mb-3">
                     <img
-                      src={article.coverImage || ""}
-                      alt={article.title || ""}
+                      src={article.coverImage || ''}
+                      alt={article.title || ''}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div className="flex items-center gap-2 mb-1">
                     <Avatar className="w-5 h-5">
-                      <AvatarImage src={article.author?.profileImage || ""} />
+                      <AvatarImage src={article.author?.profileImage || ''} />
                       <AvatarFallback className="text-xs">
-                        {article.author?.nickname?.[0] || "U"}
+                        {article.author?.nickname?.[0] || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-xs text-muted-foreground">
-                      {article.author?.nickname || "Anonymous"}
+                      {article.author?.nickname || 'Anonymous'}
                     </span>
                   </div>
-                  <h4 className="font-semibold text-sm line-clamp-2">
-                    {article.title}
-                  </h4>
+                  <h4 className="font-semibold text-sm line-clamp-2">{article.title}</h4>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {article.createdAt
-                      ? format(new Date(article.createdAt), "MMMM dd, yyyy")
-                      : ""}
+                    {article.createdAt ? format(new Date(article.createdAt), 'MMMM dd, yyyy') : ''}
                   </p>
                 </div>
               ))}

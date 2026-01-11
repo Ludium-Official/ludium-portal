@@ -62,9 +62,11 @@ const debounce = (fn: (value: string) => void, delay: number) => {
 function MarkdownEditor({
   onChange,
   content,
+  placeholder,
 }: {
   onChange: (value: string) => void;
   content: string;
+  placeholder?: string;
 }) {
   const mdxRef = useRef<MDXEditorMethods>(null);
   const [prevVal, setPrevVal] = useState<string>('');
@@ -93,6 +95,7 @@ function MarkdownEditor({
     <MDXEditor
       ref={mdxRef}
       markdown={content}
+      placeholder={placeholder}
       className="overflow-auto max-h-[600px] border rounded-md"
       contentEditableClassName="prose min-h-[400px] cursor-text max-w-full"
       onChange={(value) => debouncedOnChange(value)}
