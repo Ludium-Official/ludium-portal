@@ -1,0 +1,13 @@
+query topViewedArticles {
+  topViewedArticles {
+    id
+    title
+    coverImage
+    createdAt
+    author {
+      id
+      nickname
+      profileImage
+    }
+  }
+}

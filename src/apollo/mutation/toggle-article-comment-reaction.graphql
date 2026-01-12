@@ -1,0 +1,8 @@
+mutation toggleArticleCommentReaction($input: ToggleArticleCommentReactionInput!) {
+  toggleArticleCommentReaction(input: $input) {
+    likeCount
+    dislikeCount
+    isLiked
+    isDisliked
+  }
+}

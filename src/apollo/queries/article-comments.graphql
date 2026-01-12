@@ -1,0 +1,18 @@
+query articleComments($articleId: ID!) {
+  articleComments(articleId: $articleId) {
+    id
+    articleId
+    authorId
+    authorNickname
+    authorProfileImage
+    content
+    parentId
+    likeCount
+    replyCount
+    isLiked
+    isDisliked
+    createdAt
+    updatedAt
+    deletedAt
+  }
+}

@@ -10,6 +10,8 @@ export const AuthContext = createContext<AuthProps>({
   token: null,
   roles: null,
   userId: '',
+  nickname: null,
+  profileImage: null,
   isLoggedIn: false,
   isAuthed: false,
   isAdmin: false,
@@ -25,6 +27,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>();
   const [email, setEmail] = useState<string | null>();
   const [userId, setUserId] = useState<string>('');
+  const [nickname, setNickname] = useState<string | null>();
+  const [profileImage, setProfileImage] = useState<string | null>();
   const [isAdmin, setIsAdmin] = useState<boolean | null>();
   const [isSuperadmin, setIsSuperadmin] = useState<boolean | null>();
 
@@ -65,6 +69,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (userProfile) {
       setUserId(userProfile.profileV2?.id ?? '');
+      setNickname(userProfile.profileV2?.nickname ?? null);
+      setProfileImage(userProfile.profileV2?.profileImage ?? null);
       setIsAdmin(userProfile.profileV2?.role === UserRoleV2.Admin);
       setIsSuperadmin(userProfile.profileV2?.role === UserRoleV2.Admin);
     }
@@ -89,6 +95,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         userId,
         email,
         token,
+        nickname,
+        profileImage,
         isLoggedIn: !!token,
         isAuthed: !!token && !!userProfile?.profileV2?.email,
         isAuthLoading,

@@ -105,7 +105,7 @@ const CreateProgram: React.FC = () => {
   }, [isAuthed, isAuthLoading, navigate]);
 
   return (
-    <div className="w-full bg-gray-light p-10 pr-[55px]" defaultValue="edit">
+    <div className="w-full bg-gray-light p-10" defaultValue="edit">
       <ProgramForm onSubmitProgram={onSubmit} createLoading={loading} />
     </div>
   );

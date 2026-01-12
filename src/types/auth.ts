@@ -5,6 +5,8 @@ export interface AuthProps {
   token?: string | null;
   roles?: string[] | null;
   userId: string;
+  nickname?: string | null;
+  profileImage?: string | null;
   isLoggedIn?: boolean;
   isAuthed?: boolean;
   isAuthLoading?: boolean;

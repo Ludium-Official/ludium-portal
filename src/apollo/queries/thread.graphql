@@ -1,0 +1,15 @@
+query thread($id: ID!) {
+  thread(id: $id) {
+    id
+    content
+    authorNickname
+    authorProfileImage
+    likeCount
+    dislikeCount
+    replyCount
+    isLiked
+    isDisliked
+    createdAt
+    updatedAt
+  }
+}

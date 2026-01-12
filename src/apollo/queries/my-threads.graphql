@@ -1,0 +1,19 @@
+query myThreads($input: ThreadsQueryInput) {
+  myThreads(input: $input) {
+    count
+    data {
+      id
+      content
+      images
+      authorNickname
+      authorProfileImage
+      likeCount
+      dislikeCount
+      replyCount
+      isLiked
+      isDisliked
+      createdAt
+      updatedAt
+    }
+  }
+}
