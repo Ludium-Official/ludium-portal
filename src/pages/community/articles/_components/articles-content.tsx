@@ -24,6 +24,11 @@ const CATEGORY_DISPLAY_MAP: Record<CategoryType, string> = {
   campaign: 'Campaign',
 };
 
+const CATEGORY_ARTICLE_TYPE_MAP: Partial<Record<CategoryType, ArticleType>> = {
+  newsletter: ArticleType.Newsletter,
+  campaign: ArticleType.Campaign,
+};
+
 const ArticlesContent: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const itemsPerPage = 9;
@@ -47,7 +52,11 @@ const ArticlesContent: React.FC = () => {
     },
   });
 
-  const { data: pinnedData } = usePinnedArticlesQuery();
+  const articleType = CATEGORY_ARTICLE_TYPE_MAP[selectedCategory] || ArticleType.Article;
+  const { data: pinnedData } = usePinnedArticlesQuery({
+    variables: { type: articleType! },
+    skip: !articleType,
+  });
 
   const pinnedArticles = pinnedData?.pinnedArticles ?? [];
   const articles = articlesData?.articles?.data || [];
@@ -85,7 +94,7 @@ const ArticlesContent: React.FC = () => {
                 <img
                   src={article.coverImage || ''}
                   alt={article.title || ''}
-                  className="w-full h-full hover:scale-105 transition-transform duration-300"
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                 />
               </div>
               <div className="pt-4">

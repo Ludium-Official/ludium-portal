@@ -4,6 +4,7 @@ query threads($input: ThreadsQueryInput) {
     data {
       id
       content
+      images
       authorNickname
       authorProfileImage
       likeCount

@@ -1,25 +1,20 @@
-import CommunityBanner from "@/assets/icons/community/articles/banners/CommunityBanner.svg";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/hooks/use-auth";
-import notify from "@/lib/notify";
-import { shuffleArray } from "@/lib/utils";
-import Autoplay from "embla-carousel-autoplay";
-import useEmblaCarousel from "embla-carousel-react";
-import { CirclePlus } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
-import ArticlesContent from "./_components/articles-content";
+import CommunityBanner from '@/assets/icons/community/articles/banners/CommunityBanner.svg';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/lib/hooks/use-auth';
+import notify from '@/lib/notify';
+import { shuffleArray } from '@/lib/utils';
+import Autoplay from 'embla-carousel-autoplay';
+import useEmblaCarousel from 'embla-carousel-react';
+import { CirclePlus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router';
+import ArticlesContent from './_components/articles-content';
 
 const BANNER_DATA = [
   {
     id: 1,
     image: CommunityBanner,
-    link: "/community/articles",
-  },
-  {
-    id: 2,
-    image: CommunityBanner,
-    link: "/community/articles",
+    link: '/community/articles',
   },
 ];
 
@@ -68,12 +63,12 @@ const ArticlesPage: React.FC = () => {
               className="gap-2 rounded-[6px] px-3"
               onClick={() => {
                 if (!isAuthed) {
-                  notify("Please add your email", "success");
-                  navigate("/profile");
+                  notify('Please add your email', 'success');
+                  navigate('/profile');
                   return;
                 }
 
-                navigate("/community/articles/create");
+                navigate('/community/articles/create');
               }}
               variant="outline"
             >

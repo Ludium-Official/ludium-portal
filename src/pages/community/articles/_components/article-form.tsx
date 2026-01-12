@@ -58,7 +58,9 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
     skip: !isEdit,
   });
 
-  const { data: pinnedData } = usePinnedArticlesQuery();
+  const { data: pinnedData } = usePinnedArticlesQuery({
+    variables: { type: data?.article?.type ?? ArticleType.Article },
+  });
 
   const [selectedImage, setSelectedImage] = useState<File>();
   const [imageError, setImageError] = useState<string | null>(null);

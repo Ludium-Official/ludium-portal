@@ -8,7 +8,7 @@ export type CreateThreadMutationVariables = Types.Exact<{
 }>;
 
 
-export type CreateThreadMutation = { __typename?: 'Mutation', createThread?: { __typename?: 'Thread', id?: string | null, content?: string | null, authorNickname?: string | null, authorProfileImage?: string | null, likeCount?: number | null, dislikeCount?: number | null, replyCount?: number | null, isLiked?: boolean | null, isDisliked?: boolean | null, createdAt?: any | null, updatedAt?: any | null } | null };
+export type CreateThreadMutation = { __typename?: 'Mutation', createThread?: { __typename?: 'Thread', id?: string | null, content?: string | null, images?: Array<string> | null, authorNickname?: string | null, authorProfileImage?: string | null, likeCount?: number | null, dislikeCount?: number | null, replyCount?: number | null, isLiked?: boolean | null, isDisliked?: boolean | null, createdAt?: any | null, updatedAt?: any | null } | null };
 
 
 export const CreateThreadDocument = gql`
@@ -16,6 +16,7 @@ export const CreateThreadDocument = gql`
   createThread(input: $input) {
     id
     content
+    images
     authorNickname
     authorProfileImage
     likeCount

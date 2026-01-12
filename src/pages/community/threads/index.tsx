@@ -2,12 +2,13 @@ import { useThreadsQuery } from '@/apollo/queries/threads.generated';
 import { useMyThreadsQuery } from '@/apollo/queries/my-threads.generated';
 import { useTopViewedArticlesQuery } from '@/apollo/queries/top-viewed-articles.generated';
 import { useCreateThreadMutation } from '@/apollo/mutation/create-thread.generated';
-import { MarkdownEditor } from '@/components/markdown';
+import { MediaUploadPreview } from '@/components/community/media-gallery';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { CirclePlus, Loader2 } from 'lucide-react';
+import { CirclePlus, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import ThreadItem from './_components/thread-item';
@@ -24,9 +25,11 @@ const ThreadsPage = () => {
   const [hasMore, setHasMore] = useState(true);
   const [showPostForm, setShowPostForm] = useState(false);
   const [postContent, setPostContent] = useState('');
+  const [postMedia, setPostMedia] = useState<File[]>([]);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const itemsPerPage = 10;
 
@@ -137,17 +140,19 @@ const ThreadsPage = () => {
   }, [handleLoadMore, hasMore, isLoading, threads.length]);
 
   const handlePostThread = async () => {
-    if (!postContent.trim()) return;
+    if (!postContent.trim() && postMedia.length === 0) return;
 
     try {
       await createThread({
         variables: {
           input: {
             content: postContent,
+            images: postMedia.length > 0 ? postMedia : undefined,
           },
         },
       });
       setPostContent('');
+      setPostMedia([]);
       setShowPostForm(false);
       setPage(1);
       if (activeTab === 'all') {
@@ -158,6 +163,21 @@ const ThreadsPage = () => {
     } catch (error) {
       console.error('Error creating thread:', error);
     }
+  };
+
+  const handleMediaSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newFiles = Array.from(files).filter(
+      (file) => file.type.startsWith('image/') || file.type.startsWith('video/'),
+    );
+    setPostMedia((prev) => [...prev, ...newFiles].slice(0, 4));
+    e.target.value = '';
+  };
+
+  const handleRemoveMedia = (index: number) => {
+    setPostMedia((prev) => prev.filter((_, i) => i !== index));
   };
 
   const trendingArticles = trendingData?.topViewedArticles ?? [];
@@ -268,23 +288,62 @@ const ThreadsPage = () => {
         </div>
       </div>
 
-      <Dialog open={showPostForm} onOpenChange={setShowPostForm}>
-        <DialogContent className="sm:max-w-[800px] gap-6">
+      <Dialog
+        open={showPostForm}
+        onOpenChange={(open) => {
+          setShowPostForm(open);
+          if (!open) {
+            setPostContent('');
+            setPostMedia([]);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[600px] gap-4">
           <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle className="text-lg font-semibold">Create Post</DialogTitle>
             <Button
               size="sm"
               onClick={handlePostThread}
-              disabled={!postContent.trim() || creatingThread}
+              disabled={(!postContent.trim() && postMedia.length === 0) || creatingThread}
             >
               {creatingThread ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Post'}
             </Button>
           </DialogHeader>
-          <MarkdownEditor
-            onChange={(value: string) => setPostContent(value)}
-            content={postContent}
-            placeholder="What's on your mind?"
-          />
+
+          <div>
+            <Textarea
+              value={postContent}
+              onChange={(e) => setPostContent(e.target.value)}
+              placeholder="What's happening?"
+              className="min-h-[120px] resize-none border-0 focus-visible:ring-0 text-base p-0"
+            />
+
+            <MediaUploadPreview files={postMedia} onRemove={handleRemoveMedia} />
+
+            <div className="flex items-center gap-2 pt-4 border-t mt-4">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                className="hidden"
+                onChange={handleMediaSelect}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="p-2 h-auto"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={postMedia.length >= 4}
+              >
+                <ImageIcon className="w-5 h-5 text-primary" />
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                {postMedia.length > 0 ? `${postMedia.length}/4 images` : 'Add images'}
+              </span>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

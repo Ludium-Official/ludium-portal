@@ -600,6 +600,8 @@ export type CreateThreadCommentInput = {
 export type CreateThreadInput = {
   /** Thread content */
   content: Scalars['String']['input'];
+  /** Array of image files to upload */
+  images?: InputMaybe<Array<Scalars['Upload']['input']>>;
 };
 
 export type CreateTokenV2Input = {
@@ -2792,6 +2794,11 @@ export type QueryOnchainProgramInfosV2Args = {
 };
 
 
+export type QueryPinnedArticlesArgs = {
+  type: ArticleType;
+};
+
+
 export type QueryPortfolioV2Args = {
   id: Scalars['ID']['input'];
 };
@@ -3057,6 +3064,8 @@ export type Thread = {
   /** Number of dislikes */
   dislikeCount?: Maybe<Scalars['Int']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
+  /** Array of image URLs */
+  images?: Maybe<Array<Scalars['String']['output']>>;
   /** Whether the currently authenticated user has disliked this thread */
   isDisliked?: Maybe<Scalars['Boolean']['output']>;
   /** Whether the currently authenticated user has liked this thread */
@@ -3432,6 +3441,8 @@ export type UpdateThreadCommentInput = {
 export type UpdateThreadInput = {
   /** Updated thread content */
   content: Scalars['String']['input'];
+  /** Array of image files to upload (replaces existing images) */
+  images?: InputMaybe<Array<Scalars['Upload']['input']>>;
 };
 
 export type UpdateTokenV2Input = {

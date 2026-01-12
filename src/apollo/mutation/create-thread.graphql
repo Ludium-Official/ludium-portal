@@ -2,6 +2,7 @@ mutation createThread($input: CreateThreadInput!) {
   createThread(input: $input) {
     id
     content
+    images
     authorNickname
     authorProfileImage
     likeCount

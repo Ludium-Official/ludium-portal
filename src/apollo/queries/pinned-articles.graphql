@@ -1,5 +1,5 @@
-query pinnedArticles {
-  pinnedArticles {
+query pinnedArticles($type: ArticleType!) {
+  pinnedArticles(type: $type) {
     id
     title
     description

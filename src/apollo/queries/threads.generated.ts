@@ -8,7 +8,7 @@ export type ThreadsQueryVariables = Types.Exact<{
 }>;
 
 
-export type ThreadsQuery = { __typename?: 'Query', threads?: { __typename?: 'PaginatedThread', count?: number | null, data?: Array<{ __typename?: 'Thread', id?: string | null, content?: string | null, authorNickname?: string | null, authorProfileImage?: string | null, likeCount?: number | null, dislikeCount?: number | null, replyCount?: number | null, isLiked?: boolean | null, isDisliked?: boolean | null, createdAt?: any | null, updatedAt?: any | null }> | null } | null };
+export type ThreadsQuery = { __typename?: 'Query', threads?: { __typename?: 'PaginatedThread', count?: number | null, data?: Array<{ __typename?: 'Thread', id?: string | null, content?: string | null, images?: Array<string> | null, authorNickname?: string | null, authorProfileImage?: string | null, likeCount?: number | null, dislikeCount?: number | null, replyCount?: number | null, isLiked?: boolean | null, isDisliked?: boolean | null, createdAt?: any | null, updatedAt?: any | null }> | null } | null };
 
 
 export const ThreadsDocument = gql`
@@ -18,6 +18,7 @@ export const ThreadsDocument = gql`
     data {
       id
       content
+      images
       authorNickname
       authorProfileImage
       likeCount

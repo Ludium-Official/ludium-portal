@@ -3,6 +3,8 @@ import { useToggleThreadReactionMutation } from '@/apollo/mutation/toggle-thread
 import { useCreateThreadCommentMutation } from '@/apollo/mutation/create-thread-comment.generated';
 import { useUpdateThreadMutation } from '@/apollo/mutation/update-thread.generated';
 import { useDeleteThreadMutation } from '@/apollo/mutation/delete-thread.generated';
+import { MediaGallery, MediaUploadPreview } from '@/components/community/media-gallery';
+import { Image as ImageIcon, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,10 +28,8 @@ import {
   ThumbsUp,
   Trash2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import ThreadCommentItem from './thread-comment-item';
-import { MarkdownPreviewer } from '@/components/markdown';
-import { MarkdownEditor } from '@/components/markdown';
 
 interface ThreadItemProps {
   thread: Thread;
@@ -51,9 +51,13 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(thread.content ?? '');
   const [currentContent, setCurrentContent] = useState(thread.content);
+  const [currentImages, setCurrentImages] = useState<string[]>(thread.images ?? []);
+  const [editExistingImages, setEditExistingImages] = useState<string[]>([]);
+  const [editNewImages, setEditNewImages] = useState<File[]>([]);
   const [currentAuthorNickname] = useState(thread.authorNickname);
   const [currentAuthorProfileImage] = useState(thread.authorProfileImage);
   const [isDeleted, setIsDeleted] = useState(false);
+  const editFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const { lineHeight, commentsRef, parentContentRef } = useCommentLineHeight({
     showComments,
@@ -157,7 +161,13 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
   };
 
   const handleEdit = async () => {
-    if (!editContent.trim() || !thread.id) return;
+    if (!editContent.trim() && editExistingImages.length === 0 && editNewImages.length === 0)
+      return;
+    if (!thread.id) return;
+
+    const hasRemovedImages = editExistingImages.length < currentImages.length;
+    const imagesInput =
+      editNewImages.length > 0 ? editNewImages : hasRemovedImages ? [] : undefined;
 
     try {
       const { data } = await updateThread({
@@ -165,16 +175,55 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
           id: thread.id,
           input: {
             content: editContent,
+            images: imagesInput,
           },
         },
       });
       if (data?.updateThread) {
         setCurrentContent(data.updateThread.content);
+        setCurrentImages(data.updateThread.images ?? []);
         setIsEditing(false);
+        setEditNewImages([]);
       }
     } catch (error) {
       console.error('Error updating thread:', error);
     }
+  };
+
+  const handleEditMediaSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const newFiles = Array.from(files).filter(
+      (file) => file.type.startsWith('image/') || file.type.startsWith('video/'),
+    );
+    const remainingSlots = 4 - editExistingImages.length - editNewImages.length;
+    setEditNewImages((prev) =>
+      [...prev, ...newFiles.slice(0, remainingSlots)].slice(0, 4 - editExistingImages.length),
+    );
+    e.target.value = '';
+  };
+
+  const handleRemoveExistingImage = (index: number) => {
+    setEditExistingImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleRemoveNewImage = (index: number) => {
+    setEditNewImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const startEditing = () => {
+    setIsEditing(true);
+    setEditContent(currentContent ?? '');
+    setEditExistingImages([...currentImages]);
+    setEditNewImages([]);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setEditContent(currentContent ?? '');
+    setEditExistingImages([]);
+    setEditNewImages([]);
   };
 
   const handleDelete = async () => {
@@ -217,37 +266,95 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
             />
           </div>
         )}
-        <div className={showComments ? 'flex-1' : 'ml-12'}>
+        <div className={`${showComments ? 'flex-1' : 'ml-12'} w-full`}>
           <div ref={parentContentRef}>
             {isDeleted ? (
               <p className="mb-4 text-muted-foreground italic text-base">
                 This thread has been deleted
               </p>
             ) : isEditing ? (
-              <div className="flex flex-col gap-2 mb-4">
-                <MarkdownEditor content={editContent} onChange={setEditContent} />
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setIsEditing(false);
-                      setEditContent(currentContent ?? '');
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    disabled={!editContent.trim() || updatingThread}
-                    onClick={handleEdit}
-                  >
-                    {updatingThread ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
-                  </Button>
+              <div className="flex flex-col gap-3 mb-4">
+                <Textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  placeholder="What's happening?"
+                  className="w-full min-h-[100px] resize-none focus-visible:ring-0"
+                />
+
+                {editExistingImages.length > 0 && (
+                  <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
+                    {editExistingImages.map((url, idx) => (
+                      <div key={idx} className="aspect-square relative">
+                        <img
+                          src={url}
+                          alt={`Existing ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          onClick={() => handleRemoveExistingImage(idx)}
+                          className="absolute top-2 right-2 p-1 rounded-full bg-black/60 hover:bg-black/80 text-white"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <MediaUploadPreview files={editNewImages} onRemove={handleRemoveNewImage} />
+
+                <div className="flex items-center justify-between pt-3 border-t">
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={editFileInputRef}
+                      type="file"
+                      accept="image/*,video/*"
+                      multiple
+                      className="hidden"
+                      onChange={handleEditMediaSelect}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="p-2 h-auto"
+                      onClick={() => editFileInputRef.current?.click()}
+                      disabled={editExistingImages.length + editNewImages.length >= 4}
+                    >
+                      <ImageIcon className="w-5 h-5 text-primary" />
+                    </Button>
+                    <span className="text-xs text-muted-foreground">
+                      {editExistingImages.length + editNewImages.length}/4 images
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={cancelEditing}>
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      disabled={
+                        (!editContent.trim() &&
+                          editExistingImages.length === 0 &&
+                          editNewImages.length === 0) ||
+                        updatingThread
+                      }
+                      onClick={handleEdit}
+                    >
+                      {updatingThread ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+                    </Button>
+                  </div>
                 </div>
               </div>
             ) : (
-              <MarkdownPreviewer value={currentContent ?? ''} className="mb-4!" />
+              <>
+                {currentContent && (
+                  <p className="mb-4 whitespace-pre-wrap break-words">{currentContent}</p>
+                )}
+                {currentImages && currentImages.length > 0 && (
+                  <MediaGallery images={currentImages} className="mb-4" />
+                )}
+              </>
             )}
 
             <div className="flex items-center gap-3 mb-6">
@@ -298,12 +405,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setIsEditing(true);
-                        setEditContent(currentContent ?? '');
-                      }}
-                    >
+                    <DropdownMenuItem onClick={startEditing}>
                       <Pencil className="w-4 h-4 mr-2" />
                       Edit
                     </DropdownMenuItem>

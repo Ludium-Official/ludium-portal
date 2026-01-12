@@ -3,15 +3,17 @@ import * as Types from '../../types/types.generated';
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type PinnedArticlesQueryVariables = Types.Exact<{ [key: string]: never; }>;
+export type PinnedArticlesQueryVariables = Types.Exact<{
+  type: Types.ArticleType;
+}>;
 
 
 export type PinnedArticlesQuery = { __typename?: 'Query', pinnedArticles?: Array<{ __typename?: 'Article', id?: string | null, title?: string | null, description?: string | null, coverImage?: string | null, type?: Types.ArticleType | null, status?: Types.ArticleStatus | null, isPin?: boolean | null, view?: number | null, likeCount?: number | null, commentCount?: number | null, isLiked?: boolean | null, createdAt?: any | null, updatedAt?: any | null, author?: { __typename?: 'UserV2', id?: string | null, nickname?: string | null, profileImage?: string | null, email?: string | null, walletAddress?: string | null } | null }> | null };
 
 
 export const PinnedArticlesDocument = gql`
-    query pinnedArticles {
-  pinnedArticles {
+    query pinnedArticles($type: ArticleType!) {
+  pinnedArticles(type: $type) {
     id
     title
     description
@@ -48,10 +50,11 @@ export const PinnedArticlesDocument = gql`
  * @example
  * const { data, loading, error } = usePinnedArticlesQuery({
  *   variables: {
+ *      type: // value for 'type'
  *   },
  * });
  */
-export function usePinnedArticlesQuery(baseOptions?: Apollo.QueryHookOptions<PinnedArticlesQuery, PinnedArticlesQueryVariables>) {
+export function usePinnedArticlesQuery(baseOptions: Apollo.QueryHookOptions<PinnedArticlesQuery, PinnedArticlesQueryVariables> & ({ variables: PinnedArticlesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<PinnedArticlesQuery, PinnedArticlesQueryVariables>(PinnedArticlesDocument, options);
       }
