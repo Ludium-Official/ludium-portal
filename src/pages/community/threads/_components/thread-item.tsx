@@ -1,22 +1,22 @@
-import { useThreadCommentsLazyQuery } from "@/apollo/queries/thread-comments.generated";
-import { useToggleThreadReactionMutation } from "@/apollo/mutation/toggle-thread-reaction.generated";
-import { useCreateThreadCommentMutation } from "@/apollo/mutation/create-thread-comment.generated";
-import { useUpdateThreadMutation } from "@/apollo/mutation/update-thread.generated";
-import { useDeleteThreadMutation } from "@/apollo/mutation/delete-thread.generated";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { useThreadCommentsLazyQuery } from '@/apollo/queries/thread-comments.generated';
+import { useToggleThreadReactionMutation } from '@/apollo/mutation/toggle-thread-reaction.generated';
+import { useCreateThreadCommentMutation } from '@/apollo/mutation/create-thread-comment.generated';
+import { useUpdateThreadMutation } from '@/apollo/mutation/update-thread.generated';
+import { useDeleteThreadMutation } from '@/apollo/mutation/delete-thread.generated';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { useCommentLineHeight } from "@/lib/hooks/use-comment-line-height";
-import { Thread, ThreadReaction } from "@/types/types.generated";
-import { ThreadCommentData } from "@/types/comment";
-import { format } from "date-fns";
+} from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { useCommentLineHeight } from '@/lib/hooks/use-comment-line-height';
+import { Thread, ThreadReaction } from '@/types/types.generated';
+import { ThreadCommentData } from '@/types/comment';
+import { format } from 'date-fns';
 import {
   Loader2,
   MessageSquareMore,
@@ -25,11 +25,11 @@ import {
   ThumbsDown,
   ThumbsUp,
   Trash2,
-} from "lucide-react";
-import { useState } from "react";
-import ThreadCommentItem from "./thread-comment-item";
-import { MarkdownPreviewer } from "@/components/markdown";
-import { MarkdownEditor } from "@/components/markdown";
+} from 'lucide-react';
+import { useState } from 'react';
+import ThreadCommentItem from './thread-comment-item';
+import { MarkdownPreviewer } from '@/components/markdown';
+import { MarkdownEditor } from '@/components/markdown';
 
 interface ThreadItemProps {
   thread: Thread;
@@ -42,14 +42,14 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<ThreadCommentData[]>([]);
   const [commentsLoaded, setCommentsLoaded] = useState(false);
-  const [commentText, setCommentText] = useState("");
+  const [commentText, setCommentText] = useState('');
   const [liked, setLiked] = useState(thread.isLiked ?? false);
   const [disliked, setDisliked] = useState(thread.isDisliked ?? false);
   const [likeCount, setLikeCount] = useState(thread.likeCount ?? 0);
   const [dislikeCount, setDislikeCount] = useState(thread.dislikeCount ?? 0);
   const [replyCount, setReplyCount] = useState(thread.replyCount ?? 0);
   const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState(thread.content ?? "");
+  const [editContent, setEditContent] = useState(thread.content ?? '');
   const [currentContent, setCurrentContent] = useState(thread.content);
   const [currentAuthorNickname] = useState(thread.authorNickname);
   const [currentAuthorProfileImage] = useState(thread.authorProfileImage);
@@ -60,11 +60,9 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
     commentsLength: comments.length,
   });
 
-  const [fetchComments, { loading: commentsLoading }] =
-    useThreadCommentsLazyQuery();
+  const [fetchComments, { loading: commentsLoading }] = useThreadCommentsLazyQuery();
   const [toggleReaction] = useToggleThreadReactionMutation();
-  const [createComment, { loading: creatingComment }] =
-    useCreateThreadCommentMutation();
+  const [createComment, { loading: creatingComment }] = useCreateThreadCommentMutation();
   const [updateThread, { loading: updatingThread }] = useUpdateThreadMutation();
   const [deleteThread, { loading: deletingThread }] = useDeleteThreadMutation();
 
@@ -102,7 +100,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
         setDislikeCount(data.toggleThreadReaction.dislikeCount ?? 0);
       }
     } catch (error) {
-      console.error("Error toggling like:", error);
+      console.error('Error toggling like:', error);
     }
   };
 
@@ -125,7 +123,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
         setDislikeCount(data.toggleThreadReaction.dislikeCount ?? 0);
       }
     } catch (error) {
-      console.error("Error toggling dislike:", error);
+      console.error('Error toggling dislike:', error);
     }
   };
 
@@ -141,21 +139,20 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
           },
         },
       });
-      setCommentText("");
+      setCommentText('');
       setReplyCount((prev) => prev + 1);
 
       if (data?.createThreadComment) {
         const newComment: ThreadCommentData = {
           ...data.createThreadComment,
           authorNickname: data.createThreadComment.authorNickname || nickname,
-          authorProfileImage:
-            data.createThreadComment.authorProfileImage || profileImage,
+          authorProfileImage: data.createThreadComment.authorProfileImage || profileImage,
         };
         setComments((prev) => [newComment, ...prev]);
       }
       onThreadUpdated?.();
     } catch (error) {
-      console.error("Error posting comment:", error);
+      console.error('Error posting comment:', error);
     }
   };
 
@@ -176,7 +173,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
         setIsEditing(false);
       }
     } catch (error) {
-      console.error("Error updating thread:", error);
+      console.error('Error updating thread:', error);
     }
   };
 
@@ -192,27 +189,21 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
       setIsDeleted(true);
       onThreadUpdated?.();
     } catch (error) {
-      console.error("Error deleting thread:", error);
+      console.error('Error deleting thread:', error);
     }
   };
 
-  const formattedDate = thread.createdAt
-    ? format(new Date(thread.createdAt), "MMMM dd, yyyy")
-    : "";
+  const formattedDate = thread.createdAt ? format(new Date(thread.createdAt), 'MMMM dd, yyyy') : '';
 
   return (
     <div className="border-b pt-14 pb-10 px-8">
       <div className="flex items-center gap-2 mb-3">
         <Avatar className="w-10 h-10 flex-shrink-0">
-          <AvatarImage src={currentAuthorProfileImage || ""} />
-          <AvatarFallback>
-            {currentAuthorNickname?.[0]?.toUpperCase() || "U"}
-          </AvatarFallback>
+          <AvatarImage src={currentAuthorProfileImage || ''} />
+          <AvatarFallback>{currentAuthorNickname?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
         </Avatar>
         <div className="flex flex-col text-muted-foreground">
-          <span className="font-semibold text-sm">
-            {currentAuthorNickname || "Anonymous"}
-          </span>
+          <span className="font-semibold text-sm">{currentAuthorNickname || 'Anonymous'}</span>
           <span className="text-xs">{formattedDate}</span>
         </div>
       </div>
@@ -226,7 +217,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
             />
           </div>
         )}
-        <div className={showComments ? "flex-1" : "ml-12"}>
+        <div className={showComments ? 'flex-1' : 'ml-12'}>
           <div ref={parentContentRef}>
             {isDeleted ? (
               <p className="mb-4 text-muted-foreground italic text-base">
@@ -234,17 +225,14 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
               </p>
             ) : isEditing ? (
               <div className="flex flex-col gap-2 mb-4">
-                <MarkdownEditor
-                  content={editContent}
-                  onChange={setEditContent}
-                />
+                <MarkdownEditor content={editContent} onChange={setEditContent} />
                 <div className="flex gap-2 justify-end">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => {
                       setIsEditing(false);
-                      setEditContent(currentContent ?? "");
+                      setEditContent(currentContent ?? '');
                     }}
                   >
                     Cancel
@@ -254,19 +242,12 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
                     disabled={!editContent.trim() || updatingThread}
                     onClick={handleEdit}
                   >
-                    {updatingThread ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      "Save"
-                    )}
+                    {updatingThread ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
                   </Button>
                 </div>
               </div>
             ) : (
-              <MarkdownPreviewer
-                value={currentContent ?? ""}
-                className="mb-4!"
-              />
+              <MarkdownPreviewer value={currentContent ?? ''} className="mb-4!" />
             )}
 
             <div className="flex items-center gap-3 mb-6">
@@ -276,25 +257,21 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
                     variant="outline"
                     onClick={handleLike}
                     className={`border-0 p-0! h-auto flex items-center gap-1 ${
-                      liked ? "text-primary" : "text-slate-700"
+                      liked ? 'text-primary' : 'text-slate-700'
                     } hover:text-foreground`}
                   >
                     <ThumbsUp className="w-4 h-4" />
-                    {likeCount > 0 && (
-                      <span className="text-xs">{likeCount}</span>
-                    )}
+                    {likeCount > 0 && <span className="text-xs">{likeCount}</span>}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={handleDislike}
                     className={`border-0 p-0! h-auto flex items-center gap-1 ${
-                      disliked ? "text-primary" : "text-slate-700"
+                      disliked ? 'text-primary' : 'text-slate-700'
                     } hover:text-foreground`}
                   >
                     <ThumbsDown className="w-4 h-4" />
-                    {dislikeCount > 0 && (
-                      <span className="text-xs">{dislikeCount}</span>
-                    )}
+                    {dislikeCount > 0 && <span className="text-xs">{dislikeCount}</span>}
                   </Button>
                 </>
               )}
@@ -324,7 +301,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
                     <DropdownMenuItem
                       onClick={() => {
                         setIsEditing(true);
-                        setEditContent(currentContent ?? "");
+                        setEditContent(currentContent ?? '');
                       }}
                     >
                       <Pencil className="w-4 h-4 mr-2" />
@@ -364,7 +341,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
                       variant="outline"
                       onClick={() => {
                         setShowComments(false);
-                        setCommentText("");
+                        setCommentText('');
                       }}
                     >
                       Cancel
@@ -375,11 +352,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
                       onClick={handlePostComment}
                       disabled={!commentText.trim() || creatingComment}
                     >
-                      {creatingComment ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        "Post"
-                      )}
+                      {creatingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Post'}
                     </Button>
                   </div>
                 </div>

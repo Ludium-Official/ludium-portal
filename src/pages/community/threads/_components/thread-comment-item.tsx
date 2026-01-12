@@ -1,13 +1,13 @@
-import { useToggleThreadCommentReactionMutation } from "@/apollo/mutation/toggle-thread-comment-reaction.generated";
-import { useCreateThreadCommentMutation } from "@/apollo/mutation/create-thread-comment.generated";
-import { useUpdateThreadCommentMutation } from "@/apollo/mutation/update-thread-comment.generated";
-import { useDeleteThreadCommentMutation } from "@/apollo/mutation/delete-thread-comment.generated";
-import { useThreadChildCommentsLazyQuery } from "@/apollo/queries/thread-child-comments.generated";
-import { CommentItemUI } from "@/components/community/comment-item-ui";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { ThreadCommentData } from "@/types/comment";
-import { ThreadCommentReaction } from "@/types/types.generated";
-import { useState } from "react";
+import { useToggleThreadCommentReactionMutation } from '@/apollo/mutation/toggle-thread-comment-reaction.generated';
+import { useCreateThreadCommentMutation } from '@/apollo/mutation/create-thread-comment.generated';
+import { useUpdateThreadCommentMutation } from '@/apollo/mutation/update-thread-comment.generated';
+import { useDeleteThreadCommentMutation } from '@/apollo/mutation/delete-thread-comment.generated';
+import { useThreadChildCommentsLazyQuery } from '@/apollo/queries/thread-child-comments.generated';
+import { CommentItemUI } from '@/components/community/comment-item-ui';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { ThreadCommentData } from '@/types/comment';
+import { ThreadCommentReaction } from '@/types/types.generated';
+import { useState } from 'react';
 
 interface ThreadCommentItemProps {
   comment: ThreadCommentData;
@@ -15,15 +15,11 @@ interface ThreadCommentItemProps {
   onCommentAdded?: () => void;
 }
 
-const ThreadCommentItem = ({
-  comment,
-  threadId,
-  onCommentAdded,
-}: ThreadCommentItemProps) => {
+const ThreadCommentItem = ({ comment, threadId, onCommentAdded }: ThreadCommentItemProps) => {
   const { isAuthed, userId, nickname, profileImage } = useAuth();
 
   const [showReplyInput, setShowReplyInput] = useState(false);
-  const [replyText, setReplyText] = useState("");
+  const [replyText, setReplyText] = useState('');
   const [liked, setLiked] = useState(comment.isLiked ?? false);
   const [disliked, setDisliked] = useState(comment.isDisliked ?? false);
   const [likeCount, setLikeCount] = useState(comment.likeCount ?? 0);
@@ -31,21 +27,15 @@ const ThreadCommentItem = ({
   const [childComments, setChildComments] = useState<ThreadCommentData[]>([]);
   const [childCommentsLoaded, setChildCommentsLoaded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState(comment.content ?? "");
+  const [editContent, setEditContent] = useState(comment.content ?? '');
   const [currentContent, setCurrentContent] = useState(comment.content);
-  const [isDeleted, setIsDeleted] = useState(
-    !!comment.deletedAt || !comment.content
-  );
+  const [isDeleted, setIsDeleted] = useState(!!comment.deletedAt || !comment.content);
 
-  const [fetchChildComments, { loading: childCommentsLoading }] =
-    useThreadChildCommentsLazyQuery();
+  const [fetchChildComments, { loading: childCommentsLoading }] = useThreadChildCommentsLazyQuery();
   const [toggleReaction] = useToggleThreadCommentReactionMutation();
-  const [createComment, { loading: creatingComment }] =
-    useCreateThreadCommentMutation();
-  const [updateComment, { loading: updatingComment }] =
-    useUpdateThreadCommentMutation();
-  const [deleteComment, { loading: deletingComment }] =
-    useDeleteThreadCommentMutation();
+  const [createComment, { loading: creatingComment }] = useCreateThreadCommentMutation();
+  const [updateComment, { loading: updatingComment }] = useUpdateThreadCommentMutation();
+  const [deleteComment, { loading: deletingComment }] = useDeleteThreadCommentMutation();
 
   const isAuthor = userId === String(comment.authorId);
 
@@ -81,7 +71,7 @@ const ThreadCommentItem = ({
         setDislikeCount(data.toggleThreadCommentReaction.dislikeCount ?? 0);
       }
     } catch (error) {
-      console.error("Error toggling like:", error);
+      console.error('Error toggling like:', error);
     }
   };
 
@@ -104,7 +94,7 @@ const ThreadCommentItem = ({
         setDislikeCount(data.toggleThreadCommentReaction.dislikeCount ?? 0);
       }
     } catch (error) {
-      console.error("Error toggling dislike:", error);
+      console.error('Error toggling dislike:', error);
     }
   };
 
@@ -121,21 +111,20 @@ const ThreadCommentItem = ({
           },
         },
       });
-      setReplyText("");
+      setReplyText('');
 
       // Add new reply to the top of the list with user nfo
       if (data?.createThreadComment) {
         const newReply: ThreadCommentData = {
           ...data.createThreadComment,
           authorNickname: data.createThreadComment.authorNickname || nickname,
-          authorProfileImage:
-            data.createThreadComment.authorProfileImage || profileImage,
+          authorProfileImage: data.createThreadComment.authorProfileImage || profileImage,
         };
         setChildComments((prev) => [newReply, ...prev]);
       }
       onCommentAdded?.();
     } catch (error) {
-      console.error("Error posting reply:", error);
+      console.error('Error posting reply:', error);
     }
   };
 
@@ -156,7 +145,7 @@ const ThreadCommentItem = ({
         setIsEditing(false);
       }
     } catch (error) {
-      console.error("Error updating comment:", error);
+      console.error('Error updating comment:', error);
     }
   };
 
@@ -174,12 +163,12 @@ const ThreadCommentItem = ({
       setIsDeleted(true);
       setCurrentContent(null);
     } catch (error) {
-      console.error("Error deleting comment:", error);
+      console.error('Error deleting comment:', error);
     }
   };
 
   const displayReplyCount =
-    childComments.length > 0 ? childComments.length : comment.replyCount ?? 0;
+    childComments.length > 0 ? childComments.length : (comment.replyCount ?? 0);
 
   return (
     <CommentItemUI
@@ -214,10 +203,10 @@ const ThreadCommentItem = ({
       onCancelEdit={() => {
         if (isEditing) {
           setIsEditing(false);
-          setEditContent(currentContent ?? "");
+          setEditContent(currentContent ?? '');
         } else {
           setIsEditing(true);
-          setEditContent(currentContent ?? "");
+          setEditContent(currentContent ?? '');
         }
       }}
       updatingComment={updatingComment}
@@ -230,7 +219,7 @@ const ThreadCommentItem = ({
       onPostReply={handlePostReply}
       onCancelReply={() => {
         setShowReplyInput(false);
-        setReplyText("");
+        setReplyText('');
       }}
       creatingReply={creatingComment}
       childComments={

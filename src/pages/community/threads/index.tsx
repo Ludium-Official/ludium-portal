@@ -1,34 +1,29 @@
-import { useThreadsQuery } from "@/apollo/queries/threads.generated";
-import { useMyThreadsQuery } from "@/apollo/queries/my-threads.generated";
-import { useTopViewedArticlesQuery } from "@/apollo/queries/top-viewed-articles.generated";
-import { useCreateThreadMutation } from "@/apollo/mutation/create-thread.generated";
-import { MarkdownEditor } from "@/components/markdown";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useAuth } from "@/lib/hooks/use-auth";
-import { CirclePlus, Loader2 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Link } from "react-router";
-import ThreadItem from "./_components/thread-item";
-import { Thread } from "@/types/types.generated";
+import { useThreadsQuery } from '@/apollo/queries/threads.generated';
+import { useMyThreadsQuery } from '@/apollo/queries/my-threads.generated';
+import { useTopViewedArticlesQuery } from '@/apollo/queries/top-viewed-articles.generated';
+import { useCreateThreadMutation } from '@/apollo/mutation/create-thread.generated';
+import { MarkdownEditor } from '@/components/markdown';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { CirclePlus, Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router';
+import ThreadItem from './_components/thread-item';
+import { Thread } from '@/types/types.generated';
 
-type TabType = "all" | "myPost";
+type TabType = 'all' | 'myPost';
 
 const ThreadsPage = () => {
   const { isAuthed, isLoggedIn } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<TabType>("all");
+  const [activeTab, setActiveTab] = useState<TabType>('all');
   const [threads, setThreads] = useState<Thread[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [showPostForm, setShowPostForm] = useState(false);
-  const [postContent, setPostContent] = useState("");
+  const [postContent, setPostContent] = useState('');
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -48,8 +43,8 @@ const ThreadsPage = () => {
         },
       },
     },
-    skip: activeTab !== "all",
-    fetchPolicy: "network-only",
+    skip: activeTab !== 'all',
+    fetchPolicy: 'network-only',
   });
 
   const {
@@ -65,17 +60,16 @@ const ThreadsPage = () => {
         },
       },
     },
-    skip: activeTab !== "myPost" || !isAuthed,
-    fetchPolicy: "network-only",
+    skip: activeTab !== 'myPost' || !isAuthed,
+    fetchPolicy: 'network-only',
   });
 
   const { data: trendingData } = useTopViewedArticlesQuery();
 
   const [createThread, { loading: creatingThread }] = useCreateThreadMutation();
 
-  const currentData =
-    activeTab === "all" ? threadsData?.threads : myThreadsData?.myThreads;
-  const isLoading = activeTab === "all" ? threadsLoading : myThreadsLoading;
+  const currentData = activeTab === 'all' ? threadsData?.threads : myThreadsData?.myThreads;
+  const isLoading = activeTab === 'all' ? threadsLoading : myThreadsLoading;
   const totalCount = currentData?.count ?? 0;
 
   // Append new data when page changes
@@ -127,8 +121,8 @@ const ThreadsPage = () => {
       {
         threshold: 0.1,
         root: scrollContainerRef.current,
-        rootMargin: "100px",
-      }
+        rootMargin: '100px',
+      },
     );
 
     if (loadMoreRef.current) {
@@ -153,16 +147,16 @@ const ThreadsPage = () => {
           },
         },
       });
-      setPostContent("");
+      setPostContent('');
       setShowPostForm(false);
       setPage(1);
-      if (activeTab === "all") {
+      if (activeTab === 'all') {
         refetchThreads();
       } else {
         refetchMyThreads();
       }
     } catch (error) {
-      console.error("Error creating thread:", error);
+      console.error('Error creating thread:', error);
     }
   };
 
@@ -176,22 +170,22 @@ const ThreadsPage = () => {
             <div className="flex items-center justify-between mb-4 pb-4 flex-shrink-0">
               <div className="flex gap-2">
                 <button
-                  onClick={() => setActiveTab("all")}
+                  onClick={() => setActiveTab('all')}
                   className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === "all"
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
+                    activeTab === 'all'
+                      ? 'border-primary text-primary'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   All
                 </button>
                 {isLoggedIn && (
                   <button
-                    onClick={() => setActiveTab("myPost")}
+                    onClick={() => setActiveTab('myPost')}
                     className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-                      activeTab === "myPost"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground"
+                      activeTab === 'myPost'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     My Post
@@ -218,7 +212,7 @@ const ThreadsPage = () => {
                     key={thread.id}
                     thread={thread}
                     onThreadUpdated={() => {
-                      if (activeTab === "all") {
+                      if (activeTab === 'all') {
                         refetchThreads();
                       } else {
                         refetchMyThreads();
@@ -246,9 +240,7 @@ const ThreadsPage = () => {
 
           <div className="w-[280px] h-fit flex-shrink-0 bg-white border border-gray-200 rounded-md px-3 py-5">
             <div>
-              <h3 className="font-semibold text-lg mb-4 text-gray-500">
-                Trending Articles
-              </h3>
+              <h3 className="font-semibold text-lg mb-4 text-gray-500">Trending Articles</h3>
               <div className="flex flex-col gap-5">
                 {trendingArticles.slice(0, 6).map((article) => (
                   <Link
@@ -259,13 +251,13 @@ const ThreadsPage = () => {
                     <h4 className="mb-2 font-bold text-sm">{article.title}</h4>
                     <div className="flex items-center gap-2">
                       <Avatar className="w-5 h-5">
-                        <AvatarImage src={article.author?.profileImage || ""} />
+                        <AvatarImage src={article.author?.profileImage || ''} />
                         <AvatarFallback className="text-xs">
-                          {article.author?.nickname?.[0] || "U"}
+                          {article.author?.nickname?.[0] || 'U'}
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-xs text-muted-foreground">
-                        {article.author?.nickname || "Anonymous"}
+                        {article.author?.nickname || 'Anonymous'}
                       </span>
                     </div>
                   </Link>
@@ -279,19 +271,13 @@ const ThreadsPage = () => {
       <Dialog open={showPostForm} onOpenChange={setShowPostForm}>
         <DialogContent className="sm:max-w-[800px] gap-6">
           <DialogHeader className="flex flex-row items-center justify-between">
-            <DialogTitle className="text-lg font-semibold">
-              Create Post
-            </DialogTitle>
+            <DialogTitle className="text-lg font-semibold">Create Post</DialogTitle>
             <Button
               size="sm"
               onClick={handlePostThread}
               disabled={!postContent.trim() || creatingThread}
             >
-              {creatingThread ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                "Post"
-              )}
+              {creatingThread ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Post'}
             </Button>
           </DialogHeader>
           <MarkdownEditor

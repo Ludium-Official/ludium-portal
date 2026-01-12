@@ -1,15 +1,15 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useCommentLineHeight } from "@/lib/hooks/use-comment-line-height";
-import { CommentItemUIData } from "@/types/comment";
-import { format } from "date-fns";
+} from '@/components/ui/dropdown-menu';
+import { useCommentLineHeight } from '@/lib/hooks/use-comment-line-height';
+import { CommentItemUIData } from '@/types/comment';
+import { format } from 'date-fns';
 import {
   MessageSquareMore,
   MoreHorizontal,
@@ -18,8 +18,8 @@ import {
   Loader2,
   Pencil,
   Trash2,
-} from "lucide-react";
-import { ReactNode } from "react";
+} from 'lucide-react';
+import { ReactNode } from 'react';
 
 export type { CommentItemUIData };
 
@@ -102,9 +102,7 @@ export const CommentItemUI = ({
     commentsLength: childrenCount,
   });
 
-  const formattedDate = data.createdAt
-    ? format(new Date(data.createdAt), "MMMM dd, yyyy")
-    : "";
+  const formattedDate = data.createdAt ? format(new Date(data.createdAt), 'MMMM dd, yyyy') : '';
 
   const displayContent = currentContent ?? data.content;
 
@@ -112,15 +110,11 @@ export const CommentItemUI = ({
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <Avatar className="w-10 h-10 flex-shrink-0">
-          <AvatarImage src={data.authorProfileImage || ""} />
-          <AvatarFallback>
-            {data.authorNickname?.[0]?.toUpperCase() || "U"}
-          </AvatarFallback>
+          <AvatarImage src={data.authorProfileImage || ''} />
+          <AvatarFallback>{data.authorNickname?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
         </Avatar>
         <div className="flex flex-col text-muted-foreground">
-          <span className="font-semibold text-sm">
-            {data.authorNickname || "Anonymous"}
-          </span>
+          <span className="font-semibold text-sm">{data.authorNickname || 'Anonymous'}</span>
           <span className="text-xs">{formattedDate}</span>
         </div>
       </div>
@@ -134,7 +128,7 @@ export const CommentItemUI = ({
             />
           </div>
         )}
-        <div className={showReplies ? "flex-1" : "ml-12"}>
+        <div className={showReplies ? 'flex-1' : 'ml-12'}>
           <div ref={parentContentRef}>
             {isDeleted ? (
               <p className="mb-4 text-muted-foreground italic text-base">
@@ -156,18 +150,12 @@ export const CommentItemUI = ({
                     disabled={!editContent?.trim() || updatingComment}
                     onClick={onEdit}
                   >
-                    {updatingComment ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      "Save"
-                    )}
+                    {updatingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
                   </Button>
                 </div>
               </div>
             ) : (
-              <p className="text-base mb-4 whitespace-pre-wrap">
-                {displayContent}
-              </p>
+              <p className="text-base mb-4 whitespace-pre-wrap break-all">{displayContent}</p>
             )}
 
             <div className="flex items-center gap-3 mb-6">
@@ -177,25 +165,21 @@ export const CommentItemUI = ({
                     variant="outline"
                     onClick={onLike}
                     className={`border-0 p-0! h-auto flex items-center gap-1 ${
-                      liked ? "text-primary" : "text-slate-700"
+                      liked ? 'text-primary' : 'text-slate-700'
                     } hover:text-foreground`}
                   >
                     <ThumbsUp className="w-4 h-4" />
-                    {likeCount > 0 && (
-                      <span className="text-xs">{likeCount}</span>
-                    )}
+                    {likeCount > 0 && <span className="text-xs">{likeCount}</span>}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={onDislike}
                     className={`border-0 p-0! h-auto flex items-center gap-1 ${
-                      disliked ? "text-primary" : "text-slate-700"
+                      disliked ? 'text-primary' : 'text-slate-700'
                     } hover:text-foreground`}
                   >
                     <ThumbsDown className="w-4 h-4" />
-                    {dislikeCount > 0 && (
-                      <span className="text-xs">{dislikeCount}</span>
-                    )}
+                    {dislikeCount > 0 && <span className="text-xs">{dislikeCount}</span>}
                   </Button>
                 </>
               )}
@@ -224,7 +208,7 @@ export const CommentItemUI = ({
                   <DropdownMenuContent align="start">
                     <DropdownMenuItem
                       onClick={() => {
-                        onEditContentChange?.(displayContent ?? "");
+                        onEditContentChange?.(displayContent ?? '');
                         onCancelEdit?.(); // This triggers edit mode in parent
                       }}
                     >
@@ -277,11 +261,7 @@ export const CommentItemUI = ({
                       disabled={!replyText?.trim() || creatingReply}
                       onClick={onPostReply}
                     >
-                      {creatingReply ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        "Post"
-                      )}
+                      {creatingReply ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Post'}
                     </Button>
                   </div>
                 </div>
