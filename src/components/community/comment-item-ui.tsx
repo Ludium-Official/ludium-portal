@@ -7,6 +7,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useCommentLineHeight } from "@/lib/hooks/use-comment-line-height";
+import { CommentItemUIData } from "@/types/comment";
 import { format } from "date-fns";
 import {
   MessageSquareMore,
@@ -17,28 +19,15 @@ import {
   Pencil,
   Trash2,
 } from "lucide-react";
-import { useState, useRef, useEffect, ReactNode } from "react";
+import { ReactNode } from "react";
 
-export interface CommentItemUIData {
-  id?: string | null;
-  authorNickname?: string | null;
-  authorProfileImage?: string | null;
-  content?: string | null;
-  likeCount?: number | null;
-  dislikeCount?: number | null;
-  replyCount?: number | null;
-  isLiked?: boolean | null;
-  isDisliked?: boolean | null;
-  createdAt?: string | null;
-  isDeleted?: boolean;
-}
+export type { CommentItemUIData };
 
 export interface CommentItemUIProps {
   data: CommentItemUIData;
   isAuthed: boolean;
   isAuthor: boolean;
 
-  // Reaction state & handlers
   liked: boolean;
   disliked: boolean;
   likeCount: number;
@@ -46,13 +35,11 @@ export interface CommentItemUIProps {
   onLike: () => void;
   onDislike: () => void;
 
-  // Reply/Comment state & handlers
   showReplies: boolean;
   replyCount: number;
   repliesLoading?: boolean;
   onToggleReplies: () => void;
 
-  // Edit/Delete handlers (optional - for article comments)
   isEditing?: boolean;
   editContent?: string;
   onEditContentChange?: (value: string) => void;
@@ -64,15 +51,14 @@ export interface CommentItemUIProps {
   currentContent?: string | null;
   isDeleted?: boolean;
 
-  // Reply input
   replyText?: string;
   onReplyTextChange?: (value: string) => void;
   onPostReply?: () => void;
   onCancelReply?: () => void;
   creatingReply?: boolean;
 
-  // Child comments
   childComments?: ReactNode;
+  childrenCount?: number;
 }
 
 export const CommentItemUI = ({
@@ -105,50 +91,16 @@ export const CommentItemUI = ({
   onCancelReply,
   creatingReply,
   childComments,
+  childrenCount = 0,
 }: CommentItemUIProps) => {
-  const childCommentsRef = useRef<HTMLDivElement>(null);
-  const [lineHeight, setLineHeight] = useState<number | null>(null);
-
-  const calculateLineHeight = () => {
-    if (showReplies && childCommentsRef.current) {
-      const children = childCommentsRef.current.children;
-      if (children.length > 1) {
-        const secondToLastChild = children[children.length - 2] as HTMLElement;
-        const containerTop = childCommentsRef.current.offsetTop;
-        const secondToLastChildTop = secondToLastChild.offsetTop;
-        setLineHeight(
-          secondToLastChildTop -
-            containerTop +
-            secondToLastChild.offsetHeight +
-            270
-        );
-      } else if (children.length === 1) {
-        setLineHeight(250);
-      } else {
-        setLineHeight(null);
-      }
-    } else {
-      setLineHeight(null);
-    }
-  };
-
-  useEffect(() => {
-    calculateLineHeight();
-  }, [showReplies, childComments]);
-
-  useEffect(() => {
-    if (!childCommentsRef.current || !showReplies) return;
-
-    const resizeObserver = new ResizeObserver(() => {
-      calculateLineHeight();
-    });
-
-    resizeObserver.observe(childCommentsRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [showReplies]);
+  const {
+    lineHeight,
+    commentsRef: childCommentsRef,
+    parentContentRef,
+  } = useCommentLineHeight({
+    showComments: showReplies,
+    commentsLength: childrenCount,
+  });
 
   const formattedDate = data.createdAt
     ? format(new Date(data.createdAt), "MMMM dd, yyyy")
@@ -183,124 +135,126 @@ export const CommentItemUI = ({
           </div>
         )}
         <div className={showReplies ? "flex-1" : "ml-12"}>
-          {isDeleted ? (
-            <p className="mb-4 text-muted-foreground italic text-base">
-              This message has been deleted
-            </p>
-          ) : isEditing ? (
-            <div className="flex flex-col gap-2 mb-4">
-              <Textarea
-                value={editContent}
-                onChange={(e) => onEditContentChange?.(e.target.value)}
-                className="h-[80px] resize-none"
-              />
-              <div className="flex gap-2 justify-end">
-                <Button size="sm" variant="outline" onClick={onCancelEdit}>
-                  Cancel
-                </Button>
-                <Button
-                  size="sm"
-                  disabled={!editContent?.trim() || updatingComment}
-                  onClick={onEdit}
-                >
-                  {updatingComment ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    "Save"
-                  )}
-                </Button>
+          <div ref={parentContentRef}>
+            {isDeleted ? (
+              <p className="mb-4 text-muted-foreground italic text-base">
+                This message has been deleted
+              </p>
+            ) : isEditing ? (
+              <div className="flex flex-col gap-2 mb-4">
+                <Textarea
+                  value={editContent}
+                  onChange={(e) => onEditContentChange?.(e.target.value)}
+                  className="h-[80px] resize-none"
+                />
+                <div className="flex gap-2 justify-end">
+                  <Button size="sm" variant="outline" onClick={onCancelEdit}>
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={!editContent?.trim() || updatingComment}
+                    onClick={onEdit}
+                  >
+                    {updatingComment ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Save"
+                    )}
+                  </Button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <p className="text-base mb-4 whitespace-pre-wrap">
-              {displayContent}
-            </p>
-          )}
-
-          <div className="flex items-center gap-3 mb-6">
-            {isAuthed && !isDeleted && (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={onLike}
-                  className={`border-0 p-0! h-auto flex items-center gap-1 ${
-                    liked ? "text-primary" : "text-slate-700"
-                  } hover:text-foreground`}
-                >
-                  <ThumbsUp className="w-4 h-4" />
-                  {likeCount > 0 && (
-                    <span className="text-xs">{likeCount}</span>
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={onDislike}
-                  className={`border-0 p-0! h-auto flex items-center gap-1 ${
-                    disliked ? "text-primary" : "text-slate-700"
-                  } hover:text-foreground`}
-                >
-                  <ThumbsDown className="w-4 h-4" />
-                  {dislikeCount > 0 && (
-                    <span className="text-xs">{dislikeCount}</span>
-                  )}
-                </Button>
-              </>
+            ) : (
+              <p className="text-base mb-4 whitespace-pre-wrap">
+                {displayContent}
+              </p>
             )}
-            <Button
-              variant="outline"
-              onClick={onToggleReplies}
-              className="border-0 p-0! h-auto flex items-center gap-1 text-xs text-slate-700 hover:text-foreground"
-            >
-              {repliesLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <MessageSquareMore className="w-4 h-4" />
-              )}
-              {replyCount > 0 && <span>{replyCount}</span>}
-            </Button>
-            {isAuthed && isAuthor && !isDeleted && onEdit && onDelete && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+
+            <div className="flex items-center gap-3 mb-6">
+              {isAuthed && !isDeleted && (
+                <>
                   <Button
                     variant="outline"
-                    className="border-0 p-0! h-auto text-slate-700 hover:text-foreground"
+                    onClick={onLike}
+                    className={`border-0 p-0! h-auto flex items-center gap-1 ${
+                      liked ? "text-primary" : "text-slate-700"
+                    } hover:text-foreground`}
                   >
-                    <MoreHorizontal className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem
-                    onClick={() => {
-                      onEditContentChange?.(displayContent ?? "");
-                      onCancelEdit?.(); // This triggers edit mode in parent
-                    }}
-                  >
-                    <Pencil className="w-4 h-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={onDelete}
-                    className="text-destructive focus:text-destructive"
-                    disabled={deletingComment}
-                  >
-                    {deletingComment ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-4 h-4 mr-2" />
+                    <ThumbsUp className="w-4 h-4" />
+                    {likeCount > 0 && (
+                      <span className="text-xs">{likeCount}</span>
                     )}
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-            {isAuthed && isAuthor && !isDeleted && !onEdit && (
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={onDislike}
+                    className={`border-0 p-0! h-auto flex items-center gap-1 ${
+                      disliked ? "text-primary" : "text-slate-700"
+                    } hover:text-foreground`}
+                  >
+                    <ThumbsDown className="w-4 h-4" />
+                    {dislikeCount > 0 && (
+                      <span className="text-xs">{dislikeCount}</span>
+                    )}
+                  </Button>
+                </>
+              )}
               <Button
                 variant="outline"
-                className="border-0 p-0! h-auto text-slate-700 hover:text-foreground"
+                onClick={onToggleReplies}
+                className="border-0 p-0! h-auto flex items-center gap-1 text-xs text-slate-700 hover:text-foreground"
               >
-                <MoreHorizontal className="w-4 h-4" />
+                {repliesLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <MessageSquareMore className="w-4 h-4" />
+                )}
+                {replyCount > 0 && <span>{replyCount}</span>}
               </Button>
-            )}
+              {isAuthed && isAuthor && !isDeleted && onEdit && onDelete && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="border-0 p-0! h-auto text-slate-700 hover:text-foreground"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        onEditContentChange?.(displayContent ?? "");
+                        onCancelEdit?.(); // This triggers edit mode in parent
+                      }}
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={onDelete}
+                      className="text-destructive focus:text-destructive"
+                      disabled={deletingComment}
+                    >
+                      {deletingComment ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4 mr-2" />
+                      )}
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              {isAuthed && isAuthor && !isDeleted && !onEdit && (
+                <Button
+                  variant="outline"
+                  className="border-0 p-0! h-auto text-slate-700 hover:text-foreground"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           </div>
 
           {showReplies && (
@@ -311,7 +265,7 @@ export const CommentItemUI = ({
                     value={replyText}
                     onChange={(e) => onReplyTextChange?.(e.target.value)}
                     placeholder="Write a comment..."
-                    className="h-[80px] resize-none"
+                    className="h-[40px] min-h-[40px] resize-none"
                   />
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" onClick={onCancelReply}>

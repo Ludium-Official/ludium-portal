@@ -226,6 +226,7 @@ export const CommentItem = ({ comment, onCommentAdded }: CommentItemProps) => {
             ))
           : undefined
       }
+      childrenCount={childComments.length}
     />
   );
 };

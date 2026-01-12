@@ -13,7 +13,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { useCommentLineHeight } from "@/lib/hooks/use-comment-line-height";
 import { Thread, ThreadReaction } from "@/types/types.generated";
+import { ThreadCommentData } from "@/types/comment";
 import { format } from "date-fns";
 import {
   Loader2,
@@ -24,7 +26,7 @@ import {
   ThumbsUp,
   Trash2,
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import ThreadCommentItem from "./thread-comment-item";
 import { MarkdownPreviewer } from "@/components/markdown";
 import { MarkdownEditor } from "@/components/markdown";
@@ -32,23 +34,6 @@ import { MarkdownEditor } from "@/components/markdown";
 interface ThreadItemProps {
   thread: Thread;
   onThreadUpdated?: () => void;
-}
-
-interface ThreadCommentData {
-  id?: string | null;
-  threadId?: string | null;
-  authorId?: number | null;
-  authorNickname?: string | null;
-  authorProfileImage?: string | null;
-  content?: string | null;
-  parentId?: string | null;
-  likeCount?: number | null;
-  dislikeCount?: number | null;
-  replyCount?: number | null;
-  isLiked?: boolean | null;
-  isDisliked?: boolean | null;
-  createdAt?: string | null;
-  deletedAt?: string | null;
 }
 
 const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
@@ -70,8 +55,10 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
   const [currentAuthorProfileImage] = useState(thread.authorProfileImage);
   const [isDeleted, setIsDeleted] = useState(false);
 
-  const commentsRef = useRef<HTMLDivElement>(null);
-  const [lineHeight, setLineHeight] = useState<number | null>(null);
+  const { lineHeight, commentsRef, parentContentRef } = useCommentLineHeight({
+    showComments,
+    commentsLength: comments.length,
+  });
 
   const [fetchComments, { loading: commentsLoading }] =
     useThreadCommentsLazyQuery();
@@ -82,45 +69,6 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
   const [deleteThread, { loading: deletingThread }] = useDeleteThreadMutation();
 
   const isAuthor = nickname === currentAuthorNickname;
-
-  const calculateLineHeight = () => {
-    if (showComments && commentsRef.current && comments.length > 0) {
-      const children = commentsRef.current.children;
-      if (children.length > 1) {
-        const secondToLastChild = children[children.length - 2] as HTMLElement;
-        const containerTop = commentsRef.current.offsetTop;
-        const secondToLastChildTop = secondToLastChild.offsetTop;
-        setLineHeight(
-          secondToLastChildTop -
-            containerTop +
-            secondToLastChild.offsetHeight +
-            230
-        );
-      } else if (children.length === 1) {
-        setLineHeight(250);
-      }
-    } else {
-      setLineHeight(null);
-    }
-  };
-
-  useEffect(() => {
-    calculateLineHeight();
-  }, [showComments, comments]);
-
-  useEffect(() => {
-    if (!commentsRef.current || !showComments) return;
-
-    const resizeObserver = new ResizeObserver(() => {
-      calculateLineHeight();
-    });
-
-    resizeObserver.observe(commentsRef.current);
-
-    return () => {
-      resizeObserver.disconnect();
-    };
-  }, [showComments, comments.length]);
 
   const handleToggleComments = async () => {
     if (!showComments && !commentsLoaded && thread.id) {
@@ -196,7 +144,6 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
       setCommentText("");
       setReplyCount((prev) => prev + 1);
 
-      // Add new comment to the top of the list without refetching all
       if (data?.createThreadComment) {
         const newComment: ThreadCommentData = {
           ...data.createThreadComment,
@@ -255,7 +202,6 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
 
   return (
     <div className="border-b pt-14 pb-10 px-8">
-      {/* Avatar + Nickname */}
       <div className="flex items-center gap-2 mb-3">
         <Avatar className="w-10 h-10 flex-shrink-0">
           <AvatarImage src={currentAuthorProfileImage || ""} />
@@ -281,117 +227,125 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
           </div>
         )}
         <div className={showComments ? "flex-1" : "ml-12"}>
-          {isDeleted ? (
-            <p className="mb-4 text-muted-foreground italic text-base">
-              This thread has been deleted
-            </p>
-          ) : isEditing ? (
-            <div className="flex flex-col gap-2 mb-4">
-              <MarkdownEditor content={editContent} onChange={setEditContent} />
-              <div className="flex gap-2 justify-end">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditContent(currentContent ?? "");
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size="sm"
-                  disabled={!editContent.trim() || updatingThread}
-                  onClick={handleEdit}
-                >
-                  {updatingThread ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    "Save"
-                  )}
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <MarkdownPreviewer value={currentContent ?? ""} className="mb-4!" />
-          )}
-
-          <div className="flex items-center gap-3 mb-6">
-            {isAuthed && !isDeleted && (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={handleLike}
-                  className={`border-0 p-0! h-auto flex items-center gap-1 ${
-                    liked ? "text-primary" : "text-slate-700"
-                  } hover:text-foreground`}
-                >
-                  <ThumbsUp className="w-4 h-4" />
-                  {likeCount > 0 && (
-                    <span className="text-xs">{likeCount}</span>
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleDislike}
-                  className={`border-0 p-0! h-auto flex items-center gap-1 ${
-                    disliked ? "text-primary" : "text-slate-700"
-                  } hover:text-foreground`}
-                >
-                  <ThumbsDown className="w-4 h-4" />
-                  {dislikeCount > 0 && (
-                    <span className="text-xs">{dislikeCount}</span>
-                  )}
-                </Button>
-              </>
-            )}
-            <Button
-              variant="outline"
-              onClick={handleToggleComments}
-              className="border-0 p-0! h-auto flex items-center gap-1 text-xs text-slate-700 hover:text-foreground"
-            >
-              {commentsLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <MessageSquareMore className="w-4 h-4" />
-              )}
-              {replyCount > 0 && <span>{replyCount}</span>}
-            </Button>
-            {isAuthed && isAuthor && !isDeleted && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+          <div ref={parentContentRef}>
+            {isDeleted ? (
+              <p className="mb-4 text-muted-foreground italic text-base">
+                This thread has been deleted
+              </p>
+            ) : isEditing ? (
+              <div className="flex flex-col gap-2 mb-4">
+                <MarkdownEditor
+                  content={editContent}
+                  onChange={setEditContent}
+                />
+                <div className="flex gap-2 justify-end">
                   <Button
+                    size="sm"
                     variant="outline"
-                    className="border-0 p-0! h-auto text-slate-700 hover:text-foreground"
-                  >
-                    <MoreHorizontal className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem
                     onClick={() => {
-                      setIsEditing(true);
+                      setIsEditing(false);
                       setEditContent(currentContent ?? "");
                     }}
                   >
-                    <Pencil className="w-4 h-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={handleDelete}
-                    className="text-destructive focus:text-destructive"
-                    disabled={deletingThread}
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={!editContent.trim() || updatingThread}
+                    onClick={handleEdit}
                   >
-                    {deletingThread ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {updatingThread ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      <Trash2 className="w-4 h-4 mr-2" />
+                      "Save"
                     )}
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <MarkdownPreviewer
+                value={currentContent ?? ""}
+                className="mb-4!"
+              />
             )}
+
+            <div className="flex items-center gap-3 mb-6">
+              {isAuthed && !isDeleted && (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={handleLike}
+                    className={`border-0 p-0! h-auto flex items-center gap-1 ${
+                      liked ? "text-primary" : "text-slate-700"
+                    } hover:text-foreground`}
+                  >
+                    <ThumbsUp className="w-4 h-4" />
+                    {likeCount > 0 && (
+                      <span className="text-xs">{likeCount}</span>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleDislike}
+                    className={`border-0 p-0! h-auto flex items-center gap-1 ${
+                      disliked ? "text-primary" : "text-slate-700"
+                    } hover:text-foreground`}
+                  >
+                    <ThumbsDown className="w-4 h-4" />
+                    {dislikeCount > 0 && (
+                      <span className="text-xs">{dislikeCount}</span>
+                    )}
+                  </Button>
+                </>
+              )}
+              <Button
+                variant="outline"
+                onClick={handleToggleComments}
+                className="border-0 p-0! h-auto flex items-center gap-1 text-xs text-slate-700 hover:text-foreground"
+              >
+                {commentsLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <MessageSquareMore className="w-4 h-4" />
+                )}
+                {replyCount > 0 && <span>{replyCount}</span>}
+              </Button>
+              {isAuthed && isAuthor && !isDeleted && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="border-0 p-0! h-auto text-slate-700 hover:text-foreground"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setIsEditing(true);
+                        setEditContent(currentContent ?? "");
+                      }}
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={handleDelete}
+                      className="text-destructive focus:text-destructive"
+                      disabled={deletingThread}
+                    >
+                      {deletingThread ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4 mr-2" />
+                      )}
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           </div>
 
           {showComments && (
