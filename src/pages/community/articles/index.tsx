@@ -1,25 +1,25 @@
-import CommunityBanner from '@/assets/icons/community/articles/banners/CommunityBanner.svg';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/hooks/use-auth';
-import notify from '@/lib/notify';
-import { shuffleArray } from '@/lib/utils';
-import Autoplay from 'embla-carousel-autoplay';
-import useEmblaCarousel from 'embla-carousel-react';
-import { CirclePlus } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import ArticlesContent from './_components/articles-content';
+import CommunityBanner from "@/assets/icons/community/articles/banners/CommunityBanner.svg";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/hooks/use-auth";
+import notify from "@/lib/notify";
+import { shuffleArray } from "@/lib/utils";
+import Autoplay from "embla-carousel-autoplay";
+import useEmblaCarousel from "embla-carousel-react";
+import { CirclePlus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router";
+import ArticlesContent from "./_components/articles-content";
 
 const BANNER_DATA = [
   {
     id: 1,
     image: CommunityBanner,
-    link: '/community/articles',
+    link: "/community/articles",
   },
   {
     id: 2,
     image: CommunityBanner,
-    link: '/community/articles',
+    link: "/community/articles",
   },
 ];
 
@@ -43,16 +43,16 @@ const ArticlesPage: React.FC = () => {
           {shuffledBanners.map((banner) => (
             <div
               key={banner.id}
-              className="flex-[0_0_100%] min-w-0 max-h-[380px] flex items-center justify-center"
+              className="flex-[0_0_100%] min-w-0 flex items-center justify-center"
             >
               <Link
                 to={banner.link}
-                className="block relative overflow-hidden cursor-pointer w-full"
+                className="block relative overflow-hidden cursor-pointer w-full sm:h-[380px]"
               >
                 <img
                   src={banner.image}
                   alt={`Banner ${banner.id}`}
-                  className="w-full object-cover transition-transform duration-700 ease-in-out"
+                  className="w-full h-full object-cover transition-transform duration-700 ease-in-out"
                 />
               </Link>
             </div>
@@ -60,7 +60,7 @@ const ArticlesPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="mx-auto px-25 py-11">
+      <div className="sm:max-w-[1250px] mx-auto px-5 py-11">
         <div className="flex items-center justify-between mb-15">
           <h2 className="text-3xl font-bold">Articles</h2>
           {isLoggedIn && (
@@ -68,12 +68,12 @@ const ArticlesPage: React.FC = () => {
               className="gap-2 rounded-[6px] px-3"
               onClick={() => {
                 if (!isAuthed) {
-                  notify('Please add your email', 'success');
-                  navigate('/profile');
+                  notify("Please add your email", "success");
+                  navigate("/profile");
                   return;
                 }
 
-                navigate('/community/articles/create');
+                navigate("/community/articles/create");
               }}
               variant="outline"
             >
