@@ -151,7 +151,10 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
   const onSubmit = (formData: ArticleFormData, action: 'draft' | 'publish') => {
     if (!formData.description.trim()) return;
 
-    if (!isEdit && formData.isPin && pinnedArticlesInCategory.length >= 2) {
+    // If trying to pin and already 2 pinned articles exist
+    // Skip modal if article was already pinned (edit mode)
+    const wasAlreadyPinned = isEdit && data?.article?.isPin;
+    if (!wasAlreadyPinned && formData.isPin && pinnedArticlesInCategory.length >= 2) {
       setPendingFormData(formData);
       setPendingAction(action);
       setShowPinModal(true);
@@ -241,15 +244,10 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
                 id="isPin"
                 checked={isPin}
                 onCheckedChange={(checked) => setValue('isPin', checked as boolean)}
-                disabled={isEdit}
               />
               <Label
                 htmlFor="isPin"
-                className={`text-sm font-medium leading-none ${
-                  isEdit
-                    ? 'cursor-not-allowed opacity-50'
-                    : 'peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
-                }`}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 Pin to top of category
               </Label>

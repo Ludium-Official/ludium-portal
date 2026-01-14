@@ -140,7 +140,7 @@ export const MediaGallery = ({ images, className = '' }: MediaGalleryProps) => {
       <div className={className}>{renderGrid()}</div>
 
       <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
-        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-black/90 border-none">
+        <DialogContent className="max-w-[90vw]! max-h-[90vh]! p-0 bg-black/90 border-none">
           <button
             onClick={() => setViewerOpen(false)}
             className="absolute top-4 right-4 z-50 text-white hover:text-gray-300"
@@ -354,5 +354,5 @@ export const MediaUploadPreview = ({ files, onRemove }: MediaUploadPreviewProps)
     );
   };
 
-  return <div className="mt-3">{renderGrid()}</div>;
+  return <div>{renderGrid()}</div>;
 };

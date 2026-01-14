@@ -33,7 +33,7 @@ import RecommendedArticles from '../_components/recommended-articles';
 const ArticleDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthed } = useAuth();
+  const { isAuthed, isAdmin, userId } = useAuth();
 
   const [comment, setComment] = useState('');
   const [showComments, setShowComments] = useState(true);
@@ -140,29 +140,32 @@ const ArticleDetailPage = () => {
                   </p>
                 </div>
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <EllipsisVertical className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => navigate(`/community/articles/${id}/edit`)}
-                    className="cursor-pointer"
-                  >
-                    <Pencil className="w-4 h-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="text-destructive focus:text-destructive cursor-pointer"
-                    disabled
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {(isAdmin ||
+                (userId && article.author?.id && String(userId) === String(article.author.id))) && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <EllipsisVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => navigate(`/community/articles/${id}/edit`)}
+                      className="cursor-pointer"
+                    >
+                      <Pencil className="w-4 h-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive cursor-pointer"
+                      disabled
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
 

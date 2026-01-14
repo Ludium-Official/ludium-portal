@@ -1,6 +1,7 @@
 import { useThreadsQuery } from '@/apollo/queries/threads.generated';
 import { useMyThreadsQuery } from '@/apollo/queries/my-threads.generated';
 import { useTopViewedArticlesQuery } from '@/apollo/queries/top-viewed-articles.generated';
+import { TopViewedArticlesQuery } from '@/apollo/queries/top-viewed-articles.generated';
 import { useCreateThreadMutation } from '@/apollo/mutation/create-thread.generated';
 import { MediaUploadPreview } from '@/components/community/media-gallery';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,6 +17,86 @@ import { Thread } from '@/types/types.generated';
 
 type TabType = 'all' | 'myPost';
 
+interface TabHeaderProps {
+  activeTab: TabType;
+  setActiveTab: (tab: TabType) => void;
+  isLoggedIn: boolean;
+  isAuthed: boolean;
+  onPostClick: () => void;
+}
+
+const TabHeader = ({
+  activeTab,
+  setActiveTab,
+  isLoggedIn,
+  isAuthed,
+  onPostClick,
+}: TabHeaderProps) => (
+  <div className="flex items-center justify-between">
+    <div className="flex gap-2">
+      <button
+        onClick={() => setActiveTab('all')}
+        className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+          activeTab === 'all'
+            ? 'border-primary text-primary'
+            : 'border-transparent text-muted-foreground hover:text-foreground'
+        }`}
+      >
+        All
+      </button>
+      {isLoggedIn && (
+        <button
+          onClick={() => setActiveTab('myPost')}
+          className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === 'myPost'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          My Post
+        </button>
+      )}
+    </div>
+    {isAuthed && (
+      <Button variant="outline" size="sm" className="gap-2" onClick={onPostClick}>
+        <CirclePlus className="w-4 h-4" />
+        Post
+      </Button>
+    )}
+  </div>
+);
+interface TrendingArticlesProps {
+  articles: NonNullable<TopViewedArticlesQuery['topViewedArticles']>;
+}
+
+const TrendingArticles = ({ articles }: TrendingArticlesProps) => (
+  <div className="bg-white border border-gray-200 rounded-md px-3 py-5">
+    <h3 className="font-semibold text-lg mb-4 text-gray-500">Trending Articles</h3>
+    <div className="flex flex-col gap-5">
+      {articles.slice(0, 6).map((article) => (
+        <Link
+          key={article.id}
+          to={`/community/articles/${article.id}`}
+          className="border-b border-gray-200 hover:bg-gray-50 pb-5 transition-colors last:border-b-0 last:pb-0"
+        >
+          <h4 className="mb-2 font-bold text-sm">{article.title}</h4>
+          <div className="flex items-center gap-2">
+            <Avatar className="w-5 h-5">
+              <AvatarImage src={article.author?.profileImage || ''} />
+              <AvatarFallback className="text-xs">
+                {article.author?.nickname?.[0] || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-xs text-muted-foreground">
+              {article.author?.nickname || 'Anonymous'}
+            </span>
+          </div>
+        </Link>
+      ))}
+    </div>
+  </div>
+);
+
 const ThreadsPage = () => {
   const { isAuthed, isLoggedIn } = useAuth();
 
@@ -28,8 +109,17 @@ const ThreadsPage = () => {
   const [postMedia, setPostMedia] = useState<File[]>([]);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const isLoadingRef = useRef(false);
+  const trendingPlaceholderRef = useRef<HTMLDivElement | null>(null);
+  const tabHeaderPlaceholderRef = useRef<HTMLDivElement | null>(null);
+  const [trendingLeft, setTrendingLeft] = useState<number | null>(null);
+  const [tabHeaderPosition, setTabHeaderPosition] = useState<{
+    left: number;
+    width: number;
+  } | null>(null);
+  const [isFixed, setIsFixed] = useState(false);
+  const [isTabHeaderFixed, setIsTabHeaderFixed] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -75,13 +165,16 @@ const ThreadsPage = () => {
   const isLoading = activeTab === 'all' ? threadsLoading : myThreadsLoading;
   const totalCount = currentData?.count ?? 0;
 
-  // Append new data when page changes
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
+
   useEffect(() => {
     if (currentData?.data) {
       const newData = currentData.data as Thread[];
       if (page === 1) {
         setThreads(newData);
-        setHasMore(newData.length < totalCount);
+        setHasMore(newData.length >= itemsPerPage && newData.length < totalCount);
       } else {
         setThreads((prev) => {
           const existingIds = new Set(prev.map((t) => t.id));
@@ -93,6 +186,7 @@ const ThreadsPage = () => {
       }
     } else if (!isLoading && page === 1) {
       setThreads([]);
+      setHasMore(false);
     }
   }, [currentData, isLoading, page, totalCount]);
 
@@ -103,27 +197,26 @@ const ThreadsPage = () => {
   }, [activeTab]);
 
   const handleLoadMore = useCallback(() => {
-    if (!isLoading && hasMore) {
+    if (!isLoadingRef.current && hasMore) {
       setPage((prev) => prev + 1);
     }
-  }, [isLoading, hasMore]);
+  }, [hasMore]);
 
   useEffect(() => {
     if (observerRef.current) {
       observerRef.current.disconnect();
     }
 
-    if (!scrollContainerRef.current) return;
+    if (!hasMore) return;
 
     observerRef.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoading) {
+        if (entries[0].isIntersecting && !isLoadingRef.current) {
           handleLoadMore();
         }
       },
       {
         threshold: 0.1,
-        root: scrollContainerRef.current,
         rootMargin: '100px',
       },
     );
@@ -137,7 +230,7 @@ const ThreadsPage = () => {
         observerRef.current.disconnect();
       }
     };
-  }, [handleLoadMore, hasMore, isLoading, threads.length]);
+  }, [handleLoadMore, hasMore]);
 
   const handlePostThread = async () => {
     if (!postContent.trim() && postMedia.length === 0) return;
@@ -180,113 +273,146 @@ const ThreadsPage = () => {
     setPostMedia((prev) => prev.filter((_, i) => i !== index));
   };
 
+  useEffect(() => {
+    const findScrollContainer = (): Element | null => {
+      const radixViewport = document.querySelector('[data-radix-scroll-area-viewport]');
+      if (radixViewport) return radixViewport;
+
+      let element = trendingPlaceholderRef.current?.parentElement;
+      while (element) {
+        const style = window.getComputedStyle(element);
+        if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+          return element;
+        }
+        element = element.parentElement;
+      }
+      return null;
+    };
+
+    const scrollContainer = findScrollContainer();
+
+    const updatePosition = () => {
+      if (trendingPlaceholderRef.current) {
+        const rect = trendingPlaceholderRef.current.getBoundingClientRect();
+        setTrendingLeft(rect.left);
+      }
+      if (tabHeaderPlaceholderRef.current) {
+        const rect = tabHeaderPlaceholderRef.current.getBoundingClientRect();
+        setTabHeaderPosition({ left: rect.left, width: rect.width });
+      }
+    };
+
+    const handleScroll = () => {
+      const threshold = 12;
+
+      if (trendingPlaceholderRef.current) {
+        const rect = trendingPlaceholderRef.current.getBoundingClientRect();
+        setTrendingLeft(rect.left);
+        setIsFixed(rect.top <= threshold);
+      }
+
+      if (tabHeaderPlaceholderRef.current) {
+        const rect = tabHeaderPlaceholderRef.current.getBoundingClientRect();
+        setTabHeaderPosition({ left: rect.left, width: rect.width });
+        setIsTabHeaderFixed(rect.top <= threshold);
+      }
+    };
+
+    updatePosition();
+
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+      handleScroll();
+    }
+    window.addEventListener('resize', updatePosition);
+
+    return () => {
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', handleScroll);
+      }
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, []);
+
   const trendingArticles = trendingData?.topViewedArticles ?? [];
 
   return (
-    <div className="h-screen overflow-hidden">
-      <div className="max-w-[1200px] mx-auto px-6 py-10 h-full">
-        <div className="flex gap-7 h-full">
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between mb-4 pb-4 flex-shrink-0">
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setActiveTab('all')}
-                  className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'all'
-                      ? 'border-primary text-primary'
-                      : 'border-transparent text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  All
-                </button>
-                {isLoggedIn && (
-                  <button
-                    onClick={() => setActiveTab('myPost')}
-                    className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-                      activeTab === 'myPost'
-                        ? 'border-primary text-primary'
-                        : 'border-transparent text-muted-foreground hover:text-foreground'
-                    }`}
-                  >
-                    My Post
-                  </button>
-                )}
-              </div>
-              {isAuthed && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={() => setShowPostForm(true)}
-                >
-                  <CirclePlus className="w-4 h-4" />
-                  Post
-                </Button>
+    <div className="min-h-screen">
+      <div className="max-w-[1000px] mx-auto px-6 py-10">
+        <div className="flex gap-7">
+          <div className="flex-1">
+            <div ref={tabHeaderPlaceholderRef} className="mb-4 pb-4">
+              {!isTabHeaderFixed && (
+                <TabHeader
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                  isLoggedIn={!!isLoggedIn}
+                  isAuthed={!!isAuthed}
+                  onPostClick={() => setShowPostForm(true)}
+                />
               )}
             </div>
 
-            <div className="bg-white rounded-md border border-gray-200 flex-1 overflow-hidden flex flex-col">
-              <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
-                {threads.map((thread) => (
-                  <ThreadItem
-                    key={thread.id}
-                    thread={thread}
-                    onThreadUpdated={() => {
-                      if (activeTab === 'all') {
-                        refetchThreads();
-                      } else {
-                        refetchMyThreads();
-                      }
-                    }}
-                  />
-                ))}
+            <div className="bg-white rounded-md border border-gray-200">
+              {threads.map((thread) => (
+                <ThreadItem
+                  key={thread.id}
+                  thread={thread}
+                  onThreadUpdated={() => {
+                    if (activeTab === 'all') {
+                      refetchThreads();
+                    } else {
+                      refetchMyThreads();
+                    }
+                  }}
+                />
+              ))}
 
-                {isLoading && (
-                  <div className="flex justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  </div>
-                )}
+              {isLoading && (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                </div>
+              )}
 
-                {!isLoading && threads.length === 0 && (
-                  <div className="text-center py-12">
-                    <p className="text-muted-foreground">No threads found</p>
-                  </div>
-                )}
+              {!isLoading && threads.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">No threads found</p>
+                </div>
+              )}
 
-                {hasMore && <div ref={loadMoreRef} className="h-10" />}
-              </div>
+              {hasMore && <div ref={loadMoreRef} className="h-10" />}
             </div>
           </div>
 
-          <div className="w-[280px] h-fit flex-shrink-0 bg-white border border-gray-200 rounded-md px-3 py-5">
-            <div>
-              <h3 className="font-semibold text-lg mb-4 text-gray-500">Trending Articles</h3>
-              <div className="flex flex-col gap-5">
-                {trendingArticles.slice(0, 6).map((article) => (
-                  <Link
-                    key={article.id}
-                    to={`/community/articles/${article.id}`}
-                    className="border-b border-gray-200 hover:bg-gray-50 pb-5 transition-colors last:border-b-0 last:pb-0"
-                  >
-                    <h4 className="mb-2 font-bold text-sm">{article.title}</h4>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="w-5 h-5">
-                        <AvatarImage src={article.author?.profileImage || ''} />
-                        <AvatarFallback className="text-xs">
-                          {article.author?.nickname?.[0] || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-xs text-muted-foreground">
-                        {article.author?.nickname || 'Anonymous'}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
+          <div ref={trendingPlaceholderRef} className="w-[280px] flex-shrink-0">
+            {!isFixed && <TrendingArticles articles={trendingArticles} />}
           </div>
         </div>
       </div>
+
+      {isTabHeaderFixed && tabHeaderPosition !== null && (
+        <div
+          className="fixed top-3 bg-gray-light py-2"
+          style={{
+            left: tabHeaderPosition.left,
+            width: tabHeaderPosition.width,
+          }}
+        >
+          <TabHeader
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            isLoggedIn={!!isLoggedIn}
+            isAuthed={!!isAuthed}
+            onPostClick={() => setShowPostForm(true)}
+          />
+        </div>
+      )}
+
+      {isFixed && trendingLeft !== null && (
+        <div className="fixed top-3 w-[280px] mt-2" style={{ left: trendingLeft }}>
+          <TrendingArticles articles={trendingArticles} />
+        </div>
+      )}
 
       <Dialog
         open={showPostForm}

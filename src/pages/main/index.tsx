@@ -1,28 +1,40 @@
-import { useArticlesQuery } from "@/apollo/queries/articles.generated";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
+import { useArticlesQuery } from '@/apollo/queries/articles.generated';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import {
   Carousel,
   type CarouselApi,
   CarouselContent,
   CarouselItem,
-} from "@/components/ui/carousel";
-import { ArticleFilter, ArticleType } from "@/types/types.generated";
-import Autoplay from "embla-carousel-autoplay";
-import { format } from "date-fns";
-import { ArrowRight } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router";
-import recruitmentMainImage from "@/assets/icons/main/recruitment-main.png";
+} from '@/components/ui/carousel';
+import { ArticleFilter, ArticleType } from '@/types/types.generated';
+import Autoplay from 'embla-carousel-autoplay';
+import { format } from 'date-fns';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router';
+import recruitmentMainImage from '@/assets/icons/main/banner/recruitment-main.png';
+import campaignMainImage from '@/assets/icons/main/campaign-main.jpg';
+import rightArrowIcon from '@/assets/icons/right-arrow.svg';
 
-const MOCK_BANNER_IMAGES = [
-  "https://images.unsplash.com/photo-1557683316-973673baf926?w=1200&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=1200&h=400&fit=crop",
-  "https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?w=1200&h=400&fit=crop",
+const MOCK_BANNER = [
+  {
+    image: recruitmentMainImage,
+    link: '/programs/recruitment',
+  },
+  {
+    image: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&h=400&fit=crop',
+    link: '/programs/recruitment',
+  },
 ];
 
-const CATEGORIES = ["latest", "trending", "newsletter", "campaign"] as const;
+const CAMPAIGN_DATA = {
+  title: 'Road to Seoul',
+  description: "Connecting the World's Builders to Seoul",
+  image: campaignMainImage,
+  link: '/community/articles/5c48e4bd-c2ea-49e9-9c25-35b4a906bd1f',
+};
+
+const CATEGORIES = ['latest', 'trending', 'newsletter', 'campaign'] as const;
 type CategoryType = (typeof CATEGORIES)[number];
 
 const CATEGORY_FILTER_MAP: Record<CategoryType, ArticleFilter> = {
@@ -33,10 +45,10 @@ const CATEGORY_FILTER_MAP: Record<CategoryType, ArticleFilter> = {
 };
 
 const CATEGORY_DISPLAY_MAP: Record<CategoryType, string> = {
-  latest: "Latest",
-  trending: "Trending",
-  newsletter: "Newsletter",
-  campaign: "Campaign",
+  latest: 'Latest',
+  trending: 'Trending',
+  newsletter: 'Newsletter',
+  campaign: 'Campaign',
 };
 
 function MainPage() {
@@ -45,12 +57,10 @@ function MainPage() {
   const [current, setCurrent] = useState(0);
   const [snaps, setSnaps] = useState<number[]>([]);
 
-  const categoryParam = searchParams.get("category") as CategoryType | null;
-  const selectedCategory: CategoryType = CATEGORIES.includes(
-    categoryParam as CategoryType
-  )
+  const categoryParam = searchParams.get('category') as CategoryType | null;
+  const selectedCategory: CategoryType = CATEGORIES.includes(categoryParam as CategoryType)
     ? (categoryParam as CategoryType)
-    : "latest";
+    : 'latest';
 
   const onSelect = useCallback(() => {
     if (!api) return;
@@ -61,9 +71,9 @@ function MainPage() {
     if (!api) return;
     setSnaps(api.scrollSnapList());
     onSelect();
-    api.on("select", onSelect);
+    api.on('select', onSelect);
     return () => {
-      api.off("select", onSelect);
+      api.off('select', onSelect);
     };
   }, [api, onSelect]);
 
@@ -92,20 +102,20 @@ function MainPage() {
             }),
           ]}
           opts={{
-            align: "start",
+            align: 'start',
             loop: true,
           }}
         >
           <CarouselContent>
-            {MOCK_BANNER_IMAGES.map((image, index) => (
+            {MOCK_BANNER.map((banner, index) => (
               <CarouselItem key={index}>
-                <div className="w-full h-[380px] rounded-lg overflow-hidden">
+                <Link to={banner.link} className="w-full h-[380px] rounded-lg overflow-hidden">
                   <img
-                    src={image}
+                    src={banner.image}
                     alt={`Banner ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover rounded-lg"
                   />
-                </div>
+                </Link>
               </CarouselItem>
             ))}
           </CarouselContent>
@@ -118,38 +128,10 @@ function MainPage() {
               onClick={() => api?.scrollTo(i)}
               size="icon"
               className={`rounded-full hover:bg-primary-light ${
-                current === i ? "w-6 h-2 bg-foreground" : "w-2 h-2 bg-gray-300"
+                current === i ? 'w-6 h-2 bg-foreground' : 'w-2 h-2 bg-gray-300'
               }`}
             />
           ))}
-        </div>
-      </div>
-
-      <div className="bg-gradient-to-b from-violet-100/20 to-blue-700/20 mt-20">
-        <div className="relative max-w-[1210px] mx-auto px-5 pt-12 pb-20 overflow-hidden">
-          <img
-            src={recruitmentMainImage}
-            alt="Recruitment"
-            className="absolute right-0 -top-10 md:w-[609px] md:h-[609px]"
-          />
-          <div className="relative z-10 flex flex-col justify-between gap-24">
-            <div className="flex justify-between">
-              <h2 className="max-w-[443px] leading-13 text-3xl md:text-4xl font-bold">
-                Turn contributions
-                <br />
-                into shared opportunities
-              </h2>
-              <Link to="/programs/recruitment" className="h-fit">
-                <ArrowRight className="w-10 h-10" />
-              </Link>
-            </div>
-            <p className="w-100 text-xl">
-              Ludium connects builders and sponsors through real contributions.
-              <br />
-              Show what you've built, discover talented teams, and turn your
-              work into meaningful opportunities that benefit everyone.
-            </p>
-          </div>
         </div>
       </div>
 
@@ -157,12 +139,14 @@ function MainPage() {
         <div className="flex justify-between items-center mb-9">
           <div>
             <h2 className="text-3xl font-bold mb-2">Articles</h2>
-            <p className="text-xl">
-              Insights, stories, and deep dives into the Web3 landscape.
-            </p>
+            <p className="text-xl">Insights, stories, and deep dives into the Web3 landscape.</p>
           </div>
-          <Link to="/community/articles" className="flex items-center gap-2">
-            <ArrowRight className="w-10 h-10" />
+          <Link to="/community/articles" className="flex items-center gap-2 group">
+            <img
+              src={rightArrowIcon}
+              alt="right-arrow"
+              className="w-10 h-10 transition-transform duration-300 group-hover:translate-x-2"
+            />
           </Link>
         </div>
 
@@ -170,10 +154,10 @@ function MainPage() {
           {CATEGORIES.map((category) => (
             <Button
               key={category}
-              variant={selectedCategory === category ? "default" : "outline"}
+              variant={selectedCategory === category ? 'default' : 'outline'}
               onClick={() => {
                 const newSP = new URLSearchParams(searchParams);
-                newSP.set("category", category);
+                newSP.set('category', category);
                 setSearchParams(newSP);
               }}
               className="rounded-full px-4 py-2 h-fit text-sm"
@@ -195,48 +179,86 @@ function MainPage() {
           ) : (
             <>
               {articles.slice(0, 6).map((article) => (
-                <Link
-                  key={article.id}
-                  to={`/community/articles/${article.id}`}
-                  className="group"
-                >
+                <Link key={article.id} to={`/community/articles/${article.id}`} className="group">
                   <div
                     className={`overflow-hidden rounded-lg mb-3 ${
-                      article.type === ArticleType.Campaign
-                        ? "aspect-square"
-                        : "aspect-[5/3]"
+                      article.type === ArticleType.Campaign ? 'aspect-square' : 'aspect-[5/3]'
                     }`}
                   >
                     <img
-                      src={article.coverImage || ""}
-                      alt={article.title || ""}
+                      src={article.coverImage || ''}
+                      alt={article.title || ''}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
                   <div className="flex items-center gap-2 mb-2">
                     <Avatar className="w-5 h-5">
-                      <AvatarImage src={article.author?.profileImage || ""} />
+                      <AvatarImage src={article.author?.profileImage || ''} />
                       <AvatarFallback className="text-xs">
-                        {article.author?.nickname?.[0] || "U"}
+                        {article.author?.nickname?.[0] || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-xs text-muted-foreground">
-                      {article.author?.nickname || "Anonymous"}
+                      {article.author?.nickname || 'Anonymous'}
                     </span>
                   </div>
-                  <h3 className="font-semibold text-base line-clamp-2 mb-1">
-                    {article.title}
-                  </h3>
+                  <h3 className="font-semibold text-base line-clamp-2 mb-1">{article.title}</h3>
                   <p className="text-xs text-muted-foreground">
-                    {article.createdAt
-                      ? format(new Date(article.createdAt), "MMMM dd, yyyy")
-                      : ""}
+                    {article.createdAt ? format(new Date(article.createdAt), 'MMMM dd, yyyy') : ''}
                   </p>
                 </Link>
               ))}
             </>
           )}
         </div>
+      </div>
+
+      <div className="bg-gradient-to-b from-violet-100/20 to-blue-700/20 mt-20">
+        <div className="max-w-[1210px] mx-auto px-5 pt-17 pb-20 overflow-hidden">
+          <div className="flex items-center justify-between mb-9">
+            <div>
+              <h2 className="mb-3 text-3xl font-bold">Campaign</h2>
+              <p className="text-xl">
+                Explore events, initiatives, and special programs from our ecosystem.
+              </p>
+            </div>
+            <Link to={CAMPAIGN_DATA.link} className="h-fit group">
+              <img
+                src={rightArrowIcon}
+                alt="right-arrow"
+                className="w-10 h-10 transition-transform duration-300 group-hover:translate-x-2"
+              />
+            </Link>
+          </div>
+          <div className="flex items-end gap-9">
+            <img
+              src={CAMPAIGN_DATA.image}
+              alt={CAMPAIGN_DATA.title}
+              className="w-80 h-80 object-cover"
+            />
+            <div className="flex flex-col gap-4 mb-8">
+              <div className="text-4xl font-bold">{CAMPAIGN_DATA.title}</div>
+              <div className="text-3xl">{CAMPAIGN_DATA.description}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-[1210px] mx-auto px-5 pt-17 pb-20 overflow-hidden">
+        <div className="flex items-center justify-between mb-9">
+          <div>
+            <h2 className="mb-3 text-3xl font-bold">Guides</h2>
+            <p className="text-xl">Guiding you through the platform, step by step.</p>
+          </div>
+          <Link to="/about/guides" className="h-fit group">
+            <img
+              src={rightArrowIcon}
+              alt="right-arrow"
+              className="w-10 h-10 transition-transform duration-300 group-hover:translate-x-2"
+            />
+          </Link>
+        </div>
+        <div>Guide</div>
       </div>
     </div>
   );

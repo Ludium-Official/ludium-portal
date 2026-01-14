@@ -2,9 +2,8 @@ import logoFooter from '@/assets/logo-footer.svg';
 import customerService from '@/assets/social/customer-service.svg';
 import twitter from '@/assets/social/twitter.svg';
 import { Link } from 'react-router';
-import Discord from '../../assets/social/discord.svg?react';
-// import youtube from '@/assets/social/youtube.svg';
-import Youtube from '../../assets/social/youtube.svg?react';
+import Discord from '@/assets/social/discord.svg?react';
+import Youtube from '@/assets/social/youtube.svg?react';
 
 function Footer() {
   return (
@@ -46,12 +45,6 @@ function Footer() {
               <img src={customerService} alt="customer-service" /> Customer Service{' '}
             </a>
           </div>
-        </div>
-        <div className="text-xs md:text-sm text-center md:text-left mt-4 md:mt-0">
-          <p className="leading-[25px]">주식회사 루디움</p>
-          <p className="leading-[25px]">대표자 : 임동선 l 사업자등록번호: 379-87-03224</p>
-          <p className="leading-[25px]">서울시 서초구 강남대로 305 B117-14</p>
-          <p className="leading-[25px]">이용약관 l 개인정보처리방침 l 운영 정책</p>
         </div>
       </div>
     </footer>

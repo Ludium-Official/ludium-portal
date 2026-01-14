@@ -1,16 +1,38 @@
 import client from '@/apollo/client';
 import { useUpdateArticleMutation } from '@/apollo/mutation/update-article.generated';
+import { useArticleQuery } from '@/apollo/queries/article.generated';
 import { ArticlesDocument } from '@/apollo/queries/articles.generated';
+import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import { ArticleStatus } from '@/types/types.generated';
+import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import ArticleForm, { type OnSubmitArticleFunc } from '../_components/article-form';
 
 const EditArticlePage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { userId, isAdmin, isAuthLoading } = useAuth();
+
+  const { data: articleData, loading: articleLoading } = useArticleQuery({
+    variables: { id: id ?? '' },
+    skip: !id,
+  });
 
   const [updateArticle, { loading }] = useUpdateArticleMutation();
+
+  const authorId = articleData?.article?.author?.id;
+  const isAuthor = authorId && userId && String(authorId) === String(userId);
+  const hasPermission = isAdmin || isAuthor;
+
+  useEffect(() => {
+    if (isAuthLoading || articleLoading) return;
+
+    if (!hasPermission) {
+      notify('You do not have permission to edit this article', 'error');
+      navigate(`/community/articles/${id}`);
+    }
+  }, [isAuthLoading, articleLoading, hasPermission, navigate, id]);
 
   const onSubmit: OnSubmitArticleFunc = (data, action) => {
     if (!data.description.trim()) {
@@ -44,6 +66,16 @@ const EditArticlePage: React.FC = () => {
       },
     });
   };
+
+  // Show nothing while checking permissions
+  if (isAuthLoading || articleLoading) {
+    return null;
+  }
+
+  // Don't render if no permission (useEffect will redirect)
+  if (!hasPermission) {
+    return null;
+  }
 
   return (
     <div className="bg-white px-25 py-[30px] rounded-2xl">

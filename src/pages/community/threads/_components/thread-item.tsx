@@ -245,7 +245,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
   const formattedDate = thread.createdAt ? format(new Date(thread.createdAt), 'MMMM dd, yyyy') : '';
 
   return (
-    <div className="border-b pt-14 pb-10 px-8">
+    <div className="border-b py-5 px-8">
       <div className="flex items-center gap-2 mb-3">
         <Avatar className="w-10 h-10 flex-shrink-0">
           <AvatarImage src={currentAuthorProfileImage || ''} />
