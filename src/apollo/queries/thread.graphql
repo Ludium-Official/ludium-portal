@@ -11,5 +11,6 @@ query thread($id: ID!) {
     isDisliked
     createdAt
     updatedAt
+    images
   }
 }

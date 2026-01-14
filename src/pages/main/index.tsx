@@ -13,16 +13,13 @@ import { format } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import recruitmentMainImage from '@/assets/icons/main/banner/recruitment-main.png';
-import campaignMainImage from '@/assets/icons/main/campaign-main.jpg';
+import campaignMainImage from '@/assets/icons/main/campaign-main.png';
 import rightArrowIcon from '@/assets/icons/right-arrow.svg';
+import { GUIDES } from '@/constant/guides';
 
-const MOCK_BANNER = [
+const BANNER = [
   {
     image: recruitmentMainImage,
-    link: '/programs/recruitment',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&h=400&fit=crop',
     link: '/programs/recruitment',
   },
 ];
@@ -107,7 +104,7 @@ function MainPage() {
           }}
         >
           <CarouselContent>
-            {MOCK_BANNER.map((banner, index) => (
+            {BANNER.map((banner, index) => (
               <CarouselItem key={index}>
                 <Link to={banner.link} className="w-full h-[380px] rounded-lg overflow-hidden">
                   <img
@@ -258,7 +255,22 @@ function MainPage() {
             />
           </Link>
         </div>
-        <div>Guide</div>
+        <div className="min-h-[300px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {GUIDES.map((guide) => (
+            <Link
+              key={guide.id}
+              to={guide.link}
+              className={`group flex flex-col items-end justify-between ${guide.bgColor} p-5 rounded-lg aspect-square transition-all duration-300 hover:brightness-110`}
+            >
+              <img
+                src={guide.icon}
+                alt={String(guide.title)}
+                className="w-[40%] h-[40%] transition-transform duration-300 group-hover:animate-wiggle"
+              />
+              <div className="w-full text-white text-5xl leading-[56px]">{guide.title}</div>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );

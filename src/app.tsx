@@ -10,11 +10,13 @@ import ProgramDetailsPage from '@/pages/programs/details';
 import EditProgramPage from '@/pages/programs/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Route, Routes } from 'react-router';
+import GuideDetailsPage from './pages/about/guides/detail';
 import ArticlesPage from './pages/community/articles';
 import CreateArticlePage from './pages/community/articles/create';
 import ArticleDetailsPage from './pages/community/articles/detail';
 import EditArticlePage from './pages/community/articles/edit';
 import ThreadsPage from './pages/community/threads';
+import ThreadDetailsPage from './pages/community/threads/detail';
 import RecruitmentDashboardBuilder from './pages/dashboard/recruitment/builder';
 import RecruitmentDashboardBuilderDetail from './pages/dashboard/recruitment/builder/detail';
 import RecruitmentDashboardSponsor from './pages/dashboard/recruitment/sponsor';
@@ -82,6 +84,13 @@ function App() {
             </Route>
             <Route path="threads">
               <Route index element={<ThreadsPage />} />
+              <Route path=":id" element={<ThreadDetailsPage />} />
+            </Route>
+          </Route>
+
+          <Route path="about">
+            <Route path="guides">
+              <Route path=":id" element={<GuideDetailsPage />} />
             </Route>
           </Route>
 

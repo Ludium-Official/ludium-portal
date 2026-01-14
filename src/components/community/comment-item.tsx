@@ -181,7 +181,6 @@ export const CommentItem = ({ comment, onCommentAdded }: CommentItemProps) => {
         isDisliked: comment.isDisliked,
         createdAt: comment.createdAt,
       }}
-      isAuthed={isAuthed ?? false}
       isAuthor={isAuthor}
       liked={liked}
       disliked={disliked}

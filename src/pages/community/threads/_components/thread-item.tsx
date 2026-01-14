@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import ThreadCommentItem from './thread-comment-item';
+import { Link } from 'react-router';
 
 interface ThreadItemProps {
   thread: Thread;
@@ -278,7 +279,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
                   placeholder="What's happening?"
-                  className="w-full min-h-[100px] resize-none focus-visible:ring-0"
+                  className="w-full min-h-[100px] focus-visible:ring-0"
                 />
 
                 {editExistingImages.length > 0 && (
@@ -349,7 +350,9 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
             ) : (
               <>
                 {currentContent && (
-                  <p className="mb-4 whitespace-pre-wrap break-words">{currentContent}</p>
+                  <Link to={`/community/threads/${thread.id}`}>
+                    <p className="mb-4 whitespace-pre-wrap break-words">{currentContent}</p>
+                  </Link>
                 )}
                 {currentImages && currentImages.length > 0 && (
                   <MediaGallery images={currentImages} className="mb-4" />
