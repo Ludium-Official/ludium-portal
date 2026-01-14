@@ -16,7 +16,7 @@ interface ThreadCommentItemProps {
 }
 
 const ThreadCommentItem = ({ comment, threadId, onCommentAdded }: ThreadCommentItemProps) => {
-  const { isAuthed, userId, nickname, profileImage } = useAuth();
+  const { isLoggedIn, isAuthed, userId, nickname, profileImage } = useAuth();
 
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyText, setReplyText] = useState('');
@@ -184,7 +184,6 @@ const ThreadCommentItem = ({ comment, threadId, onCommentAdded }: ThreadCommentI
         isDisliked: comment.isDisliked,
         createdAt: comment.createdAt,
       }}
-      isAuthed={isAuthed ?? false}
       isAuthor={isAuthor}
       liked={liked}
       disliked={disliked}

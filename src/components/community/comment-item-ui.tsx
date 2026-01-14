@@ -20,12 +20,12 @@ import {
   Trash2,
 } from 'lucide-react';
 import { ReactNode } from 'react';
+import { useAuth } from '@/lib/hooks/use-auth';
 
 export type { CommentItemUIData };
 
 export interface CommentItemUIProps {
   data: CommentItemUIData;
-  isAuthed: boolean;
   isAuthor: boolean;
 
   liked: boolean;
@@ -63,7 +63,6 @@ export interface CommentItemUIProps {
 
 export const CommentItemUI = ({
   data,
-  isAuthed,
   isAuthor,
   liked,
   disliked,
@@ -93,6 +92,7 @@ export const CommentItemUI = ({
   childComments,
   childrenCount = 0,
 }: CommentItemUIProps) => {
+  const { isLoggedIn, isAuthed } = useAuth();
   const {
     lineHeight,
     commentsRef: childCommentsRef,
@@ -159,7 +159,7 @@ export const CommentItemUI = ({
             )}
 
             <div className="flex items-center gap-3 mb-6">
-              {isAuthed && !isDeleted && (
+              {isLoggedIn && !isDeleted && (
                 <>
                   <Button
                     variant="outline"
@@ -209,7 +209,7 @@ export const CommentItemUI = ({
                     <DropdownMenuItem
                       onClick={() => {
                         onEditContentChange?.(displayContent ?? '');
-                        onCancelEdit?.(); // This triggers edit mode in parent
+                        onCancelEdit?.();
                       }}
                     >
                       <Pencil className="w-4 h-4 mr-2" />
@@ -243,14 +243,20 @@ export const CommentItemUI = ({
 
           {showReplies && (
             <>
-              {isAuthed && !isDeleted && onPostReply && (
+              {isLoggedIn && !isDeleted && onPostReply && (
                 <div className="flex flex-col items-end gap-2 mb-6 mt-4">
-                  <Textarea
-                    value={replyText}
-                    onChange={(e) => onReplyTextChange?.(e.target.value)}
-                    placeholder="Write a comment..."
-                    className="h-[40px] min-h-[40px] resize-none"
-                  />
+                  {isAuthed ? (
+                    <Textarea
+                      value={replyText}
+                      onChange={(e) => onReplyTextChange?.(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="h-[40px] min-h-[40px] resize-none"
+                    />
+                  ) : (
+                    <div className="w-full border border-gray-300 rounded-md p-2 h-[40px] min-h-[40px] text-sm text-muted-foreground">
+                      Check your email and nickname
+                    </div>
+                  )}
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline" onClick={onCancelReply}>
                       Cancel

@@ -37,7 +37,7 @@ interface ThreadItemProps {
 }
 
 const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
-  const { isAuthed, nickname, profileImage } = useAuth();
+  const { isLoggedIn, isAuthed, nickname, profileImage } = useAuth();
 
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<ThreadCommentData[]>([]);
@@ -86,7 +86,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
   };
 
   const handleLike = async () => {
-    if (!isAuthed || !thread.id) return;
+    if (!isLoggedIn || !thread.id) return;
 
     try {
       const { data } = await toggleReaction({
@@ -109,7 +109,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
   };
 
   const handleDislike = async () => {
-    if (!isAuthed || !thread.id) return;
+    if (!isLoggedIn || !thread.id) return;
 
     try {
       const { data } = await toggleReaction({
@@ -358,7 +358,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
             )}
 
             <div className="flex items-center gap-3 mb-6">
-              {isAuthed && !isDeleted && (
+              {isLoggedIn && !isDeleted && (
                 <>
                   <Button
                     variant="outline"
@@ -429,14 +429,20 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
 
           {showComments && (
             <>
-              {isAuthed && (
+              {isLoggedIn && (
                 <div className="flex flex-col items-end gap-2 mb-6">
-                  <Textarea
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="Write a comment..."
-                    className="h-[40px] min-h-[40px] resize-none"
-                  />
+                  {isAuthed ? (
+                    <Textarea
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="h-[40px] min-h-[40px] resize-none"
+                    />
+                  ) : (
+                    <div className="w-full border border-gray-300 rounded-md p-2 h-[40px] min-h-[40px] text-sm text-muted-foreground">
+                      Check your email and nickname
+                    </div>
+                  )}
                   <div className="flex gap-2">
                     <Button
                       size="sm"

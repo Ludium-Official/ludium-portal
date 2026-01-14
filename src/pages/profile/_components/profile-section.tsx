@@ -451,7 +451,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
         </Avatar>
         <div>
           <p className="text-sm font-medium text-gray-900 mb-4">Nickname</p>
-          <p className="text-lg text-slate-600">{nickname || 'Ludium_user'}</p>
+          <p className="text-lg text-slate-600">{nickname || '-'}</p>
         </div>
       </div>
 

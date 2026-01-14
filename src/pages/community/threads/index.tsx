@@ -11,9 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { CirclePlus, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import ThreadItem from './_components/thread-item';
 import { Thread } from '@/types/types.generated';
+import notify from '@/lib/notify';
 
 type TabType = 'all' | 'myPost';
 
@@ -21,17 +22,10 @@ interface TabHeaderProps {
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
   isLoggedIn: boolean;
-  isAuthed: boolean;
   onPostClick: () => void;
 }
 
-const TabHeader = ({
-  activeTab,
-  setActiveTab,
-  isLoggedIn,
-  isAuthed,
-  onPostClick,
-}: TabHeaderProps) => (
+const TabHeader = ({ activeTab, setActiveTab, isLoggedIn, onPostClick }: TabHeaderProps) => (
   <div className="flex items-center justify-between">
     <div className="flex gap-2">
       <button
@@ -57,7 +51,7 @@ const TabHeader = ({
         </button>
       )}
     </div>
-    {isAuthed && (
+    {isLoggedIn && (
       <Button variant="outline" size="sm" className="gap-2" onClick={onPostClick}>
         <CirclePlus className="w-4 h-4" />
         Post
@@ -98,6 +92,7 @@ const TrendingArticles = ({ articles }: TrendingArticlesProps) => (
 );
 
 const ThreadsPage = () => {
+  const navigate = useNavigate();
   const { isAuthed, isLoggedIn } = useAuth();
 
   const [activeTab, setActiveTab] = useState<TabType>('all');
@@ -347,8 +342,14 @@ const ThreadsPage = () => {
                   activeTab={activeTab}
                   setActiveTab={setActiveTab}
                   isLoggedIn={!!isLoggedIn}
-                  isAuthed={!!isAuthed}
-                  onPostClick={() => setShowPostForm(true)}
+                  onPostClick={() => {
+                    if (!isAuthed) {
+                      notify('Please check your email and nickname', 'success');
+                      navigate('/profile');
+                      return;
+                    }
+                    setShowPostForm(true);
+                  }}
                 />
               )}
             </div>
@@ -402,8 +403,14 @@ const ThreadsPage = () => {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             isLoggedIn={!!isLoggedIn}
-            isAuthed={!!isAuthed}
-            onPostClick={() => setShowPostForm(true)}
+            onPostClick={() => {
+              if (!isAuthed) {
+                notify('Please check your email and nickname', 'success');
+                navigate('/profile');
+                return;
+              }
+              setShowPostForm(true);
+            }}
           />
         </div>
       )}

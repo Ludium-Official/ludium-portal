@@ -104,7 +104,7 @@ const ProgramsPage: React.FC = () => {
                   className="gap-2 rounded-[6px] px-3"
                   onClick={() => {
                     if (!isAuthed) {
-                      notify('Please add your email', 'success');
+                      notify('Please check your email and nickname', 'success');
                       navigate('/profile');
                       return;
                     }

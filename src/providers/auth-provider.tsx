@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         nickname,
         profileImage,
         isLoggedIn: !!token,
-        isAuthed: !!token && !!userProfile?.profileV2?.email,
+        isAuthed: !!token && !!userProfile?.profileV2?.email && !!userProfile?.profileV2?.nickname,
         isAuthLoading,
         login,
         logout,

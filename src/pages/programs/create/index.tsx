@@ -100,7 +100,7 @@ const CreateProgram: React.FC = () => {
 
     if (!isAuthed) {
       navigate('/profile');
-      notify('Please add your email', 'success');
+      notify('Please check your email and nickname', 'success');
     }
   }, [isAuthed, isAuthLoading, navigate]);
 
