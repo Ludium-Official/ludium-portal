@@ -3349,16 +3349,18 @@ export type UpdateOnchainProgramInfoV2Input = {
 export type UpdatePortfolioV2Input = {
   /** Portfolio description (max 1000 characters) */
   description?: InputMaybe<Scalars['String']['input']>;
+  /** List of existing image URLs to retain (in order) */
+  existingImageUrls?: InputMaybe<Array<Scalars['String']['input']>>;
   /** Portfolio ID to update */
   id: Scalars['ID']['input'];
-  /** Array of image files to upload (replaces existing images) */
-  images?: InputMaybe<Array<Scalars['Upload']['input']>>;
   /** Whether this is a Ludium project */
   isLudiumProject?: InputMaybe<Scalars['Boolean']['input']>;
+  /** New image files to upload */
+  newImages?: InputMaybe<Array<Scalars['Upload']['input']>>;
   /** Role in the project (e.g., "Frontend Developer") */
   role?: InputMaybe<Scalars['String']['input']>;
   /** Portfolio title (required) */
-  title: Scalars['String']['input'];
+  title?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdatePostInput = {
@@ -3440,9 +3442,11 @@ export type UpdateThreadCommentInput = {
 
 export type UpdateThreadInput = {
   /** Updated thread content */
-  content: Scalars['String']['input'];
-  /** Array of image files to upload (replaces existing images) */
-  images?: InputMaybe<Array<Scalars['Upload']['input']>>;
+  content?: InputMaybe<Scalars['String']['input']>;
+  /** List of existing image URLs to retain (in order) */
+  existingImageUrls?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** New image files to upload */
+  newImages?: InputMaybe<Array<Scalars['Upload']['input']>>;
 };
 
 export type UpdateTokenV2Input = {

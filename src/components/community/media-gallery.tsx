@@ -1,14 +1,14 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
-const isVideoUrl = (url: string) => {
+export const isVideoUrl = (url: string) => {
   const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv'];
   const lowerUrl = url.toLowerCase();
   return videoExtensions.some((ext) => lowerUrl.includes(ext));
 };
 
-const MediaItem = ({
+export const MediaItem = ({
   url,
   className,
   showPlayIcon = false,
@@ -249,9 +249,9 @@ const MediaPreviewItem = ({
 };
 
 export const MediaUploadPreview = ({ files, onRemove }: MediaUploadPreviewProps) => {
-  if (files.length === 0) return null;
+  const previewUrls = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files]);
 
-  const previewUrls = files.map((file) => URL.createObjectURL(file));
+  if (files.length === 0) return null;
 
   const renderGrid = () => {
     const count = files.length;
@@ -355,4 +355,132 @@ export const MediaUploadPreview = ({ files, onRemove }: MediaUploadPreviewProps)
   };
 
   return <div>{renderGrid()}</div>;
+};
+
+interface EditMediaPreviewProps {
+  existingImages: string[];
+  newFiles: File[];
+  onRemoveExisting: (index: number) => void;
+  onRemoveNew: (index: number) => void;
+}
+
+export const EditMediaPreview = ({
+  existingImages,
+  newFiles,
+  onRemoveExisting,
+  onRemoveNew,
+}: EditMediaPreviewProps) => {
+  const newFileUrls = useMemo(() => newFiles.map((file) => URL.createObjectURL(file)), [newFiles]);
+
+  const totalCount = existingImages.length + newFiles.length;
+
+  if (totalCount === 0) return null;
+
+  const getGridClass = () => {
+    if (totalCount === 1) return '';
+    if (totalCount === 2) return 'grid grid-cols-2 gap-1';
+    return 'grid grid-cols-2 gap-1';
+  };
+
+  const renderExistingItem = (url: string, idx: number) => {
+    const isVideo = isVideoUrl(url);
+    return (
+      <div
+        key={`existing-${idx}`}
+        className={`relative ${totalCount === 1 ? '' : 'aspect-square'}`}
+      >
+        {isVideo ? (
+          <div className="relative w-full h-full group">
+            <video
+              src={url}
+              className={`w-full h-full object-cover ${
+                totalCount === 1 ? 'max-h-[300px] rounded-lg' : ''
+              }`}
+              muted
+              playsInline
+              loop
+              onMouseEnter={(e) => e.currentTarget.play()}
+              onMouseLeave={(e) => {
+                e.currentTarget.pause();
+                e.currentTarget.currentTime = 0;
+              }}
+            />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity">
+              <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
+                <Play className="w-5 h-5 text-white fill-white ml-0.5" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <img
+            src={url}
+            alt="Preview"
+            className={`w-full h-full object-cover ${
+              totalCount === 1 ? 'max-h-[300px] rounded-lg' : ''
+            }`}
+          />
+        )}
+        <button
+          type="button"
+          onClick={() => onRemoveExisting(idx)}
+          className="absolute top-2 right-2 p-1 rounded-full bg-black/60 hover:bg-black/80 text-white"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  };
+
+  const renderNewItem = (file: File, url: string, idx: number) => {
+    const isVideo = file.type.startsWith('video/');
+    return (
+      <div key={`new-${idx}`} className={`relative ${totalCount === 1 ? '' : 'aspect-square'}`}>
+        {isVideo ? (
+          <div className="relative w-full h-full group">
+            <video
+              src={url}
+              className={`w-full h-full object-cover ${
+                totalCount === 1 ? 'max-h-[300px] rounded-lg' : ''
+              }`}
+              muted
+              playsInline
+              loop
+              onMouseEnter={(e) => e.currentTarget.play()}
+              onMouseLeave={(e) => {
+                e.currentTarget.pause();
+                e.currentTarget.currentTime = 0;
+              }}
+            />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:opacity-0 transition-opacity">
+              <div className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center">
+                <Play className="w-5 h-5 text-white fill-white ml-0.5" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <img
+            src={url}
+            alt="Preview"
+            className={`w-full h-full object-cover ${
+              totalCount === 1 ? 'max-h-[300px] rounded-lg' : ''
+            }`}
+          />
+        )}
+        <button
+          type="button"
+          onClick={() => onRemoveNew(idx)}
+          className="absolute top-2 right-2 p-1 rounded-full bg-black/60 hover:bg-black/80 text-white"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  };
+
+  return (
+    <div className={`rounded-lg overflow-hidden ${getGridClass()}`}>
+      {existingImages.map((url, idx) => renderExistingItem(url, idx))}
+      {newFiles.map((file, idx) => renderNewItem(file, newFileUrls[idx], idx))}
+    </div>
+  );
 };
