@@ -67,7 +67,7 @@ function Layout() {
               >
                 <div className="relative flex-1 flex flex-col min-h-0">
                   <Header />
-                  <div className="pt-3 pb-3 rounded-2xl flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+                  <div className="py-2 rounded-2xl flex-1 overflow-y-auto overflow-x-hidden min-h-0">
                     <Outlet />
                   </div>
                 </div>

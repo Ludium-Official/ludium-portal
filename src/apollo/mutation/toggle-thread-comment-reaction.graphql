@@ -1,0 +1,8 @@
+mutation toggleThreadCommentReaction($input: ToggleThreadCommentReactionInput!) {
+  toggleThreadCommentReaction(input: $input) {
+    isLiked
+    isDisliked
+    likeCount
+    dislikeCount
+  }
+}

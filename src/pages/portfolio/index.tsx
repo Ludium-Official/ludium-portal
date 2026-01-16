@@ -105,7 +105,8 @@ const PortfolioPage: React.FC = () => {
               description: formData.description || undefined,
               role: formData.role || undefined,
               isLudiumProject: formData.isLudiumProject,
-              images: newImageFiles.length > 0 ? newImageFiles : undefined,
+              existingImageUrls: formData.existingImages,
+              newImages: newImageFiles.length > 0 ? newImageFiles : undefined,
             },
           },
         });

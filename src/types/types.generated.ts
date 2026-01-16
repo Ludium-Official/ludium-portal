@@ -122,6 +122,94 @@ export type ApplicationsV2QueryInput = {
   status?: InputMaybe<ApplicationStatusV2>;
 };
 
+export type Article = {
+  __typename?: 'Article';
+  author?: Maybe<UserV2>;
+  /** Number of comments */
+  commentCount?: Maybe<Scalars['Int']['output']>;
+  /** Cover image URL or path */
+  coverImage?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  /** Article description in markdown format */
+  description?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  /** Whether the currently authenticated user has liked this article */
+  isLiked?: Maybe<Scalars['Boolean']['output']>;
+  /** Whether this article is pinned */
+  isPin?: Maybe<Scalars['Boolean']['output']>;
+  /** Number of likes */
+  likeCount?: Maybe<Scalars['Int']['output']>;
+  status?: Maybe<ArticleStatus>;
+  title?: Maybe<Scalars['String']['output']>;
+  /** Article category (article, newsletter, campaign) */
+  type?: Maybe<ArticleType>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  /** Number of views */
+  view?: Maybe<Scalars['Int']['output']>;
+};
+
+export type ArticleComment = {
+  __typename?: 'ArticleComment';
+  articleId?: Maybe<Scalars['ID']['output']>;
+  authorId?: Maybe<Scalars['Int']['output']>;
+  /** Author nickname */
+  authorNickname?: Maybe<Scalars['String']['output']>;
+  /** Author profile image URL */
+  authorProfileImage?: Maybe<Scalars['String']['output']>;
+  content?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  deletedAt?: Maybe<Scalars['DateTime']['output']>;
+  dislikeCount?: Maybe<Scalars['Int']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  isDisliked?: Maybe<Scalars['Boolean']['output']>;
+  isLiked?: Maybe<Scalars['Boolean']['output']>;
+  likeCount?: Maybe<Scalars['Int']['output']>;
+  parentId?: Maybe<Scalars['ID']['output']>;
+  replies?: Maybe<Array<ArticleComment>>;
+  /** Number of child comments */
+  replyCount?: Maybe<Scalars['Int']['output']>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export enum ArticleCommentReaction {
+  Dislike = 'dislike',
+  Like = 'like'
+}
+
+/** Filter type for articles: LATEST (latest articles), TRENDING (trending articles in last week), NEWSLETTER (newsletter type), CAMPAIGN (campaign type) */
+export enum ArticleFilter {
+  Campaign = 'CAMPAIGN',
+  Latest = 'LATEST',
+  Newsletter = 'NEWSLETTER',
+  Trending = 'TRENDING'
+}
+
+export enum ArticleStatus {
+  Draft = 'draft',
+  Published = 'published'
+}
+
+export enum ArticleType {
+  Article = 'article',
+  Campaign = 'campaign',
+  Newsletter = 'newsletter'
+}
+
+export type ArticlesQueryInput = {
+  /** Filter by author ID */
+  authorId?: InputMaybe<Scalars['ID']['input']>;
+  /** Filter type: LATEST, TRENDING, NEWSLETTER, or CAMPAIGN */
+  filter?: InputMaybe<ArticleFilter>;
+  /** Pagination options */
+  pagination?: InputMaybe<PaginationInput>;
+  /** Search by title */
+  search?: InputMaybe<Scalars['String']['input']>;
+  /** Filter by status */
+  status?: InputMaybe<ArticleStatus>;
+  /** Filter by type (category) */
+  type?: InputMaybe<ArticleType>;
+};
+
 export type AssignUserTierInput = {
   maxInvestmentAmount: Scalars['String']['input'];
   programId: Scalars['ID']['input'];
@@ -239,6 +327,14 @@ export type Comment = {
   replies?: Maybe<Array<Comment>>;
 };
 
+export type CommentReactionResult = {
+  __typename?: 'CommentReactionResult';
+  dislikeCount?: Maybe<Scalars['Int']['output']>;
+  isDisliked?: Maybe<Scalars['Boolean']['output']>;
+  isLiked?: Maybe<Scalars['Boolean']['output']>;
+  likeCount?: Maybe<Scalars['Int']['output']>;
+};
+
 export enum CommentableTypeEnum {
   Application = 'application',
   Milestone = 'milestone',
@@ -283,6 +379,32 @@ export type CreateApplicationV2Input = {
   programId: Scalars['ID']['input'];
   /** Application status (defaults to submitted) */
   status?: InputMaybe<ApplicationStatusV2>;
+};
+
+export type CreateArticleCommentInput = {
+  /** Article ID */
+  articleId: Scalars['ID']['input'];
+  /** Comment content */
+  content: Scalars['String']['input'];
+  /** Parent comment ID for nested comments */
+  parentId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+export type CreateArticleInput = {
+  /** Article category (default: article) */
+  category?: InputMaybe<ArticleType>;
+  /** Cover image file */
+  coverImage?: InputMaybe<Scalars['Upload']['input']>;
+  /** Article description in markdown format */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** Whether to pin this article (default: false, admin only) */
+  isPin?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Article status (published or draft) */
+  status?: InputMaybe<ArticleStatus>;
+  /** Article title (max 130 characters) */
+  title?: InputMaybe<Scalars['String']['input']>;
+  /** Article ID to unpin when pinning would exceed 2 pinned articles (admin only) */
+  unpinArticleId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 export type CreateCarouselItemInput = {
@@ -466,6 +588,22 @@ export type CreateSmartContractV2Input = {
   name: Scalars['String']['input'];
 };
 
+export type CreateThreadCommentInput = {
+  /** Comment content */
+  content: Scalars['String']['input'];
+  /** Parent comment ID for nested comments */
+  parentId?: InputMaybe<Scalars['ID']['input']>;
+  /** Thread ID */
+  threadId: Scalars['ID']['input'];
+};
+
+export type CreateThreadInput = {
+  /** Thread content */
+  content: Scalars['String']['input'];
+  /** Array of image files to upload */
+  images?: InputMaybe<Array<Scalars['Upload']['input']>>;
+};
+
 export type CreateTokenV2Input = {
   chainInfoId: Scalars['Int']['input'];
   decimals: Scalars['Int']['input'];
@@ -517,6 +655,16 @@ export type DashboardV2 = {
   jobActivity?: Maybe<BuilderJobActivity>;
   /** Payment overview by week for sponsor (4 weeks) */
   sponsorPaymentOverview?: Maybe<Array<PaymentWeek>>;
+};
+
+export type DeleteArticleCommentInput = {
+  /** Comment ID to delete */
+  commentId: Scalars['ID']['input'];
+};
+
+export type DeleteThreadCommentInput = {
+  /** Comment ID to delete */
+  commentId: Scalars['ID']['input'];
 };
 
 export type EducationV2 = {
@@ -870,6 +1018,10 @@ export type Mutation = {
   createApplication?: Maybe<Application>;
   /** Create a new application */
   createApplicationV2?: Maybe<ApplicationV2>;
+  /** Create a new article */
+  createArticle?: Maybe<Article>;
+  /** Create a comment on an article */
+  createArticleComment?: Maybe<ArticleComment>;
   createCarouselItem?: Maybe<CarouselItem>;
   createComment?: Maybe<Comment>;
   createContractV2?: Maybe<ContractV2>;
@@ -889,6 +1041,10 @@ export type Mutation = {
   createProgramV2?: Maybe<ProgramV2>;
   createProgramWithOnchainV2?: Maybe<CreateProgramWithOnchainV2Payload>;
   createSmartContractV2?: Maybe<SmartContractV2>;
+  /** Create a new thread */
+  createThread?: Maybe<Thread>;
+  /** Create a comment on a thread */
+  createThreadComment?: Maybe<ThreadComment>;
   createTokenV2?: Maybe<TokenV2>;
   createUser?: Maybe<User>;
   /** Create a new user */
@@ -897,6 +1053,10 @@ export type Mutation = {
   createWorkExperienceV2?: Maybe<WorkExperienceV2>;
   /** Delete an application by ID (only by the applicant) */
   deleteApplicationV2?: Maybe<ApplicationV2>;
+  /** Delete an article */
+  deleteArticle?: Maybe<Scalars['Boolean']['output']>;
+  /** Delete a comment */
+  deleteArticleComment?: Maybe<Scalars['Boolean']['output']>;
   deleteCarouselItem?: Maybe<CarouselItem>;
   deleteContractV2?: Maybe<ContractV2>;
   /** Delete an education (hard delete) */
@@ -912,6 +1072,10 @@ export type Mutation = {
   deleteProgram?: Maybe<Scalars['Boolean']['output']>;
   deleteProgramV2?: Maybe<Scalars['ID']['output']>;
   deleteSmartContractV2?: Maybe<SmartContractV2>;
+  /** Delete a thread */
+  deleteThread?: Maybe<Scalars['Boolean']['output']>;
+  /** Delete a comment */
+  deleteThreadComment?: Maybe<Scalars['Boolean']['output']>;
   deleteTokenV2?: Maybe<TokenV2>;
   deleteUser?: Maybe<User>;
   /** Delete a user by ID */
@@ -953,6 +1117,14 @@ export type Mutation = {
   submitMilestone?: Maybe<Milestone>;
   submitProgram?: Maybe<Program>;
   syncApplicationTiers?: Maybe<TierSyncResult>;
+  /** Toggle like/dislike on a comment */
+  toggleArticleCommentReaction?: Maybe<CommentReactionResult>;
+  /** Toggle like on an article (like if not liked, unlike if liked) */
+  toggleArticleLike?: Maybe<Scalars['Boolean']['output']>;
+  /** Toggle like/dislike on a comment */
+  toggleThreadCommentReaction?: Maybe<ThreadCommentReactionResult>;
+  /** Toggle like/dislike on a thread */
+  toggleThreadReaction?: Maybe<ThreadReactionResult>;
   unbanUser?: Maybe<User>;
   /** Update about section (max 1000 characters) */
   updateAboutSectionV2?: Maybe<UserV2>;
@@ -961,6 +1133,10 @@ export type Mutation = {
   updateApplicationChatroomV2?: Maybe<ApplicationV2>;
   /** Update application content (only by applicant) */
   updateApplicationV2?: Maybe<ApplicationV2>;
+  /** Update an article */
+  updateArticle?: Maybe<Article>;
+  /** Update a comment */
+  updateArticleComment?: Maybe<ArticleComment>;
   updateCarouselItem?: Maybe<CarouselItem>;
   updateComment?: Maybe<Comment>;
   updateContractV2?: Maybe<ContractV2>;
@@ -988,6 +1164,10 @@ export type Mutation = {
   updateProgramByRelayerV2?: Maybe<ProgramV2>;
   updateProgramV2?: Maybe<ProgramV2>;
   updateSmartContractV2?: Maybe<SmartContractV2>;
+  /** Update a thread (content only) */
+  updateThread?: Maybe<Thread>;
+  /** Update a comment */
+  updateThreadComment?: Maybe<ThreadComment>;
   updateTokenV2?: Maybe<TokenV2>;
   updateUser?: Maybe<User>;
   /** Update an existing user */
@@ -1064,6 +1244,16 @@ export type MutationCreateApplicationArgs = {
 
 export type MutationCreateApplicationV2Args = {
   input: CreateApplicationV2Input;
+};
+
+
+export type MutationCreateArticleArgs = {
+  input: CreateArticleInput;
+};
+
+
+export type MutationCreateArticleCommentArgs = {
+  input: CreateArticleCommentInput;
 };
 
 
@@ -1148,6 +1338,16 @@ export type MutationCreateSmartContractV2Args = {
 };
 
 
+export type MutationCreateThreadArgs = {
+  input: CreateThreadInput;
+};
+
+
+export type MutationCreateThreadCommentArgs = {
+  input: CreateThreadCommentInput;
+};
+
+
 export type MutationCreateTokenV2Args = {
   input: CreateTokenV2Input;
 };
@@ -1170,6 +1370,16 @@ export type MutationCreateWorkExperienceV2Args = {
 
 export type MutationDeleteApplicationV2Args = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteArticleArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteArticleCommentArgs = {
+  input: DeleteArticleCommentInput;
 };
 
 
@@ -1230,6 +1440,16 @@ export type MutationDeleteProgramV2Args = {
 
 export type MutationDeleteSmartContractV2Args = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteThreadArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteThreadCommentArgs = {
+  input: DeleteThreadCommentInput;
 };
 
 
@@ -1421,6 +1641,26 @@ export type MutationSyncApplicationTiersArgs = {
 };
 
 
+export type MutationToggleArticleCommentReactionArgs = {
+  input: ToggleArticleCommentReactionInput;
+};
+
+
+export type MutationToggleArticleLikeArgs = {
+  articleId: Scalars['ID']['input'];
+};
+
+
+export type MutationToggleThreadCommentReactionArgs = {
+  input: ToggleThreadCommentReactionInput;
+};
+
+
+export type MutationToggleThreadReactionArgs = {
+  input: ToggleThreadReactionInput;
+};
+
+
 export type MutationUnbanUserArgs = {
   userId: Scalars['ID']['input'];
 };
@@ -1445,6 +1685,17 @@ export type MutationUpdateApplicationChatroomV2Args = {
 export type MutationUpdateApplicationV2Args = {
   id: Scalars['ID']['input'];
   input: UpdateApplicationV2Input;
+};
+
+
+export type MutationUpdateArticleArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateArticleInput;
+};
+
+
+export type MutationUpdateArticleCommentArgs = {
+  input: UpdateArticleCommentInput;
 };
 
 
@@ -1554,6 +1805,17 @@ export type MutationUpdateProgramV2Args = {
 export type MutationUpdateSmartContractV2Args = {
   id: Scalars['ID']['input'];
   input: UpdateSmartContractV2Input;
+};
+
+
+export type MutationUpdateThreadArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateThreadInput;
+};
+
+
+export type MutationUpdateThreadCommentArgs = {
+  input: UpdateThreadCommentInput;
 };
 
 
@@ -1714,6 +1976,12 @@ export type PaginatedApplicationsV2 = {
   totalPages?: Maybe<Scalars['Int']['output']>;
 };
 
+export type PaginatedArticle = {
+  __typename?: 'PaginatedArticle';
+  count?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<Article>>;
+};
+
 export type PaginatedBuilderMilestones = {
   __typename?: 'PaginatedBuilderMilestones';
   count?: Maybe<Scalars['Int']['output']>;
@@ -1834,6 +2102,12 @@ export type PaginatedSmartContractsV2 = {
   __typename?: 'PaginatedSmartContractsV2';
   count?: Maybe<Scalars['Int']['output']>;
   data?: Maybe<Array<SmartContractV2>>;
+};
+
+export type PaginatedThread = {
+  __typename?: 'PaginatedThread';
+  count?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<Thread>>;
 };
 
 export type PaginatedTokensV2 = {
@@ -2106,6 +2380,14 @@ export type Query = {
   applicationsByProgramV2?: Maybe<PaginatedApplicationsV2>;
   /** Get paginated list of applications with filtering options */
   applicationsV2?: Maybe<PaginatedApplicationsV2>;
+  /** Get a single article by ID */
+  article?: Maybe<Article>;
+  /** Get child comments for a parent comment */
+  articleChildComments?: Maybe<Array<ArticleComment>>;
+  /** Get all comments for an article (hierarchical structure) */
+  articleComments?: Maybe<Array<ArticleComment>>;
+  /** Get a paginated list of articles */
+  articles?: Maybe<PaginatedArticle>;
   /** Get list of milestones (for builder) */
   builderMilestones?: Maybe<PaginatedBuilderMilestones>;
   /** Get payment overview by week for builder (4 weeks) */
@@ -2162,6 +2444,8 @@ export type Query = {
   myApplicationsV2?: Maybe<PaginatedApplicationsV2>;
   /** Get all portfolios for the current authenticated user */
   myPortfoliosV2?: Maybe<Array<PortfolioV2>>;
+  /** Get threads created by the authenticated user */
+  myThreads?: Maybe<PaginatedThread>;
   networkV2?: Maybe<NetworkV2>;
   networksV2?: Maybe<PaginatedNetworksV2>;
   notifications?: Maybe<NotificationResult>;
@@ -2173,6 +2457,8 @@ export type Query = {
   onchainProgramInfosByProgramV2?: Maybe<PaginatedOnchainProgramInfoV2>;
   onchainProgramInfosBySmartContractV2?: Maybe<PaginatedOnchainProgramInfoV2>;
   onchainProgramInfosV2?: Maybe<PaginatedOnchainProgramInfoV2>;
+  /** Get all pinned articles */
+  pinnedArticles?: Maybe<Array<Article>>;
   /** Get a single portfolio by ID */
   portfolioV2?: Maybe<PortfolioV2>;
   /** Get all portfolios for a specific user */
@@ -2199,13 +2485,25 @@ export type Query = {
   programsWithFilterV2?: Maybe<PaginatedProgramsV2>;
   /** Query users with dynamic field=value filters (AND condition, no pagination) */
   queryUsersV2?: Maybe<Array<UserV2>>;
+  /** Get recommended articles by type */
+  recommendedArticles?: Maybe<Array<Article>>;
   smartContractV2?: Maybe<SmartContractV2>;
   smartContractsV2?: Maybe<PaginatedSmartContractsV2>;
   /** Get payment overview by week for sponsor (4 weeks) */
   sponsorPaymentOverview?: Maybe<Array<PaymentWeek>>;
+  /** Get a single thread by ID */
+  thread?: Maybe<Thread>;
+  /** Get child comments for a parent comment */
+  threadChildComments?: Maybe<Array<ThreadComment>>;
+  /** Get all comments for a thread (hierarchical structure) */
+  threadComments?: Maybe<Array<ThreadComment>>;
+  /** Get a paginated list of threads */
+  threads?: Maybe<PaginatedThread>;
   tokenV2?: Maybe<TokenV2>;
   tokensByNetworkV2?: Maybe<PaginatedTokensV2>;
   tokensV2?: Maybe<PaginatedTokensV2>;
+  /** Get top 5 articles by view count in the last 30 days */
+  topViewedArticles?: Maybe<Array<Article>>;
   /** Get list of upcoming payments (within 7 days based on deadline + 2 days) */
   upcomingPayments?: Maybe<Array<UpcomingPayment>>;
   user?: Maybe<User>;
@@ -2247,6 +2545,26 @@ export type QueryApplicationsByProgramV2Args = {
 
 export type QueryApplicationsV2Args = {
   query?: InputMaybe<ApplicationsV2QueryInput>;
+};
+
+
+export type QueryArticleArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryArticleChildCommentsArgs = {
+  parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryArticleCommentsArgs = {
+  articleId: Scalars['ID']['input'];
+};
+
+
+export type QueryArticlesArgs = {
+  input?: InputMaybe<ArticlesQueryInput>;
 };
 
 
@@ -2412,6 +2730,11 @@ export type QueryMyApplicationsV2Args = {
 };
 
 
+export type QueryMyThreadsArgs = {
+  input?: InputMaybe<ThreadsQueryInput>;
+};
+
+
 export type QueryNetworkV2Args = {
   id: Scalars['ID']['input'];
 };
@@ -2468,6 +2791,11 @@ export type QueryOnchainProgramInfosBySmartContractV2Args = {
 
 export type QueryOnchainProgramInfosV2Args = {
   pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryPinnedArticlesArgs = {
+  type: ArticleType;
 };
 
 
@@ -2538,6 +2866,11 @@ export type QueryQueryUsersV2Args = {
 };
 
 
+export type QueryRecommendedArticlesArgs = {
+  type: ArticleType;
+};
+
+
 export type QuerySmartContractV2Args = {
   id: Scalars['ID']['input'];
 };
@@ -2546,6 +2879,26 @@ export type QuerySmartContractV2Args = {
 export type QuerySmartContractsV2Args = {
   chainInfoId?: InputMaybe<Scalars['Int']['input']>;
   pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryThreadArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryThreadChildCommentsArgs = {
+  parentId: Scalars['ID']['input'];
+};
+
+
+export type QueryThreadCommentsArgs = {
+  threadId: Scalars['ID']['input'];
+};
+
+
+export type QueryThreadsArgs = {
+  input?: InputMaybe<ThreadsQueryInput>;
 };
 
 
@@ -2562,6 +2915,11 @@ export type QueryTokensByNetworkV2Args = {
 
 export type QueryTokensV2Args = {
   pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryTopViewedArticlesArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -2695,6 +3053,84 @@ export type SwappedUrlResponse = {
   signedUrl?: Maybe<Scalars['String']['output']>;
 };
 
+export type Thread = {
+  __typename?: 'Thread';
+  /** Author nickname */
+  authorNickname?: Maybe<Scalars['String']['output']>;
+  /** Author profile image URL */
+  authorProfileImage?: Maybe<Scalars['String']['output']>;
+  content?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  /** Number of dislikes */
+  dislikeCount?: Maybe<Scalars['Int']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  /** Array of image URLs */
+  images?: Maybe<Array<Scalars['String']['output']>>;
+  /** Whether the currently authenticated user has disliked this thread */
+  isDisliked?: Maybe<Scalars['Boolean']['output']>;
+  /** Whether the currently authenticated user has liked this thread */
+  isLiked?: Maybe<Scalars['Boolean']['output']>;
+  /** Number of likes */
+  likeCount?: Maybe<Scalars['Int']['output']>;
+  /** Number of comments */
+  replyCount?: Maybe<Scalars['Int']['output']>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export type ThreadComment = {
+  __typename?: 'ThreadComment';
+  authorId?: Maybe<Scalars['Int']['output']>;
+  /** Author nickname */
+  authorNickname?: Maybe<Scalars['String']['output']>;
+  /** Author profile image URL */
+  authorProfileImage?: Maybe<Scalars['String']['output']>;
+  content?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  deletedAt?: Maybe<Scalars['DateTime']['output']>;
+  dislikeCount?: Maybe<Scalars['Int']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  isDisliked?: Maybe<Scalars['Boolean']['output']>;
+  isLiked?: Maybe<Scalars['Boolean']['output']>;
+  likeCount?: Maybe<Scalars['Int']['output']>;
+  parentId?: Maybe<Scalars['ID']['output']>;
+  replies?: Maybe<Array<ThreadComment>>;
+  /** Number of child comments */
+  replyCount?: Maybe<Scalars['Int']['output']>;
+  threadId?: Maybe<Scalars['ID']['output']>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export enum ThreadCommentReaction {
+  Dislike = 'dislike',
+  Like = 'like'
+}
+
+export type ThreadCommentReactionResult = {
+  __typename?: 'ThreadCommentReactionResult';
+  dislikeCount?: Maybe<Scalars['Int']['output']>;
+  isDisliked?: Maybe<Scalars['Boolean']['output']>;
+  isLiked?: Maybe<Scalars['Boolean']['output']>;
+  likeCount?: Maybe<Scalars['Int']['output']>;
+};
+
+export enum ThreadReaction {
+  Dislike = 'dislike',
+  Like = 'like'
+}
+
+export type ThreadReactionResult = {
+  __typename?: 'ThreadReactionResult';
+  dislikeCount?: Maybe<Scalars['Int']['output']>;
+  isDisliked?: Maybe<Scalars['Boolean']['output']>;
+  isLiked?: Maybe<Scalars['Boolean']['output']>;
+  likeCount?: Maybe<Scalars['Int']['output']>;
+};
+
+export type ThreadsQueryInput = {
+  /** Pagination options */
+  pagination?: InputMaybe<PaginationInput>;
+};
+
 export type TierAssignmentData = {
   __typename?: 'TierAssignmentData';
   maxInvestmentAmount?: Maybe<Scalars['String']['output']>;
@@ -2715,6 +3151,27 @@ export type TierSyncResult = {
   projectId?: Maybe<Scalars['Int']['output']>;
   success?: Maybe<Scalars['Boolean']['output']>;
   tierAssignments?: Maybe<Array<TierAssignmentData>>;
+};
+
+export type ToggleArticleCommentReactionInput = {
+  /** Comment ID */
+  commentId: Scalars['ID']['input'];
+  /** Reaction type (like or dislike) */
+  reaction: ArticleCommentReaction;
+};
+
+export type ToggleThreadCommentReactionInput = {
+  /** Comment ID */
+  commentId: Scalars['ID']['input'];
+  /** Reaction type (like or dislike) */
+  reaction: ThreadCommentReaction;
+};
+
+export type ToggleThreadReactionInput = {
+  /** Reaction type (like or dislike) */
+  reaction: ThreadReaction;
+  /** Thread ID */
+  threadId: Scalars['ID']['input'];
 };
 
 export type TokenV2 = {
@@ -2762,6 +3219,30 @@ export type UpdateApplicationV2Input = {
   content?: InputMaybe<Scalars['String']['input']>;
   /** Updated application status (builder-driven lifecycle updates) */
   status?: InputMaybe<ApplicationStatusV2>;
+};
+
+export type UpdateArticleCommentInput = {
+  /** Comment ID to update */
+  commentId: Scalars['ID']['input'];
+  /** Updated comment content */
+  content: Scalars['String']['input'];
+};
+
+export type UpdateArticleInput = {
+  /** Article category (admin only) */
+  category?: InputMaybe<ArticleType>;
+  /** Cover image file */
+  coverImage?: InputMaybe<Scalars['Upload']['input']>;
+  /** Article description in markdown format */
+  description?: InputMaybe<Scalars['String']['input']>;
+  /** Whether to pin this article (admin only) */
+  isPin?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Article status (published or draft) */
+  status?: InputMaybe<ArticleStatus>;
+  /** Article title (max 130 characters) */
+  title?: InputMaybe<Scalars['String']['input']>;
+  /** Article ID to unpin when pinning would exceed 2 pinned articles (admin only) */
+  unpinArticleId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 export type UpdateCarouselItemInput = {
@@ -2868,16 +3349,18 @@ export type UpdateOnchainProgramInfoV2Input = {
 export type UpdatePortfolioV2Input = {
   /** Portfolio description (max 1000 characters) */
   description?: InputMaybe<Scalars['String']['input']>;
+  /** List of existing image URLs to retain (in order) */
+  existingImageUrls?: InputMaybe<Array<Scalars['String']['input']>>;
   /** Portfolio ID to update */
   id: Scalars['ID']['input'];
-  /** Array of image files to upload (replaces existing images) */
-  images?: InputMaybe<Array<Scalars['Upload']['input']>>;
   /** Whether this is a Ludium project */
   isLudiumProject?: InputMaybe<Scalars['Boolean']['input']>;
+  /** New image files to upload */
+  newImages?: InputMaybe<Array<Scalars['Upload']['input']>>;
   /** Role in the project (e.g., "Frontend Developer") */
   role?: InputMaybe<Scalars['String']['input']>;
   /** Portfolio title (required) */
-  title: Scalars['String']['input'];
+  title?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdatePostInput = {
@@ -2948,6 +3431,22 @@ export type UpdateProgramV2Input = {
 export type UpdateSmartContractV2Input = {
   address?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateThreadCommentInput = {
+  /** Comment ID to update */
+  commentId: Scalars['ID']['input'];
+  /** Updated comment content */
+  content: Scalars['String']['input'];
+};
+
+export type UpdateThreadInput = {
+  /** Updated thread content */
+  content?: InputMaybe<Scalars['String']['input']>;
+  /** List of existing image URLs to retain (in order) */
+  existingImageUrls?: InputMaybe<Array<Scalars['String']['input']>>;
+  /** New image files to upload */
+  newImages?: InputMaybe<Array<Scalars['Upload']['input']>>;
 };
 
 export type UpdateTokenV2Input = {
