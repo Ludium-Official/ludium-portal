@@ -1,4 +1,5 @@
 import { useGetProgramsV2Query } from '@/apollo/queries/programs-v2.generated';
+import Container from '@/components/layout/container';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
@@ -72,7 +73,7 @@ const ProgramsPage: React.FC = () => {
 
   return (
     <div className="bg-white rounded-2xl p-10 pr-[55px]">
-      <div className="max-w-full md:max-w-1440 mx-auto">
+      <Container size="full">
         <div className="flex justify-between items-center pb-4">
           <h1 className="text-3xl font-bold">Recruitment</h1>
         </div>
@@ -137,7 +138,7 @@ const ProgramsPage: React.FC = () => {
 
           <Pagination totalCount={totalCount} pageSize={PageSize} />
         </Tabs>
-      </div>
+      </Container>
     </div>
   );
 };
