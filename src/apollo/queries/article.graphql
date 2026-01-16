@@ -1,0 +1,24 @@
+query article($id: ID!) {
+  article(id: $id) {
+    id
+    title
+    description
+    coverImage
+    type
+    status
+    isPin
+    view
+    likeCount
+    commentCount
+    isLiked
+    createdAt
+    updatedAt
+    author {
+      id
+      nickname
+      profileImage
+      email
+      walletAddress
+    }
+  }
+}

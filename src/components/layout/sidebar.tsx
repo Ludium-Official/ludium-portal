@@ -49,6 +49,10 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
       name: 'Community',
       path: '/community',
       icon: MessageCircle,
+      submenu: [
+        { name: 'Articles', path: '/community/articles' },
+        { name: 'Threads', path: '/community/threads' },
+      ],
     },
     // { name: 'Agent', path: '/users', icon: Users },
   ];

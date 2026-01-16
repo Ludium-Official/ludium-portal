@@ -1,0 +1,19 @@
+mutation updateThreadComment($input: UpdateThreadCommentInput!) {
+  updateThreadComment(input: $input) {
+    id
+    threadId
+    authorId
+    authorNickname
+    authorProfileImage
+    content
+    parentId
+    likeCount
+    dislikeCount
+    replyCount
+    isLiked
+    isDisliked
+    createdAt
+    updatedAt
+    deletedAt
+  }
+}

@@ -1,0 +1,16 @@
+mutation updateThread($id: ID!, $input: UpdateThreadInput!) {
+  updateThread(id: $id, input: $input) {
+    id
+    content
+    images
+    authorNickname
+    authorProfileImage
+    likeCount
+    dislikeCount
+    replyCount
+    isLiked
+    isDisliked
+    createdAt
+    updatedAt
+  }
+}

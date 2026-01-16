@@ -20,7 +20,7 @@ interface ShareButtonProps {
 
 export function ShareButton({
   className,
-  variant = 'ghost',
+  variant = 'outline',
   size = 'default',
   children,
   onShare,

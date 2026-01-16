@@ -1,0 +1,19 @@
+query articleChildComments($parentId: ID!) {
+  articleChildComments(parentId: $parentId) {
+    id
+    articleId
+    authorId
+    authorNickname
+    authorProfileImage
+    content
+    parentId
+    likeCount
+    dislikeCount
+    replyCount
+    isLiked
+    isDisliked
+    createdAt
+    updatedAt
+    deletedAt
+  }
+}

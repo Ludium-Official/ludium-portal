@@ -1,0 +1,24 @@
+query recommendedArticles($type: ArticleType!) {
+  recommendedArticles(type: $type) {
+    id
+    title
+    description
+    coverImage
+    type
+    status
+    isPin
+    view
+    likeCount
+    commentCount
+    isLiked
+    createdAt
+    updatedAt
+    author {
+      id
+      nickname
+      profileImage
+      email
+      walletAddress
+    }
+  }
+}

@@ -1,0 +1,24 @@
+mutation createArticle($input: CreateArticleInput!) {
+  createArticle(input: $input) {
+    id
+    title
+    description
+    coverImage
+    type
+    status
+    isPin
+    view
+    likeCount
+    commentCount
+    isLiked
+    createdAt
+    updatedAt
+    author {
+      id
+      nickname
+      profileImage
+      email
+      walletAddress
+    }
+  }
+}

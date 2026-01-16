@@ -1,8 +1,5 @@
-import { useCarouselItemsQuery } from '@/apollo/queries/carousel-items.generated';
-import { usePostsQuery } from '@/apollo/queries/posts.generated';
-import { useGetProgramsV2Query } from '@/apollo/queries/programs-v2.generated';
-import thumbnail from '@/assets/thumbnail.jpg';
-import { Badge } from '@/components/ui/badge';
+import { useArticlesQuery } from '@/apollo/queries/articles.generated';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   Carousel,
@@ -10,19 +7,48 @@ import {
   CarouselContent,
   CarouselItem,
 } from '@/components/ui/carousel';
-import { Skeleton } from '@/components/ui/skeleton';
-import MainCommunityCard from '@/pages/main/_components/main-community-card';
-import ProgramCard from '@/pages/programs/_components/program-card';
-import type { Post, Program } from '@/types/types.generated';
+import { ArticleFilter, ArticleType } from '@/types/types.generated';
 import Autoplay from 'embla-carousel-autoplay';
+import { format } from 'date-fns';
 import { ArrowRight } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
+import recruitmentMainImage from '@/assets/icons/main/recruitment-main.png';
+
+const MOCK_BANNER_IMAGES = [
+  'https://images.unsplash.com/photo-1557683316-973673baf926?w=1200&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=1200&h=400&fit=crop',
+  'https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?w=1200&h=400&fit=crop',
+];
+
+const CATEGORIES = ['latest', 'trending', 'newsletter', 'campaign'] as const;
+type CategoryType = (typeof CATEGORIES)[number];
+
+const CATEGORY_FILTER_MAP: Record<CategoryType, ArticleFilter> = {
+  latest: ArticleFilter.Latest,
+  trending: ArticleFilter.Trending,
+  newsletter: ArticleFilter.Newsletter,
+  campaign: ArticleFilter.Campaign,
+};
+
+const CATEGORY_DISPLAY_MAP: Record<CategoryType, string> = {
+  latest: 'Latest',
+  trending: 'Trending',
+  newsletter: 'Newsletter',
+  campaign: 'Campaign',
+};
 
 function MainPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [api, setApi] = useState<CarouselApi | null>(null);
   const [current, setCurrent] = useState(0);
   const [snaps, setSnaps] = useState<number[]>([]);
+
+  const categoryParam = searchParams.get('category') as CategoryType | null;
+  const selectedCategory: CategoryType = CATEGORIES.includes(categoryParam as CategoryType)
+    ? (categoryParam as CategoryType)
+    : 'latest';
 
   const onSelect = useCallback(() => {
     if (!api) return;
@@ -39,214 +65,164 @@ function MainPage() {
     };
   }, [api, onSelect]);
 
-  const { data: programsData, loading: programsLoading } = useGetProgramsV2Query({
+  const { data: articlesData, loading: articlesLoading } = useArticlesQuery({
     variables: {
-      pagination: {
-        limit: 5,
+      input: {
+        filter: CATEGORY_FILTER_MAP[selectedCategory],
+        pagination: {
+          offset: 0,
+          limit: 3,
+        },
       },
     },
   });
 
-  const { data: postsData, loading: postsLoading } = usePostsQuery({
-    variables: {
-      pagination: {
-        limit: 3,
-        offset: 0,
-      },
-    },
-  });
-
-  const { data: carouselItemsData, loading: carouselLoading } = useCarouselItemsQuery();
+  const articles = articlesData?.articles?.data || [];
 
   return (
-    <div className="bg-white rounded-2xl p-4 md:px-10 md:py-[60px] w-full max-w-full overflow-x-hidden">
-      <div className="w-full max-w-[1440px] mx-auto">
-        {carouselLoading && (
-          <section className="flex justify-between items-center mb-20">
-            <div>
-              <Skeleton className="w-[43px] h-[20px] rounded-full mb-3" />
-              <Skeleton className="w-[320px] h-[48px] mb-3" />
-              <Skeleton className="w-[320px] h-[20px]" />
-            </div>
-            <Skeleton className="w-[544px] h-[306px] rounded-lg" />
-          </section>
-        )}
+    <div className="bg-white w-full rounded-2xl">
+      <div className="max-w-[1210px] mx-auto px-5 pt-10">
+        <Carousel
+          setApi={setApi}
+          plugins={[
+            Autoplay({
+              delay: 10000,
+            }),
+          ]}
+          opts={{
+            align: 'start',
+            loop: true,
+          }}
+        >
+          <CarouselContent>
+            {MOCK_BANNER_IMAGES.map((image, index) => (
+              <CarouselItem key={index}>
+                <div className="w-full h-[380px] rounded-lg overflow-hidden">
+                  <img
+                    src={image}
+                    alt={`Banner ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
 
-        {!!carouselItemsData?.carouselItems?.length && (
-          <Carousel
-            setApi={setApi}
-            plugins={[
-              Autoplay({
-                delay: 4000,
-              }),
-            ]}
-            opts={{
-              align: 'start',
-              loop: true,
-            }}
-          >
-            <CarouselContent>
-              {carouselItemsData?.carouselItems?.map((item) => (
-                <CarouselItem key={item.id}>
-                  <section className="flex flex-col md:flex-row justify-between items-center mb-12 md:mb-20 gap-8">
-                    <div className="max-w-full md:max-w-[50%] text-center md:text-left">
-                      <div className="flex gap-3 justify-center md:justify-start flex-wrap">
-                        {(item.data as Post)?.keywords?.slice(0, 3)?.map((k) => (
-                          <Badge className="h-[20px] font-sans" key={k.id}>
-                            {k.name}
-                          </Badge>
-                        ))}
-                      </div>
-                      <h1 className="text-3xl md:text-5xl font-bold font-sans mb-3">
-                        {item?.data?.__typename === 'Post'
-                          ? (item.data as Post)?.title
-                          : (item.data as Program)?.name}
-                      </h1>
-                      <p className="text-base md:text-lg mb-6 md:mb-15">{item.data?.summary}</p>
-                      <Button type="button" variant="purple" className="w-[152px] h-11" asChild>
-                        <Link
-                          to={`${
-                            item.data?.__typename === 'Post'
-                              ? '/community/posts/'
-                              : '/programs/recruitment/'
-                          }${item.itemId}`}
-                        >
-                          VIEW DETAIL
-                        </Link>
-                      </Button>
-                    </div>
-                    <div className="flex w-full md:w-[544px] h-[200px] md:h-[306px]">
-                      {(item.data as Post)?.image ? (
-                        <img
-                          src={(item.data as Post)?.image ?? ''}
-                          alt="main"
-                          className="rounded-lg w-full h-full object-cover"
-                        />
-                      ) : (
-                        <img src={thumbnail} alt="main" className="rounded-lg" />
-                      )}
-                    </div>
-                  </section>
-                </CarouselItem>
-              ))}
-              {/* <CarouselItem>...</CarouselItem>
-          <CarouselItem>...</CarouselItem>
-          <CarouselItem>...</CarouselItem> */}
-            </CarouselContent>
-          </Carousel>
-        )}
-
-        <div className="flex justify-center mt-4 space-x-2">
+        <div className="flex justify-end mt-4 space-x-2">
           {snaps.map((_, i) => (
             <Button
-              // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
               key={i}
               onClick={() => api?.scrollTo(i)}
               size="icon"
-              className={`w-2 h-2 rounded-full hover:bg-primary-light ${
-                current === i ? 'bg-primary' : 'bg-gray-300'
+              className={`rounded-full hover:bg-primary-light ${
+                current === i ? 'w-6 h-2 bg-foreground' : 'w-2 h-2 bg-gray-300'
               }`}
             />
           ))}
         </div>
+      </div>
 
-        {/* Programs Section */}
-        {programsLoading ? (
-          <section className="mb-12">
-            <Skeleton className="w-[108px] h-[32px] mb-3" />
-            <div className="flex gap-3">
-              <Skeleton className="w-[624px] h-[272px] rounded-lg" />
-              <Skeleton className="w-[624px] h-[272px] rounded-lg" />
-              <Skeleton className="w-[624px] h-[272px] rounded-lg" />
-            </div>
-          </section>
-        ) : (
-          <section className="mb-12">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
-              <h2 className="text-xl md:text-2xl font-bold font-sans mb-0">Programs</h2>
-              <Link to="/programs/recruitment" className="flex items-center gap-2">
-                View more
-                <ArrowRight className="w-4 h-4" />
+      <div className="bg-gradient-to-b from-violet-100/20 to-blue-700/20 mt-20">
+        <div className="relative max-w-[1210px] mx-auto px-5 pt-12 pb-20 overflow-hidden">
+          <img
+            src={recruitmentMainImage}
+            alt="Recruitment"
+            className="absolute right-0 -top-10 md:w-[609px] md:h-[609px]"
+          />
+          <div className="relative z-10 flex flex-col justify-between gap-24">
+            <div className="flex justify-between">
+              <h2 className="max-w-[443px] leading-13 text-3xl md:text-4xl font-bold">
+                Turn contributions
+                <br />
+                into shared opportunities
+              </h2>
+              <Link to="/programs/recruitment" className="h-fit">
+                <ArrowRight className="w-10 h-10" />
               </Link>
             </div>
-            <div className="w-full max-w-full overflow-x-hidden">
-              <div className="flex gap-3 overflow-x-auto whitespace-nowrap pb-4 select-none -mx-4 md:mx-0 px-4 md:px-0 scrollbar-hide">
-                {programsData?.programsV2?.data?.map((program) => {
-                  return (
-                    <Link
-                      to={`/programs/recruitment/${program.id}`}
-                      className="min-w-[280px] md:min-w-[624px] md:max-w-[624px] hover:shadow-md transition-shadow flex-shrink-0"
-                      key={program.id}
-                    >
-                      <ProgramCard key={program.id} program={program} />
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-        )}
+            <p className="w-100 text-xl">
+              Ludium connects builders and sponsors through real contributions.
+              <br />
+              Show what you've built, discover talented teams, and turn your work into meaningful
+              opportunities that benefit everyone.
+            </p>
+          </div>
+        </div>
+      </div>
 
-        {/* Community Section */}
-        {postsLoading ? (
-          <section className="mb-12">
-            <Skeleton className="w-[108px] h-[32px] mb-3" />
-            <div className="flex gap-3">
-              <Skeleton className="w-[320px] h-[400px] rounded-lg" />
-              <Skeleton className="w-[320px] h-[400px] rounded-lg" />
-              <Skeleton className="w-[320px] h-[400px] rounded-lg" />
+      <div className="max-w-[1210px] mx-auto px-5 py-16">
+        <div className="flex justify-between items-center mb-9">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">Articles</h2>
+            <p className="text-xl">Insights, stories, and deep dives into the Web3 landscape.</p>
+          </div>
+          <Link to="/community/articles" className="flex items-center gap-2">
+            <ArrowRight className="w-10 h-10" />
+          </Link>
+        </div>
+
+        <div className="flex gap-3 mb-9">
+          {CATEGORIES.map((category) => (
+            <Button
+              key={category}
+              variant={selectedCategory === category ? 'default' : 'outline'}
+              onClick={() => {
+                const newSP = new URLSearchParams(searchParams);
+                newSP.set('category', category);
+                setSearchParams(newSP);
+              }}
+              className="rounded-full px-4 py-2 h-fit text-sm"
+            >
+              {CATEGORY_DISPLAY_MAP[category]}
+            </Button>
+          ))}
+        </div>
+
+        <div className="min-h-[300px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {articlesLoading ? (
+            <div className="flex items-center justify-center h-full col-span-3">
+              <p className="text-base">Loading...</p>
             </div>
-          </section>
-        ) : (
-          <section className="mb-12">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 gap-2">
-              <h2 className="text-xl md:text-2xl font-bold font-sans mb-0">Community</h2>
-              <Link to="/community" className="flex items-center gap-2">
-                View more
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+          ) : articles.length === 0 ? (
+            <div className="flex items-center justify-center h-full col-span-3">
+              <p className="text-base">No articles found</p>
             </div>
-            <div className="w-full max-w-full overflow-x-hidden">
-              <div className="flex gap-3 overflow-x-auto whitespace-nowrap pb-4 select-none -mx-4 md:mx-0 px-4 md:px-0 scrollbar-hide">
-                {postsData?.posts?.data?.map((post) => (
+          ) : (
+            <>
+              {articles.slice(0, 6).map((article) => (
+                <Link key={article.id} to={`/community/articles/${article.id}`} className="group">
                   <div
-                    key={post.id}
-                    className="flex-shrink-0 min-w-[280px] md:min-w-[544px] md:max-w-[544px]"
+                    className={`overflow-hidden rounded-lg mb-3 ${
+                      article.type === ArticleType.Campaign ? 'aspect-square' : 'aspect-[5/3]'
+                    }`}
                   >
-                    <MainCommunityCard post={post} />
+                    <img
+                      src={article.coverImage || ''}
+                      alt={article.title || ''}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Users Section */}
-        {/* {usersLoading ? (
-          <section className="mb-12">
-            <Skeleton className="w-[108px] h-[32px] mb-3" />
-            <div className="flex gap-3">
-              <Skeleton className="w-[320px] h-[400px] rounded-lg" />
-              <Skeleton className="w-[320px] h-[400px] rounded-lg" />
-              <Skeleton className="w-[320px] h-[400px] rounded-lg" />
-            </div>
-          </section>
-        ) : (
-          <section className="mb-12">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-2xl font-bold font-sans mb-3">User</h2>
-              <Link to="/community/users" className="flex items-center gap-2">
-                View more
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-            <div className="flex gap-3 overflow-x-auto whitespace-nowrap pb-4 select-none">
-              {usersData?.users?.data?.map((user) => (
-                <MainUserCard key={user.id} user={user} />
+                  <div className="flex items-center gap-2 mb-2">
+                    <Avatar className="w-5 h-5">
+                      <AvatarImage src={article.author?.profileImage || ''} />
+                      <AvatarFallback className="text-xs">
+                        {article.author?.nickname?.[0] || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs text-muted-foreground">
+                      {article.author?.nickname || 'Anonymous'}
+                    </span>
+                  </div>
+                  <h3 className="font-semibold text-base line-clamp-2 mb-1">{article.title}</h3>
+                  <p className="text-xs text-muted-foreground">
+                    {article.createdAt ? format(new Date(article.createdAt), 'MMMM dd, yyyy') : ''}
+                  </p>
+                </Link>
               ))}
-            </div>
-          </section>
-        )} */}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
