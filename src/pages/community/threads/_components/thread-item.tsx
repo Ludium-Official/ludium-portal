@@ -3,8 +3,8 @@ import { useToggleThreadReactionMutation } from '@/apollo/mutation/toggle-thread
 import { useCreateThreadCommentMutation } from '@/apollo/mutation/create-thread-comment.generated';
 import { useUpdateThreadMutation } from '@/apollo/mutation/update-thread.generated';
 import { useDeleteThreadMutation } from '@/apollo/mutation/delete-thread.generated';
-import { MediaGallery, MediaUploadPreview } from '@/components/community/media-gallery';
-import { Image as ImageIcon, X } from 'lucide-react';
+import { EditMediaPreview, MediaGallery } from '@/components/community/media-gallery';
+import { Image as ImageIcon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -166,17 +166,14 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
       return;
     if (!thread.id) return;
 
-    const hasRemovedImages = editExistingImages.length < currentImages.length;
-    const imagesInput =
-      editNewImages.length > 0 ? editNewImages : hasRemovedImages ? [] : undefined;
-
     try {
       const { data } = await updateThread({
         variables: {
           id: thread.id,
           input: {
             content: editContent,
-            images: imagesInput,
+            existingImageUrls: editExistingImages,
+            newImages: editNewImages.length > 0 ? editNewImages : undefined,
           },
         },
       });
@@ -282,27 +279,12 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
                   className="w-full min-h-[100px] focus-visible:ring-0"
                 />
 
-                {editExistingImages.length > 0 && (
-                  <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
-                    {editExistingImages.map((url, idx) => (
-                      <div key={idx} className="aspect-square relative">
-                        <img
-                          src={url}
-                          alt={`Existing ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          onClick={() => handleRemoveExistingImage(idx)}
-                          className="absolute top-2 right-2 p-1 rounded-full bg-black/60 hover:bg-black/80 text-white"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <MediaUploadPreview files={editNewImages} onRemove={handleRemoveNewImage} />
+                <EditMediaPreview
+                  existingImages={editExistingImages}
+                  newFiles={editNewImages}
+                  onRemoveExisting={handleRemoveExistingImage}
+                  onRemoveNew={handleRemoveNewImage}
+                />
 
                 <div className="flex items-center justify-between pt-3 border-t">
                   <div className="flex items-center gap-2">
