@@ -1,6 +1,6 @@
-import logoFooter from '@/assets/logo-footer.svg';
-import customerService from '@/assets/social/customer-service.svg';
-import { Link } from 'react-router';
+import logoFooter from "@/assets/logo-footer.svg";
+import customerService from "@/assets/social/customer-service.svg";
+import { Link } from "react-router";
 
 function Footer() {
   return (
@@ -13,20 +13,35 @@ function Footer() {
             </Link>
           </div>
           <div className="text-center md:text-left">
-            <h3 className="text-xs font-bold leading-[25px] mb-1">Contact us</h3>
+            <h3 className="text-xs font-bold leading-[25px] mb-1">
+              Contact us
+            </h3>
 
-            <a href="/" className="flex items-center gap-2 leading-[25px] mb-1 text-xs">
-              <img src={customerService} alt="customer-service" /> Customer Service{' '}
+            <a
+              href="/"
+              className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
+            >
+              <img src={customerService} alt="customer-service" /> Customer
+              Service{" "}
             </a>
           </div>
         </div>
         <div className="text-xs md:text-sm text-center md:text-left mt-4 md:mt-0">
+          <p className="leading-[25px] font-bold">Company Info (법인 정보)</p>
+          <p className="leading-[25px]">법인명: 바스 주식회사</p>
+          <p className="leading-[25px]">사업자등록번호: 365-88-03386</p>
+          <p className="leading-[25px]">대표자: 박상희</p>
           <p className="leading-[25px]">
-            © 2025 Blockchain Alliance Syndicate(BAS) Project. All rights reserved.
+            사업장 소재지: 경기도 성남시 수정구 탄리로147번길 23, 1층(태평동)
           </p>
-          <p className="leading-[25px]">Powered by BAS</p>
           <p className="leading-[25px]">
-            본 사이트는 준비 중인 서비스로, 정식 사업자 등록 전까지 사업자정보는 기재되지 않습니다.
+            업태/종목: 정보통신업 / 응용 소프트웨어 개발 및 공급업
+          </p>
+          <p className="mt-4 leading-[25px]">
+            본 사이트의 내용은 정보 제공 목적이며, 특정 결과를 보장하지
+            않습니다.
+            <br />
+            프로그램 세부 내용은 운영 상황에 따라 변경될 수 있습니다.
           </p>
         </div>
       </div>
