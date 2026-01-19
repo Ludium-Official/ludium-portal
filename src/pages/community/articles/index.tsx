@@ -1,31 +1,36 @@
-import CommunityBanner from '@/assets/icons/community/articles/banners/CommunityBanner.svg';
+import CommunityBanner from '@/assets/icons/community/articles/banners/community-banner.svg';
+import CommunityBannerMobile from '@/assets/icons/community/articles/banners/community-banner-mobile.svg';
+import Container from '@/components/layout/container';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
-import { shuffleArray } from '@/lib/utils';
+import { cn, shuffleArray } from '@/lib/utils';
 import Autoplay from 'embla-carousel-autoplay';
 import useEmblaCarousel from 'embla-carousel-react';
 import { CirclePlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import ArticlesContent from './_components/articles-content';
-
-const BANNER_DATA = [
-  {
-    id: 1,
-    image: CommunityBanner,
-    link: '/community/articles',
-  },
-];
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 const ArticlesPage: React.FC = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { isLoggedIn, isAuthed } = useAuth();
+
+  const BANNER_DATA = [
+    {
+      id: 1,
+      image: isMobile ? CommunityBannerMobile : CommunityBanner,
+      link: '/community/articles',
+    },
+  ];
+
   const [shuffledBanners, setShuffledBanners] = useState(BANNER_DATA);
 
   useEffect(() => {
     setShuffledBanners(shuffleArray(BANNER_DATA));
-  }, []);
+  }, [isMobile]);
 
   const [emblaRef] = useEmblaCarousel({ loop: true }, [
     Autoplay({ delay: 10000, stopOnInteraction: false }),
@@ -33,7 +38,10 @@ const ArticlesPage: React.FC = () => {
 
   return (
     <div className="bg-white min-h-screen">
-      <div className="relative overflow-hidden rounded-t-lg" ref={emblaRef}>
+      <div
+        className={cn('relative overflow-hidden rounded-t-lg', isMobile && 'rounded-none mt-4')}
+        ref={emblaRef}
+      >
         <div className="flex">
           {shuffledBanners.map((banner) => (
             <div
@@ -55,12 +63,12 @@ const ArticlesPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="sm:max-w-[1250px] mx-auto px-5 py-11">
-        <div className="flex items-center justify-between mb-15">
-          <h2 className="text-3xl font-bold">Articles</h2>
+      <Container className={cn('sm:max-w-[1250px] px-5 py-11', isMobile && 'py-7')}>
+        <div className={cn('flex items-center justify-between mb-15', isMobile && 'mb-5')}>
+          <h2 className={cn('text-3xl font-bold', isMobile && 'text-base')}>Articles</h2>
           {isLoggedIn && (
             <Button
-              className="gap-2 rounded-[6px] px-3"
+              className={cn('gap-2 rounded-[6px] px-3', isMobile && 'p-2! h-fit')}
               onClick={() => {
                 if (!isAuthed) {
                   notify('Please check your email and nickname', 'success');
@@ -73,13 +81,13 @@ const ArticlesPage: React.FC = () => {
               variant="outline"
             >
               <CirclePlus />
-              Create Article
+              {!isMobile && 'Create Article'}
             </Button>
           )}
         </div>
 
         <ArticlesContent />
-      </div>
+      </Container>
     </div>
   );
 };

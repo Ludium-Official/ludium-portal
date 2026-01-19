@@ -1,5 +1,7 @@
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import type { InputLabelProps } from '@/types/input';
 
 const InputLabel: React.FC<InputLabelProps> = ({
@@ -20,21 +22,23 @@ const InputLabel: React.FC<InputLabelProps> = ({
   disabled,
   isTextarea,
 }) => {
+  const isMobile = useIsMobile();
+
   return (
-    <label htmlFor={labelId} className={`space-y-2 block ${className}`}>
+    <label htmlFor={labelId} className={cn('space-y-2 block', className, isMobile && 'w-full')}>
       {title && (
         <p className={`text-sm font-medium ${titleClassName}`}>
           {title}
           {isPrimary && <span className="ml-[2px] text-red-500">*</span>}
         </p>
       )}
-      <div className={inputWrapperClassName}>
+      <div className={cn(inputWrapperClassName, isMobile && 'text-sm')}>
         {isTextarea ? (
           <Textarea
             disabled={disabled}
             id={labelId}
             placeholder={placeholder}
-            className={`h-10 ${inputClassName}`}
+            className={cn(`h-10 ${inputClassName}`, isMobile && 'text-sm')}
             {...(register
               ? register(labelId, {
                   required: true,
@@ -48,7 +52,7 @@ const InputLabel: React.FC<InputLabelProps> = ({
             id={labelId}
             type={type}
             placeholder={placeholder}
-            className={`h-10 ${inputClassName}`}
+            className={cn(`h-10 ${inputClassName}`, isMobile && 'text-sm')}
             onKeyDown={onKeyDown}
             {...(type === 'file' || !register
               ? { onChange }

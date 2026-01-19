@@ -3,6 +3,7 @@ import { useArticleCommentsQuery } from '@/apollo/queries/article-comments.gener
 import { useToggleArticleLikeMutation } from '@/apollo/mutation/toggle-article-like.generated';
 import { useCreateArticleCommentMutation } from '@/apollo/mutation/create-article-comment.generated';
 import { CommentItem } from '@/components/community/comment-item';
+import Container from '@/components/layout/container';
 import { ArticleCommentData } from '@/types/comment';
 import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -29,11 +30,14 @@ import {
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import RecommendedArticles from '../_components/recommended-articles';
+import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 const ArticleDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthed, isAdmin, userId } = useAuth();
+  const isMobile = useIsMobile();
 
   const [comment, setComment] = useState('');
   const [showComments, setShowComments] = useState(true);
@@ -120,9 +124,14 @@ const ArticleDetailPage = () => {
   return (
     <>
       <div className="bg-white min-h-screen">
-        <div className="max-w-[936px] mx-auto pt-23 pb-25">
+        <Container
+          size="narrow"
+          className={cn('max-w-[936px] pt-23 pb-25', isMobile && 'pt-7 pb-19')}
+        >
           <div className="mb-6">
-            <h1 className="text-3xl font-bold mb-6">{article.title}</h1>
+            <h1 className={cn('text-3xl font-bold mb-6', isMobile && 'mb-[18px]')}>
+              {article.title}
+            </h1>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 mb-4">
                 <Avatar className="w-7 h-7">
@@ -140,44 +149,52 @@ const ArticleDetailPage = () => {
                   </p>
                 </div>
               </div>
-              {(isAdmin ||
-                (userId && article.author?.id && String(userId) === String(article.author.id))) && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <EllipsisVertical className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => navigate(`/community/articles/${id}/edit`)}
-                      className="cursor-pointer"
-                    >
-                      <Pencil className="w-4 h-4 mr-2" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive cursor-pointer"
-                      disabled
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+              {!isMobile &&
+                (isAdmin ||
+                  (userId &&
+                    article.author?.id &&
+                    String(userId) === String(article.author.id))) && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <EllipsisVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => navigate(`/community/articles/${id}/edit`)}
+                        className="cursor-pointer"
+                      >
+                        <Pencil className="w-4 h-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive cursor-pointer"
+                        disabled
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
             </div>
           </div>
 
           <MarkdownPreviewer value={article.description || ''} />
 
-          <div className="flex items-center justify-between mt-19 mb-8">
+          <div
+            className={cn('flex items-center justify-between mt-19 mb-8', isMobile && 'mb-[30px]')}
+          >
             <div className="flex items-center gap-4">
               <Button
                 variant="outline"
                 onClick={handleToggleLike}
                 disabled={!isAuthed}
-                className="flex items-center gap-2 border rounded-md p-3 text-sm disabled:opacity-50"
+                className={cn(
+                  'flex items-center gap-2 border rounded-md p-3 text-sm disabled:opacity-50',
+                  isMobile && 'px-3!',
+                )}
               >
                 <Heart
                   className={`w-4 h-4 ${article.isLiked ? 'fill-red-500 text-red-500' : ''}`}
@@ -193,26 +210,62 @@ const ArticleDetailPage = () => {
                 <span>{article.commentCount ?? 0}</span>
               </Button>
             </div>
-            <ShareButton className="h-full border rounded-md py-3 px-4! text-sm" />
+
+            <div className="flex items-center gap-2">
+              <ShareButton
+                className={cn('h-full border rounded-md py-3 px-4! text-sm', isMobile && 'px-3!')}
+              />
+              {isMobile &&
+                (isAdmin ||
+                  (userId &&
+                    article.author?.id &&
+                    String(userId) === String(article.author.id))) && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="p-3!">
+                        <EllipsisVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => navigate(`/community/articles/${id}/edit`)}
+                        className="cursor-pointer"
+                      >
+                        <Pencil className="w-4 h-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive cursor-pointer"
+                        disabled
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+            </div>
           </div>
 
           {showComments && (
             <div>
-              <h3 className="text-[20px] font-bold mb-2">Comments</h3>
+              <h3 className={cn('text-[20px] font-bold mb-2', isMobile && 'text-base')}>
+                Comments
+              </h3>
 
               {isAuthed && (
-                <div className="mb-8">
+                <div className={cn('mb-8', isMobile && 'mb-0')}>
                   <div className="flex flex-col items-end gap-3">
                     <Textarea
                       value={comment}
                       onChange={(e) => setComment(e.target.value)}
                       placeholder="Write a comment..."
-                      className="h-[100px] resize-none"
+                      className={cn('h-[100px] resize-none', isMobile && 'text-sm')}
                     />
                     <Button
                       size="sm"
                       variant="outline"
-                      className="flex-shrink-0"
+                      className={cn('flex-shrink-0', isMobile && 'text-xs')}
                       disabled={!comment.trim() || creatingComment}
                       onClick={handlePostComment}
                     >
@@ -228,7 +281,7 @@ const ArticleDetailPage = () => {
                     <Loader2 className="w-6 h-6 animate-spin mx-auto" />
                   </div>
                 ) : comments.length === 0 ? (
-                  <div className="text-center py-8">
+                  <div className={cn('text-center py-8', isMobile && 'text-sm')}>
                     <p className="text-muted-foreground">No comments yet</p>
                   </div>
                 ) : (
@@ -246,7 +299,7 @@ const ArticleDetailPage = () => {
               </div>
             </div>
           )}
-        </div>
+        </Container>
       </div>
 
       {article?.type && <RecommendedArticles articleType={article.type} />}

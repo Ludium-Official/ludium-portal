@@ -4,18 +4,32 @@ import twitter from '@/assets/social/twitter.svg';
 import { Link } from 'react-router';
 import Discord from '@/assets/social/discord.svg?react';
 import Youtube from '@/assets/social/youtube.svg?react';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 function Footer() {
+  const isMobile = useIsMobile();
+
   return (
-    <footer className="bg-white rounded-t-2xl min-h-[310px] md:min-h-[310px] py-8 md:py-[64px] px-4 md:px-[60px] text-gray-text">
-      <div className="flex flex-col md:flex-row justify-between items-start gap-8 md:gap-0">
-        <div className="flex flex-col md:flex-row items-start gap-8 md:gap-[252px] w-full md:w-auto">
-          <div className="flex justify-center md:justify-start w-full md:w-auto">
+    <footer className="bg-white rounded-t-2xl min-h-[310px] py-16 px-4 md:px-[60px] text-neutral-400">
+      <div className={cn('flex flex-col gap-4', isMobile && 'gap-9')}>
+        <div
+          className={cn(
+            'flex flex-col md:flex-row items-start gap-8 md:gap-[252px] w-full md:w-auto',
+            isMobile && 'gap-12',
+          )}
+        >
+          <div
+            className={cn(
+              'flex justify-center md:justify-start w-full md:w-auto',
+              isMobile && 'justify-start',
+            )}
+          >
             <Link to="/">
-              <img src={logoFooter} alt="logo" className="h-8 md:h-auto" />
+              <img src={logoFooter} alt="logo" />
             </Link>
           </div>
-          <div className="text-center md:text-left">
+          <div className="text-left">
             <h3 className="text-xs font-bold leading-[25px] mb-1">Contact us</h3>
             <a
               target="_blank"
@@ -46,6 +60,7 @@ function Footer() {
             </a>
           </div>
         </div>
+        <div className="text-xs">©2026 LUDIUM .ALL RIGHTS RESERVED.</div>
       </div>
     </footer>
   );

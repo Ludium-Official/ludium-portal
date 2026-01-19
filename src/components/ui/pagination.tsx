@@ -5,6 +5,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { PaginationLinkProps, PaginationProps } from '@/types/pagination';
 import { useSearchParams } from 'react-router';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 export const PageSize = 5;
 const maxVisible = 4;
@@ -50,8 +51,9 @@ PaginationLink.displayName = 'PaginationLink';
 
 const PaginationPrevious = ({
   className,
+  hideText,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
+}: React.ComponentProps<typeof PaginationLink> & { hideText?: boolean }) => (
   <PaginationLink
     aria-label="Go to previous page"
     size="default"
@@ -59,19 +61,23 @@ const PaginationPrevious = ({
     {...props}
   >
     <ChevronLeft className="h-4 w-4" />
-    <span>Previous</span>
+    {!hideText && <span>Previous</span>}
   </PaginationLink>
 );
 PaginationPrevious.displayName = 'PaginationPrevious';
 
-const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
+const PaginationNext = ({
+  className,
+  hideText,
+  ...props
+}: React.ComponentProps<typeof PaginationLink> & { hideText?: boolean }) => (
   <PaginationLink
     aria-label="Go to next page"
     size="default"
     className={cn('gap-1 pr-2.5', className)}
     {...props}
   >
-    <span>Next</span>
+    {!hideText && <span>Next</span>}
     <ChevronRight className="h-4 w-4" />
   </PaginationLink>
 );
@@ -90,6 +96,8 @@ const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<'span'
 PaginationEllipsis.displayName = 'PaginationEllipsis';
 
 const Pagination = ({ totalCount, pageSize }: PaginationProps) => {
+  const isMobile = useIsMobile();
+
   const [searchParams, setSearchParams] = useSearchParams();
 
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -132,6 +140,7 @@ const Pagination = ({ totalCount, pageSize }: PaginationProps) => {
           <PaginationPrevious
             className={cn('max-h-9', currentPage === 1 && 'pointer-events-none opacity-50')}
             onClick={() => goToPage(Math.max(currentPage - 1, 1))}
+            hideText={isMobile}
           />
         </PaginationItem>
 
@@ -191,6 +200,7 @@ const Pagination = ({ totalCount, pageSize }: PaginationProps) => {
               currentPage === totalPages && 'pointer-events-none opacity-50',
             )}
             onClick={() => goToPage(Math.min(currentPage + 1, totalPages))}
+            hideText={isMobile}
           />
         </PaginationItem>
       </PaginationContent>

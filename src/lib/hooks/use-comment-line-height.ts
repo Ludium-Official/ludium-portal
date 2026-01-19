@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, RefObject } from 'react';
+import { useEffect, useRef, useState, RefObject } from "react";
+import { useIsMobile } from "./use-mobile";
 
 interface UseCommentLineHeightOptions {
   showComments: boolean;
@@ -15,6 +16,7 @@ export function useCommentLineHeight({
   showComments,
   commentsLength,
 }: UseCommentLineHeightOptions): UseCommentLineHeightReturn {
+  const isMobile = useIsMobile();
   const commentsRef = useRef<HTMLDivElement>(null);
   const parentContentRef = useRef<HTMLDivElement>(null);
   const [lineHeight, setLineHeight] = useState<number | null>(null);
@@ -23,6 +25,7 @@ export function useCommentLineHeight({
     if (showComments && commentsRef.current && parentContentRef.current) {
       const parentHeight = parentContentRef.current.offsetHeight;
       const children = commentsRef.current.children;
+      const offsetValue = isMobile ? 150 : 180;
 
       if (children.length === 0) {
         setLineHeight(parentHeight);
@@ -36,7 +39,7 @@ export function useCommentLineHeight({
         }
         const gapCount = children.length - 2;
         childrenHeight += gapCount > 0 ? gapCount * 24 : 0;
-        setLineHeight(parentHeight + childrenHeight + 180);
+        setLineHeight(parentHeight + childrenHeight + offsetValue);
       }
     } else {
       setLineHeight(null);
@@ -45,7 +48,7 @@ export function useCommentLineHeight({
 
   useEffect(() => {
     calculateLineHeight();
-  }, [showComments, commentsLength]);
+  }, [showComments, commentsLength, isMobile]);
 
   useEffect(() => {
     if (!commentsRef.current || !showComments) return;

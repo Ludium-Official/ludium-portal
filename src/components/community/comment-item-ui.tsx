@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import { ReactNode } from 'react';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 export type { CommentItemUIData };
 
@@ -92,6 +94,7 @@ export const CommentItemUI = ({
   childComments,
   childrenCount = 0,
 }: CommentItemUIProps) => {
+  const isMobile = useIsMobile();
   const { isLoggedIn, isAuthed } = useAuth();
   const {
     lineHeight,
@@ -109,7 +112,7 @@ export const CommentItemUI = ({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <Avatar className="w-10 h-10 flex-shrink-0">
+        <Avatar className={cn('w-10 h-10 flex-shrink-0', isMobile && 'w-[30px] h-[30px]')}>
           <AvatarImage src={data.authorProfileImage || ''} />
           <AvatarFallback>{data.authorNickname?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
         </Avatar>
@@ -129,11 +132,9 @@ export const CommentItemUI = ({
           </div>
         )}
         <div className={showReplies ? 'flex-1' : 'ml-12'}>
-          <div ref={parentContentRef}>
+          <div ref={parentContentRef} className={cn('text-base', isMobile && 'text-sm')}>
             {isDeleted ? (
-              <p className="mb-4 text-muted-foreground italic text-base">
-                This message has been deleted
-              </p>
+              <p className="mb-4 text-muted-foreground italic">This message has been deleted</p>
             ) : isEditing ? (
               <div className="flex flex-col gap-2 mb-4">
                 <Textarea
@@ -155,7 +156,7 @@ export const CommentItemUI = ({
                 </div>
               </div>
             ) : (
-              <p className="text-base mb-4 whitespace-pre-wrap break-all">{displayContent}</p>
+              <p className="mb-4 whitespace-pre-wrap break-all">{displayContent}</p>
             )}
 
             <div className="flex items-center gap-3 mb-6">
@@ -250,7 +251,7 @@ export const CommentItemUI = ({
                       value={replyText}
                       onChange={(e) => onReplyTextChange?.(e.target.value)}
                       placeholder="Write a comment..."
-                      className="h-[40px] min-h-[40px] resize-none"
+                      className={cn('h-[40px] min-h-[40px] resize-none', isMobile && 'text-sm')}
                     />
                   ) : (
                     <div className="w-full border border-gray-300 rounded-md p-2 h-[40px] min-h-[40px] text-sm text-muted-foreground">
@@ -258,7 +259,12 @@ export const CommentItemUI = ({
                     </div>
                   )}
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={onCancelReply}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={onCancelReply}
+                      className={cn(isMobile && 'text-xs')}
+                    >
                       Cancel
                     </Button>
                     <Button
@@ -266,6 +272,7 @@ export const CommentItemUI = ({
                       variant="outline"
                       disabled={!replyText?.trim() || creatingReply}
                       onClick={onPostReply}
+                      className={cn(isMobile && 'text-xs')}
                     >
                       {creatingReply ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Post'}
                     </Button>

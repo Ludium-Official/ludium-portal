@@ -8,10 +8,13 @@ import { ArticleStatus } from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import ArticleForm, { type OnSubmitArticleFunc } from '../_components/article-form';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 const EditArticlePage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const isMobile = useIsMobile();
   const { userId, isAdmin, isAuthLoading } = useAuth();
 
   const { data: articleData, loading: articleLoading } = useArticleQuery({
@@ -67,18 +70,16 @@ const EditArticlePage: React.FC = () => {
     });
   };
 
-  // Show nothing while checking permissions
   if (isAuthLoading || articleLoading) {
     return null;
   }
 
-  // Don't render if no permission (useEffect will redirect)
   if (!hasPermission) {
     return null;
   }
 
   return (
-    <div className="bg-white px-25 py-[30px] rounded-2xl">
+    <div className={cn('rounded-2xl bg-white', isMobile && 'rounded-none')}>
       <ArticleForm isEdit={true} onSubmitArticle={onSubmit} loading={loading} />
     </div>
   );

@@ -7,6 +7,7 @@ import { Button } from './button';
 import { Label } from './label';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { RadioGroup, RadioGroupItem } from './radio-group';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 interface ShareButtonProps {
   className?: string;
@@ -27,6 +28,8 @@ export function ShareButton({
   program,
   linkToCopy,
 }: ShareButtonProps) {
+  const isMobile = useIsMobile();
+
   const [shareType, setShareType] = useState<'link' | 'farcaster'>('link');
 
   const handleShare = () => {
@@ -55,8 +58,8 @@ export function ShareButton({
           size={size}
           className={cn('flex gap-2 items-center text-xs', className)}
         >
-          {children || 'Share'}
-          <Share2Icon className="size-3" />
+          {!isMobile && (children || 'Share')}
+          <Share2Icon className="size-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-6 min-w-[400px]" align="end">
