@@ -42,7 +42,7 @@ function Layout() {
           id="scroll-area-main"
           className={cn(
             'bg-gray-light h-[calc(100dvh-24px)] rounded-2xl m-3 md:m-0 md:flex-1 flex flex-col gap-3 relative overflow-hidden',
-            isMobile && 'h-full m-0 rounded-none',
+            isMobile && 'h-[100dvh] m-0 rounded-none',
           )}
         >
           <div className="relative flex-1 flex flex-col min-h-0">

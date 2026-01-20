@@ -1,21 +1,21 @@
-import client from "@/apollo/client";
-import { useUpdateAboutSectionV2Mutation } from "@/apollo/mutation/update-about-section-v2.generated";
-import { ProfileV2Document } from "@/apollo/queries/profile-v2.generated";
-import AboutIcon from "@/assets/icons/profile/about.svg";
-import { Button } from "@/components/ui/button";
+import client from '@/apollo/client';
+import { useUpdateAboutSectionV2Mutation } from '@/apollo/mutation/update-about-section-v2.generated';
+import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
+import AboutIcon from '@/assets/icons/profile/about.svg';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { useIsMobile } from "@/lib/hooks/use-mobile";
-import notify from "@/lib/notify";
-import { cn } from "@/lib/utils";
-import { Loader2, Pen, Plus, X } from "lucide-react";
-import { useState } from "react";
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import notify from '@/lib/notify';
+import { cn } from '@/lib/utils';
+import { Loader2, Pen, Plus, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface AboutSectionProps {
   bio?: string | null;
@@ -26,10 +26,9 @@ const MAX_CHARACTERS = 1000;
 export const AboutSection: React.FC<AboutSectionProps> = ({ bio }) => {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
-  const [aboutText, setAboutText] = useState(bio || "");
+  const [aboutText, setAboutText] = useState(bio || '');
 
-  const [updateAboutSectionV2, { loading: updating }] =
-    useUpdateAboutSectionV2Mutation();
+  const [updateAboutSectionV2, { loading: updating }] = useUpdateAboutSectionV2Mutation();
 
   const handleSave = () => {
     updateAboutSectionV2({
@@ -39,31 +38,31 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ bio }) => {
         },
       },
       onCompleted: async () => {
-        notify("Successfully updated the about", "success");
+        notify('Successfully updated the about', 'success');
         client.refetchQueries({ include: [ProfileV2Document] });
         setIsOpen(false);
       },
       onError: (error) => {
-        console.error("Failed to update about:", error);
-        notify("Failed to update about", "error");
+        console.error('Failed to update about:', error);
+        notify('Failed to update about', 'error');
       },
     });
   };
 
   const handleCancel = () => {
-    setAboutText(bio || "");
+    setAboutText(bio || '');
     setIsOpen(false);
   };
 
   const handleOpenChange = (open: boolean) => {
     if (open) {
-      setAboutText(bio || "");
+      setAboutText(bio || '');
     }
     setIsOpen(open);
   };
 
   const formContent = (
-    <div className={cn("my-4", isMobile && "h-full my-0")}>
+    <div className={cn('my-4', isMobile && 'h-full my-0')}>
       <Textarea
         placeholder="Introduce yourself. You can describe your skills, experience, and background."
         value={aboutText}
@@ -72,7 +71,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ bio }) => {
             setAboutText(e.target.value);
           }
         }}
-        className={cn("min-h-[200px] resize-none", isMobile && "min-h-[400px]")}
+        className={cn('min-h-[200px] resize-none', isMobile && 'min-h-[400px]')}
       />
       <p className="text-sm text-gray-500 text-right mt-2">
         {aboutText.length}/{MAX_CHARACTERS} characters
@@ -83,8 +82,8 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ bio }) => {
   return (
     <div
       className={cn(
-        "bg-white border border-gray-200 rounded-lg px-10 py-5",
-        isMobile && "px-[14px] py-4"
+        'bg-white border border-gray-200 rounded-lg px-10 py-5',
+        isMobile && 'px-[14px] py-4',
       )}
     >
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -108,18 +107,12 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ bio }) => {
         ) : (
           <div
             className={cn(
-              "border border-gray-200 rounded-lg p-10 flex flex-col items-center justify-center",
-              isMobile && "p-6"
+              'border border-gray-200 rounded-lg p-10 flex flex-col items-center justify-center',
+              isMobile && 'p-6',
             )}
           >
-            <img
-              src={AboutIcon}
-              alt="About"
-              className="h-12 w-12 text-gray-300 mb-1"
-            />
-            <p className="text-slate-500 mb-2 font-light">
-              No about added yet.
-            </p>
+            <img src={AboutIcon} alt="About" className="h-12 w-12 text-gray-300 mb-1" />
+            <p className="text-slate-500 mb-2 font-light">No about added yet.</p>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
                 <Plus className="h-4 w-4" />
@@ -133,10 +126,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ bio }) => {
           isOpen && (
             <div className="fixed inset-0 z-50 bg-white flex flex-col">
               <header className="relative flex items-center justify-center px-4 py-4 h-17 border-b border-gray-100">
-                <button
-                  onClick={handleCancel}
-                  className="absolute top-4 left-4"
-                >
+                <button onClick={handleCancel} className="absolute top-4 left-4">
                   <X className="w-6 h-9" />
                 </button>
                 <span className="text-sm font-medium">About</span>
@@ -147,11 +137,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ bio }) => {
                   onClick={handleSave}
                   disabled={updating}
                 >
-                  {updating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    "Save"
-                  )}
+                  {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
                 </Button>
               </header>
               <div className="flex-1 overflow-y-auto p-4">{formContent}</div>
@@ -160,16 +146,9 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ bio }) => {
         ) : (
           <DialogContent className="sm:max-w-[782px] px-10 py-4">
             <DialogHeader className="flex flex-row items-center justify-between">
-              <DialogTitle className="text-base font-semibold text-slate-800">
-                About
-              </DialogTitle>
+              <DialogTitle className="text-base font-semibold text-slate-800">About</DialogTitle>
               <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCancel}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
                   Cancel
                 </Button>
                 <Button
@@ -179,11 +158,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ bio }) => {
                   onClick={handleSave}
                   disabled={updating}
                 >
-                  {updating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    "Save"
-                  )}
+                  {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
                 </Button>
               </div>
             </DialogHeader>

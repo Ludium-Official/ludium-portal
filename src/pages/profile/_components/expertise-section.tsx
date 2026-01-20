@@ -1,30 +1,27 @@
-import client from "@/apollo/client";
-import { useUpdateExpertiseSectionV2Mutation } from "@/apollo/mutation/update-expertise-section-v2.generated";
-import { ProfileV2Document } from "@/apollo/queries/profile-v2.generated";
-import ExpertiseIcon from "@/assets/icons/profile/expertise.svg";
-import { Button } from "@/components/ui/button";
+import client from '@/apollo/client';
+import { useUpdateExpertiseSectionV2Mutation } from '@/apollo/mutation/update-expertise-section-v2.generated';
+import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
+import ExpertiseIcon from '@/assets/icons/profile/expertise.svg';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { MultiSelect } from "@/components/ui/multi-select";
-import { SearchSelect } from "@/components/ui/search-select";
-import {
-  LANGUAGE_OPTIONS,
-  PROFICIENCY_OPTIONS,
-} from "@/constant/profile-related";
-import { fetchSkills } from "@/lib/api/skills";
-import { useIsMobile } from "@/lib/hooks/use-mobile";
-import notify from "@/lib/notify";
-import { cn } from "@/lib/utils";
-import type { LabelValueProps } from "@/types/common";
-import type { LanguageV2 } from "@/types/types.generated";
-import { Loader2, Minus, Pen, Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { SearchSelect } from '@/components/ui/search-select';
+import { LANGUAGE_OPTIONS, PROFICIENCY_OPTIONS } from '@/constant/profile-related';
+import { fetchSkills } from '@/lib/api/skills';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import notify from '@/lib/notify';
+import { cn } from '@/lib/utils';
+import type { LabelValueProps } from '@/types/common';
+import type { LanguageV2 } from '@/types/types.generated';
+import { Loader2, Minus, Pen, Plus, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface ExpertiseSectionProps {
   role?: string | null;
@@ -42,17 +39,16 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
   const [skillsLoading, setSkillsLoading] = useState(false);
   const [selectedSkills, setSelectedSkills] = useState<{ name: string }[]>([]);
   const [skillInput, setSkillInput] = useState<string>();
-  const [selectedSkillItems, setSelectedSkillItems] = useState<
-    LabelValueProps[]
-  >(skills?.map((s) => ({ label: s, value: s })) || []);
-  const [formRole, setFormRole] = useState(role || "");
+  const [selectedSkillItems, setSelectedSkillItems] = useState<LabelValueProps[]>(
+    skills?.map((s) => ({ label: s, value: s })) || [],
+  );
+  const [formRole, setFormRole] = useState(role || '');
   const [formSkills, setFormSkills] = useState<string[]>(skills || []);
   const [formLanguages, setFormLanguages] = useState<LanguageV2[]>(
-    languages.length > 0 ? languages : [{ language: "", proficiency: "" }]
+    languages.length > 0 ? languages : [{ language: '', proficiency: '' }],
   );
 
-  const [updateExpertiseSectionV2, { loading: updating }] =
-    useUpdateExpertiseSectionV2Mutation();
+  const [updateExpertiseSectionV2, { loading: updating }] = useUpdateExpertiseSectionV2Mutation();
 
   useEffect(() => {
     const loadSkills = async () => {
@@ -61,7 +57,7 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
         const skillsData = await fetchSkills();
         setSelectedSkills(skillsData);
       } catch (error) {
-        console.error("Failed to fetch skills:", error);
+        console.error('Failed to fetch skills:', error);
       } finally {
         setSkillsLoading(false);
       }
@@ -82,12 +78,10 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
 
   const handleOpenChange = (open: boolean) => {
     if (open) {
-      setFormRole(role || "");
+      setFormRole(role || '');
       setFormSkills(skills || []);
       setSelectedSkillItems(skills?.map((s) => ({ label: s, value: s })) || []);
-      setFormLanguages(
-        languages.length > 0 ? languages : [{ language: "", proficiency: "" }]
-      );
+      setFormLanguages(languages.length > 0 ? languages : [{ language: '', proficiency: '' }]);
     }
     setIsOpen(open);
   };
@@ -97,8 +91,8 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
     const validLanguages = formLanguages
       .filter((lang) => lang.language && lang.proficiency)
       .map((language) => ({
-        language: language.language || "",
-        proficiency: language.proficiency || "",
+        language: language.language || '',
+        proficiency: language.proficiency || '',
       }));
 
     updateExpertiseSectionV2({
@@ -110,47 +104,41 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
         },
       },
       onCompleted: async () => {
-        notify("Successfully updated the expertise", "success");
+        notify('Successfully updated the expertise', 'success');
         client.refetchQueries({ include: [ProfileV2Document] });
         setIsOpen(false);
       },
       onError: (error) => {
-        console.error("Failed to update expertise:", error);
-        notify("Failed to update expertise", "error");
+        console.error('Failed to update expertise:', error);
+        notify('Failed to update expertise', 'error');
       },
     });
   };
 
   const handleCancel = () => {
-    setFormRole(role || "");
+    setFormRole(role || '');
     setFormSkills(skills || []);
     setSelectedSkillItems(skills?.map((s) => ({ label: s, value: s })) || []);
-    setFormLanguages(
-      languages.length > 0 ? languages : [{ language: "", proficiency: "" }]
-    );
+    setFormLanguages(languages.length > 0 ? languages : [{ language: '', proficiency: '' }]);
     setIsOpen(false);
   };
 
   const addLanguage = () => {
-    setFormLanguages([...formLanguages, { language: "", proficiency: "" }]);
+    setFormLanguages([...formLanguages, { language: '', proficiency: '' }]);
   };
 
   const removeLanguage = (index: number) => {
     setFormLanguages(formLanguages.filter((_, i) => i !== index));
   };
 
-  const updateLanguage = (
-    index: number,
-    field: "language" | "proficiency",
-    value: string
-  ) => {
+  const updateLanguage = (index: number, field: 'language' | 'proficiency', value: string) => {
     const updated = [...formLanguages];
     updated[index] = { ...updated[index], [field]: value };
     setFormLanguages(updated);
   };
 
   const formContent = (
-    <div className={cn("space-y-6 my-4", isMobile && "my-0 space-y-10")}>
+    <div className={cn('space-y-6 my-4', isMobile && 'my-0 space-y-10')}>
       {/* Role */}
       <div>
         <p className="text-sm font-medium text-gray-900 mb-2">
@@ -187,50 +175,42 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
       <div>
         <div
           className={cn(
-            "grid grid-cols-[1fr_1fr_40px] gap-4 mb-2",
-            isMobile && "grid-cols-1 gap-0"
+            'grid grid-cols-[1fr_1fr_40px] gap-4 mb-2',
+            isMobile && 'grid-cols-1 gap-0',
           )}
         >
           <p className="text-sm font-medium text-gray-900">Language</p>
           {!isMobile && <div />}
         </div>
-        <div className={cn("space-y-3", isMobile && "space-y-5")}>
+        <div className={cn('space-y-3', isMobile && 'space-y-5')}>
           {formLanguages.map((lang, index) => (
             <div
               key={index}
               className={cn(
-                "grid grid-cols-[1fr_1fr_40px] gap-4",
-                isMobile && "grid-cols-[1fr_1fr] gap-[10px] mb-5"
+                'grid grid-cols-[1fr_1fr_40px] gap-4',
+                isMobile && 'grid-cols-[1fr_1fr] gap-[10px] mb-5',
               )}
             >
               <SearchSelect
                 options={LANGUAGE_OPTIONS}
-                value={lang.language || ""}
+                value={lang.language || ''}
                 setValue={(value) => {
-                  if (typeof value === "function") {
-                    updateLanguage(
-                      index,
-                      "language",
-                      value(lang.language || "") || ""
-                    );
+                  if (typeof value === 'function') {
+                    updateLanguage(index, 'language', value(lang.language || '') || '');
                   } else {
-                    updateLanguage(index, "language", value || "");
+                    updateLanguage(index, 'language', value || '');
                   }
                 }}
                 placeholder="Select a language"
               />
               <SearchSelect
                 options={PROFICIENCY_OPTIONS}
-                value={lang.proficiency || ""}
+                value={lang.proficiency || ''}
                 setValue={(value) => {
-                  if (typeof value === "function") {
-                    updateLanguage(
-                      index,
-                      "proficiency",
-                      value(lang.proficiency || "") || ""
-                    );
+                  if (typeof value === 'function') {
+                    updateLanguage(index, 'proficiency', value(lang.proficiency || '') || '');
                   } else {
-                    updateLanguage(index, "proficiency", value || "");
+                    updateLanguage(index, 'proficiency', value || '');
                   }
                 }}
                 placeholder="Select proficiency"
@@ -238,17 +218,13 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
               {index > 0 ? (
                 <Button
                   type="button"
-                  variant={isMobile ? "ghost" : "outline"}
+                  variant={isMobile ? 'ghost' : 'outline'}
                   size="icon"
-                  className={cn("h-10 w-10", isMobile && "w-fit h-fit")}
+                  className={cn('h-10 w-10', isMobile && 'w-fit h-fit')}
                   onClick={() => removeLanguage(index)}
                 >
                   {!isMobile && <Minus className="h-4 w-4" />}
-                  {isMobile && (
-                    <span className="underline text-[10px] text-gray-400">
-                      delete
-                    </span>
-                  )}
+                  {isMobile && <span className="underline text-[10px] text-gray-400">delete</span>}
                 </Button>
               ) : (
                 !isMobile && <div className="w-10" />
@@ -260,7 +236,7 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
           type="button"
           variant="outline"
           size="sm"
-          className={cn("gap-2 mt-3", isMobile && "mt-0")}
+          className={cn('gap-2 mt-3', isMobile && 'mt-0')}
           onClick={addLanguage}
         >
           <Plus className="h-4 w-4" />
@@ -273,8 +249,8 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
   return (
     <div
       className={cn(
-        "bg-white border border-gray-200 rounded-lg px-10 py-5",
-        isMobile && "px-[14px] py-4"
+        'bg-white border border-gray-200 rounded-lg px-10 py-5',
+        isMobile && 'px-[14px] py-4',
       )}
     >
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -292,12 +268,9 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
         {role ? (
           <>
             {role && (
-              <div className={cn("mb-6", isMobile && "mb-[18px]")}>
+              <div className={cn('mb-6', isMobile && 'mb-[18px]')}>
                 <p
-                  className={cn(
-                    "text-sm font-medium text-gray-900 mb-4",
-                    isMobile && "mb-[10px]"
-                  )}
+                  className={cn('text-sm font-medium text-gray-900 mb-4', isMobile && 'mb-[10px]')}
                 >
                   Role
                 </p>
@@ -306,12 +279,9 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
             )}
 
             {skills && skills.length > 0 && (
-              <div className={cn("mb-6", isMobile && "mb-[18px]")}>
+              <div className={cn('mb-6', isMobile && 'mb-[18px]')}>
                 <p
-                  className={cn(
-                    "text-sm font-medium text-gray-900 mb-4",
-                    isMobile && "mb-[10px]"
-                  )}
+                  className={cn('text-sm font-medium text-gray-900 mb-4', isMobile && 'mb-[10px]')}
                 >
                   Skills
                 </p>
@@ -330,12 +300,7 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
 
             {languages.length > 0 && (
               <div className="mb-4">
-                <div
-                  className={cn(
-                    "flex items-center mb-4",
-                    isMobile && "mb-[10px]"
-                  )}
-                >
+                <div className={cn('flex items-center mb-4', isMobile && 'mb-[10px]')}>
                   <p className="text-sm font-medium text-gray-900">Language</p>
                 </div>
                 <div className="space-y-2">
@@ -356,18 +321,12 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
         ) : (
           <div
             className={cn(
-              "border border-gray-200 rounded-lg p-10 flex flex-col items-center justify-center",
-              isMobile && "p-6"
+              'border border-gray-200 rounded-lg p-10 flex flex-col items-center justify-center',
+              isMobile && 'p-6',
             )}
           >
-            <img
-              src={ExpertiseIcon}
-              alt="Expertise"
-              className="h-12 w-12 text-gray-300 mb-1"
-            />
-            <p className="text-slate-500 mb-2 font-light">
-              No expertise details added yet.
-            </p>
+            <img src={ExpertiseIcon} alt="Expertise" className="h-12 w-12 text-gray-300 mb-1" />
+            <p className="text-slate-500 mb-2 font-light">No expertise details added yet.</p>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
                 <Plus className="h-4 w-4" />
@@ -381,10 +340,7 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
           isOpen && (
             <div className="fixed inset-0 z-50 bg-white flex flex-col">
               <header className="relative flex items-center justify-center px-4 py-4 h-17 border-b border-gray-100">
-                <button
-                  onClick={handleCancel}
-                  className="absolute top-4 left-4"
-                >
+                <button onClick={handleCancel} className="absolute top-4 left-4">
                   <X className="w-6 h-9" />
                 </button>
                 <span className="text-sm font-medium">Expertise</span>
@@ -395,11 +351,7 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
                   onClick={handleSave}
                   disabled={!formRole.trim() || updating}
                 >
-                  {updating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    "Save"
-                  )}
+                  {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
                 </Button>
               </header>
               <div className="flex-1 overflow-y-auto p-4">{formContent}</div>
@@ -412,12 +364,7 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
                 Expertise
               </DialogTitle>
               <div className="flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCancel}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
                   Cancel
                 </Button>
                 <Button
@@ -427,11 +374,7 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
                   onClick={handleSave}
                   disabled={!formRole.trim() || updating}
                 >
-                  {updating ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    "Save"
-                  )}
+                  {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
                 </Button>
               </div>
             </DialogHeader>
