@@ -40,9 +40,14 @@ import { cn } from "@/lib/utils";
 interface ThreadItemProps {
   thread: Thread;
   onThreadUpdated?: () => void;
+  isDetailPage?: boolean;
 }
 
-const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
+const ThreadItem = ({
+  thread,
+  onThreadUpdated,
+  isDetailPage = false,
+}: ThreadItemProps) => {
   const isMobile = useIsMobile();
   const { isLoggedIn, isAuthed, nickname, profileImage } = useAuth();
 
@@ -266,7 +271,8 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
     <div
       className={cn(
         "border-b py-5 px-8",
-        isMobile && "pt-14 pb-10 px-0 first:pt-10"
+        isMobile && "pt-14 pb-10 px-0 first:pt-10",
+        isDetailPage && "pt-5 border-none"
       )}
     >
       <div className="flex items-center gap-2 mb-3">

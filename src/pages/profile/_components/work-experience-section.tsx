@@ -1,26 +1,31 @@
-import client from '@/apollo/client';
-import { useCreateWorkExperienceV2Mutation } from '@/apollo/mutation/create-work-experience-v2.generated';
-import { useDeleteWorkExperienceV2Mutation } from '@/apollo/mutation/delete-work-experience-v2.generated';
-import { useUpdateWorkExperienceV2Mutation } from '@/apollo/mutation/update-work-experience-v2.generated';
-import { ProfileV2Document } from '@/apollo/queries/profile-v2.generated';
-import WorkIcon from '@/assets/icons/profile/work.svg';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import client from "@/apollo/client";
+import { useCreateWorkExperienceV2Mutation } from "@/apollo/mutation/create-work-experience-v2.generated";
+import { useDeleteWorkExperienceV2Mutation } from "@/apollo/mutation/delete-work-experience-v2.generated";
+import { useUpdateWorkExperienceV2Mutation } from "@/apollo/mutation/update-work-experience-v2.generated";
+import { ProfileV2Document } from "@/apollo/queries/profile-v2.generated";
+import WorkIcon from "@/assets/icons/profile/work.svg";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { SearchSelect } from '@/components/ui/search-select';
-import { EMPLOYMENT_TYPE_OPTIONS, MONTH_OPTIONS } from '@/constant/profile-related';
-import notify from '@/lib/notify';
-import type { LabelValueProps } from '@/types/common';
-import type { WorkExperienceV2 } from '@/types/types.generated';
-import { Pen, Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { SearchSelect } from "@/components/ui/search-select";
+import {
+  EMPLOYMENT_TYPE_OPTIONS,
+  MONTH_OPTIONS,
+} from "@/constant/profile-related";
+import { useIsMobile } from "@/lib/hooks/use-mobile";
+import notify from "@/lib/notify";
+import { cn } from "@/lib/utils";
+import type { LabelValueProps } from "@/types/common";
+import type { WorkExperienceV2 } from "@/types/types.generated";
+import { Loader2, Pen, Plus, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface WorkExperienceSectionProps {
   experiences?: WorkExperienceV2[];
@@ -33,27 +38,34 @@ const YEAR_OPTIONS: LabelValueProps[] = Array.from({ length: 50 }, (_, i) => ({
 }));
 
 const getEmptyExperience = (): WorkExperienceV2 => ({
-  company: '',
-  role: '',
-  employmentType: '',
+  company: "",
+  role: "",
+  employmentType: "",
   currentWork: false,
-  startMonth: '',
+  startMonth: "",
   startYear: 0,
-  endMonth: '',
+  endMonth: "",
   endYear: 0,
 });
 
 export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
   experiences = [],
 }) => {
+  const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
-  const [localExperiences, setLocalExperiences] = useState<WorkExperienceV2[]>(experiences);
-  const [formData, setFormData] = useState<WorkExperienceV2>(getEmptyExperience);
+  const [localExperiences, setLocalExperiences] =
+    useState<WorkExperienceV2[]>(experiences);
+  const [formData, setFormData] =
+    useState<WorkExperienceV2>(getEmptyExperience);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  const [createWorkExperienceV2] = useCreateWorkExperienceV2Mutation();
-  const [updateWorkExperienceV2] = useUpdateWorkExperienceV2Mutation();
+  const [createWorkExperienceV2, { loading: creating }] =
+    useCreateWorkExperienceV2Mutation();
+  const [updateWorkExperienceV2, { loading: updating }] =
+    useUpdateWorkExperienceV2Mutation();
   const [deleteWorkExperienceV2] = useDeleteWorkExperienceV2Mutation();
+
+  const isSaving = creating || updating;
 
   useEffect(() => {
     setLocalExperiences(experiences);
@@ -89,26 +101,26 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
     deleteWorkExperienceV2({
       variables: { id: experience.id },
       onCompleted: () => {
-        notify('Work experience deleted successfully', 'success');
+        notify("Work experience deleted successfully", "success");
         setLocalExperiences((prev) => prev.filter((_, i) => i !== index));
         client.refetchQueries({ include: [ProfileV2Document] });
       },
       onError: (error) => {
-        console.error('Failed to delete work experience:', error);
-        notify('Failed to delete work experience', 'error');
+        console.error("Failed to delete work experience:", error);
+        notify("Failed to delete work experience", "error");
       },
     });
   };
 
   const handleSave = () => {
     const input = {
-      company: formData.company || '',
-      role: formData.role || '',
-      employmentType: formData.employmentType || '',
+      company: formData.company || "",
+      role: formData.role || "",
+      employmentType: formData.employmentType || "",
       currentWork: formData.currentWork || false,
-      startMonth: formData.startMonth || '',
+      startMonth: formData.startMonth || "",
       startYear: formData.startYear || 0,
-      endMonth: formData.endMonth || '',
+      endMonth: formData.endMonth || "",
       endYear: formData.endYear || 0,
     };
 
@@ -121,12 +133,12 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
           },
         },
         onCompleted: (data) => {
-          notify('Work experience updated successfully', 'success');
+          notify("Work experience updated successfully", "success");
           if (data.updateWorkExperienceV2) {
             setLocalExperiences((prev) =>
               prev.map((exp, index) =>
-                index === editingIndex ? data.updateWorkExperienceV2! : exp,
-              ),
+                index === editingIndex ? data.updateWorkExperienceV2! : exp
+              )
             );
           }
           client.refetchQueries({ include: [ProfileV2Document] });
@@ -135,17 +147,20 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
           setIsOpen(false);
         },
         onError: (error) => {
-          console.error('Failed to update work experience:', error);
-          notify('Failed to update work experience', 'error');
+          console.error("Failed to update work experience:", error);
+          notify("Failed to update work experience", "error");
         },
       });
     } else {
       createWorkExperienceV2({
         variables: { input },
         onCompleted: (data) => {
-          notify('Work experience added successfully', 'success');
+          notify("Work experience added successfully", "success");
           if (data.createWorkExperienceV2) {
-            setLocalExperiences((prev) => [...prev, data.createWorkExperienceV2!]);
+            setLocalExperiences((prev) => [
+              ...prev,
+              data.createWorkExperienceV2!,
+            ]);
           }
           client.refetchQueries({ include: [ProfileV2Document] });
           setFormData(getEmptyExperience());
@@ -153,8 +168,8 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
           setIsOpen(false);
         },
         onError: (error) => {
-          console.error('Failed to create work experience:', error);
-          notify('Failed to add work experience', 'error');
+          console.error("Failed to create work experience:", error);
+          notify("Failed to add work experience", "error");
         },
       });
     }
@@ -166,27 +181,212 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
     setIsOpen(false);
   };
 
-  const updateField = (field: keyof WorkExperienceV2, value: string | boolean | number) => {
+  const updateField = (
+    field: keyof WorkExperienceV2,
+    value: string | boolean | number
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const formatDateRange = (exp: WorkExperienceV2) => {
-    const start = exp.startMonth && exp.startYear ? `${exp.startMonth} ${exp.startYear}` : '';
+    const start =
+      exp.startMonth && exp.startYear
+        ? `${exp.startMonth} ${exp.startYear}`
+        : "";
     const end = exp.currentWork
-      ? 'Present'
+      ? "Present"
       : exp.endMonth && exp.endYear
-        ? `${exp.endMonth} ${exp.endYear}`
-        : '';
-    return start && end ? `${start} - ${end}` : '';
+      ? `${exp.endMonth} ${exp.endYear}`
+      : "";
+    return start && end ? `${start} - ${end}` : "";
   };
 
+  const formContent = (
+    <div className={cn("space-y-6 my-4", isMobile && "my-0 space-y-10")}>
+      <div>
+        <p className="text-sm font-medium text-gray-900 mb-2">
+          Company <span className="text-red-500">*</span>
+        </p>
+        <Input
+          placeholder="e.g., Google"
+          value={formData.company || ""}
+          onChange={(e) => updateField("company", e.target.value)}
+        />
+      </div>
+
+      <div
+        className={cn(
+          "grid grid-cols-2 gap-4",
+          isMobile && "grid-cols-1 gap-6"
+        )}
+      >
+        <div>
+          <p className="text-sm font-medium text-gray-900 mb-2">
+            Role <span className="text-red-500">*</span>
+          </p>
+          <Input
+            placeholder="e.g., Software Engineer"
+            value={formData.role || ""}
+            onChange={(e) => updateField("role", e.target.value)}
+          />
+        </div>
+        <div>
+          <p className="text-sm font-medium text-gray-900 mb-2">
+            Employment type
+          </p>
+          <SearchSelect
+            options={EMPLOYMENT_TYPE_OPTIONS}
+            value={formData.employmentType || ""}
+            setValue={(value) => {
+              if (typeof value === "function") {
+                updateField(
+                  "employmentType",
+                  value(formData.employmentType || "") || ""
+                );
+              } else {
+                updateField("employmentType", value || "");
+              }
+            }}
+            placeholder="Select employment type"
+          />
+        </div>
+      </div>
+
+      {!isMobile && (
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="currentlyWorking"
+            checked={formData.currentWork || false}
+            onCheckedChange={(checked) =>
+              updateField("currentWork", checked === true)
+            }
+          />
+          <label
+            htmlFor="currentlyWorking"
+            className="text-sm font-medium text-gray-900 cursor-pointer"
+          >
+            I am currently working in this role
+          </label>
+        </div>
+      )}
+
+      <div className={cn(isMobile && "mb-5")}>
+        <p className="text-sm font-medium text-gray-900 mb-2">Start date</p>
+        <div className="grid grid-cols-2 gap-4">
+          <SearchSelect
+            options={MONTH_OPTIONS}
+            value={formData.startMonth || ""}
+            setValue={(value) => {
+              if (typeof value === "function") {
+                updateField(
+                  "startMonth",
+                  value(formData.startMonth || "") || ""
+                );
+              } else {
+                updateField("startMonth", value || "");
+              }
+            }}
+            placeholder="Month"
+          />
+          <SearchSelect
+            options={YEAR_OPTIONS}
+            value={formData.startYear ? String(formData.startYear) : ""}
+            setValue={(value) => {
+              if (typeof value === "function") {
+                const newValue = value(
+                  formData.startYear ? String(formData.startYear) : ""
+                );
+                updateField(
+                  "startYear",
+                  newValue ? Number.parseInt(newValue, 10) : 0
+                );
+              } else {
+                updateField(
+                  "startYear",
+                  value ? Number.parseInt(value, 10) : 0
+                );
+              }
+            }}
+            placeholder="Year"
+          />
+        </div>
+      </div>
+
+      <div className={cn(isMobile && "mb-5")}>
+        <p className="text-sm font-medium text-gray-900 mb-2">End date</p>
+        <div className="grid grid-cols-2 gap-4">
+          <SearchSelect
+            options={MONTH_OPTIONS}
+            value={formData.endMonth || ""}
+            setValue={(value) => {
+              if (typeof value === "function") {
+                updateField("endMonth", value(formData.endMonth || "") || "");
+              } else {
+                updateField("endMonth", value || "");
+              }
+            }}
+            placeholder="Month"
+            disabled={formData.currentWork || false}
+          />
+          <SearchSelect
+            options={YEAR_OPTIONS}
+            value={formData.endYear ? String(formData.endYear) : ""}
+            setValue={(value) => {
+              if (typeof value === "function") {
+                const newValue = value(
+                  formData.endYear ? String(formData.endYear) : ""
+                );
+                updateField(
+                  "endYear",
+                  newValue ? Number.parseInt(newValue, 10) : 0
+                );
+              } else {
+                updateField("endYear", value ? Number.parseInt(value, 10) : 0);
+              }
+            }}
+            placeholder="Year"
+            disabled={formData.currentWork || false}
+          />
+        </div>
+      </div>
+
+      {isMobile && (
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="currentlyWorking"
+            checked={formData.currentWork || false}
+            onCheckedChange={(checked) =>
+              updateField("currentWork", checked === true)
+            }
+          />
+          <label
+            htmlFor="currentlyWorking"
+            className="text-sm font-medium text-gray-900 cursor-pointer"
+          >
+            I am currently working in this role
+          </label>
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <div className="bg-white border border-gray-200 rounded-lg px-10 py-5">
+    <div
+      className={cn(
+        "bg-white border border-gray-200 rounded-lg px-10 py-5",
+        isMobile && "px-[14px] py-4"
+      )}
+    >
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-base font-semibold">Work experience</h2>
           {localExperiences.length > 0 && (
-            <Button variant="outline" size="icon" className="h-9 w-10" onClick={handleAddNew}>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-10"
+              onClick={handleAddNew}
+            >
               <Plus className="h-4 w-4" />
             </Button>
           )}
@@ -197,7 +397,10 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
             {localExperiences.map((exp, index) => (
               <div
                 key={`${index}-${exp.company}`}
-                className="flex flex-col justify-between gap-3 border border-gray-200 rounded-lg p-5 text-sm text-slate-600"
+                className={cn(
+                  "flex flex-col justify-between gap-3 border border-gray-200 rounded-lg p-5 text-sm text-slate-600",
+                  isMobile && "p-4"
+                )}
               >
                 <div className="flex items-center justify-between">
                   <p>{exp.company}</p>
@@ -210,7 +413,12 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
                     <Pen className="size-3" />
                   </Button>
                 </div>
-                <div className="flex items-center justify-between">
+                <div
+                  className={cn(
+                    "flex items-center justify-between",
+                    isMobile && "flex-col items-start gap-2"
+                  )}
+                >
                   <p>
                     {exp.role}
                     {exp.employmentType && ` · ${exp.employmentType}`}
@@ -228,11 +436,27 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
             ))}
           </div>
         ) : (
-          <div className="border border-gray-200 rounded-lg p-10 flex flex-col items-center justify-center">
-            <img src={WorkIcon} alt="Work experience" className="h-12 w-12 text-gray-300 mb-1" />
-            <p className="text-slate-500 mb-2 font-light">No work experience details added yet.</p>
+          <div
+            className={cn(
+              "border border-gray-200 rounded-lg p-10 flex flex-col items-center justify-center",
+              isMobile && "p-6"
+            )}
+          >
+            <img
+              src={WorkIcon}
+              alt="Work experience"
+              className="h-12 w-12 text-gray-300 mb-1"
+            />
+            <p className="text-slate-500 mb-2 font-light">
+              No work experience details added yet.
+            </p>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2" onClick={handleAddNew}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={handleAddNew}
+              >
                 <Plus className="h-4 w-4" />
                 Add Details
               </Button>
@@ -240,146 +464,75 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
           </div>
         )}
 
-        <DialogContent className="sm:max-w-[782px] px-10 py-4">
-          <DialogHeader className="flex flex-row items-center justify-between">
-            <DialogTitle className="text-base font-semibold text-slate-800">
-              Work experience
-            </DialogTitle>
-            <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                onClick={handleSave}
-                disabled={!formData.company?.trim() || !formData.role?.trim()}
-              >
-                Save
-              </Button>
+        {isMobile ? (
+          isOpen && (
+            <div className="fixed inset-0 z-50 bg-white flex flex-col">
+              <header className="relative flex items-center justify-center px-4 py-4 h-17 border-b border-gray-100">
+                <button
+                  onClick={handleCancel}
+                  className="absolute top-4 left-4"
+                >
+                  <X className="w-6 h-9" />
+                </button>
+                <span className="text-sm font-medium">Work experience</span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="absolute right-4 top-4"
+                  onClick={handleSave}
+                  disabled={
+                    !formData.company?.trim() ||
+                    !formData.role?.trim() ||
+                    isSaving
+                  }
+                >
+                  {isSaving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Save"
+                  )}
+                </Button>
+              </header>
+              <div className="flex-1 overflow-y-auto p-4">{formContent}</div>
             </div>
-          </DialogHeader>
-
-          <div className="space-y-6 my-4">
-            <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">
-                Company <span className="text-red-500">*</span>
-              </p>
-              <Input
-                placeholder="e.g., Google"
-                value={formData.company || ''}
-                onChange={(e) => updateField('company', e.target.value)}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-gray-900 mb-2">
-                  Role <span className="text-red-500">*</span>
-                </p>
-                <Input
-                  placeholder="e.g., Software Engineer"
-                  value={formData.role || ''}
-                  onChange={(e) => updateField('role', e.target.value)}
-                />
+          )
+        ) : (
+          <DialogContent className="sm:max-w-[782px] px-10 py-4">
+            <DialogHeader className="flex flex-row items-center justify-between">
+              <DialogTitle className="text-base font-semibold text-slate-800">
+                Work experience
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancel}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  onClick={handleSave}
+                  disabled={
+                    !formData.company?.trim() ||
+                    !formData.role?.trim() ||
+                    isSaving
+                  }
+                >
+                  {isSaving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    "Save"
+                  )}
+                </Button>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900 mb-2">Employment type</p>
-                <SearchSelect
-                  options={EMPLOYMENT_TYPE_OPTIONS}
-                  value={formData.employmentType || ''}
-                  setValue={(value) => {
-                    if (typeof value === 'function') {
-                      updateField('employmentType', value(formData.employmentType || '') || '');
-                    } else {
-                      updateField('employmentType', value || '');
-                    }
-                  }}
-                  placeholder="Select employment type"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="currentlyWorking"
-                checked={formData.currentWork || false}
-                onCheckedChange={(checked) => updateField('currentWork', checked === true)}
-              />
-              <label
-                htmlFor="currentlyWorking"
-                className="text-sm font-medium text-gray-900 cursor-pointer"
-              >
-                I am currently working in this role
-              </label>
-            </div>
-
-            <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">Start date</p>
-              <div className="grid grid-cols-2 gap-4">
-                <SearchSelect
-                  options={MONTH_OPTIONS}
-                  value={formData.startMonth || ''}
-                  setValue={(value) => {
-                    if (typeof value === 'function') {
-                      updateField('startMonth', value(formData.startMonth || '') || '');
-                    } else {
-                      updateField('startMonth', value || '');
-                    }
-                  }}
-                  placeholder="Month"
-                />
-                <SearchSelect
-                  options={YEAR_OPTIONS}
-                  value={formData.startYear ? String(formData.startYear) : ''}
-                  setValue={(value) => {
-                    if (typeof value === 'function') {
-                      const newValue = value(formData.startYear ? String(formData.startYear) : '');
-                      updateField('startYear', newValue ? Number.parseInt(newValue, 10) : 0);
-                    } else {
-                      updateField('startYear', value ? Number.parseInt(value, 10) : 0);
-                    }
-                  }}
-                  placeholder="Year"
-                />
-              </div>
-            </div>
-
-            <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">End date</p>
-              <div className="grid grid-cols-2 gap-4">
-                <SearchSelect
-                  options={MONTH_OPTIONS}
-                  value={formData.endMonth || ''}
-                  setValue={(value) => {
-                    if (typeof value === 'function') {
-                      updateField('endMonth', value(formData.endMonth || '') || '');
-                    } else {
-                      updateField('endMonth', value || '');
-                    }
-                  }}
-                  placeholder="Month"
-                  disabled={formData.currentWork || false}
-                />
-                <SearchSelect
-                  options={YEAR_OPTIONS}
-                  value={formData.endYear ? String(formData.endYear) : ''}
-                  setValue={(value) => {
-                    if (typeof value === 'function') {
-                      const newValue = value(formData.endYear ? String(formData.endYear) : '');
-                      updateField('endYear', newValue ? Number.parseInt(newValue, 10) : 0);
-                    } else {
-                      updateField('endYear', value ? Number.parseInt(value, 10) : 0);
-                    }
-                  }}
-                  placeholder="Year"
-                  disabled={formData.currentWork || false}
-                />
-              </div>
-            </div>
-          </div>
-        </DialogContent>
+            </DialogHeader>
+            {formContent}
+          </DialogContent>
+        )}
       </Dialog>
     </div>
   );

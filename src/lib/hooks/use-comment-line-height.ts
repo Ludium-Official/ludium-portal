@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, RefObject } from "react";
-import { useIsMobile } from "./use-mobile";
+import { useEffect, useRef, useState, RefObject } from 'react';
+import { useIsMobile } from './use-mobile';
 
 interface UseCommentLineHeightOptions {
   showComments: boolean;

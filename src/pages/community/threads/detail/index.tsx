@@ -1,15 +1,19 @@
-import { useThreadQuery } from '@/apollo/queries/thread.generated';
-import { useTopViewedArticlesQuery } from '@/apollo/queries/top-viewed-articles.generated';
-import TrendingArticles from '@/components/community/trending-articles';
-import { ArrowLeftIcon, Loader2 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router';
-import ThreadItem from '../_components/thread-item';
-import { Thread } from '@/types/types.generated';
-import { ShareButton } from '@/components/ui/share-button';
+import { useThreadQuery } from "@/apollo/queries/thread.generated";
+import { useTopViewedArticlesQuery } from "@/apollo/queries/top-viewed-articles.generated";
+import TrendingArticles from "@/components/community/trending-articles";
+import Container from "@/components/layout/container";
+import { ArrowLeftIcon, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Link, useParams } from "react-router";
+import ThreadItem from "../_components/thread-item";
+import { Thread } from "@/types/types.generated";
+import { ShareButton } from "@/components/ui/share-button";
+import { useIsMobile } from "@/lib/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 const ThreadDetailsPage = () => {
   const { id } = useParams();
+  const isMobile = useIsMobile();
 
   const trendingPlaceholderRef = useRef<HTMLDivElement | null>(null);
   const [trendingLeft, setTrendingLeft] = useState<number | null>(null);
@@ -31,13 +35,15 @@ const ThreadDetailsPage = () => {
 
   useEffect(() => {
     const findScrollContainer = (): Element | null => {
-      const radixViewport = document.querySelector('[data-radix-scroll-area-viewport]');
+      const radixViewport = document.querySelector(
+        "[data-radix-scroll-area-viewport]"
+      );
       if (radixViewport) return radixViewport;
 
       let element = trendingPlaceholderRef.current?.parentElement;
       while (element) {
         const style = window.getComputedStyle(element);
-        if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
+        if (style.overflowY === "auto" || style.overflowY === "scroll") {
           return element;
         }
         element = element.parentElement;
@@ -67,16 +73,16 @@ const ThreadDetailsPage = () => {
     updatePosition();
 
     if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll);
+      scrollContainer.addEventListener("scroll", handleScroll);
       handleScroll();
     }
-    window.addEventListener('resize', updatePosition);
+    window.addEventListener("resize", updatePosition);
 
     return () => {
       if (scrollContainer) {
-        scrollContainer.removeEventListener('scroll', handleScroll);
+        scrollContainer.removeEventListener("scroll", handleScroll);
       }
-      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener("resize", updatePosition);
     };
   }, []);
 
@@ -97,15 +103,33 @@ const ThreadDetailsPage = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-[1000px] mx-auto px-6 py-10">
+    <div className={cn("min-h-screen", isMobile && "bg-white")}>
+      <Container
+        className={cn(
+          "max-w-[1000px] px-6 py-10",
+          isMobile && "w-full px-4 py-5"
+        )}
+      >
         <div className="flex gap-7">
           <div className="flex-1">
-            <div className="bg-white rounded-md border border-gray-200">
-              <div className="flex items-center justify-between pt-5 pb-4 px-8">
+            <div
+              className={cn(
+                "bg-white rounded-md border border-gray-200",
+                isMobile && "border-none"
+              )}
+            >
+              <div
+                className={cn(
+                  "flex items-center justify-between pt-5 pb-4 px-8",
+                  isMobile && "px-0 pt-0 pb-3"
+                )}
+              >
                 <Link
                   to="/community/threads"
-                  className="flex items-center justify-center w-10 h-10 rounded-full border hover:bg-gray-100"
+                  className={cn(
+                    "flex items-center justify-center w-10 h-10 rounded-full border hover:bg-gray-100",
+                    isMobile && "w-8 h-8"
+                  )}
                 >
                   <ArrowLeftIcon className="w-4 h-4" />
                 </Link>
@@ -116,18 +140,27 @@ const ThreadDetailsPage = () => {
                 onThreadUpdated={() => {
                   refetch();
                 }}
+                isDetailPage={true}
               />
             </div>
           </div>
 
-          <div ref={trendingPlaceholderRef} className="w-[280px] flex-shrink-0">
-            {!isFixed && <TrendingArticles articles={trendingArticles} />}
-          </div>
+          {!isMobile && (
+            <div
+              ref={trendingPlaceholderRef}
+              className="w-[280px] flex-shrink-0"
+            >
+              {!isFixed && <TrendingArticles articles={trendingArticles} />}
+            </div>
+          )}
         </div>
-      </div>
+      </Container>
 
-      {isFixed && trendingLeft !== null && (
-        <div className="fixed top-3 w-[280px] mt-2" style={{ left: trendingLeft }}>
+      {!isMobile && isFixed && trendingLeft !== null && (
+        <div
+          className="fixed top-3 w-[280px] mt-2"
+          style={{ left: trendingLeft }}
+        >
           <TrendingArticles articles={trendingArticles} />
         </div>
       )}
