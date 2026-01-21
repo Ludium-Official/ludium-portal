@@ -56,10 +56,10 @@ export function ShareButton({
         <Button
           variant={variant}
           size={size}
-          className={cn('flex gap-2 items-center text-xs', className)}
+          className={cn('flex gap-2 items-center text-xs', size === 'sm' && 'w-8 h-8', className)}
         >
           {!isMobile && (children || 'Share')}
-          <Share2Icon className="size-4" />
+          <Share2Icon className={cn('size-4', size === 'sm' && 'size-3')} />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-6 min-w-[400px]" align="end">

@@ -91,6 +91,8 @@
   }
 
   @media (max-width: 768px) {
+    word-break: break-word;
+
     h1 {
       font-size: var(--text-3xl);
     }

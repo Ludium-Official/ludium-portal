@@ -21,10 +21,16 @@ export const AuthContext = createContext<AuthProps>({
   logout: async () => {},
 });
 
+// Helper to get initial token synchronously to avoid flash redirect
+const getInitialToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('token');
+};
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
-  const [token, setToken] = useState<string | null>();
+  const [token, setToken] = useState<string | null>(getInitialToken);
   const [email, setEmail] = useState<string | null>();
   const [userId, setUserId] = useState<string>('');
   const [nickname, setNickname] = useState<string | null>();
@@ -75,12 +81,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsSuperadmin(userProfile.profileV2?.role === UserRoleV2.Admin);
     }
   }, [userProfile]);
-
-  useEffect(() => {
-    const tkn = localStorage.getItem('token');
-
-    if (tkn) setToken(tkn);
-  }, []);
 
   useEffect(() => {
     if (error) {

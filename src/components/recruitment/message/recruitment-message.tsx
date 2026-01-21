@@ -12,7 +12,7 @@ import { useNetworks } from '@/contexts/networks-context';
 import { type ChatMessageFile, getAllFiles, getLatestMessage } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
-import { fromUTCString, getUserDisplayName, getUserInitialName } from '@/lib/utils';
+import { cn, fromUTCString, getUserDisplayName, getUserInitialName } from '@/lib/utils';
 import type { ContractInformation } from '@/types/recruitment';
 import {
   ApplicationStatusV2,
@@ -26,9 +26,11 @@ import { useParams } from 'react-router';
 import { ApplicationSidebar } from './application-sidebar';
 import MessageListItem from './message-list-item';
 import { MilestoneModal } from './milestone-modal';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 const RecruitmentMessage: React.FC = () => {
   const { id } = useParams();
+  const isMobile = useIsMobile();
   const { userId } = useAuth();
   const { networks: networksWithTokens, getContractByNetworkId } = useNetworks();
 
@@ -343,9 +345,9 @@ const RecruitmentMessage: React.FC = () => {
   }, [contractInformation, sortedMilestones, completedMilestones, activeMilestones]);
 
   return (
-    <div className="flex gap-4 h-[calc(100vh-200px)]">
+    <div className={cn('flex gap-4 h-[calc(100vh-200px)]', isMobile && 'flex-col h-full')}>
       {isSponsor && (
-        <Card className="gap-3 w-[25%] overflow-y-auto py-5">
+        <Card className={cn('gap-3 w-[25%] overflow-y-auto py-5', isMobile && 'w-full')}>
           <CardHeader className="px-5">
             <CardTitle>Messages</CardTitle>
           </CardHeader>
@@ -373,8 +375,8 @@ const RecruitmentMessage: React.FC = () => {
         </Card>
       )}
 
-      <Card className="flex flex-row gap-2 w-full p-0">
-        <div className="pt-5 pb-1 pr-0 pl-2 w-full flex flex-col">
+      <Card className={cn('flex flex-row gap-2 w-full p-0', isMobile && 'flex-col')}>
+        <div className={cn('flex flex-col w-full pt-5 pb-1 pr-0 pl-2', isMobile && 'pt-5 px-2')}>
           {selectedApplication ? (
             <>
               <div className="flex items-center justify-between border-b pb-4 px-4">
@@ -432,7 +434,7 @@ const RecruitmentMessage: React.FC = () => {
           )}
         </div>
 
-        <div className="px-0 w-[40%]">
+        <div className={cn('px-0 w-[40%]', isMobile && 'w-full')}>
           {selectedApplication ? (
             <ApplicationSidebar
               activeMilestones={activeMilestones}

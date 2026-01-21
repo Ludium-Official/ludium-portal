@@ -1,24 +1,32 @@
-import { useThreadCommentsLazyQuery } from '@/apollo/queries/thread-comments.generated';
-import { useToggleThreadReactionMutation } from '@/apollo/mutation/toggle-thread-reaction.generated';
-import { useCreateThreadCommentMutation } from '@/apollo/mutation/create-thread-comment.generated';
-import { useUpdateThreadMutation } from '@/apollo/mutation/update-thread.generated';
-import { useDeleteThreadMutation } from '@/apollo/mutation/delete-thread.generated';
-import { EditMediaPreview, MediaGallery } from '@/components/community/media-gallery';
-import { Image as ImageIcon } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { useThreadCommentsLazyQuery } from "@/apollo/queries/thread-comments.generated";
+import { useToggleThreadReactionMutation } from "@/apollo/mutation/toggle-thread-reaction.generated";
+import { useCreateThreadCommentMutation } from "@/apollo/mutation/create-thread-comment.generated";
+import { useUpdateThreadMutation } from "@/apollo/mutation/update-thread.generated";
+import { useDeleteThreadMutation } from "@/apollo/mutation/delete-thread.generated";
+import {
+  EditMediaPreview,
+  MediaGallery,
+} from "@/components/community/media-gallery";
+import {
+  LinkPreview,
+  TextWithLinks,
+  extractUrls,
+} from "@/components/community/link-preview";
+import { Image as ImageIcon } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/lib/hooks/use-auth';
-import { useCommentLineHeight } from '@/lib/hooks/use-comment-line-height';
-import { Thread, ThreadReaction } from '@/types/types.generated';
-import { ThreadCommentData } from '@/types/comment';
-import { format } from 'date-fns';
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/hooks/use-auth";
+import { useCommentLineHeight } from "@/lib/hooks/use-comment-line-height";
+import { Thread, ThreadReaction } from "@/types/types.generated";
+import { ThreadCommentData } from "@/types/comment";
+import { format } from "date-fns";
 import {
   Loader2,
   MessageSquareMore,
@@ -27,12 +35,12 @@ import {
   ThumbsDown,
   ThumbsUp,
   Trash2,
-} from 'lucide-react';
-import { useRef, useState } from 'react';
-import ThreadCommentItem from './thread-comment-item';
-import { Link } from 'react-router';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
-import { cn } from '@/lib/utils';
+} from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import ThreadCommentItem from "./thread-comment-item";
+import { Link } from "react-router";
+import { useIsMobile } from "@/lib/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface ThreadItemProps {
   thread: Thread;
@@ -40,23 +48,29 @@ interface ThreadItemProps {
   isDetailPage?: boolean;
 }
 
-const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadItemProps) => {
+const ThreadItem = ({
+  thread,
+  onThreadUpdated,
+  isDetailPage = false,
+}: ThreadItemProps) => {
   const isMobile = useIsMobile();
   const { isLoggedIn, isAuthed, nickname, profileImage } = useAuth();
 
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<ThreadCommentData[]>([]);
   const [commentsLoaded, setCommentsLoaded] = useState(false);
-  const [commentText, setCommentText] = useState('');
+  const [commentText, setCommentText] = useState("");
   const [liked, setLiked] = useState(thread.isLiked ?? false);
   const [disliked, setDisliked] = useState(thread.isDisliked ?? false);
   const [likeCount, setLikeCount] = useState(thread.likeCount ?? 0);
   const [dislikeCount, setDislikeCount] = useState(thread.dislikeCount ?? 0);
   const [replyCount, setReplyCount] = useState(thread.replyCount ?? 0);
   const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState(thread.content ?? '');
+  const [editContent, setEditContent] = useState(thread.content ?? "");
   const [currentContent, setCurrentContent] = useState(thread.content);
-  const [currentImages, setCurrentImages] = useState<string[]>(thread.images ?? []);
+  const [currentImages, setCurrentImages] = useState<string[]>(
+    thread.images ?? []
+  );
   const [editExistingImages, setEditExistingImages] = useState<string[]>([]);
   const [editNewImages, setEditNewImages] = useState<File[]>([]);
   const [currentAuthorNickname] = useState(thread.authorNickname);
@@ -64,14 +78,22 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
   const [isDeleted, setIsDeleted] = useState(false);
   const editFileInputRef = useRef<HTMLInputElement | null>(null);
 
+  // Memoize URL extraction to avoid recalculating
+  const contentUrls = useMemo(
+    () => (currentContent ? extractUrls(currentContent) : []),
+    [currentContent]
+  );
+
   const { lineHeight, commentsRef, parentContentRef } = useCommentLineHeight({
     showComments,
     commentsLength: comments.length,
   });
 
-  const [fetchComments, { loading: commentsLoading }] = useThreadCommentsLazyQuery();
+  const [fetchComments, { loading: commentsLoading }] =
+    useThreadCommentsLazyQuery();
   const [toggleReaction] = useToggleThreadReactionMutation();
-  const [createComment, { loading: creatingComment }] = useCreateThreadCommentMutation();
+  const [createComment, { loading: creatingComment }] =
+    useCreateThreadCommentMutation();
   const [updateThread, { loading: updatingThread }] = useUpdateThreadMutation();
   const [deleteThread, { loading: deletingThread }] = useDeleteThreadMutation();
 
@@ -109,7 +131,7 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
         setDislikeCount(data.toggleThreadReaction.dislikeCount ?? 0);
       }
     } catch (error) {
-      console.error('Error toggling like:', error);
+      console.error("Error toggling like:", error);
     }
   };
 
@@ -132,7 +154,7 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
         setDislikeCount(data.toggleThreadReaction.dislikeCount ?? 0);
       }
     } catch (error) {
-      console.error('Error toggling dislike:', error);
+      console.error("Error toggling dislike:", error);
     }
   };
 
@@ -148,25 +170,30 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
           },
         },
       });
-      setCommentText('');
+      setCommentText("");
       setReplyCount((prev) => prev + 1);
 
       if (data?.createThreadComment) {
         const newComment: ThreadCommentData = {
           ...data.createThreadComment,
           authorNickname: data.createThreadComment.authorNickname || nickname,
-          authorProfileImage: data.createThreadComment.authorProfileImage || profileImage,
+          authorProfileImage:
+            data.createThreadComment.authorProfileImage || profileImage,
         };
         setComments((prev) => [newComment, ...prev]);
       }
       onThreadUpdated?.();
     } catch (error) {
-      console.error('Error posting comment:', error);
+      console.error("Error posting comment:", error);
     }
   };
 
   const handleEdit = async () => {
-    if (!editContent.trim() && editExistingImages.length === 0 && editNewImages.length === 0)
+    if (
+      !editContent.trim() &&
+      editExistingImages.length === 0 &&
+      editNewImages.length === 0
+    )
       return;
     if (!thread.id) return;
 
@@ -188,7 +215,7 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
         setEditNewImages([]);
       }
     } catch (error) {
-      console.error('Error updating thread:', error);
+      console.error("Error updating thread:", error);
     }
   };
 
@@ -197,13 +224,16 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
     if (!files) return;
 
     const newFiles = Array.from(files).filter(
-      (file) => file.type.startsWith('image/') || file.type.startsWith('video/'),
+      (file) => file.type.startsWith("image/") || file.type.startsWith("video/")
     );
     const remainingSlots = 4 - editExistingImages.length - editNewImages.length;
     setEditNewImages((prev) =>
-      [...prev, ...newFiles.slice(0, remainingSlots)].slice(0, 4 - editExistingImages.length),
+      [...prev, ...newFiles.slice(0, remainingSlots)].slice(
+        0,
+        4 - editExistingImages.length
+      )
     );
-    e.target.value = '';
+    e.target.value = "";
   };
 
   const handleRemoveExistingImage = (index: number) => {
@@ -216,14 +246,14 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
 
   const startEditing = () => {
     setIsEditing(true);
-    setEditContent(currentContent ?? '');
+    setEditContent(currentContent ?? "");
     setEditExistingImages([...currentImages]);
     setEditNewImages([]);
   };
 
   const cancelEditing = () => {
     setIsEditing(false);
-    setEditContent(currentContent ?? '');
+    setEditContent(currentContent ?? "");
     setEditExistingImages([]);
     setEditNewImages([]);
   };
@@ -240,27 +270,33 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
       setIsDeleted(true);
       onThreadUpdated?.();
     } catch (error) {
-      console.error('Error deleting thread:', error);
+      console.error("Error deleting thread:", error);
     }
   };
 
-  const formattedDate = thread.createdAt ? format(new Date(thread.createdAt), 'MMMM dd, yyyy') : '';
+  const formattedDate = thread.createdAt
+    ? format(new Date(thread.createdAt), "MMMM dd, yyyy")
+    : "";
 
   return (
     <div
       className={cn(
-        'border-b py-5 px-8',
-        isMobile && 'pt-14 pb-10 px-0 first:pt-10',
-        isDetailPage && 'pt-5 border-none',
+        "border-b py-5 px-8",
+        isMobile && "pt-14 pb-10 px-0 first:pt-10",
+        isDetailPage && "pt-5 border-none"
       )}
     >
       <div className="flex items-center gap-2 mb-3">
         <Avatar className="w-10 h-10 flex-shrink-0">
-          <AvatarImage src={currentAuthorProfileImage || ''} />
-          <AvatarFallback>{currentAuthorNickname?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+          <AvatarImage src={currentAuthorProfileImage || ""} />
+          <AvatarFallback>
+            {currentAuthorNickname?.[0]?.toUpperCase() || "U"}
+          </AvatarFallback>
         </Avatar>
         <div className="flex flex-col text-muted-foreground">
-          <span className="font-semibold text-sm">{currentAuthorNickname || 'Anonymous'}</span>
+          <span className="font-semibold text-sm">
+            {currentAuthorNickname || "Anonymous"}
+          </span>
           <span className="text-xs">{formattedDate}</span>
         </div>
       </div>
@@ -274,7 +310,7 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
             />
           </div>
         )}
-        <div className={`${showComments ? 'flex-1' : 'ml-12'} w-full min-w-0`}>
+        <div className={`${showComments ? "flex-1" : "ml-12"} w-full min-w-0`}>
           <div ref={parentContentRef} className="overflow-hidden">
             {isDeleted ? (
               <p className="mb-4 text-muted-foreground italic text-base">
@@ -286,7 +322,10 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
                   placeholder="What's happening?"
-                  className="w-full min-h-[100px] focus-visible:ring-0"
+                  className={cn(
+                    "w-full min-h-[100px] focus-visible:ring-0",
+                    isMobile && "text-sm"
+                  )}
                 />
 
                 <EditMediaPreview
@@ -312,12 +351,15 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
                       size="sm"
                       className="p-2 h-auto"
                       onClick={() => editFileInputRef.current?.click()}
-                      disabled={editExistingImages.length + editNewImages.length >= 4}
+                      disabled={
+                        editExistingImages.length + editNewImages.length >= 4
+                      }
                     >
                       <ImageIcon className="w-5 h-5 text-primary" />
                     </Button>
                     <span className="text-xs text-muted-foreground">
-                      {editExistingImages.length + editNewImages.length}/4 images
+                      {editExistingImages.length + editNewImages.length}/4
+                      images
                     </span>
                   </div>
                   <div className="flex gap-2">
@@ -334,7 +376,11 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
                       }
                       onClick={handleEdit}
                     >
-                      {updatingThread ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+                      {updatingThread ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        "Save"
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -345,42 +391,62 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
                   <Link to={`/community/threads/${thread.id}`}>
                     <p
                       className={cn(
-                        'mb-4 whitespace-pre-wrap break-all overflow-hidden [overflow-wrap:anywhere]',
-                        isMobile && 'text-sm',
+                        "mb-4 whitespace-pre-wrap break-all overflow-hidden [overflow-wrap:anywhere]",
+                        isMobile && "text-sm"
                       )}
                     >
-                      {currentContent}
+                      <TextWithLinks text={currentContent} />
                     </p>
                   </Link>
                 )}
                 {currentImages && currentImages.length > 0 && (
-                  <MediaGallery images={currentImages} className="mb-4" isMobile={isMobile} />
+                  <MediaGallery
+                    images={currentImages}
+                    className="mb-4"
+                    isMobile={isMobile}
+                  />
+                )}
+                {contentUrls.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    {contentUrls.map((url, index) => (
+                      <LinkPreview key={index} url={url} />
+                    ))}
+                  </div>
                 )}
               </>
             )}
 
-            <div className="flex items-center gap-3 mb-6">
+            <div
+              className={cn(
+                "flex items-center gap-3 mb-6",
+                !showComments && "mb-0"
+              )}
+            >
               {isLoggedIn && !isDeleted && (
                 <>
                   <Button
                     variant="outline"
                     onClick={handleLike}
                     className={`border-0 p-0! h-auto flex items-center gap-1 ${
-                      liked ? 'text-primary' : 'text-slate-700'
+                      liked ? "text-primary" : "text-slate-700"
                     } hover:text-foreground`}
                   >
                     <ThumbsUp className="w-4 h-4" />
-                    {likeCount > 0 && <span className="text-xs">{likeCount}</span>}
+                    {likeCount > 0 && (
+                      <span className="text-xs">{likeCount}</span>
+                    )}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={handleDislike}
                     className={`border-0 p-0! h-auto flex items-center gap-1 ${
-                      disliked ? 'text-primary' : 'text-slate-700'
+                      disliked ? "text-primary" : "text-slate-700"
                     } hover:text-foreground`}
                   >
                     <ThumbsDown className="w-4 h-4" />
-                    {dislikeCount > 0 && <span className="text-xs">{dislikeCount}</span>}
+                    {dislikeCount > 0 && (
+                      <span className="text-xs">{dislikeCount}</span>
+                    )}
                   </Button>
                 </>
               )}
@@ -438,7 +504,10 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
                       value={commentText}
                       onChange={(e) => setCommentText(e.target.value)}
                       placeholder="Write a comment..."
-                      className={cn('h-[40px] min-h-[40px] resize-none', isMobile && 'text-sm')}
+                      className={cn(
+                        "h-[40px] min-h-[40px] resize-none",
+                        isMobile && "text-sm"
+                      )}
                     />
                   ) : (
                     <div className="w-full border border-gray-300 rounded-md p-2 h-[40px] min-h-[40px] text-sm text-muted-foreground">
@@ -451,7 +520,7 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
                       variant="outline"
                       onClick={() => {
                         setShowComments(false);
-                        setCommentText('');
+                        setCommentText("");
                       }}
                     >
                       Cancel
@@ -462,7 +531,11 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
                       onClick={handlePostComment}
                       disabled={!commentText.trim() || creatingComment}
                     >
-                      {creatingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Post'}
+                      {creatingComment ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        "Post"
+                      )}
                     </Button>
                   </div>
                 </div>

@@ -1,10 +1,10 @@
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { ChevronLeft, ChevronRight, Play, X } from "lucide-react";
+import { useMemo, useState } from "react";
 
 export const isVideoUrl = (url: string) => {
-  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv'];
+  const videoExtensions = [".mp4", ".webm", ".ogg", ".mov", ".avi", ".mkv"];
   const lowerUrl = url.toLowerCase();
   return videoExtensions.some((ext) => lowerUrl.includes(ext));
 };
@@ -23,7 +23,14 @@ export const MediaItem = ({
   if (isVideoUrl(url)) {
     return (
       <div className="relative w-full h-full">
-        <video src={url} className={className} muted playsInline loop autoPlay={autoPlay} />
+        <video
+          src={url}
+          className={className}
+          muted
+          playsInline
+          loop
+          autoPlay={autoPlay}
+        />
         {showPlayIcon && !autoPlay && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center">
@@ -43,7 +50,11 @@ interface MediaGalleryProps {
   isMobile?: boolean;
 }
 
-export const MediaGallery = ({ images, className = '', isMobile = false }: MediaGalleryProps) => {
+export const MediaGallery = ({
+  images,
+  className = "",
+  isMobile = false,
+}: MediaGalleryProps) => {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -64,7 +75,10 @@ export const MediaGallery = ({ images, className = '', isMobile = false }: Media
     setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
   };
 
-  const gridClass = cn('rounded-lg overflow-hidden', isMobile && 'w-full max-w-full');
+  const gridClass = cn(
+    "rounded-lg overflow-hidden",
+    isMobile && "w-full max-w-full"
+  );
 
   const renderGrid = () => {
     const count = images.length;
@@ -73,14 +87,14 @@ export const MediaGallery = ({ images, className = '', isMobile = false }: Media
       const isVideo = isVideoUrl(images[0]);
       return (
         <div
-          className={cn('relative cursor-pointer', gridClass)}
+          className={cn("relative cursor-pointer", gridClass)}
           onClick={() => handleImageClick(0)}
         >
           <MediaItem
             url={images[0]}
             className={cn(
-              'w-full object-cover',
-              isMobile && isVideo ? '' : isMobile ? 'max-h-[300px]' : 'max-h-[400px]',
+              "w-full object-cover",
+              isMobile && isVideo ? "" : "max-h-full"
             )}
             showPlayIcon={!isVideo}
             autoPlay={isVideo}
@@ -91,7 +105,7 @@ export const MediaGallery = ({ images, className = '', isMobile = false }: Media
 
     if (count === 2) {
       return (
-        <div className={cn('grid grid-cols-2 gap-1', gridClass)}>
+        <div className={cn("grid grid-cols-2 gap-1", gridClass)}>
           {images.map((url, idx) => {
             const isVideo = isVideoUrl(url);
             return (
@@ -118,7 +132,7 @@ export const MediaGallery = ({ images, className = '', isMobile = false }: Media
       const isVideo1 = isVideoUrl(images[1]);
       const isVideo2 = isVideoUrl(images[2]);
       return (
-        <div className={cn('grid grid-cols-2 gap-1', gridClass)}>
+        <div className={cn("grid grid-cols-2 gap-1", gridClass)}>
           <div
             className="row-span-2 cursor-pointer overflow-hidden"
             onClick={() => handleImageClick(0)}
@@ -130,7 +144,10 @@ export const MediaGallery = ({ images, className = '', isMobile = false }: Media
               autoPlay={isVideo0}
             />
           </div>
-          <div className="cursor-pointer overflow-hidden" onClick={() => handleImageClick(1)}>
+          <div
+            className="cursor-pointer overflow-hidden"
+            onClick={() => handleImageClick(1)}
+          >
             <MediaItem
               url={images[1]}
               className="w-full h-full object-cover aspect-square"
@@ -138,7 +155,10 @@ export const MediaGallery = ({ images, className = '', isMobile = false }: Media
               autoPlay={isVideo1}
             />
           </div>
-          <div className="cursor-pointer overflow-hidden" onClick={() => handleImageClick(2)}>
+          <div
+            className="cursor-pointer overflow-hidden"
+            onClick={() => handleImageClick(2)}
+          >
             <MediaItem
               url={images[2]}
               className="w-full h-full object-cover aspect-square"
@@ -151,7 +171,7 @@ export const MediaGallery = ({ images, className = '', isMobile = false }: Media
     }
 
     return (
-      <div className={cn('grid grid-cols-2 gap-1', gridClass)}>
+      <div className={cn("grid grid-cols-2 gap-1", gridClass)}>
         {images.slice(0, 4).map((url, idx) => {
           const isVideo = isVideoUrl(url);
           return (
@@ -180,7 +200,9 @@ export const MediaGallery = ({ images, className = '', isMobile = false }: Media
 
   return (
     <>
-      <div className={cn(className, isMobile && 'max-w-full overflow-hidden')}>{renderGrid()}</div>
+      <div className={cn(className, isMobile && "max-w-full overflow-hidden")}>
+        {renderGrid()}
+      </div>
 
       <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
         <DialogContent className="max-w-[90vw]! max-h-[90vh]! p-0 bg-black/90 border-none">
@@ -234,7 +256,7 @@ export const MediaGallery = ({ images, className = '', isMobile = false }: Media
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
                   className={`w-2 h-2 rounded-full ${
-                    idx === currentIndex ? 'bg-white' : 'bg-white/50'
+                    idx === currentIndex ? "bg-white" : "bg-white/50"
                   }`}
                 />
               ))}
@@ -261,7 +283,7 @@ const MediaPreviewItem = ({
   url: string;
   className?: string;
 }) => {
-  const isVideo = file.type.startsWith('video/');
+  const isVideo = file.type.startsWith("video/");
 
   if (isVideo) {
     return (
@@ -297,7 +319,10 @@ export const MediaUploadPreview = ({
   onRemove,
   isMobile = false,
 }: MediaUploadPreviewProps) => {
-  const previewUrls = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files]);
+  const previewUrls = useMemo(
+    () => files.map((file) => URL.createObjectURL(file)),
+    [files]
+  );
 
   if (files.length === 0) return null;
 
@@ -310,7 +335,10 @@ export const MediaUploadPreview = ({
           <MediaPreviewItem
             file={files[0]}
             url={previewUrls[0]}
-            className={cn('w-full max-h-[300px] object-cover', isMobile && 'max-h-full')}
+            className={cn(
+              "w-full max-h-[300px] object-cover",
+              isMobile && "max-h-full"
+            )}
           />
           <button
             onClick={() => onRemove(0)}
@@ -383,7 +411,11 @@ export const MediaUploadPreview = ({
       <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
         {previewUrls.slice(0, 4).map((url, idx) => (
           <div key={idx} className="aspect-square relative">
-            <MediaPreviewItem file={files[idx]} url={url} className="w-full h-full object-cover" />
+            <MediaPreviewItem
+              file={files[idx]}
+              url={url}
+              className="w-full h-full object-cover"
+            />
             <button
               onClick={() => onRemove(idx)}
               className="absolute top-2 right-2 p-1 rounded-full bg-black/60 hover:bg-black/80 text-white"
@@ -417,16 +449,19 @@ export const EditMediaPreview = ({
   onRemoveExisting,
   onRemoveNew,
 }: EditMediaPreviewProps) => {
-  const newFileUrls = useMemo(() => newFiles.map((file) => URL.createObjectURL(file)), [newFiles]);
+  const newFileUrls = useMemo(
+    () => newFiles.map((file) => URL.createObjectURL(file)),
+    [newFiles]
+  );
 
   const totalCount = existingImages.length + newFiles.length;
 
   if (totalCount === 0) return null;
 
   const getGridClass = () => {
-    if (totalCount === 1) return '';
-    if (totalCount === 2) return 'grid grid-cols-2 gap-1';
-    return 'grid grid-cols-2 gap-1';
+    if (totalCount === 1) return "";
+    if (totalCount === 2) return "grid grid-cols-2 gap-1";
+    return "grid grid-cols-2 gap-1";
   };
 
   const renderExistingItem = (url: string, idx: number) => {
@@ -434,14 +469,14 @@ export const EditMediaPreview = ({
     return (
       <div
         key={`existing-${idx}`}
-        className={`relative ${totalCount === 1 ? '' : 'aspect-square'}`}
+        className={`relative ${totalCount === 1 ? "" : "aspect-square"}`}
       >
         {isVideo ? (
           <div className="relative w-full h-full group">
             <video
               src={url}
               className={`w-full h-full object-cover ${
-                totalCount === 1 ? 'max-h-[300px] rounded-lg' : ''
+                totalCount === 1 ? "max-h-[300px] rounded-lg" : ""
               }`}
               muted
               playsInline
@@ -463,7 +498,7 @@ export const EditMediaPreview = ({
             src={url}
             alt="Preview"
             className={`w-full h-full object-cover ${
-              totalCount === 1 ? 'max-h-[300px] rounded-lg' : ''
+              totalCount === 1 ? "max-h-[300px] rounded-lg" : ""
             }`}
           />
         )}
@@ -479,15 +514,18 @@ export const EditMediaPreview = ({
   };
 
   const renderNewItem = (file: File, url: string, idx: number) => {
-    const isVideo = file.type.startsWith('video/');
+    const isVideo = file.type.startsWith("video/");
     return (
-      <div key={`new-${idx}`} className={`relative ${totalCount === 1 ? '' : 'aspect-square'}`}>
+      <div
+        key={`new-${idx}`}
+        className={`relative ${totalCount === 1 ? "" : "aspect-square"}`}
+      >
         {isVideo ? (
           <div className="relative w-full h-full group">
             <video
               src={url}
               className={`w-full h-full object-cover ${
-                totalCount === 1 ? 'max-h-[300px] rounded-lg' : ''
+                totalCount === 1 ? "max-h-[300px] rounded-lg" : ""
               }`}
               muted
               playsInline
@@ -509,7 +547,7 @@ export const EditMediaPreview = ({
             src={url}
             alt="Preview"
             className={`w-full h-full object-cover ${
-              totalCount === 1 ? 'max-h-[300px] rounded-lg' : ''
+              totalCount === 1 ? "max-h-[300px] rounded-lg" : ""
             }`}
           />
         )}
