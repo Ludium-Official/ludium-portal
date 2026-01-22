@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils';
-import type { ReactNode } from 'react';
+import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 export interface MobileCardField<TData> {
   key: string;
@@ -23,32 +23,46 @@ export function MobileCardList<TData>({
   renderHeader,
   fields,
   onItemClick,
-  emptyMessage = 'No results.',
+  emptyMessage = "No results.",
   isInBoardCard = false,
 }: MobileCardListProps<TData>) {
   if (!data.length) {
-    return <div className="py-10 text-center text-slate-500">{emptyMessage}</div>;
+    return (
+      <div className="py-10 text-center text-slate-500">{emptyMessage}</div>
+    );
   }
 
   return (
-    <div className={cn('flex flex-col gap-3', isInBoardCard && 'border-b border-gray-border pb-2')}>
+    <div
+      className={cn(
+        "flex flex-col gap-3",
+        isInBoardCard && "border-b border-gray-border pb-2"
+      )}
+    >
       {data.map((item) => (
         <div
           key={keyExtractor(item)}
           className={cn(
-            'border border-gray-border rounded-xl overflow-hidden',
-            isInBoardCard && 'border-x-0 border-b-0 rounded-none',
+            "border border-gray-border rounded-xl overflow-hidden",
+            isInBoardCard && "border-x-0 border-b-0 rounded-none"
           )}
           onClick={() => onItemClick?.(item)}
         >
           <div className="p-4 pb-2">{renderHeader(item)}</div>
 
-          <div className="px-4 pb-2 text-xs">
+          <div className="px-4 pb-4 text-xs">
             {fields.map((field, index) => (
-              <div key={field.key} className={index < fields.length - 1 ? 'pb-2' : ''}>
+              <div
+                key={field.key}
+                className={index < fields.length - 1 ? "pb-2" : ""}
+              >
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-400 font-normal">{field.label}</span>
-                  <span className="[&_*]:!font-medium">{field.render(item)}</span>
+                  <span className="text-slate-400 font-normal">
+                    {field.label}
+                  </span>
+                  <span className="[&_*]:!font-medium">
+                    {field.render(item)}
+                  </span>
                 </div>
               </div>
             ))}
