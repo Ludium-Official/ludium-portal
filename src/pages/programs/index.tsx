@@ -32,7 +32,6 @@ const ProgramsPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('newest');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  // Mobile card configuration
   const renderMobileHeader = (program: ProgramV2) => (
     <div className="flex items-center gap-2">
       <Avatar className="w-8 h-8">
@@ -56,7 +55,7 @@ const ProgramsPage: React.FC = () => {
       label: 'Price',
       render: (program) =>
         program.price ? (
-          <span className="flex items-center gap-1 text-xs">
+          <span className="flex items-center gap-1 text-xs [&_svg]:size-4">
             {program.token && getTokenIcon(program.token.tokenName || 'EDU')}
             {program.price} {program.token?.tokenName}
           </span>
@@ -163,8 +162,9 @@ const ProgramsPage: React.FC = () => {
         <h1 className={cn('text-3xl font-bold', isMobile && 'text-lg')}>Recruitment</h1>
         {isMobile && isLoggedIn && (
           <Button
-            size="sm"
             className="gap-1"
+            size="sm"
+            variant="outline"
             onClick={() => {
               if (!isAuthed) {
                 notify('Please check your email and nickname', 'success');
@@ -206,6 +206,8 @@ const ProgramsPage: React.FC = () => {
             {!isMobile && isLoggedIn && (
               <Button
                 className="gap-2 rounded-[6px] px-3"
+                variant="outline"
+                size="default"
                 onClick={() => {
                   if (!isAuthed) {
                     notify('Please check your email and nickname', 'success');

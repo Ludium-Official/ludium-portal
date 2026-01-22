@@ -51,6 +51,8 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import * as z from 'zod';
 import { MilestoneAccordion } from './milestone-accordion';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 const milestoneFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -82,6 +84,7 @@ export function MilestoneModal({
   contract,
   tokenDecimals = 18,
 }: MilestoneModalProps) {
+  const isMobile = useIsMobile();
   const { getTokenById } = useNetworks();
 
   const applicationId = contractInformation.applicationInfo.id;
@@ -356,8 +359,13 @@ export function MilestoneModal({
               : 'View Milestone'}
           </DialogTitle>
         </DialogHeader>
-        <div className="flex flex-1 overflow-hidden">
-          <div className="flex-1 min-h-[500px] p-6 overflow-y-auto border-r bg-white">
+        <div className={cn('flex flex-1 overflow-hidden', isMobile && 'flex-col')}>
+          <div
+            className={cn(
+              'flex-1 min-h-[500px] p-6 overflow-y-auto border-r bg-white',
+              isMobile && 'p-4',
+            )}
+          >
             {isNewMilestoneMode ? (
               <Form {...form}>
                 <form
@@ -459,10 +467,20 @@ export function MilestoneModal({
               </Form>
             ) : (
               <div className="space-y-4">
-                <p className="mb-10 text-2xl font-semibold">{selectedMilestone?.title}</p>
-                <div className="mx-3">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-sm text-gray-text rounded-md">
+                <p className={cn('mb-10 text-2xl font-semibold', isMobile && 'mb-4 text-lg')}>
+                  {selectedMilestone?.title}
+                </p>
+                <div className={cn('mx-3', isMobile && 'mx-0')}>
+                  <div
+                    className={cn(
+                      'flex items-center gap-2',
+                      isMobile && 'flex-col items-start gap-1',
+                    )}
+                  >
+                    <Badge
+                      variant="secondary"
+                      className={cn('text-sm text-gray-text rounded-md', isMobile && 'text-xs')}
+                    >
                       <div className="flex items-center gap-2">
                         Budget
                         <div className="ml-2 text-gray-dark">
@@ -470,14 +488,19 @@ export function MilestoneModal({
                         </div>
                       </div>
                     </Badge>
-                    <Badge variant="secondary" className="text-sm text-gray-text rounded-md">
+                    <Badge
+                      variant="secondary"
+                      className={cn('text-sm text-gray-text rounded-md', isMobile && 'text-xs')}
+                    >
                       <div className="flex items-center gap-2">
                         Deadline
                         <div className="ml-2 text-gray-dark">
                           {selectedMilestone?.deadline &&
                             formatUTCDateLocal(selectedMilestone.deadline)}
                           {selectedMilestone?.deadline && (
-                            <Badge className="ml-2">{dDay(selectedMilestone.deadline)}</Badge>
+                            <Badge className={cn('ml-2', isMobile && 'px-1 py-0')}>
+                              {dDay(selectedMilestone.deadline)}
+                            </Badge>
                           )}
                         </div>
                       </div>

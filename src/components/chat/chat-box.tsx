@@ -208,7 +208,7 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
         <div className="space-y-2">
           {message.senderId === '0' && (
             <div className="flex justify-center w-full italic mt-3">
-              <p className="text-sm text-[#7C7C7C]">{message.text}</p>
+              <p className="text-sm text-muted-foreground text-center">{message.text}</p>
             </div>
           )}
           {message.senderId === '-1' || message.senderId === '-2' ? (

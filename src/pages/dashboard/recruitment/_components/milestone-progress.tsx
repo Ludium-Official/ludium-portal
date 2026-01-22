@@ -25,9 +25,8 @@ export const MilestoneProgress: React.FC<MilestoneProgressProps> = ({ milestoneP
   const innerRadius = isMobile ? 90 : 100;
   const outerRadius = isMobile ? 60 : 70;
 
-  const percentage = Math.round(
-    ((milestoneProgress?.completed || 0) / (milestoneProgress?.total || 0)) * 100,
-  );
+  const percentage =
+    Math.round(((milestoneProgress?.completed || 0) / (milestoneProgress?.total || 0)) * 100) || 0;
 
   const chartData = [
     {

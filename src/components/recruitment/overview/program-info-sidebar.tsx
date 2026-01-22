@@ -10,6 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { MobileFullScreenDialog } from '@/components/ui/mobile-full-screen-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -127,65 +128,85 @@ export function ProgramInfoSidebar({
     </div>
   );
 
-  const renderApplicationButton = () => (
-    <TooltipProvider>
-      <Tooltip>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <TooltipTrigger asChild>
-            <span className="w-full">
-              <DialogTrigger asChild>
-                <Button
-                  className="w-full"
-                  size={isMobile ? 'sm' : 'default'}
-                  disabled={
-                    program.status !== ProgramStatusV2.Open ||
-                    program.hasApplied ||
-                    isDeadlinePassed ||
-                    false
-                  }
-                >
-                  {program.hasApplied ? 'Applied' : 'Submit application'}
-                </Button>
-              </DialogTrigger>
-            </span>
-          </TooltipTrigger>
-          {isDeadlinePassed && (
-            <TooltipContent>
-              <p className="text-black">Deadline has passed</p>
-            </TooltipContent>
-          )}
-          <DialogContent className="max-w-3xl! max-h-[90vh] overflow-y-auto">
-            <DialogHeader className="flex-row items-center justify-between space-y-0">
-              <DialogTitle>Add Cover Letter</DialogTitle>
-            </DialogHeader>
-            <div className="mt-4">
-              <InputLabel
-                labelId="coverLetter"
-                title="Highlight your skills and explain why you're a great fit for this role."
-                isPrimary
-                inputClassName="hidden"
+  const renderApplicationButton = () => {
+    const formContent = (
+      <div className="space-y-4">
+        <InputLabel
+          labelId="coverLetter"
+          title="Highlight your skills and explain why you're a great fit for this role."
+          isPrimary
+          inputClassName="hidden"
+        >
+          <MarkdownEditor
+            onChange={(value: string) => {
+              setCoverLetter(value);
+            }}
+            content={coverLetter}
+          />
+        </InputLabel>
+      </div>
+    );
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <TooltipTrigger asChild>
+              <span className="w-full">
+                <DialogTrigger asChild>
+                  <Button
+                    className="w-full"
+                    size={isMobile ? 'sm' : 'default'}
+                    disabled={
+                      program.status !== ProgramStatusV2.Open ||
+                      program.hasApplied ||
+                      isDeadlinePassed ||
+                      false
+                    }
+                  >
+                    {program.hasApplied ? 'Applied' : 'Submit application'}
+                  </Button>
+                </DialogTrigger>
+              </span>
+            </TooltipTrigger>
+            {isDeadlinePassed && (
+              <TooltipContent>
+                <p className="text-black">Deadline has passed</p>
+              </TooltipContent>
+            )}
+            {isMobile ? (
+              <MobileFullScreenDialog
+                open={isDialogOpen}
+                onClose={() => setIsDialogOpen(false)}
+                title="Add Cover Letter"
+                onAction={handleSubmitApplication}
+                actionLabel="Submit"
+                actionDisabled={!coverLetter.trim()}
+                actionLoading={submitting}
               >
-                <MarkdownEditor
-                  onChange={(value: string) => {
-                    setCoverLetter(value);
-                  }}
-                  content={coverLetter}
-                />
-              </InputLabel>
-            </div>
-            <div className="flex justify-end">
-              <Button
-                onClick={handleSubmitApplication}
-                disabled={submitting || !coverLetter.trim()}
-              >
-                {submitting ? 'Submitting...' : 'Submit application'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </Tooltip>
-    </TooltipProvider>
-  );
+                {formContent}
+              </MobileFullScreenDialog>
+            ) : (
+              <DialogContent className="max-w-3xl! max-h-[90vh] overflow-y-auto">
+                <DialogHeader className="flex-row items-center justify-between space-y-0">
+                  <DialogTitle>Add Cover Letter</DialogTitle>
+                </DialogHeader>
+                <div className="mt-4">{formContent}</div>
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleSubmitApplication}
+                    disabled={submitting || !coverLetter.trim()}
+                  >
+                    {submitting ? 'Submitting...' : 'Submit application'}
+                  </Button>
+                </div>
+              </DialogContent>
+            )}
+          </Dialog>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
 
   const renderSkills = () => (
     <div className={cn('flex flex-wrap gap-2', isMobile && 'justify-end')}>

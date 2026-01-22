@@ -84,8 +84,8 @@ export const HiredBuildersTable: React.FC<{
   );
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4">
-      <h2 className={cn('text-base font-semibold mb-6', isMobile && 'text-sm mb-4')}>
+    <div className={cn('border border-gray-200 rounded-lg p-4', isMobile && 'p-0')}>
+      <h2 className={cn('text-base font-semibold mb-6', isMobile && 'text-sm m-4')}>
         Hired Builders ({totalCount})
       </h2>
 

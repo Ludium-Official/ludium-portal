@@ -93,7 +93,7 @@ const RecruitmentDashboardSponsor: React.FC = () => {
                   activityFilter.key === option.key
                     ? 'border-slate-900'
                     : 'border border-slate-200',
-                  isMobile && 'min-w-full',
+                  isMobile && 'min-w-auto',
                 )}
                 onClick={() => setActivityFilter(option)}
               >

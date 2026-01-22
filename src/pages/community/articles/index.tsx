@@ -81,7 +81,7 @@ const ArticlesPage: React.FC = () => {
               variant="outline"
             >
               <CirclePlus />
-              {!isMobile && 'Create Article'}
+              {`Create${!isMobile ? ' Article' : ''}`}
             </Button>
           )}
         </div>

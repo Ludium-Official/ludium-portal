@@ -121,7 +121,7 @@ const CreateProgram: React.FC = () => {
           onSaveDraft={() => programFormRef.current?.submitDraft()}
         />
       )}
-      <Container className={cn('w-full bg-gray-light p-10 max-w-full', isMobile && 'p-4')}>
+      <Container className={cn('w-full bg-gray-light p-10 max-w-full', isMobile && 'mt-17 p-4')}>
         <ProgramForm onSubmitProgram={onSubmit} createLoading={loading} formRef={programFormRef} />
       </Container>
     </>

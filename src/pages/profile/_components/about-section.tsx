@@ -10,11 +10,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { MobileFullScreenDialog } from '@/components/ui/mobile-full-screen-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 import notify from '@/lib/notify';
 import { cn } from '@/lib/utils';
-import { Loader2, Pen, Plus, X } from 'lucide-react';
+import { Loader2, Pen, Plus } from 'lucide-react';
 import { useState } from 'react';
 
 interface AboutSectionProps {
@@ -123,26 +124,15 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ bio }) => {
         )}
 
         {isMobile ? (
-          isOpen && (
-            <div className="fixed inset-0 z-50 bg-white flex flex-col">
-              <header className="relative flex items-center justify-center px-4 py-4 h-17 border-b border-gray-100">
-                <button onClick={handleCancel} className="absolute top-4 left-4">
-                  <X className="w-6 h-9" />
-                </button>
-                <span className="text-sm font-medium">About</span>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="absolute right-4 top-4"
-                  onClick={handleSave}
-                  disabled={updating}
-                >
-                  {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
-                </Button>
-              </header>
-              <div className="flex-1 overflow-y-auto p-4">{formContent}</div>
-            </div>
-          )
+          <MobileFullScreenDialog
+            open={isOpen}
+            onClose={handleCancel}
+            title="Edit About"
+            onAction={handleSave}
+            actionLoading={updating}
+          >
+            {formContent}
+          </MobileFullScreenDialog>
         ) : (
           <DialogContent className="sm:max-w-[782px] px-10 py-4">
             <DialogHeader className="flex flex-row items-center justify-between">

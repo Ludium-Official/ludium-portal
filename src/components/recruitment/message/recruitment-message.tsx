@@ -428,7 +428,12 @@ const RecruitmentMessage: React.FC = () => {
               </div>
             </>
           ) : (
-            <div className="flex items-center justify-center h-full text-muted-foreground">
+            <div
+              className={cn(
+                'flex items-center justify-center h-full text-muted-foreground',
+                isMobile && 'text-sm',
+              )}
+            >
               Select a message to view conversation
             </div>
           )}

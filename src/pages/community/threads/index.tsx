@@ -7,9 +7,10 @@ import TrendingArticles from '@/components/community/trending-articles';
 import Container from '@/components/layout/container';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { MobileFullScreenDialog } from '@/components/ui/mobile-full-screen-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { CirclePlus, Image as ImageIcon, Loader2, X } from 'lucide-react';
+import { CirclePlus, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import ThreadItem from './_components/thread-item';
@@ -372,7 +373,7 @@ const ThreadsPage = () => {
 
       {isTabHeaderFixed && tabHeaderPosition !== null && (
         <div
-          className="fixed top-3 bg-gray-light py-2"
+          className={cn('fixed top-3 bg-gray-light py-2', isMobile && 'bg-white -mt-3 pt-3')}
           style={{
             left: tabHeaderPosition.left,
             width: tabHeaderPosition.width,
@@ -401,46 +402,20 @@ const ThreadsPage = () => {
       )}
 
       {isMobile ? (
-        showPostForm && (
-          <div className="fixed inset-0 z-50 bg-white flex flex-col">
-            <header className="relative flex items-center justify-center px-4 py-4 h-17 border-b border-gray-100">
-              <button
-                onClick={() => {
-                  setShowPostForm(false);
-                  setPostContent('');
-                  setPostMedia([]);
-                }}
-                className="absolute top-4 left-4"
-              >
-                <X className="w-6 h-9" />
-              </button>
-              <span className="text-sm font-medium">Create Post</span>
-              <Button
-                size="sm"
-                variant="outline"
-                className="absolute right-4 top-4"
-                onClick={handlePostThread}
-                disabled={(!postContent.trim() && postMedia.length === 0) || creatingThread}
-              >
-                {creatingThread ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Post'}
-              </Button>
-            </header>
-
-            <div className="flex-1 p-4 flex flex-col min-h-0">
-              <Textarea
-                value={postContent}
-                onChange={(e) => setPostContent(e.target.value)}
-                placeholder="What's happening?"
-                className="flex-1 min-h-[100px] resize-none border-0 focus-visible:ring-0 text-base p-0"
-              />
-
-              {postMedia.length > 0 && (
-                <div className="mt-4 flex-shrink-0 overflow-y-auto max-h-[52%]">
-                  <MediaUploadPreview files={postMedia} onRemove={handleRemoveMedia} isMobile />
-                </div>
-              )}
-            </div>
-
+        <MobileFullScreenDialog
+          open={showPostForm}
+          onClose={() => {
+            setShowPostForm(false);
+            setPostContent('');
+            setPostMedia([]);
+          }}
+          title="Create Post"
+          onAction={handlePostThread}
+          actionLabel="Post"
+          actionDisabled={!postContent.trim() && postMedia.length === 0}
+          actionLoading={creatingThread}
+          contentClassName="flex flex-col min-h-0"
+          footer={
             <div className="flex items-center gap-2 p-4 border-t">
               <input
                 ref={fileInputRef}
@@ -464,8 +439,21 @@ const ThreadsPage = () => {
                 {postMedia.length > 0 ? `${postMedia.length}/4 images` : 'Add images'}
               </span>
             </div>
-          </div>
-        )
+          }
+        >
+          <Textarea
+            value={postContent}
+            onChange={(e) => setPostContent(e.target.value)}
+            placeholder="What's happening?"
+            className="flex-1 min-h-[100px] resize-none border-0 focus-visible:ring-0 text-base p-0"
+          />
+
+          {postMedia.length > 0 && (
+            <div className="mt-4 flex-shrink-0 overflow-y-auto max-h-[52%]">
+              <MediaUploadPreview files={postMedia} onRemove={handleRemoveMedia} isMobile />
+            </div>
+          )}
+        </MobileFullScreenDialog>
       ) : (
         <Dialog
           open={showPostForm}
