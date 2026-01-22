@@ -5,9 +5,12 @@ import type { RecruitmentApplicant } from '@/types/recruitment';
 import type { ApplicationV2 } from '@/types/types.generated';
 import { useParams } from 'react-router';
 import ApplicantCard from './applicant-card/applicant-card';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 const RecruitmentApplicants: React.FC = () => {
   const { id } = useParams();
+  const isMobile = useIsMobile();
 
   const [pickApplication] = usePickApplicationV2Mutation();
   const { data, refetch, loading, error } = useApplicationsByProgramV2Query({
@@ -96,7 +99,9 @@ const RecruitmentApplicants: React.FC = () => {
             />
           ))
         ) : (
-          <div className="text-center py-12 text-muted-foreground">No applicants yet</div>
+          <div className={cn('text-center py-12 text-muted-foreground', isMobile && 'text-sm')}>
+            No applicants yet
+          </div>
         )}
       </div>
     </div>

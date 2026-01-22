@@ -15,13 +15,14 @@ import {
 } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { MobileFullScreenDialog } from '@/components/ui/mobile-full-screen-dialog';
 import { SearchSelect } from '@/components/ui/search-select';
 import { type Timezone, fetchTimezones } from '@/lib/api/timezones';
 import notify from '@/lib/notify';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn, getBrowserTimezone } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Pen, Upload, X } from 'lucide-react';
+import { Loader2, Pen, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -400,31 +401,18 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
           <Pen className="h-4 w-4" />
         </Button>
 
-        {isOpen && (
-          <div className="fixed inset-0 z-50 bg-white flex flex-col">
-            <header className="relative flex items-center justify-center px-4 py-4 h-17 border-b border-gray-100">
-              <button onClick={handleCancel} className="absolute top-4 left-4">
-                <X className="w-6 h-9" />
-              </button>
-              <span className="text-sm font-medium">Edit Profile</span>
-              <Button
-                size="sm"
-                variant="outline"
-                className="absolute right-4 top-4"
-                onClick={handleSubmit(onSubmit)}
-                disabled={!isValid || updatingProfile}
-              >
-                {updatingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
-              </Button>
-            </header>
-
-            <div className="flex-1 overflow-y-auto p-4">
-              <Form {...form}>
-                <form onSubmit={handleSubmit(onSubmit)}>{formContent}</form>
-              </Form>
-            </div>
-          </div>
-        )}
+        <MobileFullScreenDialog
+          open={isOpen}
+          onClose={handleCancel}
+          title="Edit Profile"
+          onAction={handleSubmit(onSubmit)}
+          actionDisabled={!isValid}
+          actionLoading={updatingProfile}
+        >
+          <Form {...form}>
+            <form onSubmit={handleSubmit(onSubmit)}>{formContent}</form>
+          </Form>
+        </MobileFullScreenDialog>
       </>
     );
   }

@@ -176,13 +176,22 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
               (userInfo.tools && userInfo.tools.length > 0)) && (
               <div className="flex flex-col gap-5 mt-4 text-sm">
                 {userInfo.skills && userInfo.skills.length > 0 && (
-                  <div className="flex gap-3">
-                    <div className="w-[65px] flex-shrink-0 text-gray-dark font-bold">Skills</div>
-                    {userInfo.skills.map((skill) => (
-                      <Badge key={skill} variant="secondary" className="text-xs">
-                        {skill}
-                      </Badge>
-                    ))}
+                  <div className={cn('flex gap-3', isMobile && 'text-sm')}>
+                    <div
+                      className={cn(
+                        'w-[65px] flex-shrink-0 text-gray-dark font-bold',
+                        isMobile && 'w-auto',
+                      )}
+                    >
+                      Skills
+                    </div>
+                    <div className={cn('flex flex-wrap gap-3', isMobile && 'gap-1')}>
+                      {userInfo.skills.map((skill) => (
+                        <Badge key={skill} variant="secondary" className="text-xs">
+                          {skill}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 )}
 

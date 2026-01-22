@@ -13,6 +13,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { MobileFullScreenDialog } from '@/components/ui/mobile-full-screen-dialog';
 import { SearchSelect } from '@/components/ui/search-select';
 import { DEGREE_OPTIONS } from '@/constant/profile-related';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
@@ -20,7 +21,7 @@ import notify from '@/lib/notify';
 import { cn } from '@/lib/utils';
 import type { LabelValueProps } from '@/types/common';
 import type { EducationV2 } from '@/types/types.generated';
-import { Loader2, Pen, Plus, X } from 'lucide-react';
+import { Loader2, Pen, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface EducationSectionProps {
@@ -329,26 +330,16 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations =
         )}
 
         {isMobile ? (
-          isOpen && (
-            <div className="fixed inset-0 z-50 bg-white flex flex-col">
-              <header className="relative flex items-center justify-center px-4 py-4 h-17 border-b border-gray-100">
-                <button onClick={handleCancel} className="absolute top-4 left-4">
-                  <X className="w-6 h-9" />
-                </button>
-                <span className="text-sm font-medium">Education</span>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="absolute right-4 top-4"
-                  onClick={handleSave}
-                  disabled={!formData.school?.trim() || isSaving}
-                >
-                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
-                </Button>
-              </header>
-              <div className="flex-1 overflow-y-auto p-4">{formContent}</div>
-            </div>
-          )
+          <MobileFullScreenDialog
+            open={isOpen}
+            onClose={handleCancel}
+            title="Edit Education"
+            onAction={handleSave}
+            actionDisabled={!formData.school?.trim()}
+            actionLoading={isSaving}
+          >
+            {formContent}
+          </MobileFullScreenDialog>
         ) : (
           <DialogContent className="sm:max-w-[782px] px-10 py-4">
             <DialogHeader className="flex flex-row items-center justify-between">

@@ -211,7 +211,7 @@ function ArticleForm({ onSubmitArticle, isEdit, loading }: ArticleFormProps) {
           onSaveDraft={handleSubmit((formData) => onSubmit(formData, 'draft'))}
         />
       )}
-      <Container className={cn('px-25 py-[30px]', isMobile && 'px-4 py-7')}>
+      <Container className={cn('px-25 py-[30px]', isMobile && 'mt-17 px-4 py-7')}>
         <form className="w-full mx-auto">
           {!isMobile && (
             <div

@@ -124,7 +124,7 @@ const EditProgram: React.FC = () => {
           onSaveDraft={() => programFormRef.current?.submitDraft()}
         />
       )}
-      <Container className={cn('w-full bg-gray-light p-10 max-w-full', isMobile && 'p-0!')}>
+      <Container className={cn('w-full bg-gray-light p-10 max-w-full', isMobile && 'mt-17 p-0!')}>
         <ProgramForm
           isEdit={true}
           onSubmitProgram={onSubmit}
