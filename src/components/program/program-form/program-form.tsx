@@ -304,16 +304,14 @@ function ProgramForm({
     <Form {...form}>
       <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="w-full mx-auto">
         {!isMobile && (
-          <h1 className="font-bold text-xl mb-6">
-            {isEdit ? 'Edit Program' : 'Create Program'}
-          </h1>
+          <h1 className="font-bold text-xl mb-6">{isEdit ? 'Edit Program' : 'Create Program'}</h1>
         )}
 
         <div className={cn('flex gap-3', isMobile && 'flex-col')}>
           <div
             className={cn(
               'bg-white py-8 px-10 rounded-lg mb-3 flex-1',
-              isMobile && 'py-5 px-4 mb-0'
+              isMobile && 'py-5 px-4 mb-0',
             )}
           >
             <InputLabel

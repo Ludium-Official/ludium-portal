@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await loginMutation({
       variables: props,
       onCompleted: (data) => {
-        setToken(data.loginV2);
+        setToken(data.loginV2 ?? '');
         setEmail(email);
 
         localStorage.setItem('token', data.loginV2 ?? '');

@@ -1,6 +1,6 @@
-import { cn } from "@/lib/utils";
-import { ExternalLink, Globe } from "lucide-react";
-import { useEffect, useState } from "react";
+import { cn } from '@/lib/utils';
+import { ExternalLink, Globe } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface LinkMetadata {
   title?: string;
@@ -17,7 +17,7 @@ interface LinkPreviewProps {
 
 function getHostname(url: string): string {
   try {
-    return new URL(url).hostname.replace("www.", "");
+    return new URL(url).hostname.replace('www.', '');
   } catch {
     return url;
   }
@@ -32,12 +32,10 @@ export function LinkPreview({ url, className }: LinkPreviewProps) {
       try {
         setLoading(true);
 
-        const response = await fetch(
-          `https://api.microlink.io?url=${encodeURIComponent(url)}`
-        );
+        const response = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
         const data = await response.json();
 
-        if (data.status === "success" && data.data) {
+        if (data.status === 'success' && data.data) {
           setMetadata({
             title: data.data.title,
             description: data.data.description,
@@ -68,8 +66,8 @@ export function LinkPreview({ url, className }: LinkPreviewProps) {
     return (
       <div
         className={cn(
-          "flex items-center gap-2 p-2 border border-gray-200 rounded-md bg-gray-50/50 animate-pulse",
-          className
+          'flex items-center gap-2 p-2 border border-gray-200 rounded-md bg-gray-50/50 animate-pulse',
+          className,
         )}
       >
         <div className="w-10 h-10 bg-gray-200 rounded shrink-0" />
@@ -90,8 +88,8 @@ export function LinkPreview({ url, className }: LinkPreviewProps) {
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
       className={cn(
-        "flex items-center gap-2 p-2 border border-gray-200 rounded-md bg-gray-50/50 hover:bg-gray-100 transition-colors",
-        className
+        'flex items-center gap-2 p-2 border border-gray-200 rounded-md bg-gray-50/50 hover:bg-gray-100 transition-colors',
+        className,
       )}
     >
       {metadata.image ? (
@@ -100,7 +98,7 @@ export function LinkPreview({ url, className }: LinkPreviewProps) {
           alt=""
           className="w-10 h-10 object-cover rounded shrink-0"
           onError={(e) => {
-            (e.target as HTMLImageElement).style.display = "none";
+            (e.target as HTMLImageElement).style.display = 'none';
           }}
         />
       ) : (
@@ -109,9 +107,7 @@ export function LinkPreview({ url, className }: LinkPreviewProps) {
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-gray-900">
-          {metadata.title || metadata.hostname}
-        </p>
+        <p className="text-xs font-medium text-gray-900">{metadata.title || metadata.hostname}</p>
         <div className="flex items-center gap-1 text-[10px] text-gray-400">
           <ExternalLink className="w-2.5 h-2.5" />
           <span className="truncate">{metadata.hostname}</span>
