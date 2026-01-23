@@ -73,12 +73,12 @@ export const MediaGallery = ({ images, className = '', isMobile = false }: Media
       const isVideo = isVideoUrl(images[0]);
       return (
         <div
-          className={cn('relative cursor-pointer', gridClass)}
+          className={cn('relative cursor-pointer max-w-[400px]', gridClass)}
           onClick={() => handleImageClick(0)}
         >
           <MediaItem
             url={images[0]}
-            className={cn('w-full object-cover', isMobile && isVideo ? '' : 'max-h-full')}
+            className="w-full object-cover rounded-lg max-h-[500px]"
             showPlayIcon={!isVideo}
             autoPlay={isVideo}
           />
