@@ -42,7 +42,7 @@ export function MobileFullScreenDialog({
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] bg-white flex flex-col">
-      <header className="relative flex items-center justify-center px-4 py-4 h-17 border-b border-gray-100">
+      <header className="relative flex items-center justify-center p-4 h-17 border-b border-gray-100">
         <button type="button" onClick={onClose} className="absolute top-4 left-4">
           <X className="w-6 h-9" />
         </button>

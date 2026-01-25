@@ -22,7 +22,7 @@ export function MobileFormHeader({
 }: MobileFormHeaderProps) {
   return (
     <div className="fixed top-0 left-0 bg-white w-full z-50 border-b border-gray-100">
-      <header className="relative flex items-center justify-center px-4 py-4 h-17">
+      <header className="relative flex items-center justify-center p-4 h-17">
         <Link to={backLink} className="absolute top-4 left-4">
           <X className="w-6 h-9" />
         </Link>
