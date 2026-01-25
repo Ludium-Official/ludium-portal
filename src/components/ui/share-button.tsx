@@ -7,6 +7,7 @@ import { Button } from './button';
 import { Label } from './label';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { RadioGroup, RadioGroupItem } from './radio-group';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 interface ShareButtonProps {
   className?: string;
@@ -27,6 +28,8 @@ export function ShareButton({
   program,
   linkToCopy,
 }: ShareButtonProps) {
+  const isMobile = useIsMobile();
+
   const [shareType, setShareType] = useState<'link' | 'farcaster'>('link');
 
   const handleShare = () => {
@@ -53,15 +56,17 @@ export function ShareButton({
         <Button
           variant={variant}
           size={size}
-          className={cn('flex gap-2 items-center text-xs', className)}
+          className={cn('flex gap-2 items-center text-xs', size === 'sm' && 'w-8 h-8', className)}
         >
-          {children || 'Share'}
-          <Share2Icon className="size-3" />
+          {!isMobile && (children || 'Share')}
+          <Share2Icon className={cn('size-4', size === 'sm' && 'size-3')} />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-6 min-w-[400px]" align="end">
+      <PopoverContent className={cn('p-6 min-w-[400px]', isMobile && 'min-w-full p-4')} align="end">
         <div className="space-y-4">
-          <div className="text-center font-semibold text-lg">Share</div>
+          <div className={cn('text-center font-semibold text-lg', isMobile && 'text-base')}>
+            Share
+          </div>
 
           <RadioGroup
             value={shareType}
@@ -75,7 +80,12 @@ export function ShareButton({
                 className="flex-1 cursor-pointer flex flex-col items-start gap-1.5"
               >
                 <div className="font-medium">Share with link</div>
-                <p className="text-sm text-muted-foreground truncate max-w-[342px]">
+                <p
+                  className={cn(
+                    'text-sm text-muted-foreground truncate max-w-[342px] break-all',
+                    isMobile && 'max-w-full text-wrap',
+                  )}
+                >
                   {linkToCopy ?? window.location.href}
                 </p>
               </Label>
@@ -95,6 +105,7 @@ export function ShareButton({
             <Button
               onClick={handleShare}
               className="w-full bg-primary text-white hover:bg-primary/90"
+              size={isMobile ? 'sm' : 'default'}
             >
               Share
             </Button>

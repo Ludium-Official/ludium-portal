@@ -184,7 +184,6 @@ const ThreadCommentItem = ({ comment, threadId, onCommentAdded }: ThreadCommentI
         isDisliked: comment.isDisliked,
         createdAt: comment.createdAt,
       }}
-      isAuthed={isAuthed ?? false}
       isAuthor={isAuthor}
       liked={liked}
       disliked={disliked}

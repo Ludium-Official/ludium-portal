@@ -4,6 +4,7 @@ import { useCreateThreadCommentMutation } from '@/apollo/mutation/create-thread-
 import { useUpdateThreadMutation } from '@/apollo/mutation/update-thread.generated';
 import { useDeleteThreadMutation } from '@/apollo/mutation/delete-thread.generated';
 import { EditMediaPreview, MediaGallery } from '@/components/community/media-gallery';
+import { LinkPreview, TextWithLinks, extractUrls } from '@/components/community/link-preview';
 import { Image as ImageIcon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -28,16 +29,21 @@ import {
   ThumbsUp,
   Trash2,
 } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import ThreadCommentItem from './thread-comment-item';
+import { Link } from 'react-router';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface ThreadItemProps {
   thread: Thread;
   onThreadUpdated?: () => void;
+  isDetailPage?: boolean;
 }
 
-const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
-  const { isAuthed, nickname, profileImage } = useAuth();
+const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadItemProps) => {
+  const isMobile = useIsMobile();
+  const { isLoggedIn, isAuthed, nickname, profileImage } = useAuth();
 
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<ThreadCommentData[]>([]);
@@ -58,6 +64,12 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
   const [currentAuthorProfileImage] = useState(thread.authorProfileImage);
   const [isDeleted, setIsDeleted] = useState(false);
   const editFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Memoize URL extraction to avoid recalculating
+  const contentUrls = useMemo(
+    () => (currentContent ? extractUrls(currentContent) : []),
+    [currentContent],
+  );
 
   const { lineHeight, commentsRef, parentContentRef } = useCommentLineHeight({
     showComments,
@@ -86,7 +98,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
   };
 
   const handleLike = async () => {
-    if (!isAuthed || !thread.id) return;
+    if (!isLoggedIn || !thread.id) return;
 
     try {
       const { data } = await toggleReaction({
@@ -109,7 +121,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
   };
 
   const handleDislike = async () => {
-    if (!isAuthed || !thread.id) return;
+    if (!isLoggedIn || !thread.id) return;
 
     try {
       const { data } = await toggleReaction({
@@ -242,7 +254,13 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
   const formattedDate = thread.createdAt ? format(new Date(thread.createdAt), 'MMMM dd, yyyy') : '';
 
   return (
-    <div className="border-b pt-14 pb-10 px-8">
+    <div
+      className={cn(
+        'border-b py-5 px-8',
+        isMobile && 'pt-14 pb-10 px-0 first:pt-10',
+        isDetailPage && 'pt-5 border-none',
+      )}
+    >
       <div className="flex items-center gap-2 mb-3">
         <Avatar className="w-10 h-10 flex-shrink-0">
           <AvatarImage src={currentAuthorProfileImage || ''} />
@@ -263,8 +281,8 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
             />
           </div>
         )}
-        <div className={`${showComments ? 'flex-1' : 'ml-12'} w-full`}>
-          <div ref={parentContentRef}>
+        <div className={`${showComments ? 'flex-1' : 'ml-12'} w-full min-w-0`}>
+          <div ref={parentContentRef} className="overflow-hidden">
             {isDeleted ? (
               <p className="mb-4 text-muted-foreground italic text-base">
                 This thread has been deleted
@@ -275,7 +293,7 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
                   placeholder="What's happening?"
-                  className="w-full min-h-[100px] resize-none focus-visible:ring-0"
+                  className={cn('w-full min-h-[100px] focus-visible:ring-0', isMobile && 'text-sm')}
                 />
 
                 <EditMediaPreview
@@ -331,16 +349,32 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
             ) : (
               <>
                 {currentContent && (
-                  <p className="mb-4 whitespace-pre-wrap break-words">{currentContent}</p>
+                  <Link to={`/community/threads/${thread.id}`}>
+                    <p
+                      className={cn(
+                        'mb-4 whitespace-pre-wrap break-all overflow-hidden [overflow-wrap:anywhere]',
+                        isMobile && 'text-sm',
+                      )}
+                    >
+                      <TextWithLinks text={currentContent} />
+                    </p>
+                  </Link>
                 )}
                 {currentImages && currentImages.length > 0 && (
-                  <MediaGallery images={currentImages} className="mb-4" />
+                  <MediaGallery images={currentImages} className="mb-4" isMobile={isMobile} />
+                )}
+                {contentUrls.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    {contentUrls.map((url, index) => (
+                      <LinkPreview key={index} url={url} />
+                    ))}
+                  </div>
                 )}
               </>
             )}
 
-            <div className="flex items-center gap-3 mb-6">
-              {isAuthed && !isDeleted && (
+            <div className={cn('flex items-center gap-3 mb-6', !showComments && 'mb-0')}>
+              {isLoggedIn && !isDeleted && (
                 <>
                   <Button
                     variant="outline"
@@ -411,14 +445,20 @@ const ThreadItem = ({ thread, onThreadUpdated }: ThreadItemProps) => {
 
           {showComments && (
             <>
-              {isAuthed && (
+              {isLoggedIn && (
                 <div className="flex flex-col items-end gap-2 mb-6">
-                  <Textarea
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="Write a comment..."
-                    className="h-[40px] min-h-[40px] resize-none"
-                  />
+                  {isAuthed ? (
+                    <Textarea
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      placeholder="Write a comment..."
+                      className={cn('h-[40px] min-h-[40px] resize-none', isMobile && 'text-sm')}
+                    />
+                  ) : (
+                    <div className="w-full border border-gray-300 rounded-md p-2 h-[40px] min-h-[40px] text-sm text-muted-foreground">
+                      Check your email and nickname
+                    </div>
+                  )}
                   <div className="flex gap-2">
                     <Button
                       size="sm"

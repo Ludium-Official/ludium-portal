@@ -1,4 +1,5 @@
 import { useDeleteProgramV2Mutation } from '@/apollo/mutation/delete-program-v2.generated';
+import { MobileTable, type MobileTableHeaderLabels } from '@/components/data-table';
 import StatusBadge from '@/components/recruitment/statusBadge/statusBadge';
 import {
   AlertDialog,
@@ -28,6 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn, commaNumber, formatDate, formatPrice, getCurrencyIcon } from '@/lib/utils';
 import type {
   BuilderProgramData,
@@ -46,7 +48,14 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ChevronDown, ChevronsUpDown, Ellipsis, Pencil, Trash2 } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronsUpDown,
+  Ellipsis,
+  EllipsisVertical,
+  Pencil,
+  Trash2,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router';
@@ -61,6 +70,81 @@ export const MyJobPostsTable: React.FC<MyJobPostsTableProps> = ({
   variant,
 }) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+
+  const mobileHeaderLabels: MobileTableHeaderLabels = useMemo(
+    () => ({
+      status: 'Status',
+      deadline: 'Deadline',
+      price: variant === 'sponsor' ? 'Price' : 'Budget',
+      createdAt: 'Posted',
+      applicationCount: 'Applicants',
+      appliedDate: 'Applied Date',
+    }),
+    [variant],
+  );
+
+  const renderMobileRowHeader = (row: ProgramData) => {
+    const program = row as SponsorProgramData;
+    const programId = program.id;
+    const programStatus = program.status;
+    const isClosed = programStatus === ProgramStatusV2.Closed;
+
+    const handleEdit = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (programId) {
+        navigate(`/programs/recruitment/${programId}/edit`);
+      }
+    };
+
+    const handleDelete = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!programId) return;
+      openDeleteDialog(programId);
+    };
+
+    const handleDropdownClick = (e: React.MouseEvent) => {
+      e.stopPropagation();
+    };
+
+    return (
+      <div className="flex justify-between items-start gap-2">
+        <span className="font-medium text-sm text-slate-800 line-clamp-2">{row.title}</span>
+        {variant === 'sponsor' && (
+          <div onClick={handleDropdownClick} className="flex-shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="h-6 w-6 p-0! text-zinc-500"
+                  onClick={handleDropdownClick}
+                >
+                  <EllipsisVertical className="size-4 p-0" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" onClick={handleDropdownClick}>
+                <DropdownMenuItem
+                  onClick={handleEdit}
+                  disabled={isClosed}
+                  className="cursor-pointer"
+                >
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={handleDelete}
+                  className="text-destructive focus:text-destructive cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -129,9 +213,14 @@ export const MyJobPostsTable: React.FC<MyJobPostsTableProps> = ({
           }
 
           return (
-            <div className="flex items-center gap-3 font-bold">
+            <div className={cn('flex items-center gap-3 font-bold', isMobile && 'gap-1')}>
               {formatPrice(price)}{' '}
-              <div className="flex items-center gap-2">
+              <div
+                className={cn(
+                  'flex items-center gap-2',
+                  isMobile && 'gap-1 [&_svg]:w-4 [&_svg]:h-4',
+                )}
+              >
                 {token && getCurrencyIcon(token.tokenName || '')}
                 {token?.tokenName}
               </div>
@@ -405,66 +494,83 @@ export const MyJobPostsTable: React.FC<MyJobPostsTableProps> = ({
 
   return (
     <>
-      <div className="border border-[#E4E4E7] rounded-2xl overflow-hidden p-4">
+      <div
+        className={cn(
+          'border border-slate-200 rounded-2xl overflow-hidden p-4',
+          isMobile && 'border-none p-0',
+        )}
+      >
         <div className="flex items-center gap-2 mb-6">
           <div className="flex items-center gap-2">
             <span className={cn('w-3 h-3 rounded-full', activityFilter.dotColor)} />
-            <span className="text-lg font-semibold text-slate-800">{activityFilter.label}</span>
+            <span className={cn('text-lg font-semibold text-slate-800', isMobile && 'text-base')}>
+              {activityFilter.label}
+            </span>
           </div>
           ({commaNumber(totalCount)})
         </div>
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="border-b border-[#E4E4E7]">
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      style={{ width: `${header.getSize()}px` }}
-                      className="p-4 text-[#4B5563]"
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && 'selected'}
-                  className="cursor-pointer hover:bg-gray-50 border-b border-[#E4E4E7] last:border-b-0 text-[#4B5563]"
-                  onClick={() => handleRowClick(row.original.id || '')}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      style={{
-                        width: `${cell.column.getSize()}px`,
-                        maxWidth: `${cell.column.getSize()}px`,
-                      }}
-                      className="px-4 py-[30px]"
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+        {isMobile ? (
+          <MobileTable
+            table={table}
+            headerLabels={mobileHeaderLabels}
+            renderRowHeader={renderMobileRowHeader}
+            onRowClick={(row) => handleRowClick(row.id || '')}
+            excludeColumns={['title', 'actions']}
+          />
+        ) : (
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="border-b border-slate-200">
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead
+                        key={header.id}
+                        style={{ width: `${header.getSize()}px` }}
+                        className="p-4 text-[#4B5563]"
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
+                      </TableHead>
+                    );
+                  })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center px-4 py-[30px]">
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                    className="cursor-pointer hover:bg-gray-50 border-b border-slate-200 last:border-b-0 text-[#4B5563]"
+                    onClick={() => handleRowClick(row.original.id || '')}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        style={{
+                          width: `${cell.column.getSize()}px`,
+                          maxWidth: `${cell.column.getSize()}px`,
+                        }}
+                        className="px-4 py-[30px]"
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24 text-center px-4 py-[30px]">
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
       </div>
 
       <div className="mt-6">

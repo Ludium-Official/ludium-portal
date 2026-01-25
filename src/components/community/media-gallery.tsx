@@ -1,4 +1,5 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -12,16 +13,18 @@ export const MediaItem = ({
   url,
   className,
   showPlayIcon = false,
+  autoPlay = false,
 }: {
   url: string;
   className?: string;
   showPlayIcon?: boolean;
+  autoPlay?: boolean;
 }) => {
   if (isVideoUrl(url)) {
     return (
       <div className="relative w-full h-full">
-        <video src={url} className={className} muted playsInline />
-        {showPlayIcon && (
+        <video src={url} className={className} muted playsInline loop autoPlay={autoPlay} />
+        {showPlayIcon && !autoPlay && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center">
               <Play className="w-6 h-6 text-white fill-white ml-1" />
@@ -37,9 +40,10 @@ export const MediaItem = ({
 interface MediaGalleryProps {
   images: string[];
   className?: string;
+  isMobile?: boolean;
 }
 
-export const MediaGallery = ({ images, className = '' }: MediaGalleryProps) => {
+export const MediaGallery = ({ images, className = '', isMobile = false }: MediaGalleryProps) => {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -60,87 +64,123 @@ export const MediaGallery = ({ images, className = '' }: MediaGalleryProps) => {
     setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
   };
 
+  const gridClass = cn('rounded-lg overflow-hidden', isMobile && 'w-full max-w-full');
+
   const renderGrid = () => {
     const count = images.length;
 
     if (count === 1) {
+      const isVideo = isVideoUrl(images[0]);
       return (
         <div
-          className="relative rounded-lg overflow-hidden cursor-pointer"
+          className={cn('relative cursor-pointer max-w-[400px]', gridClass)}
           onClick={() => handleImageClick(0)}
         >
-          <MediaItem url={images[0]} className="w-full max-h-[400px] object-cover" showPlayIcon />
+          <MediaItem
+            url={images[0]}
+            className="w-full object-cover rounded-lg max-h-[500px]"
+            showPlayIcon={!isVideo}
+            autoPlay={isVideo}
+          />
         </div>
       );
     }
 
     if (count === 2) {
       return (
-        <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
-          {images.map((url, idx) => (
-            <div
-              key={idx}
-              className="aspect-square cursor-pointer"
-              onClick={() => handleImageClick(idx)}
-            >
-              <MediaItem url={url} className="w-full h-full object-cover" showPlayIcon />
-            </div>
-          ))}
+        <div className={cn('grid grid-cols-2 gap-1', gridClass)}>
+          {images.map((url, idx) => {
+            const isVideo = isVideoUrl(url);
+            return (
+              <div
+                key={idx}
+                className="aspect-square cursor-pointer overflow-hidden"
+                onClick={() => handleImageClick(idx)}
+              >
+                <MediaItem
+                  url={url}
+                  className="w-full h-full object-cover"
+                  showPlayIcon={!isVideo}
+                  autoPlay={isVideo}
+                />
+              </div>
+            );
+          })}
         </div>
       );
     }
 
     if (count === 3) {
+      const isVideo0 = isVideoUrl(images[0]);
+      const isVideo1 = isVideoUrl(images[1]);
+      const isVideo2 = isVideoUrl(images[2]);
       return (
-        <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
-          <div className="row-span-2 cursor-pointer" onClick={() => handleImageClick(0)}>
-            <MediaItem url={images[0]} className="w-full h-full object-cover" showPlayIcon />
+        <div className={cn('grid grid-cols-2 gap-1', gridClass)}>
+          <div
+            className="row-span-2 cursor-pointer overflow-hidden"
+            onClick={() => handleImageClick(0)}
+          >
+            <MediaItem
+              url={images[0]}
+              className="w-full h-full object-cover"
+              showPlayIcon={!isVideo0}
+              autoPlay={isVideo0}
+            />
           </div>
-          <div className="cursor-pointer" onClick={() => handleImageClick(1)}>
+          <div className="cursor-pointer overflow-hidden" onClick={() => handleImageClick(1)}>
             <MediaItem
               url={images[1]}
               className="w-full h-full object-cover aspect-square"
-              showPlayIcon
+              showPlayIcon={!isVideo1}
+              autoPlay={isVideo1}
             />
           </div>
-          <div className="cursor-pointer" onClick={() => handleImageClick(2)}>
+          <div className="cursor-pointer overflow-hidden" onClick={() => handleImageClick(2)}>
             <MediaItem
               url={images[2]}
               className="w-full h-full object-cover aspect-square"
-              showPlayIcon
+              showPlayIcon={!isVideo2}
+              autoPlay={isVideo2}
             />
           </div>
         </div>
       );
     }
 
-    // 4 or more images
     return (
-      <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
-        {images.slice(0, 4).map((url, idx) => (
-          <div
-            key={idx}
-            className="aspect-square cursor-pointer relative"
-            onClick={() => handleImageClick(idx)}
-          >
-            <MediaItem url={url} className="w-full h-full object-cover" showPlayIcon />
-            {idx === 3 && count > 4 && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
-                +{count - 4}
-              </div>
-            )}
-          </div>
-        ))}
+      <div className={cn('grid grid-cols-2 gap-1', gridClass)}>
+        {images.slice(0, 4).map((url, idx) => {
+          const isVideo = isVideoUrl(url);
+          return (
+            <div
+              key={idx}
+              className="aspect-square cursor-pointer relative overflow-hidden"
+              onClick={() => handleImageClick(idx)}
+            >
+              <MediaItem
+                url={url}
+                className="w-full h-full object-cover"
+                showPlayIcon={!isVideo}
+                autoPlay={isVideo}
+              />
+              {idx === 3 && count > 4 && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold">
+                  +{count - 4}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     );
   };
 
   return (
     <>
-      <div className={className}>{renderGrid()}</div>
+      <div className={cn(className, isMobile && 'max-w-full overflow-hidden')}>{renderGrid()}</div>
 
       <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
-        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 bg-black/90 border-none">
+        <DialogContent className="max-w-[90vw]! max-h-[90vh]! p-0 bg-black/90 border-none">
           <button
             onClick={() => setViewerOpen(false)}
             className="absolute top-4 right-4 z-50 text-white hover:text-gray-300"
@@ -206,6 +246,7 @@ export const MediaGallery = ({ images, className = '' }: MediaGalleryProps) => {
 interface MediaUploadPreviewProps {
   files: File[];
   onRemove: (index: number) => void;
+  isMobile?: boolean;
 }
 
 const MediaPreviewItem = ({
@@ -248,7 +289,11 @@ const MediaPreviewItem = ({
   return <img src={url} alt="Preview" className={className} />;
 };
 
-export const MediaUploadPreview = ({ files, onRemove }: MediaUploadPreviewProps) => {
+export const MediaUploadPreview = ({
+  files,
+  onRemove,
+  isMobile = false,
+}: MediaUploadPreviewProps) => {
   const previewUrls = useMemo(() => files.map((file) => URL.createObjectURL(file)), [files]);
 
   if (files.length === 0) return null;
@@ -262,7 +307,7 @@ export const MediaUploadPreview = ({ files, onRemove }: MediaUploadPreviewProps)
           <MediaPreviewItem
             file={files[0]}
             url={previewUrls[0]}
-            className="w-full max-h-[300px] object-cover"
+            className={cn('w-full max-h-[300px] object-cover', isMobile && 'max-h-full')}
           />
           <button
             onClick={() => onRemove(0)}
@@ -331,7 +376,6 @@ export const MediaUploadPreview = ({ files, onRemove }: MediaUploadPreviewProps)
       );
     }
 
-    // 4 or more
     return (
       <div className="grid grid-cols-2 gap-1 rounded-lg overflow-hidden">
         {previewUrls.slice(0, 4).map((url, idx) => (
@@ -354,7 +398,7 @@ export const MediaUploadPreview = ({ files, onRemove }: MediaUploadPreviewProps)
     );
   };
 
-  return <div className="mt-3">{renderGrid()}</div>;
+  return <div>{renderGrid()}</div>;
 };
 
 interface EditMediaPreviewProps {

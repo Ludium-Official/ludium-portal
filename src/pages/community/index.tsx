@@ -238,7 +238,7 @@ const CommunityPage: React.FC = () => {
                 className="rounded-md bg-gray-dark hover:bg-purple-600 flex items-center gap-2 h-10"
                 onClick={() => {
                   if (!isAuthed) {
-                    notify('Please add your email', 'success');
+                    notify('Please check your email and nickname', 'success');
                     navigate('/profile/edit');
                     return;
                   }

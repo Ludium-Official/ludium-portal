@@ -1,14 +1,8 @@
 import logo from '@/assets/logo.svg';
+import { aboutLink, getMenuItems } from '@/constant/menu-items';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { cn } from '@/lib/utils';
-import type { PathLinkProps } from '@/types/pathLink';
-import {
-  MessageCircle,
-  PanelRightClose,
-  PanelRightOpen,
-  Scroll,
-  UserRound,
-} from 'lucide-react';
+import { PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { Button } from '../ui/button';
@@ -24,38 +18,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
 
   const [openMenuPath, setOpenMenuPath] = useState<string | null>(null);
 
-  const urlLinks: PathLinkProps[] = [
-    ...(isLoggedIn
-      ? [
-          {
-            name: 'My Space',
-            path: '/dashboard',
-            icon: UserRound,
-            submenu: [
-              { name: 'Dashboard', path: '/dashboard' },
-              { name: 'Profile', path: '/profile' },
-              { name: 'Portfolio', path: '/portfolio' },
-            ],
-          },
-        ]
-      : []),
-    {
-      name: 'Program',
-      path: '/programs',
-      icon: Scroll,
-      submenu: [{ name: 'Recruitment', path: '/programs/recruitment' }],
-    },
-    {
-      name: 'Community',
-      path: '/community',
-      icon: MessageCircle,
-      submenu: [
-        { name: 'Articles', path: '/community/articles' },
-        { name: 'Threads', path: '/community/threads' },
-      ],
-    },
-    // { name: 'Agent', path: '/users', icon: Users },
-  ];
+  const menuItems = getMenuItems(!!isLoggedIn).filter((item) => item.path !== '/');
 
   return (
     <aside
@@ -93,7 +56,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
       </div>
       <nav>
         <ul className="space-y-5 mx-2">
-          {urlLinks.map((link) => {
+          {menuItems.map((link) => {
             const isLinkSubMenu = link.submenu?.some((sMenu) =>
               location.pathname.startsWith(sMenu.path),
             );
@@ -113,21 +76,23 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                           : 'hover:bg-[var(--primary-tranparent)] hover:text-primary'
                       } ${isCollapsed ? 'justify-center' : 'gap-2'}`}
                     >
-                      <link.icon className="group-active:text-primary group-hover:text-primary flex-shrink-0 w-[20px] h-[20px]" />
+                      {link.icon && (
+                        <link.icon className="group-active:text-primary group-hover:text-primary flex-shrink-0 w-[20px] h-[20px]" />
+                      )}
                       <span
                         className={cn(
                           'transition-opacity duration-200 whitespace-nowrap',
                           isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100',
                         )}
                       >
-                        {link.name}
+                        {link.label}
                       </span>
                     </div>
 
                     {isCollapsed && openMenuPath === link.path && (
                       <div className="absolute z-50 left-full top-0 bg-white rounded-lg shadow-lg border border-gray-200 py-2 min-w-[160px]">
                         <div className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase">
-                          {link.name}
+                          {link.label}
                         </div>
                         <ul className="space-y-1 px-2 mt-1">
                           {link.submenu.map((sublink) => (
@@ -143,7 +108,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                                   )
                                 }
                               >
-                                {sublink.name}
+                                {sublink.label}
                               </NavLink>
                             </li>
                           ))}
@@ -181,7 +146,7 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                                         : '0ms',
                                   }}
                                 >
-                                  {sublink.name}
+                                  {sublink.label}
                                 </NavLink>
                               </li>
                             ))}
@@ -201,20 +166,43 @@ const Sidebar = ({ isCollapsed, onToggle }: SidebarProps) => {
                       } ${isCollapsed ? 'justify-center' : 'gap-2'}`
                     }
                   >
-                    <link.icon className="group-active:text-primary group-hover:text-primary flex-shrink-0 w-[20px] h-[20px]" />
+                    {link.icon && (
+                      <link.icon className="group-active:text-primary group-hover:text-primary flex-shrink-0 w-[20px] h-[20px]" />
+                    )}
                     <span
                       className={cn(
                         'transition-opacity duration-200 whitespace-nowrap',
                         isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100',
                       )}
                     >
-                      {link.name}
+                      {link.label}
                     </span>
                   </NavLink>
                 )}
               </li>
             );
           })}
+          <li>
+            <a
+              href={aboutLink.path}
+              className={cn(
+                'group flex items-center px-4 py-3 rounded-xl transition-colors text-lg font-medium hover:bg-[var(--primary-tranparent)] hover:text-primary',
+                isCollapsed ? 'justify-center' : 'gap-2',
+              )}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {aboutLink.icon && <aboutLink.icon className="flex-shrink-0 w-[20px] h-[20px]" />}
+              <span
+                className={cn(
+                  'transition-opacity duration-200 whitespace-nowrap text-base font-semibold',
+                  isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100',
+                )}
+              >
+                {aboutLink.label}
+              </span>
+            </a>
+          </li>
         </ul>
       </nav>
     </aside>

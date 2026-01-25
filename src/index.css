@@ -90,6 +90,7 @@ body {
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
+  --color-primary-400: var(--primary-400);
   --color-primary-light: var(--primary-light);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -107,6 +108,7 @@ body {
 
   --color-primary: #004dff;
   --color-primary-tranparent: #b331ff0a;
+  --color-primary-400: #d183ff;
   --color-primary-light: #f8ecff;
   --color-gray-light: #f7f7f7;
   --color-gray-border: #e9e9e9;
@@ -130,6 +132,7 @@ body {
 @theme {
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-wiggle: wiggle 0.5s ease-in-out;
 
   @keyframes accordion-down {
     0% {
@@ -146,6 +149,19 @@ body {
     }
     100% {
       height: 0;
+    }
+  }
+
+  @keyframes wiggle {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-5deg);
+    }
+    75% {
+      transform: rotate(5deg);
     }
   }
 }

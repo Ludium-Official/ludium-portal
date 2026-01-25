@@ -13,12 +13,15 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { MobileFullScreenDialog } from '@/components/ui/mobile-full-screen-dialog';
 import { SearchSelect } from '@/components/ui/search-select';
 import { DEGREE_OPTIONS } from '@/constant/profile-related';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import notify from '@/lib/notify';
+import { cn } from '@/lib/utils';
 import type { LabelValueProps } from '@/types/common';
 import type { EducationV2 } from '@/types/types.generated';
-import { Pen, Plus } from 'lucide-react';
+import { Loader2, Pen, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface EducationSectionProps {
@@ -40,14 +43,17 @@ const getEmptyEducation = (): EducationV2 => ({
 });
 
 export const EducationSection: React.FC<EducationSectionProps> = ({ educations = [] }) => {
+  const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const [localEducations, setLocalEducations] = useState<EducationV2[]>(educations);
   const [formData, setFormData] = useState<EducationV2>(getEmptyEducation);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  const [createEducationV2] = useCreateEducationV2Mutation();
-  const [updateEducationV2] = useUpdateEducationV2Mutation();
+  const [createEducationV2, { loading: creating }] = useCreateEducationV2Mutation();
+  const [updateEducationV2, { loading: updating }] = useUpdateEducationV2Mutation();
   const [deleteEducationV2] = useDeleteEducationV2Mutation();
+
+  const isSaving = creating || updating;
 
   useEffect(() => {
     setLocalEducations(educations);
@@ -173,8 +179,89 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations =
     return parts.join(' · ');
   };
 
+  const formContent = (
+    <div className={cn('space-y-6 my-4', isMobile && 'my-0 space-y-10')}>
+      <div>
+        <p className="text-sm font-medium text-gray-900 mb-2">
+          School <span className="text-red-500">*</span>
+        </p>
+        <Input
+          placeholder="e.g., Harvard University"
+          value={formData.school || ''}
+          onChange={(e) => updateField('school', e.target.value)}
+        />
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-gray-900 mb-2">Degree</p>
+        <SearchSelect
+          options={DEGREE_OPTIONS}
+          value={formData.degree || ''}
+          setValue={(value) => {
+            if (typeof value === 'function') {
+              updateField('degree', value(formData.degree || '') || '');
+            } else {
+              updateField('degree', value || '');
+            }
+          }}
+          placeholder="Select Degree type"
+        />
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-gray-900 mb-2">Field of study</p>
+        <Input
+          placeholder="e.g., Computer Science"
+          value={formData.study || ''}
+          onChange={(e) => updateField('study', e.target.value)}
+        />
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-gray-900 mb-2">Dates Attended</p>
+        <div className="grid grid-cols-2 gap-4">
+          <SearchSelect
+            options={YEAR_OPTIONS}
+            value={formData.attendedStartDate ? String(formData.attendedStartDate) : ''}
+            setValue={(value) => {
+              if (typeof value === 'function') {
+                const newValue = value(
+                  formData.attendedStartDate ? String(formData.attendedStartDate) : '',
+                );
+                updateField('attendedStartDate', newValue ? Number.parseInt(newValue, 10) : 0);
+              } else {
+                updateField('attendedStartDate', value ? Number.parseInt(value, 10) : 0);
+              }
+            }}
+            placeholder="Start year"
+          />
+          <SearchSelect
+            options={YEAR_OPTIONS}
+            value={formData.attendedEndDate ? String(formData.attendedEndDate) : ''}
+            setValue={(value) => {
+              if (typeof value === 'function') {
+                const newValue = value(
+                  formData.attendedEndDate ? String(formData.attendedEndDate) : '',
+                );
+                updateField('attendedEndDate', newValue ? Number.parseInt(newValue, 10) : 0);
+              } else {
+                updateField('attendedEndDate', value ? Number.parseInt(value, 10) : 0);
+              }
+            }}
+            placeholder="End (expected) year"
+          />
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="bg-white border border-gray-200 rounded-lg px-10 py-5">
+    <div
+      className={cn(
+        'bg-white border border-gray-200 rounded-lg px-10 py-5',
+        isMobile && 'px-[14px] py-4',
+      )}
+    >
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-base font-semibold">Education</h2>
@@ -190,7 +277,10 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations =
             {localEducations.map((edu, index) => (
               <div
                 key={`${index}-${edu.school}`}
-                className="flex flex-col justify-between gap-3 border border-gray-200 rounded-lg p-5 text-sm text-slate-600"
+                className={cn(
+                  'flex flex-col justify-between gap-3 border border-gray-200 rounded-lg p-5 text-sm text-slate-600',
+                  isMobile && 'p-4',
+                )}
               >
                 <div className="flex items-center justify-between">
                   <p>{edu.school}</p>
@@ -203,7 +293,12 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations =
                     <Pen className="size-3" />
                   </Button>
                 </div>
-                <div className="flex items-center justify-between">
+                <div
+                  className={cn(
+                    'flex items-center justify-between',
+                    isMobile && 'flex-col items-start gap-2',
+                  )}
+                >
                   <p>{formatEducationDetails(edu)}</p>
                   <button
                     type="button"
@@ -217,7 +312,12 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations =
             ))}
           </div>
         ) : (
-          <div className="border border-gray-200 rounded-lg p-10 flex flex-col items-center justify-center">
+          <div
+            className={cn(
+              'border border-gray-200 rounded-lg p-10 flex flex-col items-center justify-center',
+              isMobile && 'p-6',
+            )}
+          >
             <img src={EducationIcon} alt="Education" className="h-12 w-12 text-gray-300 mb-1" />
             <p className="text-slate-500 mb-2 font-light">No education details added yet.</p>
             <DialogTrigger asChild>
@@ -229,102 +329,41 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations =
           </div>
         )}
 
-        <DialogContent className="sm:max-w-[782px] px-10 py-4">
-          <DialogHeader className="flex flex-row items-center justify-between">
-            <DialogTitle className="text-base font-semibold text-slate-800">Education</DialogTitle>
-            <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                onClick={handleSave}
-                disabled={!formData.school?.trim()}
-              >
-                Save
-              </Button>
-            </div>
-          </DialogHeader>
-
-          <div className="space-y-6 my-4">
-            <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">
-                School <span className="text-red-500">*</span>
-              </p>
-              <Input
-                placeholder="e.g., Harvard University"
-                value={formData.school || ''}
-                onChange={(e) => updateField('school', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">Degree</p>
-              <SearchSelect
-                options={DEGREE_OPTIONS}
-                value={formData.degree || ''}
-                setValue={(value) => {
-                  if (typeof value === 'function') {
-                    updateField('degree', value(formData.degree || '') || '');
-                  } else {
-                    updateField('degree', value || '');
-                  }
-                }}
-                placeholder="Select Degree type"
-              />
-            </div>
-
-            <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">Field of study</p>
-              <Input
-                placeholder="e.g., Computer Science"
-                value={formData.study || ''}
-                onChange={(e) => updateField('study', e.target.value)}
-              />
-            </div>
-
-            <div>
-              <p className="text-sm font-medium text-gray-900 mb-2">Dates Attended</p>
-              <div className="grid grid-cols-2 gap-4">
-                <SearchSelect
-                  options={YEAR_OPTIONS}
-                  value={formData.attendedStartDate ? String(formData.attendedStartDate) : ''}
-                  setValue={(value) => {
-                    if (typeof value === 'function') {
-                      const newValue = value(
-                        formData.attendedStartDate ? String(formData.attendedStartDate) : '',
-                      );
-                      updateField(
-                        'attendedStartDate',
-                        newValue ? Number.parseInt(newValue, 10) : 0,
-                      );
-                    } else {
-                      updateField('attendedStartDate', value ? Number.parseInt(value, 10) : 0);
-                    }
-                  }}
-                  placeholder="Start year"
-                />
-                <SearchSelect
-                  options={YEAR_OPTIONS}
-                  value={formData.attendedEndDate ? String(formData.attendedEndDate) : ''}
-                  setValue={(value) => {
-                    if (typeof value === 'function') {
-                      const newValue = value(
-                        formData.attendedEndDate ? String(formData.attendedEndDate) : '',
-                      );
-                      updateField('attendedEndDate', newValue ? Number.parseInt(newValue, 10) : 0);
-                    } else {
-                      updateField('attendedEndDate', value ? Number.parseInt(value, 10) : 0);
-                    }
-                  }}
-                  placeholder="End (expected) year"
-                />
+        {isMobile ? (
+          <MobileFullScreenDialog
+            open={isOpen}
+            onClose={handleCancel}
+            title="Edit Education"
+            onAction={handleSave}
+            actionDisabled={!formData.school?.trim()}
+            actionLoading={isSaving}
+          >
+            {formContent}
+          </MobileFullScreenDialog>
+        ) : (
+          <DialogContent className="sm:max-w-[782px] px-10 py-4">
+            <DialogHeader className="flex flex-row items-center justify-between">
+              <DialogTitle className="text-base font-semibold text-slate-800">
+                Education
+              </DialogTitle>
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  onClick={handleSave}
+                  disabled={!formData.school?.trim() || isSaving}
+                >
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+                </Button>
               </div>
-            </div>
-          </div>
-        </DialogContent>
+            </DialogHeader>
+            {formContent}
+          </DialogContent>
+        )}
       </Dialog>
     </div>
   );

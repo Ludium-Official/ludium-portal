@@ -1,4 +1,6 @@
 import { type ChartConfig, ChartContainer } from '@/components/ui/chart';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import type { MilestoneProgress as MilestoneProgressType } from '@/types/types.generated';
 import { Label, PolarRadiusAxis, RadialBar, RadialBarChart } from 'recharts';
 
@@ -18,9 +20,13 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export const MilestoneProgress: React.FC<MilestoneProgressProps> = ({ milestoneProgress }) => {
-  const percentage = Math.round(
-    ((milestoneProgress?.completed || 0) / (milestoneProgress?.total || 0)) * 100,
-  );
+  const isMobile = useIsMobile();
+
+  const innerRadius = isMobile ? 90 : 100;
+  const outerRadius = isMobile ? 60 : 70;
+
+  const percentage =
+    Math.round(((milestoneProgress?.completed || 0) / (milestoneProgress?.total || 0)) * 100) || 0;
 
   const chartData = [
     {
@@ -35,11 +41,14 @@ export const MilestoneProgress: React.FC<MilestoneProgressProps> = ({ milestoneP
       <h2 className="text-base font-semibold mb-1">Milestone progress</h2>
       <p className="text-sm text-slate-500 mb-6">You've completed {percentage}% of milestones.</p>
 
-      <ChartContainer config={chartConfig} className="mx-auto aspect-square w-full max-w-[200px]">
+      <ChartContainer
+        config={chartConfig}
+        className={cn('mx-auto aspect-square w-full max-w-[200px]', isMobile && 'max-w-[170px]')}
+      >
         <RadialBarChart
           data={chartData}
-          innerRadius={100}
-          outerRadius={70}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius}
           startAngle={0}
           endAngle={-360}
         >

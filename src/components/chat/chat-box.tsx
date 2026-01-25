@@ -14,12 +14,13 @@ import {
   sendMessage,
   subscribeToContractMessages,
   subscribeToNewMessages,
-} from "@/lib/firebase-chat";
-import { useAuth } from "@/lib/hooks/use-auth";
-import notify from "@/lib/notify";
-import { cn, getUserDisplayName } from "@/lib/utils";
-import type { ContractInformation } from "@/types/recruitment";
-import { zodResolver } from "@hookform/resolvers/zod";
+} from '@/lib/firebase-chat';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import notify from '@/lib/notify';
+import { cn, getUserDisplayName } from '@/lib/utils';
+import type { ContractInformation } from '@/types/recruitment';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   type DocumentData,
   Timestamp as FirestoreTimestamp,
@@ -228,7 +229,7 @@ function MessageItem({
         <div className="space-y-2">
           {message.senderId === "0" && (
             <div className="flex justify-center w-full italic mt-3">
-              <p className="text-sm text-[#7C7C7C]">{message.text}</p>
+              <p className="text-sm text-muted-foreground text-center">{message.text}</p>
             </div>
           )}
           {message.senderId === "-1" || message.senderId === "-2" ? (
@@ -373,9 +374,10 @@ export function ChatBox({
 }: {
   contractInformation: ContractInformation;
 }) {
-  const totalMessages = 50;
-
   const { userId } = useAuth();
+  const isMobile = useIsMobile();
+
+  const totalMessages = 50;
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -732,7 +734,7 @@ export function ChatBox({
   }, [messages]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className={cn('flex flex-col h-full', isMobile && 'h-200')}>
       <div
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col"
@@ -867,7 +869,11 @@ export function ChatBox({
                         {...field}
                         ref={textareaRef}
                         onKeyDown={handleKeyDown}
-                        placeholder="Type your message... (Shift+Enter for new line)"
+                        placeholder={
+                          isMobile
+                            ? 'Type your message...'
+                            : 'Type your message... (Shift+Enter for new line)'
+                        }
                         disabled={isSending}
                         rows={1}
                         className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px] overflow-y-auto w-full"
