@@ -236,66 +236,70 @@ function Header() {
               <Menu className="w-6 h-6" />
             </button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-[280px] p-0">
+          <SheetContent side="left" className="w-full p-0 flex flex-col">
             <SheetHeader className="p-4 border-b">
               <SheetTitle className="text-left">
                 <img src={logo} alt="Ludium" className="h-6" />
               </SheetTitle>
             </SheetHeader>
-            <nav className="flex flex-col py-4">
-              {menuItems.map((item) =>
-                item.submenu ? (
-                  <div key={item.path}>
-                    <button
-                      type="button"
-                      className="w-full px-4 py-3 text-base font-medium hover:bg-gray-100 transition-colors flex items-center justify-between"
-                      onClick={() => setOpenMenuPath(openMenuPath === item.path ? null : item.path)}
+            <div className="flex flex-col justify-between flex-1">
+              <nav className="flex flex-col">
+                {menuItems.map((item) =>
+                  item.submenu ? (
+                    <div key={item.path}>
+                      <button
+                        type="button"
+                        className="w-full px-4 py-3 text-base font-medium hover:bg-gray-100 transition-colors flex items-center justify-between"
+                        onClick={() =>
+                          setOpenMenuPath(openMenuPath === item.path ? null : item.path)
+                        }
+                      >
+                        {item.label}
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform ${
+                            openMenuPath === item.path ? 'rotate-180' : ''
+                          }`}
+                        />
+                      </button>
+                      <div
+                        className={`overflow-hidden transition-all duration-300 ${
+                          openMenuPath === item.path ? 'max-h-[200px]' : 'max-h-0'
+                        }`}
+                      >
+                        {item.submenu.map((subItem) => (
+                          <Link
+                            key={subItem.path}
+                            to={subItem.path}
+                            className="block pl-8 pr-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary transition-colors"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            {subItem.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className="px-4 py-3 text-base font-medium hover:bg-gray-100 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
                     >
                       {item.label}
-                      <ChevronDown
-                        className={`w-4 h-4 transition-transform ${
-                          openMenuPath === item.path ? 'rotate-180' : ''
-                        }`}
-                      />
-                    </button>
-                    <div
-                      className={`overflow-hidden transition-all duration-300 ${
-                        openMenuPath === item.path ? 'max-h-[200px]' : 'max-h-0'
-                      }`}
-                    >
-                      {item.submenu.map((subItem) => (
-                        <Link
-                          key={subItem.path}
-                          to={subItem.path}
-                          className="block pl-8 pr-4 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-primary transition-colors"
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          {subItem.label}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className="px-4 py-3 text-base font-medium hover:bg-gray-100 transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ),
-              )}
-              <a
-                href={aboutLink.path}
-                target="_blank"
-                rel="noreferrer"
-                className="px-4 py-3 text-base font-medium hover:bg-gray-100 transition-colors block"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {aboutLink.label}
-              </a>
-              <div className="border-t mt-2 pt-2">
+                    </Link>
+                  ),
+                )}
+                <a
+                  href={aboutLink.path}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4 py-3 text-base font-medium hover:bg-gray-100 transition-colors block"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {aboutLink.label}
+                </a>
+              </nav>
+              <div className="border-t">
                 {authenticated ? (
                   <button
                     type="button"
@@ -320,7 +324,7 @@ function Header() {
                   </button>
                 )}
               </div>
-            </nav>
+            </div>
           </SheetContent>
         </Sheet>
 

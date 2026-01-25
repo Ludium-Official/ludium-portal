@@ -1,8 +1,11 @@
 import { GUIDES } from '@/constant/guides';
+import Container from '@/components/layout/container';
 import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { ShareButton } from '@/components/ui/share-button';
 import { useMemo } from 'react';
 import { useParams } from 'react-router';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 const dedent = (str: string): string => {
   const lines = str.split('\n');
@@ -24,6 +27,7 @@ const dedent = (str: string): string => {
 
 const GuideDetailsPage = () => {
   const { id } = useParams();
+  const isMobile = useIsMobile();
 
   const guide = GUIDES.find((g) => g.id === id);
 
@@ -42,14 +46,17 @@ const GuideDetailsPage = () => {
 
   return (
     <div className="bg-white min-h-screen">
-      <div className="max-w-[936px] mx-auto pt-23 pb-25">
-        <div className="flex items-center justify-between mb-10">
-          <h1 className="text-3xl font-bold">{guide.pageTitle}</h1>
-          <ShareButton className="border rounded-md py-3 px-4! text-sm" />
+      <Container size="narrow" className={cn('pt-23 pb-25', isMobile && 'pt-4')}>
+        <div className={cn('flex items-center justify-between mb-10', isMobile && 'mb-4')}>
+          <h1 className={cn('text-3xl font-bold', isMobile && 'text-lg')}>{guide.pageTitle}</h1>
+          <ShareButton
+            className="border rounded-md py-3 px-4! text-sm"
+            size={isMobile ? 'sm' : 'default'}
+          />
         </div>
 
         <MarkdownPreviewer value={processedContent} />
-      </div>
+      </Container>
     </div>
   );
 };
