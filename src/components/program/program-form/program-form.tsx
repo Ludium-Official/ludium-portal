@@ -13,14 +13,15 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useNetworks } from '@/contexts/networks-context';
 import { fetchSkills } from '@/lib/api/skills';
 import { useContract } from '@/lib/hooks/use-contract';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import notify from '@/lib/notify';
-import { fromUTCString, mainnetDefaultNetwork } from '@/lib/utils';
+import { cn, fromUTCString, mainnetDefaultNetwork } from '@/lib/utils';
 import type { LabelValueProps } from '@/types/common';
 import type { ProgramFormData, RecruitmentFormProps } from '@/types/recruitment';
 import { ProgramStatusV2 } from '@/types/types.generated';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ethers } from 'ethers';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router';
 import * as z from 'zod';
@@ -73,8 +74,14 @@ const createProgramFormSchema = (isDraft: boolean) => {
   });
 };
 
-function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: RecruitmentFormProps) {
+function ProgramForm({
+  onSubmitProgram,
+  isEdit = false,
+  createLoading,
+  formRef: externalFormRef,
+}: RecruitmentFormProps) {
   const { id } = useParams();
+  const isMobile = useIsMobile();
 
   const [budgetType, setBudgetType] = useState('');
   const [selectedSkillItems, setSelectedSkillItems] = useState<LabelValueProps[]>([]);
@@ -156,6 +163,23 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
         !description ||
         !skills.length ||
         (submitStatus === ProgramStatusV2.Open && !deadline);
+
+  // Expose submit methods for mobile header
+  useImperativeHandle(externalFormRef, () => ({
+    submitDraft: () => {
+      setSubmitStatus(ProgramStatusV2.Draft);
+      setTimeout(() => {
+        formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      }, 0);
+    },
+    submitPublish: () => {
+      setSubmitStatus(ProgramStatusV2.Open);
+      setValue('visibility', 'public');
+      setTimeout(() => {
+        formRef?.current?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      }, 0);
+    },
+  }));
 
   const onSubmit = async (submitData: ProgramFormData) => {
     const finalDeadline =
@@ -279,14 +303,21 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
   return (
     <Form {...form}>
       <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="w-full mx-auto">
-        <h1 className="font-bold text-xl mb-6">{isEdit ? 'Edit Program' : 'Create Program'}</h1>
+        {!isMobile && (
+          <h1 className="font-bold text-xl mb-6">{isEdit ? 'Edit Program' : 'Create Program'}</h1>
+        )}
 
-        <div className="flex gap-3">
-          <div className="bg-white py-8 px-10 rounded-lg mb-3 flex-1">
+        <div className={cn('flex gap-3', isMobile && 'flex-col')}>
+          <div
+            className={cn(
+              'bg-white py-8 px-10 rounded-lg mb-3 flex-1',
+              isMobile && 'py-5 px-4 mb-0',
+            )}
+          >
             <InputLabel
               labelId="title"
               title="Program Title"
-              className="mb-10"
+              className={cn('mb-10', isMobile && 'mb-6')}
               isPrimary
               isError={errors.title}
               placeholder="Type title"
@@ -309,12 +340,12 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
               />
             </InputLabel>
           </div>
-          <div className="flex flex-col gap-3 w-full max-w-[500px]">
-            <div className="bg-white py-8 px-10 rounded-lg">
+          <div className={cn('flex flex-col gap-3 w-full max-w-[500px]', isMobile && 'max-w-full')}>
+            <div className={cn('bg-white py-8 px-10 rounded-lg', isMobile && 'py-5 px-4')}>
               <InputLabel
                 labelId="skills"
                 title="Skills"
-                className="mb-10"
+                className={cn('mb-10', isMobile && 'mb-6')}
                 isPrimary
                 isError={!!errors.skills}
                 inputClassName="hidden"
@@ -358,7 +389,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                 />
               </InputLabel>
             </div>
-            <div className="bg-white py-8 px-10 rounded-lg">
+            <div className={cn('bg-white py-8 px-10 rounded-lg', isMobile && 'py-5 px-4')}>
               <InputLabel
                 labelId="budget"
                 title="Budget"
@@ -369,7 +400,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
               >
                 <RadioGroup
                   defaultValue="open"
-                  className="space-y-4 text-sm"
+                  className={cn('space-y-4 text-sm', isMobile && 'space-y-3')}
                   value={budgetType}
                   onValueChange={(value) => setBudgetType(value as 'budget' | 'negotiable')}
                   disabled={isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft}
@@ -378,7 +409,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                     <RadioGroupItem value="budget" id="budget" />
                     <div className="w-full">
                       <Label htmlFor="budget">Budget</Label>
-                      <div className="mt-1 text-muted-foreground">
+                      <div className={cn('mt-1 text-muted-foreground', isMobile && 'text-xs')}>
                         A set amount for the entire project.
                       </div>
                     </div>
@@ -387,7 +418,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                     <RadioGroupItem value="negotiable" id="negotiable" />
                     <div>
                       <Label htmlFor="negotiable">Negotiable</Label>
-                      <div className="mt-1 text-muted-foreground">
+                      <div className={cn('mt-1 text-muted-foreground', isMobile && 'text-xs')}>
                         Open to discussion based on project scope
                       </div>
                     </div>
@@ -395,7 +426,9 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
 
                   <div>
                     <div>
-                      <span className="text-muted-foreground">Network</span>
+                      <span className={cn('text-muted-foreground', isMobile && 'text-sm')}>
+                        Network
+                      </span>
                       <NetworkSelector
                         disabled={
                           isEdit && programData?.programV2?.status !== ProgramStatusV2.Draft
@@ -418,7 +451,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                           title="Price"
                           isError={errors.price}
                           className="w-full !space-y-1"
-                          titleClassName="text-muted-foreground"
+                          titleClassName={cn('text-muted-foreground', isMobile && 'text-sm')}
                           register={register}
                           placeholder="Enter price"
                           disabled={
@@ -430,7 +463,7 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                           labelId="price"
                           title="Price"
                           className="w-full !space-y-1"
-                          titleClassName="text-muted-foreground"
+                          titleClassName={cn('text-muted-foreground', isMobile && 'text-sm')}
                           placeholder="Negotiable"
                           disabled
                         />
@@ -444,44 +477,48 @@ function ProgramForm({ onSubmitProgram, isEdit = false, createLoading }: Recruit
                           setValue('token_id', Number(value));
                         }}
                         tokens={availableTokens}
-                        className="w-[108px] h-10"
+                        className={cn('w-[108px] h-10', isMobile && 'w-[90px]')}
                       />
                     </div>
                   </div>
                 </RadioGroup>
               </InputLabel>
             </div>
-            <div className="flex justify-end gap-4">
-              {currentStatus !== ProgramStatusV2.Open && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setSubmitStatus(ProgramStatusV2.Draft);
-                    setTimeout(() => {
-                      formRef?.current?.dispatchEvent(
-                        new Event('submit', { cancelable: true, bubbles: true }),
-                      );
-                    }, 0);
-                  }}
-                >
-                  Save draft
-                </Button>
-              )}
+            {/* Hide buttons on mobile when parent provides MobileFormHeader */}
+            {!(isMobile && externalFormRef) && (
+              <div className={cn('flex justify-end gap-4', isMobile && 'gap-2')}>
+                {currentStatus !== ProgramStatusV2.Open && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size={isMobile ? 'sm' : 'default'}
+                    onClick={() => {
+                      setSubmitStatus(ProgramStatusV2.Draft);
+                      setTimeout(() => {
+                        formRef?.current?.dispatchEvent(
+                          new Event('submit', { cancelable: true, bubbles: true }),
+                        );
+                      }, 0);
+                    }}
+                  >
+                    Save draft
+                  </Button>
+                )}
 
-              <SaveButton
-                isAllFill={isAllFill}
-                loading={createLoading}
-                setValue={setValue}
-                visibility={visibility}
-                selectedInviters={selectedBuilders}
-                setSelectedInviters={setSelectedBuilders}
-                selectedInviterItems={selectedBuilderItems}
-                setSelectedInviterItems={setSelectedBuilderItems}
-                formRef={formRef}
-                onBeforeSubmit={() => setSubmitStatus(ProgramStatusV2.Open)}
-              />
-            </div>
+                <SaveButton
+                  isAllFill={isAllFill}
+                  loading={createLoading}
+                  setValue={setValue}
+                  visibility={visibility}
+                  selectedInviters={selectedBuilders}
+                  setSelectedInviters={setSelectedBuilders}
+                  selectedInviterItems={selectedBuilderItems}
+                  setSelectedInviterItems={setSelectedBuilderItems}
+                  formRef={formRef}
+                  onBeforeSubmit={() => setSubmitStatus(ProgramStatusV2.Open)}
+                />
+              </div>
+            )}
           </div>
         </div>
       </form>

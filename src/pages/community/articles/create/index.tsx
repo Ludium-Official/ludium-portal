@@ -6,9 +6,12 @@ import notify from '@/lib/notify';
 import { ArticleStatus } from '@/types/types.generated';
 import { useNavigate } from 'react-router';
 import ArticleForm, { type OnSubmitArticleFunc } from '../_components/article-form';
+import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 const CreateArticlePage: React.FC = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const [createArticle, { loading: createLoading }] = useCreateArticleMutation();
   const [updateArticle, { loading: updateLoading }] = useUpdateArticleMutation();
@@ -87,7 +90,7 @@ const CreateArticlePage: React.FC = () => {
   const isLoading = createLoading || updateLoading;
 
   return (
-    <div className="bg-white px-25 py-[30px] rounded-2xl">
+    <div className={cn('rounded-2xl bg-white', isMobile && 'rounded-none')}>
       <ArticleForm isEdit={false} onSubmitArticle={onSubmit} loading={isLoading} />
     </div>
   );

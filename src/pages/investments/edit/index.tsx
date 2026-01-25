@@ -45,7 +45,7 @@ const EditInvestmentPage: React.FC = () => {
     }
     if (!isAuthed) {
       navigate('/profile/edit');
-      notify('Please add your email', 'success');
+      notify('Please check your email and nickname', 'success');
       return;
     }
   }, [isLoggedIn, isAuthed]);

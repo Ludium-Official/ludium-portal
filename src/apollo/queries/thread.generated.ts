@@ -8,7 +8,7 @@ export type ThreadQueryVariables = Types.Exact<{
 }>;
 
 
-export type ThreadQuery = { __typename?: 'Query', thread?: { __typename?: 'Thread', id?: string | null, content?: string | null, authorNickname?: string | null, authorProfileImage?: string | null, likeCount?: number | null, dislikeCount?: number | null, replyCount?: number | null, isLiked?: boolean | null, isDisliked?: boolean | null, createdAt?: any | null, updatedAt?: any | null } | null };
+export type ThreadQuery = { __typename?: 'Query', thread?: { __typename?: 'Thread', id?: string | null, content?: string | null, authorNickname?: string | null, authorProfileImage?: string | null, likeCount?: number | null, dislikeCount?: number | null, replyCount?: number | null, isLiked?: boolean | null, isDisliked?: boolean | null, createdAt?: any | null, updatedAt?: any | null, images?: Array<string> | null } | null };
 
 
 export const ThreadDocument = gql`
@@ -25,6 +25,7 @@ export const ThreadDocument = gql`
     isDisliked
     createdAt
     updatedAt
+    images
   }
 }
     `;

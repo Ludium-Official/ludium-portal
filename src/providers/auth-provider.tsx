@@ -21,10 +21,16 @@ export const AuthContext = createContext<AuthProps>({
   logout: async () => {},
 });
 
+// Helper to get initial token synchronously to avoid flash redirect
+const getInitialToken = (): string | null => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('token');
+};
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
-  const [token, setToken] = useState<string | null>();
+  const [token, setToken] = useState<string | null>(getInitialToken);
   const [email, setEmail] = useState<string | null>();
   const [userId, setUserId] = useState<string>('');
   const [nickname, setNickname] = useState<string | null>();
@@ -49,7 +55,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await loginMutation({
       variables: props,
       onCompleted: (data) => {
-        setToken(data.loginV2);
+        setToken(data.loginV2 ?? '');
         setEmail(email);
 
         localStorage.setItem('token', data.loginV2 ?? '');
@@ -77,12 +83,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [userProfile]);
 
   useEffect(() => {
-    const tkn = localStorage.getItem('token');
-
-    if (tkn) setToken(tkn);
-  }, []);
-
-  useEffect(() => {
     if (error) {
       console.error('Error fetching profile:', error);
       logout();
@@ -98,7 +98,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         nickname,
         profileImage,
         isLoggedIn: !!token,
-        isAuthed: !!token && !!userProfile?.profileV2?.email,
+        isAuthed: !!token && !!userProfile?.profileV2?.email && !!userProfile?.profileV2?.nickname,
         isAuthLoading,
         login,
         logout,

@@ -2,21 +2,26 @@ import client from '@/apollo/client';
 import { useCreateProgramV2Mutation } from '@/apollo/mutation/create-program-v2.generated';
 import { useCreateProgramWithOnchainV2Mutation } from '@/apollo/mutation/create-program-with-onchain-v2.generated';
 import { GetProgramsV2Document } from '@/apollo/queries/programs-v2.generated';
+import MobileFormHeader from '@/components/common/mobile-form-header';
+import Container from '@/components/layout/container';
 import ProgramForm from '@/components/program/program-form/program-form';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import notify from '@/lib/notify';
-import { toUTCString } from '@/lib/utils';
-import type { OnSubmitProgramFunc } from '@/types/recruitment';
+import { cn, toUTCString } from '@/lib/utils';
+import type { OnSubmitProgramFunc, ProgramFormRef } from '@/types/recruitment';
 import {
   OnchainProgramStatusV2,
   ProgramStatusV2,
   type ProgramVisibilityV2,
 } from '@/types/types.generated';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 
 const CreateProgram: React.FC = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const programFormRef = useRef<ProgramFormRef>(null);
 
   const { isAuthed, isAuthLoading } = useAuth();
   const [createProgram, { loading }] = useCreateProgramWithOnchainV2Mutation();
@@ -100,14 +105,26 @@ const CreateProgram: React.FC = () => {
 
     if (!isAuthed) {
       navigate('/profile');
-      notify('Please add your email', 'success');
+      notify('Please check your email and nickname', 'success');
     }
   }, [isAuthed, isAuthLoading, navigate]);
 
   return (
-    <div className="w-full bg-gray-light p-10" defaultValue="edit">
-      <ProgramForm onSubmitProgram={onSubmit} createLoading={loading} />
-    </div>
+    <>
+      {isMobile && (
+        <MobileFormHeader
+          title="Create Program"
+          backLink="/programs/recruitment"
+          isPublished={false}
+          loading={loading}
+          onPublish={() => programFormRef.current?.submitPublish()}
+          onSaveDraft={() => programFormRef.current?.submitDraft()}
+        />
+      )}
+      <Container className={cn('w-full bg-gray-light p-10 max-w-full', isMobile && 'mt-17 p-4')}>
+        <ProgramForm onSubmitProgram={onSubmit} createLoading={loading} formRef={programFormRef} />
+      </Container>
+    </>
   );
 };
 

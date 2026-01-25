@@ -34,6 +34,7 @@ import {
 import '@mdxeditor/editor/style.css';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { useEffect, useRef, useState } from 'react';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 import './style.css';
 
@@ -68,6 +69,8 @@ function MarkdownEditor({
   content: string;
   placeholder?: string;
 }) {
+  const isMobile = useIsMobile();
+
   const mdxRef = useRef<MDXEditorMethods>(null);
   const [prevVal, setPrevVal] = useState<string>('');
 
@@ -136,21 +139,30 @@ function MarkdownEditor({
         markdownShortcutPlugin(),
         toolbarPlugin({
           toolbarClassName: 'my-classname',
-          toolbarContents: () => (
-            <>
-              <DiffSourceToggleWrapper>
+          toolbarContents: () =>
+            isMobile ? (
+              <>
                 <UndoRedo />
+                <div className="flex-1 [&_span]:!w-full [&_button]:!justify-between [&_button]:!w-full [&_button>span]:!w-fit">
+                  <BlockTypeSelect />
+                </div>
                 <BoldItalicUnderlineToggles />
-                <InsertThematicBreak />
-                <BlockTypeSelect />
-                <InsertTable />
-                <ListsToggle />
-                <InsertCodeBlock />
-                <InsertImage />
-                <YouTubeButton />
-              </DiffSourceToggleWrapper>
-            </>
-          ),
+              </>
+            ) : (
+              <>
+                <DiffSourceToggleWrapper>
+                  <UndoRedo />
+                  <BlockTypeSelect />
+                  <BoldItalicUnderlineToggles />
+                  <InsertThematicBreak />
+                  <InsertTable />
+                  <ListsToggle />
+                  <InsertCodeBlock />
+                  <InsertImage />
+                  <YouTubeButton />
+                </DiffSourceToggleWrapper>
+              </>
+            ),
         }),
       ]}
     />

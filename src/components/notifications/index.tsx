@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import type { Notification } from '@/types/types.generated';
 import { PopoverClose } from '@radix-ui/react-popover';
@@ -19,15 +20,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
 
 function Notifications() {
+  const location = useLocation();
+  const isMobile = useIsMobile();
+  const { isLoggedIn } = useAuth();
+
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  const { isLoggedIn } = useAuth();
-  const location = useLocation();
   const [openNotifications, setOpenNotifications] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   // const { data } = useNotificationsSubscription();
@@ -137,8 +139,8 @@ function Notifications() {
   return (
     <div>
       <Popover open={openNotifications} onOpenChange={setOpenNotifications}>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" className="group h-10 relative">
+        <PopoverTrigger asChild className={cn(isMobile && 'flex')}>
+          <Button variant="ghost" className={cn('group h-10 relative', isMobile && 'h-auto p-0!')}>
             <Bell />
             {!!countData?.countNotifications && (
               <span className="flex justify-center items-center w-[8px] h-[8px] rounded-full bg-red-400 absolute top-3 right-3 border-2 border-white text-white group-hover:border-accent transition-all">
@@ -150,6 +152,7 @@ function Notifications() {
         <PopoverContent
           className={cn(
             'overflow-auto w-[410px]',
+            isMobile && 'w-full',
             // !data?.notifications?.length ? 'min-w-none' : 'min-w-[348px]',
           )}
         >

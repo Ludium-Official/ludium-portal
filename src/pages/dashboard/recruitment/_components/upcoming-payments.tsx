@@ -1,14 +1,16 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useNetworks } from '@/contexts/networks-context';
-import { commaNumber, dDay, fromUTCString, getCurrencyIcon, getInitials } from '@/lib/utils';
+import { cn, commaNumber, dDay, fromUTCString, getCurrencyIcon, getInitials } from '@/lib/utils';
 import type { UpcomingPayment } from '@/types/types.generated';
 import { format } from 'date-fns';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 interface UpcomingPaymentsProps {
   upcomingPayments: UpcomingPayment[];
 }
 
 export const UpcomingPayments: React.FC<UpcomingPaymentsProps> = ({ upcomingPayments }) => {
+  const isMobile = useIsMobile();
   const { getTokenById } = useNetworks();
 
   return (
@@ -17,7 +19,12 @@ export const UpcomingPayments: React.FC<UpcomingPaymentsProps> = ({ upcomingPaym
       <p className="text-sm text-slate-500 mb-6">Payments due within 7 days</p>
       <div className="flex flex-col gap-3">
         {upcomingPayments.length === 0 && (
-          <div className="flex items-center justify-center border border-gray-200 rounded-lg py-6 text-base text-slate-500">
+          <div
+            className={cn(
+              'flex items-center justify-center border border-gray-200 rounded-lg py-6 text-base text-slate-500',
+              isMobile && 'text-sm',
+            )}
+          >
             No upcoming payments
           </div>
         )}

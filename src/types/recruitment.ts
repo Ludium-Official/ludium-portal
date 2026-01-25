@@ -30,10 +30,16 @@ export interface ProgramFormData {
 
 export type OnSubmitProgramFunc = (data: ProgramFormData) => void;
 
+export interface ProgramFormRef {
+  submitDraft: () => void;
+  submitPublish: () => void;
+}
+
 export interface RecruitmentFormProps {
   isEdit?: boolean;
   onSubmitProgram: OnSubmitProgramFunc;
   createLoading?: boolean;
+  formRef?: React.RefObject<ProgramFormRef | null>;
 }
 
 export interface programFormProps {
