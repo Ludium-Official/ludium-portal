@@ -27,16 +27,10 @@ function Footer() {
             </Link>
           </div>
           <div className="text-center md:text-left">
-            <h3 className="text-xs font-bold leading-[25px] mb-1">
-              Contact us
-            </h3>
+            <h3 className="text-xs font-bold leading-[25px] mb-1">Contact us</h3>
 
-            <a
-              href="/"
-              className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
-            >
-              <img src={customerService} alt="customer-service" /> Customer
-              Service{" "}
+            <a href="/" className="flex items-center gap-2 leading-[25px] mb-1 text-xs">
+              <img src={customerService} alt="customer-service" /> Customer Service{' '}
             </a>
           </div>
         </div>
@@ -48,12 +42,9 @@ function Footer() {
           <p className="leading-[25px]">
             사업장 소재지: 경기도 성남시 수정구 탄리로147번길 23, 1층(태평동)
           </p>
-          <p className="leading-[25px]">
-            업태/종목: 정보통신업 / 응용 소프트웨어 개발 및 공급업
-          </p>
+          <p className="leading-[25px]">업태/종목: 정보통신업 / 응용 소프트웨어 개발 및 공급업</p>
           <p className="mt-4 leading-[25px]">
-            본 사이트의 내용은 정보 제공 목적이며, 특정 결과를 보장하지
-            않습니다.
+            본 사이트의 내용은 정보 제공 목적이며, 특정 결과를 보장하지 않습니다.
             <br />
             프로그램 세부 내용은 운영 상황에 따라 변경될 수 있습니다.
           </p>
