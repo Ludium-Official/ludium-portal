@@ -3,7 +3,8 @@ import { MarkdownPreviewer } from '@/components/markdown';
 import { Separator } from '@/components/ui/separator';
 import { useNetworks } from '@/contexts/networks-context';
 import { useContract } from '@/lib/hooks/use-contract';
-import { addDaysToDate, formatUTCDateLocal, getUserDisplayName } from '@/lib/utils';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { addDaysToDate, cn, formatUTCDateLocal, getUserDisplayName } from '@/lib/utils';
 import type { ContractFormProps } from '@/types/recruitment';
 import { MilestoneStatusV2 } from '@/types/types.generated';
 import { useEffect, useState } from 'react';
@@ -21,6 +22,7 @@ export function ContractForm({
   networkId?: number | null;
   readOnly?: boolean;
 }) {
+  const isMobile = useIsMobile();
   const { getTokenById, networks: networksWithTokens, getContractByNetworkId } = useNetworks();
 
   const [contractData, setContractData] = useState<any>(null);
@@ -48,10 +50,15 @@ export function ContractForm({
 
   return (
     <>
-      <div>
-        <div className="flex items-center justify-between text-3xl font-bold">
+      <div className={cn(isMobile && 'mt-6')}>
+        <div
+          className={cn(
+            'flex items-center justify-between text-3xl font-bold',
+            isMobile && 'flex-col-reverse items-start gap-4 text-2xl',
+          )}
+        >
           Employment Contract
-          <img src={logo} alt="LUDIUM" className="h-8" />
+          <img src={logo} alt="LUDIUM" className={cn('h-8', isMobile && 'h-5')} />
         </div>
       </div>
       <div className="flex-1 overflow-hidden flex flex-col">

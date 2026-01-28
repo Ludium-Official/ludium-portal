@@ -86,6 +86,10 @@ export type ApplicationV2 = {
   id?: Maybe<Scalars['ID']['output']>;
   /** Whether this application has been picked */
   picked?: Maybe<Scalars['Boolean']['output']>;
+  /** Array of portfolio IDs attached to this application */
+  portfolioIds?: Maybe<Array<Scalars['Int']['output']>>;
+  /** Portfolios attached to this application */
+  portfolios?: Maybe<Array<PortfolioV2>>;
   /** Program this application is for */
   program?: Maybe<ProgramV2>;
   /** ID of the program this application is for */
@@ -375,6 +379,8 @@ export type CreateApplicationInput = {
 export type CreateApplicationV2Input = {
   /** Content of the application submitted by the applicant */
   content?: InputMaybe<Scalars['String']['input']>;
+  /** Array of portfolio IDs to attach to this application */
+  portfolioIds?: InputMaybe<Array<Scalars['Int']['input']>>;
   /** ID of the program to apply for */
   programId: Scalars['ID']['input'];
   /** Application status (defaults to submitted) */
@@ -711,6 +717,13 @@ export enum FundingCondition {
   Tier = 'tier'
 }
 
+export type GetNotificationsV2Input = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  type?: InputMaybe<Scalars['String']['input']>;
+  unreadOnly?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
 export type HiredBuilderV2 = {
   __typename?: 'HiredBuilderV2';
   id?: Maybe<Scalars['Int']['output']>;
@@ -1023,6 +1036,7 @@ export type Mutation = {
   /** Create a comment on an article */
   createArticleComment?: Maybe<ArticleComment>;
   createCarouselItem?: Maybe<CarouselItem>;
+  createChatNotificationV2?: Maybe<Scalars['Boolean']['output']>;
   createComment?: Maybe<Comment>;
   createContractV2?: Maybe<ContractV2>;
   /** Create a new education */
@@ -1065,6 +1079,7 @@ export type Mutation = {
   /** Delete a milestone by ID */
   deleteMilestoneV2?: Maybe<MilestoneV2>;
   deleteNetworkV2?: Maybe<NetworkV2>;
+  deleteNotificationV2?: Maybe<Scalars['Boolean']['output']>;
   deleteOnchainContractInfoV2?: Maybe<OnchainContractInfoV2>;
   deleteOnchainProgramInfoV2?: Maybe<OnchainProgramInfoV2>;
   /** Delete a portfolio (hard delete) */
@@ -1092,7 +1107,9 @@ export type Mutation = {
   /** Login or create user account and return JWT token */
   loginV2?: Maybe<Scalars['String']['output']>;
   markAllNotificationsAsRead?: Maybe<Scalars['Boolean']['output']>;
+  markAllNotificationsAsReadV2?: Maybe<Scalars['Boolean']['output']>;
   markNotificationAsRead?: Maybe<Scalars['Boolean']['output']>;
+  markNotificationAsReadV2?: Maybe<Scalars['Boolean']['output']>;
   /** Pick or unpick application (bookmark favorite, only by program creator) */
   pickApplicationV2?: Maybe<ApplicationV2>;
   processMilestonePayouts?: Maybe<Array<MilestonePayout>>;
@@ -1262,6 +1279,13 @@ export type MutationCreateCarouselItemArgs = {
 };
 
 
+export type MutationCreateChatNotificationV2Args = {
+  entityId: Scalars['String']['input'];
+  metadata?: InputMaybe<Scalars['JSON']['input']>;
+  recipientId: Scalars['Int']['input'];
+};
+
+
 export type MutationCreateCommentArgs = {
   input: CreateCommentInput;
 };
@@ -1413,6 +1437,11 @@ export type MutationDeleteNetworkV2Args = {
 };
 
 
+export type MutationDeleteNotificationV2Args = {
+  notificationId: Scalars['ID']['input'];
+};
+
+
 export type MutationDeleteOnchainContractInfoV2Args = {
   id: Scalars['ID']['input'];
 };
@@ -1525,6 +1554,11 @@ export type MutationLoginV2Args = {
 
 export type MutationMarkNotificationAsReadArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationMarkNotificationAsReadV2Args = {
+  notificationId: Scalars['ID']['input'];
 };
 
 
@@ -1896,6 +1930,48 @@ export enum NotificationType {
   Milestone = 'milestone',
   Program = 'program',
   System = 'system'
+}
+
+export type NotificationV2 = {
+  __typename?: 'NotificationV2';
+  action?: Maybe<NotificationV2Action>;
+  content?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['Date']['output']>;
+  entityId?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  metadata?: Maybe<Scalars['JSON']['output']>;
+  readAt?: Maybe<Scalars['Date']['output']>;
+  recipientId?: Maybe<Scalars['Int']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+  type?: Maybe<NotificationV2Type>;
+};
+
+export enum NotificationV2Action {
+  Accepted = 'accepted',
+  Broadcast = 'broadcast',
+  Completed = 'completed',
+  Created = 'created',
+  Deleted = 'deleted',
+  Invited = 'invited',
+  Rejected = 'rejected',
+  Submitted = 'submitted',
+  Updated = 'updated'
+}
+
+export type NotificationV2Result = {
+  __typename?: 'NotificationV2Result';
+  data?: Maybe<Array<NotificationV2>>;
+  total?: Maybe<Scalars['Int']['output']>;
+};
+
+export enum NotificationV2Type {
+  Application = 'application',
+  Article = 'article',
+  Contract = 'contract',
+  Milestone = 'milestone',
+  Program = 'program',
+  System = 'system',
+  Thread = 'thread'
 }
 
 export type OnchainContractInfoV2 = {
@@ -2449,6 +2525,7 @@ export type Query = {
   networkV2?: Maybe<NetworkV2>;
   networksV2?: Maybe<PaginatedNetworksV2>;
   notifications?: Maybe<NotificationResult>;
+  notificationsV2?: Maybe<NotificationV2Result>;
   onchainContractInfoV2?: Maybe<OnchainContractInfoV2>;
   onchainContractInfosByApplicantV2?: Maybe<PaginatedOnchainContractInfoV2>;
   onchainContractInfosByProgramV2?: Maybe<PaginatedOnchainContractInfoV2>;
@@ -2504,6 +2581,7 @@ export type Query = {
   tokensV2?: Maybe<PaginatedTokensV2>;
   /** Get top 5 articles by view count in the last 30 days */
   topViewedArticles?: Maybe<Array<Article>>;
+  unreadNotificationsCountV2?: Maybe<Scalars['Int']['output']>;
   /** Get list of upcoming payments (within 7 days based on deadline + 2 days) */
   upcomingPayments?: Maybe<Array<UpcomingPayment>>;
   user?: Maybe<User>;
@@ -2747,6 +2825,11 @@ export type QueryNetworksV2Args = {
 
 export type QueryNotificationsArgs = {
   pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type QueryNotificationsV2Args = {
+  input?: InputMaybe<GetNotificationsV2Input>;
 };
 
 
@@ -3020,11 +3103,18 @@ export type Subscription = {
   __typename?: 'Subscription';
   countNotifications?: Maybe<Scalars['Int']['output']>;
   notifications?: Maybe<NotificationResult>;
+  notificationsV2?: Maybe<NotificationV2Result>;
+  unreadNotificationsCountV2?: Maybe<Scalars['Int']['output']>;
 };
 
 
 export type SubscriptionNotificationsArgs = {
   pagination?: InputMaybe<PaginationInput>;
+};
+
+
+export type SubscriptionNotificationsV2Args = {
+  input?: InputMaybe<GetNotificationsV2Input>;
 };
 
 export type Supporter = {
@@ -3217,6 +3307,8 @@ export type UpdateApplicationInput = {
 export type UpdateApplicationV2Input = {
   /** Updated application content */
   content?: InputMaybe<Scalars['String']['input']>;
+  /** Updated portfolio IDs */
+  portfolioIds?: InputMaybe<Array<Scalars['Int']['input']>>;
   /** Updated application status (builder-driven lifecycle updates) */
   status?: InputMaybe<ApplicationStatusV2>;
 };

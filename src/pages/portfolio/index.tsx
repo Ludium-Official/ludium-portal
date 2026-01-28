@@ -225,6 +225,138 @@ const PortfolioPage: React.FC = () => {
   const isSaveDisabled = !formData.title.trim() || isCreating || isUpdating || isDeleting;
   const isSaving = isCreating || isUpdating;
 
+  const renderFormContent = () => (
+    <div className={cn('space-y-6', isMobile && 'space-y-10')}>
+      <div className={cn(isMobile && 'mb-4')}>
+        <p className="text-sm font-medium text-gray-900 mb-2">
+          Title <span className="text-red-500">*</span>
+        </p>
+        <Input
+          placeholder="Enter a title"
+          value={formData.title}
+          onChange={(e) => updateField('title', e.target.value)}
+          className={cn(isMobile && 'text-sm')}
+        />
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="completedOnLudium"
+          checked={formData.isLudiumProject}
+          onCheckedChange={(checked) => updateField('isLudiumProject', checked === true)}
+        />
+        <label
+          htmlFor="completedOnLudium"
+          className="text-sm font-medium text-gray-900 cursor-pointer"
+        >
+          This project was completed on Ludium
+        </label>
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-gray-900 mb-2">Role</p>
+        <Input
+          placeholder="Enter your role"
+          value={formData.role}
+          onChange={(e) => updateField('role', e.target.value)}
+          className={cn(isMobile && 'text-sm')}
+        />
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-gray-900 mb-2">Description</p>
+        <Textarea
+          placeholder="Enter a brief project description"
+          value={formData.description}
+          onChange={(e) => {
+            if (e.target.value.length <= 1000) {
+              updateField('description', e.target.value);
+            }
+          }}
+          className={cn('resize-none', isMobile ? 'min-h-[300px] text-sm' : 'min-h-[150px]')}
+        />
+        <p className="text-sm text-gray-400 text-right mt-1">
+          {formData.description.length}/1000 characters
+        </p>
+      </div>
+
+      {formData.existingImages.length > 0 && (
+        <div className="space-y-4">
+          <p className="text-sm font-medium text-gray-900">Existing Images</p>
+          {formData.existingImages.map((imageUrl, index) => (
+            <div
+              key={`existing-${index}`}
+              className="relative border border-gray-200 rounded-lg overflow-hidden"
+            >
+              <img src={imageUrl} alt="Project content" className="w-full h-auto object-contain" />
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                className="absolute top-2 right-2 h-8 w-8 bg-white/90 hover:bg-white shadow-sm"
+                onClick={() => handleRemoveExistingImage(imageUrl)}
+              >
+                <Trash2 className="h-4 w-4 text-gray-600" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {formData.contents.length > 0 && (
+        <div className="space-y-4">
+          <p className="text-sm font-medium text-gray-900">New Images</p>
+          {formData.contents.map((content) => (
+            <div
+              key={content.id}
+              className="relative border border-gray-200 rounded-lg overflow-hidden"
+            >
+              <img
+                src={content.url}
+                alt="Project content"
+                className="w-full h-auto object-contain"
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                className="absolute top-2 right-2 h-8 w-8 bg-white/90 hover:bg-white shadow-sm"
+                onClick={() => handleRemoveContent(content.id)}
+              >
+                <Trash2 className="h-4 w-4 text-gray-600" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div
+        className={cn(
+          'border-2 border-dashed border-gray-200 rounded-lg flex flex-col items-center justify-center bg-slate-50',
+          isMobile ? 'p-8 py-15 mb-10' : 'p-12',
+        )}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+          className="hidden"
+          onChange={handleImageChange}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-2"
+          onClick={handleAddContent}
+        >
+          <Plus className="h-4 w-4" />
+          Add Contents
+        </Button>
+      </div>
+    </div>
+  );
+
   useEffect(() => {
     return () => {
       formData.contents.forEach((content) => {
@@ -345,132 +477,7 @@ const PortfolioPage: React.FC = () => {
             actionDisabled={isSaveDisabled}
             actionLoading={isSaving}
           >
-            <div className="space-y-10">
-              <div className="mb-4">
-                <p className="text-sm font-medium text-gray-900 mb-2">
-                  Title <span className="text-red-500">*</span>
-                </p>
-                <Input
-                  placeholder="Enter a title"
-                  value={formData.title}
-                  onChange={(e) => updateField('title', e.target.value)}
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="completedOnLudiumMobile"
-                  checked={formData.isLudiumProject}
-                  onCheckedChange={(checked) => updateField('isLudiumProject', checked === true)}
-                />
-                <label
-                  htmlFor="completedOnLudiumMobile"
-                  className="text-sm font-medium text-gray-900 cursor-pointer"
-                >
-                  This project was completed on Ludium
-                </label>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-gray-900 mb-2">Role</p>
-                <Input
-                  placeholder="Enter your role"
-                  value={formData.role}
-                  onChange={(e) => updateField('role', e.target.value)}
-                />
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-gray-900 mb-2">Description</p>
-                <Textarea
-                  placeholder="Enter a brief project description"
-                  value={formData.description}
-                  onChange={(e) => {
-                    if (e.target.value.length <= 1000) {
-                      updateField('description', e.target.value);
-                    }
-                  }}
-                  className="min-h-[300px] resize-none"
-                />
-                <p className="text-sm text-gray-400 text-right mt-1">
-                  {formData.description.length}/1000 characters
-                </p>
-              </div>
-
-              {formData.existingImages.length > 0 && (
-                <div className="space-y-4">
-                  <p className="text-sm font-medium text-gray-900">Existing Images</p>
-                  {formData.existingImages.map((imageUrl, index) => (
-                    <div
-                      key={`existing-${index}`}
-                      className="relative border border-gray-200 rounded-lg overflow-hidden"
-                    >
-                      <img
-                        src={imageUrl}
-                        alt="Project content"
-                        className="w-full h-auto object-contain"
-                      />
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 bg-white/90 hover:bg-white shadow-sm"
-                        onClick={() => handleRemoveExistingImage(imageUrl)}
-                      >
-                        <Trash2 className="h-4 w-4 text-gray-600" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {formData.contents.length > 0 && (
-                <div className="space-y-4">
-                  <p className="text-sm font-medium text-gray-900">New Images</p>
-                  {formData.contents.map((content) => (
-                    <div
-                      key={content.id}
-                      className="relative border border-gray-200 rounded-lg overflow-hidden"
-                    >
-                      <img
-                        src={content.url}
-                        alt="Project content"
-                        className="w-full h-auto object-contain"
-                      />
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 bg-white/90 hover:bg-white shadow-sm"
-                        onClick={() => handleRemoveContent(content.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-gray-600" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 py-15 mb-10 flex flex-col items-center justify-center bg-slate-50">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
-                  className="hidden"
-                  onChange={handleImageChange}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={handleAddContent}
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Contents
-                </Button>
-              </div>
-            </div>
+            {renderFormContent()}
           </MobileFullScreenDialog>
         ) : (
           <DialogContent className="sm:max-w-[782px] max-h-[90vh] overflow-y-auto px-10 py-4">
@@ -493,133 +500,7 @@ const PortfolioPage: React.FC = () => {
                 </Button>
               </div>
             </DialogHeader>
-
-            <div className="space-y-6 my-4">
-              <div>
-                <p className="text-sm font-medium text-gray-900 mb-2">
-                  Title <span className="text-red-500">*</span>
-                </p>
-                <Input
-                  placeholder="Enter a title"
-                  value={formData.title}
-                  onChange={(e) => updateField('title', e.target.value)}
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="completedOnLudium"
-                  checked={formData.isLudiumProject}
-                  onCheckedChange={(checked) => updateField('isLudiumProject', checked === true)}
-                />
-                <label
-                  htmlFor="completedOnLudium"
-                  className="text-sm font-medium text-gray-900 cursor-pointer"
-                >
-                  This project was completed on Ludium
-                </label>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-gray-900 mb-2">Role</p>
-                <Input
-                  placeholder="Enter your role"
-                  value={formData.role}
-                  onChange={(e) => updateField('role', e.target.value)}
-                />
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-gray-900 mb-2">Description</p>
-                <Textarea
-                  placeholder="Enter a brief project description"
-                  value={formData.description}
-                  onChange={(e) => {
-                    if (e.target.value.length <= 1000) {
-                      updateField('description', e.target.value);
-                    }
-                  }}
-                  className="min-h-[150px] resize-none"
-                />
-                <p className="text-sm text-gray-400 text-right mt-1">
-                  {formData.description.length}/1000 characters
-                </p>
-              </div>
-
-              {formData.existingImages.length > 0 && (
-                <div className={cn('space-y-4', isMobile && 'mb-10')}>
-                  <p className="text-sm font-medium text-gray-900">Existing Images</p>
-                  {formData.existingImages.map((imageUrl, index) => (
-                    <div
-                      key={`existing-${index}`}
-                      className="relative border border-gray-200 rounded-lg overflow-hidden"
-                    >
-                      <img
-                        src={imageUrl}
-                        alt="Project content"
-                        className="w-full h-auto object-contain"
-                      />
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 bg-white/90 hover:bg-white shadow-sm"
-                        onClick={() => handleRemoveExistingImage(imageUrl)}
-                      >
-                        <Trash2 className="h-4 w-4 text-gray-600" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {formData.contents.length > 0 && (
-                <div className="space-y-4">
-                  <p className="text-sm font-medium text-gray-900">New Images</p>
-                  {formData.contents.map((content) => (
-                    <div
-                      key={content.id}
-                      className="relative border border-gray-200 rounded-lg overflow-hidden"
-                    >
-                      <img
-                        src={content.url}
-                        alt="Project content"
-                        className="w-full h-auto object-contain"
-                      />
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        className="absolute top-2 right-2 h-8 w-8 bg-white/90 hover:bg-white shadow-sm"
-                        onClick={() => handleRemoveContent(content.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-gray-600" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="border-2 border-dashed border-gray-200 rounded-lg p-12 flex flex-col items-center justify-center bg-slate-50">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
-                  className="hidden"
-                  onChange={handleImageChange}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="gap-2"
-                  onClick={handleAddContent}
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Contents
-                </Button>
-              </div>
-            </div>
+            <div className="my-4">{renderFormContent()}</div>
           </DialogContent>
         )}
       </Dialog>

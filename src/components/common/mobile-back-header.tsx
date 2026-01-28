@@ -15,7 +15,7 @@ export function MobileBackHeader({ title, backLink }: MobileBackHeaderProps) {
   }
 
   return (
-    <header className="relative flex items-center justify-center w-full bg-white px-4 py-4 border-b border-gray-100">
+    <header className="relative flex items-center justify-center w-full bg-white p-4 border-b border-gray-100">
       <Link to={backLink} className="absolute top-4 left-4">
         <ChevronLeft className="size-5" />
       </Link>

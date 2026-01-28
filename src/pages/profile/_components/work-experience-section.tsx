@@ -196,6 +196,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
           placeholder="e.g., Google"
           value={formData.company || ''}
           onChange={(e) => updateField('company', e.target.value)}
+          className={cn(isMobile && 'text-sm')}
         />
       </div>
 
@@ -208,6 +209,7 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
             placeholder="e.g., Software Engineer"
             value={formData.role || ''}
             onChange={(e) => updateField('role', e.target.value)}
+            className={cn(isMobile && 'text-sm')}
           />
         </div>
         <div>
@@ -393,7 +395,9 @@ export const WorkExperienceSection: React.FC<WorkExperienceSectionProps> = ({
             )}
           >
             <img src={WorkIcon} alt="Work experience" className="h-12 w-12 text-gray-300 mb-1" />
-            <p className="text-slate-500 mb-2 font-light">No work experience details added yet.</p>
+            <p className={cn('text-slate-500 mb-2 font-light', isMobile && 'text-sm')}>
+              No work experience details added yet.
+            </p>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2" onClick={handleAddNew}>
                 <Plus className="h-4 w-4" />

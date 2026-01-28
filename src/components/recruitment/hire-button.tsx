@@ -10,6 +10,8 @@ import type { ContractInformation } from '@/types/recruitment';
 import { ApplicationStatusV2, MilestoneStatusV2, type MilestoneV2 } from '@/types/types.generated';
 import { useMemo, useState } from 'react';
 import { ContractModal } from './contract/contract-modal';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface HireButtonProps {
   contractInformation: ContractInformation;
@@ -17,6 +19,8 @@ interface HireButtonProps {
 }
 
 export function HireButton({ contractInformation, milestones }: HireButtonProps) {
+  const isMobile = useIsMobile();
+
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
@@ -52,11 +56,12 @@ export function HireButton({ contractInformation, milestones }: HireButtonProps)
   return (
     <>
       <Button
-        className="mr-4 px-8 bg-primary"
+        className={cn('mr-4 px-8 bg-primary', isMobile && 'mr-0 px-3')}
         onClick={handleHireClick}
         disabled={!isActiveHireButton}
+        size={isMobile ? 'sm' : 'default'}
       >
-        {isMilestoneUpdate ? 'Update Contract' : 'Hire'}
+        {isMilestoneUpdate ? (isMobile ? 'Update' : 'Update Contract') : 'Hire'}
       </Button>
 
       <Dialog open={isConfirmModalOpen} onOpenChange={setIsConfirmModalOpen}>

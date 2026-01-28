@@ -180,10 +180,10 @@ export const MediaGallery = ({ images, className = '', isMobile = false }: Media
       <div className={cn(className, isMobile && 'max-w-full overflow-hidden')}>{renderGrid()}</div>
 
       <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
-        <DialogContent className="max-w-[90vw]! max-h-[90vh]! p-0 bg-black/90 border-none">
+        <DialogContent className="border-none">
           <button
             onClick={() => setViewerOpen(false)}
-            className="absolute top-4 right-4 z-50 text-white hover:text-gray-300"
+            className="absolute top-4 right-4 z-50 text-black hover:text-gray-300"
           >
             <X className="w-6 h-6" />
           </button>
@@ -202,7 +202,7 @@ export const MediaGallery = ({ images, className = '', isMobile = false }: Media
               <video
                 key={currentIndex}
                 src={images[currentIndex]}
-                className="max-w-full max-h-[80vh] object-contain"
+                className="w-full max-h-[80vh] object-contain"
                 controls
                 autoPlay
               />
@@ -210,7 +210,7 @@ export const MediaGallery = ({ images, className = '', isMobile = false }: Media
               <img
                 src={images[currentIndex]}
                 alt={`Media ${currentIndex + 1}`}
-                className="max-w-full max-h-[80vh] object-contain"
+                className="w-full max-h-[80vh] object-contain"
               />
             )}
 
