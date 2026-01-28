@@ -103,7 +103,7 @@ function MarkdownEditor({
       markdown={content}
       placeholder={placeholder}
       className="overflow-auto max-h-[600px] border rounded-md"
-      contentEditableClassName={cn("prose min-h-[400px] cursor-text max-w-full", contentClassName)}
+      contentEditableClassName={cn('prose min-h-[400px] cursor-text max-w-full', contentClassName)}
       onChange={(value) => debouncedOnChange(value)}
       plugins={[
         listsPlugin(),

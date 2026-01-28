@@ -356,7 +356,12 @@ export function MilestoneModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("max-w-[1200px]! h-[90vh] overflow-hidden flex flex-col p-0", isMobile && 'pt-6')}>
+      <DialogContent
+        className={cn(
+          'max-w-[1200px]! h-[90vh] overflow-hidden flex flex-col p-0',
+          isMobile && 'pt-6',
+        )}
+      >
         <DialogHeader className={cn(!isMobile && 'sr-only')}>
           <DialogTitle>
             {isMobile && (
@@ -647,7 +652,10 @@ export function MilestoneModal({
                               Description <span className="text-destructive">*</span>
                             </FormLabel>
                             <FormControl>
-                              <MarkdownEditor onChange={field.onChange} content={field.value || ''} />
+                              <MarkdownEditor
+                                onChange={field.onChange}
+                                content={field.value || ''}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

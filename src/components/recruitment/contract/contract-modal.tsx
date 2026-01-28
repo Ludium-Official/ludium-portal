@@ -47,8 +47,8 @@ export function ContractModal({
   const { user } = usePrivy();
   const { userId } = useAuth();
   const { networks: networksWithTokens, getContractByNetworkId } = useNetworks();
-  const isMobile = useIsMobile(); 
-  
+  const isMobile = useIsMobile();
+
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [isSigningMessage, setIsSigningMessage] = useState(false);
   const [contractData, setContractData] = useState<any>(null);

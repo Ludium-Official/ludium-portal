@@ -51,9 +51,14 @@ export function ContractForm({
   return (
     <>
       <div className={cn(isMobile && 'mt-6')}>
-        <div className={cn("flex items-center justify-between text-3xl font-bold", isMobile && 'flex-col-reverse items-start gap-4 text-2xl')}>
+        <div
+          className={cn(
+            'flex items-center justify-between text-3xl font-bold',
+            isMobile && 'flex-col-reverse items-start gap-4 text-2xl',
+          )}
+        >
           Employment Contract
-          <img src={logo} alt="LUDIUM" className={cn("h-8", isMobile && 'h-5')} />
+          <img src={logo} alt="LUDIUM" className={cn('h-8', isMobile && 'h-5')} />
         </div>
       </div>
       <div className="flex-1 overflow-hidden flex flex-col">
