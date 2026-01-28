@@ -1,0 +1,3 @@
+mutation createChatNotificationV2($entityId: String!, $recipientId: Int!, $metadata: JSON) {
+  createChatNotificationV2(entityId: $entityId, recipientId: $recipientId, metadata: $metadata)
+}

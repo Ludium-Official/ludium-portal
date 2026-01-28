@@ -1,5 +1,5 @@
+import LudiumBadgeLogo from '@/assets/icons/profile/ludium-badge.svg';
 import { useUpdateApplicationChatroomV2Mutation } from '@/apollo/mutation/update-application-chatroom-v2.generated';
-import { MarkdownPreviewer } from '@/components/markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,9 +9,11 @@ import { useIsMobile } from '@/lib/hooks/use-mobile';
 import notify from '@/lib/notify';
 import { cn, formatDate, getUserDisplayName, getUserInitialName } from '@/lib/utils';
 import type { RecruitmentApplicant } from '@/types/recruitment';
-import { Heart, Loader2, MapPin, Star, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Heart, Loader2, MapPin, Star, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+import { useCreateChatNotificationV2Mutation } from '@/apollo/mutation/create-chat-notification-v2.generated';
 
 interface ApplicantCardProps {
   applicant: RecruitmentApplicant;
@@ -20,12 +22,17 @@ interface ApplicantCardProps {
 
 const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }) => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   const { id, userInfo, appliedDate, picked, chatroomMessageId } = applicant;
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const navigate = useNavigate();
+  const [expandedPortfolioId, setExpandedPortfolioId] = useState<string | null>(null);
+
   const [updateApplicationChatroom, { loading: isUpdatingChatroom }] =
     useUpdateApplicationChatroomV2Mutation();
+  const [createChatNotification, { loading: isCreatingChatNotification }] =
+    useCreateChatNotificationV2Mutation();
 
   const fullName = getUserDisplayName(userInfo.nickname, userInfo.email);
   const initials = getUserInitialName(userInfo.nickname, userInfo.email);
@@ -65,6 +72,15 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
           'Start by greeting the builder and sharing project details.',
           '0',
         );
+        await createChatNotification({
+          variables: {
+            entityId: newChatroomId,
+            recipientId: Number(userInfo.userId),
+            metadata: {
+              programId: applicant.programId,
+            },
+          },
+        });
         notify('Chatroom created successfully', 'success');
       } else {
         notify('Failed to create chatroom', 'error');
@@ -322,7 +338,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
                   <div>
                     <div className="text-xs font-bold text-gray-dark mb-2">Cover Letter</div>
                     <div className="prose prose-sm max-w-none border rounded-lg p-3 bg-gray-50">
-                      <MarkdownPreviewer value={userInfo.cv} />
+                      {userInfo.cv}
                     </div>
                   </div>
                 )}
@@ -332,7 +348,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
         )
       ) : (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-5xl! overflow-y-auto">
+          <DialogContent className="max-w-5xl! max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Application Details</DialogTitle>
             </DialogHeader>
@@ -426,12 +442,81 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
                 )}
 
                 {userInfo.cv && (
-                  <div>
-                    <div className="text-sm font-bold text-gray-dark mb-3">Cover Letter</div>
-                    <div className="prose prose-sm max-w-none max-h-[500px] overflow-y-auto border rounded-lg p-4 bg-gray-50">
-                      <MarkdownPreviewer value={userInfo.cv} />
+                  <>
+                    <div>
+                      <div className="text-sm font-bold text-gray-dark mb-3">Cover Letter</div>
+                      <div className="prose prose-sm max-w-none max-h-[500px] overflow-y-auto border rounded-lg p-4 bg-gray-50">
+                        {userInfo.cv}
+                      </div>
                     </div>
-                  </div>
+                    {userInfo.portfolios && (
+                      <div>
+                        <div className="text-sm font-bold text-gray-dark mb-3">Portfolio</div>
+                        <div className="prose prose-sm max-w-none">
+                          {userInfo.portfolios.map((portfolio) => {
+                            const isExpanded = expandedPortfolioId === portfolio.id;
+
+                            return (
+                              <div key={portfolio.id} className="border rounded-lg">
+                                <div className="flex items-center justify-between px-5 py-7">
+                                  <div className="flex items-center gap-3">
+                                    <span className="font-medium">{portfolio.title}</span>
+                                    {portfolio.isLudiumProject && (
+                                      <img
+                                        src={LudiumBadgeLogo}
+                                        alt="Ludium Badge"
+                                        className="my-0!"
+                                      />
+                                    )}
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setExpandedPortfolioId(
+                                        isExpanded ? null : (portfolio.id ?? null),
+                                      )
+                                    }
+                                    className="p-1"
+                                  >
+                                    {isExpanded ? (
+                                      <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                                    ) : (
+                                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                                    )}
+                                  </button>
+                                </div>
+                                {isExpanded && (
+                                  <div className="px-4 pb-4 border-t pt-3">
+                                    <div className="text-sm font-medium text-muted-foreground mb-1">
+                                      {portfolio.role}
+                                    </div>
+                                    <div className="text-sm text-muted-foreground mb-3">
+                                      {portfolio.description}
+                                    </div>
+                                    {portfolio.images && portfolio.images.length > 0 && (
+                                      <Carousel className="w-full">
+                                        <CarouselContent className="overflow-y-auto">
+                                          {portfolio.images.map((image, index) => (
+                                            <CarouselItem key={index}>
+                                              <img
+                                                src={image}
+                                                alt={`${portfolio.title ?? ''} ${index + 1}`}
+                                                className="w-full object-cover rounded-md my-0!"
+                                              />
+                                            </CarouselItem>
+                                          ))}
+                                        </CarouselContent>
+                                      </Carousel>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>

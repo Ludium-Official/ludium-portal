@@ -21,6 +21,7 @@ const RecruitmentApplicants: React.FC = () => {
   });
 
   const applications = data?.applicationsByProgramV2?.data || [];
+  console.log(applications);
 
   const handleTogglePick = async (applicationId?: string | null, currentPicked?: boolean) => {
     if (!applicationId) return;
@@ -60,12 +61,13 @@ const RecruitmentApplicants: React.FC = () => {
         nickname: application.applicant?.nickname,
         email: application.applicant?.email,
         cv: application.content,
+        portfolios: application.portfolios,
+        location: application.applicant?.location,
+        skills: application.applicant?.skills,
+        role: application.applicant?.userRole,
         // TODO: profile 변경되고 추가될 데이터
-        location: null, // Not in GraphQL schema
         hourlyRate: null, // Not in GraphQL schema
         star: null, // Not in GraphQL schema
-        role: null,
-        skills: application.applicant?.skills,
         tools: null, // Not in GraphQL schema
       },
     };

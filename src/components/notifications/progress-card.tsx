@@ -1,42 +1,24 @@
 import client from '@/apollo/client';
-import { useMarkNotificationAsReadMutation } from '@/apollo/mutation/mark-notification-as-read.generated';
-import { GetNotificationsDocument } from '@/apollo/queries/notifications.generated';
+import { useMarkNotificationAsReadV2Mutation } from '@/apollo/mutation/mark-notification-as-read-v2.generated';
+import { GetNotificationsV2Document } from '@/apollo/queries/notifications-v2.generated';
 import { cn } from '@/lib/utils';
-import { type Notification, NotificationAction, NotificationType } from '@/types/types.generated';
+import {
+  type NotificationV2,
+  NotificationV2Action,
+  NotificationV2Type,
+} from '@/types/types.generated';
 import { Check } from 'lucide-react';
 import { Link } from 'react-router';
 
-function ProgressCard({ notification }: { notification: Notification }) {
-  const { type, action, readAt } = notification;
+function ProgressCard({ notification }: { notification: NotificationV2 }) {
+  const { type, action, readAt, metadata, title, content } = notification;
 
-  const [markAsRead] = useMarkNotificationAsReadMutation();
-
-  // let text = '';
-
-  let actionBy = '';
-
-  switch (action) {
-    case NotificationAction.Accepted:
-    case NotificationAction.Rejected:
-      actionBy = 'by the Validators';
-      break;
-    case NotificationAction.Invited:
-      actionBy = 'by the Host';
-      break;
-    case NotificationAction.Submitted:
-      actionBy = 'by the Applicant';
-      break;
-  }
+  const [markAsRead] = useMarkNotificationAsReadV2Mutation();
 
   let link = null;
-  const content = (
-    <p className="text-sm font-medium text-secondary-foreground">
-      <span className="font-bold">Your {type}</span> is {action} {actionBy}
-    </p>
-  );
 
   const icon =
-    action !== NotificationAction.Rejected ? (
+    action !== NotificationV2Action.Rejected ? (
       <span className="bg-green-400 text-white flex items-center justify-center rounded-full w-4 h-4">
         <Check className="w-3 h-3" />
       </span>
@@ -46,16 +28,20 @@ function ProgressCard({ notification }: { notification: Notification }) {
       </span>
     );
 
-  if (type === NotificationType.Program) {
-    // text = `Your ${type} is successfully ${action}!`;
-    link = `/programs/${notification.entityId}`;
-  } else if (type === NotificationType.Application) {
-    // text = `Application for your program has been ${action}!`;
-    link = notification?.metadata?.programId
-      ? `/programs/${notification?.metadata?.programId}/application/${notification.entityId}`
+  if (type === NotificationV2Type.Contract) {
+    link = metadata?.programId
+      ? `/dashboard/recruitment/builder/${metadata?.programId}?tab=message`
       : null;
-  } else {
-    // text = `${type} ${action}`;
+  } else if (type === NotificationV2Type.Application && action === NotificationV2Action.Submitted) {
+    link = metadata?.programId
+      ? `/dashboard/recruitment/sponsor/${metadata?.programId}?tab=applicants`
+      : null;
+  } else if (type === NotificationV2Type.Article && action === NotificationV2Action.Created) {
+    link = `/community/articles/${metadata?.articleId}`;
+  } else if (type === NotificationV2Type.Thread && action === NotificationV2Action.Created) {
+    link = `/community/threads/${metadata?.threadId}`;
+  } else if (type === NotificationV2Type.System && action === NotificationV2Action.Created) {
+    link = `/dashboard/recruitment/builder/${metadata?.programId}?tab=message`;
   }
 
   return (
@@ -64,17 +50,20 @@ function ProgressCard({ notification }: { notification: Notification }) {
       onClick={() =>
         markAsRead({
           variables: {
-            id: notification.id ?? '',
+            notificationId: notification.id ?? '',
           },
           onCompleted: () => {
-            client.refetchQueries({ include: [GetNotificationsDocument] });
+            client.refetchQueries({ include: [GetNotificationsV2Document] });
           },
         })
       }
-      className={cn('flex gap-2 items-center border rounded-md py-4 px-3', readAt && 'opacity-50')}
+      className={cn('flex gap-3 items-center border rounded-md py-4 px-3', readAt && 'opacity-50')}
     >
-      {/* <p className="text-sm">{text}</p> */}
-      {icon} {content}
+      {icon}
+      <div className="flex flex-col gap-1 font-semibold">
+        {title}
+        <div className="text-sm font-medium text-secondary-foreground">{content}</div>
+      </div>
     </Link>
   );
 }

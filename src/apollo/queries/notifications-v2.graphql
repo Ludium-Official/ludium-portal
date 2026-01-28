@@ -1,0 +1,17 @@
+query getNotificationsV2($input: GetNotificationsV2Input) {
+  notificationsV2(input: $input) {
+    total
+    data {
+      id
+      title
+      content
+      type
+      action
+      entityId
+      metadata
+      readAt
+      recipientId
+      createdAt
+    }
+  }
+}

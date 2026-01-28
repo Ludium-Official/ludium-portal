@@ -1,10 +1,9 @@
-import { useMarkAllNotificationsAsReadMutation } from '@/apollo/mutation/mark-all-notifications-as-read.generated';
-import { useGetNotificationsQuery } from '@/apollo/queries/notifications.generated';
-import { useCountNotificationsSubscription } from '@/apollo/subscriptions/count-notifications.generated';
-import ConditionCard from '@/components/notifications/condition-card';
-// import NotificationCard from '@/components/notifications/notification-card';
+import { useMarkAllNotificationsAsReadV2Mutation } from '@/apollo/mutation/mark-all-notifications-as-read-v2.generated';
+import { useGetNotificationsV2Query } from '@/apollo/queries/notifications-v2.generated';
+import { useGetUnreadNotificationsCountV2Query } from '@/apollo/queries/unread-notifications-count-v2.generated';
+import { useNotificationsV2Subscription } from '@/apollo/subscriptions/notifications-v2.generated';
+import { useUnreadNotificationsCountV2Subscription } from '@/apollo/subscriptions/unread-notifications-count-v2.generated';
 import ProgressCard from '@/components/notifications/progress-card';
-import ReclaimCard from '@/components/notifications/reclaim-card';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -13,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import type { Notification } from '@/types/types.generated';
+import type { NotificationV2 } from '@/types/types.generated';
 import { PopoverClose } from '@radix-ui/react-popover';
 import { Bell, Loader2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -25,47 +24,47 @@ function Notifications() {
   const { isLoggedIn } = useAuth();
 
   const [unreadOnly, setUnreadOnly] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<NotificationV2[]>([]);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [openNotifications, setOpenNotifications] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
-  // const { data } = useNotificationsSubscription();
 
-  const { data, refetch, fetchMore } = useGetNotificationsQuery({
+  const { data, refetch, fetchMore } = useGetNotificationsV2Query({
     skip: !isLoggedIn,
     variables: {
       input: {
-        limit: 15,
+        limit: 10,
         offset: 0,
-        filter: [
-          {
-            field: 'tab',
-            value: activeTab,
-          },
-          {
-            field: 'unread',
-            value: unreadOnly ? 'true' : 'false',
-          },
-        ],
+        type: activeTab === 'all' ? undefined : activeTab,
+        unreadOnly: unreadOnly,
       },
     },
   });
 
-  const { data: countData } = useCountNotificationsSubscription();
+  const { data: countData, refetch: refetchCount } = useGetUnreadNotificationsCountV2Query({
+    skip: !isLoggedIn,
+  });
 
-  // Update notifications when data changes
+  // Subscription for real-time updates - triggers refetch when new data arrives
+  const { data: subscriptionCountData } = useUnreadNotificationsCountV2Subscription({
+    skip: !isLoggedIn,
+  });
+
+  const { data: subscriptionData } = useNotificationsV2Subscription({
+    skip: !isLoggedIn,
+  });
+
   useEffect(() => {
-    if (data?.notifications?.data) {
-      setNotifications(data.notifications.data);
-      setOffset(data.notifications.data.length);
-      setHasMore(data.notifications.data.length < (data.notifications.count || 0));
+    if (data?.notificationsV2?.data) {
+      setNotifications(data.notificationsV2.data);
+      setOffset(data.notificationsV2.data.length);
+      setHasMore(data.notificationsV2.data.length < (data.notificationsV2.total || 0));
     }
   }, [data]);
 
-  // Reset pagination when filters change
   useEffect(() => {
     setNotifications([]);
     setOffset(0);
@@ -74,16 +73,31 @@ function Notifications() {
   }, [activeTab, unreadOnly, refetch]);
 
   useEffect(() => {
-    refetch();
-  }, [countData, refetch]);
+    if (countData?.unreadNotificationsCountV2 !== undefined) {
+      refetch();
+    }
+  }, [countData?.unreadNotificationsCountV2, refetch]);
 
-  const [markAllAsRead] = useMarkAllNotificationsAsReadMutation();
+  // Real-time update via WebSocket subscription for unread count
+  useEffect(() => {
+    if (subscriptionCountData?.unreadNotificationsCountV2 !== undefined) {
+      refetchCount();
+    }
+  }, [subscriptionCountData?.unreadNotificationsCountV2, refetchCount]);
+
+  // Real-time update via WebSocket subscription for notifications list
+  useEffect(() => {
+    if (subscriptionData?.notificationsV2?.data) {
+      refetch();
+    }
+  }, [subscriptionData, refetch]);
+
+  const [markAllAsRead] = useMarkAllNotificationsAsReadV2Mutation();
 
   useEffect(() => {
     setOpenNotifications(false);
   }, [location]);
 
-  // Load more notifications function
   const loadMoreNotifications = useCallback(async () => {
     if (loadingMore || !hasMore) return;
 
@@ -94,26 +108,18 @@ function Notifications() {
           input: {
             limit: 10,
             offset: offset,
-            filter: [
-              {
-                field: 'tab',
-                value: activeTab,
-              },
-              {
-                field: 'unread',
-                value: unreadOnly ? 'true' : 'false',
-              },
-            ],
+            type: activeTab === 'all' ? undefined : activeTab,
+            unreadOnly: unreadOnly,
           },
         },
       });
 
-      if (result.data?.notifications?.data) {
-        const newNotifications = result.data.notifications.data;
+      if (result.data?.notificationsV2?.data) {
+        const newNotifications = result.data.notificationsV2.data;
         setNotifications((prev) => [...prev, ...newNotifications]);
         setOffset((prev) => prev + newNotifications.length);
         setHasMore(
-          notifications.length + newNotifications.length < (result.data.notifications.count || 0),
+          notifications.length + newNotifications.length < (result.data.notificationsV2.total || 0),
         );
       }
     } catch (error) {
@@ -121,9 +127,8 @@ function Notifications() {
     } finally {
       setLoadingMore(false);
     }
-  }, [fetchMore, loadingMore, hasMore, offset, activeTab, unreadOnly]);
+  }, [fetchMore, loadingMore, hasMore, offset, activeTab, unreadOnly, notifications.length]);
 
-  // Handle scroll event
   const handleScroll = useCallback(
     (event: React.UIEvent<HTMLDivElement>) => {
       const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
@@ -142,20 +147,15 @@ function Notifications() {
         <PopoverTrigger asChild className={cn(isMobile && 'flex')}>
           <Button variant="ghost" className={cn('group h-10 relative', isMobile && 'h-auto p-0!')}>
             <Bell />
-            {!!countData?.countNotifications && (
-              <span className="flex justify-center items-center w-[8px] h-[8px] rounded-full bg-red-400 absolute top-3 right-3 border-2 border-white text-white group-hover:border-accent transition-all">
-                {/* {countData.countNotifications} */}
-              </span>
+            {!!(
+              subscriptionCountData?.unreadNotificationsCountV2 ??
+              countData?.unreadNotificationsCountV2
+            ) && (
+              <span className="flex justify-center items-center w-[8px] h-[8px] rounded-full bg-red-400 absolute top-3 right-4 border-2 border-white text-white group-hover:border-accent transition-all" />
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent
-          className={cn(
-            'overflow-auto w-[410px]',
-            isMobile && 'w-full',
-            // !data?.notifications?.length ? 'min-w-none' : 'min-w-[348px]',
-          )}
-        >
+        <PopoverContent className={cn('overflow-auto w-[410px]', isMobile && 'w-full')}>
           <div className="flex justify-end mb-[14px]">
             <PopoverClose className="cursor-pointer">
               <X className="text-foreground w-4 h-4" />
@@ -173,9 +173,7 @@ function Notifications() {
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto mb-3">
             <TabsList className="w-auto bg-gray-100 p-1">
               <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="reclaim">Reclaim</TabsTrigger>
-              <TabsTrigger value="investment_condition">Investment Condition</TabsTrigger>
-              <TabsTrigger value="progress">Progress</TabsTrigger>
+              <TabsTrigger value="contract">Recruitment</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -189,30 +187,10 @@ function Notifications() {
                 <div className="space-y-4 mb-10">
                   {activeTab === 'all' &&
                     notifications.map((n) => {
-                      if (n.metadata?.category === 'progress') {
-                        return <ProgressCard notification={n} key={n.id} />;
-                      }
-                      if (n.metadata?.category === 'investment') {
-                        return <ConditionCard notification={n} key={n.id} />;
-                      }
-                      if (n.metadata?.category === 'reclaim') {
-                        return <ReclaimCard notification={n} key={n.id} />;
-                      }
-
                       return <ProgressCard notification={n} key={n.id} />;
                     })}
-
-                  {activeTab === 'progress' &&
-                    notifications.map((n) => <ProgressCard notification={n} key={n.id} />)}
-
-                  {activeTab === 'investment_condition' &&
-                    notifications.map((n) => <ConditionCard notification={n} key={n.id} />)}
-
-                  {activeTab === 'reclaim' &&
-                    notifications.map((n) => <ReclaimCard notification={n} key={n.id} />)}
                 </div>
 
-                {/* Loading indicator for infinite scroll */}
                 {loadingMore && (
                   <div className="flex justify-center items-center py-4">
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -220,15 +198,15 @@ function Notifications() {
                   </div>
                 )}
 
-                {/* End of results indicator */}
-                {/* {!hasMore && notifications.length > 0 && (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-muted-foreground">No more notifications</p>
-                  </div>
-                )} */}
-
                 <Button
-                  onClick={() => markAllAsRead()}
+                  onClick={() => {
+                    markAllAsRead({
+                      onCompleted: () => {
+                        refetch();
+                        refetchCount();
+                      },
+                    });
+                  }}
                   className="w-[calc(100%-32px)] fixed bottom-4 z-20"
                 >
                   Read All
