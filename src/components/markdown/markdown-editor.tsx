@@ -37,6 +37,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 import './style.css';
+import { cn } from '@/lib/utils';
 
 const isProduction = import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet';
 const STORAGE_FOLDER = isProduction ? 'markdown-images' : 'markdown-images-dev';
@@ -64,10 +65,12 @@ function MarkdownEditor({
   onChange,
   content,
   placeholder,
+  contentClassName,
 }: {
   onChange: (value: string) => void;
   content: string;
   placeholder?: string;
+  contentClassName?: string;
 }) {
   const isMobile = useIsMobile();
 
@@ -100,7 +103,7 @@ function MarkdownEditor({
       markdown={content}
       placeholder={placeholder}
       className="overflow-auto max-h-[600px] border rounded-md"
-      contentEditableClassName="prose min-h-[400px] cursor-text max-w-full"
+      contentEditableClassName={cn('prose min-h-[400px] cursor-text max-w-full', contentClassName)}
       onChange={(value) => debouncedOnChange(value)}
       plugins={[
         listsPlugin(),

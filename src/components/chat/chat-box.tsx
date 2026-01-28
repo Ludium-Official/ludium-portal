@@ -47,6 +47,7 @@ interface MessageItemProps {
 
 function MessageItem({ message, timestamp, contractInformation }: MessageItemProps) {
   const { userId } = useAuth();
+  const isMobile = useIsMobile();
 
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
 
@@ -131,7 +132,9 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
 
           <div className="flex flex-col items-end space-y-2">
             {message.text && (
-              <div className="rounded-lg px-4 py-2 bg-primary-light w-fit">
+              <div
+                className={cn('rounded-lg px-4 py-2 bg-primary-light w-fit', isMobile && 'px-3')}
+              >
                 <p className="text-sm whitespace-pre-wrap break-words">
                   {!/^https?:\/\/[^\s/$.?#].[^\s]*$/.test(message.text) ? (
                     message.text
@@ -184,7 +187,7 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
   return (
     <div className="flex gap-3 items-start">
       {message.senderId !== '0' && (
-        <Avatar className="h-10 w-10">
+        <Avatar className={cn('h-10 w-10', isMobile && 'h-6 w-6')}>
           <AvatarImage src={isLudiumAssistant ? ludiumAssignmentLogo : senderImage} />
           <AvatarFallback className="text-sm">{getInitials(senderName)}</AvatarFallback>
         </Avatar>
@@ -207,7 +210,7 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
 
         <div className="space-y-2">
           {message.senderId === '0' && (
-            <div className="flex justify-center w-full italic mt-3">
+            <div className={cn('flex justify-center w-full italic mt-3', isMobile && 'mt-0')}>
               <p className="text-sm text-muted-foreground text-center">{message.text}</p>
             </div>
           )}
@@ -219,6 +222,7 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
                   'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
                   isLudiumAssistant && 'py-4 bg-white border border-primary',
                   !message.is_active && 'opacity-50',
+                  isMobile && 'max-w-[90%] p-4',
                 )}
               >
                 <div>
@@ -234,6 +238,7 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
                       variant="purple"
                       className="w-full"
                       onClick={() => setIsContractModalOpen(true)}
+                      size={isMobile ? 'sm' : 'default'}
                     >
                       View Contract
                     </Button>
@@ -274,6 +279,7 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
                 className={cn(
                   'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
                   isLudiumAssistant && 'py-4 bg-white border border-primary',
+                  isMobile && 'max-w-[90%] p-4',
                 )}
               >
                 <p className="text-sm text-slate-600">
@@ -290,6 +296,7 @@ function MessageItem({ message, timestamp, contractInformation }: MessageItemPro
                   className={cn(
                     'rounded-lg px-4 py-2 bg-[#F8F5FA] text-slate-900 w-fit max-w-[70%]',
                     isLudiumAssistant && 'py-4 bg-white border border-primary',
+                    isMobile && 'max-w-[90%] p-4',
                   )}
                 >
                   <p className="text-sm whitespace-pre-wrap break-words">
@@ -689,10 +696,13 @@ export function ChatBox({
   }, [messages]);
 
   return (
-    <div className={cn('flex flex-col h-full', isMobile && 'h-200')}>
+    <div className="flex flex-col h-full">
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4 flex flex-col"
+        className={cn(
+          'flex-1 overflow-y-auto p-4 space-y-4 flex flex-col',
+          isMobile && 'space-y-6',
+        )}
       >
         {isLoading && messages.length === 0 && (
           <div className="flex-1 flex items-center justify-center">

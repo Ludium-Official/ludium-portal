@@ -170,6 +170,15 @@ body {
   .max-w-1440 {
     max-width: 1440px;
   }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Fix Radix UI ScrollArea display: table issue */

@@ -1,5 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn, getUserDisplayName, getUserInitialName } from '@/lib/utils';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import type { ApplicationV2 } from '@/types/types.generated';
 import type { Timestamp } from 'firebase/firestore';
 
@@ -22,6 +23,8 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
   latestMessageSenderId,
   currentUserId,
 }) => {
+  const isMobile = useIsMobile();
+
   const { applicant } = message;
   const fullName = getUserDisplayName(applicant?.nickname, applicant?.email);
   const initials = getUserInitialName(applicant?.nickname, applicant?.email);
@@ -71,6 +74,7 @@ const MessageListItem: React.FC<MessageListItemProps> = ({
       className={cn(
         'flex items-start gap-3 py-4 px-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-50',
         isSelected && 'bg-[#F8F5FA]',
+        isMobile && 'rounded-none bg-inherit py-5 border-b',
       )}
     >
       <Avatar className="h-12 w-12">

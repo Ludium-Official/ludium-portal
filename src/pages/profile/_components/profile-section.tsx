@@ -82,7 +82,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
         <p className={cn('text-sm font-medium text-gray-900 mb-4', isMobile && 'mb-[10px]')}>
           Wallet
         </p>
-        <p className="text-sm text-slate-600">{walletAddress || '-'}</p>
+        <p className="text-sm text-slate-600 break-all">{walletAddress || '-'}</p>
       </div>
 
       <div className="mb-4">

@@ -20,6 +20,7 @@ query GetProgramV2($id: ID!) {
       email
       nickname
       profileImage
+      userRole
     }
     network {
       id
