@@ -189,6 +189,7 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations =
           placeholder="e.g., Harvard University"
           value={formData.school || ''}
           onChange={(e) => updateField('school', e.target.value)}
+          className={cn(isMobile && 'text-sm')}
         />
       </div>
 
@@ -214,12 +215,13 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations =
           placeholder="e.g., Computer Science"
           value={formData.study || ''}
           onChange={(e) => updateField('study', e.target.value)}
+          className={cn(isMobile && 'text-sm')}
         />
       </div>
 
       <div>
         <p className="text-sm font-medium text-gray-900 mb-2">Dates Attended</p>
-        <div className="grid grid-cols-2 gap-4">
+        <div className={cn('grid grid-cols-2 gap-4', isMobile && 'grid-cols-1 gap-2')}>
           <SearchSelect
             options={YEAR_OPTIONS}
             value={formData.attendedStartDate ? String(formData.attendedStartDate) : ''}
@@ -319,7 +321,9 @@ export const EducationSection: React.FC<EducationSectionProps> = ({ educations =
             )}
           >
             <img src={EducationIcon} alt="Education" className="h-12 w-12 text-gray-300 mb-1" />
-            <p className="text-slate-500 mb-2 font-light">No education details added yet.</p>
+            <p className={cn('text-slate-500 mb-2 font-light', isMobile && 'text-sm')}>
+              No education details added yet.
+            </p>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2" onClick={handleAddNew}>
                 <Plus className="h-4 w-4" />

@@ -13,7 +13,7 @@ import { CirclePlus, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 
-const PageSize = 10;
+const PageSize = 5;
 
 const ProgramsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,7 +26,9 @@ const ProgramsPage: React.FC = () => {
   const [programs, setPrograms] = useState<ProgramV2[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const leftSectionRef = useRef<HTMLDivElement | null>(null);
   const isLoadingRef = useRef(false);
 
   const { data, loading, error } = useGetProgramsV2Query({
@@ -80,21 +82,73 @@ const ProgramsPage: React.FC = () => {
   }, [hasMore]);
 
   useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
 
-    const handleScroll = () => {
-      if (!hasMore || isLoadingRef.current) return;
+    if (!hasMore) return;
 
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      if (scrollTop + clientHeight >= scrollHeight - 100) {
-        handleLoadMore();
+    const leftSection = leftSectionRef.current;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoadingRef.current) {
+          handleLoadMore();
+        }
+      },
+      {
+        root: isMobile ? null : leftSection,
+        threshold: 0.1,
+        rootMargin: '100px',
+      },
+    );
+
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
       }
     };
+  }, [handleLoadMore, hasMore, isMobile]);
 
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [handleLoadMore, hasMore]);
+  useEffect(() => {
+    if (isMobile) return;
+
+    const leftSection = leftSectionRef.current;
+    if (!leftSection) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      const target = e.target as HTMLElement;
+      const detailPanel = document.querySelector('[data-detail-panel]');
+      if (detailPanel?.contains(target)) {
+        return;
+      }
+
+      const { scrollTop, scrollHeight, clientHeight } = leftSection;
+      const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1;
+      const isAtTop = scrollTop <= 0;
+
+      if (e.deltaY > 0 && isAtBottom && !hasMore) {
+        return;
+      }
+
+      if (e.deltaY < 0 && isAtTop) {
+        return;
+      }
+
+      e.preventDefault();
+      leftSection.scrollTop += e.deltaY;
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+    };
+  }, [isMobile, hasMore]);
 
   return (
     <div className={cn('bg-white rounded-2xl py-10', isMobile && 'p-0')}>
@@ -167,42 +221,50 @@ const ProgramsPage: React.FC = () => {
             </div>
           </section>
 
-          <div className={cn('flex gap-4 my-6 h-[calc(100vh-100px)]')}>
-            <div className={cn('w-[330px] flex flex-col', isMobile && 'w-full')}>
-              <section
-                ref={scrollContainerRef}
-                className={cn('flex-1 overflow-y-auto scrollbar-hide', isMobile && '-mx-4')}
-              >
-                {error ? (
-                  <div className="py-8 text-center text-red-500">
-                    Error loading programs. Please try again.
-                  </div>
-                ) : programs?.length ? (
-                  <div className={cn('flex flex-col w-[330px]', isMobile && 'w-full')}>
-                    {programs.map((program) => (
-                      <ProgramCard
-                        key={program?.id}
-                        program={program}
-                        selectedProgramId={selectedProgramId ?? ''}
-                        setSelectedProgramId={setSelectedProgramId}
-                      />
-                    ))}
+          <div className={cn('flex gap-4 my-6', !isMobile && 'h-[calc(100vh-180px)]')}>
+            <div
+              ref={leftSectionRef}
+              className={cn(
+                'w-[330px] flex flex-col',
+                !isMobile && 'overflow-y-auto scrollbar-hide',
+                isMobile && 'w-full -mx-4',
+              )}
+            >
+              {error ? (
+                <div className="py-8 text-center text-red-500">
+                  Error loading programs. Please try again.
+                </div>
+              ) : programs?.length ? (
+                <div className={cn('flex flex-col w-[330px]', isMobile && 'w-full')}>
+                  {programs.map((program) => (
+                    <ProgramCard
+                      key={program?.id}
+                      program={program}
+                      selectedProgramId={selectedProgramId ?? ''}
+                      setSelectedProgramId={setSelectedProgramId}
+                    />
+                  ))}
 
-                    {loading && (
-                      <div className="flex justify-center py-4">
-                        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                ) : loading ? (
-                  <div className="py-8 text-center">Loading programs...</div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">No programs found.</div>
-                )}
-              </section>
+                  {loading && (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                    </div>
+                  )}
+
+                  {hasMore && <div ref={loadMoreRef} className="h-10" />}
+                </div>
+              ) : loading ? (
+                <div className="py-8 text-center">Loading programs...</div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">No programs found.</div>
+              )}
             </div>
             {!isMobile && (
-              <div className="flex-1 border border-gray-border rounded-md p-6 overflow-y-auto">
+              <div
+                data-detail-panel
+                className="flex-1 border border-gray-border rounded-md p-6 overflow-y-auto"
+                style={{ minWidth: 0 }}
+              >
                 <ProgramDetailPanel id={selectedProgramId ?? ''} />
               </div>
             )}

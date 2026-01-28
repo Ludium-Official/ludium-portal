@@ -8,6 +8,7 @@ import { ContractModal } from '@/components/recruitment/contract/contract-modal'
 import { HireButton } from '@/components/recruitment/hire-button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MobileFullScreenDialog } from '@/components/ui/mobile-full-screen-dialog';
 import { useNetworks } from '@/contexts/networks-context';
 import { type ChatMessageFile, getAllFiles, getLatestMessage } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
@@ -22,14 +23,20 @@ import {
 } from '@/types/types.generated';
 import type { Timestamp } from 'firebase/firestore';
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router';
+import { useParams, useSearchParams } from 'react-router';
 import { ApplicationSidebar } from './application-sidebar';
+import { FileContractAccordion } from './file-contract-accordion';
 import MessageListItem from './message-list-item';
+import { MilestoneAccordion } from './milestone-accordion';
 import { MilestoneModal } from './milestone-modal';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 
+type MobileTabType = 'chat' | 'milestone' | 'file';
+
 const RecruitmentMessage: React.FC = () => {
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const chatroomIdFromUrl = searchParams.get('chatroomId');
   const isMobile = useIsMobile();
   const { userId } = useAuth();
   const { networks: networksWithTokens, getContractByNetworkId } = useNetworks();
@@ -64,18 +71,39 @@ const RecruitmentMessage: React.FC = () => {
   const [files, setFiles] = useState<ChatMessageFile[]>([]);
   const [selectedContract, setSelectedContract] = useState<ContractV2 | null>(null);
   const [isContractModalOpen, setIsContractModalOpen] = useState(false);
+  const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
+  const [mobileActiveTab, setMobileActiveTab] = useState<MobileTabType>('chat');
 
   useEffect(() => {
-    if (hasMessageIdRoom.length > 0 && hasMessageIdRoom[0].chatroomMessageId) {
+    if (hasMessageIdRoom.length > 0) {
+      // Check if chatroomId from URL is valid
+      if (chatroomIdFromUrl) {
+        const matchingRoom = hasMessageIdRoom.find(
+          (app) => app.chatroomMessageId === chatroomIdFromUrl,
+        );
+        if (matchingRoom) {
+          setSelectedMessageId(chatroomIdFromUrl);
+          if (isMobile) {
+            setIsMobileDetailOpen(true);
+          }
+          return;
+        }
+      }
+
+      // Fallback to first chatroom if no valid URL param or current selection
       const firstChatroomId = hasMessageIdRoom[0].chatroomMessageId;
       const isSelectedValid =
         selectedMessageId &&
         hasMessageIdRoom.find((app) => app.chatroomMessageId === selectedMessageId);
-      if (!isSelectedValid) {
+      if (!isSelectedValid && firstChatroomId) {
         setSelectedMessageId(firstChatroomId);
+        // For builders on mobile, auto-open the dialog
+        if (isMobile && !isSponsor) {
+          setIsMobileDetailOpen(true);
+        }
       }
     }
-  }, [isSponsor, hasMessageIdRoom, selectedMessageId]);
+  }, [isSponsor, hasMessageIdRoom, selectedMessageId, chatroomIdFromUrl, isMobile]);
 
   const selectedApplication = hasMessageIdRoom.find(
     (applicant) => applicant.chatroomMessageId === selectedMessageId,
@@ -347,11 +375,18 @@ const RecruitmentMessage: React.FC = () => {
   return (
     <div className={cn('flex gap-4 h-[calc(100vh-200px)]', isMobile && 'flex-col h-full')}>
       {isSponsor && (
-        <Card className={cn('gap-3 w-[25%] overflow-y-auto py-5', isMobile && 'w-full')}>
-          <CardHeader className="px-5">
-            <CardTitle>Messages</CardTitle>
-          </CardHeader>
-          <CardContent className="px-5 space-y-2">
+        <Card
+          className={cn(
+            'gap-3 w-[25%] overflow-y-auto py-5',
+            isMobile && 'w-full border-none shadow-none p-0',
+          )}
+        >
+          {!isMobile && (
+            <CardHeader className="px-5">
+              <CardTitle>Messages</CardTitle>
+            </CardHeader>
+          )}
+          <CardContent className={cn('px-5 space-y-2', isMobile && 'p-0 space-y-0')}>
             {hasMessageIdRoom.map((applicant) => {
               const latestMessage = applicant.chatroomMessageId
                 ? latestMessages[applicant.chatroomMessageId]
@@ -361,7 +396,16 @@ const RecruitmentMessage: React.FC = () => {
                   key={applicant.chatroomMessageId}
                   message={applicant}
                   isSelected={selectedMessageId === applicant.chatroomMessageId}
-                  onClick={() => setSelectedMessageId(applicant.chatroomMessageId || null)}
+                  onClick={() => {
+                    setSelectedMessageId(applicant.chatroomMessageId || null);
+                    const newParams = new URLSearchParams(searchParams);
+                    newParams.set('chatroomId', applicant.chatroomMessageId || '');
+                    setSearchParams(newParams);
+                    if (isMobile) {
+                      setMobileActiveTab('chat');
+                      setIsMobileDetailOpen(true);
+                    }
+                  }}
                   latestMessageText={
                     latestMessage?.isFile ? 'File uploaded' : (latestMessage?.text ?? null)
                   }
@@ -375,93 +419,187 @@ const RecruitmentMessage: React.FC = () => {
         </Card>
       )}
 
-      <Card className={cn('flex flex-row gap-2 w-full p-0', isMobile && 'flex-col')}>
-        <div className={cn('flex flex-col w-full pt-5 pb-1 pr-0 pl-2', isMobile && 'pt-5 px-2')}>
-          {selectedApplication ? (
-            <>
-              <div className="flex items-center justify-between border-b pb-4 px-4">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage
-                      src={
-                        userId === selectedApplication.applicant?.id
-                          ? program?.sponsor?.profileImage || ''
-                          : selectedApplication.applicant?.profileImage || ''
-                      }
-                      alt={
-                        userId === selectedApplication.applicant?.id
-                          ? program?.sponsor?.nickname || program?.sponsor?.email || 'Unknown'
-                          : selectedApplication.applicant?.nickname ||
-                            selectedApplication.applicant?.email ||
-                            'Unknown'
-                      }
-                    />
-                    <AvatarFallback className="text-sm font-semibold">
-                      {userId === selectedApplication.applicant?.id
-                        ? getUserInitialName(program?.sponsor?.nickname, program?.sponsor?.email)
-                        : getUserInitialName(
-                            selectedApplication.applicant?.nickname,
-                            selectedApplication.applicant?.email,
-                          )}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col">
-                    <h3 className="font-bold text-lg">
-                      {userId === selectedApplication.applicant?.id
-                        ? getUserDisplayName(program?.sponsor?.nickname, program?.sponsor?.email)
-                        : getUserDisplayName(
-                            selectedApplication.applicant?.nickname,
-                            selectedApplication.applicant?.email,
-                          )}
-                    </h3>
+      {!isMobile && (
+        <Card className="flex flex-row gap-2 w-full p-0">
+          <div className="flex flex-col w-full pt-5 pb-1 pr-0 pl-2">
+            {selectedApplication ? (
+              <>
+                <div className="flex items-center justify-between border-b pb-4 px-4">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage
+                        src={
+                          userId === selectedApplication.applicant?.id
+                            ? program?.sponsor?.profileImage || ''
+                            : selectedApplication.applicant?.profileImage || ''
+                        }
+                        alt={
+                          userId === selectedApplication.applicant?.id
+                            ? program?.sponsor?.nickname || program?.sponsor?.email || 'Unknown'
+                            : selectedApplication.applicant?.nickname ||
+                              selectedApplication.applicant?.email ||
+                              'Unknown'
+                        }
+                      />
+                      <AvatarFallback className="text-sm font-semibold">
+                        {userId === selectedApplication.applicant?.id
+                          ? getUserInitialName(program?.sponsor?.nickname, program?.sponsor?.email)
+                          : getUserInitialName(
+                              selectedApplication.applicant?.nickname,
+                              selectedApplication.applicant?.email,
+                            )}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <h3 className="font-bold text-lg">
+                        {userId === selectedApplication.applicant?.id
+                          ? getUserDisplayName(program?.sponsor?.nickname, program?.sponsor?.email)
+                          : getUserDisplayName(
+                              selectedApplication.applicant?.nickname,
+                              selectedApplication.applicant?.email,
+                            )}
+                      </h3>
+                    </div>
                   </div>
+                  {program?.sponsor?.id === userId && (
+                    <HireButton
+                      contractInformation={contractInformation}
+                      milestones={activeMilestones}
+                    />
+                  )}
                 </div>
-                {program?.sponsor?.id === userId && (
-                  <HireButton
-                    contractInformation={contractInformation}
-                    milestones={activeMilestones}
-                  />
-                )}
+                <div className="flex-1 overflow-hidden">
+                  <ChatBox key={selectedMessageId} contractInformation={contractInformation} />
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground">
+                Select a message to view conversation
               </div>
-              <div className="flex-1 overflow-hidden">
-                <ChatBox contractInformation={contractInformation} />
-              </div>
-            </>
-          ) : (
-            <div
-              className={cn(
-                'flex items-center justify-center h-full text-muted-foreground',
-                isMobile && 'text-sm',
-              )}
-            >
-              Select a message to view conversation
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-        <div className={cn('px-0 w-[40%]', isMobile && 'w-full')}>
-          {selectedApplication ? (
-            <ApplicationSidebar
-              activeMilestones={activeMilestones}
-              completedMilestones={completedMilestones}
-              files={files}
-              contracts={contracts}
-              isSponsor={isSponsor}
-              isHandleMakeNewMilestone={isHandleMakeNewMilestone}
-              onMilestoneClick={handleMilestoneClick}
-              onNewMilestoneClick={handleNewMilestoneClick}
-              onContractClick={(contract) => {
-                setSelectedContract(contract);
-                setIsContractModalOpen(true);
-              }}
-            />
-          ) : (
-            <div className="h-full p-4 bg-gray-50 rounded-lg border flex items-center justify-center text-sm text-muted-foreground text-center">
-              Applicant details will appear here
+          <div className="px-0 w-[40%]">
+            {selectedApplication ? (
+              <ApplicationSidebar
+                activeMilestones={activeMilestones}
+                completedMilestones={completedMilestones}
+                files={files}
+                contracts={contracts}
+                isSponsor={isSponsor}
+                isHandleMakeNewMilestone={isHandleMakeNewMilestone}
+                onMilestoneClick={handleMilestoneClick}
+                onNewMilestoneClick={handleNewMilestoneClick}
+                onContractClick={(contract) => {
+                  setSelectedContract(contract);
+                  setIsContractModalOpen(true);
+                }}
+              />
+            ) : (
+              <div className="h-full p-4 bg-gray-50 rounded-lg border flex items-center justify-center text-sm text-muted-foreground text-center">
+                Applicant details will appear here
+              </div>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {isMobile && selectedApplication && (
+        <MobileFullScreenDialog
+          open={isMobileDetailOpen}
+          onClose={() => setIsMobileDetailOpen(false)}
+          title={
+            <div className="flex items-center gap-[6px] text-xs text-muted-foreground">
+              <Avatar className="h-[30px] w-[30px]">
+                <AvatarImage
+                  src={
+                    userId === selectedApplication.applicant?.id
+                      ? program?.sponsor?.profileImage || ''
+                      : selectedApplication.applicant?.profileImage || ''
+                  }
+                  alt="message-user"
+                />
+                <AvatarFallback className="text-sm font-semibold">U</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <span className="font-semibold">
+                  {getUserDisplayName(
+                    userId === selectedApplication.applicant?.id
+                      ? program?.sponsor?.nickname
+                      : selectedApplication.applicant?.nickname,
+                    userId === selectedApplication.applicant?.id
+                      ? program?.sponsor?.email
+                      : selectedApplication.applicant?.email,
+                  )}
+                </span>
+                <span className="text-[10px]">
+                  {userId === selectedApplication.applicant?.id
+                    ? program?.sponsor?.userRole
+                    : selectedApplication.applicant?.userRole}
+                </span>
+              </div>
             </div>
-          )}
-        </div>
-      </Card>
+          }
+          actionChildren={
+            program && program.sponsor && program.sponsor.id === userId ? (
+              <HireButton contractInformation={contractInformation} milestones={activeMilestones} />
+            ) : null
+          }
+          contentClassName="p-0 flex flex-col"
+        >
+          <div className="flex border-b border-gray-200">
+            {(['chat', 'milestone', 'file'] as MobileTabType[]).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setMobileActiveTab(tab)}
+                className={cn(
+                  'flex-1 py-3 text-sm font-medium transition-colors',
+                  mobileActiveTab === tab
+                    ? 'border-b-2 border-primary text-primary'
+                    : 'text-muted-foreground',
+                )}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex-1 overflow-hidden">
+            {mobileActiveTab === 'chat' && (
+              <div className="flex-1 overflow-hidden h-full">
+                <ChatBox key={selectedMessageId} contractInformation={contractInformation} />
+              </div>
+            )}
+
+            {mobileActiveTab === 'milestone' && (
+              <div className="h-full overflow-y-auto p-4 bg-[#FBF5FF]">
+                <MilestoneAccordion
+                  activeMilestones={activeMilestones}
+                  completedMilestones={completedMilestones}
+                  onMilestoneClick={handleMilestoneClick}
+                  onNewMilestoneClick={handleNewMilestoneClick}
+                  isSponsor={isSponsor}
+                  isHandleMakeNewMilestone={isHandleMakeNewMilestone}
+                />
+              </div>
+            )}
+
+            {mobileActiveTab === 'file' && (
+              <div className="h-full overflow-y-auto p-4 bg-[#FBF5FF]">
+                <FileContractAccordion
+                  files={files}
+                  contracts={contracts}
+                  onContractClick={(contract) => {
+                    setSelectedContract(contract);
+                    setIsContractModalOpen(true);
+                  }}
+                  defaultOpen={['file', 'contract']}
+                />
+              </div>
+            )}
+          </div>
+        </MobileFullScreenDialog>
+      )}
 
       <MilestoneModal
         open={isMilestoneModalOpen}

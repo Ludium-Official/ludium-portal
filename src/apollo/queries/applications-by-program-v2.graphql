@@ -15,6 +15,7 @@ query applicationsByProgramV2($query: ApplicationsByProgramV2QueryInput!) {
         profileImage
         skills
         walletAddress
+        userRole
       }
       program {
         id

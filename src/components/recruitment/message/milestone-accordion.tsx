@@ -7,6 +7,8 @@ import {
 import type { MilestoneV2 } from '@/types/types.generated';
 import { Plus } from 'lucide-react';
 import { MilestoneCard } from './milestone-card';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface MilestoneAccordionProps {
   activeMilestones: MilestoneV2[];
@@ -27,8 +29,14 @@ export function MilestoneAccordion({
   isHandleMakeNewMilestone = false,
   defaultOpen = ['milestone', 'completed'],
 }: MilestoneAccordionProps) {
+  const isMobile = useIsMobile();
+
   return (
-    <Accordion type="multiple" defaultValue={defaultOpen} className="bg-white rounded-lg">
+    <Accordion
+      type="multiple"
+      defaultValue={defaultOpen}
+      className={cn('bg-white rounded-lg', isMobile && 'border border-gray-200')}
+    >
       <AccordionItem value="milestone" className="px-3">
         <AccordionTrigger className="hover:no-underline py-3">
           <div className="flex items-center justify-between w-full">

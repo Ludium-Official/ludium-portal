@@ -149,6 +149,7 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
           placeholder="Enter your role"
           value={formRole}
           onChange={(e) => setFormRole(e.target.value)}
+          className={cn(isMobile && 'text-sm')}
         />
       </div>
 
@@ -327,7 +328,9 @@ export const ExpertiseSection: React.FC<ExpertiseSectionProps> = ({
             )}
           >
             <img src={ExpertiseIcon} alt="Expertise" className="h-12 w-12 text-gray-300 mb-1" />
-            <p className="text-slate-500 mb-2 font-light">No expertise details added yet.</p>
+            <p className={cn('text-slate-500 mb-2 font-light', isMobile && 'text-sm')}>
+              No expertise details added yet.
+            </p>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
                 <Plus className="h-4 w-4" />

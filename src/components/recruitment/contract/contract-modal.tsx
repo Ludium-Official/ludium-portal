@@ -25,6 +25,7 @@ import { ethers } from 'ethers';
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ContractForm } from './contract-form';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 interface ContractModalProps {
   open: boolean;
@@ -46,7 +47,8 @@ export function ContractModal({
   const { user } = usePrivy();
   const { userId } = useAuth();
   const { networks: networksWithTokens, getContractByNetworkId } = useNetworks();
-
+  const isMobile = useIsMobile(); 
+  
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [isSigningMessage, setIsSigningMessage] = useState(false);
   const [contractData, setContractData] = useState<any>(null);
@@ -532,6 +534,7 @@ export function ContractModal({
                     onClick={handleSendMessage}
                     disabled={isSendingMessage}
                     className="w-fit"
+                    size={isMobile ? 'sm' : 'default'}
                   >
                     {isSendingMessage ? 'Sending...' : 'Send to Builder'}
                   </Button>
@@ -551,6 +554,7 @@ export function ContractModal({
                     onClick={handleAddSignature}
                     disabled={isSigningMessage}
                     className="w-fit"
+                    size={isMobile ? 'sm' : 'default'}
                   >
                     {isSigningMessage ? 'Signing...' : 'Add Signature'}
                   </Button>
@@ -570,6 +574,7 @@ export function ContractModal({
                     onClick={handleSubmit}
                     disabled={isSigningMessage}
                     className="w-fit"
+                    size={isMobile ? 'sm' : 'default'}
                   >
                     {isSigningMessage ? 'Signing...' : 'Sign'}
                   </Button>

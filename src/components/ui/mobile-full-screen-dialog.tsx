@@ -7,11 +7,12 @@ import { createPortal } from 'react-dom';
 interface MobileFullScreenDialogProps {
   open: boolean;
   onClose: () => void;
-  title: string;
+  title: string | React.ReactNode;
   children: React.ReactNode;
   footer?: React.ReactNode;
   onAction?: () => void;
   actionLabel?: string;
+  actionChildren?: React.ReactNode;
   actionDisabled?: boolean;
   actionLoading?: boolean;
   contentClassName?: string;
@@ -24,6 +25,7 @@ export function MobileFullScreenDialog({
   children,
   footer,
   onAction,
+  actionChildren,
   actionLabel = 'Save',
   actionDisabled = false,
   actionLoading = false,
@@ -58,6 +60,7 @@ export function MobileFullScreenDialog({
             {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : actionLabel}
           </Button>
         )}
+        <div className="absolute right-4 top-4">{actionChildren}</div>
       </header>
       <div className={cn('flex-1 overflow-y-auto p-4', contentClassName)}>{children}</div>
       {footer}

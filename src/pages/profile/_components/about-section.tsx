@@ -72,7 +72,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ bio }) => {
             setAboutText(e.target.value);
           }
         }}
-        className={cn('min-h-[200px] resize-none', isMobile && 'min-h-[400px]')}
+        className={cn('min-h-[200px] resize-none', isMobile && 'min-h-[400px] text-sm')}
       />
       <p className="text-sm text-gray-500 text-right mt-2">
         {aboutText.length}/{MAX_CHARACTERS} characters
@@ -113,7 +113,9 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ bio }) => {
             )}
           >
             <img src={AboutIcon} alt="About" className="h-12 w-12 text-gray-300 mb-1" />
-            <p className="text-slate-500 mb-2 font-light">No about added yet.</p>
+            <p className={cn('text-slate-500 mb-2 font-light', isMobile && 'text-sm')}>
+              No about added yet.
+            </p>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
                 <Plus className="h-4 w-4" />
