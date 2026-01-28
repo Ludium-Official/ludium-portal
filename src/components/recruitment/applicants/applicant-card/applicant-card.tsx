@@ -31,8 +31,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
 
   const [updateApplicationChatroom, { loading: isUpdatingChatroom }] =
     useUpdateApplicationChatroomV2Mutation();
-  const [createChatNotification, { loading: isCreatingChatNotification }] =
-    useCreateChatNotificationV2Mutation();
+  const [createChatNotification] = useCreateChatNotificationV2Mutation();
 
   const fullName = getUserDisplayName(userInfo.nickname, userInfo.email);
   const initials = getUserInitialName(userInfo.nickname, userInfo.email);
