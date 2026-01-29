@@ -68,9 +68,9 @@ const RecruitmentDashboardSponsor: React.FC = () => {
   const totalCount = programsData?.hiringActivityPrograms?.count || 0;
 
   return (
-    <>
+    <div className={cn("bg-white px-10 py-7 rounded-md", isMobile && 'p-0')}>
       <MobileBackHeader title="Hiring Activity" backLink="/dashboard" />
-      <Container className="flex flex-col justify-between bg-white max-w-full px-10 py-7 rounded-2xl">
+      <Container className="flex flex-col justify-between">
         <div>
           {!isMobile && (
             <div className="flex items-center w-fit mb-10 text-sm text-muted-foreground">
@@ -125,7 +125,7 @@ const RecruitmentDashboardSponsor: React.FC = () => {
           variant="sponsor"
         />
       </Container>
-    </>
+    </div>
   );
 };
 
