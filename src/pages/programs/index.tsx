@@ -142,7 +142,6 @@ const ProgramsPage: React.FC = () => {
       e.preventDefault();
       leftSection.scrollTop += e.deltaY;
 
-      // Check if we need to load more after scrolling
       const newScrollTop = leftSection.scrollTop;
       const distanceFromBottom = scrollHeight - (newScrollTop + clientHeight);
       if (distanceFromBottom < 100 && hasMore && !isLoadingRef.current) {
