@@ -77,6 +77,8 @@
   img {
     margin-top: 1rem;
     margin-bottom: 1rem;
+
+    max-width: 100% !important;
   }
 
   /* To hide language selector */
