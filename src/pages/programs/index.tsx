@@ -52,7 +52,6 @@ const ProgramsPage: React.FC = () => {
   useEffect(() => {
     if (data?.programsV2?.data) {
       const newData = data.programsV2.data as ProgramV2[];
-      // 마지막 페이지: PageSize보다 적게 반환되면 더 이상 데이터 없음
       const hasMoreData = newData.length === PageSize;
 
       if (page === 1) {
