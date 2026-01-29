@@ -141,6 +141,13 @@ const ProgramsPage: React.FC = () => {
 
       e.preventDefault();
       leftSection.scrollTop += e.deltaY;
+
+      // Check if we need to load more after scrolling
+      const newScrollTop = leftSection.scrollTop;
+      const distanceFromBottom = scrollHeight - (newScrollTop + clientHeight);
+      if (distanceFromBottom < 100 && hasMore && !isLoadingRef.current) {
+        handleLoadMore();
+      }
     };
 
     window.addEventListener('wheel', handleWheel, { passive: false });
@@ -148,7 +155,7 @@ const ProgramsPage: React.FC = () => {
     return () => {
       window.removeEventListener('wheel', handleWheel);
     };
-  }, [isMobile, hasMore]);
+  }, [isMobile, hasMore, handleLoadMore]);
 
   return (
     <div className={cn('bg-white rounded-2xl py-10', isMobile && 'p-0')}>
