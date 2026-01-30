@@ -53,6 +53,7 @@ import {
   ChevronsUpDown,
   Ellipsis,
   EllipsisVertical,
+  Loader2,
   Pencil,
   Trash2,
 } from 'lucide-react';
@@ -479,7 +480,7 @@ export const MyJobPostsTable: React.FC<MyJobPostsTableProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="text-lg text-gray-500">Loading programs...</div>
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }

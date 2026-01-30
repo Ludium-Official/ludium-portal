@@ -68,7 +68,7 @@ const RecruitmentDashboardSponsor: React.FC = () => {
   const totalCount = programsData?.hiringActivityPrograms?.count || 0;
 
   return (
-    <div className={cn("bg-white px-10 py-7 rounded-md", isMobile && 'p-0')}>
+    <div className={cn('bg-white px-10 py-7 rounded-md', isMobile && 'p-0')}>
       <MobileBackHeader title="Hiring Activity" backLink="/dashboard" />
       <Container className="flex flex-col justify-between">
         <div>
@@ -80,7 +80,9 @@ const RecruitmentDashboardSponsor: React.FC = () => {
             </div>
           )}
 
-          <div className={cn('mb-6 font-bold text-xl text-gray-600', isMobile && 'text-lg mb-4')}>
+          <div
+            className={cn('mb-6 font-bold text-xl text-gray-600', isMobile && 'text-lg mt-6 mb-4')}
+          >
             Hiring Activity
           </div>
 

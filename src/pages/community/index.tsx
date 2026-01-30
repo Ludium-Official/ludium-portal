@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
 import notify from '@/lib/notify';
 import { type Post, SortEnum } from '@/types/types.generated';
-import { CirclePlus, SearchIcon } from 'lucide-react';
+import { CirclePlus, Loader2, SearchIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import PostCard from './_components/post-card';
@@ -286,7 +286,7 @@ const CommunityPage: React.FC = () => {
         {/* Loading indicator */}
         {isLoading && (
           <div className="flex justify-center py-4">
-            <div className="text-gray-500">Loading more posts...</div>
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
         )}
       </div>

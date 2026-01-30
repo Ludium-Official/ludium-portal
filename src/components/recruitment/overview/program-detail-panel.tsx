@@ -45,7 +45,7 @@ import {
 } from '@/lib/utils';
 import { ProgramStatusV2, ProgramVisibilityV2 } from '@/types/types.generated';
 import { Switch } from '@/components/ui/switch';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Link, useNavigate, useParams } from 'react-router';
@@ -402,7 +402,7 @@ const ProgramDetailPanel: React.FC<ProgramDetailPanelProps> = ({ id: propId, cla
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-lg text-gray-500">Loading program...</div>
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }

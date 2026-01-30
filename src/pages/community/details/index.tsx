@@ -13,7 +13,7 @@ import { getInitials, getUserName } from '@/lib/utils';
 
 import { CommentableTypeEnum, type Post, PostVisibility, SortEnum } from '@/types/types.generated';
 import { format } from 'date-fns';
-import { ChevronLeft, ChevronRight, Settings } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 
@@ -97,7 +97,7 @@ const CommunityDetailsPage: React.FC = () => {
   if (loading && !data) {
     return (
       <div className="bg-white p-8 text-center">
-        <p className="text-lg">Loading post...</p>
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }

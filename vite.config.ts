@@ -6,6 +6,10 @@ import path from "path";
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    host: true,
+    allowedHosts: ["6a12c7b41530.ngrok-free.app"],
+  },
   plugins: [react(), tailwindcss(), svgr()],
   resolve: {
     alias: {

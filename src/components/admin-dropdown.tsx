@@ -21,7 +21,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CarouselItemType, PostVisibility, ProgramVisibility } from '@/types/types.generated';
-import { ChevronDown, UserCog } from 'lucide-react';
+import { ChevronDown, Loader2, UserCog } from 'lucide-react';
 import { useState } from 'react';
 
 type EntityType = 'program' | 'post';
@@ -176,7 +176,7 @@ export const AdminDropdown = ({ entityId, entityType, entityVisibility }: AdminD
           disabled={!selectedAction || isLoading}
           className="w-full mt-4 bg-gray-800 hover:bg-gray-900 text-white"
         >
-          {isLoading ? 'Processing...' : 'Confirm'}
+          {isLoading ? <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" /> : 'Confirm'}
         </Button>
       </DropdownMenuContent>
     </DropdownMenu>

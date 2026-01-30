@@ -14,7 +14,7 @@ import { getCurrencyIcon } from '@/lib/utils';
 import { filterEmptyLinks, validateLinks } from '@/lib/validation';
 import { ApplicationDynamicTabs } from '@/pages/programs/details/_components/application-form-dynamic-tab';
 import { ApplicationStatus, type Program } from '@/types/types.generated';
-import { ChevronRight, X } from 'lucide-react';
+import { ChevronRight, Loader2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 // Types for the form
@@ -614,7 +614,7 @@ function CreateApplicationForm({ program }: { program?: Program | null }) {
             type="submit"
             className="bg-primary hover:bg-primary/90 h-10 min-w-[161px] ml-2"
           >
-            {loading ? 'Submitting...' : 'Submit application'}
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Submit application'}
           </Button>
         ) : (
           <Button
