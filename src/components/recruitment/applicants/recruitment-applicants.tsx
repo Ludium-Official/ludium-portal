@@ -7,6 +7,7 @@ import { useParams } from 'react-router';
 import ApplicantCard from './applicant-card/applicant-card';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 
 const RecruitmentApplicants: React.FC = () => {
   const { id } = useParams();
@@ -76,7 +77,7 @@ const RecruitmentApplicants: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="text-lg text-gray-500">Loading applicants...</div>
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }

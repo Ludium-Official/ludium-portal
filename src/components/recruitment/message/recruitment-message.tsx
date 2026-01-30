@@ -76,7 +76,6 @@ const RecruitmentMessage: React.FC = () => {
 
   useEffect(() => {
     if (hasMessageIdRoom.length > 0) {
-      // Check if chatroomId from URL is valid
       if (chatroomIdFromUrl) {
         const matchingRoom = hasMessageIdRoom.find(
           (app) => app.chatroomMessageId === chatroomIdFromUrl,
@@ -90,14 +89,12 @@ const RecruitmentMessage: React.FC = () => {
         }
       }
 
-      // Fallback to first chatroom if no valid URL param or current selection
       const firstChatroomId = hasMessageIdRoom[0].chatroomMessageId;
       const isSelectedValid =
         selectedMessageId &&
         hasMessageIdRoom.find((app) => app.chatroomMessageId === selectedMessageId);
       if (!isSelectedValid && firstChatroomId) {
         setSelectedMessageId(firstChatroomId);
-        // For builders on mobile, auto-open the dialog
         if (isMobile && !isSponsor) {
           setIsMobileDetailOpen(true);
         }
@@ -507,7 +504,16 @@ const RecruitmentMessage: React.FC = () => {
       {isMobile && selectedApplication && (
         <MobileFullScreenDialog
           open={isMobileDetailOpen}
-          onClose={() => setIsMobileDetailOpen(false)}
+          onClose={() => {
+            setIsMobileDetailOpen(false);
+            
+            if (!isSponsor) {
+              const newParams = new URLSearchParams(searchParams);
+              newParams.set('tab', 'overview');
+              newParams.delete('chatroomId');
+              setSearchParams(newParams);
+            }
+          }}
           title={
             <div className="flex items-center gap-[6px] text-xs text-muted-foreground">
               <Avatar className="h-[30px] w-[30px]">

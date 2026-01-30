@@ -371,7 +371,7 @@ const PortfolioPage: React.FC = () => {
     return (
       <Container className="my-10 space-y-5 max-w-[820px]">
         <div className="mb-2 text-xl font-bold">Portfolio</div>
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
       </Container>
     );
   }

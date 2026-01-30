@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { getNetworkDisplayName, getNetworkIcon } from '@/constant/network-icons';
 import type { NetworkWithTokens } from '@/contexts/networks-context';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 function NetworkSelector({
@@ -69,7 +69,7 @@ function NetworkSelector({
         <Button className={`${className} hover:bg-white`}>
           <span className="flex items-center gap-2">
             {loading ? (
-              'Loading...'
+              <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
             ) : selectedNetwork ? (
               <>
                 {getNetworkIcon(selectedNetwork.chainName)}

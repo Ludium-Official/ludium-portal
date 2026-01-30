@@ -257,7 +257,7 @@ const ThreadItem = ({ thread, onThreadUpdated, isDetailPage = false }: ThreadIte
     <div
       className={cn(
         'border-b py-5 px-8',
-        isMobile && 'pt-14 pb-10 px-0 first:pt-10',
+        isMobile && 'px-0 first:pt-10',
         isDetailPage && 'pt-5 border-none',
       )}
     >

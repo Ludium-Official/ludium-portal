@@ -159,7 +159,7 @@ export const CommentItemUI = ({
               <p className="mb-4 whitespace-pre-wrap break-all">{displayContent}</p>
             )}
 
-            <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center gap-3 mb-2">
               {isLoggedIn && !isDeleted && (
                 <>
                   <Button

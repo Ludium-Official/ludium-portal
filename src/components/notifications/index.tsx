@@ -194,7 +194,6 @@ function Notifications() {
                 {loadingMore && (
                   <div className="flex justify-center items-center py-4">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span className="ml-2 text-sm text-muted-foreground">Loading more...</span>
                   </div>
                 )}
 
