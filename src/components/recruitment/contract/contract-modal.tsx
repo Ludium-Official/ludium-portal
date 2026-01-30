@@ -165,22 +165,6 @@ export function ContractModal({
               status: ApplicationStatusV2.PendingSignature,
             },
           },
-        });
-      }
-
-      await sendMessage(applicationInfo.chatRoomId || '', '', '-1');
-
-      notify('Contract sent to builder for signature', 'success');
-      onOpenChange(false);
-
-      setTimeout(() => {
-        updateApplicationV2Mutation({
-          variables: {
-            id: applicationInfo.id || '',
-            input: {
-              status: ApplicationStatusV2.PendingSignature,
-            },
-          },
           refetchQueries: [
             {
               query: ApplicationsByProgramV2Document,
@@ -192,7 +176,12 @@ export function ContractModal({
             },
           ],
         });
-      }, 100);
+      }
+
+      await sendMessage(applicationInfo.chatRoomId || '', '', '-1');
+
+      notify('Contract sent to builder for signature', 'success');
+      onOpenChange(false);
     } catch (error) {
       console.error('Failed to send contract message:', error);
       notify('Failed to send contract message', 'error');

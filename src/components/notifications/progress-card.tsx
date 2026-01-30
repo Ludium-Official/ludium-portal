@@ -28,7 +28,11 @@ function ProgressCard({ notification }: { notification: NotificationV2 }) {
       </span>
     );
 
-  if (type === NotificationV2Type.Contract) {
+  if (
+    type === NotificationV2Type.Contract ||
+    (type === NotificationV2Type.Application && action === NotificationV2Action.Created) ||
+    (type === NotificationV2Type.System && action === NotificationV2Action.Created)
+  ) {
     link = metadata?.programId
       ? `/dashboard/recruitment/builder/${metadata?.programId}?tab=message`
       : null;
@@ -40,8 +44,6 @@ function ProgressCard({ notification }: { notification: NotificationV2 }) {
     link = `/community/articles/${metadata?.articleId}`;
   } else if (type === NotificationV2Type.Thread && action === NotificationV2Action.Created) {
     link = `/community/threads/${metadata?.threadId}`;
-  } else if (type === NotificationV2Type.System && action === NotificationV2Action.Created) {
-    link = `/dashboard/recruitment/builder/${metadata?.programId}?tab=message`;
   }
 
   return (

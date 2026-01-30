@@ -8,7 +8,7 @@ import path from "path";
 export default defineConfig({
   server: {
     host: true,
-    allowedHosts: ["6a12c7b41530.ngrok-free.app"],
+    allowedHosts: [],
   },
   plugins: [react(), tailwindcss(), svgr()],
   resolve: {
