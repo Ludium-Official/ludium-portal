@@ -7,6 +7,7 @@ import ProgressCard from '@/components/notifications/progress-card';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/lib/hooks/use-auth';
@@ -140,81 +141,105 @@ function Notifications() {
     },
     [hasMore, loadingMore, loadMoreNotifications],
   );
+  console.log(notifications);
+
+  const notificationContent = (
+    <>
+      <div className={cn("flex justify-between items-center mb-3", isMobile && 'mt-10')}>
+        <h3 className="text-lg font-bold">Notifications</h3>
+        <div className="flex items-center gap-2">
+          <Switch checked={unreadOnly} onCheckedChange={setUnreadOnly} />
+          <p className="text-sm">Unread</p>
+        </div>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto mb-3">
+        <TabsList className="w-auto bg-gray-100 p-1">
+          <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="contract">Recruitment</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      <ScrollArea
+        ref={scrollAreaRef}
+        className="relative overflow-auto h-[calc(100vh-235px)] pb-5"
+        onScrollCapture={handleScroll}
+      >
+        {notifications.length ? (
+          <div>
+            <div className="space-y-4 mb-10">
+              {activeTab === 'all' &&
+                notifications.map((n) => {
+                  return <ProgressCard notification={n} key={n.id} />;
+                })}
+            </div>
+
+            {loadingMore && (
+              <div className="flex justify-center items-center py-4">
+                <Loader2 className="h-4 w-4 animate-spin" />
+              </div>
+            )}
+
+            <Button
+              onClick={() => {
+                markAllAsRead({
+                  onCompleted: () => {
+                    refetch();
+                    refetchCount();
+                  },
+                });
+              }}
+              className={cn("w-[calc(100%-32px)] fixed bottom-4 z-20", isMobile && 'w-[calc(80vw-32px)]')}
+              size={isMobile ? 'sm' : 'default'}
+            >
+              Read All
+            </Button>
+          </div>
+        ) : (
+          <p className="text-sm text-center mt-3">No notifications yet.</p>
+        )}
+      </ScrollArea>
+    </>
+  );
+
+  const bellButton = (
+    <Button variant="ghost" className={cn('group h-10 relative', isMobile && 'h-auto p-0!')}>
+      <Bell />
+      {!!(
+        subscriptionCountData?.unreadNotificationsCountV2 ??
+        countData?.unreadNotificationsCountV2
+      ) && (
+        <span className="flex justify-center items-center w-[8px] h-[8px] rounded-full bg-red-400 absolute top-3 right-4 border-2 border-white text-white group-hover:border-accent transition-all" />
+      )}
+    </Button>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open={openNotifications} onOpenChange={setOpenNotifications}>
+        <SheetTrigger asChild className="flex">
+          {bellButton}
+        </SheetTrigger>
+        <SheetContent side="right" className="w-[80%] p-4">
+          {notificationContent}
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
   return (
     <div>
       <Popover open={openNotifications} onOpenChange={setOpenNotifications}>
-        <PopoverTrigger asChild className={cn(isMobile && 'flex')}>
-          <Button variant="ghost" className={cn('group h-10 relative', isMobile && 'h-auto p-0!')}>
-            <Bell />
-            {!!(
-              subscriptionCountData?.unreadNotificationsCountV2 ??
-              countData?.unreadNotificationsCountV2
-            ) && (
-              <span className="flex justify-center items-center w-[8px] h-[8px] rounded-full bg-red-400 absolute top-3 right-4 border-2 border-white text-white group-hover:border-accent transition-all" />
-            )}
-          </Button>
+        <PopoverTrigger asChild>
+          {bellButton}
         </PopoverTrigger>
-        <PopoverContent className={cn('overflow-auto w-[410px]', isMobile && 'w-full')}>
+        <PopoverContent className="overflow-auto w-[410px]">
           <div className="flex justify-end mb-[14px]">
             <PopoverClose className="cursor-pointer">
               <X className="text-foreground w-4 h-4" />
             </PopoverClose>
           </div>
-
-          <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-bold">Notifications</h3>
-            <div className="flex items-center gap-2">
-              <Switch checked={unreadOnly} onCheckedChange={setUnreadOnly} />
-              <p className="text-sm">Unread</p>
-            </div>
-          </div>
-
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto mb-3">
-            <TabsList className="w-auto bg-gray-100 p-1">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="contract">Recruitment</TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          <ScrollArea
-            ref={scrollAreaRef}
-            className="relative overflow-auto h-[calc(100vh-235px)] pb-5"
-            onScrollCapture={handleScroll}
-          >
-            {notifications.length ? (
-              <div>
-                <div className="space-y-4 mb-10">
-                  {activeTab === 'all' &&
-                    notifications.map((n) => {
-                      return <ProgressCard notification={n} key={n.id} />;
-                    })}
-                </div>
-
-                {loadingMore && (
-                  <div className="flex justify-center items-center py-4">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  </div>
-                )}
-
-                <Button
-                  onClick={() => {
-                    markAllAsRead({
-                      onCompleted: () => {
-                        refetch();
-                        refetchCount();
-                      },
-                    });
-                  }}
-                  className="w-[calc(100%-32px)] fixed bottom-4 z-20"
-                >
-                  Read All
-                </Button>
-              </div>
-            ) : (
-              <p className="text-sm text-center mt-3">No notifications yet.</p>
-            )}
-          </ScrollArea>
+          {notificationContent}
         </PopoverContent>
       </Popover>
     </div>

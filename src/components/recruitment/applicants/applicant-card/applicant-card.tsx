@@ -397,6 +397,74 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
                 </div>
               </div>
             )}
+
+            {userInfo.portfolios && userInfo.portfolios.length > 0 && (
+              <div>
+                <div className="text-xs font-bold text-gray-dark mb-2">Portfolio</div>
+                <div className="space-y-2 overflow-hidden">
+                  {userInfo.portfolios.map((portfolio) => {
+                    const isExpanded = expandedPortfolioId === portfolio.id;
+
+                    return (
+                      <div key={portfolio.id} className="border rounded-lg">
+                        <div className="flex items-center justify-between px-3 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">{portfolio.title}</span>
+                            {portfolio.isLudiumProject && (
+                              <img
+                                src={LudiumBadgeLogo}
+                                alt="Ludium Badge"
+                                className="h-3 my-0!"
+                              />
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedPortfolioId(
+                                isExpanded ? null : (portfolio.id ?? null),
+                              )
+                            }
+                            className="p-1"
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </button>
+                        </div>
+                        {isExpanded && (
+                          <div className="px-3 pb-3 border-t pt-2">
+                            <div className="text-xs font-medium text-muted-foreground mb-1">
+                              {portfolio.role}
+                            </div>
+                            <div className="text-xs text-muted-foreground mb-2">
+                              {portfolio.description}
+                            </div>
+                            {portfolio.images && portfolio.images.length > 0 && (
+                              <Carousel className="w-full">
+                                <CarouselContent>
+                                  {portfolio.images.map((image, index) => (
+                                    <CarouselItem key={index}>
+                                      <img
+                                        src={image}
+                                        alt={`${portfolio.title ?? ''} ${index + 1}`}
+                                        className="w-full object-cover rounded-md my-0!"
+                                      />
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                              </Carousel>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </MobileFullScreenDialog>
       ) : (
@@ -505,7 +573,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
                         {userInfo.cv}
                       </div>
                     </div>
-                    {userInfo.portfolios && (
+                    {userInfo.portfolios && userInfo.portfolios.length > 0  && (
                       <div>
                         <div className="text-sm font-bold text-gray-dark mb-3">Portfolio</div>
                         <div className="prose prose-sm max-w-none">
