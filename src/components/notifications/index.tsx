@@ -145,7 +145,7 @@ function Notifications() {
 
   const notificationContent = (
     <>
-      <div className={cn("flex justify-between items-center mb-3", isMobile && 'mt-10')}>
+      <div className={cn('flex justify-between items-center mb-3', isMobile && 'mt-10')}>
         <h3 className="text-lg font-bold">Notifications</h3>
         <div className="flex items-center gap-2">
           <Switch checked={unreadOnly} onCheckedChange={setUnreadOnly} />
@@ -189,7 +189,10 @@ function Notifications() {
                   },
                 });
               }}
-              className={cn("w-[calc(100%-32px)] fixed bottom-4 z-20", isMobile && 'w-[calc(80vw-32px)]')}
+              className={cn(
+                'w-[calc(100%-32px)] fixed bottom-4 z-20',
+                isMobile && 'w-[calc(80vw-32px)]',
+              )}
               size={isMobile ? 'sm' : 'default'}
             >
               Read All
@@ -206,8 +209,7 @@ function Notifications() {
     <Button variant="ghost" className={cn('group h-10 relative', isMobile && 'h-auto p-0!')}>
       <Bell />
       {!!(
-        subscriptionCountData?.unreadNotificationsCountV2 ??
-        countData?.unreadNotificationsCountV2
+        subscriptionCountData?.unreadNotificationsCountV2 ?? countData?.unreadNotificationsCountV2
       ) && (
         <span className="flex justify-center items-center w-[8px] h-[8px] rounded-full bg-red-400 absolute top-3 right-4 border-2 border-white text-white group-hover:border-accent transition-all" />
       )}
@@ -230,9 +232,7 @@ function Notifications() {
   return (
     <div>
       <Popover open={openNotifications} onOpenChange={setOpenNotifications}>
-        <PopoverTrigger asChild>
-          {bellButton}
-        </PopoverTrigger>
+        <PopoverTrigger asChild>{bellButton}</PopoverTrigger>
         <PopoverContent className="overflow-auto w-[410px]">
           <div className="flex justify-end mb-[14px]">
             <PopoverClose className="cursor-pointer">

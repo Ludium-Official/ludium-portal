@@ -176,7 +176,11 @@ export const AdminDropdown = ({ entityId, entityType, entityVisibility }: AdminD
           disabled={!selectedAction || isLoading}
           className="w-full mt-4 bg-gray-800 hover:bg-gray-900 text-white"
         >
-          {isLoading ? <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" /> : 'Confirm'}
+          {isLoading ? (
+            <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+          ) : (
+            'Confirm'
+          )}
         </Button>
       </DropdownMenuContent>
     </DropdownMenu>

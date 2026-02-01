@@ -411,19 +411,13 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-sm">{portfolio.title}</span>
                             {portfolio.isLudiumProject && (
-                              <img
-                                src={LudiumBadgeLogo}
-                                alt="Ludium Badge"
-                                className="h-3 my-0!"
-                              />
+                              <img src={LudiumBadgeLogo} alt="Ludium Badge" className="h-3 my-0!" />
                             )}
                           </div>
                           <button
                             type="button"
                             onClick={() =>
-                              setExpandedPortfolioId(
-                                isExpanded ? null : (portfolio.id ?? null),
-                              )
+                              setExpandedPortfolioId(isExpanded ? null : (portfolio.id ?? null))
                             }
                             className="p-1"
                           >
@@ -532,7 +526,11 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
                   >
                     {picked ? <Pin className="fill-slate-400" /> : <Pin />}
                   </Button>
-                  <Button onClick={handleMessageClick} disabled={isUpdatingChatroom} size={isMobile ? 'sm' : 'default'}>
+                  <Button
+                    onClick={handleMessageClick}
+                    disabled={isUpdatingChatroom}
+                    size={isMobile ? 'sm' : 'default'}
+                  >
                     {isUpdatingChatroom ? 'Creating...' : 'Message'}
                   </Button>
                 </div>
@@ -573,7 +571,7 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
                         {userInfo.cv}
                       </div>
                     </div>
-                    {userInfo.portfolios && userInfo.portfolios.length > 0  && (
+                    {userInfo.portfolios && userInfo.portfolios.length > 0 && (
                       <div>
                         <div className="text-sm font-bold text-gray-dark mb-3">Portfolio</div>
                         <div className="prose prose-sm max-w-none">

@@ -288,7 +288,11 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
               placeholder="Search..."
             />
             <CommandEmpty className="px-3 py-6 text-sm text-center">
-              {loading ? <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" /> : emptyText}
+              {loading ? (
+                <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+              ) : (
+                emptyText
+              )}
             </CommandEmpty>
             <CommandList className="pointer-events-auto">
               <CommandGroup>

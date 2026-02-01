@@ -69,9 +69,11 @@ function ProgressCard({ notification }: { notification: NotificationV2 }) {
       className={cn('flex gap-3 items-center border rounded-md py-4 px-3', readAt && 'opacity-50')}
     >
       {icon}
-      <div className={cn("flex flex-col gap-1 font-semibold", isMobile && 'text-sm')}>
+      <div className={cn('flex flex-col gap-1 font-semibold', isMobile && 'text-sm')}>
         {title}
-        <div className={cn("text-sm font-medium text-secondary-foreground", isMobile && 'text-xs')}>{content}</div>
+        <div className={cn('text-sm font-medium text-secondary-foreground', isMobile && 'text-xs')}>
+          {content}
+        </div>
       </div>
     </Link>
   );

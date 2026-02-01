@@ -506,7 +506,7 @@ const RecruitmentMessage: React.FC = () => {
           open={isMobileDetailOpen}
           onClose={() => {
             setIsMobileDetailOpen(false);
-            
+
             if (!isSponsor) {
               const newParams = new URLSearchParams(searchParams);
               newParams.set('tab', 'overview');
