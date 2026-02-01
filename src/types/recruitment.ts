@@ -4,6 +4,7 @@ import type {
   ApplicationStatusV2,
   ContractV2,
   MilestoneV2,
+  PortfolioV2,
   ProgramStatusV2,
   UserV2,
 } from './types.generated';
@@ -110,6 +111,7 @@ export interface RecruitmentApplicant {
     role?: string | null;
     skills?: string[] | null;
     tools?: string[] | null;
+    portfolios?: PortfolioV2[] | null;
   };
 }
 

@@ -8,7 +8,7 @@ export type ApplicationsByProgramV2QueryVariables = Types.Exact<{
 }>;
 
 
-export type ApplicationsByProgramV2Query = { __typename?: 'Query', applicationsByProgramV2?: { __typename?: 'PaginatedApplicationsV2', count?: number | null, totalPages?: number | null, currentPage?: number | null, hasNextPage?: boolean | null, hasPreviousPage?: boolean | null, data?: Array<{ __typename?: 'ApplicationV2', id?: string | null, status?: Types.ApplicationStatusV2 | null, content?: string | null, picked?: boolean | null, createdAt?: any | null, updatedAt?: any | null, chatroomMessageId?: string | null, applicant?: { __typename?: 'UserV2', id?: string | null, email?: string | null, nickname?: string | null, profileImage?: string | null, skills?: Array<string> | null, walletAddress?: string | null, userRole?: string | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, networkId?: number | null, sponsor?: { __typename?: 'UserV2', id?: string | null, nickname?: string | null, email?: string | null } | null } | null }> | null } | null };
+export type ApplicationsByProgramV2Query = { __typename?: 'Query', applicationsByProgramV2?: { __typename?: 'PaginatedApplicationsV2', count?: number | null, totalPages?: number | null, currentPage?: number | null, hasNextPage?: boolean | null, hasPreviousPage?: boolean | null, data?: Array<{ __typename?: 'ApplicationV2', id?: string | null, status?: Types.ApplicationStatusV2 | null, content?: string | null, picked?: boolean | null, createdAt?: any | null, updatedAt?: any | null, chatroomMessageId?: string | null, applicant?: { __typename?: 'UserV2', id?: string | null, email?: string | null, nickname?: string | null, profileImage?: string | null, skills?: Array<string> | null, walletAddress?: string | null, userRole?: string | null, location?: string | null } | null, program?: { __typename?: 'ProgramV2', id?: string | null, title?: string | null, description?: string | null, networkId?: number | null, sponsor?: { __typename?: 'UserV2', id?: string | null, nickname?: string | null, email?: string | null } | null } | null, portfolios?: Array<{ __typename?: 'PortfolioV2', id?: string | null, title?: string | null, description?: string | null, role?: string | null, isLudiumProject?: boolean | null, images?: Array<string> | null, createdAt?: string | null, updatedAt?: string | null }> | null }> | null } | null };
 
 
 export const ApplicationsByProgramV2Document = gql`
@@ -30,6 +30,7 @@ export const ApplicationsByProgramV2Document = gql`
         skills
         walletAddress
         userRole
+        location
       }
       program {
         id
@@ -41,6 +42,16 @@ export const ApplicationsByProgramV2Document = gql`
           nickname
           email
         }
+      }
+      portfolios {
+        id
+        title
+        description
+        role
+        isLudiumProject
+        images
+        createdAt
+        updatedAt
       }
     }
     count

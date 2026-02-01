@@ -16,6 +16,7 @@ query applicationsByProgramV2($query: ApplicationsByProgramV2QueryInput!) {
         skills
         walletAddress
         userRole
+        location
       }
       program {
         id
@@ -27,6 +28,16 @@ query applicationsByProgramV2($query: ApplicationsByProgramV2QueryInput!) {
           nickname
           email
         }
+      }
+      portfolios {
+        id
+        title
+        description
+        role
+        isLudiumProject
+        images
+        createdAt
+        updatedAt
       }
     }
     count

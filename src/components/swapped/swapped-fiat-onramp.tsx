@@ -115,10 +115,7 @@ const SwappedFiatOnramp: React.FC<SwappedFiatOnrampProps> = ({
                 className="w-full"
               >
                 {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                   'Continue to Payment'
                 )}

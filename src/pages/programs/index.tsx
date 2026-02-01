@@ -236,7 +236,7 @@ const ProgramsPage: React.FC = () => {
               className={cn(
                 'w-[330px] flex flex-col',
                 !isMobile && 'overflow-y-auto scrollbar-hide',
-                isMobile && 'w-full -mx-4',
+                isMobile && 'w-[calc(100%+2rem)] -mx-4',
               )}
             >
               {error ? (
@@ -263,7 +263,9 @@ const ProgramsPage: React.FC = () => {
                   {hasMore && <div ref={loadMoreRef} className="h-10" />}
                 </div>
               ) : loading ? (
-                <div className="py-8 text-center">Loading programs...</div>
+                <div className="flex justify-center py-4">
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">No programs found.</div>
               )}

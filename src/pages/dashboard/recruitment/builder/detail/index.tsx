@@ -70,7 +70,7 @@ const RecruitmentDashboardBuilderDetail: React.FC = () => {
   };
 
   return (
-    <div className={cn("bg-white px-10 py-7 rounded-md", isMobile && 'p-0')}>
+    <div className={cn('bg-white px-10 py-7 rounded-md', isMobile && 'p-0')}>
       <MobileBackHeader title="Program Overview" backLink="/dashboard/recruitment/builder" />
       <Container className="flex flex-col justify-between">
         <div className="mb-3">

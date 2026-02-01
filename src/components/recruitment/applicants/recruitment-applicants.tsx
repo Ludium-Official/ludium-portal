@@ -7,6 +7,7 @@ import { useParams } from 'react-router';
 import ApplicantCard from './applicant-card/applicant-card';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
 
 const RecruitmentApplicants: React.FC = () => {
   const { id } = useParams();
@@ -21,6 +22,7 @@ const RecruitmentApplicants: React.FC = () => {
   });
 
   const applications = data?.applicationsByProgramV2?.data || [];
+  console.log(applications);
 
   const handleTogglePick = async (applicationId?: string | null, currentPicked?: boolean) => {
     if (!applicationId) return;
@@ -60,12 +62,13 @@ const RecruitmentApplicants: React.FC = () => {
         nickname: application.applicant?.nickname,
         email: application.applicant?.email,
         cv: application.content,
+        portfolios: application.portfolios,
+        location: application.applicant?.location,
+        skills: application.applicant?.skills,
+        role: application.applicant?.userRole,
         // TODO: profile 변경되고 추가될 데이터
-        location: null, // Not in GraphQL schema
         hourlyRate: null, // Not in GraphQL schema
         star: null, // Not in GraphQL schema
-        role: null,
-        skills: application.applicant?.skills,
         tools: null, // Not in GraphQL schema
       },
     };
@@ -74,7 +77,7 @@ const RecruitmentApplicants: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="text-lg text-gray-500">Loading applicants...</div>
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }

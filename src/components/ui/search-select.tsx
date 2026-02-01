@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown, Loader2 } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -91,7 +91,13 @@ export function SearchSelect({
         >
           <CommandInput value={inputValue} onValueChange={setInputValue} placeholder="Search..." />
           <CommandList className="pointer-events-auto">
-            <CommandEmpty className="p-4">{loading ? 'Loading...' : emptyText}</CommandEmpty>
+            <CommandEmpty className="p-4">
+              {loading ? (
+                <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+              ) : (
+                emptyText
+              )}
+            </CommandEmpty>
             <CommandGroup>
               {options.map((option) => (
                 <CommandItem

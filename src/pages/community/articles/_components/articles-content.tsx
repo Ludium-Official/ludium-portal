@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { ArticleFilter, ArticleType } from '@/types/types.generated';
 import { format } from 'date-fns';
 import { Link, useSearchParams } from 'react-router';
+import { Loader2 } from 'lucide-react';
 
 const CATEGORIES = ['latest', 'trending', 'newsletter', 'campaign'] as const;
 type CategoryType = (typeof CATEGORIES)[number];
@@ -139,14 +140,15 @@ const ArticlesContent: React.FC = () => {
         className={cn(
           'grid grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-7 mb-12',
           isMobile && 'gap-x-3 gap-y-6',
+          (articlesLoading || articles.length === 0) && 'grid-cols-1!',
         )}
       >
         {articlesLoading ? (
-          <div className="col-span-3 text-center py-12">
-            <p className="text-muted-foreground">Loading articles...</p>
+          <div className="flex justify-center py-4">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
         ) : articles.length === 0 ? (
-          <div className="col-span-3 text-center py-12">
+          <div className="flex justify-center py-4">
             <p className="text-muted-foreground">No articles found</p>
           </div>
         ) : (

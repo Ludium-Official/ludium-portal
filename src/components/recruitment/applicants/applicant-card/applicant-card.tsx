@@ -1,17 +1,21 @@
+import LudiumBadgeLogo from '@/assets/icons/profile/ludium-badge.svg';
 import { useUpdateApplicationChatroomV2Mutation } from '@/apollo/mutation/update-application-chatroom-v2.generated';
-import { MarkdownPreviewer } from '@/components/markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { MobileFullScreenDialog } from '@/components/ui/mobile-full-screen-dialog';
 import { sendMessage } from '@/lib/firebase-chat';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 import notify from '@/lib/notify';
 import { cn, formatDate, getUserDisplayName, getUserInitialName } from '@/lib/utils';
 import type { RecruitmentApplicant } from '@/types/recruitment';
-import { Heart, Loader2, MapPin, Star, X } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronDown, ChevronUp, MapPin, Pin, Star } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+import { useCreateChatNotificationV2Mutation } from '@/apollo/mutation/create-chat-notification-v2.generated';
+import { fetchTimezones, Timezone } from '@/lib/api/timezones';
 
 interface ApplicantCardProps {
   applicant: RecruitmentApplicant;
@@ -20,19 +24,24 @@ interface ApplicantCardProps {
 
 const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }) => {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   const { id, userInfo, appliedDate, picked, chatroomMessageId } = applicant;
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const navigate = useNavigate();
+  const [expandedPortfolioId, setExpandedPortfolioId] = useState<string | null>(null);
+  const [location, setLocation] = useState<Timezone | null>(null);
+
   const [updateApplicationChatroom, { loading: isUpdatingChatroom }] =
     useUpdateApplicationChatroomV2Mutation();
+  const [createChatNotification] = useCreateChatNotificationV2Mutation();
 
   const fullName = getUserDisplayName(userInfo.nickname, userInfo.email);
   const initials = getUserInitialName(userInfo.nickname, userInfo.email);
 
-  const handleMessageClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleMessageClick = async (e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
 
     if (!applicant.applicationId) {
       notify('Application ID is missing', 'error');
@@ -65,6 +74,15 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
           'Start by greeting the builder and sharing project details.',
           '0',
         );
+        await createChatNotification({
+          variables: {
+            entityId: newChatroomId,
+            recipientId: Number(userInfo.userId),
+            metadata: {
+              programId: applicant.programId,
+            },
+          },
+        });
         notify('Chatroom created successfully', 'success');
       } else {
         notify('Failed to create chatroom', 'error');
@@ -74,6 +92,21 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
       notify('Failed to create chatroom. Please try again.', 'error');
     }
   };
+
+  useEffect(() => {
+    const loadTimezones = async () => {
+      try {
+        const data = await fetchTimezones();
+
+        setLocation(data.find((tz) => tz.value === userInfo.location) || null);
+      } catch (error) {
+        console.error('Failed to fetch timezones:', error);
+      }
+    };
+    loadTimezones();
+  }, [userInfo.location]);
+
+  const locationLabel = location?.label || userInfo.location;
 
   return (
     <>
@@ -86,17 +119,17 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
       >
         <div className="flex items-start gap-4">
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between">
-              <div className="flex items-cetner gap-3">
+            <div className={cn('flex items-start justify-between', isMobile && 'flex-col')}>
+              <div className={cn('flex items-center gap-3', isMobile && 'mb-3')}>
                 <Avatar className={cn('h-16 w-16', isMobile && 'h-12 w-12')}>
                   <AvatarImage src={userInfo.image || ''} alt={fullName} />
                   <AvatarFallback className="text-lg font-semibold">{initials}</AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col justify-around">
+                <div className="flex flex-col justify-around gap-2">
                   <div
                     className={cn(
                       'flex items-center gap-3 text-xl text-neutral-700',
-                      isMobile && 'text-base',
+                      isMobile && 'flex-col items-start gap-1 text-base',
                     )}
                   >
                     <Link
@@ -112,64 +145,108 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
                       </p>
                     )}
                   </div>
-                  <div
-                    className={cn(
-                      'flex items-center text-slate-500 text-sm',
-                      isMobile && 'text-xs',
-                    )}
+                  {!isMobile && (
+                    <div
+                      className={cn(
+                        'flex items-center text-slate-500 text-sm',
+                        isMobile && 'text-xs',
+                      )}
+                    >
+                      {locationLabel && (
+                        <div className="flex items-center">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-4 w-4" />
+                            <span>{locationLabel}</span>
+                          </div>
+                          <span className="mx-1">∙</span>
+                        </div>
+                      )}
+                      {userInfo.hourlyRate && (
+                        <div className="flex items-center">
+                          <div className="flex items-center gap-1">
+                            <span>${userInfo.hourlyRate}/hour</span>
+                          </div>
+                          <span className="mx-1">∙</span>
+                        </div>
+                      )}
+                      {userInfo.star && (
+                        <div className="flex items-center">
+                          <div className="flex items-center gap-1">
+                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            <span>{userInfo.star}</span>
+                          </div>
+                          <span className="mx-1">∙</span>
+                        </div>
+                      )}
+                      <div className="flex items-center">
+                        <div className="flex items-center gap-1">
+                          Applied {appliedDate && formatDate(appliedDate)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              {!isMobile && (
+                <div
+                  className={cn('flex items-center gap-3', isMobile && 'gap-1')}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Button
+                    variant="ghost"
+                    onClick={() => onTogglePick?.(id, picked)}
+                    size={isMobile ? 'sm' : 'default'}
+                    className="rounded-full border bg-zinc-100 [&_svg]:text-slate-400 w-10 h-10"
                   >
-                    {userInfo.location && (
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-4 w-4" />
-                        <span>{userInfo.location}</span>
-                      </div>
-                    )}
-                    {userInfo.hourlyRate && (
-                      <div className="flex items-center">
-                        <span className="mx-1">∙</span>
-                        <div className="flex items-center gap-1">
-                          <span>${userInfo.hourlyRate}/hour</span>
-                        </div>
-                      </div>
-                    )}
-                    {userInfo.star && (
-                      <div className="flex items-center">
-                        <span className="mx-1">∙</span>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span>{userInfo.star}</span>
-                        </div>
-                        <span className="mx-1">∙</span>
-                      </div>
-                    )}
+                    {picked ? <Pin className="fill-slate-400" /> : <Pin />}
+                  </Button>
+                  <Button
+                    onClick={handleMessageClick}
+                    disabled={isUpdatingChatroom}
+                    size={isMobile ? 'sm' : 'default'}
+                    className={cn(isMobile && 'text-xs')}
+                  >
+                    {isUpdatingChatroom ? 'Creating...' : 'Message'}
+                  </Button>
+                </div>
+              )}
+              {isMobile && (
+                <div
+                  className={cn('flex items-center text-slate-500 text-sm', isMobile && 'text-xs')}
+                >
+                  {locationLabel && (
                     <div className="flex items-center">
                       <div className="flex items-center gap-1">
-                        Applied {appliedDate && formatDate(appliedDate)}
+                        <MapPin className="h-4 w-4" />
+                        <span>{locationLabel}</span>
                       </div>
+                      <span className="mx-1">∙</span>
+                    </div>
+                  )}
+                  {userInfo.hourlyRate && (
+                    <div className="flex items-center">
+                      <div className="flex items-center gap-1">
+                        <span>${userInfo.hourlyRate}/hour</span>
+                      </div>
+                      <span className="mx-1">∙</span>
+                    </div>
+                  )}
+                  {userInfo.star && (
+                    <div className="flex items-center">
+                      <div className="flex items-center gap-1">
+                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <span>{userInfo.star}</span>
+                      </div>
+                      <span className="mx-1">∙</span>
+                    </div>
+                  )}
+                  <div className="flex items-center">
+                    <div className="flex items-center gap-1">
+                      Applied {appliedDate && formatDate(appliedDate)}
                     </div>
                   </div>
                 </div>
-              </div>
-              <div
-                className={cn('flex items-center gap-3', isMobile && 'gap-1')}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Button
-                  variant="ghost"
-                  onClick={() => onTogglePick?.(id, picked)}
-                  size={isMobile ? 'sm' : 'default'}
-                >
-                  {picked ? <Heart className="fill-red-500 text-red-500" /> : <Heart />}
-                </Button>
-                <Button
-                  onClick={handleMessageClick}
-                  disabled={isUpdatingChatroom}
-                  size={isMobile ? 'sm' : 'default'}
-                  className={cn(isMobile && 'text-xs')}
-                >
-                  {isUpdatingChatroom ? 'Creating...' : 'Message'}
-                </Button>
-              </div>
+              )}
             </div>
 
             {((userInfo.skills && userInfo.skills.length > 0) ||
@@ -212,28 +289,23 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
       </div>
 
       {isMobile ? (
-        isDialogOpen && (
-          <div className="fixed inset-0 z-50 bg-white flex flex-col">
-            {/* Mobile Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b">
-              <button type="button" onClick={() => setIsDialogOpen(false)} className="p-1">
-                <X className="h-5 w-5" />
-              </button>
-              <h2 className="text-base font-semibold">Application Details</h2>
-              <Button size="sm" onClick={handleMessageClick} disabled={isUpdatingChatroom}>
-                {isUpdatingChatroom ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Message'}
-              </Button>
-            </div>
-
-            {/* Mobile Content */}
-            <div className="flex-1 overflow-y-auto p-4">
-              {/* User Info */}
-              <div className="flex items-start gap-3 mb-4">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={userInfo.image || ''} alt={fullName} />
-                  <AvatarFallback className="text-sm font-semibold">{initials}</AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
+        <MobileFullScreenDialog
+          open={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          title="Application Details"
+          onAction={() => handleMessageClick()}
+          actionLabel="Message"
+          actionDisabled={isUpdatingChatroom}
+          actionLoading={isUpdatingChatroom}
+        >
+          <div className="flex flex-col gap-3 border-b mb-4 pb-4">
+            <div className="flex items-start gap-3">
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={userInfo.image || ''} alt={fullName} />
+                <AvatarFallback className="text-sm font-semibold">{initials}</AvatarFallback>
+              </Avatar>
+              <div className="flex items-center justify-between w-full">
+                <div>
                   <div className="flex items-center gap-2 mb-1">
                     <Link
                       to={`/users/${userInfo.userId}`}
@@ -241,98 +313,157 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
                     >
                       {fullName}
                     </Link>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="p-1 h-auto"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onTogglePick?.(id, picked);
-                      }}
-                    >
-                      {picked ? (
-                        <Heart className="h-4 w-4 fill-red-500 text-red-500" />
-                      ) : (
-                        <Heart className="h-4 w-4" />
-                      )}
-                    </Button>
                   </div>
                   {userInfo.role && (
-                    <p className="text-xs text-muted-foreground mb-1">{userInfo.role}</p>
+                    <p className="text-xs text-muted-foreground">{userInfo.role}</p>
                   )}
-                  <div className="flex flex-wrap items-center text-slate-500 text-xs gap-1">
-                    {userInfo.location && (
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        <span>{userInfo.location}</span>
-                      </div>
-                    )}
-                    {userInfo.hourlyRate && (
-                      <>
-                        <span>∙</span>
-                        <span>${userInfo.hourlyRate}/hour</span>
-                      </>
-                    )}
-                    {userInfo.star && (
-                      <>
-                        <span>∙</span>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                          <span>{userInfo.star}</span>
-                        </div>
-                      </>
-                    )}
-                    <>
-                      <span>∙</span>
-                      <span>Applied {appliedDate && formatDate(appliedDate)}</span>
-                    </>
-                  </div>
                 </div>
-              </div>
-
-              {/* Skills & Tools & CV */}
-              <div className="space-y-4">
-                {userInfo.skills && userInfo.skills.length > 0 && (
-                  <div>
-                    <div className="text-xs font-bold text-gray-dark mb-2">Skills</div>
-                    <div className="flex flex-wrap gap-2">
-                      {userInfo.skills.map((skill) => (
-                        <Badge key={skill} variant="secondary" className="text-xs">
-                          {skill}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {userInfo.tools && userInfo.tools.length > 0 && (
-                  <div>
-                    <div className="text-xs font-bold text-gray-dark mb-2">Tools</div>
-                    <div className="flex flex-wrap gap-2">
-                      {userInfo.tools.map((tool) => (
-                        <Badge key={tool} variant="secondary" className="text-xs">
-                          {tool}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {userInfo.cv && (
-                  <div>
-                    <div className="text-xs font-bold text-gray-dark mb-2">Cover Letter</div>
-                    <div className="prose prose-sm max-w-none border rounded-lg p-3 bg-gray-50">
-                      <MarkdownPreviewer value={userInfo.cv} />
-                    </div>
-                  </div>
-                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full border bg-zinc-100 [&_svg]:text-slate-400"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onTogglePick?.(id, picked);
+                  }}
+                >
+                  {picked ? <Pin className="fill-slate-400" /> : <Pin />}
+                </Button>
               </div>
             </div>
+            <div className="flex flex-wrap items-center text-slate-500 text-xs gap-1">
+              {locationLabel && (
+                <div className="flex items-center">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    <span>{locationLabel}</span>
+                  </div>
+                  <span className="mx-1">∙</span>
+                </div>
+              )}
+              {userInfo.hourlyRate && (
+                <>
+                  <span>∙</span>
+                  <span>${userInfo.hourlyRate}/hour</span>
+                </>
+              )}
+              {userInfo.star && (
+                <>
+                  <span>∙</span>
+                  <div className="flex items-center gap-1">
+                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                    <span>{userInfo.star}</span>
+                  </div>
+                </>
+              )}
+              <>
+                <span>Applied {appliedDate && formatDate(appliedDate)}</span>
+              </>
+            </div>
           </div>
-        )
+
+          <div className="space-y-4">
+            {userInfo.skills && userInfo.skills.length > 0 && (
+              <div>
+                <div className="text-xs font-bold text-gray-dark mb-2">Skills</div>
+                <div className="flex flex-wrap gap-2">
+                  {userInfo.skills.map((skill) => (
+                    <Badge key={skill} variant="secondary" className="text-xs">
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {userInfo.tools && userInfo.tools.length > 0 && (
+              <div>
+                <div className="text-xs font-bold text-gray-dark mb-2">Tools</div>
+                <div className="flex flex-wrap gap-2">
+                  {userInfo.tools.map((tool) => (
+                    <Badge key={tool} variant="secondary" className="text-xs">
+                      {tool}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {userInfo.cv && (
+              <div>
+                <div className="text-xs font-bold text-gray-dark mb-2">Cover Letter</div>
+                <div className="prose prose-sm max-w-none border rounded-lg p-3 bg-gray-50">
+                  {userInfo.cv}
+                </div>
+              </div>
+            )}
+
+            {userInfo.portfolios && userInfo.portfolios.length > 0 && (
+              <div>
+                <div className="text-xs font-bold text-gray-dark mb-2">Portfolio</div>
+                <div className="space-y-2 overflow-hidden">
+                  {userInfo.portfolios.map((portfolio) => {
+                    const isExpanded = expandedPortfolioId === portfolio.id;
+
+                    return (
+                      <div key={portfolio.id} className="border rounded-lg">
+                        <div className="flex items-center justify-between px-3 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">{portfolio.title}</span>
+                            {portfolio.isLudiumProject && (
+                              <img src={LudiumBadgeLogo} alt="Ludium Badge" className="h-3 my-0!" />
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedPortfolioId(isExpanded ? null : (portfolio.id ?? null))
+                            }
+                            className="p-1"
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </button>
+                        </div>
+                        {isExpanded && (
+                          <div className="px-3 pb-3 border-t pt-2">
+                            <div className="text-xs font-medium text-muted-foreground mb-1">
+                              {portfolio.role}
+                            </div>
+                            <div className="text-xs text-muted-foreground mb-2">
+                              {portfolio.description}
+                            </div>
+                            {portfolio.images && portfolio.images.length > 0 && (
+                              <Carousel className="w-full">
+                                <CarouselContent>
+                                  {portfolio.images.map((image, index) => (
+                                    <CarouselItem key={index}>
+                                      <img
+                                        src={image}
+                                        alt={`${portfolio.title ?? ''} ${index + 1}`}
+                                        className="w-full object-cover rounded-md my-0!"
+                                      />
+                                    </CarouselItem>
+                                  ))}
+                                </CarouselContent>
+                              </Carousel>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </MobileFullScreenDialog>
       ) : (
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="max-w-5xl! overflow-y-auto">
+          <DialogContent className="max-w-5xl! max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Application Details</DialogTitle>
             </DialogHeader>
@@ -354,29 +485,31 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
                       )}
                     </div>
                     <div className="flex items-center text-slate-500 text-sm">
-                      {userInfo.location && (
-                        <div className="flex items-center gap-1">
-                          <MapPin className="h-4 w-4" />
-                          <span>{userInfo.location}</span>
+                      {locationLabel && (
+                        <div className="flex items-center">
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-4 w-4" />
+                            <span>{locationLabel}</span>
+                          </div>
+                          <span className="mx-1">∙</span>
                         </div>
                       )}
                       {userInfo.hourlyRate && (
-                        <div className="flex items-center">
-                          <span className="mx-1">∙</span>
+                        <div className="flex items-center gap-1">
                           <span>${userInfo.hourlyRate}/hour</span>
+                          <span className="mx-1">∙</span>
                         </div>
                       )}
                       {userInfo.star && (
                         <div className="flex items-center">
-                          <span className="mx-1">∙</span>
                           <div className="flex items-center gap-1">
                             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                             <span>{userInfo.star}</span>
                           </div>
+                          <span className="mx-1">∙</span>
                         </div>
                       )}
                       <div className="flex items-center">
-                        <span className="mx-1">∙</span>
                         <span>Applied {appliedDate && formatDate(appliedDate)}</span>
                       </div>
                     </div>
@@ -389,10 +522,15 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
                       e.stopPropagation();
                       onTogglePick?.(id, picked);
                     }}
+                    className="rounded-full border bg-zinc-100 [&_svg]:text-slate-400 w-10 h-10"
                   >
-                    {picked ? <Heart className="fill-red-500 text-red-500" /> : <Heart />}
+                    {picked ? <Pin className="fill-slate-400" /> : <Pin />}
                   </Button>
-                  <Button onClick={handleMessageClick} disabled={isUpdatingChatroom}>
+                  <Button
+                    onClick={handleMessageClick}
+                    disabled={isUpdatingChatroom}
+                    size={isMobile ? 'sm' : 'default'}
+                  >
                     {isUpdatingChatroom ? 'Creating...' : 'Message'}
                   </Button>
                 </div>
@@ -426,12 +564,81 @@ const ApplicantCard: React.FC<ApplicantCardProps> = ({ applicant, onTogglePick }
                 )}
 
                 {userInfo.cv && (
-                  <div>
-                    <div className="text-sm font-bold text-gray-dark mb-3">Cover Letter</div>
-                    <div className="prose prose-sm max-w-none max-h-[500px] overflow-y-auto border rounded-lg p-4 bg-gray-50">
-                      <MarkdownPreviewer value={userInfo.cv} />
+                  <>
+                    <div>
+                      <div className="text-sm font-bold text-gray-dark mb-3">Cover Letter</div>
+                      <div className="prose prose-sm max-w-none max-h-[500px] overflow-y-auto border rounded-lg p-4 bg-gray-50">
+                        {userInfo.cv}
+                      </div>
                     </div>
-                  </div>
+                    {userInfo.portfolios && userInfo.portfolios.length > 0 && (
+                      <div>
+                        <div className="text-sm font-bold text-gray-dark mb-3">Portfolio</div>
+                        <div className="prose prose-sm max-w-none">
+                          {userInfo.portfolios.map((portfolio) => {
+                            const isExpanded = expandedPortfolioId === portfolio.id;
+
+                            return (
+                              <div key={portfolio.id} className="border rounded-lg">
+                                <div className="flex items-center justify-between px-5 py-7">
+                                  <div className="flex items-center gap-3">
+                                    <span className="font-medium">{portfolio.title}</span>
+                                    {portfolio.isLudiumProject && (
+                                      <img
+                                        src={LudiumBadgeLogo}
+                                        alt="Ludium Badge"
+                                        className="my-0!"
+                                      />
+                                    )}
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setExpandedPortfolioId(
+                                        isExpanded ? null : (portfolio.id ?? null),
+                                      )
+                                    }
+                                    className="p-1"
+                                  >
+                                    {isExpanded ? (
+                                      <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                                    ) : (
+                                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                                    )}
+                                  </button>
+                                </div>
+                                {isExpanded && (
+                                  <div className="px-4 pb-4 border-t pt-3">
+                                    <div className="text-sm font-medium text-muted-foreground mb-1">
+                                      {portfolio.role}
+                                    </div>
+                                    <div className="text-sm text-muted-foreground mb-3">
+                                      {portfolio.description}
+                                    </div>
+                                    {portfolio.images && portfolio.images.length > 0 && (
+                                      <Carousel className="w-full">
+                                        <CarouselContent className="overflow-y-auto">
+                                          {portfolio.images.map((image, index) => (
+                                            <CarouselItem key={index}>
+                                              <img
+                                                src={image}
+                                                alt={`${portfolio.title ?? ''} ${index + 1}`}
+                                                className="w-full object-cover rounded-md my-0!"
+                                              />
+                                            </CarouselItem>
+                                          ))}
+                                        </CarouselContent>
+                                      </Carousel>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
