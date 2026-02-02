@@ -10,7 +10,7 @@ import { useIsMobile } from '@/lib/hooks/use-mobile';
 import notify from '@/lib/notify';
 import { cn, formatDate, formatPrice } from '@/lib/utils';
 import { ProgramStatusV2, ProgramVisibilityV2 } from '@/types/types.generated';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router';
@@ -120,7 +120,7 @@ const RecruitmentOverview: React.FC<{
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-lg text-gray-500">Loading program...</div>
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }

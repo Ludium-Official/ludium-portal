@@ -721,8 +721,7 @@ export function ChatBox({
             >
               {loadingMore ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                  Loading...
+                  <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
                 </span>
               ) : (
                 'Load older messages'

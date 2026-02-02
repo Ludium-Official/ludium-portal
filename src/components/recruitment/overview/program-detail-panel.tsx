@@ -1,12 +1,21 @@
 import { useCreateApplicationV2Mutation } from '@/apollo/mutation/create-application-v2.generated';
+import LudiumBadgeLogo from '@/assets/icons/profile/ludium-badge.svg';
 import { useUpdateProgramV2Mutation } from '@/apollo/mutation/update-program-v2.generated';
+import { useMyPortfoliosV2Query } from '@/apollo/queries/my-portfolios-v2.generated';
 import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
 import { GetProgramsV2Document } from '@/apollo/queries/programs-v2.generated';
 import InputLabel from '@/components/common/label/inputLabel';
-import { MarkdownEditor, MarkdownPreviewer } from '@/components/markdown';
+import { MarkdownPreviewer } from '@/components/markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 import {
   Dialog,
   DialogContent,
@@ -35,11 +44,13 @@ import {
   getUserDisplayName,
 } from '@/lib/utils';
 import { ProgramStatusV2, ProgramVisibilityV2 } from '@/types/types.generated';
-import { ChevronDown } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Link, useNavigate, useParams } from 'react-router';
 import StatusBadge from '../statusBadge/statusBadge';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ProgramDetailPanelProps {
   id?: string;
@@ -68,6 +79,13 @@ const ProgramDetailPanel: React.FC<ProgramDetailPanelProps> = ({ id: propId, cla
   const [status, setStatus] = useState<ProgramStatusV2>(program?.status || ProgramStatusV2.Open);
   const [coverLetter, setCoverLetter] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedPortfolioIds, setSelectedPortfolioIds] = useState<number[]>([]);
+  const [expandedPortfolioId, setExpandedPortfolioId] = useState<string | null>(null);
+
+  const { data: portfoliosData } = useMyPortfoliosV2Query({
+    skip: !userId,
+  });
+  const portfolios = portfoliosData?.myPortfoliosV2 ?? [];
 
   useEffect(() => {
     if (program?.status) {
@@ -94,6 +112,7 @@ const ProgramDetailPanel: React.FC<ProgramDetailPanelProps> = ({ id: propId, cla
           input: {
             programId: id,
             content: coverLetter,
+            portfolioIds: selectedPortfolioIds.length > 0 ? selectedPortfolioIds : undefined,
           },
         },
         refetchQueries: [
@@ -108,6 +127,9 @@ const ProgramDetailPanel: React.FC<ProgramDetailPanelProps> = ({ id: propId, cla
 
       if (result.data?.createApplicationV2) {
         notify('Application submitted successfully!', 'success');
+        setCoverLetter('');
+        setSelectedPortfolioIds([]);
+        setExpandedPortfolioId(null);
         navigate('/dashboard/recruitment/builder');
         return;
       }
@@ -207,22 +229,113 @@ const ProgramDetailPanel: React.FC<ProgramDetailPanelProps> = ({ id: propId, cla
     </div>
   );
 
+  const handlePortfolioToggle = (portfolioId: number) => {
+    setSelectedPortfolioIds((prev) => {
+      if (prev.includes(portfolioId)) {
+        return prev.filter((id) => id !== portfolioId);
+      }
+      if (prev.length >= 4) {
+        return prev;
+      }
+      return [...prev, portfolioId];
+    });
+  };
+
   const renderApplicationButton = () => {
     const formContent = (
-      <div className="space-y-4">
+      <div className="space-y-6">
         <InputLabel
           labelId="coverLetter"
           title="Highlight your skills and explain why you're a great fit for this role."
           isPrimary
           inputClassName="hidden"
         >
-          <MarkdownEditor
-            onChange={(value: string) => {
-              setCoverLetter(value);
-            }}
-            content={coverLetter}
+          <Textarea
+            id="coverLetter"
+            placeholder="Enter your cover letter"
+            className={cn('resize-none', isMobile ? 'min-h-[300px] text-sm' : 'min-h-[400px]')}
+            value={coverLetter}
+            onChange={(e) => setCoverLetter(e.target.value)}
           />
         </InputLabel>
+
+        {portfolios.length > 0 && (
+          <div>
+            <p className="text-sm font-semibold mb-1">Portfolio</p>
+            <p className="text-sm text-muted-foreground mb-3">
+              Select up to four portfolio items you want to include with this application.
+            </p>
+            <div className="space-y-2 overflow-y-hidden">
+              {portfolios.map((portfolio) => {
+                const portfolioId = Number(portfolio.id);
+                const isSelected = selectedPortfolioIds.includes(portfolioId);
+                const isExpanded = expandedPortfolioId === portfolio.id;
+
+                return (
+                  <div key={portfolio.id} className="border rounded-lg">
+                    <div className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-3">
+                        <Switch
+                          checked={isSelected}
+                          onCheckedChange={() => handlePortfolioToggle(portfolioId)}
+                          disabled={!isSelected && selectedPortfolioIds.length >= 4}
+                        />
+                        <span className="font-medium">{portfolio.title}</span>
+                        {portfolio.isLudiumProject && (
+                          <img src={LudiumBadgeLogo} alt="Ludium Badge" className="h-5" />
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedPortfolioId(isExpanded ? null : (portfolio.id ?? null))
+                        }
+                        className="p-1"
+                      >
+                        {isExpanded ? (
+                          <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                        )}
+                      </button>
+                    </div>
+                    {isExpanded && (
+                      <div className="px-4 pb-4 border-t pt-3">
+                        <p className="text-sm font-medium text-muted-foreground mb-1">
+                          {portfolio.role}
+                        </p>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {portfolio.description}
+                        </p>
+                        {portfolio.images && portfolio.images.length > 0 && (
+                          <Carousel className="w-full">
+                            <CarouselContent>
+                              {portfolio.images.map((image, index) => (
+                                <CarouselItem key={index}>
+                                  <img
+                                    src={image}
+                                    alt={`${portfolio.title ?? ''} ${index + 1}`}
+                                    className="w-full object-cover rounded-md"
+                                  />
+                                </CarouselItem>
+                              ))}
+                            </CarouselContent>
+                            {portfolio.images.length > 1 && (
+                              <>
+                                <CarouselPrevious className="left-2" />
+                                <CarouselNext className="right-2" />
+                              </>
+                            )}
+                          </Carousel>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     );
 
@@ -289,7 +402,7 @@ const ProgramDetailPanel: React.FC<ProgramDetailPanelProps> = ({ id: propId, cla
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="text-lg text-gray-500">Loading program...</div>
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }

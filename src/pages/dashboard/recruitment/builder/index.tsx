@@ -67,9 +67,9 @@ const RecruitmentDashboardBuilder: React.FC = () => {
   const totalCount = programsData?.jobActivityPrograms?.count || 0;
 
   return (
-    <>
+    <div className={cn('bg-white px-10 py-7 rounded-md', isMobile && 'p-0')}>
       <MobileBackHeader title="Job Activity" backLink="/dashboard" />
-      <Container className="flex flex-col justify-between bg-white max-w-full px-10 py-7 rounded-2xl">
+      <Container className="flex flex-col justify-between">
         <div>
           {!isMobile && (
             <div className="flex items-center w-fit mb-10 text-sm text-muted-foreground">
@@ -79,7 +79,9 @@ const RecruitmentDashboardBuilder: React.FC = () => {
             </div>
           )}
 
-          <div className={cn('mb-6 font-bold text-xl text-gray-600', isMobile && 'text-lg mb-4')}>
+          <div
+            className={cn('mb-6 font-bold text-xl text-gray-600', isMobile && 'text-lg mt-6 mb-4')}
+          >
             Job Activity
           </div>
 
@@ -124,7 +126,7 @@ const RecruitmentDashboardBuilder: React.FC = () => {
           variant="builder"
         />
       </Container>
-    </>
+    </div>
   );
 };
 

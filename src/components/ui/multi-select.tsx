@@ -1,5 +1,5 @@
 import { type VariantProps, cva } from 'class-variance-authority';
-import { CheckIcon, ChevronDown, XIcon } from 'lucide-react';
+import { CheckIcon, ChevronDown, Loader2, XIcon } from 'lucide-react';
 
 import * as React from 'react';
 
@@ -288,7 +288,11 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
               placeholder="Search..."
             />
             <CommandEmpty className="px-3 py-6 text-sm text-center">
-              {loading ? 'Loading...' : emptyText}
+              {loading ? (
+                <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
+              ) : (
+                emptyText
+              )}
             </CommandEmpty>
             <CommandList className="pointer-events-auto">
               <CommandGroup>

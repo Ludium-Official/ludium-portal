@@ -20,7 +20,7 @@ import rightArrowIcon from '@/assets/icons/right-arrow.svg';
 import { GUIDES } from '@/constant/guides';
 import { useBreakpoint } from '@/lib/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import LoadingIcon from '@/assets/icons/loading.gif';
+import { Loader2 } from 'lucide-react';
 
 const CAMPAIGN_DATA = {
   title: 'Road to Seoul',
@@ -57,10 +57,6 @@ function MainPage() {
   const BANNER = [
     {
       image: isBelowLg ? recruitmentMainMobileImage : recruitmentMainImage,
-      link: '/programs/recruitment',
-    },
-    {
-      image: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809',
       link: '/programs/recruitment',
     },
   ];
@@ -210,15 +206,16 @@ function MainPage() {
             'min-h-[300px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6',
             isMobile &&
               'flex overflow-x-auto gap-4 pb-4 -mr-4 px-4 min-h-0 snap-x hidden-scrollbar',
+            articles.length === 0 && 'justify-center h-[200px] mr-0',
           )}
         >
           {articlesLoading ? (
             <div className="flex items-center justify-center h-full col-span-3">
-              <img src={LoadingIcon} alt="loading" className="w-10 h-10" />
+              <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
             </div>
           ) : articles.length === 0 ? (
             <div className="flex items-center justify-center h-full col-span-3">
-              <p className="text-base">No articles found</p>
+              <p className={cn('text-base', isMobile && 'text-sm')}>No articles found</p>
             </div>
           ) : (
             <>

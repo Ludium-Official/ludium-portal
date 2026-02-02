@@ -17,7 +17,7 @@ import { cn } from '@/lib/utils';
 import { HiredBuildersTable } from '@/pages/dashboard/recruitment/_components/hired-builders-table';
 import MilestoneProgress from '@/pages/dashboard/recruitment/_components/milestone-progress';
 import UpcomingPayments from '@/pages/dashboard/recruitment/_components/upcoming-payments';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 
@@ -84,7 +84,7 @@ const RecruitmentDashboardSponsorDetail: React.FC = () => {
   if (loading) {
     return (
       <div className="flex flex-col justify-center items-center h-[60vh]">
-        <p className="text-gray-500">Loading...</p>
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -99,9 +99,9 @@ const RecruitmentDashboardSponsorDetail: React.FC = () => {
   }
 
   return (
-    <>
+    <div className={cn('bg-white px-10 py-7 rounded-md', isMobile && 'p-0')}>
       <MobileBackHeader title="Program Overview" backLink="/dashboard/recruitment/sponsor" />
-      <Container className="flex flex-col justify-between bg-white max-w-full px-10 py-7 rounded-2xl">
+      <Container className="flex flex-col justify-between">
         <div className="mb-3">
           {!isMobile && (
             <div className="flex items-center w-fit mb-6 text-sm text-muted-foreground">
@@ -162,7 +162,7 @@ const RecruitmentDashboardSponsorDetail: React.FC = () => {
         <div>{selectedTab === 'applicants' && <RecruitmentApplicants />}</div>
         <div>{selectedTab === 'message' && <RecruitmentMessage />}</div>
       </Container>
-    </>
+    </div>
   );
 };
 

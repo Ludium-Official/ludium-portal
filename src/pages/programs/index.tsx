@@ -45,8 +45,6 @@ const ProgramsPage: React.FC = () => {
     console.error('Error fetching programs:', error);
   }
 
-  const totalCount = data?.programsV2?.count ?? 0;
-
   useEffect(() => {
     isLoadingRef.current = loading;
   }, [loading]);
@@ -54,9 +52,11 @@ const ProgramsPage: React.FC = () => {
   useEffect(() => {
     if (data?.programsV2?.data) {
       const newData = data.programsV2.data as ProgramV2[];
+      const hasMoreData = newData.length === PageSize;
+
       if (page === 1) {
         setPrograms(newData);
-        setHasMore(newData.length >= PageSize && newData.length < totalCount);
+        setHasMore(hasMoreData);
         if (newData.length > 0 && !selectedProgramId) {
           setSelectedProgramId(newData[0].id ?? null);
         }
@@ -65,15 +65,17 @@ const ProgramsPage: React.FC = () => {
           const existingIds = new Set(prev.map((p) => p.id));
           const uniqueNewData = newData.filter((p) => !existingIds.has(p.id));
           const updated = [...prev, ...uniqueNewData];
-          setHasMore(updated.length < totalCount);
           return updated;
         });
+        setHasMore(hasMoreData);
       }
+      isLoadingRef.current = false;
     } else if (!loading && page === 1) {
       setPrograms([]);
       setHasMore(false);
+      isLoadingRef.current = false;
     }
-  }, [data, loading, page, totalCount, selectedProgramId]);
+  }, [data, loading, page, selectedProgramId]);
 
   const handleLoadMore = useCallback(() => {
     if (!isLoadingRef.current && hasMore) {
@@ -141,6 +143,13 @@ const ProgramsPage: React.FC = () => {
 
       e.preventDefault();
       leftSection.scrollTop += e.deltaY;
+
+      const newScrollTop = leftSection.scrollTop;
+      const distanceFromBottom = scrollHeight - (newScrollTop + clientHeight);
+      if (distanceFromBottom < 10 && hasMore && !isLoadingRef.current) {
+        console.log('???');
+        handleLoadMore();
+      }
     };
 
     window.addEventListener('wheel', handleWheel, { passive: false });
@@ -148,7 +157,7 @@ const ProgramsPage: React.FC = () => {
     return () => {
       window.removeEventListener('wheel', handleWheel);
     };
-  }, [isMobile, hasMore]);
+  }, [isMobile, hasMore, handleLoadMore]);
 
   return (
     <div className={cn('bg-white rounded-2xl py-10', isMobile && 'p-0')}>
@@ -227,7 +236,7 @@ const ProgramsPage: React.FC = () => {
               className={cn(
                 'w-[330px] flex flex-col',
                 !isMobile && 'overflow-y-auto scrollbar-hide',
-                isMobile && 'w-full -mx-4',
+                isMobile && 'w-[calc(100%+2rem)] -mx-4',
               )}
             >
               {error ? (
@@ -254,7 +263,9 @@ const ProgramsPage: React.FC = () => {
                   {hasMore && <div ref={loadMoreRef} className="h-10" />}
                 </div>
               ) : loading ? (
-                <div className="py-8 text-center">Loading programs...</div>
+                <div className="flex justify-center py-4">
+                  <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">No programs found.</div>
               )}
