@@ -147,7 +147,6 @@ const ProgramsPage: React.FC = () => {
       const newScrollTop = leftSection.scrollTop;
       const distanceFromBottom = scrollHeight - (newScrollTop + clientHeight);
       if (distanceFromBottom < 10 && hasMore && !isLoadingRef.current) {
-        console.log('???');
         handleLoadMore();
       }
     };
