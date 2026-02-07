@@ -22,7 +22,6 @@ const RecruitmentApplicants: React.FC = () => {
   });
 
   const applications = data?.applicationsByProgramV2?.data || [];
-  console.log(applications);
 
   const handleTogglePick = async (applicationId?: string | null, currentPicked?: boolean) => {
     if (!applicationId) return;
