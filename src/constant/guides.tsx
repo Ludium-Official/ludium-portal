@@ -1,6 +1,9 @@
 import AboutLudiumIcon from '@/assets/icons/guide/about-ludium.svg';
 import JoinProjectIcon from '@/assets/icons/guide/join-project.svg';
 import SetUpProfileIcon from '@/assets/icons/guide/setup-profile.svg';
+import About1Icon from '@/assets/guide/about/About1.png';
+import About2Icon from '@/assets/guide/about/About2.png';
+import About3Icon from '@/assets/guide/about/About3.png';
 
 export const GUIDES = [
   {
@@ -22,6 +25,8 @@ export const GUIDES = [
 
   Ludium Portal is an open platform that makes digital collaboration more accessible, transparent, and secure. It provides infrastructure for milestone-based programs, verifiable work execution, and talent discovery. By shifting trust from people to systems, Ludium enables anyone, anywhere, to collaborate without relying on intermediaries.
 
+  ![About1](${About1Icon})
+
   ## What Is Ludium Portal?
 
   Ludium Portal supports the full lifecycle of global digital work. It allows users to:
@@ -33,6 +38,10 @@ export const GUIDES = [
   - Share and discover content through an integrated community layer
 
   The Portal functions as a trustless layer (blockchain-secured and transparent) for work execution and talent reputation.
+
+  <center>
+    <img src="${About2Icon}" alt="About2" />
+  </center>
 
   ## Core Features
 
@@ -51,6 +60,10 @@ export const GUIDES = [
   **Agents**
 
   A directory for discovering builders (creators, developers, and freelancers), teams, and organizations. The roadmap includes AI-powered matching and organization-level collaboration spaces.
+
+  <center>
+    ![About3](${About3Icon})
+  </center>
 
   ## Use Cases
 
