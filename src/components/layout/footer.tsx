@@ -29,7 +29,7 @@ function Footer() {
               <img src={logoFooter} alt="logo" />
             </Link>
           </div>
-          <div className={cn("flex flex-row gap-40", isMobile && 'flex-col gap-8')}>
+          <div className={cn('flex flex-row gap-40', isMobile && 'flex-col gap-8')}>
             <div>
               <h3 className="text-xs font-bold leading-[25px] mb-1">Contact us</h3>
               <a
