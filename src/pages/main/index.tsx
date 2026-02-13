@@ -26,7 +26,7 @@ const CAMPAIGN_DATA = {
   title: 'Road to Seoul',
   description: "Connecting the World's Builders to Seoul",
   image: campaignMainImage,
-  link: '/community/articles/5c48e4bd-c2ea-49e9-9c25-35b4a906bd1f',
+  link: '/community/articles/15076d0c-e7cd-42a7-81fa-1efa4380ef50',
 };
 
 const CATEGORIES = ['latest', 'trending', 'newsletter', 'campaign'] as const;

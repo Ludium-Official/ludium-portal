@@ -29,35 +29,48 @@ function Footer() {
               <img src={logoFooter} alt="logo" />
             </Link>
           </div>
-          <div className="text-left">
-            <h3 className="text-xs font-bold leading-[25px] mb-1">Contact us</h3>
-            <a
-              target="_blank"
-              href="https://x.com/ludium_official"
-              className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
-              rel="noreferrer"
-            >
-              <img src={twitter} alt="twitter" /> Twitter
-            </a>
-            <a
-              target="_blank"
-              href="https://www.youtube.com/@Ludium"
-              className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
-              rel="noreferrer"
-            >
-              <Youtube className="w-4 h-4 fill-gray-text" /> Youtube
-            </a>
-            <a
-              target="_blank"
-              href="https://discord.gg/Ur6rJGjdAd"
-              className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
-              rel="noreferrer"
-            >
-              <Discord className="w-4 h-4 fill-gray-text" /> Discord
-            </a>
-            <a href="/" className="flex items-center gap-2 leading-[25px] mb-1 text-xs">
-              <img src={customerService} alt="customer-service" /> Customer Service{' '}
-            </a>
+          <div className={cn('flex flex-row gap-40', isMobile && 'flex-col gap-8')}>
+            <div>
+              <h3 className="text-xs font-bold leading-[25px] mb-1">Contact us</h3>
+              <a
+                target="_blank"
+                href="https://x.com/ludium_official"
+                className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
+                rel="noreferrer"
+              >
+                <img src={twitter} alt="twitter" /> Twitter
+              </a>
+              <a
+                target="_blank"
+                href="https://www.youtube.com/@Ludium"
+                className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
+                rel="noreferrer"
+              >
+                <Youtube className="w-4 h-4 fill-gray-text" /> Youtube
+              </a>
+              <a
+                target="_blank"
+                href="https://discord.gg/Ur6rJGjdAd"
+                className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
+                rel="noreferrer"
+              >
+                <Discord className="w-4 h-4 fill-gray-text" /> Discord
+              </a>
+              <a href="/" className="flex items-center gap-2 leading-[25px] mb-1 text-xs">
+                <img src={customerService} alt="customer-service" /> Customer Service{' '}
+              </a>
+            </div>
+            <div>
+              <h3 className="text-xs font-bold leading-[25px] mb-1">Company</h3>
+              <a
+                target="_blank"
+                href="https://official.ludium.world"
+                className="flex items-center gap-2 leading-[25px] mb-1 text-xs"
+                rel="noreferrer"
+              >
+                Official
+              </a>
+            </div>
           </div>
         </div>
         <div className="text-xs">©2026 LUDIUM .ALL RIGHTS RESERVED.</div>
