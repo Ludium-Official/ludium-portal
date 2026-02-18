@@ -35,18 +35,6 @@ function stripMarkdown(text: string | null | undefined): string {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { id } = req.query;
-  const userAgent = req.headers['user-agent'] || '';
-
-  const isCrawler =
-    /twitterbot|facebookexternalhit|linkedinbot|slackbot|telegrambot|whatsapp|discordbot|googlebot|bingbot/i.test(
-      userAgent,
-    );
-
-  if (!isCrawler) {
-    res.setHeader('Location', `/community/articles/${id}`);
-    res.status(302).end();
-    return;
-  }
 
   try {
     const response = await fetch(GRAPHQL_ENDPOINT, {
