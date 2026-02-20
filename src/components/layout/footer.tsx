@@ -1,11 +1,11 @@
 import logoFooter from '@/assets/logo-footer.svg';
 import customerService from '@/assets/social/customer-service.svg';
-import twitter from '@/assets/social/twitter.svg';
-import { Link } from 'react-router';
 import Discord from '@/assets/social/discord.svg?react';
+import twitter from '@/assets/social/twitter.svg';
 import Youtube from '@/assets/social/youtube.svg?react';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { Link } from 'react-router';
 
 function Footer() {
   const isMobile = useIsMobile();

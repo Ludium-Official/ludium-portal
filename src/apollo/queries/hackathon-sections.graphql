@@ -1,0 +1,13 @@
+query hackathonSections($hackathonId: ID!) {
+  hackathonSections(hackathonId: $hackathonId) {
+    id
+    hackathonId
+    title
+    key
+    value
+    isVisible
+    sortOrder
+    createdAt
+    updatedAt
+  }
+}

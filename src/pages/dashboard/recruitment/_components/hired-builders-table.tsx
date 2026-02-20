@@ -1,4 +1,4 @@
-import { MobileCardList, type MobileCardField } from '@/components/data-table';
+import { type MobileCardField, MobileCardList } from '@/components/data-table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PageSize, Pagination } from '@/components/ui/pagination';
 import {

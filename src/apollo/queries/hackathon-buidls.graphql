@@ -1,0 +1,39 @@
+query hackathonBuidls($hackathonId: ID!) {
+  hackathonBuidls(hackathonId: $hackathonId) {
+    id
+    hackathonId
+    title
+    description
+    buidlDescription
+    coverImage
+    githubLink
+    websiteLink
+    demoVideoLink
+    socialLinks
+    ownerUserId
+    createdAt
+    updatedAt
+    owner {
+      id
+      nickname
+      profileImage
+    }
+    builders {
+      id
+      buidlId
+      userId
+      isAccepted
+      createdAt
+      user {
+        id
+        nickname
+        profileImage
+      }
+    }
+    tracks {
+      id
+      title
+      key
+    }
+  }
+}

@@ -1,10 +1,13 @@
-import LudiumBadgeLogo from '@/assets/icons/profile/ludium-badge.svg';
+import { useCreateChatNotificationV2Mutation } from '@/apollo/mutation/create-chat-notification-v2.generated';
 import { useUpdateApplicationChatroomV2Mutation } from '@/apollo/mutation/update-application-chatroom-v2.generated';
+import LudiumBadgeLogo from '@/assets/icons/profile/ludium-badge.svg';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MobileFullScreenDialog } from '@/components/ui/mobile-full-screen-dialog';
+import { type Timezone, fetchTimezones } from '@/lib/api/timezones';
 import { sendMessage } from '@/lib/firebase-chat';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 import notify from '@/lib/notify';
@@ -13,9 +16,6 @@ import type { RecruitmentApplicant } from '@/types/recruitment';
 import { ChevronDown, ChevronUp, MapPin, Pin, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
-import { useCreateChatNotificationV2Mutation } from '@/apollo/mutation/create-chat-notification-v2.generated';
-import { fetchTimezones, Timezone } from '@/lib/api/timezones';
 
 interface ApplicantCardProps {
   applicant: RecruitmentApplicant;

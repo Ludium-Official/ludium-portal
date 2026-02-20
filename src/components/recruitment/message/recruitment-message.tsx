@@ -13,6 +13,7 @@ import { useNetworks } from '@/contexts/networks-context';
 import { type ChatMessageFile, getAllFiles, getLatestMessage } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn, fromUTCString, getUserDisplayName, getUserInitialName } from '@/lib/utils';
 import type { ContractInformation } from '@/types/recruitment';
 import {
@@ -29,7 +30,6 @@ import { FileContractAccordion } from './file-contract-accordion';
 import MessageListItem from './message-list-item';
 import { MilestoneAccordion } from './milestone-accordion';
 import { MilestoneModal } from './milestone-modal';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 type MobileTabType = 'chat' | 'milestone' | 'file';
 

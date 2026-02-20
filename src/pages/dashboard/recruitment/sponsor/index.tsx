@@ -2,9 +2,11 @@ import {
   useHiringActivityCardsQuery,
   useHiringActivityProgramsQuery,
 } from '@/apollo/queries/hiring-activity-v2.generated';
+import MobileBackHeader from '@/components/common/mobile-back-header';
 import Container from '@/components/layout/container';
 import { PageSize } from '@/components/ui/pagination';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn, commaNumber } from '@/lib/utils';
 import type { HiringActivityFilterOption } from '@/types/dashboard';
 import type {
@@ -15,8 +17,6 @@ import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { MyJobPostsTable } from '../_components/my-job-posts-table';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
-import MobileBackHeader from '@/components/common/mobile-back-header';
 
 const RecruitmentDashboardSponsor: React.FC = () => {
   const { userId } = useAuth();

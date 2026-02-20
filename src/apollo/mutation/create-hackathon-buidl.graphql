@@ -1,0 +1,36 @@
+mutation createHackathonBuidl($input: CreateHackathonBuidlInput!) {
+  createHackathonBuidl(input: $input) {
+    id
+    hackathonId
+    title
+    description
+    buidlDescription
+    coverImage
+    githubLink
+    websiteLink
+    demoVideoLink
+    socialLinks
+    ownerUserId
+    createdAt
+    owner {
+      id
+      nickname
+      profileImage
+    }
+    builders {
+      id
+      userId
+      isAccepted
+      user {
+        id
+        nickname
+        profileImage
+      }
+    }
+    tracks {
+      id
+      title
+      key
+    }
+  }
+}

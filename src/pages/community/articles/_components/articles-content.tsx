@@ -7,8 +7,8 @@ import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { ArticleFilter, ArticleType } from '@/types/types.generated';
 import { format } from 'date-fns';
-import { Link, useSearchParams } from 'react-router';
 import { Loader2 } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router';
 
 const CATEGORIES = ['latest', 'trending', 'newsletter', 'campaign'] as const;
 type CategoryType = (typeof CATEGORIES)[number];

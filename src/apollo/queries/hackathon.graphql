@@ -1,0 +1,35 @@
+query hackathon($id: ID!) {
+  hackathon(id: $id) {
+    id
+    title
+    coverImage
+    status
+    trackMode
+    deadlineAt
+    submissionAt
+    prizePoolAmount
+    networkId
+    tokenId
+    createdAt
+    updatedAt
+    network {
+      id
+      chainId
+      chainName
+      mainnet
+      exploreUrl
+    }
+    token {
+      id
+      tokenName
+      decimals
+      tokenAddress
+    }
+    sponsor {
+      id
+      nickname
+      profileImage
+      email
+    }
+  }
+}

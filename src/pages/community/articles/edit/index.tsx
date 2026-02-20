@@ -3,13 +3,13 @@ import { useUpdateArticleMutation } from '@/apollo/mutation/update-article.gener
 import { useArticleQuery } from '@/apollo/queries/article.generated';
 import { ArticlesDocument } from '@/apollo/queries/articles.generated';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import notify from '@/lib/notify';
+import { cn } from '@/lib/utils';
 import { ArticleStatus } from '@/types/types.generated';
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import ArticleForm, { type OnSubmitArticleFunc } from '../_components/article-form';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
-import { cn } from '@/lib/utils';
 
 const EditArticlePage: React.FC = () => {
   const navigate = useNavigate();

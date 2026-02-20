@@ -1,0 +1,13 @@
+query hackathonTracks($hackathonId: ID!) {
+  hackathonTracks(hackathonId: $hackathonId) {
+    id
+    hackathonId
+    title
+    key
+    description
+    isActive
+    sortOrder
+    createdAt
+    updatedAt
+  }
+}

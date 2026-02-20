@@ -1,0 +1,15 @@
+query hackathonParticipants($hackathonId: ID!) {
+  hackathonParticipants(hackathonId: $hackathonId) {
+    hackathonId
+    registeredAt
+    user {
+      id
+      nickname
+      profileImage
+    }
+    buidlsInfo {
+      buidlId
+      title
+    }
+  }
+}

@@ -8,6 +8,7 @@ import ProgramsPage from '@/pages/programs';
 import CreateProgram from '@/pages/programs/create';
 import ProgramDetailsPage from '@/pages/programs/details';
 import EditProgramPage from '@/pages/programs/edit';
+import HackathonPage from '@/pages/programs/hackathon';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Route, Routes } from 'react-router';
 import GuideDetailsPage from './pages/about/guides/detail';
@@ -74,6 +75,9 @@ function App() {
             <Route path="recruitment">
               <Route index element={<ProgramsPage />} />
               <Route path=":id" element={<ProgramDetailsPage />} />
+            </Route>
+            <Route path="hackathon">
+              <Route path=":id" element={<HackathonPage />} />
             </Route>
           </Route>
 

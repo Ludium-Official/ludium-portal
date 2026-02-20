@@ -1,9 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useNetworks } from '@/contexts/networks-context';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn, commaNumber, dDay, fromUTCString, getCurrencyIcon, getInitials } from '@/lib/utils';
 import type { UpcomingPayment } from '@/types/types.generated';
 import { format } from 'date-fns';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 interface UpcomingPaymentsProps {
   upcomingPayments: UpcomingPayment[];

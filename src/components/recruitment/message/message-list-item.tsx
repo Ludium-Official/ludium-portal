@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn, getUserDisplayName, getUserInitialName } from '@/lib/utils';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn, getUserDisplayName, getUserInitialName } from '@/lib/utils';
 import type { ApplicationV2 } from '@/types/types.generated';
 import type { Timestamp } from 'firebase/firestore';
 

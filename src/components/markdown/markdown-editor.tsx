@@ -32,9 +32,9 @@ import {
   toolbarPlugin,
 } from '@mdxeditor/editor';
 import '@mdxeditor/editor/style.css';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { useEffect, useRef, useState } from 'react';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 import './style.css';
 import { cn } from '@/lib/utils';

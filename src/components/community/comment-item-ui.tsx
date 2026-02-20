@@ -1,28 +1,28 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useCommentLineHeight } from '@/lib/hooks/use-comment-line-height';
-import { CommentItemUIData } from '@/types/comment';
-import { format } from 'date-fns';
-import {
-  MessageSquareMore,
-  MoreHorizontal,
-  ThumbsDown,
-  ThumbsUp,
-  Loader2,
-  Pencil,
-  Trash2,
-} from 'lucide-react';
-import { ReactNode } from 'react';
+import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useCommentLineHeight } from '@/lib/hooks/use-comment-line-height';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import type { CommentItemUIData } from '@/types/comment';
+import { format } from 'date-fns';
+import {
+  Loader2,
+  MessageSquareMore,
+  MoreHorizontal,
+  Pencil,
+  ThumbsDown,
+  ThumbsUp,
+  Trash2,
+} from 'lucide-react';
+import type { ReactNode } from 'react';
 
 export type { CommentItemUIData };
 

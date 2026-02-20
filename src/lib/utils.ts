@@ -128,7 +128,7 @@ export const dDay = (deadline: Date) => {
   return `D-${daysRemaining}`;
 };
 
-export const formatDate = (date: Date | string, shortMonth: boolean = false) => {
+export const formatDate = (date: Date | string, shortMonth = false) => {
   const dateObj = typeof date === 'string' ? fromUTCString(date) : date;
   if (!dateObj) return '';
 

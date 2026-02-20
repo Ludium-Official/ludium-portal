@@ -2,14 +2,14 @@ import { useThreadQuery } from '@/apollo/queries/thread.generated';
 import { useTopViewedArticlesQuery } from '@/apollo/queries/top-viewed-articles.generated';
 import TrendingArticles from '@/components/community/trending-articles';
 import Container from '@/components/layout/container';
+import { ShareButton } from '@/components/ui/share-button';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
+import type { Thread } from '@/types/types.generated';
 import { ArrowLeftIcon, Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import ThreadItem from '../_components/thread-item';
-import { Thread } from '@/types/types.generated';
-import { ShareButton } from '@/components/ui/share-button';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
-import { cn } from '@/lib/utils';
 
 const ThreadDetailsPage = () => {
   const { id } = useParams();

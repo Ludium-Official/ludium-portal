@@ -4,11 +4,11 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import type { MilestoneV2 } from '@/types/types.generated';
 import { Plus } from 'lucide-react';
 import { MilestoneCard } from './milestone-card';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
-import { cn } from '@/lib/utils';
 
 interface MilestoneAccordionProps {
   activeMilestones: MilestoneV2[];
