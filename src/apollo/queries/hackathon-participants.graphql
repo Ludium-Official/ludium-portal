@@ -1,15 +1,25 @@
-query hackathonParticipants($hackathonId: ID!) {
-  hackathonParticipants(hackathonId: $hackathonId) {
-    hackathonId
-    registeredAt
-    user {
-      id
-      nickname
-      profileImage
-    }
-    buidlsInfo {
-      buidlId
-      title
+query hackathonParticipants($hackathonId: ID!, $page: Int, $limit: Int) {
+  hackathonParticipants(hackathonId: $hackathonId, page: $page, limit: $limit) {
+    count
+    totalPages
+    currentPage
+    hasNextPage
+    hasPreviousPage
+    data {
+      hackathonId
+      registeredAt
+      user {
+        id
+        nickname
+        profileImage
+        userRole
+      }
+      buidls {
+        id
+        title
+        coverImage
+        description
+      }
     }
   }
 }

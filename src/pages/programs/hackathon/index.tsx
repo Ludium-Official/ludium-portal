@@ -10,6 +10,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import HackathonBuidlsTab from './_components/hackathon-buidls-tab';
 import HackathonDetailsTab from './_components/hackathon-details-tab';
+import HackathonFaqTab from './_components/hackathon-faq-tab';
+import HackathonHackersTab from './_components/hackathon-hackers-tab';
+import HackathonTracksTab from './_components/hackathon-tracks-tab';
 
 const HackathonPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -85,7 +88,7 @@ const HackathonPage: React.FC = () => {
                       </div>
                     ) : (
                       <div className="flex items-center gap-3">
-                        {hackathon.prizePoolAmount}{' '}
+                        {hackathon.prizePoolAmount.toLocaleString()}
                         <div className="flex items-center gap-2">
                           {getCurrencyIcon(hackathon.token?.tokenName || '')}
                           {hackathon.token?.tokenName}
@@ -161,11 +164,17 @@ const HackathonPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            <Link to={`/programs/hackathon/${id}/buidl/submit`}>
-              <Button variant="purple" className="w-full">
+            {isSubmissionActive ? (
+              <Link to={`/programs/hackathon/${id}/buidl/submit`}>
+                <Button variant="purple" className="w-full">
+                  Submit
+                </Button>
+              </Link>
+            ) : (
+              <Button variant="purple" className="w-full" disabled>
                 Submit
               </Button>
-            </Link>
+            )}
           </div>
         </div>
         <div className="lg:col-span-2">
@@ -189,21 +198,9 @@ const HackathonPage: React.FC = () => {
 
           {currentTab === 'details' && <HackathonDetailsTab hackathonId={id ?? ''} />}
           {currentTab === 'buidls' && <HackathonBuidlsTab hackathonId={id ?? ''} />}
-          {currentTab === 'hackers' && (
-            <div className="mt-3">
-              <div>Hackers</div>
-            </div>
-          )}
-          {currentTab === 'tracks' && (
-            <div className="mt-3">
-              <div>Tracks</div>
-            </div>
-          )}
-          {currentTab === 'faq' && (
-            <div className="mt-3">
-              <div>FAQ</div>
-            </div>
-          )}
+          {currentTab === 'hackers' && <HackathonHackersTab hackathonId={id ?? ''} />}
+          {currentTab === 'tracks' && <HackathonTracksTab hackathonId={id ?? ''} />}
+          {currentTab === 'faq' && <HackathonFaqTab hackathonId={id ?? ''} />}
         </div>
       </Container>
     </div>

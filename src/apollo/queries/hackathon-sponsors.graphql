@@ -1,0 +1,15 @@
+query hackathonSponsors($hackathonId: ID!) {
+  hackathonSponsors(hackathonId: $hackathonId) {
+    id
+    name
+    sponsorImage
+    about
+    link
+    tracks {
+      id
+      title
+      description
+      prize
+    }
+  }
+}

@@ -28,7 +28,6 @@ function HackathonDetailsTab({ hackathonId }: HackathonDetailsTabProps) {
     }
   }, [sections, activeId]);
 
-  // layout의 overflow-x-hidden 때문에 CSS sticky가 동작하지 않아 scroll 이벤트로 직접 처리
   useEffect(() => {
     const scrollEl = document.getElementById('scroll-area-main-viewport');
     if (!scrollEl) return;
@@ -53,7 +52,6 @@ function HackathonDetailsTab({ hackathonId }: HackathonDetailsTabProps) {
     return () => scrollEl.removeEventListener('scroll', onScroll);
   }, [sections]);
 
-  // IntersectionObserver로 현재 보이는 섹션 감지
   useEffect(() => {
     const scrollEl = document.getElementById('scroll-area-main-viewport');
     if (!scrollEl) return;
@@ -107,7 +105,7 @@ function HackathonDetailsTab({ hackathonId }: HackathonDetailsTabProps) {
     <div ref={wrapperRef} className="flex gap-6 mt-3">
       <div
         ref={sidebarRef}
-        className="flex flex-col gap-2 w-40 h-fit shrink-0 p-4 rounded-lg border border-gray-200"
+        className="flex flex-col gap-2 w-45 h-fit shrink-0 p-4 rounded-lg border border-gray-200"
       >
         {sections.map((section) => (
           <button

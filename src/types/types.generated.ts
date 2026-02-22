@@ -450,8 +450,8 @@ export type CreateEducationV2Input = {
 export type CreateHackathonBuidlInput = {
   /** Detailed buidl description */
   buidlDescription: Scalars['String']['input'];
-  /** Cover image URL */
-  coverImage: Scalars['String']['input'];
+  /** Cover image file */
+  coverImage: Scalars['Upload']['input'];
   /** Demo video link */
   demoVideoLink?: InputMaybe<Scalars['String']['input']>;
   /** Buidl description (max 500 words) */
@@ -464,10 +464,10 @@ export type CreateHackathonBuidlInput = {
   memberUserIds?: InputMaybe<Array<Scalars['Int']['input']>>;
   /** Social links */
   socialLinks: Array<Scalars['String']['input']>;
+  /** Sponsor IDs associated with this buidl */
+  sponsorIds?: InputMaybe<Array<Scalars['ID']['input']>>;
   /** Buidl title */
   title: Scalars['String']['input'];
-  /** Track IDs associated with this buidl */
-  trackIds?: InputMaybe<Array<Scalars['ID']['input']>>;
   /** Website link */
   websiteLink?: InputMaybe<Scalars['String']['input']>;
 };
@@ -758,7 +758,7 @@ export type Hackathon = {
   /** The network associated with this hackathon */
   network?: Maybe<NetworkV2>;
   networkId?: Maybe<Scalars['Int']['output']>;
-  /** Total prize pool amount (sum of all hackathon prizes) */
+  /** Total prize pool amount (sum of all track prizes) */
   prizePoolAmount?: Maybe<Scalars['Int']['output']>;
   /** The sponsor of this hackathon */
   sponsor?: Maybe<UserV2>;
@@ -788,9 +788,9 @@ export type HackathonBuidl = {
   owner?: Maybe<UserV2>;
   ownerUserId?: Maybe<Scalars['Int']['output']>;
   socialLinks?: Maybe<Array<Scalars['String']['output']>>;
+  /** Sponsors associated with this buidl */
+  sponsors?: Maybe<Array<HackathonSponsor>>;
   title?: Maybe<Scalars['String']['output']>;
-  /** Tracks associated with this buidl */
-  tracks?: Maybe<Array<HackathonTrack>>;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   websiteLink?: Maybe<Scalars['String']['output']>;
 };
@@ -819,7 +819,7 @@ export type HackathonFaq = {
 
 export type HackathonParticipant = {
   __typename?: 'HackathonParticipant';
-  buidlsInfo?: Maybe<HackathonParticipantBuidlInfo>;
+  buidls?: Maybe<Array<HackathonParticipantBuidlInfo>>;
   hackathonId?: Maybe<Scalars['ID']['output']>;
   registeredAt?: Maybe<Scalars['DateTime']['output']>;
   user?: Maybe<UserV2>;
@@ -827,21 +827,10 @@ export type HackathonParticipant = {
 
 export type HackathonParticipantBuidlInfo = {
   __typename?: 'HackathonParticipantBuidlInfo';
-  buidlId?: Maybe<Scalars['ID']['output']>;
-  title?: Maybe<Scalars['String']['output']>;
-};
-
-export type HackathonPrize = {
-  __typename?: 'HackathonPrize';
-  about?: Maybe<Scalars['String']['output']>;
-  createdAt?: Maybe<Scalars['DateTime']['output']>;
-  hackathonId?: Maybe<Scalars['ID']['output']>;
+  coverImage?: Maybe<Scalars['String']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
-  link?: Maybe<Scalars['String']['output']>;
-  name?: Maybe<Scalars['String']['output']>;
-  prize?: Maybe<Scalars['Int']['output']>;
-  sponsorImage?: Maybe<Scalars['String']['output']>;
-  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
 };
 
 export type HackathonSection = {
@@ -857,6 +846,29 @@ export type HackathonSection = {
   value?: Maybe<Scalars['String']['output']>;
 };
 
+export type HackathonSponsor = {
+  __typename?: 'HackathonSponsor';
+  about?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  hackathonId?: Maybe<Scalars['ID']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  link?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  sponsorImage?: Maybe<Scalars['String']['output']>;
+  tracks?: Maybe<Array<HackathonSponsorTrack>>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export type HackathonSponsorTrack = {
+  __typename?: 'HackathonSponsorTrack';
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  prize?: Maybe<Scalars['Int']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
 export enum HackathonStatus {
   Close = 'close',
   Draft = 'draft',
@@ -867,11 +879,10 @@ export type HackathonTrack = {
   __typename?: 'HackathonTrack';
   createdAt?: Maybe<Scalars['DateTime']['output']>;
   description?: Maybe<Scalars['String']['output']>;
-  hackathonId?: Maybe<Scalars['ID']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
-  isActive?: Maybe<Scalars['Boolean']['output']>;
-  key?: Maybe<Scalars['String']['output']>;
-  sortOrder?: Maybe<Scalars['Int']['output']>;
+  prize?: Maybe<Scalars['Int']['output']>;
+  /** The name of the sponsor for this track */
+  sponsorTitle?: Maybe<Scalars['String']['output']>;
   title?: Maybe<Scalars['String']['output']>;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
 };
@@ -2247,6 +2258,26 @@ export type PaginatedContractV2 = {
   data?: Maybe<Array<ContractV2>>;
 };
 
+export type PaginatedHackathonBuidls = {
+  __typename?: 'PaginatedHackathonBuidls';
+  count?: Maybe<Scalars['Int']['output']>;
+  currentPage?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<HackathonBuidl>>;
+  hasNextPage?: Maybe<Scalars['Boolean']['output']>;
+  hasPreviousPage?: Maybe<Scalars['Boolean']['output']>;
+  totalPages?: Maybe<Scalars['Int']['output']>;
+};
+
+export type PaginatedHackathonParticipants = {
+  __typename?: 'PaginatedHackathonParticipants';
+  count?: Maybe<Scalars['Int']['output']>;
+  currentPage?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<HackathonParticipant>>;
+  hasNextPage?: Maybe<Scalars['Boolean']['output']>;
+  hasPreviousPage?: Maybe<Scalars['Boolean']['output']>;
+  totalPages?: Maybe<Scalars['Int']['output']>;
+};
+
 export type PaginatedHiredBuilders = {
   __typename?: 'PaginatedHiredBuilders';
   count?: Maybe<Scalars['Int']['output']>;
@@ -2652,18 +2683,16 @@ export type Query = {
   getSwappedStatus?: Maybe<SwappedStatusResponse>;
   /** Get a single hackathon by ID. */
   hackathon?: Maybe<Hackathon>;
-  /** Get all buidls for a hackathon with tracks and builders. */
-  hackathonBuidls?: Maybe<Array<HackathonBuidl>>;
+  /** Get paginated buidls for a hackathon. */
+  hackathonBuidls?: Maybe<PaginatedHackathonBuidls>;
   /** Get FAQs for a hackathon, ordered by sort_order. */
   hackathonFaqs?: Maybe<Array<HackathonFaq>>;
-  /** Get all participants for a hackathon with their buidl info. */
-  hackathonParticipants?: Maybe<Array<HackathonParticipant>>;
-  /** Get all prizes (sponsors) for a hackathon. */
-  hackathonPrizes?: Maybe<Array<HackathonPrize>>;
+  /** Get paginated participants for a hackathon. */
+  hackathonParticipants?: Maybe<PaginatedHackathonParticipants>;
   /** Get visible sections for a hackathon, ordered by sort_order. */
   hackathonSections?: Maybe<Array<HackathonSection>>;
-  /** Get active tracks for a hackathon, ordered by sort_order. */
-  hackathonTracks?: Maybe<Array<HackathonTrack>>;
+  /** Get sponsors for a hackathon with their tracks. Sponsors sorted by total prize desc, tracks sorted by prize desc. */
+  hackathonSponsors?: Maybe<Array<HackathonSponsor>>;
   /** Get list of hired builders (for sponsor) */
   hiredBuilders?: Maybe<PaginatedHiredBuilders>;
   /** Get hiring activity statistics (as sponsor - programs created by user) */
@@ -2908,6 +2937,8 @@ export type QueryHackathonArgs = {
 
 export type QueryHackathonBuidlsArgs = {
   hackathonId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -2918,11 +2949,8 @@ export type QueryHackathonFaqsArgs = {
 
 export type QueryHackathonParticipantsArgs = {
   hackathonId: Scalars['ID']['input'];
-};
-
-
-export type QueryHackathonPrizesArgs = {
-  hackathonId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -2931,7 +2959,7 @@ export type QueryHackathonSectionsArgs = {
 };
 
 
-export type QueryHackathonTracksArgs = {
+export type QueryHackathonSponsorsArgs = {
   hackathonId: Scalars['ID']['input'];
 };
 

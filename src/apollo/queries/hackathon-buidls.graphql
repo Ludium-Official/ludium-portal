@@ -1,39 +1,47 @@
-query hackathonBuidls($hackathonId: ID!) {
-  hackathonBuidls(hackathonId: $hackathonId) {
-    id
-    hackathonId
-    title
-    description
-    buidlDescription
-    coverImage
-    githubLink
-    websiteLink
-    demoVideoLink
-    socialLinks
-    ownerUserId
-    createdAt
-    updatedAt
-    owner {
+query hackathonBuidls($hackathonId: ID!, $page: Int, $limit: Int) {
+  hackathonBuidls(hackathonId: $hackathonId, page: $page, limit: $limit) {
+    count
+    totalPages
+    currentPage
+    hasNextPage
+    hasPreviousPage
+    data {
       id
-      nickname
-      profileImage
-    }
-    builders {
-      id
-      buidlId
-      userId
-      isAccepted
-      createdAt
-      user {
+      hackathonId
+      title
+      description
+      coverImage
+      buidlDescription
+      githubLink
+      websiteLink
+      demoVideoLink
+      socialLinks
+      owner {
         id
         nickname
         profileImage
       }
-    }
-    tracks {
-      id
-      title
-      key
+      sponsors {
+        id
+        name
+        sponsorImage
+        tracks {
+          id
+          title
+          description
+          prize
+        }
+      }
+      builders {
+        id
+        userId
+        isAccepted
+        user {
+          id
+          nickname
+          profileImage
+        }
+      }
     }
   }
 }

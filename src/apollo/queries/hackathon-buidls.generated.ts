@@ -5,49 +5,59 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type HackathonBuidlsQueryVariables = Types.Exact<{
   hackathonId: Types.Scalars['ID']['input'];
+  page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  limit?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
 
 
-export type HackathonBuidlsQuery = { __typename?: 'Query', hackathonBuidls?: Array<{ __typename?: 'HackathonBuidl', id?: string | null, hackathonId?: string | null, title?: string | null, description?: string | null, buidlDescription?: string | null, coverImage?: string | null, githubLink?: string | null, websiteLink?: string | null, demoVideoLink?: string | null, socialLinks?: Array<string> | null, ownerUserId?: number | null, createdAt?: any | null, updatedAt?: any | null, owner?: { __typename?: 'UserV2', id?: string | null, nickname?: string | null, profileImage?: string | null } | null, builders?: Array<{ __typename?: 'HackathonBuidlBuilder', id?: string | null, buidlId?: string | null, userId?: number | null, isAccepted?: boolean | null, createdAt?: any | null, user?: { __typename?: 'UserV2', id?: string | null, nickname?: string | null, profileImage?: string | null } | null }> | null, tracks?: Array<{ __typename?: 'HackathonTrack', id?: string | null, title?: string | null, key?: string | null }> | null }> | null };
+export type HackathonBuidlsQuery = { __typename?: 'Query', hackathonBuidls?: { __typename?: 'PaginatedHackathonBuidls', count?: number | null, totalPages?: number | null, currentPage?: number | null, hasNextPage?: boolean | null, hasPreviousPage?: boolean | null, data?: Array<{ __typename?: 'HackathonBuidl', id?: string | null, hackathonId?: string | null, title?: string | null, description?: string | null, coverImage?: string | null, buidlDescription?: string | null, githubLink?: string | null, websiteLink?: string | null, demoVideoLink?: string | null, socialLinks?: Array<string> | null, owner?: { __typename?: 'UserV2', id?: string | null, nickname?: string | null, profileImage?: string | null } | null, sponsors?: Array<{ __typename?: 'HackathonSponsor', id?: string | null, name?: string | null, sponsorImage?: string | null, tracks?: Array<{ __typename?: 'HackathonSponsorTrack', id?: string | null, title?: string | null, description?: string | null, prize?: number | null }> | null }> | null, builders?: Array<{ __typename?: 'HackathonBuidlBuilder', id?: string | null, userId?: number | null, isAccepted?: boolean | null, user?: { __typename?: 'UserV2', id?: string | null, nickname?: string | null, profileImage?: string | null } | null }> | null }> | null } | null };
 
 
 export const HackathonBuidlsDocument = gql`
-    query hackathonBuidls($hackathonId: ID!) {
-  hackathonBuidls(hackathonId: $hackathonId) {
-    id
-    hackathonId
-    title
-    description
-    buidlDescription
-    coverImage
-    githubLink
-    websiteLink
-    demoVideoLink
-    socialLinks
-    ownerUserId
-    createdAt
-    updatedAt
-    owner {
+    query hackathonBuidls($hackathonId: ID!, $page: Int, $limit: Int) {
+  hackathonBuidls(hackathonId: $hackathonId, page: $page, limit: $limit) {
+    count
+    totalPages
+    currentPage
+    hasNextPage
+    hasPreviousPage
+    data {
       id
-      nickname
-      profileImage
-    }
-    builders {
-      id
-      buidlId
-      userId
-      isAccepted
-      createdAt
-      user {
+      hackathonId
+      title
+      description
+      coverImage
+      buidlDescription
+      githubLink
+      websiteLink
+      demoVideoLink
+      socialLinks
+      owner {
         id
         nickname
         profileImage
       }
-    }
-    tracks {
-      id
-      title
-      key
+      sponsors {
+        id
+        name
+        sponsorImage
+        tracks {
+          id
+          title
+          description
+          prize
+        }
+      }
+      builders {
+        id
+        userId
+        isAccepted
+        user {
+          id
+          nickname
+          profileImage
+        }
+      }
     }
   }
 }
@@ -66,6 +76,8 @@ export const HackathonBuidlsDocument = gql`
  * const { data, loading, error } = useHackathonBuidlsQuery({
  *   variables: {
  *      hackathonId: // value for 'hackathonId'
+ *      page: // value for 'page'
+ *      limit: // value for 'limit'
  *   },
  * });
  */

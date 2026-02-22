@@ -5,25 +5,37 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type HackathonParticipantsQueryVariables = Types.Exact<{
   hackathonId: Types.Scalars['ID']['input'];
+  page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  limit?: Types.InputMaybe<Types.Scalars['Int']['input']>;
 }>;
 
 
-export type HackathonParticipantsQuery = { __typename?: 'Query', hackathonParticipants?: Array<{ __typename?: 'HackathonParticipant', hackathonId?: string | null, registeredAt?: any | null, user?: { __typename?: 'UserV2', id?: string | null, nickname?: string | null, profileImage?: string | null } | null, buidlsInfo?: { __typename?: 'HackathonParticipantBuidlInfo', buidlId?: string | null, title?: string | null } | null }> | null };
+export type HackathonParticipantsQuery = { __typename?: 'Query', hackathonParticipants?: { __typename?: 'PaginatedHackathonParticipants', count?: number | null, totalPages?: number | null, currentPage?: number | null, hasNextPage?: boolean | null, hasPreviousPage?: boolean | null, data?: Array<{ __typename?: 'HackathonParticipant', hackathonId?: string | null, registeredAt?: any | null, user?: { __typename?: 'UserV2', id?: string | null, nickname?: string | null, profileImage?: string | null, userRole?: string | null } | null, buidls?: Array<{ __typename?: 'HackathonParticipantBuidlInfo', id?: string | null, title?: string | null, coverImage?: string | null, description?: string | null }> | null }> | null } | null };
 
 
 export const HackathonParticipantsDocument = gql`
-    query hackathonParticipants($hackathonId: ID!) {
-  hackathonParticipants(hackathonId: $hackathonId) {
-    hackathonId
-    registeredAt
-    user {
-      id
-      nickname
-      profileImage
-    }
-    buidlsInfo {
-      buidlId
-      title
+    query hackathonParticipants($hackathonId: ID!, $page: Int, $limit: Int) {
+  hackathonParticipants(hackathonId: $hackathonId, page: $page, limit: $limit) {
+    count
+    totalPages
+    currentPage
+    hasNextPage
+    hasPreviousPage
+    data {
+      hackathonId
+      registeredAt
+      user {
+        id
+        nickname
+        profileImage
+        userRole
+      }
+      buidls {
+        id
+        title
+        coverImage
+        description
+      }
     }
   }
 }
@@ -42,6 +54,8 @@ export const HackathonParticipantsDocument = gql`
  * const { data, loading, error } = useHackathonParticipantsQuery({
  *   variables: {
  *      hackathonId: // value for 'hackathonId'
+ *      page: // value for 'page'
+ *      limit: // value for 'limit'
  *   },
  * });
  */
