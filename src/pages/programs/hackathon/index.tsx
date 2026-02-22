@@ -2,7 +2,9 @@ import { useHackathonQuery } from '@/apollo/queries/hackathon.generated';
 import Container from '@/components/layout/container';
 import { Skeleton } from '@/components/ui/skeleton';
 import StatusBadge from '@/components/recruitment/statusBadge/statusBadge';
-import { Link, useParams, useSearchParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
+import { useAuth } from '@/lib/hooks/use-auth';
+import notify from '@/lib/notify';
 import { ShareButton } from '@/components/ui/share-button';
 import { cn, dDay, getCurrencyIcon, getInitials, getUserDisplayName } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -18,6 +20,8 @@ const HackathonPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const currentTab = searchParams.get('tab') ?? 'details';
+  const navigate = useNavigate();
+  const { isAuthed } = useAuth();
 
   const { data, loading, error } = useHackathonQuery({
     variables: { id: id ?? '' },
@@ -164,17 +168,21 @@ const HackathonPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            {isSubmissionActive ? (
-              <Link to={`/programs/hackathon/${id}/buidl/submit`}>
-                <Button variant="purple" className="w-full">
-                  Submit
-                </Button>
-              </Link>
-            ) : (
-              <Button variant="purple" className="w-full" disabled>
-                Submit
-              </Button>
-            )}
+            <Button
+              variant="purple"
+              className="w-full"
+              disabled={!isSubmissionActive}
+              onClick={() => {
+                if (!isAuthed) {
+                  notify('Please check your email and nickname', 'success');
+                  navigate('/profile');
+                  return;
+                }
+                navigate(`/programs/hackathon/${id}/buidl/submit`);
+              }}
+            >
+              Submit
+            </Button>
           </div>
         </div>
         <div className="lg:col-span-2">

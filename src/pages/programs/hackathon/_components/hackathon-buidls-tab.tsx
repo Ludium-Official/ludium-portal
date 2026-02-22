@@ -8,8 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getInitials, getUserDisplayName } from '@/lib/utils';
-import { Github, Globe, Play } from 'lucide-react';
+import GithubIcon from '@/assets/icons/hackathon/github.svg';
+import BrowserIcon from '@/assets/icons/hackathon/browser.svg';
+import VideoIcon from '@/assets/icons/hackathon/video.svg';
 import { useState } from 'react';
+import { Link } from 'react-router';
 
 const PAGE_LIMIT = 12;
 
@@ -138,7 +141,10 @@ function HackathonBuidlsTab({ hackathonId }: HackathonBuidlsTabProps) {
       </div>
 
       <Dialog open={!!selectedBuidl} onOpenChange={(open) => !open && setSelectedBuidl(null)}>
-        <DialogContent className="gap-0 max-w-[920px]! max-h-[85vh] overflow-y-auto p-0">
+        <DialogContent
+          className="gap-0 max-w-[920px]! max-h-[85vh] overflow-y-auto p-0"
+          overlayClassName="bg-black/80"
+        >
           {selectedBuidl && (
             <>
               <DialogHeader className="px-10 pt-[50px] pb-[30px] mb-[30px] border-b border-gray-200">
@@ -188,37 +194,34 @@ function HackathonBuidlsTab({ hackathonId }: HackathonBuidlsTabProps) {
                     <div className="text-sm font-bold text-slate-800">Link</div>
                     <div className="flex flex-col gap-1.5">
                       {selectedBuidl.githubLink && (
-                        <a
-                          href={selectedBuidl.githubLink}
+                        <Link
+                          to={selectedBuidl.githubLink}
                           target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
+                          className="flex items-center gap-2 text-sm underline"
                         >
-                          <Github className="w-4 h-4 shrink-0 text-gray-500" />
+                          <img src={GithubIcon} alt="github" className="h-6" />
                           {selectedBuidl.githubLink}
-                        </a>
+                        </Link>
                       )}
                       {selectedBuidl.websiteLink && (
-                        <a
-                          href={selectedBuidl.websiteLink}
+                        <Link
+                          to={selectedBuidl.websiteLink}
                           target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
+                          className="flex items-center gap-2 text-sm underline"
                         >
-                          <Globe className="w-4 h-4 shrink-0 text-gray-500" />
+                          <img src={BrowserIcon} alt="browser" className="h-6" />
                           {selectedBuidl.websiteLink}
-                        </a>
+                        </Link>
                       )}
                       {selectedBuidl.demoVideoLink && (
-                        <a
-                          href={selectedBuidl.demoVideoLink}
+                        <Link
+                          to={selectedBuidl.demoVideoLink}
                           target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
+                          className="flex items-center gap-2 text-sm underline"
                         >
-                          <Play className="w-4 h-4 shrink-0 text-gray-500" />
+                          <img src={VideoIcon} alt="video" className="h-6" />
                           {selectedBuidl.demoVideoLink}
-                        </a>
+                        </Link>
                       )}
                     </div>
                   </div>
@@ -227,7 +230,7 @@ function HackathonBuidlsTab({ hackathonId }: HackathonBuidlsTabProps) {
                 {selectedBuidl.buidlDescription && (
                   <div className="flex flex-col gap-2">
                     <div className="text-sm font-bold text-slate-800">Detail</div>
-                    <div className="border border-gray-200 rounded-lg px-5 py-4">
+                    <div className="max-h-[256px] overflow-y-auto bg-slate-50 border border-slate-200 rounded-lg p-5">
                       <MarkdownPreviewer value={selectedBuidl.buidlDescription} />
                     </div>
                   </div>
@@ -236,18 +239,18 @@ function HackathonBuidlsTab({ hackathonId }: HackathonBuidlsTabProps) {
                 {selectedBuidl.builders && selectedBuidl.builders.length > 0 && (
                   <div className="flex flex-col gap-2">
                     <div className="text-sm font-bold text-slate-800">Members</div>
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-wrap gap-4">
                       {selectedBuidl.builders.map((builder) => {
                         const name = getUserDisplayName(builder.user?.nickname, undefined);
                         return (
-                          <div key={builder.id} className="flex items-center gap-1.5">
-                            <Avatar className="w-6 h-6">
+                          <div key={builder.id} className="flex items-center gap-2">
+                            <Avatar className="w-7 h-7">
                               <AvatarImage src={builder.user?.profileImage || ''} />
                               <AvatarFallback className="text-[10px]">
                                 {getInitials(name)}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="text-sm">{name}</span>
+                            <span className="text-sm text-muted-foreground">{name}</span>
                           </div>
                         );
                       })}
@@ -258,18 +261,17 @@ function HackathonBuidlsTab({ hackathonId }: HackathonBuidlsTabProps) {
                 {selectedBuidl.socialLinks && selectedBuidl.socialLinks.length > 0 && (
                   <div className="flex flex-col gap-2">
                     <div className="text-sm font-bold text-slate-800">Social</div>
-                    <div className="flex flex-col gap-1.5">
+                    <div className="flex flex-col gap-[18px]">
                       {selectedBuidl.socialLinks.map((link) => (
-                        <a
+                        <Link
                           key={link}
-                          href={link}
+                          to={link}
                           target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
+                          className="flex items-center gap-2 text-sm underline"
                         >
-                          <Globe className="w-4 h-4 shrink-0 text-gray-500" />
+                          <img src={BrowserIcon} alt="browser" className="h-6" />
                           {link}
-                        </a>
+                        </Link>
                       ))}
                     </div>
                   </div>
