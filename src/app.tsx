@@ -9,6 +9,7 @@ import CreateProgram from '@/pages/programs/create';
 import ProgramDetailsPage from '@/pages/programs/details';
 import EditProgramPage from '@/pages/programs/edit';
 import HackathonPage from '@/pages/programs/hackathon';
+import HackathonBuidlSubmitPage from '@/pages/programs/hackathon/buidl/submit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Route, Routes } from 'react-router';
 import GuideDetailsPage from './pages/about/guides/detail';
@@ -78,6 +79,7 @@ function App() {
             </Route>
             <Route path="hackathon">
               <Route path=":id" element={<HackathonPage />} />
+              <Route path=":id/buidl/submit" element={<HackathonBuidlSubmitPage />} />
             </Route>
           </Route>
 

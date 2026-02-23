@@ -90,6 +90,7 @@ body {
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
+  --color-primary-300: var(--primary-300);
   --color-primary-400: var(--primary-400);
   --color-primary-light: var(--primary-light);
   --color-primary-foreground: var(--primary-foreground);
@@ -108,6 +109,7 @@ body {
 
   --color-primary: #b331ff;
   --color-primary-tranparent: #b331ff0a;
+  --color-primary-300: #e4b7ff;
   --color-primary-400: #d183ff;
   --color-primary-light: #f8ecff;
   --color-gray-light: #f7f7f7;

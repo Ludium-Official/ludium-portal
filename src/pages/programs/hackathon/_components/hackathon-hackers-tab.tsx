@@ -91,7 +91,7 @@ function HackathonHackersTab({ hackathonId }: HackathonHackersTabProps) {
                     </div>
                   ))}
                   {buidls.length > 2 && (
-                    <span className="text-xs text-muted-foreground">+{buidls.length - 2}</span>
+                    <span className="text-xs text-muted-foreground text-right">+{buidls.length - 2}</span>
                   )}
                 </div>
               )}

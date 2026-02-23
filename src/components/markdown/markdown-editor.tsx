@@ -66,11 +66,13 @@ function MarkdownEditor({
   content,
   placeholder,
   contentClassName,
+  isSimple = false,
 }: {
   onChange: (value: string) => void;
   content: string;
   placeholder?: string;
   contentClassName?: string;
+  isSimple?: boolean;
 }) {
   const isMobile = useIsMobile();
 
@@ -153,17 +155,25 @@ function MarkdownEditor({
               </>
             ) : (
               <>
-                <DiffSourceToggleWrapper>
-                  <UndoRedo />
-                  <BlockTypeSelect />
-                  <BoldItalicUnderlineToggles />
-                  <InsertThematicBreak />
-                  <InsertTable />
-                  <ListsToggle />
-                  <InsertCodeBlock />
-                  <InsertImage />
-                  <YouTubeButton />
-                </DiffSourceToggleWrapper>
+                {isSimple ? (
+                  <>
+                    <UndoRedo />
+                    <BoldItalicUnderlineToggles />
+                    <ListsToggle />
+                  </>
+                ) : (
+                  <DiffSourceToggleWrapper>
+                    <UndoRedo />
+                    {!isSimple && <BlockTypeSelect />}
+                    <BoldItalicUnderlineToggles />
+                    {!isSimple && <InsertThematicBreak />}
+                    {!isSimple && <InsertTable />}
+                    <ListsToggle />
+                    {!isSimple && <InsertCodeBlock />}
+                    {!isSimple && <InsertImage />}
+                    {!isSimple && <YouTubeButton />}
+                  </DiffSourceToggleWrapper>
+                )}
               </>
             ),
         }),
