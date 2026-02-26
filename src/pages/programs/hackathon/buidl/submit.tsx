@@ -1,5 +1,6 @@
 import { useCreateHackathonBuidlMutation } from '@/apollo/mutation/create-hackathon-buidl.generated';
 import Container from '@/components/layout/container';
+import { useHackathonQuery } from '@/apollo/queries/hackathon.generated';
 import { useHackathonSponsorsQuery } from '@/apollo/queries/hackathon-sponsors.generated';
 import { useUsersV2LazyQuery } from '@/apollo/queries/users-v2.generated';
 import InputLabel from '@/components/common/label/inputLabel';
@@ -16,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import notify from '@/lib/notify';
 import { cn, getInitials, getUserDisplayName } from '@/lib/utils';
 import { ImageIcon, Loader2, Plus, Upload, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -86,6 +88,29 @@ function HackathonBuidlSubmitPage() {
 
   const description = watch('description') ?? '';
   const buidlDescription = watch('buidlDescription') ?? '';
+
+  const { data: hackathonData, loading: hackathonLoading } = useHackathonQuery({
+    variables: { id: hackathonId ?? '' },
+    skip: !hackathonId,
+  });
+
+  useEffect(() => {
+    if (hackathonLoading || !hackathonData?.hackathon) return;
+    const now = Date.now();
+    const submissionAt = hackathonData.hackathon.submissionAt
+      ? new Date(hackathonData.hackathon.submissionAt).getTime()
+      : null;
+    const deadlineAt = hackathonData.hackathon.deadlineAt
+      ? new Date(hackathonData.hackathon.deadlineAt).getTime()
+      : null;
+    if (submissionAt && now < submissionAt) {
+      notify('Submission period has not started yet.', 'error');
+      navigate(`/programs/hackathon/${hackathonId}`);
+    } else if (deadlineAt && now > deadlineAt) {
+      notify('Submission deadline has passed.', 'error');
+      navigate(`/programs/hackathon/${hackathonId}`);
+    }
+  }, [hackathonData, hackathonLoading, hackathonId, navigate]);
 
   const { data: sponsorsData } = useHackathonSponsorsQuery({
     variables: { hackathonId: hackathonId ?? '' },
@@ -232,6 +257,14 @@ function HackathonBuidlSubmitPage() {
       // errors are handled by Apollo error state
     }
   };
+
+  if (hackathonLoading) {
+    return (
+      <div className="bg-white w-full rounded-2xl flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white w-full rounded-2xl">
