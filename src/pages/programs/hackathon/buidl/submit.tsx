@@ -115,7 +115,6 @@ function HackathonBuidlSubmitPage() {
 
   const [searchUsers, { data: usersData, loading: usersLoading }] = useUsersV2LazyQuery();
 
-  // Debounce user search
   useEffect(() => {
     if (!memberSearch.trim()) return;
     const timer = setTimeout(() => {
@@ -189,7 +188,13 @@ function HackathonBuidlSubmitPage() {
     if (step === 0) {
       const hasValidSocialLink = socialLinks.some((s) => s.trim());
       const hasInvalidSocialLink = socialLinks.some((s) => s.trim() && !isValidUrl(s));
-      return watch('title').trim() && description.trim() && coverImage && hasValidSocialLink && !hasInvalidSocialLink;
+      return (
+        watch('title').trim() &&
+        description.trim() &&
+        coverImage &&
+        hasValidSocialLink &&
+        !hasInvalidSocialLink
+      );
     }
     if (step === 1) return buidlDescription.trim();
     if (step === 2) return sponsorIds.length > 0;
@@ -198,7 +203,8 @@ function HackathonBuidlSubmitPage() {
 
   const onSubmit = async (values: BuidlFormValues) => {
     if (!hackathonId || !coverImage) return;
-    if (!values.title.trim() || !values.description.trim() || !values.buidlDescription.trim()) return;
+    if (!values.title.trim() || !values.description.trim() || !values.buidlDescription.trim())
+      return;
     if (socialLinks.filter((s) => s.trim()).some((s) => !isValidUrl(s))) return;
     if (!sponsorIds.length) return;
     try {
@@ -514,7 +520,8 @@ function HackathonBuidlSubmitPage() {
                   <Input
                     placeholder="Enter a social profile URL"
                     {...register('githubLink', {
-                      validate: (v) => !v || isValidUrl(v) || 'Please enter a valid URL (https://...)',
+                      validate: (v) =>
+                        !v || isValidUrl(v) || 'Please enter a valid URL (https://...)',
                     })}
                   />
                   {errors.githubLink && (
@@ -527,7 +534,8 @@ function HackathonBuidlSubmitPage() {
                   <Input
                     placeholder="Enter your Project Website URL"
                     {...register('websiteLink', {
-                      validate: (v) => !v || isValidUrl(v) || 'Please enter a valid URL (https://...)',
+                      validate: (v) =>
+                        !v || isValidUrl(v) || 'Please enter a valid URL (https://...)',
                     })}
                   />
                   {errors.websiteLink && (
@@ -540,7 +548,8 @@ function HackathonBuidlSubmitPage() {
                   <Input
                     placeholder="Enter your Demo Video URL"
                     {...register('demoVideoLink', {
-                      validate: (v) => !v || isValidUrl(v) || 'Please enter a valid URL (https://...)',
+                      validate: (v) =>
+                        !v || isValidUrl(v) || 'Please enter a valid URL (https://...)',
                     })}
                   />
                   {errors.demoVideoLink && (

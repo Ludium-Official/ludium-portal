@@ -62,6 +62,9 @@ function App() {
                 <Route path="create" element={<CreateProgram />} />
                 <Route path=":id/edit" element={<EditProgramPage />} />
               </Route>
+              <Route path="hackathon">
+                <Route path=":id/buidl/submit" element={<HackathonBuidlSubmitPage />} />
+              </Route>
             </Route>
 
             <Route path="community">
@@ -79,7 +82,6 @@ function App() {
             </Route>
             <Route path="hackathon">
               <Route path=":id" element={<HackathonPage />} />
-              <Route path=":id/buidl/submit" element={<HackathonBuidlSubmitPage />} />
             </Route>
           </Route>
 

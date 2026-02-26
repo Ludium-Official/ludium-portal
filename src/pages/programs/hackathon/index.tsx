@@ -21,7 +21,7 @@ const HackathonPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const currentTab = searchParams.get('tab') ?? 'details';
   const navigate = useNavigate();
-  const { isAuthed } = useAuth();
+  const { isLoggedIn, isAuthed } = useAuth();
 
   const { data, loading, error } = useHackathonQuery({
     variables: { id: id ?? '' },
@@ -55,6 +55,7 @@ const HackathonPage: React.FC = () => {
 
   const now = new Date();
   const isSubmissionActive =
+    isLoggedIn &&
     hackathon.submissionAt &&
     hackathon.deadlineAt &&
     now >= new Date(hackathon.submissionAt) &&
