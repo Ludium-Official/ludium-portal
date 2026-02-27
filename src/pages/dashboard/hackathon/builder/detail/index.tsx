@@ -22,6 +22,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useDebounce } from '@/lib/hooks/use-debounce';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn, getInitials, getUserDisplayName } from '@/lib/utils';
 import { HackathonDetailView } from '@/pages/programs/hackathon/_components/hackathon-detail-view';
@@ -42,10 +43,20 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
   const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedBuidl, setSelectedBuidl] = useState<MyBuidl | null>(null);
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') ?? '');
 
   const currentTab = searchParams.get('tab') ?? '';
   const search = searchParams.get('search') ?? '';
   const sponsorId = searchParams.get('sponsorId') ?? undefined;
+
+  const debouncedSearch = useDebounce(searchInput);
+
+  useEffect(() => {
+    const newSP = new URLSearchParams(searchParams);
+    if (debouncedSearch) newSP.set('search', debouncedSearch);
+    else newSP.delete('search');
+    setSearchParams(newSP, { replace: true });
+  }, [debouncedSearch]);
 
   // Access control
   const { data: appliedData, loading: appliedLoading } = useAppliedHackathonsQuery({
@@ -75,7 +86,11 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
   const selectedTrackId = selectedSponsor?.tracks?.[0]?.id ?? undefined;
 
   // My BUIDLs query (fetchMore pattern)
-  const { data: buidlsData, loading: buidlsLoading, fetchMore } = useMyBuidlsInHackathonQuery({
+  const {
+    data: buidlsData,
+    loading: buidlsLoading,
+    fetchMore,
+  } = useMyBuidlsInHackathonQuery({
     variables: {
       hackathonId: id ?? '',
       page: 1,
@@ -221,13 +236,8 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
                 <Input
                   className="pl-9"
                   placeholder="Search..."
-                  value={search}
-                  onChange={(e) => {
-                    const newSP = new URLSearchParams(searchParams);
-                    if (e.target.value) newSP.set('search', e.target.value);
-                    else newSP.delete('search');
-                    setSearchParams(newSP);
-                  }}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                 />
               </div>
             </div>
@@ -263,7 +273,9 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
                                 <Avatar className="w-5 h-5">
                                   <AvatarImage src={buidl.owner?.profileImage || ''} />
                                   <AvatarFallback className="text-[10px]">
-                                    {getInitials(getUserDisplayName(buidl.owner?.nickname, undefined))}
+                                    {getInitials(
+                                      getUserDisplayName(buidl.owner?.nickname, undefined),
+                                    )}
                                   </AvatarFallback>
                                 </Avatar>
                                 <span className="text-xs text-muted-foreground truncate">
@@ -299,7 +311,9 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
                               </div>
                             )}
                           </div>
-                          <p className="text-xs text-foreground line-clamp-2">{buidl.description}</p>
+                          <p className="text-xs text-foreground line-clamp-2">
+                            {buidl.description}
+                          </p>
                         </div>
                       </button>
                     ))}

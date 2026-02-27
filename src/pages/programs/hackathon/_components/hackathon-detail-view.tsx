@@ -23,9 +23,7 @@ export function HackathonDetailView({ id }: { id: string }) {
   const { pathname } = useLocation();
   const { isLoggedIn, isAuthed } = useAuth();
 
-  const basePath = pathname.includes('/dashboard/')
-    ? pathname
-    : `/programs/hackathon/${id}`;
+  const basePath = pathname.includes('/dashboard/') ? pathname : `/programs/hackathon/${id}`;
 
   const { data, loading, error } = useHackathonQuery({
     variables: { id },

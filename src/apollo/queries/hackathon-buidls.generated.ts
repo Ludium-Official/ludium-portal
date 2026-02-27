@@ -7,6 +7,7 @@ export type HackathonBuidlsQueryVariables = Types.Exact<{
   hackathonId: Types.Scalars['ID']['input'];
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   limit?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  search?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
 
 
@@ -14,8 +15,8 @@ export type HackathonBuidlsQuery = { __typename?: 'Query', hackathonBuidls?: { _
 
 
 export const HackathonBuidlsDocument = gql`
-    query hackathonBuidls($hackathonId: ID!, $page: Int, $limit: Int) {
-  hackathonBuidls(hackathonId: $hackathonId, page: $page, limit: $limit) {
+    query hackathonBuidls($hackathonId: ID!, $page: Int, $limit: Int, $search: String) {
+  hackathonBuidls(hackathonId: $hackathonId, page: $page, limit: $limit, search: $search) {
     count
     totalPages
     currentPage
@@ -80,6 +81,7 @@ export const HackathonBuidlsDocument = gql`
  *      hackathonId: // value for 'hackathonId'
  *      page: // value for 'page'
  *      limit: // value for 'limit'
+ *      search: // value for 'search'
  *   },
  * });
  */

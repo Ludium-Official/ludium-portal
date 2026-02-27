@@ -1,5 +1,5 @@
-query hackathonParticipants($hackathonId: ID!, $page: Int, $limit: Int) {
-  hackathonParticipants(hackathonId: $hackathonId, page: $page, limit: $limit) {
+query hackathonParticipants($hackathonId: ID!, $page: Int, $limit: Int, $search: String) {
+  hackathonParticipants(hackathonId: $hackathonId, page: $page, limit: $limit, search: $search) {
     count
     totalPages
     currentPage

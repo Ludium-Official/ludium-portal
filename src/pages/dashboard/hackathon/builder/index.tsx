@@ -148,7 +148,9 @@ const HackathonDashboardBuilder: React.FC = () => {
                                 <div className="flex items-center [&_svg]:w-4 [&_svg]:h-4">
                                   {getCurrencyIcon(hackathon.token.tokenName)}
                                 </div>
-                                <span className="text-muted-foreground">{hackathon.token.tokenName}</span>
+                                <span className="text-muted-foreground">
+                                  {hackathon.token.tokenName}
+                                </span>
                               </div>
                             )}
                           </div>

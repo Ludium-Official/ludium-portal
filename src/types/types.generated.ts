@@ -2987,6 +2987,8 @@ export type QueryHackathonBuidlsArgs = {
   hackathonId: Scalars['ID']['input'];
   limit?: InputMaybe<Scalars['Int']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  sponsorId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -2999,6 +3001,7 @@ export type QueryHackathonParticipantsArgs = {
   hackathonId: Scalars['ID']['input'];
   limit?: InputMaybe<Scalars['Int']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
 };
 
 

@@ -7,6 +7,7 @@ export type HackathonParticipantsQueryVariables = Types.Exact<{
   hackathonId: Types.Scalars['ID']['input'];
   page?: Types.InputMaybe<Types.Scalars['Int']['input']>;
   limit?: Types.InputMaybe<Types.Scalars['Int']['input']>;
+  search?: Types.InputMaybe<Types.Scalars['String']['input']>;
 }>;
 
 
@@ -14,8 +15,8 @@ export type HackathonParticipantsQuery = { __typename?: 'Query', hackathonPartic
 
 
 export const HackathonParticipantsDocument = gql`
-    query hackathonParticipants($hackathonId: ID!, $page: Int, $limit: Int) {
-  hackathonParticipants(hackathonId: $hackathonId, page: $page, limit: $limit) {
+    query hackathonParticipants($hackathonId: ID!, $page: Int, $limit: Int, $search: String) {
+  hackathonParticipants(hackathonId: $hackathonId, page: $page, limit: $limit, search: $search) {
     count
     totalPages
     currentPage
@@ -56,6 +57,7 @@ export const HackathonParticipantsDocument = gql`
  *      hackathonId: // value for 'hackathonId'
  *      page: // value for 'page'
  *      limit: // value for 'limit'
+ *      search: // value for 'search'
  *   },
  * });
  */
