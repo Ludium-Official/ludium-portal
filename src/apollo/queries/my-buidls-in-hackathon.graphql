@@ -1,5 +1,17 @@
-query hackathonBuidls($hackathonId: ID!, $page: Int, $limit: Int) {
-  hackathonBuidls(hackathonId: $hackathonId, page: $page, limit: $limit) {
+query myBuidlsInHackathon(
+  $hackathonId: ID!
+  $page: Int
+  $limit: Int
+  $search: String
+  $trackId: ID
+) {
+  myBuidlsInHackathon(
+    hackathonId: $hackathonId
+    page: $page
+    limit: $limit
+    search: $search
+    trackId: $trackId
+  ) {
     count
     totalPages
     currentPage

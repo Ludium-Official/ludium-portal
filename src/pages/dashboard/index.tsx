@@ -18,6 +18,7 @@ import { ArrowUpRight, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { PaymentOverview } from './_components/payment-overview';
+import { useAppliedHackathonCountQuery } from '@/apollo/queries/applied-hackathon-count.generated';
 
 const DashboardPage: React.FC = () => {
   const isMobile = useIsMobile();
@@ -46,6 +47,11 @@ const DashboardPage: React.FC = () => {
   });
 
   const { data: builderPaymentData } = useBuilderPaymentOverviewQuery({
+    skip: !profileData?.profileV2?.id,
+    fetchPolicy: 'network-only',
+  });
+
+  const { data: hackathonData } = useAppliedHackathonCountQuery({
     skip: !profileData?.profileV2?.id,
     fetchPolicy: 'network-only',
   });
@@ -137,13 +143,32 @@ const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <PaymentOverview
-          sponsorPaymentOverview={sponsorPaymentData?.sponsorPaymentOverview ?? []}
-          builderPaymentOverview={builderPaymentData?.builderPaymentOverview ?? []}
-        />
-        <div className="lg:col-span-2">
-          {/* TODO: Implement the empty space - not implemented */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-5">
+        <div className="min-w-0">
+          <PaymentOverview
+            sponsorPaymentOverview={sponsorPaymentData?.sponsorPaymentOverview ?? []}
+            builderPaymentOverview={builderPaymentData?.builderPaymentOverview ?? []}
+          />
+        </div>
+        <div className={cn('grid grid-cols-2 gap-5', isMobile && 'gap-[10px]')}>
+          <Card className={cn('border-none shadow-none', isMobile && 'gap-5')}>
+            <CardHeader className="pb-3! border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium">Hackathon</CardTitle>
+                <Link to="/dashboard/hackathon/builder">
+                  <ArrowUpRight className="w-6 h-6" />
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent className={cn('py-2 space-y-6', isMobile && 'space-y-4')}>
+              <div>
+                <p className="font-light text-sm text-slate-500 mb-1">Applied</p>
+                <p className="text-xl font-semibold">
+                  {commaNumber(hackathonData?.appliedHackathonCount ?? 0)}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </Container>

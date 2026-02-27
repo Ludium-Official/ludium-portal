@@ -1,0 +1,40 @@
+query appliedHackathons($page: Int, $limit: Int, $search: String) {
+  appliedHackathons(page: $page, limit: $limit, search: $search) {
+    count
+    totalPages
+    currentPage
+    hasNextPage
+    hasPreviousPage
+    data {
+      hackathon {
+        id
+        title
+        coverImage
+        status
+        submissionAt
+        deadlineAt
+        prizePoolAmount
+        token {
+          id
+          tokenName
+          decimals
+          tokenAddress
+        }
+      }
+      firstSection {
+        id
+        title
+        key
+        value
+        isVisible
+        sortOrder
+      }
+      sponsor {
+        id
+        nickname
+        profileImage
+        email
+      }
+    }
+  }
+}

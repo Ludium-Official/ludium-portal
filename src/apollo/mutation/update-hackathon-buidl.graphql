@@ -1,5 +1,5 @@
-mutation createHackathonBuidl($input: CreateHackathonBuidlInput!) {
-  createHackathonBuidl(input: $input) {
+mutation updateHackathonBuidl($buidlId: ID!, $input: UpdateHackathonBuidlInput!) {
+  updateHackathonBuidl(buidlId: $buidlId, input: $input) {
     id
     hackathonId
     title
@@ -13,7 +13,7 @@ mutation createHackathonBuidl($input: CreateHackathonBuidlInput!) {
     sponsorIds
     status
     ownerUserId
-    createdAt
+    updatedAt
     owner {
       id
       nickname

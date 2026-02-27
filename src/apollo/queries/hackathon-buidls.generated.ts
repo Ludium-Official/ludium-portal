@@ -10,7 +10,7 @@ export type HackathonBuidlsQueryVariables = Types.Exact<{
 }>;
 
 
-export type HackathonBuidlsQuery = { __typename?: 'Query', hackathonBuidls?: { __typename?: 'PaginatedHackathonBuidls', count?: number | null, totalPages?: number | null, currentPage?: number | null, hasNextPage?: boolean | null, hasPreviousPage?: boolean | null, data?: Array<{ __typename?: 'HackathonBuidl', id?: string | null, hackathonId?: string | null, title?: string | null, description?: string | null, coverImage?: string | null, buidlDescription?: string | null, githubLink?: string | null, websiteLink?: string | null, demoVideoLink?: string | null, socialLinks?: Array<string> | null, owner?: { __typename?: 'UserV2', id?: string | null, nickname?: string | null, profileImage?: string | null } | null, sponsors?: Array<{ __typename?: 'HackathonSponsor', id?: string | null, name?: string | null, sponsorImage?: string | null, tracks?: Array<{ __typename?: 'HackathonSponsorTrack', id?: string | null, title?: string | null, description?: string | null, prize?: number | null }> | null }> | null, builders?: Array<{ __typename?: 'HackathonBuidlBuilder', id?: string | null, userId?: number | null, isAccepted?: boolean | null, user?: { __typename?: 'UserV2', id?: string | null, nickname?: string | null, profileImage?: string | null } | null }> | null }> | null } | null };
+export type HackathonBuidlsQuery = { __typename?: 'Query', hackathonBuidls?: { __typename?: 'PaginatedHackathonBuidls', count?: number | null, totalPages?: number | null, currentPage?: number | null, hasNextPage?: boolean | null, hasPreviousPage?: boolean | null, data?: Array<{ __typename?: 'HackathonBuidl', id?: string | null, hackathonId?: string | null, title?: string | null, description?: string | null, coverImage?: string | null, buidlDescription?: string | null, githubLink?: string | null, websiteLink?: string | null, demoVideoLink?: string | null, socialLinks?: Array<string> | null, sponsorIds?: Array<string> | null, status?: Types.HackathonBuidlStatus | null, owner?: { __typename?: 'UserV2', id?: string | null, nickname?: string | null, profileImage?: string | null } | null, sponsors?: Array<{ __typename?: 'HackathonSponsor', id?: string | null, name?: string | null, sponsorImage?: string | null, tracks?: Array<{ __typename?: 'HackathonSponsorTrack', id?: string | null, title?: string | null, description?: string | null, prize?: number | null }> | null }> | null, builders?: Array<{ __typename?: 'HackathonBuidlBuilder', id?: string | null, userId?: number | null, isAccepted?: boolean | null, user?: { __typename?: 'UserV2', id?: string | null, nickname?: string | null, profileImage?: string | null } | null }> | null }> | null } | null };
 
 
 export const HackathonBuidlsDocument = gql`
@@ -32,6 +32,8 @@ export const HackathonBuidlsDocument = gql`
       websiteLink
       demoVideoLink
       socialLinks
+      sponsorIds
+      status
       owner {
         id
         nickname

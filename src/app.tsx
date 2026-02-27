@@ -23,6 +23,8 @@ import RecruitmentDashboardBuilder from './pages/dashboard/recruitment/builder';
 import RecruitmentDashboardBuilderDetail from './pages/dashboard/recruitment/builder/detail';
 import RecruitmentDashboardSponsor from './pages/dashboard/recruitment/sponsor';
 import RecruitmentDashboardSponsorDetail from './pages/dashboard/recruitment/sponsor/detail';
+import HackathonDashboardBuilder from './pages/dashboard/hackathon/builder';
+import HackathonDashboardBuilderDetail from './pages/dashboard/hackathon/builder/detail';
 import PortfolioPage from './pages/portfolio';
 import ProfilePage from './pages/profile';
 
@@ -45,6 +47,12 @@ function App() {
                 <Route path="builder">
                   <Route index element={<RecruitmentDashboardBuilder />} />
                   <Route path=":id" element={<RecruitmentDashboardBuilderDetail />} />
+                </Route>
+              </Route>
+              <Route path="hackathon">
+                <Route path="builder">
+                  <Route index element={<HackathonDashboardBuilder />} />
+                  <Route path=":id" element={<HackathonDashboardBuilderDetail />} />
                 </Route>
               </Route>
             </Route>

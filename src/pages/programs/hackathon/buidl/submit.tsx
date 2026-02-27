@@ -1,4 +1,5 @@
 import { useCreateHackathonBuidlMutation } from '@/apollo/mutation/create-hackathon-buidl.generated';
+import { HackathonBuidlStatus } from '@/types/types.generated';
 import Container from '@/components/layout/container';
 import { useHackathonQuery } from '@/apollo/queries/hackathon.generated';
 import { useHackathonSponsorsQuery } from '@/apollo/queries/hackathon-sponsors.generated';
@@ -246,6 +247,7 @@ function HackathonBuidlSubmitPage() {
               ? memberUsers.map((u) => parseInt(u.id, 10)).filter(Boolean)
               : undefined,
             sponsorIds: sponsorIds.length ? sponsorIds : undefined,
+            status: HackathonBuidlStatus.Published,
             githubLink: values.githubLink || undefined,
             websiteLink: values.websiteLink || undefined,
             demoVideoLink: values.demoVideoLink || undefined,

@@ -126,6 +126,13 @@ export type ApplicationsV2QueryInput = {
   status?: InputMaybe<ApplicationStatusV2>;
 };
 
+export type AppliedHackathon = {
+  __typename?: 'AppliedHackathon';
+  firstSection?: Maybe<HackathonSection>;
+  hackathon?: Maybe<Hackathon>;
+  sponsor?: Maybe<UserV2>;
+};
+
 export type Article = {
   __typename?: 'Article';
   author?: Maybe<UserV2>;
@@ -466,6 +473,8 @@ export type CreateHackathonBuidlInput = {
   socialLinks: Array<Scalars['String']['input']>;
   /** Sponsor IDs associated with this buidl */
   sponsorIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  /** Initial status (default: draft) */
+  status?: InputMaybe<HackathonBuidlStatus>;
   /** Buidl title */
   title: Scalars['String']['input'];
   /** Website link */
@@ -788,8 +797,10 @@ export type HackathonBuidl = {
   owner?: Maybe<UserV2>;
   ownerUserId?: Maybe<Scalars['Int']['output']>;
   socialLinks?: Maybe<Array<Scalars['String']['output']>>;
+  sponsorIds?: Maybe<Array<Scalars['String']['output']>>;
   /** Sponsors associated with this buidl */
   sponsors?: Maybe<Array<HackathonSponsor>>;
+  status?: Maybe<HackathonBuidlStatus>;
   title?: Maybe<Scalars['String']['output']>;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;
   websiteLink?: Maybe<Scalars['String']['output']>;
@@ -805,6 +816,12 @@ export type HackathonBuidlBuilder = {
   user?: Maybe<UserV2>;
   userId?: Maybe<Scalars['Int']['output']>;
 };
+
+export enum HackathonBuidlStatus {
+  Deleted = 'deleted',
+  Draft = 'draft',
+  Published = 'published'
+}
 
 export type HackathonFaq = {
   __typename?: 'HackathonFaq';
@@ -1332,6 +1349,8 @@ export type Mutation = {
   updateEducationV2?: Maybe<EducationV2>;
   /** Update expertise section (role, skills, languages) */
   updateExpertiseSectionV2?: Maybe<UserV2>;
+  /** Update a buidl. Only the owner can update, and only when status is draft or published. */
+  updateHackathonBuidl?: Maybe<HackathonBuidl>;
   updateInvestmentTerm?: Maybe<InvestmentTerm>;
   updateMilestone?: Maybe<Milestone>;
   /** Update milestone payout_tx and status by relayer service */
@@ -1935,6 +1954,12 @@ export type MutationUpdateExpertiseSectionV2Args = {
 };
 
 
+export type MutationUpdateHackathonBuidlArgs = {
+  buidlId: Scalars['ID']['input'];
+  input: UpdateHackathonBuidlInput;
+};
+
+
 export type MutationUpdateInvestmentTermArgs = {
   input: UpdateInvestmentTermInput;
 };
@@ -2225,6 +2250,16 @@ export type PaginatedApplicationsV2 = {
   /** Whether there is a previous page */
   hasPreviousPage?: Maybe<Scalars['Boolean']['output']>;
   /** Total number of pages */
+  totalPages?: Maybe<Scalars['Int']['output']>;
+};
+
+export type PaginatedAppliedHackathons = {
+  __typename?: 'PaginatedAppliedHackathons';
+  count?: Maybe<Scalars['Int']['output']>;
+  currentPage?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<AppliedHackathon>>;
+  hasNextPage?: Maybe<Scalars['Boolean']['output']>;
+  hasPreviousPage?: Maybe<Scalars['Boolean']['output']>;
   totalPages?: Maybe<Scalars['Int']['output']>;
 };
 
@@ -2652,6 +2687,10 @@ export type Query = {
   applicationsByProgramV2?: Maybe<PaginatedApplicationsV2>;
   /** Get paginated list of applications with filtering options */
   applicationsV2?: Maybe<PaginatedApplicationsV2>;
+  /** Get the number of distinct hackathons a user has applied to. */
+  appliedHackathonCount?: Maybe<Scalars['Int']['output']>;
+  /** Get paginated list of hackathons a user has applied to, with first section and sponsor info. */
+  appliedHackathons?: Maybe<PaginatedAppliedHackathons>;
   /** Get a single article by ID */
   article?: Maybe<Article>;
   /** Get child comments for a parent comment */
@@ -2726,6 +2765,8 @@ export type Query = {
   milestonesV2?: Maybe<PaginatedMilestonesV2>;
   /** Get all applications submitted by the current user */
   myApplicationsV2?: Maybe<PaginatedApplicationsV2>;
+  /** Get paginated list of buidls a user is participating in for a specific hackathon. */
+  myBuidlsInHackathon?: Maybe<PaginatedHackathonBuidls>;
   /** Get all portfolios for the current authenticated user */
   myPortfoliosV2?: Maybe<Array<PortfolioV2>>;
   /** Get threads created by the authenticated user */
@@ -2831,6 +2872,13 @@ export type QueryApplicationsByProgramV2Args = {
 
 export type QueryApplicationsV2Args = {
   query?: InputMaybe<ApplicationsV2QueryInput>;
+};
+
+
+export type QueryAppliedHackathonsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -3047,6 +3095,15 @@ export type QueryMilestonesV2Args = {
 
 export type QueryMyApplicationsV2Args = {
   query?: InputMaybe<MyApplicationsV2QueryInput>;
+};
+
+
+export type QueryMyBuidlsInHackathonArgs = {
+  hackathonId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  trackId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -3617,6 +3674,21 @@ export type UpdateExpertiseSectionV2Input = {
   role: Scalars['String']['input'];
   /** User skills array */
   skills?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type UpdateHackathonBuidlInput = {
+  buidlDescription?: InputMaybe<Scalars['String']['input']>;
+  /** New cover image (leave empty to keep existing) */
+  coverImage?: InputMaybe<Scalars['Upload']['input']>;
+  demoVideoLink?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  githubLink?: InputMaybe<Scalars['String']['input']>;
+  socialLinks?: InputMaybe<Array<Scalars['String']['input']>>;
+  sponsorIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  /** New status (draft or published only; use deleteHackathonBuidl to delete) */
+  status?: InputMaybe<HackathonBuidlStatus>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  websiteLink?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateInvestmentTermInput = {
