@@ -3686,6 +3686,8 @@ export type UpdateHackathonBuidlInput = {
   demoVideoLink?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   githubLink?: InputMaybe<Scalars['String']['input']>;
+  /** Full list of member user IDs (replaces existing members, owner is always kept) */
+  memberUserIds?: InputMaybe<Array<Scalars['Int']['input']>>;
   socialLinks?: InputMaybe<Array<Scalars['String']['input']>>;
   sponsorIds?: InputMaybe<Array<Scalars['ID']['input']>>;
   /** New status (draft or published only; use deleteHackathonBuidl to delete) */

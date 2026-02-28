@@ -19,10 +19,11 @@ import { getInitials, getUserDisplayName } from '@/lib/utils';
 import GithubIcon from '@/assets/icons/hackathon/github.svg';
 import BrowserIcon from '@/assets/icons/hackathon/browser.svg';
 import VideoIcon from '@/assets/icons/hackathon/video.svg';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { useDebounce } from '@/lib/hooks/use-debounce';
 import { ChevronDown, SearchIcon } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 const PAGE_LIMIT = 12;
 
@@ -38,6 +39,8 @@ function HackathonBuidlsTab({ hackathonId }: HackathonBuidlsTabProps) {
   const [selectedBuidl, setSelectedBuidl] = useState<Buidl | null>(null);
   const [search, setSearch] = useState('');
   const [sponsorId, setSponsorId] = useState<string | undefined>(undefined);
+  const { userId } = useAuth();
+  const navigate = useNavigate();
   const debouncedSearch = useDebounce(search);
 
   const { data: sponsorsData } = useHackathonSponsorsQuery({
@@ -207,14 +210,28 @@ function HackathonBuidlsTab({ hackathonId }: HackathonBuidlsTabProps) {
           {selectedBuidl && (
             <>
               <DialogHeader className="px-10 pt-[50px] pb-[30px] mb-[30px] border-b border-gray-200">
+                {selectedBuidl.owner?.id && String(selectedBuidl.owner.id) === String(userId) && (
+                  <div className="flex justify-end -mt-7 mb-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        navigate(
+                          `/programs/hackathon/${hackathonId}/buidl/${selectedBuidl.id}/edit`,
+                          { state: { buidl: selectedBuidl } },
+                        );
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                )}
                 <div className="flex gap-5">
-                  {selectedBuidl.coverImage && (
-                    <img
-                      src={selectedBuidl.coverImage}
-                      alt={selectedBuidl.title || ''}
-                      className="w-36 h-36 rounded-lg object-cover shrink-0"
-                    />
-                  )}
+                  <img
+                    src={selectedBuidl.coverImage || ''}
+                    alt={selectedBuidl.title || ''}
+                    className="w-36 h-36 rounded-lg object-cover shrink-0"
+                  />
                   <DialogTitle className="flex flex-col gap-[14px] text-xl font-semibold">
                     {selectedBuidl.title}
                     <div className="text-sm">{selectedBuidl.description}</div>

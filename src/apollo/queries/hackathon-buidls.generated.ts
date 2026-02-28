@@ -16,7 +16,12 @@ export type HackathonBuidlsQuery = { __typename?: 'Query', hackathonBuidls?: { _
 
 export const HackathonBuidlsDocument = gql`
     query hackathonBuidls($hackathonId: ID!, $page: Int, $limit: Int, $search: String) {
-  hackathonBuidls(hackathonId: $hackathonId, page: $page, limit: $limit, search: $search) {
+  hackathonBuidls(
+    hackathonId: $hackathonId
+    page: $page
+    limit: $limit
+    search: $search
+  ) {
     count
     totalPages
     currentPage

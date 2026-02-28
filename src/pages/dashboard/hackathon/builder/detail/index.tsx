@@ -58,7 +58,6 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
     setSearchParams(newSP, { replace: true });
   }, [debouncedSearch]);
 
-  // Access control
   const { data: appliedData, loading: appliedLoading } = useAppliedHackathonsQuery({
     variables: { limit: 100 },
     skip: !userId,
@@ -75,7 +74,6 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
     }
   }, [appliedLoading, appliedData, isApplied, navigate]);
 
-  // Sponsor filter options
   const { data: sponsorsData } = useHackathonSponsorsQuery({
     variables: { hackathonId: id ?? '' },
     skip: !id || currentTab !== 'my-buidls',
@@ -85,7 +83,6 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
   const selectedSponsor = sponsors.find((s) => s.id === sponsorId);
   const selectedTrackId = selectedSponsor?.tracks?.[0]?.id ?? undefined;
 
-  // My BUIDLs query (fetchMore pattern)
   const {
     data: buidlsData,
     loading: buidlsLoading,
@@ -171,7 +168,6 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
           </div>
         )}
 
-        {/* Tab toggle */}
         <div className="flex border border-gray-200 rounded-md w-fit">
           <button
             type="button"
@@ -199,10 +195,8 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
           </button>
         </div>
 
-        {/* Overview tab */}
         {currentTab !== 'my-buidls' && <HackathonDetailView id={id ?? ''} />}
 
-        {/* My BUIDLs tab */}
         {currentTab === 'my-buidls' && (
           <>
             <div className="flex items-center justify-between gap-4">
@@ -338,6 +332,23 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
                 {selectedBuidl && (
                   <>
                     <DialogHeader className="px-10 pt-[50px] pb-[30px] mb-[30px] border-b border-gray-200">
+                      {selectedBuidl.owner?.id &&
+                        String(selectedBuidl.owner.id) === String(userId) && (
+                          <div className="flex justify-end -mt-7 mb-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                navigate(
+                                  `/programs/hackathon/${id}/buidl/${selectedBuidl.id}/edit`,
+                                  { state: { buidl: selectedBuidl } },
+                                );
+                              }}
+                            >
+                              Edit
+                            </Button>
+                          </div>
+                        )}
                       <div className="flex gap-5">
                         {selectedBuidl.coverImage && (
                           <img

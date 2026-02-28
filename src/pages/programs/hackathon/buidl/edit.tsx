@@ -1,14 +1,13 @@
-import { useCreateHackathonBuidlMutation } from '@/apollo/mutation/create-hackathon-buidl.generated';
 import { useUpdateHackathonBuidlMutation } from '@/apollo/mutation/update-hackathon-buidl.generated';
 import { HackathonBuidlStatus } from '@/types/types.generated';
 import Container from '@/components/layout/container';
-import { useHackathonQuery } from '@/apollo/queries/hackathon.generated';
 import { useHackathonSponsorsQuery } from '@/apollo/queries/hackathon-sponsors.generated';
 import { useUsersV2LazyQuery } from '@/apollo/queries/users-v2.generated';
 import InputLabel from '@/components/common/label/inputLabel';
 import MarkdownEditor from '@/components/markdown/markdown-editor';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   Command,
   CommandEmpty,
@@ -19,12 +18,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import notify from '@/lib/notify';
 import { cn, getInitials, getUserDisplayName } from '@/lib/utils';
 import { ImageIcon, Loader2, Plus, Upload, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
 
 const STEPS = ['Profile', 'Detail', 'Submissions'] as const;
 
@@ -53,23 +51,58 @@ interface MemberUser {
   profileImage: string | null;
 }
 
-function HackathonBuidlSubmitPage() {
-  const { id: hackathonId } = useParams<{ id: string }>();
+function HackathonBuidlEditPage() {
+  const { id: hackathonId, buidlId } = useParams<{ id: string; buidlId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const buidl = location.state?.buidl;
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Redirect if no buidl data was passed
+  useEffect(() => {
+    if (!buidl) {
+      navigate(`/programs/hackathon/${hackathonId}`, { replace: true });
+    }
+  }, [buidl, hackathonId, navigate]);
 
   const [step, setStep] = useState(0);
 
-  // Complex fields managed with local state
   const [coverImage, setCoverImage] = useState<File | null>(null);
-  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(
+    buidl?.coverImage ?? null,
+  );
   const [coverImageError, setCoverImageError] = useState<string | null>(null);
-  const [socialLinks, setSocialLinks] = useState<string[]>(['']);
-  const [socialLinkErrors, setSocialLinkErrors] = useState<(string | undefined)[]>([undefined]);
-  const [memberUsers, setMemberUsers] = useState<MemberUser[]>([]);
+  const [socialLinks, setSocialLinks] = useState<string[]>(
+    buidl?.socialLinks?.length ? buidl.socialLinks : [''],
+  );
+  const [socialLinkErrors, setSocialLinkErrors] = useState<(string | undefined)[]>(
+    buidl?.socialLinks?.length ? buidl.socialLinks.map(() => undefined) : [undefined],
+  );
+  const [memberUsers, setMemberUsers] = useState<MemberUser[]>(
+    (buidl?.builders ?? [])
+      .filter(
+        (b: {
+          user?: {
+            id?: string | null;
+            nickname?: string | null;
+            profileImage?: string | null;
+          } | null;
+        }) => b.user,
+      )
+      .map(
+        (b: {
+          user: { id?: string | null; nickname?: string | null; profileImage?: string | null };
+        }) => ({
+          id: b.user.id ?? '',
+          displayName: getUserDisplayName(b.user.nickname, undefined),
+          email: null,
+          profileImage: b.user.profileImage ?? null,
+        }),
+      ),
+  );
   const [memberSearch, setMemberSearch] = useState('');
   const [memberPopoverOpen, setMemberPopoverOpen] = useState(false);
-  const [sponsorIds, setSponsorIds] = useState<string[]>([]);
+  const [sponsorIds, setSponsorIds] = useState<string[]>(buidl?.sponsorIds ?? []);
 
   const {
     register,
@@ -79,40 +112,17 @@ function HackathonBuidlSubmitPage() {
     formState: { errors },
   } = useForm<BuidlFormValues>({
     defaultValues: {
-      title: '',
-      description: '',
-      buidlDescription: '',
-      githubLink: '',
-      websiteLink: '',
-      demoVideoLink: '',
+      title: buidl?.title ?? '',
+      description: buidl?.description ?? '',
+      buidlDescription: buidl?.buidlDescription ?? '',
+      githubLink: buidl?.githubLink ?? '',
+      websiteLink: buidl?.websiteLink ?? '',
+      demoVideoLink: buidl?.demoVideoLink ?? '',
     },
   });
 
   const description = watch('description') ?? '';
   const buidlDescription = watch('buidlDescription') ?? '';
-
-  const { data: hackathonData, loading: hackathonLoading } = useHackathonQuery({
-    variables: { id: hackathonId ?? '' },
-    skip: !hackathonId,
-  });
-
-  useEffect(() => {
-    if (hackathonLoading || !hackathonData?.hackathon) return;
-    const now = Date.now();
-    const submissionAt = hackathonData.hackathon.submissionAt
-      ? new Date(hackathonData.hackathon.submissionAt).getTime()
-      : null;
-    const deadlineAt = hackathonData.hackathon.deadlineAt
-      ? new Date(hackathonData.hackathon.deadlineAt).getTime()
-      : null;
-    if (submissionAt && now < submissionAt) {
-      notify('Submission period has not started yet.', 'error');
-      navigate(`/programs/hackathon/${hackathonId}`);
-    } else if (deadlineAt && now > deadlineAt) {
-      notify('Submission deadline has passed.', 'error');
-      navigate(`/programs/hackathon/${hackathonId}`);
-    }
-  }, [hackathonData, hackathonLoading, hackathonId, navigate]);
 
   const { data: sponsorsData } = useHackathonSponsorsQuery({
     variables: { hackathonId: hackathonId ?? '' },
@@ -164,10 +174,10 @@ function HackathonBuidlSubmitPage() {
     setMemberUsers((prev) => prev.filter((u) => u.id !== id));
   };
 
-  const [createBuidl, { loading }] = useCreateHackathonBuidlMutation();
-  const [updateBuidl, { loading: isDeleting }] = useUpdateHackathonBuidlMutation();
+  const [updateBuidl, { loading }] = useUpdateHackathonBuidlMutation();
   const [isDraftSaving, setIsDraftSaving] = useState(false);
-  const [savedBuidlId, setSavedBuidlId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const handleCoverImage = (file: File) => {
     setCoverImageError(null);
@@ -218,10 +228,11 @@ function HackathonBuidlSubmitPage() {
     if (step === 0) {
       const hasValidSocialLink = socialLinks.some((s) => s.trim());
       const hasInvalidSocialLink = socialLinks.some((s) => s.trim() && !isValidUrl(s));
+      // coverImage file OR existing coverImagePreview (existing image URL)
       return (
         watch('title').trim() &&
         description.trim() &&
-        coverImage &&
+        (coverImage || coverImagePreview) &&
         hasValidSocialLink &&
         !hasInvalidSocialLink
       );
@@ -231,32 +242,30 @@ function HackathonBuidlSubmitPage() {
     return true;
   };
 
+  const buildUpdateInput = (status: HackathonBuidlStatus) => ({
+    title: watch('title'),
+    description: watch('description') || '',
+    buidlDescription: watch('buidlDescription') || '',
+    ...(coverImage ? { coverImage } : {}),
+    socialLinks: socialLinks.filter((s) => s.trim()),
+    memberUserIds: memberUsers.map((u) => parseInt(u.id, 10)).filter(Boolean),
+    sponsorIds: sponsorIds.length ? sponsorIds : undefined,
+    status,
+    githubLink: watch('githubLink') || undefined,
+    websiteLink: watch('websiteLink') || undefined,
+    demoVideoLink: watch('demoVideoLink') || undefined,
+  });
+
   const handleSaveDraft = async () => {
-    if (!hackathonId || !watch('title').trim() || !coverImage) return;
+    if (!buidlId || !watch('title').trim()) return;
     setIsDraftSaving(true);
     try {
-      const result = await createBuidl({
+      await updateBuidl({
         variables: {
-          input: {
-            hackathonId,
-            title: watch('title'),
-            description: watch('description') || '',
-            buidlDescription: watch('buidlDescription') || '',
-            coverImage,
-            socialLinks: socialLinks.filter((s) => s.trim()),
-            memberUserIds: memberUsers.length
-              ? memberUsers.map((u) => parseInt(u.id, 10)).filter(Boolean)
-              : undefined,
-            sponsorIds: sponsorIds.length ? sponsorIds : undefined,
-            status: HackathonBuidlStatus.Draft,
-            githubLink: watch('githubLink') || undefined,
-            websiteLink: watch('websiteLink') || undefined,
-            demoVideoLink: watch('demoVideoLink') || undefined,
-          },
+          buidlId,
+          input: buildUpdateInput(HackathonBuidlStatus.Draft),
         },
       });
-      const buidlId = result.data?.createHackathonBuidl?.id;
-      if (buidlId) setSavedBuidlId(buidlId);
       navigate(`/programs/hackathon/${hackathonId}`);
     } catch {
       // errors are handled by Apollo error state
@@ -266,36 +275,38 @@ function HackathonBuidlSubmitPage() {
   };
 
   const deleteBuidl = async () => {
-    if (!savedBuidlId) return;
+    if (!buidlId) return;
+    setIsDeleting(true);
     try {
       await updateBuidl({
-        variables: { buidlId: savedBuidlId, input: { status: HackathonBuidlStatus.Deleted } },
+        variables: { buidlId, input: { status: HackathonBuidlStatus.Deleted } },
       });
       navigate(`/programs/hackathon/${hackathonId}`);
     } catch {
       // errors are handled by Apollo error state
+      setDeleteConfirmOpen(false);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
   const onSubmit = async (values: BuidlFormValues) => {
-    if (step !== 2 || !hackathonId || !coverImage) return;
+    if (step !== 2 || !buidlId) return;
     if (!values.title.trim() || !values.description.trim() || !values.buidlDescription.trim())
       return;
     if (socialLinks.filter((s) => s.trim()).some((s) => !isValidUrl(s))) return;
     if (!sponsorIds.length) return;
     try {
-      await createBuidl({
+      await updateBuidl({
         variables: {
+          buidlId,
           input: {
-            hackathonId,
             title: values.title,
             description: values.description,
             buidlDescription: values.buidlDescription,
-            coverImage,
+            ...(coverImage ? { coverImage } : {}),
             socialLinks: socialLinks.filter((s) => s.trim()),
-            memberUserIds: memberUsers.length
-              ? memberUsers.map((u) => parseInt(u.id, 10)).filter(Boolean)
-              : undefined,
+            memberUserIds: memberUsers.map((u) => parseInt(u.id, 10)).filter(Boolean),
             sponsorIds: sponsorIds.length ? sponsorIds : undefined,
             status: HackathonBuidlStatus.Published,
             githubLink: values.githubLink || undefined,
@@ -310,18 +321,12 @@ function HackathonBuidlSubmitPage() {
     }
   };
 
-  if (hackathonLoading) {
-    return (
-      <div className="bg-white w-full rounded-2xl flex items-center justify-center min-h-[400px]">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+  if (!buidl) return null;
 
   return (
     <div className="bg-white w-full rounded-2xl">
       <Container className="max-w-[856px] mx-auto py-10 px-4">
-        <h1 className="text-xl font-bold mb-6">Submit BUIDL</h1>
+        <h1 className="text-xl font-bold mb-6">Edit BUIDL</h1>
 
         <form>
           <div className="bg-white border border-gray-200 rounded-xl px-10 py-9 mb-6">
@@ -646,16 +651,19 @@ function HackathonBuidlSubmitPage() {
           </div>
 
           <div className="flex items-center justify-between">
-            {savedBuidlId && (
-              <Button type="button" variant="secondary" disabled={isDeleting} onClick={deleteBuidl}>
-                {isDeleting ? 'Deleting...' : 'Delete'}
-              </Button>
-            )}
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={isDeleting}
+              onClick={() => setDeleteConfirmOpen(true)}
+            >
+              Delete
+            </Button>
             <div className="flex items-center gap-4 ml-auto">
               <Button
                 type="button"
                 variant="outline"
-                disabled={!watch('title').trim() || !coverImage || isDraftSaving || loading}
+                disabled={!watch('title').trim() || isDraftSaving || loading}
                 onClick={handleSaveDraft}
               >
                 {isDraftSaving ? 'Saving...' : 'Save draft'}
@@ -676,15 +684,31 @@ function HackathonBuidlSubmitPage() {
                   disabled={!canProceed() || loading}
                   onClick={() => handleSubmit(onSubmit)()}
                 >
-                  {loading ? 'Submitting...' : 'Submit BUIDL'}
+                  {loading ? 'Saving...' : 'Save BUIDL'}
                 </Button>
               )}
             </div>
           </div>
         </form>
       </Container>
+
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Are you sure you want to delete this BUIDL?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Once deleted, this posting will no longer be accessible.
+          </p>
+          <div className="flex justify-end mt-2">
+            <Button type="button" disabled={isDeleting} onClick={deleteBuidl}>
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-export default HackathonBuidlSubmitPage;
+export default HackathonBuidlEditPage;

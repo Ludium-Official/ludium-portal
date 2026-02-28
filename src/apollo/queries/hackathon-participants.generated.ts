@@ -16,7 +16,12 @@ export type HackathonParticipantsQuery = { __typename?: 'Query', hackathonPartic
 
 export const HackathonParticipantsDocument = gql`
     query hackathonParticipants($hackathonId: ID!, $page: Int, $limit: Int, $search: String) {
-  hackathonParticipants(hackathonId: $hackathonId, page: $page, limit: $limit, search: $search) {
+  hackathonParticipants(
+    hackathonId: $hackathonId
+    page: $page
+    limit: $limit
+    search: $search
+  ) {
     count
     totalPages
     currentPage
