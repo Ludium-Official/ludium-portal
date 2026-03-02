@@ -126,6 +126,13 @@ export type ApplicationsV2QueryInput = {
   status?: InputMaybe<ApplicationStatusV2>;
 };
 
+export type AppliedHackathon = {
+  __typename?: 'AppliedHackathon';
+  firstSection?: Maybe<HackathonSection>;
+  hackathon?: Maybe<Hackathon>;
+  sponsor?: Maybe<UserV2>;
+};
+
 export type Article = {
   __typename?: 'Article';
   author?: Maybe<UserV2>;
@@ -447,6 +454,33 @@ export type CreateEducationV2Input = {
   study?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CreateHackathonBuidlInput = {
+  /** Detailed buidl description */
+  buidlDescription: Scalars['String']['input'];
+  /** Cover image file */
+  coverImage: Scalars['Upload']['input'];
+  /** Demo video link */
+  demoVideoLink?: InputMaybe<Scalars['String']['input']>;
+  /** Buidl description (max 500 words) */
+  description: Scalars['String']['input'];
+  /** GitHub repository link */
+  githubLink?: InputMaybe<Scalars['String']['input']>;
+  /** The hackathon this buidl belongs to */
+  hackathonId: Scalars['ID']['input'];
+  /** User IDs of additional members to invite */
+  memberUserIds?: InputMaybe<Array<Scalars['Int']['input']>>;
+  /** Social links */
+  socialLinks: Array<Scalars['String']['input']>;
+  /** Sponsor IDs associated with this buidl */
+  sponsorIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  /** Initial status (default: draft) */
+  status?: InputMaybe<HackathonBuidlStatus>;
+  /** Buidl title */
+  title: Scalars['String']['input'];
+  /** Website link */
+  websiteLink?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type CreateInvestmentInput = {
   amount: Scalars['String']['input'];
   investmentTermId?: InputMaybe<Scalars['ID']['input']>;
@@ -723,6 +757,158 @@ export type GetNotificationsV2Input = {
   type?: InputMaybe<Scalars['String']['input']>;
   unreadOnly?: InputMaybe<Scalars['Boolean']['input']>;
 };
+
+export type Hackathon = {
+  __typename?: 'Hackathon';
+  coverImage?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  deadlineAt?: Maybe<Scalars['DateTime']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  /** The network associated with this hackathon */
+  network?: Maybe<NetworkV2>;
+  networkId?: Maybe<Scalars['Int']['output']>;
+  /** Total prize pool amount (sum of all track prizes) */
+  prizePoolAmount?: Maybe<Scalars['Int']['output']>;
+  /** The sponsor of this hackathon */
+  sponsor?: Maybe<UserV2>;
+  status?: Maybe<HackathonStatus>;
+  submissionAt?: Maybe<Scalars['DateTime']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+  /** The token associated with this hackathon */
+  token?: Maybe<TokenV2>;
+  tokenId?: Maybe<Scalars['Int']['output']>;
+  trackMode?: Maybe<HackathonTrackMode>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export type HackathonBuidl = {
+  __typename?: 'HackathonBuidl';
+  buidlDescription?: Maybe<Scalars['String']['output']>;
+  /** Builders invited to this buidl */
+  builders?: Maybe<Array<HackathonBuidlBuilder>>;
+  coverImage?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  demoVideoLink?: Maybe<Scalars['String']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  githubLink?: Maybe<Scalars['String']['output']>;
+  hackathonId?: Maybe<Scalars['ID']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  /** The owner of this buidl */
+  owner?: Maybe<UserV2>;
+  ownerUserId?: Maybe<Scalars['Int']['output']>;
+  socialLinks?: Maybe<Array<Scalars['String']['output']>>;
+  sponsorIds?: Maybe<Array<Scalars['String']['output']>>;
+  /** Sponsors associated with this buidl */
+  sponsors?: Maybe<Array<HackathonSponsor>>;
+  status?: Maybe<HackathonBuidlStatus>;
+  title?: Maybe<Scalars['String']['output']>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  websiteLink?: Maybe<Scalars['String']['output']>;
+};
+
+export type HackathonBuidlBuilder = {
+  __typename?: 'HackathonBuidlBuilder';
+  buidlId?: Maybe<Scalars['ID']['output']>;
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  isAccepted?: Maybe<Scalars['Boolean']['output']>;
+  /** The invited builder user */
+  user?: Maybe<UserV2>;
+  userId?: Maybe<Scalars['Int']['output']>;
+};
+
+export enum HackathonBuidlStatus {
+  Deleted = 'deleted',
+  Draft = 'draft',
+  Published = 'published'
+}
+
+export type HackathonFaq = {
+  __typename?: 'HackathonFaq';
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  hackathonId?: Maybe<Scalars['ID']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  sortOrder?: Maybe<Scalars['Int']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export type HackathonParticipant = {
+  __typename?: 'HackathonParticipant';
+  buidls?: Maybe<Array<HackathonParticipantBuidlInfo>>;
+  hackathonId?: Maybe<Scalars['ID']['output']>;
+  registeredAt?: Maybe<Scalars['DateTime']['output']>;
+  user?: Maybe<UserV2>;
+};
+
+export type HackathonParticipantBuidlInfo = {
+  __typename?: 'HackathonParticipantBuidlInfo';
+  coverImage?: Maybe<Scalars['String']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+};
+
+export type HackathonSection = {
+  __typename?: 'HackathonSection';
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  hackathonId?: Maybe<Scalars['ID']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  isVisible?: Maybe<Scalars['Boolean']['output']>;
+  key?: Maybe<Scalars['String']['output']>;
+  sortOrder?: Maybe<Scalars['Int']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+  value?: Maybe<Scalars['String']['output']>;
+};
+
+export type HackathonSponsor = {
+  __typename?: 'HackathonSponsor';
+  about?: Maybe<Scalars['String']['output']>;
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  hackathonId?: Maybe<Scalars['ID']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  link?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  sponsorImage?: Maybe<Scalars['String']['output']>;
+  tracks?: Maybe<Array<HackathonSponsorTrack>>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export type HackathonSponsorTrack = {
+  __typename?: 'HackathonSponsorTrack';
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  prize?: Maybe<Scalars['Int']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export enum HackathonStatus {
+  Close = 'close',
+  Draft = 'draft',
+  Open = 'open'
+}
+
+export type HackathonTrack = {
+  __typename?: 'HackathonTrack';
+  createdAt?: Maybe<Scalars['DateTime']['output']>;
+  description?: Maybe<Scalars['String']['output']>;
+  id?: Maybe<Scalars['ID']['output']>;
+  prize?: Maybe<Scalars['Int']['output']>;
+  /** The name of the sponsor for this track */
+  sponsorTitle?: Maybe<Scalars['String']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
+  updatedAt?: Maybe<Scalars['DateTime']['output']>;
+};
+
+export enum HackathonTrackMode {
+  Multi = 'multi',
+  None = 'none',
+  Single = 'single'
+}
 
 export type HiredBuilderV2 = {
   __typename?: 'HiredBuilderV2';
@@ -1041,6 +1227,8 @@ export type Mutation = {
   createContractV2?: Maybe<ContractV2>;
   /** Create a new education */
   createEducationV2?: Maybe<EducationV2>;
+  /** Create a new buidl for a hackathon. Owner is automatically added as an accepted builder. */
+  createHackathonBuidl?: Maybe<HackathonBuidl>;
   createInvestment?: Maybe<Investment>;
   createInvestmentTerm?: Maybe<InvestmentTerm>;
   /** Create a new milestone */
@@ -1161,6 +1349,8 @@ export type Mutation = {
   updateEducationV2?: Maybe<EducationV2>;
   /** Update expertise section (role, skills, languages) */
   updateExpertiseSectionV2?: Maybe<UserV2>;
+  /** Update a buidl. Only the owner can update, and only when status is draft or published. */
+  updateHackathonBuidl?: Maybe<HackathonBuidl>;
   updateInvestmentTerm?: Maybe<InvestmentTerm>;
   updateMilestone?: Maybe<Milestone>;
   /** Update milestone payout_tx and status by relayer service */
@@ -1298,6 +1488,11 @@ export type MutationCreateContractV2Args = {
 
 export type MutationCreateEducationV2Args = {
   input: CreateEducationV2Input;
+};
+
+
+export type MutationCreateHackathonBuidlArgs = {
+  input: CreateHackathonBuidlInput;
 };
 
 
@@ -1759,6 +1954,12 @@ export type MutationUpdateExpertiseSectionV2Args = {
 };
 
 
+export type MutationUpdateHackathonBuidlArgs = {
+  buidlId: Scalars['ID']['input'];
+  input: UpdateHackathonBuidlInput;
+};
+
+
 export type MutationUpdateInvestmentTermArgs = {
   input: UpdateInvestmentTermInput;
 };
@@ -2052,6 +2253,16 @@ export type PaginatedApplicationsV2 = {
   totalPages?: Maybe<Scalars['Int']['output']>;
 };
 
+export type PaginatedAppliedHackathons = {
+  __typename?: 'PaginatedAppliedHackathons';
+  count?: Maybe<Scalars['Int']['output']>;
+  currentPage?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<AppliedHackathon>>;
+  hasNextPage?: Maybe<Scalars['Boolean']['output']>;
+  hasPreviousPage?: Maybe<Scalars['Boolean']['output']>;
+  totalPages?: Maybe<Scalars['Int']['output']>;
+};
+
 export type PaginatedArticle = {
   __typename?: 'PaginatedArticle';
   count?: Maybe<Scalars['Int']['output']>;
@@ -2080,6 +2291,26 @@ export type PaginatedContractV2 = {
   __typename?: 'PaginatedContractV2';
   count?: Maybe<Scalars['Int']['output']>;
   data?: Maybe<Array<ContractV2>>;
+};
+
+export type PaginatedHackathonBuidls = {
+  __typename?: 'PaginatedHackathonBuidls';
+  count?: Maybe<Scalars['Int']['output']>;
+  currentPage?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<HackathonBuidl>>;
+  hasNextPage?: Maybe<Scalars['Boolean']['output']>;
+  hasPreviousPage?: Maybe<Scalars['Boolean']['output']>;
+  totalPages?: Maybe<Scalars['Int']['output']>;
+};
+
+export type PaginatedHackathonParticipants = {
+  __typename?: 'PaginatedHackathonParticipants';
+  count?: Maybe<Scalars['Int']['output']>;
+  currentPage?: Maybe<Scalars['Int']['output']>;
+  data?: Maybe<Array<HackathonParticipant>>;
+  hasNextPage?: Maybe<Scalars['Boolean']['output']>;
+  hasPreviousPage?: Maybe<Scalars['Boolean']['output']>;
+  totalPages?: Maybe<Scalars['Int']['output']>;
 };
 
 export type PaginatedHiredBuilders = {
@@ -2456,6 +2687,10 @@ export type Query = {
   applicationsByProgramV2?: Maybe<PaginatedApplicationsV2>;
   /** Get paginated list of applications with filtering options */
   applicationsV2?: Maybe<PaginatedApplicationsV2>;
+  /** Get the number of distinct hackathons a user has applied to. */
+  appliedHackathonCount?: Maybe<Scalars['Int']['output']>;
+  /** Get paginated list of hackathons a user has applied to, with first section and sponsor info. */
+  appliedHackathons?: Maybe<PaginatedAppliedHackathons>;
   /** Get a single article by ID */
   article?: Maybe<Article>;
   /** Get child comments for a parent comment */
@@ -2485,6 +2720,18 @@ export type Query = {
   contractsV2?: Maybe<PaginatedContractV2>;
   countNotifications?: Maybe<Scalars['Int']['output']>;
   getSwappedStatus?: Maybe<SwappedStatusResponse>;
+  /** Get a single hackathon by ID. */
+  hackathon?: Maybe<Hackathon>;
+  /** Get paginated buidls for a hackathon. */
+  hackathonBuidls?: Maybe<PaginatedHackathonBuidls>;
+  /** Get FAQs for a hackathon, ordered by sort_order. */
+  hackathonFaqs?: Maybe<Array<HackathonFaq>>;
+  /** Get paginated participants for a hackathon. */
+  hackathonParticipants?: Maybe<PaginatedHackathonParticipants>;
+  /** Get visible sections for a hackathon, ordered by sort_order. */
+  hackathonSections?: Maybe<Array<HackathonSection>>;
+  /** Get sponsors for a hackathon with their tracks. Sponsors sorted by total prize desc, tracks sorted by prize desc. */
+  hackathonSponsors?: Maybe<Array<HackathonSponsor>>;
   /** Get list of hired builders (for sponsor) */
   hiredBuilders?: Maybe<PaginatedHiredBuilders>;
   /** Get hiring activity statistics (as sponsor - programs created by user) */
@@ -2518,6 +2765,8 @@ export type Query = {
   milestonesV2?: Maybe<PaginatedMilestonesV2>;
   /** Get all applications submitted by the current user */
   myApplicationsV2?: Maybe<PaginatedApplicationsV2>;
+  /** Get paginated list of buidls a user is participating in for a specific hackathon. */
+  myBuidlsInHackathon?: Maybe<PaginatedHackathonBuidls>;
   /** Get all portfolios for the current authenticated user */
   myPortfoliosV2?: Maybe<Array<PortfolioV2>>;
   /** Get threads created by the authenticated user */
@@ -2626,6 +2875,13 @@ export type QueryApplicationsV2Args = {
 };
 
 
+export type QueryAppliedHackathonsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryArticleArgs = {
   id: Scalars['ID']['input'];
 };
@@ -2722,6 +2978,43 @@ export type QueryGetSwappedStatusArgs = {
 };
 
 
+export type QueryHackathonArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryHackathonBuidlsArgs = {
+  hackathonId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  sponsorId?: InputMaybe<Scalars['ID']['input']>;
+};
+
+
+export type QueryHackathonFaqsArgs = {
+  hackathonId: Scalars['ID']['input'];
+};
+
+
+export type QueryHackathonParticipantsArgs = {
+  hackathonId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryHackathonSectionsArgs = {
+  hackathonId: Scalars['ID']['input'];
+};
+
+
+export type QueryHackathonSponsorsArgs = {
+  hackathonId: Scalars['ID']['input'];
+};
+
+
 export type QueryHiredBuildersArgs = {
   input: HiredBuildersInput;
 };
@@ -2805,6 +3098,15 @@ export type QueryMilestonesV2Args = {
 
 export type QueryMyApplicationsV2Args = {
   query?: InputMaybe<MyApplicationsV2QueryInput>;
+};
+
+
+export type QueryMyBuidlsInHackathonArgs = {
+  hackathonId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  trackId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 
@@ -3375,6 +3677,23 @@ export type UpdateExpertiseSectionV2Input = {
   role: Scalars['String']['input'];
   /** User skills array */
   skills?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+export type UpdateHackathonBuidlInput = {
+  buidlDescription?: InputMaybe<Scalars['String']['input']>;
+  /** New cover image (leave empty to keep existing) */
+  coverImage?: InputMaybe<Scalars['Upload']['input']>;
+  demoVideoLink?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  githubLink?: InputMaybe<Scalars['String']['input']>;
+  /** Full list of member user IDs (replaces existing members, owner is always kept) */
+  memberUserIds?: InputMaybe<Array<Scalars['Int']['input']>>;
+  socialLinks?: InputMaybe<Array<Scalars['String']['input']>>;
+  sponsorIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  /** New status (draft or published only; use deleteHackathonBuidl to delete) */
+  status?: InputMaybe<HackathonBuidlStatus>;
+  title?: InputMaybe<Scalars['String']['input']>;
+  websiteLink?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateInvestmentTermInput = {

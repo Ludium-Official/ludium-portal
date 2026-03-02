@@ -8,6 +8,9 @@ import ProgramsPage from '@/pages/programs';
 import CreateProgram from '@/pages/programs/create';
 import ProgramDetailsPage from '@/pages/programs/details';
 import EditProgramPage from '@/pages/programs/edit';
+import HackathonPage from '@/pages/programs/hackathon';
+import HackathonBuidlSubmitPage from '@/pages/programs/hackathon/buidl/submit';
+import HackathonBuidlEditPage from '@/pages/programs/hackathon/buidl/edit';
 import ScrollWrapper from '@/providers/scroll-wrapper';
 import { Route, Routes } from 'react-router';
 import GuideDetailsPage from './pages/about/guides/detail';
@@ -21,6 +24,8 @@ import RecruitmentDashboardBuilder from './pages/dashboard/recruitment/builder';
 import RecruitmentDashboardBuilderDetail from './pages/dashboard/recruitment/builder/detail';
 import RecruitmentDashboardSponsor from './pages/dashboard/recruitment/sponsor';
 import RecruitmentDashboardSponsorDetail from './pages/dashboard/recruitment/sponsor/detail';
+import HackathonDashboardBuilder from './pages/dashboard/hackathon/builder';
+import HackathonDashboardBuilderDetail from './pages/dashboard/hackathon/builder/detail';
 import PortfolioPage from './pages/portfolio';
 import ProfilePage from './pages/profile';
 
@@ -45,6 +50,12 @@ function App() {
                   <Route path=":id" element={<RecruitmentDashboardBuilderDetail />} />
                 </Route>
               </Route>
+              <Route path="hackathon">
+                <Route path="builder">
+                  <Route index element={<HackathonDashboardBuilder />} />
+                  <Route path=":id" element={<HackathonDashboardBuilderDetail />} />
+                </Route>
+              </Route>
             </Route>
 
             <Route path="profile">
@@ -60,6 +71,10 @@ function App() {
                 <Route path="create" element={<CreateProgram />} />
                 <Route path=":id/edit" element={<EditProgramPage />} />
               </Route>
+              <Route path="hackathon">
+                <Route path=":id/buidl/submit" element={<HackathonBuidlSubmitPage />} />
+                <Route path=":id/buidl/:buidlId/edit" element={<HackathonBuidlEditPage />} />
+              </Route>
             </Route>
 
             <Route path="community">
@@ -74,6 +89,9 @@ function App() {
             <Route path="recruitment">
               <Route index element={<ProgramsPage />} />
               <Route path=":id" element={<ProgramDetailsPage />} />
+            </Route>
+            <Route path="hackathon">
+              <Route path=":id" element={<HackathonPage />} />
             </Route>
           </Route>
 

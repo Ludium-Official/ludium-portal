@@ -141,7 +141,6 @@ function Notifications() {
     },
     [hasMore, loadingMore, loadMoreNotifications],
   );
-  console.log(notifications);
 
   const notificationContent = (
     <>

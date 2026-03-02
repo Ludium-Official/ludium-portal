@@ -6,12 +6,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 import type { ContractInformation } from '@/types/recruitment';
 import { ApplicationStatusV2, MilestoneStatusV2, type MilestoneV2 } from '@/types/types.generated';
 import { useMemo, useState } from 'react';
 import { ContractModal } from './contract/contract-modal';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
-import { cn } from '@/lib/utils';
 
 interface HireButtonProps {
   contractInformation: ContractInformation;

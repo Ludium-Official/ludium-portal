@@ -1,9 +1,9 @@
 import { useCreateApplicationV2Mutation } from '@/apollo/mutation/create-application-v2.generated';
-import LudiumBadgeLogo from '@/assets/icons/profile/ludium-badge.svg';
 import { useUpdateProgramV2Mutation } from '@/apollo/mutation/update-program-v2.generated';
 import { useMyPortfoliosV2Query } from '@/apollo/queries/my-portfolios-v2.generated';
 import { useGetProgramV2Query } from '@/apollo/queries/program-v2.generated';
 import { GetProgramsV2Document } from '@/apollo/queries/programs-v2.generated';
+import LudiumBadgeLogo from '@/assets/icons/profile/ludium-badge.svg';
 import InputLabel from '@/components/common/label/inputLabel';
 import { MarkdownPreviewer } from '@/components/markdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,14 +23,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { MobileFullScreenDialog } from '@/components/ui/mobile-full-screen-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { MobileFullScreenDialog } from '@/components/ui/mobile-full-screen-dialog';
 import { ShareButton } from '@/components/ui/share-button';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
@@ -44,13 +46,11 @@ import {
   getUserDisplayName,
 } from '@/lib/utils';
 import { ProgramStatusV2, ProgramVisibilityV2 } from '@/types/types.generated';
-import { Switch } from '@/components/ui/switch';
 import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Link, useNavigate, useParams } from 'react-router';
 import StatusBadge from '../statusBadge/statusBadge';
-import { Textarea } from '@/components/ui/textarea';
 
 interface ProgramDetailPanelProps {
   id?: string;

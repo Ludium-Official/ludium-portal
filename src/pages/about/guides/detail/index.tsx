@@ -1,11 +1,11 @@
-import { GUIDES } from '@/constant/guides';
 import Container from '@/components/layout/container';
 import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { ShareButton } from '@/components/ui/share-button';
-import { useMemo } from 'react';
-import { useParams } from 'react-router';
+import { GUIDES } from '@/constant/guides';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { useMemo } from 'react';
+import { useParams } from 'react-router';
 
 const dedent = (str: string): string => {
   const lines = str.split('\n');

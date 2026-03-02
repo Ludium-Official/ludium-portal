@@ -30,3 +30,5 @@ dist-ssr
 *.md
 !README*.md
 !docs/**/*.md
+.vercel
+.env*.local

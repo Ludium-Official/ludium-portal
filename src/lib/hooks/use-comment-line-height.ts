@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, RefObject } from 'react';
+import { type RefObject, useEffect, useRef, useState } from 'react';
 import { useIsMobile } from './use-mobile';
 
 interface UseCommentLineHeightOptions {

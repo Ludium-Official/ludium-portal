@@ -32,7 +32,7 @@ function CurrencySelector({
   }, [value]);
 
   useEffect(() => {
-    if (tokens.length > 0) {
+    if (tokens.length > 0 && selectedTokenId && selectedTokenId !== '0') {
       const isValid = tokens.some((t) => t.id === selectedTokenId);
       if (!isValid) {
         const nativeToken = tokens.find((t) => t.tokenAddress === ethers.constants.AddressZero);
@@ -41,7 +41,7 @@ function CurrencySelector({
         onValueChange?.(defaultToken.id);
       }
     }
-  }, [tokens]);
+  }, [tokens, selectedTokenId]);
 
   const selectedToken = tokens.find((t) => t.id === selectedTokenId);
 

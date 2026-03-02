@@ -1,25 +1,27 @@
-import { useThreadCommentsLazyQuery } from '@/apollo/queries/thread-comments.generated';
-import { useToggleThreadReactionMutation } from '@/apollo/mutation/toggle-thread-reaction.generated';
 import { useCreateThreadCommentMutation } from '@/apollo/mutation/create-thread-comment.generated';
-import { useUpdateThreadMutation } from '@/apollo/mutation/update-thread.generated';
 import { useDeleteThreadMutation } from '@/apollo/mutation/delete-thread.generated';
-import { EditMediaPreview, MediaGallery } from '@/components/community/media-gallery';
+import { useToggleThreadReactionMutation } from '@/apollo/mutation/toggle-thread-reaction.generated';
+import { useUpdateThreadMutation } from '@/apollo/mutation/update-thread.generated';
+import { useThreadCommentsLazyQuery } from '@/apollo/queries/thread-comments.generated';
 import { LinkPreview, TextWithLinks, extractUrls } from '@/components/community/link-preview';
-import { Image as ImageIcon } from 'lucide-react';
+import { EditMediaPreview, MediaGallery } from '@/components/community/media-gallery';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useCommentLineHeight } from '@/lib/hooks/use-comment-line-height';
-import { Thread, ThreadReaction } from '@/types/types.generated';
-import { ThreadCommentData } from '@/types/comment';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
+import type { ThreadCommentData } from '@/types/comment';
+import { type Thread, ThreadReaction } from '@/types/types.generated';
 import { format } from 'date-fns';
+import { Image as ImageIcon } from 'lucide-react';
 import {
   Loader2,
   MessageSquareMore,
@@ -30,10 +32,8 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
-import ThreadCommentItem from './thread-comment-item';
 import { Link } from 'react-router';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
-import { cn } from '@/lib/utils';
+import ThreadCommentItem from './thread-comment-item';
 
 interface ThreadItemProps {
   thread: Thread;

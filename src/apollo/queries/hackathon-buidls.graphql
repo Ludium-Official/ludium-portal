@@ -1,0 +1,49 @@
+query hackathonBuidls($hackathonId: ID!, $page: Int, $limit: Int, $search: String) {
+  hackathonBuidls(hackathonId: $hackathonId, page: $page, limit: $limit, search: $search) {
+    count
+    totalPages
+    currentPage
+    hasNextPage
+    hasPreviousPage
+    data {
+      id
+      hackathonId
+      title
+      description
+      coverImage
+      buidlDescription
+      githubLink
+      websiteLink
+      demoVideoLink
+      socialLinks
+      sponsorIds
+      status
+      owner {
+        id
+        nickname
+        profileImage
+      }
+      sponsors {
+        id
+        name
+        sponsorImage
+        tracks {
+          id
+          title
+          description
+          prize
+        }
+      }
+      builders {
+        id
+        userId
+        isAccepted
+        user {
+          id
+          nickname
+          profileImage
+        }
+      }
+    }
+  }
+}

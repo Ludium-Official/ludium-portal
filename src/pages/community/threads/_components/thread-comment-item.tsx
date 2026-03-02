@@ -1,11 +1,11 @@
-import { useToggleThreadCommentReactionMutation } from '@/apollo/mutation/toggle-thread-comment-reaction.generated';
 import { useCreateThreadCommentMutation } from '@/apollo/mutation/create-thread-comment.generated';
-import { useUpdateThreadCommentMutation } from '@/apollo/mutation/update-thread-comment.generated';
 import { useDeleteThreadCommentMutation } from '@/apollo/mutation/delete-thread-comment.generated';
+import { useToggleThreadCommentReactionMutation } from '@/apollo/mutation/toggle-thread-comment-reaction.generated';
+import { useUpdateThreadCommentMutation } from '@/apollo/mutation/update-thread-comment.generated';
 import { useThreadChildCommentsLazyQuery } from '@/apollo/queries/thread-child-comments.generated';
 import { CommentItemUI } from '@/components/community/comment-item-ui';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { ThreadCommentData } from '@/types/comment';
+import type { ThreadCommentData } from '@/types/comment';
 import { ThreadCommentReaction } from '@/types/types.generated';
 import { useState } from 'react';
 

@@ -1,4 +1,8 @@
 import { useArticlesQuery } from '@/apollo/queries/articles.generated';
+import recruitmentMainMobileImage from '@/assets/icons/main/banner/recruitment-main-mobile.png';
+import recruitmentMainImage from '@/assets/icons/main/banner/recruitment-main.png';
+import campaignMainImage from '@/assets/icons/main/buidlhack2026-main.png';
+import rightArrowIcon from '@/assets/icons/right-arrow.svg';
 import Container from '@/components/layout/container';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -8,25 +12,21 @@ import {
   CarouselContent,
   CarouselItem,
 } from '@/components/ui/carousel';
-import { ArticleFilter, ArticleType } from '@/types/types.generated';
-import Autoplay from 'embla-carousel-autoplay';
-import { format } from 'date-fns';
-import { useCallback, useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
-import recruitmentMainImage from '@/assets/icons/main/banner/recruitment-main.png';
-import recruitmentMainMobileImage from '@/assets/icons/main/banner/recruitment-main-mobile.png';
-import campaignMainImage from '@/assets/icons/main/campaign-main.png';
-import rightArrowIcon from '@/assets/icons/right-arrow.svg';
 import { GUIDES } from '@/constant/guides';
 import { useBreakpoint } from '@/lib/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { ArticleFilter, ArticleType } from '@/types/types.generated';
+import { format } from 'date-fns';
+import Autoplay from 'embla-carousel-autoplay';
 import { Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router';
 
 const CAMPAIGN_DATA = {
-  title: 'Road to Seoul',
-  description: "Connecting the World's Builders to Seoul",
+  title: 'BuidlHack2026',
+  description: 'The flagship hackathon of Korea Buidl Week. Where builders come to ship.',
   image: campaignMainImage,
-  link: '/community/articles/5c48e4bd-c2ea-49e9-9c25-35b4a906bd1f',
+  link: '/programs/hackathon/f8a6bb25-671a-44c3-a8c3-293a5d048e51',
 };
 
 const CATEGORIES = ['latest', 'trending', 'newsletter', 'campaign'] as const;

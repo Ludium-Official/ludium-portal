@@ -1,10 +1,10 @@
-import { useArticleChildCommentsLazyQuery } from '@/apollo/queries/article-child-comments.generated';
-import { useToggleArticleCommentReactionMutation } from '@/apollo/mutation/toggle-article-comment-reaction.generated';
 import { useCreateArticleCommentMutation } from '@/apollo/mutation/create-article-comment.generated';
-import { useUpdateArticleCommentMutation } from '@/apollo/mutation/update-article-comment.generated';
 import { useDeleteArticleCommentMutation } from '@/apollo/mutation/delete-article-comment.generated';
+import { useToggleArticleCommentReactionMutation } from '@/apollo/mutation/toggle-article-comment-reaction.generated';
+import { useUpdateArticleCommentMutation } from '@/apollo/mutation/update-article-comment.generated';
+import { useArticleChildCommentsLazyQuery } from '@/apollo/queries/article-child-comments.generated';
 import { useAuth } from '@/lib/hooks/use-auth';
-import { ArticleCommentData } from '@/types/comment';
+import type { ArticleCommentData } from '@/types/comment';
 import { ArticleCommentReaction } from '@/types/types.generated';
 import { useState } from 'react';
 import { CommentItemUI } from './comment-item-ui';

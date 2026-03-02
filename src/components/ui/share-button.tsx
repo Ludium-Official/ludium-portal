@@ -1,3 +1,4 @@
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import notify from '@/lib/notify';
 import { cn } from '@/lib/utils';
 import type { Program } from '@/types/types.generated';
@@ -7,7 +8,6 @@ import { Button } from './button';
 import { Label } from './label';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
 import { RadioGroup, RadioGroupItem } from './radio-group';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 interface ShareButtonProps {
   className?: string;
