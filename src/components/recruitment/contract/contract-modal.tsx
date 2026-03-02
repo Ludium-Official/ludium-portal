@@ -13,6 +13,7 @@ import { useNetworks } from '@/contexts/networks-context';
 import { deactivateContractMessages, sendMessage } from '@/lib/firebase-chat';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useContract } from '@/lib/hooks/use-contract';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import notify from '@/lib/notify';
 import type { ContractFormProps, ContractInformation } from '@/types/recruitment';
 import {
@@ -25,7 +26,6 @@ import { ethers } from 'ethers';
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { ContractForm } from './contract-form';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 interface ContractModalProps {
   open: boolean;

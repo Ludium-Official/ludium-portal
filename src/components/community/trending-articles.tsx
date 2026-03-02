@@ -1,4 +1,4 @@
-import { TopViewedArticlesQuery } from '@/apollo/queries/top-viewed-articles.generated';
+import type { TopViewedArticlesQuery } from '@/apollo/queries/top-viewed-articles.generated';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Link } from 'react-router';
 

@@ -10,13 +10,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { MobileFullScreenDialog } from '@/components/ui/mobile-full-screen-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { MobileFullScreenDialog } from '@/components/ui/mobile-full-screen-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn, getCurrencyIcon, getInitials, getUserDisplayName, reduceString } from '@/lib/utils';
 import type { ProgramV2 } from '@/types/types.generated';

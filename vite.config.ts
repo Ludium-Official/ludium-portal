@@ -9,6 +9,10 @@ export default defineConfig({
   server: {
     host: true,
     allowedHosts: [],
+    watch: {
+      usePolling: true,
+      interval: 300,
+    },
   },
   plugins: [react(), tailwindcss(), svgr()],
   resolve: {

@@ -1,8 +1,9 @@
-import CommunityBanner from '@/assets/icons/community/articles/banners/community-banner.svg';
 import CommunityBannerMobile from '@/assets/icons/community/articles/banners/community-banner-mobile.svg';
+import CommunityBanner from '@/assets/icons/community/articles/banners/community-banner.svg';
 import Container from '@/components/layout/container';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import notify from '@/lib/notify';
 import { cn, shuffleArray } from '@/lib/utils';
 import Autoplay from 'embla-carousel-autoplay';
@@ -11,7 +12,6 @@ import { CirclePlus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import ArticlesContent from './_components/articles-content';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 const ArticlesPage: React.FC = () => {
   const navigate = useNavigate();

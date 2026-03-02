@@ -1,23 +1,25 @@
-import { useArticleQuery } from '@/apollo/queries/article.generated';
-import { useArticleCommentsQuery } from '@/apollo/queries/article-comments.generated';
-import { useToggleArticleLikeMutation } from '@/apollo/mutation/toggle-article-like.generated';
 import { useCreateArticleCommentMutation } from '@/apollo/mutation/create-article-comment.generated';
+import { useToggleArticleLikeMutation } from '@/apollo/mutation/toggle-article-like.generated';
+import { useArticleCommentsQuery } from '@/apollo/queries/article-comments.generated';
+import { useArticleQuery } from '@/apollo/queries/article.generated';
 import { CommentItem } from '@/components/community/comment-item';
 import Container from '@/components/layout/container';
-import { ArticleCommentData } from '@/types/comment';
 import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ShareButton } from '@/components/ui/share-button';
-import { Textarea } from '@/components/ui/textarea';
-import { useAuth } from '@/lib/hooks/use-auth';
-import { format } from 'date-fns';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ShareButton } from '@/components/ui/share-button';
+import { Textarea } from '@/components/ui/textarea';
+import { useAuth } from '@/lib/hooks/use-auth';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import { cn } from '@/lib/utils';
+import type { ArticleCommentData } from '@/types/comment';
+import { format } from 'date-fns';
 import {
   EllipsisVertical,
   Eye,
@@ -30,8 +32,6 @@ import {
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import RecommendedArticles from '../_components/recommended-articles';
-import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 const ArticleDetailPage = () => {
   const { id } = useParams();

@@ -1,9 +1,9 @@
-import AboutLudiumIcon from '@/assets/icons/guide/about-ludium.svg';
-import JoinProjectIcon from '@/assets/icons/guide/join-project.svg';
-import SetUpProfileIcon from '@/assets/icons/guide/setup-profile.svg';
 import About1Icon from '@/assets/guide/about/About1.png';
 import About2Icon from '@/assets/guide/about/About2.png';
 import About3Icon from '@/assets/guide/about/About3.png';
+import AboutLudiumIcon from '@/assets/icons/guide/about-ludium.svg';
+import JoinProjectIcon from '@/assets/icons/guide/join-project.svg';
+import SetUpProfileIcon from '@/assets/icons/guide/setup-profile.svg';
 
 export const GUIDES = [
   {

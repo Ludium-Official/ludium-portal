@@ -1,7 +1,7 @@
-import { useThreadsQuery } from '@/apollo/queries/threads.generated';
-import { useMyThreadsQuery } from '@/apollo/queries/my-threads.generated';
-import { useTopViewedArticlesQuery } from '@/apollo/queries/top-viewed-articles.generated';
 import { useCreateThreadMutation } from '@/apollo/mutation/create-thread.generated';
+import { useMyThreadsQuery } from '@/apollo/queries/my-threads.generated';
+import { useThreadsQuery } from '@/apollo/queries/threads.generated';
+import { useTopViewedArticlesQuery } from '@/apollo/queries/top-viewed-articles.generated';
 import { MediaUploadPreview } from '@/components/community/media-gallery';
 import TrendingArticles from '@/components/community/trending-articles';
 import Container from '@/components/layout/container';
@@ -10,14 +10,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { MobileFullScreenDialog } from '@/components/ui/mobile-full-screen-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
+import notify from '@/lib/notify';
+import { cn } from '@/lib/utils';
+import type { Thread } from '@/types/types.generated';
 import { CirclePlus, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import ThreadItem from './_components/thread-item';
-import { Thread } from '@/types/types.generated';
-import notify from '@/lib/notify';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
-import { cn } from '@/lib/utils';
 
 type TabType = 'all' | 'myPost';
 

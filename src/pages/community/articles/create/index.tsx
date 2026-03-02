@@ -2,12 +2,12 @@ import client from '@/apollo/client';
 import { useCreateArticleMutation } from '@/apollo/mutation/create-article.generated';
 import { useUpdateArticleMutation } from '@/apollo/mutation/update-article.generated';
 import { ArticlesDocument } from '@/apollo/queries/articles.generated';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import notify from '@/lib/notify';
+import { cn } from '@/lib/utils';
 import { ArticleStatus } from '@/types/types.generated';
 import { useNavigate } from 'react-router';
 import ArticleForm, { type OnSubmitArticleFunc } from '../_components/article-form';
-import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 const CreateArticlePage: React.FC = () => {
   const navigate = useNavigate();

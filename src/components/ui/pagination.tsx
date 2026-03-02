@@ -2,10 +2,10 @@ import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 import * as React from 'react';
 
 import { buttonVariants } from '@/components/ui/button';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import type { PaginationLinkProps, PaginationProps } from '@/types/pagination';
 import { useSearchParams } from 'react-router';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 export const PageSize = 5;
 const maxVisible = 4;

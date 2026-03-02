@@ -5,6 +5,12 @@ import { useUpdateProgramV2Mutation } from '@/apollo/mutation/update-program-v2.
 import { MarkdownPreviewer } from '@/components/markdown';
 import MarkdownEditor from '@/components/markdown/markdown-editor';
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -25,12 +31,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import {
   Form,
   FormControl,
   FormField,
@@ -42,7 +42,9 @@ import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useNetworks } from '@/contexts/networks-context';
 import { sendMessage } from '@/lib/firebase-chat';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { dDay, formatUTCDateLocal, fromUTCString, toUTCString } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import type { MilestoneModalProps } from '@/types/recruitment';
 import {
   ApplicationStatusV2,
@@ -52,14 +54,12 @@ import {
 } from '@/types/types.generated';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ethers } from 'ethers';
+import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import * as z from 'zod';
 import { MilestoneAccordion } from './milestone-accordion';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
-import { cn } from '@/lib/utils';
-import { X } from 'lucide-react';
 
 const milestoneFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
