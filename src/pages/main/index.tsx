@@ -1,7 +1,7 @@
 import { useArticlesQuery } from '@/apollo/queries/articles.generated';
 import recruitmentMainMobileImage from '@/assets/icons/main/banner/recruitment-main-mobile.png';
 import recruitmentMainImage from '@/assets/icons/main/banner/recruitment-main.png';
-import campaignMainImage from '@/assets/icons/main/campaign-main.png';
+import campaignMainImage from '@/assets/icons/main/buidlhack2026-main.png';
 import rightArrowIcon from '@/assets/icons/right-arrow.svg';
 import Container from '@/components/layout/container';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,10 +23,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 
 const CAMPAIGN_DATA = {
-  title: 'Road to Seoul',
-  description: "Connecting the World's Builders to Seoul",
+  title: 'BuidlHack2026',
+  description: 'The flagship hackathon of Korea Buidl Week. Where builders come to ship.',
   image: campaignMainImage,
-  link: '/community/articles/15076d0c-e7cd-42a7-81fa-1efa4380ef50',
+  link: '/programs/hackathon/f8a6bb25-671a-44c3-a8c3-293a5d048e51',
 };
 
 const CATEGORIES = ['latest', 'trending', 'newsletter', 'campaign'] as const;
