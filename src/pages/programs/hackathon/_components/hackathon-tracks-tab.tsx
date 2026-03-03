@@ -1,4 +1,5 @@
 import { useHackathonSponsorsQuery } from '@/apollo/queries/hackathon-sponsors.generated';
+import { MarkdownPreviewer } from '@/components/markdown';
 import {
   Accordion,
   AccordionContent,
@@ -170,7 +171,9 @@ function HackathonTracksTab({ hackathonId }: HackathonTracksTabProps) {
                         {idx + 1}. {track.title}
                         {track.prize ? ` - $${track.prize.toLocaleString()}` : ''}
                       </AccordionTrigger>
-                      <AccordionContent className="pb-4">{track.description}</AccordionContent>
+                      <AccordionContent className="max-h-[500px] overflow-y-auto pb-4">
+                        <MarkdownPreviewer value={track.description || ''} />
+                      </AccordionContent>
                     </AccordionItem>
                   ))}
                 </Accordion>
