@@ -8,7 +8,7 @@ export type HackathonSponsorsQueryVariables = Types.Exact<{
 }>;
 
 
-export type HackathonSponsorsQuery = { __typename?: 'Query', hackathonSponsors?: Array<{ __typename?: 'HackathonSponsor', id?: string | null, name?: string | null, sponsorImage?: string | null, about?: string | null, link?: string | null, tracks?: Array<{ __typename?: 'HackathonSponsorTrack', id?: string | null, title?: string | null, description?: string | null, prize?: number | null }> | null }> | null };
+export type HackathonSponsorsQuery = { __typename?: 'Query', hackathonSponsors?: Array<{ __typename?: 'HackathonSponsor', id?: string | null, name?: string | null, sponsorImage?: string | null, about?: string | null, link?: string | null, isRequired?: boolean | null, tracks?: Array<{ __typename?: 'HackathonSponsorTrack', id?: string | null, title?: string | null, description?: string | null, prize?: number | null }> | null }> | null };
 
 
 export const HackathonSponsorsDocument = gql`
@@ -19,6 +19,7 @@ export const HackathonSponsorsDocument = gql`
     sponsorImage
     about
     link
+    isRequired
     tracks {
       id
       title

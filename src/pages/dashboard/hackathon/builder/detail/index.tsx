@@ -79,7 +79,7 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
     skip: !id || currentTab !== 'my-buidls',
   });
 
-  const sponsors = sponsorsData?.hackathonSponsors ?? [];
+  const sponsors = sponsorsData?.hackathonSponsors?.filter((s) => !s.isRequired) ?? [];
   const selectedSponsor = sponsors.find((s) => s.id === sponsorId);
   const selectedTrackId = selectedSponsor?.tracks?.[0]?.id ?? undefined;
 

@@ -5,6 +5,7 @@ query hackathonSponsors($hackathonId: ID!) {
     sponsorImage
     about
     link
+    isRequired
     tracks {
       id
       title
