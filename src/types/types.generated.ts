@@ -869,8 +869,10 @@ export type HackathonSponsor = {
   createdAt?: Maybe<Scalars['DateTime']['output']>;
   hackathonId?: Maybe<Scalars['ID']['output']>;
   id?: Maybe<Scalars['ID']['output']>;
+  isRequired?: Maybe<Scalars['Boolean']['output']>;
   link?: Maybe<Scalars['String']['output']>;
   name?: Maybe<Scalars['String']['output']>;
+  sortOrder?: Maybe<Scalars['Int']['output']>;
   sponsorImage?: Maybe<Scalars['String']['output']>;
   tracks?: Maybe<Array<HackathonSponsorTrack>>;
   updatedAt?: Maybe<Scalars['DateTime']['output']>;

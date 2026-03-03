@@ -47,7 +47,7 @@ function HackathonBuidlsTab({ hackathonId }: HackathonBuidlsTabProps) {
     variables: { hackathonId },
   });
 
-  const sponsors = sponsorsData?.hackathonSponsors ?? [];
+  const sponsors = sponsorsData?.hackathonSponsors?.filter((s) => !s.isRequired) ?? [];
   const selectedSponsor = sponsors.find((s) => s.id === sponsorId);
 
   const { data, loading, fetchMore } = useHackathonBuidlsQuery({

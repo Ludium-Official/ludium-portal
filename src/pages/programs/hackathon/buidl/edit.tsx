@@ -128,7 +128,7 @@ function HackathonBuidlEditPage() {
     variables: { hackathonId: hackathonId ?? '' },
     skip: !hackathonId,
   });
-  const sponsors = sponsorsData?.hackathonSponsors ?? [];
+  const sponsors = sponsorsData?.hackathonSponsors?.filter((s) => !s.isRequired) ?? [];
 
   const sponsorOptions = useMemo(
     () =>
