@@ -215,23 +215,8 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
       return;
     }
 
-    const img = new window.Image();
-    img.onload = () => {
-      if (img.width !== img.height) {
-        setImageError('Image must be square (1:1).');
-        setSelectedAvatar(undefined);
-        setImagePreview(null);
-      } else {
-        setSelectedAvatar(file);
-        setImagePreview(URL.createObjectURL(file));
-      }
-    };
-    img.onerror = () => {
-      setImageError('Invalid image file.');
-      setSelectedAvatar(undefined);
-      setImagePreview(null);
-    };
-    img.src = URL.createObjectURL(file);
+    setSelectedAvatar(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const onSubmit = (data: ProfileFormData) => {
