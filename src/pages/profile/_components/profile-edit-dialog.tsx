@@ -208,8 +208,8 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setImageError('Image must be under 2MB.');
+    if (file.size > 5 * 1024 * 1024) {
+      setImageError('Image must be under 5MB.');
       setSelectedAvatar(undefined);
       setImagePreview(null);
       return;
@@ -279,7 +279,7 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
         <div className="space-y-2">
           <p className="font-medium text-sm">Profile image</p>
           <p className="text-xs text-gray-500">
-            Profile image must be under 2MB, and in PNG, JPG, or JPEG format.
+            Profile image must be under 5MB, and in PNG, JPG, or JPEG format.
           </p>
           <input
             ref={fileInputRef}
