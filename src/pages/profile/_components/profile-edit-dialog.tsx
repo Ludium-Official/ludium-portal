@@ -259,7 +259,7 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
     <div className={cn('space-y-6', isMobile && 'space-y-10')}>
       <div className="flex items-center gap-6">
         <Avatar className="w-26 h-26">
-          <AvatarImage className="bg-neutral-100" src={imagePreview || avatarDefault} />
+          <AvatarImage className="bg-neutral-100 object-cover" src={imagePreview || avatarDefault} />
         </Avatar>
         <div className="space-y-2">
           <p className="font-medium text-sm">Profile image</p>
