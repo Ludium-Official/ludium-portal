@@ -51,7 +51,7 @@ export const ProfileSection: React.FC<ProfileSectionProps> = ({
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-6">
           <Avatar className="w-26 h-26">
-            <AvatarImage className="bg-neutral-100" src={profileImage || avatarDefault} />
+            <AvatarImage className="bg-neutral-100 object-cover" src={profileImage || avatarDefault} />
           </Avatar>
           <div>
             <p className={cn('text-sm font-medium text-gray-900 mb-4', isMobile && 'mb-[10px]')}>
