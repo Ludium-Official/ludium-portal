@@ -4,15 +4,10 @@ import {
   type MyBuidlsInHackathonQuery,
   useMyBuidlsInHackathonQuery,
 } from '@/apollo/queries/my-buidls-in-hackathon.generated';
-import GithubIcon from '@/assets/icons/hackathon/github.svg';
-import BrowserIcon from '@/assets/icons/hackathon/browser.svg';
-import VideoIcon from '@/assets/icons/hackathon/video.svg';
 import MobileBackHeader from '@/components/common/mobile-back-header';
-import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import Container from '@/components/layout/container';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,9 +21,11 @@ import { useDebounce } from '@/lib/hooks/use-debounce';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn, getInitials, getUserDisplayName } from '@/lib/utils';
 import { HackathonDetailView } from '@/pages/programs/hackathon/_components/hackathon-detail-view';
+import { BuidlDetailDialog } from '@/pages/programs/hackathon/_components/buidl-detail-dialog';
 import { ChevronDown, ChevronRight, SearchIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const PAGE_LIMIT = 12;
 
@@ -155,9 +152,9 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
   if (!isApplied) return null;
 
   return (
-    <div className={cn('bg-white px-10 py-7 rounded-md', isMobile && 'p-0')}>
+    <div className={cn('bg-white rounded-md w-full', isMobile ? 'p-0' : 'px-10 py-7')}>
       <MobileBackHeader title="Hackathon Overview" backLink="/dashboard/hackathon/builder" />
-      <Container className="flex flex-col gap-6">
+      <div className={cn('flex flex-col gap-6', isMobile && 'pt-4')}>
         {!isMobile && (
           <div className="flex items-center w-fit text-sm text-muted-foreground">
             <Link to="/dashboard">Dashboard</Link>
@@ -168,37 +165,24 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
           </div>
         )}
 
-        <div className="flex border border-gray-200 rounded-md w-fit">
-          <button
-            type="button"
-            onClick={() => setTab('')}
-            className={cn(
-              'px-8 py-2 text-sm font-medium rounded-l-md transition-colors',
-              currentTab !== 'my-buidls'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'bg-gray-50 text-muted-foreground hover:bg-gray-100',
-            )}
-          >
-            Overview
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('my-buidls')}
-            className={cn(
-              'px-8 py-2 text-sm font-medium rounded-r-md transition-colors border-l border-gray-200',
-              currentTab === 'my-buidls'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'bg-gray-50 text-muted-foreground hover:bg-gray-100',
-            )}
-          >
-            My BUIDLs
-          </button>
-        </div>
+        <Tabs value={currentTab} onValueChange={setTab} className={cn(isMobile && 'mx-4')}>
+          <TabsList className={cn('rounded-md', isMobile && 'w-full')}>
+            <TabsTrigger value="" className={cn('rounded-sm px-10', isMobile && 'px-4 flex-1')}>
+              Overview
+            </TabsTrigger>
+            <TabsTrigger
+              value="my-buidls"
+              className={cn('rounded-sm px-10', isMobile && 'px-4 flex-1')}
+            >
+              My BUIDLs
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {currentTab !== 'my-buidls' && <HackathonDetailView id={id ?? ''} />}
 
         {currentTab === 'my-buidls' && (
-          <>
+          <div className={cn(isMobile && 'mx-4')}>
             <div className="flex items-center justify-between gap-4">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -324,167 +308,15 @@ const HackathonDashboardBuilderDetail: React.FC = () => {
               )}
             </div>
 
-            <Dialog open={!!selectedBuidl} onOpenChange={(open) => !open && setSelectedBuidl(null)}>
-              <DialogContent
-                className="gap-0 max-w-[920px]! max-h-[85vh] overflow-y-auto p-0"
-                overlayClassName="bg-black/80"
-              >
-                {selectedBuidl && (
-                  <>
-                    <DialogHeader className="px-10 pt-[50px] pb-[30px] mb-[30px] border-b border-gray-200">
-                      {selectedBuidl.owner?.id &&
-                        String(selectedBuidl.owner.id) === String(userId) && (
-                          <div className="flex justify-end -mt-7 mb-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                navigate(
-                                  `/programs/hackathon/${id}/buidl/${selectedBuidl.id}/edit`,
-                                  { state: { buidl: selectedBuidl } },
-                                );
-                              }}
-                            >
-                              Edit
-                            </Button>
-                          </div>
-                        )}
-                      <div className="flex gap-5">
-                        {selectedBuidl.coverImage && (
-                          <img
-                            src={selectedBuidl.coverImage}
-                            alt={selectedBuidl.title || ''}
-                            className="w-36 h-36 rounded-lg object-cover shrink-0"
-                          />
-                        )}
-                        <DialogTitle className="flex flex-col gap-[14px] text-xl font-semibold">
-                          {selectedBuidl.title}
-                          <div className="text-sm">{selectedBuidl.description}</div>
-                        </DialogTitle>
-                      </div>
-                    </DialogHeader>
-
-                    <div className="flex flex-col gap-[30px] px-10 pb-[50px]">
-                      {selectedBuidl.sponsors && selectedBuidl.sponsors.length > 0 && (
-                        <div className="flex flex-col gap-2">
-                          <div className="text-sm font-bold text-slate-800">Track</div>
-                          <div className="flex flex-wrap gap-2">
-                            {selectedBuidl.sponsors.map((sponsor) => (
-                              <div
-                                key={sponsor.id}
-                                className="flex items-center gap-[6px] px-[14px] py-[6px] border border-gray-200 rounded text-sm"
-                              >
-                                {sponsor.sponsorImage && (
-                                  <img
-                                    src={sponsor.sponsorImage}
-                                    alt={sponsor.name || ''}
-                                    className="w-5 h-5 rounded-full object-cover"
-                                  />
-                                )}
-                                <span>{sponsor.name}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {(selectedBuidl.githubLink ||
-                        selectedBuidl.websiteLink ||
-                        selectedBuidl.demoVideoLink) && (
-                        <div className="flex flex-col gap-2">
-                          <div className="text-sm font-bold text-slate-800">Link</div>
-                          <div className="flex flex-col gap-1.5">
-                            {selectedBuidl.githubLink && (
-                              <Link
-                                to={selectedBuidl.githubLink}
-                                target="_blank"
-                                className="flex items-center gap-2 text-sm underline"
-                              >
-                                <img src={GithubIcon} alt="github" className="h-6" />
-                                {selectedBuidl.githubLink}
-                              </Link>
-                            )}
-                            {selectedBuidl.websiteLink && (
-                              <Link
-                                to={selectedBuidl.websiteLink}
-                                target="_blank"
-                                className="flex items-center gap-2 text-sm underline"
-                              >
-                                <img src={BrowserIcon} alt="browser" className="h-6" />
-                                {selectedBuidl.websiteLink}
-                              </Link>
-                            )}
-                            {selectedBuidl.demoVideoLink && (
-                              <Link
-                                to={selectedBuidl.demoVideoLink}
-                                target="_blank"
-                                className="flex items-center gap-2 text-sm underline"
-                              >
-                                <img src={VideoIcon} alt="video" className="h-6" />
-                                {selectedBuidl.demoVideoLink}
-                              </Link>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedBuidl.buidlDescription && (
-                        <div className="flex flex-col gap-2">
-                          <div className="text-sm font-bold text-slate-800">Detail</div>
-                          <div className="max-h-[256px] overflow-y-auto bg-slate-50 border border-slate-200 rounded-lg p-5">
-                            <MarkdownPreviewer value={selectedBuidl.buidlDescription} />
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedBuidl.builders && selectedBuidl.builders.length > 0 && (
-                        <div className="flex flex-col gap-2">
-                          <div className="text-sm font-bold text-slate-800">Members</div>
-                          <div className="flex flex-wrap gap-4">
-                            {selectedBuidl.builders.map((builder) => {
-                              const name = getUserDisplayName(builder.user?.nickname, undefined);
-                              return (
-                                <div key={builder.id} className="flex items-center gap-2">
-                                  <Avatar className="w-7 h-7">
-                                    <AvatarImage src={builder.user?.profileImage || ''} />
-                                    <AvatarFallback className="text-[10px]">
-                                      {getInitials(name)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span className="text-sm text-muted-foreground">{name}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedBuidl.socialLinks && selectedBuidl.socialLinks.length > 0 && (
-                        <div className="flex flex-col gap-2">
-                          <div className="text-sm font-bold text-slate-800">Social</div>
-                          <div className="flex flex-col gap-[18px]">
-                            {selectedBuidl.socialLinks.map((link) => (
-                              <Link
-                                key={link}
-                                to={link}
-                                target="_blank"
-                                className="flex items-center gap-2 text-sm underline"
-                              >
-                                <img src={BrowserIcon} alt="browser" className="h-6" />
-                                {link}
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </DialogContent>
-            </Dialog>
-          </>
+            <BuidlDetailDialog
+              buidl={selectedBuidl}
+              hackathonId={id ?? ''}
+              onClose={() => setSelectedBuidl(null)}
+              mobileTitle="My BUIDLs"
+            />
+          </div>
         )}
-      </Container>
+      </div>
     </div>
   );
 };

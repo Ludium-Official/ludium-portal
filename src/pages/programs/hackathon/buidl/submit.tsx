@@ -21,6 +21,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import notify from '@/lib/notify';
 import { cn, getInitials, getUserDisplayName } from '@/lib/utils';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { ImageIcon, Loader2, Plus, Upload, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -56,6 +57,7 @@ interface MemberUser {
 function HackathonBuidlSubmitPage() {
   const { id: hackathonId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState(0);
@@ -320,12 +322,58 @@ function HackathonBuidlSubmitPage() {
 
   return (
     <div className="bg-white w-full rounded-2xl">
-      <Container className="max-w-[856px] mx-auto py-10 px-4">
-        <h1 className="text-xl font-bold mb-6">Submit BUIDL</h1>
+      {isMobile && (
+        <div className="fixed top-0 left-0 bg-white w-full z-50 border-b border-gray-100">
+          <header className="relative flex items-center justify-center p-4 h-17">
+            <button
+              type="button"
+              onClick={() => navigate(`/programs/hackathon/${hackathonId}`)}
+              className="absolute top-4 left-4"
+            >
+              <X className="w-6 h-9" />
+            </button>
+            <span className="text-sm font-medium">Submit BUIDL</span>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="absolute right-4 top-4">
+                  {step < 2 ? 'Next' : 'Submit'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-auto p-2 flex flex-col gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start"
+                  onClick={handleSaveDraft}
+                  disabled={!watch('title').trim() || !coverImage || isDraftSaving || loading}
+                >
+                  {isDraftSaving ? 'Saving...' : 'Save Draft'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start"
+                  disabled={!canProceed() || loading}
+                  onClick={step < 2 ? () => setStep((s) => s + 1) : () => handleSubmit(onSubmit)()}
+                >
+                  {step < 2 ? 'Next' : loading ? 'Submitting...' : 'Submit BUIDL'}
+                </Button>
+              </PopoverContent>
+            </Popover>
+          </header>
+        </div>
+      )}
+      <Container className={cn('max-w-[856px] mx-auto py-10 px-4', isMobile && 'pt-10')}>
+        <h1 className={cn('text-xl font-bold mb-6', isMobile && 'hidden')}>Submit BUIDL</h1>
 
         <form>
-          <div className="bg-white border border-gray-200 rounded-xl px-10 py-9 mb-6">
-            <div className="flex gap-[10px] mb-15">
+          <div
+            className={cn(
+              'bg-white border border-gray-200 rounded-xl px-10 py-9 mb-6',
+              isMobile && 'border-0 px-0 py-0 rounded-none',
+            )}
+          >
+            <div className={cn('flex gap-[10px] mb-15', isMobile && 'mb-10')}>
               {STEPS.map((label, i) => (
                 <button
                   key={label}
@@ -601,7 +649,7 @@ function HackathonBuidlSubmitPage() {
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">GitHub/Gitlab/Bitbucket (optional)</p>
+                  <p className="text-sm font-medium">GitHub/Gitlab/Bitbucket</p>
                   <Input
                     placeholder="Enter a social profile URL"
                     {...register('githubLink', {
@@ -645,7 +693,7 @@ function HackathonBuidlSubmitPage() {
             )}
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className={cn('flex items-center justify-between', isMobile && 'hidden')}>
             {savedBuidlId && (
               <Button type="button" variant="secondary" disabled={isDeleting} onClick={deleteBuidl}>
                 {isDeleting ? 'Deleting...' : 'Delete'}

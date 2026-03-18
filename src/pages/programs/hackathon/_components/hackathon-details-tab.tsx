@@ -1,6 +1,7 @@
 import { useHackathonSectionsQuery } from '@/apollo/queries/hackathon-sections.generated';
 import MarkdownPreviewer from '@/components/markdown/markdown-previewer';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
 
@@ -9,6 +10,8 @@ interface HackathonDetailsTabProps {
 }
 
 function HackathonDetailsTab({ hackathonId }: HackathonDetailsTabProps) {
+  const isMobile = useIsMobile();
+
   const { data, loading } = useHackathonSectionsQuery({
     variables: { hackathonId },
   });
@@ -102,10 +105,13 @@ function HackathonDetailsTab({ hackathonId }: HackathonDetailsTabProps) {
   if (!sections.length) return null;
 
   return (
-    <div ref={wrapperRef} className="flex gap-6 mt-3">
+    <div ref={wrapperRef} className={cn('flex gap-6 mt-3', isMobile && 'flex-col gap-[10px]')}>
       <div
         ref={sidebarRef}
-        className="flex flex-col gap-2 w-45 h-fit shrink-0 p-4 rounded-lg border border-gray-200"
+        className={cn(
+          'flex flex-col gap-2 w-45 h-fit bg-white shrink-0 p-4 rounded-lg border border-gray-200',
+          isMobile && 'flex-row w-full overflow-x-auto p-[10px]',
+        )}
       >
         {sections.map((section) => (
           <button
@@ -113,10 +119,11 @@ function HackathonDetailsTab({ hackathonId }: HackathonDetailsTabProps) {
             type="button"
             onClick={() => scrollToSection(section.id ?? '')}
             className={cn(
-              'w-fit px-3 py-2 rounded-md transition-colors text-sm',
+              'w-fit px-3 py-2 rounded-md transition-colors text-sm whitespace-nowrap',
               activeId === section.id
                 ? 'bg-gray-100 text-gray-900'
                 : 'text-muted-foreground hover:text-gray-900 hover:bg-gray-50',
+              isMobile && 'w-auto',
             )}
           >
             {section.title}

@@ -72,7 +72,7 @@ const RecruitmentDashboardBuilderDetail: React.FC = () => {
   return (
     <div className={cn('bg-white px-10 py-7 rounded-md', isMobile && 'p-0')}>
       <MobileBackHeader title="Program Overview" backLink="/dashboard/recruitment/builder" />
-      <Container className="flex flex-col justify-between">
+      <Container className={cn('flex flex-col justify-between', isMobile && 'pt-4')}>
         <div className="mb-3">
           {!isMobile && (
             <div className="flex items-center w-fit mb-6 text-sm text-muted-foreground">
@@ -83,6 +83,7 @@ const RecruitmentDashboardBuilderDetail: React.FC = () => {
               <span className="text-foreground">Program Overview</span>
             </div>
           )}
+
           <Tabs value={selectedTab} onValueChange={handleTabChange}>
             <TabsList className={cn('rounded-md', isMobile && 'w-full')}>
               <TabsTrigger
