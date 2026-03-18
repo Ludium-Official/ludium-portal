@@ -105,10 +105,13 @@ function HackathonDetailsTab({ hackathonId }: HackathonDetailsTabProps) {
   if (!sections.length) return null;
 
   return (
-    <div ref={wrapperRef} className={cn("flex gap-6 mt-3", isMobile && "flex-col gap-[10px]")}>
+    <div ref={wrapperRef} className={cn('flex gap-6 mt-3', isMobile && 'flex-col gap-[10px]')}>
       <div
         ref={sidebarRef}
-        className={cn("flex flex-col gap-2 w-45 h-fit bg-white shrink-0 p-4 rounded-lg border border-gray-200", isMobile && "flex-row w-full overflow-x-auto")}
+        className={cn(
+          'flex flex-col gap-2 w-45 h-fit bg-white shrink-0 p-4 rounded-lg border border-gray-200',
+          isMobile && 'flex-row w-full overflow-x-auto p-[10px]',
+        )}
       >
         {sections.map((section) => (
           <button
@@ -120,7 +123,7 @@ function HackathonDetailsTab({ hackathonId }: HackathonDetailsTabProps) {
               activeId === section.id
                 ? 'bg-gray-100 text-gray-900'
                 : 'text-muted-foreground hover:text-gray-900 hover:bg-gray-50',
-              isMobile && "w-auto"
+              isMobile && 'w-auto',
             )}
           >
             {section.title}

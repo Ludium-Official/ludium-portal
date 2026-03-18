@@ -66,18 +66,21 @@ export function HackathonDetailView({ id }: { id: string }) {
     now < new Date(hackathon.deadlineAt);
 
   return (
-    <Container>
+    <Container className={cn(isMobile && 'w-full')}>
       <div className="mb-3">
-        <div className={cn("flex items-center justify-between", isMobile && "mb-3")}>
-          <StatusBadge status={hackathon.status || 'draft'} className={cn("mb-2", isMobile && "mb-0")} />
+        <div className={cn('flex items-center justify-between', isMobile && 'mb-3')}>
+          <StatusBadge
+            status={hackathon.status || 'draft'}
+            className={cn('mb-2', isMobile && 'mb-0')}
+          />
           {isMobile && <ShareButton variant="outline" />}
         </div>
         <div className="flex items-center justify-between">
-          <h1 className={cn("text-2xl font-bold", isMobile && "text-xl")}>{hackathon.title}</h1>
+          <h1 className={cn('text-2xl font-bold', isMobile && 'text-xl')}>{hackathon.title}</h1>
           {!isMobile && <ShareButton variant="outline" />}
         </div>
       </div>
-      <div className={cn("flex items-start gap-7 mb-6", isMobile && "flex-col gap-3 mb-5")}>
+      <div className={cn('flex items-start gap-7 mb-6', isMobile && 'flex-col gap-3 mb-5')}>
         <div className="flex-1 min-w-0">
           <img
             src={hackathon.coverImage || ''}
@@ -85,13 +88,18 @@ export function HackathonDetailView({ id }: { id: string }) {
             className="rounded-lg w-full object-cover"
           />
         </div>
-        <div className={cn("flex flex-col justify-between w-[428px] shrink-0 self-stretch p-4 rounded-lg border border-slate-200", isMobile && "w-full")}>
-          <div className={cn("flex flex-col gap-5", isMobile && "gap-[14px]")}>
+        <div
+          className={cn(
+            'flex flex-col justify-between w-[428px] shrink-0 self-stretch p-4 rounded-lg border border-slate-200',
+            isMobile && 'w-full',
+          )}
+        >
+          <div className={cn('flex flex-col gap-5', isMobile && 'gap-[14px]')}>
             <div className="flex items-end justify-between">
               <div className="text-muted-foreground text-sm font-bold">Prize</div>
               <div>
                 <div className="text-sm text-right">{hackathon.network?.chainName}</div>
-                <div className={cn("font-bold text-xl", isMobile && "text-base")}>
+                <div className={cn('font-bold text-xl', isMobile && 'text-base')}>
                   {!hackathon.prizePoolAmount ? (
                     <div className="flex items-center gap-2 [&_svg]:size-4">
                       {getCurrencyIcon(hackathon.token?.tokenName || '')}
@@ -158,7 +166,7 @@ export function HackathonDetailView({ id }: { id: string }) {
                 </div>
               </div>
             </div>
-            <div className={cn("flex items-center justify-between", isMobile && "mb-5")}>
+            <div className={cn('flex items-center justify-between', isMobile && 'mb-5')}>
               <div className="text-muted-foreground text-sm font-bold">Sponsor</div>
               <div className="flex items-center gap-2 text-sm">
                 <Avatar className="w-7 h-7">
@@ -192,7 +200,7 @@ export function HackathonDetailView({ id }: { id: string }) {
           </Button>
         </div>
       </div>
-      <div className={cn("lg:col-span-2", isMobile && "mb-35")}>
+      <div className={cn('lg:col-span-2', isMobile && 'mb-35')}>
         <div className="flex items-center gap-2 overflow-auto w-full border-b border-gray-300">
           <Link to={basePath} className={tabClass('details')}>
             Details

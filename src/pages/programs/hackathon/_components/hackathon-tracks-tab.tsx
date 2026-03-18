@@ -99,10 +99,13 @@ function HackathonTracksTab({ hackathonId }: HackathonTracksTabProps) {
   if (!sponsors.length) return null;
 
   return (
-    <div ref={wrapperRef} className={cn("flex gap-6 mt-3", isMobile && "flex-col gap-[10px]")}>
+    <div ref={wrapperRef} className={cn('flex gap-6 mt-3', isMobile && 'flex-col gap-[10px]')}>
       <div
         ref={sidebarRef}
-        className={cn("flex flex-col gap-1 w-45 h-fit shrink-0 p-4 rounded-lg border border-gray-200", isMobile && "flex-row w-full overflow-x-auto bg-white p-[10px]")}
+        className={cn(
+          'flex flex-col gap-1 w-45 h-fit shrink-0 p-4 rounded-lg border border-gray-200',
+          isMobile && 'flex-row w-full overflow-x-auto bg-white p-[10px]',
+        )}
       >
         {sponsors.map((sponsor) => (
           <button
@@ -138,7 +141,7 @@ function HackathonTracksTab({ hackathonId }: HackathonTracksTabProps) {
               ref={(el) => {
                 sponsorRefs.current[sponsor.id ?? ''] = el;
               }}
-              className={cn("border border-gray-200 rounded-lg px-[30px] py-4", isMobile && "p-4")}
+              className={cn('border border-gray-200 rounded-lg px-[30px] py-4', isMobile && 'p-4')}
             >
               <div className="flex items-center gap-5 mb-4 text-lg font-bold">
                 {sponsor.sponsorImage && (

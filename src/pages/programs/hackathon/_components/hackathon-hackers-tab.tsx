@@ -54,8 +54,8 @@ function HackathonHackersTab({ hackathonId }: HackathonHackersTabProps) {
 
   return (
     <>
-      <div className={cn("flex items-center justify-end mt-3", isMobile && "mt-5")}>
-        <div className={cn("relative w-64", isMobile && "w-full")}>
+      <div className={cn('flex items-center justify-end mt-3', isMobile && 'mt-5')}>
+        <div className={cn('relative w-64', isMobile && 'w-full')}>
           <SearchIcon
             className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
             width={16}
@@ -72,7 +72,12 @@ function HackathonHackersTab({ hackathonId }: HackathonHackersTabProps) {
       </div>
 
       {loading ? (
-        <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-3", isMobile && "mt-5")}>
+        <div
+          className={cn(
+            'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-3',
+            isMobile && 'mt-5',
+          )}
+        >
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-20 w-full rounded-lg" />
           ))}
@@ -80,8 +85,13 @@ function HackathonHackersTab({ hackathonId }: HackathonHackersTabProps) {
       ) : !participants.length ? (
         <div className="mt-3 text-center text-muted-foreground py-16">No hackers yet.</div>
       ) : (
-        <div className={cn("flex flex-col gap-4 mt-3", isMobile && "mt-5")}>
-          <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4", isMobile && "gap-[10px]")}>
+        <div className={cn('flex flex-col gap-4 mt-3', isMobile && 'mt-5')}>
+          <div
+            className={cn(
+              'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4',
+              isMobile && 'gap-[10px]',
+            )}
+          >
             {participants.map((participant) => {
               const displayName = getUserDisplayName(participant.user?.nickname, undefined);
               const buidls = participant.buidls ?? [];
@@ -89,14 +99,22 @@ function HackathonHackersTab({ hackathonId }: HackathonHackersTabProps) {
               return (
                 <div
                   key={`${participant.hackathonId}-${participant.user?.id}`}
-                  className={cn("flex items-center gap-2 p-4 border border-gray-200 rounded-lg", isMobile && "pt-5")}
+                  className={cn(
+                    'flex items-center gap-2 p-4 border border-gray-200 rounded-lg',
+                    isMobile && 'pt-5',
+                  )}
                 >
-                  <Avatar className={cn("w-16 h-16 shrink-0", isMobile && "w-[46px] h-[46px]")}>
+                  <Avatar className={cn('w-16 h-16 shrink-0', isMobile && 'w-[46px] h-[46px]')}>
                     <AvatarImage src={participant.user?.profileImage || ''} />
                     <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
                   </Avatar>
 
-                  <div className={cn("flex-1 min-w-0", isMobile && "flex flex-col justify-around h-full")}>
+                  <div
+                    className={cn(
+                      'flex-1 min-w-0',
+                      isMobile && 'flex flex-col justify-around h-full',
+                    )}
+                  >
                     <div className="font-semibold text-sm truncate">{displayName}</div>
                     <div className="text-xs text-muted-foreground truncate">
                       {participant.user?.userRole}
