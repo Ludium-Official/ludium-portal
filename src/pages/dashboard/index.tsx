@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type Timezone, fetchTimezones } from '@/lib/api/timezones';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn, commaNumber } from '@/lib/utils';
-import { AvatarImage } from '@radix-ui/react-avatar';
+import { AvatarImage } from '@/components/ui/avatar';
 import { ArrowUpRight, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';

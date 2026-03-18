@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Pagination, PageSize } from '@/components/ui/pagination';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useDebounce } from '@/lib/hooks/use-debounce';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
 import { cn, dDay, getCurrencyIcon, getInitials, getUserDisplayName } from '@/lib/utils';
 import { format } from 'date-fns';
@@ -18,11 +19,14 @@ const HackathonDashboardBuilder: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const isMobile = useIsMobile();
   const currentPage = Number(searchParams.get('page')) || 1;
-  const [debouncedSearch, setDebouncedSearch] = useState<string>(searchParams.get('search') ?? '');
+  const [search, setSearch] = useState<string>(searchParams.get('search') ?? '');
+  const debouncedSearch = useDebounce(search);
 
   useEffect(() => {
-    setDebouncedSearch(searchParams.get('search') ?? '');
-  }, [searchParams.get('search')]);
+    const newSP = new URLSearchParams();
+    if (debouncedSearch) newSP.set('search', debouncedSearch);
+    setSearchParams(newSP, { replace: true });
+  }, [debouncedSearch]);
 
   const { data, loading } = useAppliedHackathonsQuery({
     variables: {
@@ -40,7 +44,7 @@ const HackathonDashboardBuilder: React.FC = () => {
   return (
     <div className={cn('bg-white px-10 py-7 rounded-md', isMobile && 'p-0')}>
       <MobileBackHeader title="Hackathon" backLink="/dashboard" />
-      <Container className="flex flex-col gap-[30px]">
+      <Container className={cn('flex flex-col gap-[30px]', isMobile && 'gap-4')}>
         {!isMobile && (
           <div className="flex items-center w-fit text-sm text-muted-foreground">
             <Link to="/dashboard">Dashboard</Link>
@@ -64,19 +68,15 @@ const HackathonDashboardBuilder: React.FC = () => {
               strokeWidth={2}
             />
             <Input
-              className="pl-9"
+              className={cn('pl-9', isMobile && 'text-sm')}
               placeholder="Search..."
-              value={searchParams.get('search') ?? ''}
-              onChange={(e) => {
-                const newSP = new URLSearchParams();
-                if (e.target.value) newSP.set('search', e.target.value);
-                setSearchParams(newSP);
-              }}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 mx-15">
+        <div className={cn('flex flex-col gap-3 mx-15', isMobile && 'mx-0')}>
           {loading ? (
             Array.from({ length: 3 }).map((_, i) => (
               <Skeleton key={i} className="h-28 w-full rounded-lg" />
@@ -97,22 +97,37 @@ const HackathonDashboardBuilder: React.FC = () => {
                 <Link
                   key={hackathon.id}
                   to={`/dashboard/hackathon/builder/${hackathon.id}`}
-                  className="flex border border-gray-200 rounded-lg overflow-hidden hover:border-gray-400 transition-colors"
+                  className={cn(
+                    'flex border border-gray-200 rounded-lg overflow-hidden hover:border-gray-400 transition-colors',
+                    isMobile && 'flex-col',
+                  )}
                 >
                   <img
                     src={hackathon.coverImage ?? ''}
                     alt={hackathon.title ?? ''}
-                    className="w-70 object-cover shrink-0 bg-gray-100"
+                    className={cn('w-70 object-cover shrink-0 bg-gray-100', isMobile && 'w-full')}
                   />
 
-                  <div className="flex-1 min-w-0 px-5 py-6 flex flex-col justify-between">
+                  <div
+                    className={cn(
+                      'flex-1 min-w-0 px-5 py-6 flex flex-col justify-between',
+                      isMobile && 'p-3 pb-0',
+                    )}
+                  >
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">
+                      <h3
+                        className={cn(
+                          'font-semibold text-gray-900 mb-2 line-clamp-1',
+                          isMobile && 'mb-0 text-sm',
+                        )}
+                      >
                         {hackathon.title}
                       </h3>
-                      {description && <p className="text-sm line-clamp-2">{description}</p>}
+                      {!isMobile && description && (
+                        <p className="text-sm line-clamp-2">{description}</p>
+                      )}
                     </div>
-                    {sponsor && (
+                    {!isMobile && sponsor && (
                       <div className="flex items-center gap-2 mt-3">
                         <Avatar className="w-[18px] h-[18px]">
                           <AvatarImage src={sponsor.profileImage ?? ''} />
@@ -127,7 +142,12 @@ const HackathonDashboardBuilder: React.FC = () => {
                     )}
                   </div>
 
-                  <div className="w-79 shrink-0 px-5 py-6 border-l border-gray-100 flex flex-col justify-between gap-3 text-sm">
+                  <div
+                    className={cn(
+                      'w-79 shrink-0 px-5 py-6 border-l border-gray-100 flex flex-col justify-between gap-3 text-sm',
+                      isMobile && 'w-full p-3 text-xs',
+                    )}
+                  >
                     <div className="flex items-center justify-between gap-4">
                       <span className="text-gray-400 w-20 font-bold">Prize</span>
                       <span className="font-semibold text-gray-800">

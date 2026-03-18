@@ -208,30 +208,15 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
       return;
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setImageError('Image must be under 2MB.');
+    if (file.size > 5 * 1024 * 1024) {
+      setImageError('Image must be under 5MB.');
       setSelectedAvatar(undefined);
       setImagePreview(null);
       return;
     }
 
-    const img = new window.Image();
-    img.onload = () => {
-      if (img.width !== img.height) {
-        setImageError('Image must be square (1:1).');
-        setSelectedAvatar(undefined);
-        setImagePreview(null);
-      } else {
-        setSelectedAvatar(file);
-        setImagePreview(URL.createObjectURL(file));
-      }
-    };
-    img.onerror = () => {
-      setImageError('Invalid image file.');
-      setSelectedAvatar(undefined);
-      setImagePreview(null);
-    };
-    img.src = URL.createObjectURL(file);
+    setSelectedAvatar(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const onSubmit = (data: ProfileFormData) => {
@@ -274,12 +259,15 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
     <div className={cn('space-y-6', isMobile && 'space-y-10')}>
       <div className="flex items-center gap-6">
         <Avatar className="w-26 h-26">
-          <AvatarImage className="bg-neutral-100" src={imagePreview || avatarDefault} />
+          <AvatarImage
+            className="bg-neutral-100 object-cover"
+            src={imagePreview || avatarDefault}
+          />
         </Avatar>
         <div className="space-y-2">
           <p className="font-medium text-sm">Profile image</p>
           <p className="text-xs text-gray-500">
-            Profile image must be under 2MB, and in PNG, JPG, or JPEG format.
+            Profile image must be under 5MB, and in PNG, JPG, or JPEG format.
           </p>
           <input
             ref={fileInputRef}

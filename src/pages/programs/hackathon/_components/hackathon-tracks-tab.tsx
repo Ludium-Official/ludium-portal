@@ -1,4 +1,5 @@
 import { useHackathonSponsorsQuery } from '@/apollo/queries/hackathon-sponsors.generated';
+import { MarkdownPreviewer } from '@/components/markdown';
 import {
   Accordion,
   AccordionContent,
@@ -8,12 +9,14 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { useEffect, useRef, useState } from 'react';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 interface HackathonTracksTabProps {
   hackathonId: string;
 }
 
 function HackathonTracksTab({ hackathonId }: HackathonTracksTabProps) {
+  const isMobile = useIsMobile();
   const { data, loading } = useHackathonSponsorsQuery({ variables: { hackathonId } });
 
   const sponsors = data?.hackathonSponsors ?? [];
@@ -49,7 +52,6 @@ function HackathonTracksTab({ hackathonId }: HackathonTracksTabProps) {
     return () => scrollEl.removeEventListener('scroll', onScroll);
   }, [sponsors]);
 
-  // IntersectionObserver for active sponsor
   useEffect(() => {
     const scrollEl = document.getElementById('scroll-area-main-viewport');
     if (!scrollEl) return;
@@ -97,10 +99,13 @@ function HackathonTracksTab({ hackathonId }: HackathonTracksTabProps) {
   if (!sponsors.length) return null;
 
   return (
-    <div ref={wrapperRef} className="flex gap-6 mt-3">
+    <div ref={wrapperRef} className={cn('flex gap-6 mt-3', isMobile && 'flex-col gap-[10px]')}>
       <div
         ref={sidebarRef}
-        className="flex flex-col gap-1 w-45 h-fit shrink-0 p-4 rounded-lg border border-gray-200"
+        className={cn(
+          'flex flex-col gap-1 w-45 h-fit shrink-0 p-4 rounded-lg border border-gray-200',
+          isMobile && 'flex-row w-full overflow-x-auto bg-white p-[10px]',
+        )}
       >
         {sponsors.map((sponsor) => (
           <button
@@ -136,7 +141,7 @@ function HackathonTracksTab({ hackathonId }: HackathonTracksTabProps) {
               ref={(el) => {
                 sponsorRefs.current[sponsor.id ?? ''] = el;
               }}
-              className="border border-gray-200 rounded-lg px-[30px] py-4"
+              className={cn('border border-gray-200 rounded-lg px-[30px] py-4', isMobile && 'p-4')}
             >
               <div className="flex items-center gap-5 mb-4 text-lg font-bold">
                 {sponsor.sponsorImage && (
@@ -170,7 +175,9 @@ function HackathonTracksTab({ hackathonId }: HackathonTracksTabProps) {
                         {idx + 1}. {track.title}
                         {track.prize ? ` - $${track.prize.toLocaleString()}` : ''}
                       </AccordionTrigger>
-                      <AccordionContent className="pb-4">{track.description}</AccordionContent>
+                      <AccordionContent className="max-h-[500px] overflow-y-auto pb-4">
+                        <MarkdownPreviewer value={track.description || ''} />
+                      </AccordionContent>
                     </AccordionItem>
                   ))}
                 </Accordion>
