@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getInitials, getUserDisplayName } from '@/lib/utils';
+import { cn, getInitials, getUserDisplayName } from '@/lib/utils';
 import GithubIcon from '@/assets/icons/hackathon/github.svg';
 import BrowserIcon from '@/assets/icons/hackathon/browser.svg';
 import VideoIcon from '@/assets/icons/hackathon/video.svg';
@@ -24,6 +24,7 @@ import { useDebounce } from '@/lib/hooks/use-debounce';
 import { ChevronDown, SearchIcon } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 const PAGE_LIMIT = 12;
 
@@ -36,6 +37,7 @@ type Buidl = NonNullable<
 >;
 
 function HackathonBuidlsTab({ hackathonId }: HackathonBuidlsTabProps) {
+  const isMobile = useIsMobile();
   const [selectedBuidl, setSelectedBuidl] = useState<Buidl | null>(null);
   const [search, setSearch] = useState('');
   const [sponsorId, setSponsorId] = useState<string | undefined>(undefined);
@@ -87,7 +89,7 @@ function HackathonBuidlsTab({ hackathonId }: HackathonBuidlsTabProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-4 mt-3">
+      <div className={cn("flex items-center justify-between gap-4 mt-3", isMobile && "mt-5")}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="flex items-center gap-2 text-sm">
@@ -133,14 +135,14 @@ function HackathonBuidlsTab({ hackathonId }: HackathonBuidlsTabProps) {
       ) : !buidls.length ? (
         <div className="mt-3 text-center text-muted-foreground py-16">No BUIDLs submitted yet.</div>
       ) : (
-        <div className="flex flex-col gap-4 mt-3">
+        <div className={cn("flex flex-col gap-4 mt-3", isMobile && "mt-5")}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {buidls.map((buidl) => (
               <button
                 key={buidl.id}
                 type="button"
                 onClick={() => setSelectedBuidl(buidl)}
-                className="flex gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+                className={cn("flex gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left", isMobile && "p-5")}
               >
                 <div className="flex-1 min-w-0 flex flex-col gap-3">
                   <div className="flex gap-3">
@@ -161,7 +163,7 @@ function HackathonBuidlsTab({ hackathonId }: HackathonBuidlsTabProps) {
                       </div>
                     </div>
                     {buidl.coverImage && (
-                      <div className="w-20 h-20 shrink-0 rounded-md overflow-hidden">
+                      <div className={cn("w-20 h-20 shrink-0 rounded-md overflow-hidden", isMobile && "w-14 h-14")}>
                         <img
                           src={buidl.coverImage}
                           alt={buidl.title || ''}

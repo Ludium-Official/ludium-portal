@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDebounce } from '@/lib/hooks/use-debounce';
-import { getInitials, getUserDisplayName } from '@/lib/utils';
+import { cn, getInitials, getUserDisplayName } from '@/lib/utils';
 import { SearchIcon } from 'lucide-react';
 import { useState } from 'react';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 const PAGE_LIMIT = 12;
 
@@ -15,6 +16,7 @@ interface HackathonHackersTabProps {
 }
 
 function HackathonHackersTab({ hackathonId }: HackathonHackersTabProps) {
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search);
 
@@ -52,8 +54,8 @@ function HackathonHackersTab({ hackathonId }: HackathonHackersTabProps) {
 
   return (
     <>
-      <div className="flex items-center justify-end mt-3">
-        <div className="relative w-64">
+      <div className={cn("flex items-center justify-end mt-3", isMobile && "mt-5")}>
+        <div className={cn("relative w-64", isMobile && "w-full")}>
           <SearchIcon
             className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
             width={16}
@@ -70,7 +72,7 @@ function HackathonHackersTab({ hackathonId }: HackathonHackersTabProps) {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
+        <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-3", isMobile && "mt-5")}>
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-20 w-full rounded-lg" />
           ))}
@@ -78,8 +80,8 @@ function HackathonHackersTab({ hackathonId }: HackathonHackersTabProps) {
       ) : !participants.length ? (
         <div className="mt-3 text-center text-muted-foreground py-16">No hackers yet.</div>
       ) : (
-        <div className="flex flex-col gap-4 mt-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className={cn("flex flex-col gap-4 mt-3", isMobile && "mt-5")}>
+          <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4", isMobile && "gap-[10px]")}>
             {participants.map((participant) => {
               const displayName = getUserDisplayName(participant.user?.nickname, undefined);
               const buidls = participant.buidls ?? [];
@@ -87,14 +89,14 @@ function HackathonHackersTab({ hackathonId }: HackathonHackersTabProps) {
               return (
                 <div
                   key={`${participant.hackathonId}-${participant.user?.id}`}
-                  className="flex items-center gap-2 p-4 border border-gray-200 rounded-lg"
+                  className={cn("flex items-center gap-2 p-4 border border-gray-200 rounded-lg", isMobile && "pt-5")}
                 >
-                  <Avatar className="w-16 h-16 shrink-0">
+                  <Avatar className={cn("w-16 h-16 shrink-0", isMobile && "w-[46px] h-[46px]")}>
                     <AvatarImage src={participant.user?.profileImage || ''} />
                     <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
                   </Avatar>
 
-                  <div className="flex-1 min-w-0">
+                  <div className={cn("flex-1 min-w-0", isMobile && "flex flex-col justify-around h-full")}>
                     <div className="font-semibold text-sm truncate">{displayName}</div>
                     <div className="text-xs text-muted-foreground truncate">
                       {participant.user?.userRole}

@@ -15,6 +15,7 @@ import HackathonDetailsTab from './hackathon-details-tab';
 import HackathonFaqTab from './hackathon-faq-tab';
 import HackathonHackersTab from './hackathon-hackers-tab';
 import HackathonTracksTab from './hackathon-tracks-tab';
+import { useIsMobile } from '@/lib/hooks/use-mobile';
 
 export function HackathonDetailView({ id }: { id: string }) {
   const [searchParams] = useSearchParams();
@@ -22,6 +23,7 @@ export function HackathonDetailView({ id }: { id: string }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { isLoggedIn, isAuthed } = useAuth();
+  const isMobile = useIsMobile();
 
   const basePath = pathname.includes('/dashboard/') ? pathname : `/programs/hackathon/${id}`;
 
@@ -50,7 +52,7 @@ export function HackathonDetailView({ id }: { id: string }) {
   const hackathon = data.hackathon;
 
   const tabClass = (tab: string) =>
-    cn('px-4 py-2 font-medium text-sm border-b-1 -mb-[2px]', {
+    cn('px-4 py-2 font-medium text-sm border-b -mb-2px', {
       'text-primary border-primary': currentTab === tab,
       'text-muted-foreground border-transparent': currentTab !== tab,
     });
@@ -66,13 +68,16 @@ export function HackathonDetailView({ id }: { id: string }) {
   return (
     <Container>
       <div className="mb-3">
-        <StatusBadge status={hackathon.status || 'draft'} className="mb-2" />
+        <div className={cn("flex items-center justify-between", isMobile && "mb-3")}>
+          <StatusBadge status={hackathon.status || 'draft'} className={cn("mb-2", isMobile && "mb-0")} />
+          {isMobile && <ShareButton variant="outline" />}
+        </div>
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">{hackathon.title}</h1>
-          <ShareButton variant="outline" />
+          <h1 className={cn("text-2xl font-bold", isMobile && "text-xl")}>{hackathon.title}</h1>
+          {!isMobile && <ShareButton variant="outline" />}
         </div>
       </div>
-      <div className="flex items-start gap-7 mb-6">
+      <div className={cn("flex items-start gap-7 mb-6", isMobile && "flex-col gap-3 mb-5")}>
         <div className="flex-1 min-w-0">
           <img
             src={hackathon.coverImage || ''}
@@ -80,22 +85,22 @@ export function HackathonDetailView({ id }: { id: string }) {
             className="rounded-lg w-full object-cover"
           />
         </div>
-        <div className="flex flex-col justify-between w-[428px] shrink-0 self-stretch p-4 rounded-lg border border-slate-200">
-          <div className="flex flex-col gap-5">
+        <div className={cn("flex flex-col justify-between w-[428px] shrink-0 self-stretch p-4 rounded-lg border border-slate-200", isMobile && "w-full")}>
+          <div className={cn("flex flex-col gap-5", isMobile && "gap-[14px]")}>
             <div className="flex items-end justify-between">
               <div className="text-muted-foreground text-sm font-bold">Prize</div>
               <div>
                 <div className="text-sm text-right">{hackathon.network?.chainName}</div>
-                <div className="font-bold text-xl">
+                <div className={cn("font-bold text-xl", isMobile && "text-base")}>
                   {!hackathon.prizePoolAmount ? (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 [&_svg]:size-4">
                       {getCurrencyIcon(hackathon.token?.tokenName || '')}
                       <span>Non-cash Prize</span>
                     </div>
                   ) : (
                     <div className="flex items-center gap-3">
                       {hackathon.prizePoolAmount.toLocaleString()}
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 [&_svg]:size-4">
                         {getCurrencyIcon(hackathon.token?.tokenName || '')}
                         {hackathon.token?.tokenName}
                       </div>
@@ -153,7 +158,7 @@ export function HackathonDetailView({ id }: { id: string }) {
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-between">
+            <div className={cn("flex items-center justify-between", isMobile && "mb-5")}>
               <div className="text-muted-foreground text-sm font-bold">Sponsor</div>
               <div className="flex items-center gap-2 text-sm">
                 <Avatar className="w-7 h-7">
@@ -187,8 +192,8 @@ export function HackathonDetailView({ id }: { id: string }) {
           </Button>
         </div>
       </div>
-      <div className="lg:col-span-2">
-        <div className="flex items-center gap-2 w-full border-b border-gray-300">
+      <div className={cn("lg:col-span-2", isMobile && "mb-35")}>
+        <div className="flex items-center gap-2 overflow-auto w-full border-b border-gray-300">
           <Link to={basePath} className={tabClass('details')}>
             Details
           </Link>
