@@ -120,7 +120,7 @@ function HackathonBuidlSubmitPage() {
     variables: { hackathonId: hackathonId ?? '' },
     skip: !hackathonId,
   });
-  const sponsors = sponsorsData?.hackathonSponsors?.filter((s) => !s.isRequired) ?? [];
+  const sponsors = sponsorsData?.hackathonSponsors ?? [];
 
   const sponsorOptions = useMemo(
     () =>
@@ -147,7 +147,9 @@ function HackathonBuidlSubmitPage() {
   useEffect(() => {
     if (!memberSearch.trim()) return;
     const timer = setTimeout(() => {
-      searchUsers({ variables: { query: { search: memberSearch, limit: 10 } } });
+      searchUsers({
+        variables: { query: { search: memberSearch, limit: 10 } },
+      });
     }, 300);
     return () => clearTimeout(timer);
   }, [memberSearch, searchUsers]);
@@ -271,7 +273,10 @@ function HackathonBuidlSubmitPage() {
     if (!savedBuidlId) return;
     try {
       await updateBuidl({
-        variables: { buidlId: savedBuidlId, input: { status: HackathonBuidlStatus.Deleted } },
+        variables: {
+          buidlId: savedBuidlId,
+          input: { status: HackathonBuidlStatus.Deleted },
+        },
       });
       navigate(`/programs/hackathon/${hackathonId}`);
     } catch {
