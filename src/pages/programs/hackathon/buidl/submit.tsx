@@ -1,38 +1,42 @@
-import { useCreateHackathonBuidlMutation } from '@/apollo/mutation/create-hackathon-buidl.generated';
-import { useUpdateHackathonBuidlMutation } from '@/apollo/mutation/update-hackathon-buidl.generated';
-import { HackathonBuidlStatus } from '@/types/types.generated';
-import Container from '@/components/layout/container';
-import { useHackathonQuery } from '@/apollo/queries/hackathon.generated';
-import { useHackathonSponsorsQuery } from '@/apollo/queries/hackathon-sponsors.generated';
-import { useUsersV2LazyQuery } from '@/apollo/queries/users-v2.generated';
-import InputLabel from '@/components/common/label/inputLabel';
-import MarkdownEditor from '@/components/markdown/markdown-editor';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { useCreateHackathonBuidlMutation } from "@/apollo/mutation/create-hackathon-buidl.generated";
+import { useUpdateHackathonBuidlMutation } from "@/apollo/mutation/update-hackathon-buidl.generated";
+import { HackathonBuidlStatus } from "@/types/types.generated";
+import Container from "@/components/layout/container";
+import { useHackathonQuery } from "@/apollo/queries/hackathon.generated";
+import { useHackathonSponsorsQuery } from "@/apollo/queries/hackathon-sponsors.generated";
+import { useUsersV2LazyQuery } from "@/apollo/queries/users-v2.generated";
+import InputLabel from "@/components/common/label/inputLabel";
+import MarkdownEditor from "@/components/markdown/markdown-editor";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
-import { Input } from '@/components/ui/input';
-import { MultiSelect } from '@/components/ui/multi-select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import notify from '@/lib/notify';
-import { cn, getInitials, getUserDisplayName } from '@/lib/utils';
-import { useIsMobile } from '@/lib/hooks/use-mobile';
-import { ImageIcon, Loader2, Plus, Upload, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router';
+} from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
+import { MultiSelect } from "@/components/ui/multi-select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import notify from "@/lib/notify";
+import { cn, getInitials, getUserDisplayName } from "@/lib/utils";
+import { useIsMobile } from "@/lib/hooks/use-mobile";
+import { ImageIcon, Loader2, Plus, Upload, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate, useParams } from "react-router";
 
-const STEPS = ['Profile', 'Detail', 'Submissions'] as const;
+const STEPS = ["Profile", "Detail", "Submissions"] as const;
 
 const isValidUrl = (url: string): boolean => {
   try {
     const parsed = new URL(url);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
   } catch {
     return false;
   }
@@ -64,12 +68,16 @@ function HackathonBuidlSubmitPage() {
 
   // Complex fields managed with local state
   const [coverImage, setCoverImage] = useState<File | null>(null);
-  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(
+    null,
+  );
   const [coverImageError, setCoverImageError] = useState<string | null>(null);
-  const [socialLinks, setSocialLinks] = useState<string[]>(['']);
-  const [socialLinkErrors, setSocialLinkErrors] = useState<(string | undefined)[]>([undefined]);
+  const [socialLinks, setSocialLinks] = useState<string[]>([""]);
+  const [socialLinkErrors, setSocialLinkErrors] = useState<
+    (string | undefined)[]
+  >([undefined]);
   const [memberUsers, setMemberUsers] = useState<MemberUser[]>([]);
-  const [memberSearch, setMemberSearch] = useState('');
+  const [memberSearch, setMemberSearch] = useState("");
   const [memberPopoverOpen, setMemberPopoverOpen] = useState(false);
   const [sponsorIds, setSponsorIds] = useState<string[]>([]);
 
@@ -81,20 +89,20 @@ function HackathonBuidlSubmitPage() {
     formState: { errors },
   } = useForm<BuidlFormValues>({
     defaultValues: {
-      title: '',
-      description: '',
-      buidlDescription: '',
-      githubLink: '',
-      websiteLink: '',
-      demoVideoLink: '',
+      title: "",
+      description: "",
+      buidlDescription: "",
+      githubLink: "",
+      websiteLink: "",
+      demoVideoLink: "",
     },
   });
 
-  const description = watch('description') ?? '';
-  const buidlDescription = watch('buidlDescription') ?? '';
+  const description = watch("description") ?? "";
+  const buidlDescription = watch("buidlDescription") ?? "";
 
   const { data: hackathonData, loading: hackathonLoading } = useHackathonQuery({
-    variables: { id: hackathonId ?? '' },
+    variables: { id: hackathonId ?? "" },
     skip: !hackathonId,
   });
 
@@ -108,32 +116,32 @@ function HackathonBuidlSubmitPage() {
       ? new Date(hackathonData.hackathon.deadlineAt).getTime()
       : null;
     if (submissionAt && now < submissionAt) {
-      notify('Submission period has not started yet.', 'error');
+      notify("Submission period has not started yet.", "error");
       navigate(`/programs/hackathon/${hackathonId}`);
     } else if (deadlineAt && now > deadlineAt) {
-      notify('Submission deadline has passed.', 'error');
+      notify("Submission deadline has passed.", "error");
       navigate(`/programs/hackathon/${hackathonId}`);
     }
   }, [hackathonData, hackathonLoading, hackathonId, navigate]);
 
   const { data: sponsorsData } = useHackathonSponsorsQuery({
-    variables: { hackathonId: hackathonId ?? '' },
+    variables: { hackathonId: hackathonId ?? "" },
     skip: !hackathonId,
   });
-  const sponsors = sponsorsData?.hackathonSponsors?.filter((s) => !s.isRequired) ?? [];
+  const sponsors = sponsorsData?.hackathonSponsors ?? [];
 
   const sponsorOptions = useMemo(
     () =>
       sponsors.map((s) => ({
-        label: s.name ?? '',
-        value: s.id ?? '',
+        label: s.name ?? "",
+        value: s.id ?? "",
         icon: s.sponsorImage
           ? function SponsorImage({ className }: { className?: string }) {
               return (
                 <img
                   src={s.sponsorImage!}
-                  alt={s.name || ''}
-                  className={cn('rounded-sm object-cover', className)}
+                  alt={s.name || ""}
+                  className={cn("rounded-sm object-cover", className)}
                 />
               );
             }
@@ -142,23 +150,26 @@ function HackathonBuidlSubmitPage() {
     [sponsors],
   );
 
-  const [searchUsers, { data: usersData, loading: usersLoading }] = useUsersV2LazyQuery();
+  const [searchUsers, { data: usersData, loading: usersLoading }] =
+    useUsersV2LazyQuery();
 
   useEffect(() => {
     if (!memberSearch.trim()) return;
     const timer = setTimeout(() => {
-      searchUsers({ variables: { query: { search: memberSearch, limit: 10 } } });
+      searchUsers({
+        variables: { query: { search: memberSearch, limit: 10 } },
+      });
     }, 300);
     return () => clearTimeout(timer);
   }, [memberSearch, searchUsers]);
 
   const searchResults = (usersData?.usersV2?.users ?? []).filter(
-    (u) => u.nickname && !memberUsers.some((m) => m.id === (u.id ?? '')),
+    (u) => u.nickname && !memberUsers.some((m) => m.id === (u.id ?? "")),
   );
 
   const addMember = (user: MemberUser) => {
     setMemberUsers((prev) => [...prev, user]);
-    setMemberSearch('');
+    setMemberSearch("");
     setMemberPopoverOpen(false);
   };
 
@@ -167,47 +178,54 @@ function HackathonBuidlSubmitPage() {
   };
 
   const [createBuidl, { loading }] = useCreateHackathonBuidlMutation();
-  const [updateBuidl, { loading: isDeleting }] = useUpdateHackathonBuidlMutation();
+  const [updateBuidl, { loading: isDeleting }] =
+    useUpdateHackathonBuidlMutation();
   const [isDraftSaving, setIsDraftSaving] = useState(false);
   const [savedBuidlId, setSavedBuidlId] = useState<string | null>(null);
 
   const handleCoverImage = (file: File) => {
     setCoverImageError(null);
-    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
-      setCoverImageError('Only PNG, JPG, or JPEG files are allowed.');
+    if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type)) {
+      setCoverImageError("Only PNG, JPG, or JPEG files are allowed.");
       return;
     }
     if (file.size > 4 * 1024 * 1024) {
-      setCoverImageError('Image must be under 4MB.');
+      setCoverImageError("Image must be under 4MB.");
       return;
     }
     const img = new Image();
     img.onload = () => {
       if (img.width < 333 || img.height < 333) {
-        setCoverImageError('Cover image must be at least 333×333 px.');
+        setCoverImageError("Cover image must be at least 333×333 px.");
         return;
       }
       setCoverImage(file);
       setCoverImagePreview(URL.createObjectURL(file));
     };
-    img.onerror = () => setCoverImageError('Invalid image file.');
+    img.onerror = () => setCoverImageError("Invalid image file.");
     img.src = URL.createObjectURL(file);
   };
 
   const updateSocialLink = (index: number, value: string) => {
     setSocialLinks((prev) => prev.map((v, i) => (i === index ? value : v)));
     if (!value.trim()) {
-      setSocialLinkErrors((prev) => prev.map((e, i) => (i === index ? undefined : e)));
+      setSocialLinkErrors((prev) =>
+        prev.map((e, i) => (i === index ? undefined : e)),
+      );
     }
   };
 
   const validateSocialLink = (index: number, value: string) => {
     if (value.trim() && !isValidUrl(value)) {
       setSocialLinkErrors((prev) =>
-        prev.map((e, i) => (i === index ? 'Please enter a valid URL (https://...)' : e)),
+        prev.map((e, i) =>
+          i === index ? "Please enter a valid URL (https://...)" : e,
+        ),
       );
     } else {
-      setSocialLinkErrors((prev) => prev.map((e, i) => (i === index ? undefined : e)));
+      setSocialLinkErrors((prev) =>
+        prev.map((e, i) => (i === index ? undefined : e)),
+      );
     }
   };
 
@@ -219,9 +237,11 @@ function HackathonBuidlSubmitPage() {
   const canProceed = () => {
     if (step === 0) {
       const hasValidSocialLink = socialLinks.some((s) => s.trim());
-      const hasInvalidSocialLink = socialLinks.some((s) => s.trim() && !isValidUrl(s));
+      const hasInvalidSocialLink = socialLinks.some(
+        (s) => s.trim() && !isValidUrl(s),
+      );
       return (
-        watch('title').trim() &&
+        watch("title").trim() &&
         description.trim() &&
         coverImage &&
         hasValidSocialLink &&
@@ -234,16 +254,16 @@ function HackathonBuidlSubmitPage() {
   };
 
   const handleSaveDraft = async () => {
-    if (!hackathonId || !watch('title').trim() || !coverImage) return;
+    if (!hackathonId || !watch("title").trim() || !coverImage) return;
     setIsDraftSaving(true);
     try {
       const result = await createBuidl({
         variables: {
           input: {
             hackathonId,
-            title: watch('title'),
-            description: watch('description') || '',
-            buidlDescription: watch('buidlDescription') || '',
+            title: watch("title"),
+            description: watch("description") || "",
+            buidlDescription: watch("buidlDescription") || "",
             coverImage,
             socialLinks: socialLinks.filter((s) => s.trim()),
             memberUserIds: memberUsers.length
@@ -251,9 +271,9 @@ function HackathonBuidlSubmitPage() {
               : undefined,
             sponsorIds: sponsorIds.length ? sponsorIds : undefined,
             status: HackathonBuidlStatus.Draft,
-            githubLink: watch('githubLink') || undefined,
-            websiteLink: watch('websiteLink') || undefined,
-            demoVideoLink: watch('demoVideoLink') || undefined,
+            githubLink: watch("githubLink") || undefined,
+            websiteLink: watch("websiteLink") || undefined,
+            demoVideoLink: watch("demoVideoLink") || undefined,
           },
         },
       });
@@ -271,7 +291,10 @@ function HackathonBuidlSubmitPage() {
     if (!savedBuidlId) return;
     try {
       await updateBuidl({
-        variables: { buidlId: savedBuidlId, input: { status: HackathonBuidlStatus.Deleted } },
+        variables: {
+          buidlId: savedBuidlId,
+          input: { status: HackathonBuidlStatus.Deleted },
+        },
       });
       navigate(`/programs/hackathon/${hackathonId}`);
     } catch {
@@ -281,7 +304,11 @@ function HackathonBuidlSubmitPage() {
 
   const onSubmit = async (values: BuidlFormValues) => {
     if (step !== 2 || !hackathonId || !coverImage) return;
-    if (!values.title.trim() || !values.description.trim() || !values.buidlDescription.trim())
+    if (
+      !values.title.trim() ||
+      !values.description.trim() ||
+      !values.buidlDescription.trim()
+    )
       return;
     if (socialLinks.filter((s) => s.trim()).some((s) => !isValidUrl(s))) return;
     if (!sponsorIds.length) return;
@@ -335,45 +362,69 @@ function HackathonBuidlSubmitPage() {
             <span className="text-sm font-medium">Submit BUIDL</span>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="absolute right-4 top-4">
-                  {step < 2 ? 'Next' : 'Submit'}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute right-4 top-4"
+                >
+                  {step < 2 ? "Next" : "Submit"}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent align="end" className="w-auto p-2 flex flex-col gap-1">
+              <PopoverContent
+                align="end"
+                className="w-auto p-2 flex flex-col gap-1"
+              >
                 <Button
                   variant="ghost"
                   size="sm"
                   className="justify-start"
                   onClick={handleSaveDraft}
-                  disabled={!watch('title').trim() || !coverImage || isDraftSaving || loading}
+                  disabled={
+                    !watch("title").trim() ||
+                    !coverImage ||
+                    isDraftSaving ||
+                    loading
+                  }
                 >
-                  {isDraftSaving ? 'Saving...' : 'Save Draft'}
+                  {isDraftSaving ? "Saving..." : "Save Draft"}
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   className="justify-start"
                   disabled={!canProceed() || loading}
-                  onClick={step < 2 ? () => setStep((s) => s + 1) : () => handleSubmit(onSubmit)()}
+                  onClick={
+                    step < 2
+                      ? () => setStep((s) => s + 1)
+                      : () => handleSubmit(onSubmit)()
+                  }
                 >
-                  {step < 2 ? 'Next' : loading ? 'Submitting...' : 'Submit BUIDL'}
+                  {step < 2
+                    ? "Next"
+                    : loading
+                      ? "Submitting..."
+                      : "Submit BUIDL"}
                 </Button>
               </PopoverContent>
             </Popover>
           </header>
         </div>
       )}
-      <Container className={cn('max-w-[856px] mx-auto py-10 px-4', isMobile && 'pt-10')}>
-        <h1 className={cn('text-xl font-bold mb-6', isMobile && 'hidden')}>Submit BUIDL</h1>
+      <Container
+        className={cn("max-w-[856px] mx-auto py-10 px-4", isMobile && "pt-10")}
+      >
+        <h1 className={cn("text-xl font-bold mb-6", isMobile && "hidden")}>
+          Submit BUIDL
+        </h1>
 
         <form>
           <div
             className={cn(
-              'bg-white border border-gray-200 rounded-xl px-10 py-9 mb-6',
-              isMobile && 'border-0 px-0 py-0 rounded-none',
+              "bg-white border border-gray-200 rounded-xl px-10 py-9 mb-6",
+              isMobile && "border-0 px-0 py-0 rounded-none",
             )}
           >
-            <div className={cn('flex gap-[10px] mb-15', isMobile && 'mb-10')}>
+            <div className={cn("flex gap-[10px] mb-15", isMobile && "mb-10")}>
               {STEPS.map((label, i) => (
                 <button
                   key={label}
@@ -385,8 +436,12 @@ function HackathonBuidlSubmitPage() {
                   <div className="text-xs font-medium">{label}</div>
                   <div
                     className={cn(
-                      'h-[10px] rounded-full transition-colors',
-                      i < step ? 'bg-primary' : i === step ? 'bg-primary-300' : 'bg-gray-200',
+                      "h-[10px] rounded-full transition-colors",
+                      i < step
+                        ? "bg-primary"
+                        : i === step
+                          ? "bg-primary-300"
+                          : "bg-gray-200",
                     )}
                   />
                 </button>
@@ -462,7 +517,9 @@ function HackathonBuidlSubmitPage() {
                       }}
                     />
                   </div>
-                  {coverImageError && <p className="text-xs text-red-500">{coverImageError}</p>}
+                  {coverImageError && (
+                    <p className="text-xs text-red-500">{coverImageError}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -476,9 +533,15 @@ function HackathonBuidlSubmitPage() {
                           <Input
                             placeholder="Enter a social profile URL (GitHub, LinkedIn, X, etc.)"
                             value={link}
-                            onChange={(e) => updateSocialLink(i, e.target.value)}
-                            onBlur={(e) => validateSocialLink(i, e.target.value)}
-                            className={socialLinkErrors[i] ? 'border-destructive' : ''}
+                            onChange={(e) =>
+                              updateSocialLink(i, e.target.value)
+                            }
+                            onBlur={(e) =>
+                              validateSocialLink(i, e.target.value)
+                            }
+                            className={
+                              socialLinkErrors[i] ? "border-destructive" : ""
+                            }
                           />
                           {socialLinks.length > 1 && (
                             <button
@@ -491,7 +554,9 @@ function HackathonBuidlSubmitPage() {
                           )}
                         </div>
                         {socialLinkErrors[i] && (
-                          <p className="text-destructive text-xs">{socialLinkErrors[i]}</p>
+                          <p className="text-destructive text-xs">
+                            {socialLinkErrors[i]}
+                          </p>
                         )}
                       </div>
                     ))}
@@ -502,7 +567,7 @@ function HackathonBuidlSubmitPage() {
                     size="sm"
                     className="w-fit gap-1"
                     onClick={() => {
-                      setSocialLinks((prev) => [...prev, '']);
+                      setSocialLinks((prev) => [...prev, ""]);
                       setSocialLinkErrors((prev) => [...prev, undefined]);
                     }}
                   >
@@ -513,7 +578,11 @@ function HackathonBuidlSubmitPage() {
 
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Add Members</p>
-                  <Popover open={memberPopoverOpen} onOpenChange={setMemberPopoverOpen} modal>
+                  <Popover
+                    open={memberPopoverOpen}
+                    onOpenChange={setMemberPopoverOpen}
+                    modal
+                  >
                     <PopoverTrigger asChild>
                       <div className="w-full cursor-pointer">
                         <Input
@@ -539,21 +608,24 @@ function HackathonBuidlSubmitPage() {
                             {usersLoading ? (
                               <Loader2 className="w-4 h-4 animate-spin mx-auto" />
                             ) : memberSearch.trim() ? (
-                              'No users found.'
+                              "No users found."
                             ) : (
-                              'Type to search users.'
+                              "Type to search users."
                             )}
                           </CommandEmpty>
                           <CommandGroup>
                             {searchResults.map((user) => {
-                              const displayName = getUserDisplayName(user.nickname, user.email);
+                              const displayName = getUserDisplayName(
+                                user.nickname,
+                                user.email,
+                              );
                               return (
                                 <CommandItem
                                   key={user.id}
-                                  value={user.id ?? ''}
+                                  value={user.id ?? ""}
                                   onSelect={() =>
                                     addMember({
-                                      id: user.id ?? '',
+                                      id: user.id ?? "",
                                       displayName,
                                       email: user.email ?? null,
                                       profileImage: user.profileImage ?? null,
@@ -562,7 +634,9 @@ function HackathonBuidlSubmitPage() {
                                   className="flex items-center gap-2 cursor-pointer"
                                 >
                                   <Avatar className="w-7 h-7 shrink-0">
-                                    <AvatarImage src={user.profileImage || ''} />
+                                    <AvatarImage
+                                      src={user.profileImage || ""}
+                                    />
                                     <AvatarFallback className="text-[10px]">
                                       {getInitials(displayName)}
                                     </AvatarFallback>
@@ -594,7 +668,7 @@ function HackathonBuidlSubmitPage() {
                           className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 rounded-full text-xs"
                         >
                           <Avatar className="w-4 h-4 shrink-0">
-                            <AvatarImage src={user.profileImage || ''} />
+                            <AvatarImage src={user.profileImage || ""} />
                             <AvatarFallback className="text-[8px]">
                               {getInitials(user.displayName)}
                             </AvatarFallback>
@@ -612,7 +686,8 @@ function HackathonBuidlSubmitPage() {
                     </div>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    *You can also register your BUIDL before inviting team members.
+                    *You can also register your BUIDL before inviting team
+                    members.
                   </p>
                 </div>
               </div>
@@ -626,7 +701,7 @@ function HackathonBuidlSubmitPage() {
                 <MarkdownEditor
                   isSimple
                   content={buidlDescription}
-                  onChange={(val) => setValue('buidlDescription', val)}
+                  onChange={(val) => setValue("buidlDescription", val)}
                   placeholder="Describe your BUIDL..."
                   contentClassName="min-h-[300px]"
                 />
@@ -652,13 +727,17 @@ function HackathonBuidlSubmitPage() {
                   <p className="text-sm font-medium">GitHub/Gitlab/Bitbucket</p>
                   <Input
                     placeholder="Enter a social profile URL"
-                    {...register('githubLink', {
+                    {...register("githubLink", {
                       validate: (v) =>
-                        !v || isValidUrl(v) || 'Please enter a valid URL (https://...)',
+                        !v ||
+                        isValidUrl(v) ||
+                        "Please enter a valid URL (https://...)",
                     })}
                   />
                   {errors.githubLink && (
-                    <p className="text-destructive text-xs">{errors.githubLink.message}</p>
+                    <p className="text-destructive text-xs">
+                      {errors.githubLink.message}
+                    </p>
                   )}
                 </div>
 
@@ -666,13 +745,17 @@ function HackathonBuidlSubmitPage() {
                   <p className="text-sm font-medium">Website</p>
                   <Input
                     placeholder="Enter your Project Website URL"
-                    {...register('websiteLink', {
+                    {...register("websiteLink", {
                       validate: (v) =>
-                        !v || isValidUrl(v) || 'Please enter a valid URL (https://...)',
+                        !v ||
+                        isValidUrl(v) ||
+                        "Please enter a valid URL (https://...)",
                     })}
                   />
                   {errors.websiteLink && (
-                    <p className="text-destructive text-xs">{errors.websiteLink.message}</p>
+                    <p className="text-destructive text-xs">
+                      {errors.websiteLink.message}
+                    </p>
                   )}
                 </div>
 
@@ -680,33 +763,52 @@ function HackathonBuidlSubmitPage() {
                   <p className="text-sm font-medium">Video</p>
                   <Input
                     placeholder="Enter your Demo Video URL"
-                    {...register('demoVideoLink', {
+                    {...register("demoVideoLink", {
                       validate: (v) =>
-                        !v || isValidUrl(v) || 'Please enter a valid URL (https://...)',
+                        !v ||
+                        isValidUrl(v) ||
+                        "Please enter a valid URL (https://...)",
                     })}
                   />
                   {errors.demoVideoLink && (
-                    <p className="text-destructive text-xs">{errors.demoVideoLink.message}</p>
+                    <p className="text-destructive text-xs">
+                      {errors.demoVideoLink.message}
+                    </p>
                   )}
                 </div>
               </div>
             )}
           </div>
 
-          <div className={cn('flex items-center justify-between', isMobile && 'hidden')}>
+          <div
+            className={cn(
+              "flex items-center justify-between",
+              isMobile && "hidden",
+            )}
+          >
             {savedBuidlId && (
-              <Button type="button" variant="secondary" disabled={isDeleting} onClick={deleteBuidl}>
-                {isDeleting ? 'Deleting...' : 'Delete'}
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={isDeleting}
+                onClick={deleteBuidl}
+              >
+                {isDeleting ? "Deleting..." : "Delete"}
               </Button>
             )}
             <div className="flex items-center gap-4 ml-auto">
               <Button
                 type="button"
                 variant="outline"
-                disabled={!watch('title').trim() || !coverImage || isDraftSaving || loading}
+                disabled={
+                  !watch("title").trim() ||
+                  !coverImage ||
+                  isDraftSaving ||
+                  loading
+                }
                 onClick={handleSaveDraft}
               >
-                {isDraftSaving ? 'Saving...' : 'Save draft'}
+                {isDraftSaving ? "Saving..." : "Save draft"}
               </Button>
               {step < 2 ? (
                 <Button
@@ -724,7 +826,7 @@ function HackathonBuidlSubmitPage() {
                   disabled={!canProceed() || loading}
                   onClick={() => handleSubmit(onSubmit)()}
                 >
-                  {loading ? 'Submitting...' : 'Submit BUIDL'}
+                  {loading ? "Submitting..." : "Submit BUIDL"}
                 </Button>
               )}
             </div>
