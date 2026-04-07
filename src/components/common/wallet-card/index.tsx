@@ -8,17 +8,14 @@ import { useContract } from '@/lib/hooks/use-contract';
 import notify from '@/lib/notify';
 import { commaNumber, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
 import type { WalletBalance, WalletCardProps } from '@/types/wallet';
-import { usePrivy } from '@privy-io/react-auth';
 import { ethers } from 'ethers';
-import { ArrowUpRight, CircleCheck } from 'lucide-react';
+import { useAccount } from 'wagmi';
+import { CircleCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export const WalletCard: React.FC<WalletCardProps> = ({ className }) => {
-  const { user: privyUser, exportWallet, authenticated } = usePrivy();
+  const { address, isConnected } = useAccount();
   const { networks: networksWithTokens } = useNetworks();
-
-  const walletInfo = privyUser?.wallet;
-  const injectedWallet = privyUser?.wallet?.connectorType !== 'embedded';
 
   const [balances, setBalances] = useState<WalletBalance[]>([]);
   const [networkId, setNetworkId] = useState<string | null>(null);
@@ -61,7 +58,7 @@ export const WalletCard: React.FC<WalletCardProps> = ({ className }) => {
   // Fetch token balances
   useEffect(() => {
     const fetchBalances = async () => {
-      if (!authenticated || !walletInfo?.address) return;
+      if (!isConnected || !address) return;
 
       try {
         const tokens = tokenAddresses[network as keyof typeof tokenAddresses] || [];
@@ -72,7 +69,7 @@ export const WalletCard: React.FC<WalletCardProps> = ({ className }) => {
 
         const balancesPromises = erc20Tokens.map(
           (token: { address: string; decimal: number; name: string }) =>
-            callTokenBalance(contract, token.address, walletInfo.address).then((balance) => ({
+            callTokenBalance(contract, token.address, address).then((balance) => ({
               name: token.name,
               amount: balance,
               decimal: token.decimal,
@@ -80,7 +77,7 @@ export const WalletCard: React.FC<WalletCardProps> = ({ className }) => {
         );
 
         const ercBalances = await Promise.all(balancesPromises);
-        const nativeBalance = await contract.getBalance(walletInfo.address);
+        const nativeBalance = await contract.getBalance(address);
 
         setBalances([{ name: 'Native', amount: nativeBalance, decimal: 18 }, ...ercBalances]);
       } catch (error) {
@@ -90,7 +87,7 @@ export const WalletCard: React.FC<WalletCardProps> = ({ className }) => {
 
     fetchBalances();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authenticated, walletInfo?.address, network]);
+  }, [isConnected, address, network]);
 
   return (
     <Card className={`gap-3 border-2 border-purple-200 shadow-none ${className || ''}`}>
@@ -141,23 +138,16 @@ export const WalletCard: React.FC<WalletCardProps> = ({ className }) => {
             ))
           )}
         </div>
-        {injectedWallet ? (
-          <Button
-            variant="outline"
-            className="w-full h-10"
-            onClick={() => {
-              navigator.clipboard.writeText(walletInfo?.address || '');
-              notify('Copied address!', 'success');
-            }}
-          >
-            {reduceString(walletInfo?.address || '', 8, 8)}
-          </Button>
-        ) : (
-          <Button className="h-10 w-full bg-primary" onClick={exportWallet}>
-            See Wallet Detail
-            <ArrowUpRight className="w-4 h-4 ml-1" />
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          className="w-full h-10"
+          onClick={() => {
+            navigator.clipboard.writeText(address || '');
+            notify('Copied address!', 'success');
+          }}
+        >
+          {reduceString(address || '', 8, 8)}
+        </Button>
       </CardContent>
     </Card>
   );

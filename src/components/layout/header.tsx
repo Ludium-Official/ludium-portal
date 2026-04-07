@@ -22,8 +22,9 @@ import notify from '@/lib/notify';
 import { cn, commaNumber, mainnetDefaultNetwork, reduceString } from '@/lib/utils';
 import type { BalanceProps } from '@/types/asset';
 import { LoginTypeEnum } from '@/types/types.generated';
-import { usePrivy } from '@privy-io/react-auth';
+import { useAppKit } from '@reown/appkit/react';
 import { ethers } from 'ethers';
+import { useAccount, useDisconnect } from 'wagmi';
 import { ChevronDown, Menu } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -32,7 +33,9 @@ import NetworkSelector from '../network-selector';
 function Header() {
   const navigate = useNavigate();
 
-  const { user, authenticated, login: privyLogin, logout: privyLogout, exportWallet } = usePrivy();
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
+  const { open } = useAppKit();
   const { login: authLogin, logout: authLogout } = useAuth();
 
   const isMobile = useIsMobile();
@@ -65,15 +68,13 @@ function Header() {
   );
   const network = currentNetwork?.chainName || mainnetDefaultNetwork;
   const contract = useContract(network);
-  const walletInfo = user?.wallet;
 
   const prevNetworkRef = useRef<string>(network);
-  const prevWalletRef = useRef<string | undefined>(walletInfo?.address);
-  const injectedWallet = user?.wallet?.connectorType !== 'embedded';
+  const prevWalletRef = useRef<string | undefined>(address);
 
   const { data: profileData } = useProfileV2Query({
-    fetchPolicy: 'cache-first',
-    skip: !authenticated,
+    fetchPolicy: 'network-only',
+    skip: !isConnected,
   });
 
   const fetchTokenBalance = async (
@@ -93,31 +94,17 @@ function Header() {
 
   const login = async () => {
     try {
-      const loginType = user?.google
-        ? LoginTypeEnum.Google
-        : user?.farcaster
-          ? LoginTypeEnum.Farcaster
-          : LoginTypeEnum.Wallet;
-
-      privyLogin({ disableSignup: false });
-
-      if (user && walletInfo) {
-        await authLogin({
-          email: user?.google?.email || null,
-          walletAddress: walletInfo.address,
-          loginType,
-        });
-      }
+      await open();
     } catch (error) {
-      notify((error as Error).message, 'error');
-      console.error('Failed to login:', error);
+      console.error('Failed to open wallet modal:', error);
+      notify(String(error), 'error');
     }
   };
 
   const logout = async () => {
     try {
       await authLogout();
-      await privyLogout();
+      disconnect();
 
       notify('Successfully logged out', 'success');
       await navigate('/');
@@ -175,21 +162,25 @@ function Header() {
   }, []);
 
   useEffect(() => {
-    if (authenticated && user) {
-      login();
+    if (isConnected && address) {
+      authLogin({
+        email: null,
+        walletAddress: address,
+        loginType: LoginTypeEnum.Wallet,
+      }).catch(console.error);
     }
-  }, [user]);
+  }, [address]);
 
   useEffect(() => {
     const fetchBalances = async () => {
-      if (!authenticated || !walletInfo?.address || !network) return;
+      if (!isConnected || !address || !network) return;
 
-      if (prevNetworkRef.current === network && prevWalletRef.current === walletInfo.address) {
+      if (prevNetworkRef.current === network && prevWalletRef.current === address) {
         return;
       }
 
       prevNetworkRef.current = network;
-      prevWalletRef.current = walletInfo.address;
+      prevWalletRef.current = address;
 
       try {
         const tokens = tokenAddresses[network as keyof typeof tokenAddresses] || [];
@@ -200,7 +191,7 @@ function Header() {
 
         const balancesPromises = erc20Tokens.map(
           (token: { address: string; decimal: number; name: string }) =>
-            fetchTokenBalance(contract, token.address, walletInfo.address).then((balance) => ({
+            fetchTokenBalance(contract, token.address, address).then((balance) => ({
               name: token.name,
               amount: balance,
               decimal: token.decimal,
@@ -208,7 +199,7 @@ function Header() {
         );
 
         const ercBalances = await Promise.all(balancesPromises);
-        const nativeBalance = await contract.getBalance(walletInfo.address);
+        const nativeBalance = await contract.getBalance(address);
 
         setBalances([{ name: 'Native', amount: nativeBalance, decimal: 18 }, ...ercBalances]);
       } catch (error) {
@@ -217,9 +208,9 @@ function Header() {
     };
 
     fetchBalances();
-  }, [authenticated, walletInfo?.address, network]);
+  }, [isConnected, address, network]);
 
-  const menuItems = getMenuItems(authenticated);
+  const menuItems = getMenuItems(isConnected);
 
   if (isMobile) {
     return (
@@ -300,7 +291,7 @@ function Header() {
                 </a>
               </nav>
               <div className="border-t">
-                {authenticated ? (
+                {isConnected ? (
                   <button
                     type="button"
                     className="w-full px-4 py-3 text-base font-medium text-left text-destructive hover:bg-gray-100 transition-colors"
@@ -337,7 +328,7 @@ function Header() {
         </button>
 
         <div className="flex items-center">
-          {authenticated ? <Notifications /> : <div className="w-6" />}
+          {isConnected ? <Notifications /> : <div className="w-6" />}
         </div>
       </header>
     );
@@ -350,7 +341,7 @@ function Header() {
     >
       <div className="flex gap-2 items-center ml-auto">
         <div>
-          {!authenticated && (
+          {!isConnected && (
             <Button
               size="sm"
               className="bg-primary hover:bg-primary/90 px-3 md:px-4 text-sm"
@@ -359,7 +350,7 @@ function Header() {
               Login
             </Button>
           )}
-          {authenticated && (
+          {isConnected && (
             <div className="flex items-center gap-3">
               <Notifications />
               <Dialog>
@@ -367,7 +358,7 @@ function Header() {
                   <Button size="sm" className="bg-primary hover:bg-primary/90">
                     {profileData?.profileV2?.nickname
                       ? profileData.profileV2.nickname
-                      : reduceString(walletInfo?.address || '', 6, 6)}
+                      : reduceString(address || '', 6, 6)}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-[425px] max-h-[90vh] overflow-y-auto">
@@ -403,21 +394,15 @@ function Header() {
                       </div>
                       <div className="border border-gray-border rounded-[10px] p-5">
                         <div className="mb-3 text-base font-bold">Account</div>
-                        {injectedWallet ? (
-                          <div
-                            className="cursor-pointer hover:underline text-base break-all"
-                            onClick={() => {
-                              navigator.clipboard.writeText(walletInfo?.address || '');
-                              notify('Copied address!', 'success');
-                            }}
-                          >
-                            {reduceString(walletInfo?.address || '', 8, 8)}
-                          </div>
-                        ) : (
-                          <Button className="h-10 w-full text-base" onClick={exportWallet}>
-                            See Wallet Detail
-                          </Button>
-                        )}
+                        <div
+                          className="cursor-pointer hover:underline text-base break-all"
+                          onClick={() => {
+                            navigator.clipboard.writeText(address || '');
+                            notify('Copied address!', 'success');
+                          }}
+                        >
+                          {reduceString(address || '', 8, 8)}
+                        </div>
                       </div>
                       <Button className="w-full text-base" onClick={logout}>
                         Logout

@@ -7,7 +7,8 @@ import { Pagination } from '@/components/ui/pagination';
 import { getInvestmentContract } from '@/lib/hooks/use-investment-contract';
 import notify from '@/lib/notify';
 import { getCurrencyIcon } from '@/lib/utils';
-import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { getFeeParams, type SendTransactionFn } from '@/lib/contract/send-transaction';
+import { useAccount, useSendTransaction, useSwitchChain } from 'wagmi';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
@@ -34,8 +35,9 @@ export default function UserInvestmentReclaimTab({
   const [searchParams, _setSearchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const currentPage = Number(searchParams.get('page')) || 1;
-  const { sendTransaction, user } = usePrivy();
-  const { wallets } = useWallets();
+  const { address } = useAccount();
+  const { sendTransactionAsync } = useSendTransaction();
+  const { switchChainAsync } = useSwitchChain();
 
   const { data: profileData } = useProfileQuery({
     fetchPolicy: 'network-only',
@@ -109,7 +111,7 @@ export default function UserInvestmentReclaimTab({
     }
 
     // Get user's wallet address
-    const userAddress = wallets?.[0]?.address;
+    const userAddress = address;
     if (!userAddress) {
       notify('Please connect your wallet first', 'error');
       return;
@@ -117,24 +119,15 @@ export default function UserInvestmentReclaimTab({
     console.log('User wallet address:', userAddress);
 
     if (onChainProjectId === null || onChainProjectId === undefined) {
-      // For now, we'll use a mock ID for testing since projects aren't being validated on chain
       console.error('No on-chain project ID found');
       console.log('Project data:', investment?.project);
-
-      // You can either:
-      // 1. Show an error (current behavior)
       notify(
         'Cannot reclaim: This project has not been validated on blockchain yet. Please contact an administrator to validate the project first.',
         'error',
       );
       return;
-
-      // 2. Or for testing, use a mock transaction (uncomment below)
-      // notify('Processing reclaim without blockchain (test mode)...', 'loading');
-      // Just update the backend without blockchain transaction
     }
 
-    // Create public client for the network
     const chainMap = {
       'educhain-testnet': eduChainTestnet,
       'base-sepolia': baseSepolia,
@@ -150,47 +143,19 @@ export default function UserInvestmentReclaimTab({
       transport: http(),
     }) as PublicClient;
 
-    // Check if user is using an external wallet and create custom sendTransaction
-    const isExternalWallet =
-      user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
-    const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
+    const sendTx: SendTransactionFn = async (input) => {
+      if (input.chainId) {
+        await switchChainAsync({ chainId: input.chainId });
+      }
+      const feeParams = await getFeeParams(client);
+      const hash = await sendTransactionAsync({
+        ...(input as Parameters<typeof sendTransactionAsync>[0]),
+        ...feeParams,
+      });
+      return { hash: hash as `0x${string}` };
+    };
 
-    let customSendTransaction = sendTransaction;
-
-    if (isExternalWallet && currentWallet) {
-      // For external wallets, we need to handle transactions differently
-      // @ts-ignore - We're overriding the type to handle external wallets
-      customSendTransaction = async (input, _uiOptions) => {
-        try {
-          // Get the provider from the wallet
-          const eip1193Provider = await currentWallet.getEthereumProvider();
-          const { ethers } = await import('ethers');
-          const provider = new ethers.providers.Web3Provider(eip1193Provider);
-          const signer = provider.getSigner();
-
-          // Send the transaction directly
-          const txResponse = await signer.sendTransaction({
-            to: input.to,
-            data: input.data,
-            value: input.value?.toString() || '0',
-            chainId: input.chainId,
-          });
-
-          return { hash: txResponse.hash as `0x${string}` };
-        } catch (error) {
-          console.error('External wallet transaction error:', error);
-          throw error;
-        }
-      };
-    }
-
-    // Get the investment contract for the correct network
-    const investmentContract = getInvestmentContract(
-      network,
-      customSendTransaction,
-      client,
-      userAddress,
-    );
+    const investmentContract = getInvestmentContract(network, sendTx, client, userAddress);
 
     setReclaimingId(investmentId);
     try {

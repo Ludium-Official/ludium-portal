@@ -31,7 +31,8 @@ import SupportersModal from '@/pages/investments/details/_components/supporters-
 import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 // import RejectProgramForm from '@/pages/programs/details/_components/reject-program-form';
 import { FundingCondition, ProgramStatus, ProgramVisibility } from '@/types/types.generated';
-import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { useAccount, useSendTransaction, useSwitchChain } from 'wagmi';
+import { getFeeParams, type SendTransactionFn } from '@/lib/contract/send-transaction';
 import { format } from 'date-fns';
 import { ethers } from 'ethers';
 import { CircleAlert, Settings, TriangleAlert } from 'lucide-react';
@@ -138,9 +139,9 @@ const InvestmentDetailsPage: React.FC = () => {
   });
   const [publishProgram] = useSubmitProgramMutation();
 
-  // const contract = useContract(program?.network || mainnetDefaultNetwork);
-  const { sendTransaction, user } = usePrivy();
-  const { wallets } = useWallets();
+  const { address } = useAccount();
+  const { sendTransactionAsync } = useSendTransaction();
+  const { switchChainAsync } = useSwitchChain();
 
   const callTx = async () => {
     try {
@@ -152,108 +153,32 @@ const InvestmentDetailsPage: React.FC = () => {
         if (program.network !== 'off-chain') {
           notify('Deploying to blockchain...');
 
-          // Switch to the correct network if needed
           const chain = getChainForNetwork(program.network ?? mainnetDefaultNetwork);
 
-          // Check if we have a wallet and switch network if needed
-          const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
-          if (currentWallet?.switchChain) {
-            try {
-              await currentWallet.switchChain(chain.id);
-              notify(`Switched to ${chain.name} network`, 'success');
-            } catch (error) {
-              console.warn('Failed to switch network:', error);
-              // Continue anyway, Privy modal will handle network switching
-            }
-          }
-
-          // Create public client for the network with proper chain configuration
           const publicClient = createPublicClient({
             chain,
             transport: http(chain.rpcUrls.default.http[0]),
           }) as PublicClient;
 
-          // Check if user is using an external wallet (MetaMask, etc.)
-          const isExternalWallet =
-            user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
-
-          console.log('Wallet detection for funding program:', {
-            connectorType: user?.wallet?.connectorType,
-            isExternalWallet,
-            currentWallet: currentWallet?.address,
-            userWalletAddress: user?.wallet?.address,
-          });
-
-          // Create a custom sendTransaction function for external wallets
-          let customSendTransaction = sendTransaction;
-
-          if (isExternalWallet && currentWallet) {
-            console.log('Using external wallet for funding program deployment');
-            // For external wallets, we need to handle transactions differently
-            // @ts-ignore - We're overriding the type to handle external wallets
-            customSendTransaction = async (input, _uiOptions) => {
-              try {
-                // Get the provider from the wallet
-                const eip1193Provider = await currentWallet.getEthereumProvider();
-                const { ethers } = await import('ethers');
-                const provider = new ethers.providers.Web3Provider(eip1193Provider);
-                const signer = provider.getSigner();
-
-                // Send the transaction directly
-                const txResponse = await signer.sendTransaction({
-                  to: input.to,
-                  data: input.data,
-                  value: input.value?.toString() || '0',
-                  chainId: input.chainId,
-                });
-
-                return { hash: txResponse.hash as `0x${string}` };
-              } catch (error) {
-                console.error('External wallet transaction error:', error);
-                throw error;
-              }
-            };
-          } else if (isExternalWallet && !currentWallet) {
-            console.warn('External wallet detected but currentWallet not found, trying fallback');
-            // Fallback: Try to use the first wallet if available
-            const fallbackWallet = wallets[0];
-            if (fallbackWallet) {
-              console.log('Using fallback wallet:', fallbackWallet.address);
-              // @ts-ignore
-              customSendTransaction = async (input, _uiOptions) => {
-                try {
-                  const eip1193Provider = await fallbackWallet.getEthereumProvider();
-                  const { ethers } = await import('ethers');
-                  const provider = new ethers.providers.Web3Provider(eip1193Provider);
-                  const signer = provider.getSigner();
-
-                  const txResponse = await signer.sendTransaction({
-                    to: input.to,
-                    data: input.data,
-                    value: input.value?.toString() || '0',
-                    chainId: input.chainId,
-                  });
-
-                  return { hash: txResponse.hash as `0x${string}` };
-                } catch (error) {
-                  console.error('Fallback wallet transaction error:', error);
-                  throw error;
-                }
-              };
+          const sendTx: SendTransactionFn = async (input) => {
+            if (input.chainId) {
+              await switchChainAsync({ chainId: input.chainId });
             }
-          } else {
-          }
+            const feeParams = await getFeeParams(publicClient);
+            const hash = await sendTransactionAsync({
+              ...(input as Parameters<typeof sendTransactionAsync>[0]),
+              ...feeParams,
+            });
+            return { hash: hash as `0x${string}` };
+          };
 
-          // Get the investment contract for the selected network
-          // The contract will use the chainId to ensure transactions go to the correct network
           const investmentContract = getInvestmentContract(
             program.network ?? mainnetDefaultNetwork,
-            customSendTransaction,
+            sendTx,
             publicClient,
           );
 
-          // Get validator wallet addresses from the form data
-          const currentUserAddress = user?.wallet?.address || ethers.constants.AddressZero;
+          const currentUserAddress = address || ethers.constants.AddressZero;
 
           let validatorAddresses: string[] = [];
 

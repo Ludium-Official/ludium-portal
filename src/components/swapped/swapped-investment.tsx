@@ -1,7 +1,7 @@
 import { useGenerateSwappedUrlMutation } from '@/apollo/mutation/generate-swapped-url.generated';
 import { useGetSwappedStatusQuery } from '@/apollo/queries/get-swapped-status.generated';
 import notify from '@/lib/notify';
-import { usePrivy } from '@privy-io/react-auth';
+import { useAuth } from '@/lib/hooks/use-auth';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useMemo, useState } from 'react';
@@ -25,7 +25,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
   onClose,
   disabled = false,
 }) => {
-  const { user } = usePrivy();
+  const { userId } = useAuth();
   const [signedUrl, setSignedUrl] = useState('');
   const [paymentCompleted, setPaymentCompleted] = useState(false);
   const [processingInvestment, setProcessingInvestment] = useState(false);
@@ -55,7 +55,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
       return;
     }
 
-    if (!user?.id) {
+    if (!userId) {
       notify('User authentication required', 'error');
       return;
     }
@@ -66,7 +66,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
           currencyCode,
           walletAddress,
           amount: realAmount,
-          userId: user.id,
+          userId: userId,
         },
       });
     } catch (err) {
@@ -104,13 +104,13 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
     startPolling,
     stopPolling,
   } = useGetSwappedStatusQuery({
-    variables: { userId: user?.id || '' },
-    skip: !user?.id || paymentCompleted,
+    variables: { userId: userId || '' },
+    skip: !userId || paymentCompleted,
     errorPolicy: 'ignore',
   });
 
   useEffect(() => {
-    if (paymentCompleted || !user?.id) return;
+    if (paymentCompleted || !userId) return;
 
     // Start polling after iframe loads
     const startDelay = setTimeout(() => {
@@ -121,7 +121,7 @@ const SwappedInvestment: React.FC<SwappedInvestmentProps> = ({
       clearTimeout(startDelay);
       stopPolling();
     };
-  }, [paymentCompleted, user?.id, startPolling, stopPolling]);
+  }, [paymentCompleted, userId, startPolling, stopPolling]);
 
   useEffect(() => {
     if (!statusData?.getSwappedStatus) return;

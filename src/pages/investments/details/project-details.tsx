@@ -50,7 +50,7 @@ import RejectApplicationForm from '@/pages/programs/details/_components/reject-a
 import RejectMilestoneForm from '@/pages/programs/details/_components/reject-milestone-form';
 import SubmitMilestoneForm from '@/pages/programs/details/_components/submit-milestone-form';
 import { ApplicationStatus, CheckMilestoneStatus, MilestoneStatus } from '@/types/types.generated';
-import { usePrivy } from '@privy-io/react-auth';
+import { useAccount } from 'wagmi';
 import { format } from 'date-fns';
 import * as ethers from 'ethers';
 import {
@@ -81,7 +81,7 @@ function ProjectDetailsPage() {
   const remountKey = () => setMountKey((v) => v + 1);
 
   const { userId, isAdmin, isLoggedIn } = useAuth();
-  const { user: privyUser } = usePrivy();
+  const { address: privyUserWalletAddress } = useAccount();
   const { id, projectId } = useParams();
 
   // Mobile device detection
@@ -609,7 +609,7 @@ function ProjectDetailsPage() {
             return;
           }
 
-          const userAddress = privyUser?.wallet?.address || '';
+          const userAddress = privyUserWalletAddress || '';
 
           if (!userAddress) {
             notify('Please connect your wallet to support', 'error');
@@ -804,7 +804,7 @@ function ProjectDetailsPage() {
             console.error('Error message:', errorMessage);
             console.error('Project ID:', onChainProjectId);
             console.error('Amount:', humanReadableAmount, tokenSymbol);
-            console.error('User:', privyUser?.wallet?.address);
+            console.error('User:', privyUserWalletAddress);
             console.error('===================================');
 
             // Check for common tier-based investment issues
@@ -2637,7 +2637,7 @@ function ProjectDetailsPage() {
         <DialogContent className="p-1">
           <SwappedInvestment
             currencyCode={fiatNetwork.currencyCode}
-            walletAddress={privyUser?.wallet?.address || ''}
+            walletAddress={privyUserWalletAddress || ''}
             amount={selectedTier}
             onSuccess={handleSwappedSuccess}
             onClose={() => setShowSwappedModal(false)}

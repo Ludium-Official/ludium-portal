@@ -2,6 +2,7 @@ import { useLoginV2Mutation } from '@/apollo/mutation/loginV2.generated';
 import { useProfileV2Query } from '@/apollo/queries/profile-v2.generated';
 import type { AuthProps, LoginProps } from '@/types/auth';
 import { UserRoleV2 } from '@/types/types.generated';
+import { useApolloClient } from '@apollo/client';
 import { createContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -29,6 +30,7 @@ const getInitialToken = (): string | null => {
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
+  const apolloClient = useApolloClient();
 
   const [token, setToken] = useState<string | null>(getInitialToken);
   const [email, setEmail] = useState<string | null>();
@@ -68,6 +70,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.removeItem('roles');
 
     setToken(null);
+    setUserId('');
+    setNickname(null);
+    setProfileImage(null);
+    setIsAdmin(null);
+    setIsSuperadmin(null);
+
+    await apolloClient.clearStore();
 
     navigate('/');
   };

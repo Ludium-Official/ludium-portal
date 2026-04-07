@@ -33,7 +33,7 @@ import {
 } from '@mdxeditor/editor';
 import '@mdxeditor/editor/style.css';
 import { useIsMobile } from '@/lib/hooks/use-mobile';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { useEffect, useRef, useState } from 'react';
 
 import './style.css';
@@ -43,11 +43,18 @@ const isProduction = import.meta.env.VITE_VERCEL_ENVIRONMENT === 'mainnet';
 const STORAGE_FOLDER = isProduction ? 'markdown-images' : 'markdown-images-dev';
 
 async function imageUploadHandler(image: File): Promise<string> {
+  if (image.size > 10 * 1024 * 1024) {
+    throw new Error('Image must be under 10MB');
+  }
+
   const timestamp = Date.now();
   const fileName = `${STORAGE_FOLDER}/${timestamp}_${image.name}`;
   const storageRef = ref(storage, fileName);
 
-  await uploadBytes(storageRef, image);
+  await new Promise<void>((resolve, reject) => {
+    const task = uploadBytesResumable(storageRef, image);
+    task.on('state_changed', null, reject, resolve);
+  });
   return await getDownloadURL(storageRef);
 }
 

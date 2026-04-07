@@ -1,4 +1,4 @@
-import type { usePrivy } from '@privy-io/react-auth';
+import type { SendTransactionFn } from './send-transaction';
 import * as ethers from 'ethers';
 import type { Abi, PublicClient } from 'viem';
 import { encodeFunctionData } from 'viem';
@@ -21,14 +21,14 @@ export interface InvestmentContractAddresses {
 
 export class InvestmentContract {
   private addresses: InvestmentContractAddresses;
-  private sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'];
+  private sendTransaction: SendTransactionFn;
   private client: PublicClient;
   private chainId?: number;
   private userAddress?: string;
 
   constructor(
     addresses: InvestmentContractAddresses,
-    sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'],
+    sendTransaction: SendTransactionFn,
     client: PublicClient,
     chainId?: number,
     userAddress?: string,
@@ -113,26 +113,12 @@ export class InvestmentContract {
         ],
       });
 
-      const txResult = await this.sendTransaction(
-        {
-          to: this.addresses.core as `0x${string}`,
-          data,
-          value: BigInt(0),
-          chainId: this.chainId,
-        } as Parameters<typeof this.sendTransaction>[0],
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            transactionInfo: {
-              title: 'Approve Project Application',
-              action: 'Approve',
-            },
-            description: 'Approving project application',
-            successHeader: 'Application Approved!',
-            successDescription: 'The project application has been approved.',
-          },
-        },
-      );
+      const txResult = await this.sendTransaction({
+        to: this.addresses.core as `0x${string}`,
+        data,
+        value: BigInt(0),
+        chainId: this.chainId,
+      });
 
       const receipt = await this.waitForTransaction(txResult.hash);
 
@@ -211,26 +197,12 @@ export class InvestmentContract {
       };
 
       try {
-        txResult = await this.sendTransaction(
-          {
-            to: this.addresses.core as `0x${string}`,
-            data,
-            value: BigInt(0),
-            chainId: this.chainId,
-          } as Parameters<typeof this.sendTransaction>[0],
-          {
-            uiOptions: {
-              showWalletUIs: true,
-              transactionInfo: {
-                title: 'Create Funding Program',
-                action: 'Create',
-              },
-              description: `Creating program: ${params.name}`,
-              successHeader: 'Program Created!',
-              successDescription: 'Funding program has been created successfully.',
-            },
-          },
-        );
+        txResult = await this.sendTransaction({
+          to: this.addresses.core as `0x${string}`,
+          data,
+          value: BigInt(0),
+          chainId: this.chainId,
+        });
 
         receipt = await this.waitForTransaction(txResult.hash as `0x${string}`);
       } catch (sendError) {
@@ -411,27 +383,12 @@ export class InvestmentContract {
 
       let txResult: { hash: string };
       try {
-        txResult = await this.sendTransaction(
-          {
-            to: this.addresses.milestone as `0x${string}`,
-            data,
-            value: BigInt(0),
-            chainId: this.chainId,
-          } as Parameters<typeof this.sendTransaction>[0],
-          {
-            uiOptions: {
-              showWalletUIs: true,
-              transactionInfo: {
-                title: 'Approve Milestone',
-                action: 'Approve',
-              },
-              description: `Approving milestone #${milestoneIndex + 1} for project #${projectId}`,
-              successHeader: 'Milestone Approved!',
-              successDescription:
-                'The milestone has been approved. Now execute the milestone to release funds.',
-            },
-          },
-        );
+        txResult = await this.sendTransaction({
+          to: this.addresses.milestone as `0x${string}`,
+          data,
+          value: BigInt(0),
+          chainId: this.chainId,
+        });
       } catch (sendError) {
         const errorMessage = sendError instanceof Error ? sendError.message : String(sendError);
 
@@ -462,29 +419,12 @@ export class InvestmentContract {
 
       let txResult: { hash: string };
       try {
-        txResult = await this.sendTransaction(
-          {
-            to: this.addresses.core as `0x${string}`,
-            data,
-            value: BigInt(0),
-            chainId: this.chainId,
-          } as Parameters<typeof this.sendTransaction>[0],
-          {
-            uiOptions: {
-              showWalletUIs: true,
-              transactionInfo: {
-                title: 'Release Milestone Funds',
-                action: 'Execute',
-              },
-              description: `Releasing funds for milestone #${
-                milestoneIndex + 1
-              } of project #${projectId}`,
-              successHeader: 'Funds Released!',
-              successDescription:
-                'The milestone funds have been successfully transferred to the project owner.',
-            },
-          },
-        );
+        txResult = await this.sendTransaction({
+          to: this.addresses.core as `0x${string}`,
+          data,
+          value: BigInt(0),
+          chainId: this.chainId,
+        });
       } catch (sendError) {
         const errorMessage = sendError instanceof Error ? sendError.message : String(sendError);
         console.error('Transaction send error:', errorMessage);
@@ -532,40 +472,18 @@ export class InvestmentContract {
         },
       ];
 
-      const displayAmount =
-        params.tokenDecimals !== undefined
-          ? ethers.utils.formatUnits(params.amount, params.tokenDecimals)
-          : ethers.utils.formatUnits(params.amount, 18);
-
       const data = encodeFunctionData({
         abi: ERC20_ABI,
         functionName: 'approve',
         args: [this.addresses.funding, BigInt(params.amount)], // Approve the funding module
       });
 
-      const txResult = await this.sendTransaction(
-        {
-          to: params.tokenAddress as `0x${string}`,
-          data,
-          value: BigInt(0),
-          chainId: this.chainId,
-        } as Parameters<typeof this.sendTransaction>[0],
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            transactionInfo: {
-              title: 'Approve Token',
-              action: 'Approve',
-            },
-            description: `Approve ${displayAmount} ${params.tokenName || 'tokens'} for investment`,
-            buttonText: 'Approve',
-            successHeader: 'Token Approved!',
-            successDescription: `You have approved ${displayAmount} ${
-              params.tokenName || 'tokens'
-            } for investment.`,
-          },
-        },
-      );
+      const txResult = await this.sendTransaction({
+        to: params.tokenAddress as `0x${string}`,
+        data,
+        value: BigInt(0),
+        chainId: this.chainId,
+      });
 
       const receipt = await this.waitForTransaction(txResult.hash);
       return {
@@ -646,13 +564,6 @@ export class InvestmentContract {
 
       const isNative = !params.token || params.token === ethers.constants.AddressZero;
 
-      // Format amount for display
-      const displayAmount =
-        params.tokenDecimals !== undefined
-          ? ethers.utils.formatUnits(params.amount, params.tokenDecimals)
-          : ethers.utils.formatEther(params.amount);
-      const tokenDisplay = params.tokenName || 'native token';
-
       // For ERC20 tokens, check and handle approval
       if (!isNative && params.userAddress && params.token) {
         const allowance = await this.checkTokenAllowance(params.token, params.userAddress);
@@ -705,26 +616,12 @@ export class InvestmentContract {
       console.log('Chain ID:', this.chainId);
       console.log('================================');
 
-      const txResult = await this.sendTransaction(
-        {
-          to: targetAddress as `0x${string}`,
-          data,
-          value,
-          chainId: this.chainId,
-        } as Parameters<typeof this.sendTransaction>[0],
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            transactionInfo: {
-              title: 'Invest in Project',
-              action: 'Invest',
-            },
-            description: `Investing ${displayAmount} ${tokenDisplay} in project #${params.projectId}`,
-            successHeader: 'Funding Successful!',
-            successDescription: 'Your funding has been confirmed.',
-          },
-        },
-      );
+      const txResult = await this.sendTransaction({
+        to: targetAddress as `0x${string}`,
+        data,
+        value,
+        chainId: this.chainId,
+      });
 
       const receipt = await this.waitForTransaction(txResult.hash);
 
@@ -890,26 +787,12 @@ export class InvestmentContract {
       console.log('Target contract (core):', this.addresses.core);
 
       console.log('Sending transaction...');
-      const txResult = await this.sendTransaction(
-        {
-          to: this.addresses.core as `0x${string}`,
-          data,
-          value: BigInt(0),
-          chainId: this.chainId,
-        } as Parameters<typeof this.sendTransaction>[0],
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            transactionInfo: {
-              title: 'Reclaim Funding',
-              action: 'Reclaim',
-            },
-            description: `Reclaiming funds from project #${projectId}`,
-            successHeader: 'Funds Reclaimed!',
-            successDescription: 'Your funding has been returned.',
-          },
-        },
-      );
+      const txResult = await this.sendTransaction({
+        to: this.addresses.core as `0x${string}`,
+        data,
+        value: BigInt(0),
+        chainId: this.chainId,
+      });
       console.log('Transaction sent, hash:', txResult.hash);
 
       const receipt = await this.waitForTransaction(txResult.hash);
@@ -989,26 +872,12 @@ export class InvestmentContract {
         args: [programId],
       });
 
-      const txResult = await this.sendTransaction(
-        {
-          to: this.addresses.core as `0x${string}`,
-          data,
-          value: BigInt(0),
-          chainId: this.chainId,
-        } as Parameters<typeof this.sendTransaction>[0],
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            transactionInfo: {
-              title: 'Claim Program Fees',
-              action: 'Claim',
-            },
-            description: `Claiming fees for program #${programId}`,
-            successHeader: 'Fees Claimed!',
-            successDescription: 'Program fees have been transferred to your wallet.',
-          },
-        },
-      );
+      const txResult = await this.sendTransaction({
+        to: this.addresses.core as `0x${string}`,
+        data,
+        value: BigInt(0),
+        chainId: this.chainId,
+      });
 
       const receipt = await this.waitForTransaction(txResult.hash);
 
@@ -1050,26 +919,12 @@ export class InvestmentContract {
         args: [params.projectId, params.user, params.tierName, BigInt(params.maxInvestment)],
       });
 
-      const txResult = await this.sendTransaction(
-        {
-          to: this.addresses.core as `0x${string}`,
-          data,
-          value: BigInt(0),
-          chainId: this.chainId,
-        } as Parameters<typeof this.sendTransaction>[0],
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            transactionInfo: {
-              title: 'Assign User Tier',
-              action: 'Assign',
-            },
-            description: `Assigning ${params.tierName} tier to user for project #${params.projectId}`,
-            successHeader: 'Tier Assigned!',
-            successDescription: 'User tier has been assigned successfully.',
-          },
-        },
-      );
+      const txResult = await this.sendTransaction({
+        to: this.addresses.core as `0x${string}`,
+        data,
+        value: BigInt(0),
+        chainId: this.chainId,
+      });
 
       const receipt = await this.waitForTransaction(txResult.hash);
       return {
@@ -1094,26 +949,12 @@ export class InvestmentContract {
         args: [params.programId, params.user, params.tierName, BigInt(params.maxInvestment)],
       });
 
-      const txResult = await this.sendTransaction(
-        {
-          to: this.addresses.core as `0x${string}`,
-          data,
-          value: BigInt(0),
-          chainId: this.chainId,
-        } as Parameters<typeof this.sendTransaction>[0],
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            transactionInfo: {
-              title: 'Assign User Tier to Program',
-              action: 'Assign',
-            },
-            description: `Assigning ${params.tierName} tier to user for program #${params.programId}`,
-            successHeader: 'Tier Assigned!',
-            successDescription: 'User tier has been assigned to the program successfully.',
-          },
-        },
-      );
+      const txResult = await this.sendTransaction({
+        to: this.addresses.core as `0x${string}`,
+        data,
+        value: BigInt(0),
+        chainId: this.chainId,
+      });
 
       const receipt = await this.waitForTransaction(txResult.hash);
       return {
@@ -1155,26 +996,12 @@ export class InvestmentContract {
         ],
       });
 
-      const txResult = await this.sendTransaction(
-        {
-          to: this.addresses.core as `0x${string}`,
-          data,
-          value: BigInt(0),
-          chainId: this.chainId,
-        } as Parameters<typeof this.sendTransaction>[0],
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            transactionInfo: {
-              title: 'Submit Project Application',
-              action: 'Submit',
-            },
-            description: `Applying to program with project: ${params.projectName}`,
-            successHeader: 'Application Submitted!',
-            successDescription: 'Your project application has been submitted.',
-          },
-        },
-      );
+      const txResult = await this.sendTransaction({
+        to: this.addresses.core as `0x${string}`,
+        data,
+        value: BigInt(0),
+        chainId: this.chainId,
+      });
 
       const receipt = await this.waitForTransaction(txResult.hash);
 
@@ -1412,26 +1239,12 @@ export class InvestmentContract {
         args: [programId],
       });
 
-      const txResult = await this.sendTransaction(
-        {
-          to: this.addresses.core as `0x${string}`,
-          data,
-          value: BigInt(0),
-          chainId: this.chainId,
-        } as Parameters<typeof this.sendTransaction>[0],
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            transactionInfo: {
-              title: 'Update Program Status',
-              action: 'Update',
-            },
-            description: `Updating status for program #${programId}`,
-            successHeader: 'Status Updated!',
-            successDescription: 'The program status has been updated.',
-          },
-        },
-      );
+      const txResult = await this.sendTransaction({
+        to: this.addresses.core as `0x${string}`,
+        data,
+        value: BigInt(0),
+        chainId: this.chainId,
+      });
 
       await this.waitForTransaction(txResult.hash);
 
@@ -1674,26 +1487,12 @@ export class InvestmentContract {
         args: [params.programId, params.user as `0x${string}`, params.tierName, maxInvestmentWei],
       });
 
-      const txResult = await this.sendTransaction(
-        {
-          to: this.addresses.core as `0x${string}`,
-          data,
-          value: BigInt(0),
-          chainId: this.chainId,
-        } as Parameters<typeof this.sendTransaction>[0],
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            transactionInfo: {
-              title: 'Sync Tier Assignment',
-              action: 'Sync',
-            },
-            description: `Syncing ${params.tierName} tier for user`,
-            successHeader: 'Tier Synced!',
-            successDescription: 'Your tier has been synced on-chain.',
-          },
-        },
-      );
+      const txResult = await this.sendTransaction({
+        to: this.addresses.core as `0x${string}`,
+        data,
+        value: BigInt(0),
+        chainId: this.chainId,
+      });
 
       await this.waitForTransaction(txResult.hash);
 

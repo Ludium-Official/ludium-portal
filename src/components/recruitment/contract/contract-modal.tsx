@@ -21,7 +21,7 @@ import {
   MilestoneStatusV2,
   OnchainContractStatusV2,
 } from '@/types/types.generated';
-import { usePrivy } from '@privy-io/react-auth';
+import { useAccount } from 'wagmi';
 import { ethers } from 'ethers';
 import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
@@ -44,7 +44,7 @@ export function ContractModal({
   readOnly = false,
   isChatBox = false,
 }: ContractModalProps) {
-  const { user } = usePrivy();
+  const { address } = useAccount();
   const { userId } = useAuth();
   const { networks: networksWithTokens, getContractByNetworkId } = useNetworks();
   const isMobile = useIsMobile();
@@ -193,27 +193,27 @@ export function ContractModal({
   const handleAddSignature = async () => {
     setIsSigningMessage(true);
 
-    if (onchainProgramId === null) {
-      notify('Onchain program ID not found', 'error');
-      return;
-    }
-
-    if (!userId || !applicationInfo.applicant?.walletAddress) {
-      notify('Missing user information', 'error');
-      return;
-    }
-
-    if (!currentContract?.address) {
-      notify('Contract address is not configured for this network', 'error');
-      return;
-    }
-
-    if (!currentContract?.id || !programInfo.sponsor?.id) {
-      notify('Missing contract or sponsor information', 'error');
-      return;
-    }
-
     try {
+      if (onchainProgramId === null) {
+        notify('Onchain program ID not found', 'error');
+        return;
+      }
+
+      if (!userId || !applicationInfo.applicant?.walletAddress) {
+        notify('Missing user information', 'error');
+        return;
+      }
+
+      if (!currentContract?.address) {
+        notify('Contract address is not configured for this network', 'error');
+        return;
+      }
+
+      if (!currentContract?.id || !programInfo.sponsor?.id) {
+        notify('Missing contract or sponsor information', 'error');
+        return;
+      }
+
       const signature = await contract.createBuilderSignature(
         Number(onchainProgramId),
         applicationInfo.applicant?.walletAddress as `0x${string}`,
@@ -258,22 +258,22 @@ export function ContractModal({
   const handleSubmit = async () => {
     setIsSigningMessage(true);
 
-    if (onchainProgramId === null) {
-      notify('Onchain program ID not found', 'error');
-      return;
-    }
-
-    if (!userId || !applicationInfo.applicant?.id || !programInfo.sponsor?.id) {
-      notify('Missing user information', 'error');
-      return;
-    }
-
-    if (!currentContract?.id) {
-      notify('Contract address is not configured for this network', 'error');
-      return;
-    }
-
     try {
+      if (onchainProgramId === null) {
+        notify('Onchain program ID not found', 'error');
+        return;
+      }
+
+      if (!userId || !applicationInfo.applicant?.id || !programInfo.sponsor?.id) {
+        notify('Missing user information', 'error');
+        return;
+      }
+
+      if (!currentContract?.id) {
+        notify('Contract address is not configured for this network', 'error');
+        return;
+      }
+
       const contractSnapshotHash = await crypto.subtle
         .digest('SHA-256', new TextEncoder().encode(JSON.stringify(contractJson)))
         .then((hashBuffer) => {
@@ -285,7 +285,7 @@ export function ContractModal({
       const tokenAddress = tokenInfo?.tokenAddress;
       const tokenName = tokenInfo?.tokenName;
       const tokenDecimals = tokenInfo?.decimals ?? decimals;
-      const userWalletAddress = user?.wallet?.address;
+      const userWalletAddress = address;
 
       let txResult: {
         txHash: `0x${string}`;

@@ -1,32 +1,22 @@
-import type { usePrivy } from '@privy-io/react-auth';
-import type { ConnectedWallet } from '@privy-io/react-auth';
+import type { SendTransactionFn } from './send-transaction';
 import { ethers } from 'ethers';
 import { type PublicClient, encodeFunctionData } from 'viem';
-import type { Chain } from 'viem';
 import ERC20Abi from './abi/ERC20';
 import LdRecruitmentAbi from './abi/LdRecruitment';
 
 class RecruitmentContract {
   private contractAddress: string;
   private chainId: number;
-  private sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'];
+  private sendTransaction: SendTransactionFn;
   private client: PublicClient;
-  private signMessage?: (
-    message: string | Uint8Array,
-    wallet?: ConnectedWallet,
-    chain?: Chain,
-  ) => Promise<string>;
+  private signMessage?: (message: string | Uint8Array) => Promise<string>;
 
   constructor(
     contractAddress: string,
     chainId: number,
-    sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'],
+    sendTransaction: SendTransactionFn,
     client: PublicClient,
-    signMessage?: (
-      message: string | Uint8Array,
-      wallet?: ConnectedWallet,
-      chain?: Chain,
-    ) => Promise<string>,
+    signMessage?: (message: string | Uint8Array) => Promise<string>,
   ) {
     this.contractAddress = contractAddress;
     this.chainId = chainId;
@@ -43,26 +33,11 @@ class RecruitmentContract {
         args: [token, durationDays],
       });
 
-      const tx = await this.sendTransaction(
-        {
-          to: this.contractAddress,
-          data,
-          chainId: this.chainId,
-        },
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            description: `Create Program`,
-            buttonText: 'Submit Transaction',
-            transactionInfo: {
-              title: 'Transaction Details',
-              action: 'Create Program',
-            },
-            successHeader: 'Program Created Successfully!',
-            successDescription: 'Your program has been created and is now live.',
-          },
-        },
-      );
+      const tx = await this.sendTransaction({
+        to: this.contractAddress as `0x${string}`,
+        data,
+        chainId: this.chainId,
+      });
 
       const receiptResult = await this.findReceipt(
         tx.hash,
@@ -226,27 +201,12 @@ class RecruitmentContract {
         ],
       });
 
-      const tx = await this.sendTransaction(
-        {
-          to: this.contractAddress,
-          data,
-          value: isNativeToken ? totalDeposit : 0n,
-          chainId: this.chainId,
-        },
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            description: `Create Contract`,
-            buttonText: 'Submit Transaction',
-            transactionInfo: {
-              title: 'Transaction Details',
-              action: 'Create Contract',
-            },
-            successHeader: 'Contract Created Successfully!',
-            successDescription: 'Your contract has been created.',
-          },
-        },
-      );
+      const tx = await this.sendTransaction({
+        to: this.contractAddress as `0x${string}`,
+        data,
+        value: isNativeToken ? totalDeposit : 0n,
+        chainId: this.chainId,
+      });
 
       const receiptResult = await this.findReceipt(
         tx.hash,
@@ -332,27 +292,12 @@ class RecruitmentContract {
         ],
       });
 
-      const tx = await this.sendTransaction(
-        {
-          to: this.contractAddress,
-          data,
-          value: isNativeToken ? totalDeposit : 0n,
-          chainId: this.chainId,
-        },
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            description: `Update Contract`,
-            buttonText: 'Submit Transaction',
-            transactionInfo: {
-              title: 'Transaction Details',
-              action: 'Update Contract',
-            },
-            successHeader: 'Contract Updated Successfully!',
-            successDescription: 'Your contract has been updated.',
-          },
-        },
-      );
+      const tx = await this.sendTransaction({
+        to: this.contractAddress as `0x${string}`,
+        data,
+        value: isNativeToken ? totalDeposit : 0n,
+        chainId: this.chainId,
+      });
 
       await this.client.waitForTransactionReceipt({
         hash: tx.hash,
@@ -480,8 +425,8 @@ class RecruitmentContract {
   async approveToken(
     tokenAddress: `0x${string}`,
     amount: bigint,
-    tokenName?: string,
-    tokenDecimals?: number,
+    _tokenName?: string,
+    _tokenDecimals?: number,
   ) {
     const data = encodeFunctionData({
       abi: ERC20Abi,
@@ -489,33 +434,11 @@ class RecruitmentContract {
       args: [this.contractAddress, amount],
     });
 
-    const displayAmount =
-      tokenDecimals !== undefined
-        ? ethers.utils.formatUnits(amount, tokenDecimals)
-        : ethers.utils.formatUnits(amount, 18);
-
-    const tx = await this.sendTransaction(
-      {
-        to: tokenAddress,
-        data,
-        chainId: this.chainId,
-      },
-      {
-        uiOptions: {
-          showWalletUIs: true,
-          description: `Approve ${displayAmount} ${tokenName || 'tokens'} for use in the contract.`,
-          buttonText: 'Approve Token',
-          transactionInfo: {
-            title: 'Approve Token',
-            action: 'Grant Permission',
-          },
-          successHeader: 'Token Approved Successfully!',
-          successDescription: `You have successfully approved ${displayAmount} ${
-            tokenName || 'tokens'
-          } for use in the contract.`,
-        },
-      },
-    );
+    const tx = await this.sendTransaction({
+      to: tokenAddress,
+      data,
+      chainId: this.chainId,
+    });
 
     await this.client.waitForTransactionReceipt({
       hash: tx.hash,
@@ -532,27 +455,12 @@ class RecruitmentContract {
         args: [BigInt(contractId), amount],
       });
 
-      const tx = await this.sendTransaction(
-        {
-          to: this.contractAddress,
-          data,
-          value: 0n,
-          chainId: this.chainId,
-        },
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            description: `Complete Milestone`,
-            buttonText: 'Submit Transaction',
-            transactionInfo: {
-              title: 'Transaction Details',
-              action: 'Complete Milestone',
-            },
-            successHeader: 'Milestone Completed Successfully!',
-            successDescription: 'The milestone has been completed.',
-          },
-        },
-      );
+      const tx = await this.sendTransaction({
+        to: this.contractAddress as `0x${string}`,
+        data,
+        value: 0n,
+        chainId: this.chainId,
+      });
 
       await this.client.waitForTransactionReceipt({
         hash: tx.hash,
@@ -573,27 +481,12 @@ class RecruitmentContract {
         args: [BigInt(programId)],
       });
 
-      const tx = await this.sendTransaction(
-        {
-          to: this.contractAddress,
-          data,
-          value: 0n,
-          chainId: this.chainId,
-        },
-        {
-          uiOptions: {
-            showWalletUIs: true,
-            description: `Complete Program`,
-            buttonText: 'Submit Transaction',
-            transactionInfo: {
-              title: 'Transaction Details',
-              action: 'Complete Program',
-            },
-            successHeader: 'Program Completed Successfully!',
-            successDescription: 'The program has been completed.',
-          },
-        },
-      );
+      const tx = await this.sendTransaction({
+        to: this.contractAddress as `0x${string}`,
+        data,
+        value: 0n,
+        chainId: this.chainId,
+      });
 
       await this.client.waitForTransactionReceipt({
         hash: tx.hash,

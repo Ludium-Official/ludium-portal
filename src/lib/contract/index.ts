@@ -1,7 +1,7 @@
 import LdRecruitmentAbi from '@/lib/contract/abi/LdRecruitment';
 import contractJson from '@/lib/contract/contract.json';
 import type { User } from '@/types/types.generated';
-import type { usePrivy } from '@privy-io/react-auth';
+import type { SendTransactionFn } from './send-transaction';
 import { ethers } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 import type { PublicClient } from 'viem';
@@ -41,13 +41,13 @@ const ERC20_ABI = [
 class ChainContract {
   private contractAddress: string;
   private chainId: number;
-  private sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'];
+  private sendTransaction: SendTransactionFn;
   private client: PublicClient;
 
   constructor(
     contractAddress: string,
     chainId: number,
-    sendTransaction: ReturnType<typeof usePrivy>['sendTransaction'],
+    sendTransaction: SendTransactionFn,
     client: PublicClient,
   ) {
     this.contractAddress = contractAddress;

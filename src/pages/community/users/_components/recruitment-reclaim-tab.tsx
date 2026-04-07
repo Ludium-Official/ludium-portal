@@ -8,12 +8,12 @@ import ChainContract from '@/lib/contract';
 import notify from '@/lib/notify';
 import { getCurrencyIcon } from '@/lib/utils';
 import { ProgramType } from '@/types/types.generated';
-import { usePrivy, useWallets } from '@privy-io/react-auth';
-import { ethers } from 'ethers';
+import { getFeeParams, type SendTransactionFn } from '@/lib/contract/send-transaction';
+import { useAccount, useSendTransaction, useSwitchChain } from 'wagmi';
 import { Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
-import type { Chain, PublicClient } from 'viem';
+import type { PublicClient } from 'viem';
 import { http, createPublicClient } from 'viem';
 import {
   arbitrum,
@@ -270,105 +270,21 @@ export default function UserRecruitmentReclaimTab({
   const [reclaimMilestone] = useReclaimMilestoneMutation();
   const [reclaimingId, setReclaimingId] = useState<string | null>(null);
 
-  // Get Privy hooks for contract creation
-  const { user, sendTransaction } = usePrivy();
-  const { wallets } = useWallets();
+  const { address } = useAccount();
+  const { sendTransactionAsync } = useSendTransaction();
+  const { switchChainAsync } = useSwitchChain();
 
   // Helper function to create contract with specific network
   const createContractForNetwork = (network: string) => {
-    const currentWallet = wallets.find((wallet) => wallet.address === user?.wallet?.address);
-    // Check if the user is using an external wallet (like MetaMask)
-    const isExternalWallet =
-      user?.wallet?.connectorType && user.wallet.connectorType !== 'embedded';
-
-    let sendTx = sendTransaction;
-
-    const checkNetwork: Chain = (() => {
-      if (network === 'base') {
-        return base;
-      }
-      if (network === 'base-sepolia') {
-        return baseSepolia;
-      }
-      if (network === 'educhain-testnet') {
-        return eduChainTestnet;
-      }
-      if (network === 'arbitrum') {
-        return arbitrum;
-      }
-      if (network === 'arbitrum-sepolia') {
-        return arbitrumSepolia;
-      }
-      if (network === 'creditcoin') {
-        return creditCoin3Mainnet;
-      }
-      return eduChain;
-    })();
-
-    // Helper function to get signer for injected wallet
-    async function getSigner(
-      checkNetwork: Chain,
-      currentWallet: {
-        getEthereumProvider: () => Promise<ethers.providers.ExternalProvider>;
-      },
-    ) {
-      const eip1193Provider = await currentWallet.getEthereumProvider();
-      if (!eip1193Provider) {
-        throw new Error('No Ethereum provider found');
-      }
-      const provider = new ethers.providers.Web3Provider(eip1193Provider);
-
-      const targetNetwork = {
-        chainId: `0x${checkNetwork.id.toString(16)}`,
-        chainName: checkNetwork.name,
-        rpcUrls: checkNetwork.rpcUrls.default.http,
-        nativeCurrency: checkNetwork.nativeCurrency,
-      };
-
-      if ('request' in eip1193Provider && typeof eip1193Provider.request === 'function') {
-        const currentChainId = await eip1193Provider.request({
-          method: 'eth_chainId',
-        });
-
-        if (currentChainId !== targetNetwork.chainId) {
-          await eip1193Provider.request({
-            method: 'wallet_addEthereumChain',
-            params: [targetNetwork],
-          });
-        }
-      }
-
-      return provider.getSigner();
-    }
-
-    if (isExternalWallet && currentWallet) {
-      console.log('Using external wallet for reclaim transaction:', currentWallet.address);
-      sendTx = async (input: Parameters<typeof sendTransaction>[0], _uiOptions?: unknown) => {
-        // Note: _uiOptions is ignored for external wallets since they use their own UI
-        try {
-          console.log('Sending reclaim transaction with external wallet...', input);
-          const signer = await getSigner(checkNetwork, currentWallet);
-          const txResponse = await signer.sendTransaction(input);
-          console.log('Reclaim transaction sent successfully:', txResponse.hash);
-          return { hash: txResponse.hash as `0x${string}` };
-        } catch (error) {
-          console.error('Error sending reclaim transaction with external wallet:', error);
-          throw error;
-        }
-      };
-    } else if (isExternalWallet && !currentWallet) {
-      console.warn('User has an external wallet but no active wallet found for reclaim.');
-      sendTx = async () => {
-        throw new Error(
-          'External wallet detected but not properly connected. Please reconnect your wallet.',
-        );
-      };
-    } else if (!user?.wallet) {
-      sendTx = async () => {
-        throw new Error('No wallet connected. Please connect a wallet to continue.');
-      };
-    } else {
-    }
+    const chainMap = {
+      base,
+      'base-sepolia': baseSepolia,
+      'educhain-testnet': eduChainTestnet,
+      arbitrum,
+      'arbitrum-sepolia': arbitrumSepolia,
+      creditcoin: creditCoin3Mainnet,
+    };
+    const checkNetwork = chainMap[network as keyof typeof chainMap] ?? eduChain;
 
     const checkContract = (() => {
       if (network === 'base' || network === 'base-sepolia') {
@@ -384,6 +300,19 @@ export default function UserRecruitmentReclaimTab({
       chain: checkNetwork,
       transport: http(checkNetwork.rpcUrls.default.http[0]),
     });
+
+    const sendTx: SendTransactionFn = async (input) => {
+      if (!address) throw new Error('No wallet connected. Please connect a wallet to continue.');
+      if (input.chainId) {
+        await switchChainAsync({ chainId: input.chainId });
+      }
+      const feeParams = await getFeeParams(client);
+      const hash = await sendTransactionAsync({
+        ...(input as Parameters<typeof sendTransactionAsync>[0]),
+        ...feeParams,
+      });
+      return { hash: hash as `0x${string}` };
+    };
 
     return new ChainContract(checkContract, checkNetwork.id, sendTx, client);
   };
