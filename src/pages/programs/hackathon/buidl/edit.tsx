@@ -53,7 +53,10 @@ interface MemberUser {
 }
 
 function HackathonBuidlEditPage() {
-  const { id: hackathonId, buidlId } = useParams<{ id: string; buidlId: string }>();
+  const { id: hackathonId, buidlId } = useParams<{
+    id: string;
+    buidlId: string;
+  }>();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const location = useLocation();
@@ -93,7 +96,11 @@ function HackathonBuidlEditPage() {
       )
       .map(
         (b: {
-          user: { id?: string | null; nickname?: string | null; profileImage?: string | null };
+          user: {
+            id?: string | null;
+            nickname?: string | null;
+            profileImage?: string | null;
+          };
         }) => ({
           id: b.user.id ?? '',
           displayName: getUserDisplayName(b.user.nickname, undefined),
@@ -130,7 +137,7 @@ function HackathonBuidlEditPage() {
     variables: { hackathonId: hackathonId ?? '' },
     skip: !hackathonId,
   });
-  const sponsors = sponsorsData?.hackathonSponsors?.filter((s) => !s.isRequired) ?? [];
+  const sponsors = sponsorsData?.hackathonSponsors ?? [];
 
   const sponsorOptions = useMemo(
     () =>
@@ -157,7 +164,9 @@ function HackathonBuidlEditPage() {
   useEffect(() => {
     if (!memberSearch.trim()) return;
     const timer = setTimeout(() => {
-      searchUsers({ variables: { query: { search: memberSearch, limit: 10 } } });
+      searchUsers({
+        variables: { query: { search: memberSearch, limit: 10 } },
+      });
     }, 300);
     return () => clearTimeout(timer);
   }, [memberSearch, searchUsers]);
