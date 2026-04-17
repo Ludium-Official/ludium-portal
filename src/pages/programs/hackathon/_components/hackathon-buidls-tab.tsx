@@ -41,11 +41,16 @@ function HackathonBuidlsTab({ hackathonId }: HackathonBuidlsTabProps) {
     variables: { hackathonId },
   });
 
-  const sponsors = sponsorsData?.hackathonSponsors?.filter((s) => !s.isRequired) ?? [];
+  const sponsors = sponsorsData?.hackathonSponsors ?? [];
   const selectedSponsor = sponsors.find((s) => s.id === sponsorId);
 
   const { data, loading, fetchMore } = useHackathonBuidlsQuery({
-    variables: { hackathonId, page: 1, limit: PAGE_LIMIT, search: debouncedSearch || undefined },
+    variables: {
+      hackathonId,
+      page: 1,
+      limit: PAGE_LIMIT,
+      search: debouncedSearch || undefined,
+    },
   });
 
   const paginated = data?.hackathonBuidls;
